@@ -74,7 +74,9 @@ public class List extends XmlService{
     			projectElement.setAttribute("comment", comment);
     			projectElement.setAttribute("version", version);
     			projectElement.setAttribute("exported", exported);
+    			projectElement.setAttribute("exportedTs", "" + project.getExportTime());
     			projectElement.setAttribute("deployDate", deployDate);
+    			projectElement.setAttribute("deployDateTs", "" + file.lastModified());
     			
     			if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
     				projectElement.setAttribute("undefined_symbols", "true");

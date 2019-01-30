@@ -71,6 +71,7 @@ public class Supervision extends TextService {
 					if (statement != null) {
 						statement.close();
 					}
+					sqlRequester.close();
 				}
 				bCacheDatabase = true;
 			}

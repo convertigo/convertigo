@@ -22,11 +22,14 @@ package com.twinsoft.convertigo.beans.connectors;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FullSyncAnonymousReplication;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncContext;
 
 public class FullSyncConnector extends CouchDbConnector {
 	private static final long serialVersionUID = 4063707392313093177L;
+	
+	private FullSyncAnonymousReplication anonymousReplication = FullSyncAnonymousReplication.allow; 
 	
 	@Override
 	public CouchClient getCouchClient() {
@@ -59,6 +62,14 @@ public class FullSyncConnector extends CouchDbConnector {
 	@Override
 	public void afterTransactionInvoke() {
 		FullSyncContext.unset();
+	}
+
+	public FullSyncAnonymousReplication getAnonymousReplication() {
+		return anonymousReplication;
+	}
+
+	public void setAnonymousReplication(FullSyncAnonymousReplication anonymousReplication) {
+		this.anonymousReplication = anonymousReplication;
 	}
 		
 }

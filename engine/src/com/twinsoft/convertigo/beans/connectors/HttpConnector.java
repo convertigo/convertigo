@@ -241,21 +241,25 @@ public class HttpConnector extends Connector {
 	}
 
 	public void setBaseUrl(String httpUrl) {
-		if ((httpUrl != null) && (!httpUrl.equals(""))) {
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(httpUrl)) {
 			sUrl = httpUrl;
-		} else
+		} else {
 			setBaseUrl();
+	}
 	}
 
 	public void setBaseUrl() {
 		sUrl = "http";
 
-		if (https)
+		if (https) {
 			sUrl += "s";
+		}
 
 		sUrl += "://" + server;
-		if ((https && (port != 443)) || (!https && (port != 80)))
+		
+		if ((https && (port != 443)) || (!https && (port != 80))) {
 			sUrl += ":" + port;
+		}
 		sUrl += baseDir;
 	}
 
@@ -428,9 +432,9 @@ public class HttpConnector extends Connector {
 
 		// Sets or overwrites server url
 		String httpUrl = httpTransaction.getParameterStringValue(Parameter.ConnectorConnectionString.getName());
-		if (httpUrl != null)
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(httpUrl)) {
 			setBaseUrl(httpUrl);
-		else
+		} else {
 			setBaseUrl();
 
 		String transactionBaseDir = httpTransaction.getCurrentSubDir();
@@ -439,8 +443,10 @@ public class HttpConnector extends Connector {
 			/*
 			 * if (transactionBaseDir.startsWith("https")) setHttps(true);
 			 */
-		} else
+			} else {
 			sUrl += transactionBaseDir;
+			}
+		}
 
 		// Setup the SSL properties if needed
 		if (https) {

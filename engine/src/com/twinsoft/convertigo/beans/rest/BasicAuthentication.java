@@ -64,17 +64,25 @@ public class BasicAuthentication extends UrlAuthentication {
 		String transactionName = count == 3 ? st.nextToken():"";
 		String contextName = request.getParameter(Parameter.Context.getName());
 		
-		
 		try {
 			String authorization = request.getHeader(HeaderName.Authorization.value());
 			if (authorization != null) {
-				Engine.logEngine.debug("Authorization header found : " + authorization);
+				Engine.logEngine.debug("(BasicAuthentication) Authorization header found: " + authorization);
 				
 				// Retrieve credentials
 				String credentials = authorization.split("\\s")[1];
 				String[] decoded = Base64.decodeToString(credentials).split(":");
 				String user = decoded.length > 0 ? decoded[0]:null;
 				String password = decoded.length > 1 ? decoded[1]:null;
+				
+				// Check user is authenticated with same credentials
+				String authenticatedUser = SessionAttribute.authenticatedUser.string(request.getSession());
+				if (authenticatedUser != null && authenticatedUser.equals(user)) {
+					if (authorization.equals(request.getSession().getAttribute("basic-authorization"))) {
+						Engine.logEngine.debug("(BasicAuthentication) User already authenticated");
+						return null;
+					}
+				}
 				
 				// Prepare Auth requestable
 				Map<String, Object> map = new HashMap<String, Object>();
@@ -95,7 +103,7 @@ public class BasicAuthentication extends UrlAuthentication {
 				}
 				
 				// Execute Auth requestable
-				Engine.logBeans.debug("(AbstractRestOperation) \""+ getName() +"\" executing requestable \""+ authRequestableQName +"\"");
+				Engine.logBeans.debug("(BasicAuthentication) Executing requestable \""+ authRequestableQName +"\"");
 	        	InternalRequester internalRequester = new InternalRequester(map, request);
 				request.setAttribute("convertigo.requester", internalRequester);
 	    		internalRequester.processRequest();
@@ -108,8 +116,12 @@ public class BasicAuthentication extends UrlAuthentication {
 	    				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 	    			}
 	    		}
+	    		// Store Authorization
+	    		else {
+	    			request.getSession().setAttribute("basic-authorization", authorization);
+	    		}
 			} else {
-				Engine.logEngine.debug("Authorization header NOT found.");
+				Engine.logEngine.debug("(BasicAuthentication) Authorization header NOT found.");
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.setHeader(HeaderName.Authenticate.value(), "Basic realm=\""+ projectName +" access\"");
 			}

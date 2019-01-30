@@ -632,6 +632,17 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 	
 	@Override
+	protected void initializeConnector(Context context) throws EngineException {
+		// Initialize connector if transaction is not considered as a void transaction
+		String value = getParameterStringValue(Parameter.VoidTransaction.getName());
+		if (!"true".equals(value)) {
+			super.initializeConnector(context);
+		} else {
+			Engine.logBeans.debug("(TransactionWithVariables) Connector won't be initialized");
+		}
+	}
+
+	@Override
     protected void insertObjectsInScope() throws EngineException {
     	super.insertObjectsInScope();
     	

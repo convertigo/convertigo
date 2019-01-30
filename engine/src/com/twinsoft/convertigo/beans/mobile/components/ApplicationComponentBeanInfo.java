@@ -38,7 +38,7 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 
 			properties[0] = new PropertyDescriptor("componentScriptContent", beanClass, "getComponentScriptContent", "setComponentScriptContent");
 			properties[0].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
@@ -59,6 +59,10 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			properties[3].setDisplayName(getExternalizedString("property.splitPaneLayout.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.splitPaneLayout.short_description"));
 			properties[3].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			
+			properties[4] = new PropertyDescriptor("isPWA", beanClass, "isPWA", "setPWA");
+			properties[4].setDisplayName(getExternalizedString("property.isPWA.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.isPWA.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

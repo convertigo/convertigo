@@ -38,6 +38,7 @@ public enum MimeType {
 	TextJson ("text/json", new String[]{"json"}),
 	TextXml ("text/xml", new String[]{"xml"}),
 	Plain ("text/plain", new String[]{"txt","text","conf","def","list","log","in"}),
+	MultiPartRelated ("multipart/related", new String[]{}),
 	VOID ("", new String[]{""}),
 	
 	WwwForm ("application/x-www-form-urlencoded", null),

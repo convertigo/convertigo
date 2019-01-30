@@ -25,6 +25,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +46,8 @@ public abstract class Biller extends AbstractBiller {
 	
 	private static final Thread thread;
 	private static final BlockingQueue<Biller> queue;
-	
+	private static Map<String, Properties> costMap = new HashMap<>();
+
 	static {
 		queue = new LinkedBlockingQueue<Biller>();
 		thread = new Thread(new Runnable() {
@@ -63,6 +67,7 @@ public abstract class Biller extends AbstractBiller {
 						Engine.logBillers.warn("(Biller) Something wrong with a billing insertion", t);
 					}
 				}
+				costMap.clear();
 			}
 			
 		});
@@ -81,13 +86,31 @@ public abstract class Biller extends AbstractBiller {
 	 * @exception SQLException if unable to create the connection to the database.
 	 */
 	public Biller() throws IOException {
-		sqlRequester = new SqlRequester("/biller.properties");
+		sqlRequester = getBillerRequester();
 	}
 
 	protected abstract double getCost(Context context, Object data);
 	protected abstract String getService(Context context, Object data);
 	protected abstract String getModule(Context context, Object data);
 	protected abstract String getDataKey(Context context, Object data);
+	
+	private static SqlRequester billerRequester;
+	private static SqlRequester getBillerRequester() throws IOException {
+		if (billerRequester == null) {
+			billerRequester = new SqlRequester("/biller.properties");
+		}
+		return billerRequester;
+	}
+	
+	protected Properties getCostProperties(String projectName) {
+		return costMap.get(projectName);
+	}
+	
+	protected void setCostProperties(String projectName, Properties p) {
+		if (!projectName.isEmpty() && p != null) {
+			costMap.put(projectName, p);
+		}
+	}
 	
 	public void insertBilling(Context context) throws EngineException {
 		try {
@@ -115,7 +138,7 @@ public abstract class Biller extends AbstractBiller {
 		String sSqlRequest = null;
 		try {
 			Engine.logBillers.debug("[Biller] Trying to insert the billing into a VIC database ");
-			sqlRequester.open();
+			sqlRequester.checkConnection();
 
 			CertificateManager certificateManager = ((HttpConnector) context.getConnector()).certificateManager;
 			if (!certificateManager.storeInformationCollected) {
@@ -198,9 +221,6 @@ public abstract class Biller extends AbstractBiller {
 		catch(Exception e) {
 			Engine.logBillers.error("[Biller] Unable to insert the billing", e);
 		}
-		finally {
-			sqlRequester.close();
-		}
 	}
 
 	public void insertCariocaBilling(Context context) throws EngineException {
@@ -211,8 +231,8 @@ public abstract class Biller extends AbstractBiller {
 		String sSqlRequest = null;
 		try {
 			Engine.logBillers.debug("[Biller] Trying to insert the billing into a Carioca database ");
-			sqlRequester.open();
-						
+			sqlRequester.checkConnection();
+			
 			int cache = 0;
 			double cost = getCost(context, data);
 			if (cost == -1) {
@@ -308,9 +328,6 @@ public abstract class Biller extends AbstractBiller {
 		}
 		catch(Exception e) {
 			Engine.logBillers.error("[Biller] Unable to insert the billing", e);
-		}
-		finally {
-			sqlRequester.close();			
 		}
 	}
 }

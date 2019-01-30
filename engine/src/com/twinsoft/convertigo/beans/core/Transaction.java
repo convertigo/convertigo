@@ -156,9 +156,13 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 
 	}
 	
+	protected void initializeConnector(Context context) throws EngineException {
+		((Connector) parent).prepareForTransaction(context);
+	}
+	
     public void prepareForRequestable(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
         
-    	((Connector) parent).prepareForTransaction(context);
+    	initializeConnector(context);
 
 		if ((handlers != null) && (handlers.length() > 0)) {
 			Engine.logBeans.trace("(Transaction) Loading handlers:\n" + handlers);

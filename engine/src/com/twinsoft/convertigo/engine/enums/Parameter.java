@@ -52,6 +52,7 @@ public enum Parameter {
 	Supervision("__supervision"),
 	Testcase("__testcase"),
 	Transaction("__transaction"),
+	VoidTransaction("_void__transaction"),
 	MotherSequenceContext("__motherContext"),
 	UserReference("__user_reference"),
 	UIid("__uid"),

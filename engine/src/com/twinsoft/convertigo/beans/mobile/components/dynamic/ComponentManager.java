@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -74,12 +73,11 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
-import com.twinsoft.convertigo.engine.util.WeakValueTreeMap;
 
 public class ComponentManager {
 	private static ComponentManager instance = new ComponentManager();
 	
-	private SortedMap<String, IonProperty> pCache = new WeakValueTreeMap<>();
+	private SortedMap<String, IonProperty> pCache = new TreeMap<>();
 	private SortedMap<String, IonBean> bCache = new TreeMap<>();
 	private Map<String, String> aCache = new WeakValueHashMap<>();
 	
@@ -93,7 +91,7 @@ public class ComponentManager {
 		loadModels();
 	}
 	
-	private void loadModels() {
+	private synchronized void loadModels() {
 		clear();
 		
 		if (Engine.isStarted) {
@@ -190,12 +188,17 @@ public class ComponentManager {
 									}
 									else {
 										// This is model property (available for all beans)
-										IonProperty original = pCache.get(pkey);
+										final IonProperty original = pCache.get(pkey);
 										if (original != null) {
 											String jsonString = original.getJSONObject().toString();
 											IonProperty property = new IonProperty(new JSONObject(jsonString));
 											property.setValue(value);
 											bean.putProperty(property);
+										} else {
+											System.out.println("(ComponentManager) Ion property \""+pkey+"\" does not exist anymore in cache.");
+											if (Engine.isStarted) {
+												Engine.logEngine.warn("(ComponentManager) Ion property \""+pkey+"\" does not exist anymore in cache.");
+											}
 										}
 									}
 								}
@@ -219,7 +222,7 @@ public class ComponentManager {
 	public static IonBean loadBean(String jsonString) throws Exception {
 		JSONObject jsonBean = new JSONObject(jsonString);
 		String modelName = jsonBean.getString(IonBean.Key.name.name());
-		IonBean model = instance.bCache.get(modelName);
+		final IonBean model = instance.bCache.get(modelName);
 		// The model exists
 		if (model != null) {
 			boolean hasChanged = false;
@@ -237,7 +240,10 @@ public class ComponentManager {
 					}
 				}
 				else {
-					// new property
+					System.out.println("(ComponentManager) Ion property \""+propertyName+"\" not found for model \""+modelName+"\": ignore it.");
+					if (Engine.isStarted) {
+						Engine.logBeans.warn("(ComponentManager) Ion property \""+propertyName+"\" not found for model \""+modelName+"\": ignore it.");
+					}
 					hasChanged = true;
 				}
 			}
@@ -248,6 +254,10 @@ public class ComponentManager {
 		}
 		// The model doesn't exist (anymore)
 		else {
+			System.out.println("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache.");
+			if (Engine.isStarted) {
+				Engine.logBeans.warn("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache.");
+			}
 			return new IonBean(jsonString);
 		}
 	}
@@ -270,7 +280,7 @@ public class ComponentManager {
 		}
 		groups = new ArrayList<String>(10);
 		groups.add("Customs");
-		for (IonBean bean: instance.bCache.values()) {
+		for (final IonBean bean: instance.bCache.values()) {
 			if (!groups.contains(bean.getGroup())) {
 				groups.add(bean.getGroup());
 			}

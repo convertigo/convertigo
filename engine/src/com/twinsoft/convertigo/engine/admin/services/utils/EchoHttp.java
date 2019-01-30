@@ -35,7 +35,8 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		name = "EchoHttp",
 		roles = { Role.ANONYMOUS },
 		parameters = {},
-		returnValue = ""
+		returnValue = "",
+		admin = false
 		)
 public class EchoHttp extends XmlService {
 

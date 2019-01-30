@@ -63,8 +63,8 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.engine.AuthenticationController;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.CustomController;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -101,9 +101,9 @@ public abstract class GenericRequester extends Requester {
 	public void checkAuthenticatedContext() throws EngineException {
 		
 		if (context.httpSession != null) {
-			Object controller = context.httpSession.getAttribute("authenticationController");
-			if (controller != null && controller instanceof AuthenticationController) {
-				((AuthenticationController)controller).checkAuthenticatedContext(context);
+			Object controller = context.httpSession.getAttribute("customController");
+			if (controller != null && controller instanceof CustomController) {
+				((CustomController)controller).checkAuthenticatedContext(context);
 			}
 		}
 		

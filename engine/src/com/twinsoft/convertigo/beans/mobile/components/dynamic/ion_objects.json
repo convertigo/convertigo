@@ -1216,7 +1216,7 @@
         ],
         "package_dependencies": [
           {"package":"@angular/animations", "version":"5.2.10"},
-          {"package":"ionic-tooltips", "version":"2.0.1"}
+          {"package":"ionic-tooltips", "version":"2.1.1"}
         ]
       }         
     },
@@ -3619,7 +3619,7 @@
             "HH:mm:ss",
             "MM/DD/YY",
             "MM/DD/YYYY",
-            "DDDD MMMM D, YYYY",
+            "MMMM DDDD, YYYY",
             true
           ]
         },
@@ -3704,7 +3704,7 @@
           "value": false,
           "values": [
             false,
-            "Dim, Lun, Mar, Mer, Jeu, Ven",
+            "Dim, Lun, Mar, Mer, Jeu, Ven, Sam",
             true
           ]
         },
@@ -3759,7 +3759,7 @@
           "label": "Cancel text",
           "description": "The text to display on the picker's cancel button.",
           "category": "@Properties",
-          "value": "Cancel",
+          "value": false,
           "values": [
             false,
             "Cancel",
@@ -3771,7 +3771,7 @@
           "label": "Done text",
           "description": "The text to display on the picker's 'Done' button. Default: Done.",
           "category": "@Properties",
-          "value": "Done",
+          "value": false,
           "values": [
             false,
             "Done",
@@ -3851,6 +3851,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
+            false,
             "false",
             "true"
           ]
@@ -3862,6 +3863,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
+            false,
             "false",
             "true"
           ]
@@ -3873,6 +3875,7 @@
           "category": "@Properties",
           "value": false,
           "values": [
+            false,
             "false",
             "true"
           ]
@@ -5289,7 +5292,7 @@
           "CalendarModule"
         ],
         "package_dependencies": [
-            {"package":"ion2-calendar", "version":"2.1.6-beta.2"}
+            {"package":"ion2-calendar", "version":"2.2.0"}
         ]
       }
     },
@@ -5627,7 +5630,7 @@
           "TreeviewComponent"
         ],
         "package_dependencies": [
-            {"package":"angular-tree-component", "version":"7.0.2"}
+            {"package":"angular-tree-component", "version":"8.0.2"}
         ]
       }	        
     },
@@ -6429,7 +6432,7 @@
           "CalendarModule"
         ],
         "package_dependencies": [
-            {"package":"ion2-calendar", "version":"2.1.6-beta.2"}
+            {"package":"ion2-calendar", "version":"2.2.0"}
         ]
     }
   },
@@ -8128,7 +8131,7 @@
 	      	"cordova_plugins": [
 	          {
 	            "plugin":"cordova-plugin-inappbrowser",
-	            "version":"2.0.2"
+	            "version":"3.0.0"
 	          }
 	      ]
       	}

@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.engine;
 
-public interface AuthenticationController {
+import org.w3c.dom.Document;
+
+public interface CustomController {
 	public void checkAuthenticatedContext(Context context) throws EngineException;
+	public void modifyDocument(Context context, Document document);
 }
