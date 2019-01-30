@@ -192,7 +192,7 @@ public class FullSyncServlet extends HttpServlet {
 					}
 				}
 				if (allowAnonymous == Boolean.FALSE) {
-					throw new SecurityException("The '" + dbName + "' database cannot be replicated by an anonymous session");
+					throw new SecurityException("The '" + dbName + "' database deny pull synchronization for an anonymous session");
 				}
 			} else {
 				Log4jHelper.mdcPut(mdcKeys.User, "'" + fsAuth.getAuthenticatedUser() + "'");

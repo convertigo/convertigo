@@ -153,7 +153,11 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 				}
 				// for this application
 				else if (this.equals(doto)) {
-					if (propertyName.equals("componentScriptContent")) {
+					if (propertyName.equals("isPWA")) {
+						if (!newValue.equals(oldValue)) {
+							markPwaAsDirty();
+						}
+					} else if (propertyName.equals("componentScriptContent")) {
 						if (!newValue.equals(oldValue)) {
 							markComponentTsAsDirty();
 							markApplicationAsDirty();
@@ -207,6 +211,15 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					"Error while writing the application source files for '" + ac.getName() + "'");	}
 	}
 	
+	protected void markPwaAsDirty() {
+		ApplicationComponent ac = getObject();
+		try {
+			ac.markPwaAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the application PWA state for '" + ac.getName() + "'");	}
+	}
+
 	public void editAppComponentTsFile() {
 		final ApplicationComponent application = getObject();
 		try {

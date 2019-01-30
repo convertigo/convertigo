@@ -232,6 +232,7 @@ public class MobileBuilder {
 	}
 	
 	private static Pattern LsPattern = Pattern.compile("\\R");
+	private static Pattern CacheVersion = Pattern.compile("const\\sCACHE_VERSION\\s\\=\\s\\d+");
 	
 	private BlockingQueue<Map<String, CharSequence>> queue = null;
 	private Map<String, CharSequence> pushedFiles = null;
@@ -257,6 +258,8 @@ public class MobileBuilder {
 	String moduleTplNgDeclarations = null;
 	String moduleTplNgComponents = null;
 	String tplVersion = null;
+	
+	boolean isPWA = false;
 	
 	Set<File> writtenFiles = new HashSet<File>();
 	
@@ -334,6 +337,14 @@ public class MobileBuilder {
 		return nodeModulesDir.exists();
 	}
 		
+	public synchronized void appPwaChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			setAppWpaAble(app.isPWA());
+			moveFiles();
+			Engine.logEngine.debug("(MobileBuilder) Handled 'appPwaChanged'");
+		}
+	}
+	
 	public synchronized void appRootChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
@@ -564,6 +575,9 @@ public class MobileBuilder {
 			
 			// Tpl version
 			updateTplVersion();
+			
+			// PWA
+			setAppWpaAble(application.isPWA());
 			
 			// Write source files (based on bean components)
 			updateSourceFiles();
@@ -1828,6 +1842,59 @@ public class MobileBuilder {
 		}
 	}
 	
+	public boolean isAppWpaAble() {
+		return this.isPWA;
+	}
+	
+	private void setAppWpaAble(boolean isPWA) {
+		this.isPWA = isPWA;
+		
+		try {
+			File tpl_index = new File(ionicTplDir, "src/index.html");
+			String tpl_content = FileUtils.readFileToString(tpl_index, "UTF-8");
+			String content = tpl_content;
+			if (isPWA) {
+				String replacement = "";
+				replacement += "<script>\n"
+								+"\tif ('serviceWorker' in navigator) {\n"
+									+"\t\tnavigator.serviceWorker.register('service-worker.js')\n"
+										+"\t\t\t.then(() => console.log('service worker installed'))\n"
+										+"\t\t\t.catch(err => console.log('Error', err));\n"
+								+"\t}\n"
+								+"</script>\n";
+				content = tpl_content.replace("<!--c8o_PWA-->", replacement);
+			}
+			
+			File index = new File(ionicWorkDir, "src/index.html");
+			writeFile(index, content, "UTF-8");
+			if (!initDone || !isPWA) {
+				writeWorker(index, true);
+			}
+		} catch (Exception e) {
+			;
+		}
+	}
+	
+	private void writeWorker(File file) throws IOException {
+		writeWorker(file, false);
+	}
+	
+	private void writeWorker(File file, boolean bForce) throws IOException {
+		File jsworker = new File(ionicWorkDir, "src/service-worker.js");
+		if ((isAppWpaAble() || bForce) && jsworker.exists()) {
+			long time = System.currentTimeMillis();
+			String content = FileUtils.readFileToString(jsworker, "UTF-8");
+			content = CacheVersion.matcher(content).replaceFirst("const CACHE_VERSION = "+ time);
+			if (initDone && Engine.isStudioMode()) {
+				if (!file.getPath().equals(jsworker.getPath())) {
+					writeFile(jsworker, content, "UTF-8");
+				}
+			} else {
+				FileUtils.write(jsworker, content, "UTF-8");
+			}
+		}
+	}
+	
 	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
 		// Replace eol characters with system line separators
 		content = LsPattern.matcher(content).replaceAll(System.lineSeparator());
@@ -1879,6 +1946,8 @@ public class MobileBuilder {
 		} else {
 			FileUtils.write(file, content, encoding);
 		}
+		
+		writeWorker(file);
 	}
 	
 	private void moveFiles() {
