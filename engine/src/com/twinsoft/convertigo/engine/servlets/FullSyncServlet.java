@@ -225,7 +225,7 @@ public class FullSyncServlet extends HttpServlet {
 				method = HttpMethodType.POST;
 			}
 			
-			debug.append("dbName=" + dbName + " special=" + special + " couchdb=" + version + "\n");
+			debug.append("dbName=" + dbName + " special=" + special + " couchdb=" + version + (requestParser.hasAttachment() ? " attachment=true" : "") + "\n");
 			
 			HttpRequestBase newRequest;
 			
@@ -514,7 +514,9 @@ public class FullSyncServlet extends HttpServlet {
 					//is = responseEntity.getContent();
 					
 					if (code >= 200 && code < 300 &&
-							contentType.mimeType().in(MimeType.Plain, MimeType.Json) && (
+							contentType.mimeType().in(MimeType.Plain, MimeType.Json) &&
+							!"_design".equals(special) &&
+							!requestParser.hasAttachment() && (
 								(isChanges && version.compareTo("2.") < 0) ||
 								"_bulk_get".equals(special) ||
 								"_all_docs".equals(special) ||
@@ -588,12 +590,13 @@ public class FullSyncServlet extends HttpServlet {
 	}
 	
 	static class RequestParser {
-		static final private Pattern pPath = Pattern.compile("^((?:/(_[^/]*))?(?:/([^/]*))?(?:/(_[^/]*))?(?:/([^/]*))?(.*))$");
+		static final private Pattern pPath = Pattern.compile("^((?:/(_[^/]*))?(?:/([^/]*))?(?:/(_[^/]*))?(?:/([^/]*))?(?:/*)(.*))$");
 		
 		private String path;
 		private String special;
 		private String dbName;
 		private String docId;
+		private boolean attachment = false;
 		
 		RequestParser(HttpServletRequest request) throws UnsupportedEncodingException {
 			String requestURI = request.getRequestURI();
@@ -613,6 +616,7 @@ public class FullSyncServlet extends HttpServlet {
 					dbName = mPath.group(3);
 					special = mPath.group(4);
 					docId = mPath.group(5);
+					attachment = docId != null && !mPath.group(6).isEmpty();
 				}
 			}
 		}
@@ -631,6 +635,10 @@ public class FullSyncServlet extends HttpServlet {
 
 		public String getDocId() {
 			return docId;
+		}
+		
+		public boolean hasAttachment() {
+			return attachment;
 		}
 	}
 }
