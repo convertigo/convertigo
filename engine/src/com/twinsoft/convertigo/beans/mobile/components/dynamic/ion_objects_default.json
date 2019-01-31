@@ -620,6 +620,16 @@
     "name": "cacheTtl",
     "mode": "plain",
     "value": "3000"
+   },
+   "timeout": {
+    "name": "timeout",
+    "mode": "plain",
+    "value": false
+   },
+   "threshold": {
+    "name": "threshold",
+    "mode": "plain",
+    "value": false
    }
   }
  }},
