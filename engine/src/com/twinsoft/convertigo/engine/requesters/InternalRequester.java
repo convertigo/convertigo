@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
@@ -68,66 +66,8 @@ public class InternalRequester extends GenericRequester {
     }
     
     public Object processRequest() throws Exception {
-    	try {
-    		return processRequest(inputData);
-    	} finally {
-			// Removes context if required
-			if (context.removalRequired()) {
-				removeContext();
-				removeSession(1);
-			}
-			else {
-				// Removes context when finished
-				String removeContextParam = httpServletRequest.getParameter(Parameter.RemoveContext.getName());
-				if (removeContextParam != null) {
-					// __removeContext=true/false)
-					if (!("false".equals(removeContextParam))) {
-						removeContext();
-					}
-				}
-				
-				// Removes session when finished
-				String removeSessionParam = httpServletRequest.getParameter(Parameter.RemoveSession.getName());
-				if (removeSessionParam != null) {
-					// __removeSession or __removeSession=true/false
-					// or __removeSession=xx (where xx is a number of seconds)
-					if (!("false".equals(removeSessionParam))) {
-						int interval = 1;
-						try {
-							interval = Integer.parseInt(removeSessionParam, 10);
-						}
-						catch (Exception e) {}
-						removeSession(interval);
-					}
-				}
-			}
-    	}
+   		return processRequest(inputData);
     }
-    
-	protected void removeContext() {
-		if (Engine.isEngineMode()) {
-			Engine.logContext.debug("[InternalRequester] End of context required => try to remove context");
-			Engine.theApp.contextManager.remove(context);
-		}
-	}
-
-	protected void removeSession(int interval) {
-		if (Engine.isEngineMode()) {
-			Engine.logContext.debug("[InternalRequester] End of session required => try to invalidate session");
-			try {
-				HttpSession httpSession = httpServletRequest.getSession();
-				boolean isAdminSession = Engine.authenticatedSessionManager.isAuthenticated(httpSession);
-				if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession)) {
-					Engine.logContext
-							.debug("[InternalRequester] The owner HTTP session is empty => invalidating HTTP session in "
-									+ interval + "s.");
-					httpSession.setMaxInactiveInterval(interval);
-				}
-			} catch (Exception e) {
-				Engine.logContext.debug("[InternalRequester] End of session required => failed to get the session: " + e);
-			}
-		}
-	}
     
     public String getName() {
         return "InternalRequester";
