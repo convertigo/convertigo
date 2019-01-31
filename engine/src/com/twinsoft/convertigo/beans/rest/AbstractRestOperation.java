@@ -252,6 +252,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				}
 				else {
 					map.put(Parameter.Sequence.getName(), new String[] { sequenceName });
+					map.put(Parameter.RemoveContext.getName(), new String[] { "" });
+					map.put(Parameter.RemoveSession.getName(), new String[] { "" });
 				}
 				
 				// Add path variables parameters
@@ -457,6 +459,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		}
 		catch (Throwable t) {
 			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
+		} finally {
+			request.setAttribute("convertigo.requireEndOfContext", true);
 		}
 	}
 }

@@ -129,6 +129,7 @@ public class BasicAuthentication extends UrlAuthentication {
 			return null;
 		}
 		catch (Throwable t) {
+			request.setAttribute("convertigo.requireEndOfContext", true);
 			throw new EngineException("Authentication \""+ getName() +"\" failed to retrieve data", t);
 		}
 	}
