@@ -1566,7 +1566,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 				if (step.isXmlOrOutput()) {
 					Element stepParentElement = findParentStepElement(step);
 					if (stepParentElement != null) {
-						if (!step.isOutput() && stepNode.getNodeType() == Node.ELEMENT_NODE) {							
+						boolean isOutput = step.isOutput();
+						if (!isOutput && stepNode.getNodeType() == Node.ELEMENT_NODE) {							
 							boolean recurse = !(step instanceof StepWithExpressions);
 
 							// jmc 2017/07/10
@@ -1579,11 +1580,20 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 						}
 						
 						if (step instanceof XMLCopyStep) {
+							if (isOutput) {
+								NamedNodeMap map = stepNode.getAttributes();
+								for (int i=0; i<map.getLength(); i++) {
+									Node copied = map.item(i).cloneNode(true);
+									// set again user data because clone does not preserve it
+									setOutputUserData(copied, String.valueOf(isOutput), true);
+									append(stepParentElement, copied);
+								}
+							}
 							NodeList children = stepNode.getChildNodes();
 							for (int i=0; i<children.getLength(); i++) {
 								Node copied = children.item(i).cloneNode(true);
 								// set again user data because clone does not preserve it
-								setOutputUserData(copied, String.valueOf(step.isOutput()), true);
+								setOutputUserData(copied, String.valueOf(isOutput), true);
 								append(stepParentElement, copied);
 							}
 						}
