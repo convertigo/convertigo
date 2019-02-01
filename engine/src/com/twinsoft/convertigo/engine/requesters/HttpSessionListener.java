@@ -68,6 +68,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
             	KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
             }
         } catch(TASException e) {
+			SessionAttribute.isTasException.set(event.getSession(), e);
 			if (KeyManager.hasExpired((long) Session.EmulIDSE)) {
 				Engine.logEngine.warn("The Standard Edition key is expired");
 			} else if (e.isOverflow()) {
@@ -108,7 +109,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         	HttpSession session;
             if ((session = httpSessions.remove(httpSessionID)) != null) {
             	HttpUtils.terminateSession(session);
-            	if (Engine.isEngineMode()) {
+            	if (Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
             		KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
             	}
             }
@@ -117,7 +118,8 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public void removeSession(String httpSessionID) {
         synchronized (httpSessions) {
-            if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode()) {
+            HttpSession session;
+            if ((session = httpSessions.remove(httpSessionID)) != null && Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
             	KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
             }
         }    	
@@ -159,5 +161,9 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     
     static public Collection<HttpSession> getSessions() {
     	return Collections.unmodifiableCollection(httpSessions.values());
+    }
+    
+    static public int countSessions() {
+    	return httpSessions.size();
     }
 }
