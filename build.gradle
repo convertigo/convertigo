@@ -761,6 +761,7 @@ project(':engine') {
 		compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
 		compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
 		swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
+		runtime project(path: ':placeholders', configuration: 'allPlaceholders')
 		runtime files(patchJar.archivePath)
 	}
 	
