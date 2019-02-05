@@ -33,7 +33,9 @@ sourceSets {
 }
 
 dependencies {
-	compile project(':engine')
+	compile project(':engine'), {
+		exclude group: 'convertigo', module: 'placeholders'
+	}
 	runtime 'javax.servlet:servlet-api:2.5'
 }
 
