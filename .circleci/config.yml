@@ -90,7 +90,7 @@ jobs:
         command: |
           source /tmp/build.env
           test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
-          gradle --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :ciFirstStep
+          sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :ciFirstStep
         
     - run:
         name: Push to convertigo-doc
@@ -142,7 +142,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        ./gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
+        sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
     
     - save_cache:
         paths:
@@ -404,7 +404,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        ./gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME buildStudio | grep -v -e '^[[:space:]]*$' -e 'Comparing' -e 'Progress'
+        sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME buildStudio | grep -v -e '^[[:space:]]*$' -e 'Comparing' -e 'Progress'
     
     - save_cache:
         paths:
