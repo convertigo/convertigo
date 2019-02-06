@@ -94,6 +94,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
@@ -1408,7 +1409,10 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	public void highlightComponent(MobileComponent mobileComponent) {
 		C8oBrowser.run(() -> {
 			if (mobileComponent instanceof UIComponent) {
-				selectPage(((UIComponent) mobileComponent).getPage().getSegment());
+				PageComponent pageComponent = ((UIComponent) mobileComponent).getPage();
+				if (pageComponent != null) {
+					selectPage(pageComponent.getSegment());
+				}
 			}
 			DOMDocument doc = browser.getDocument();
 			MobileComponent mc = mobileComponent;
