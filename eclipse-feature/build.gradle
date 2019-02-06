@@ -1,0 +1,25 @@
+import groovy.xml.XmlUtil
+
+task updateFeature(type: Copy) {
+	group 'convertigo'
+	
+	def licenseTextFile = file('../license.txt')
+	
+	inputs.properties(
+		'currentYear': currentYear,
+	)
+	inputs.files licenseTextFile
+	
+	def licenseText = ''
+	
+	doFirst {
+		def xml = new XmlSlurper().parseText('<elt/>')			
+		xml.replaceBody licenseTextFile.text
+		licenseText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
+	}
+	
+	from 'feature.xml.tpl'
+	filter { it.replace('@CURRENT_YEAR@', currentYear).replace('@licenseText@', licenseText) }
+	into '.'
+	rename '.*', 'feature.xml'
+}
