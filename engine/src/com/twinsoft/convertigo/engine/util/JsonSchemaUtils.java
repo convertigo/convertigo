@@ -568,6 +568,7 @@ public class JsonSchemaUtils {
 					try {
 						JSONObject value = new JSONObject()
 								.put("type", "string")
+								.put("xml", new JSONObject().put("attribute", true))
 								.put("description", "any attribute");
 			
 						jElement.put("objType", "attributeType")
@@ -669,7 +670,12 @@ public class JsonSchemaUtils {
 								if (name.isEmpty()) {
 									name = rname.getLocalPart();
 								}
-								addChild(jElement, new JSONObject().put("$ref", ref));
+								JSONObject value = new JSONObject();
+									value.put("allOf", new JSONArray()
+											.put(new JSONObject().put("xml", new JSONObject().put("attribute", true)))
+											.put(new JSONObject().put("$ref", ref)));
+								
+								addChild(jElement, value);
 							}
 						}
 						
