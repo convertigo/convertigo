@@ -142,7 +142,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        gradle --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
+        ./gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
     
     - save_cache:
         paths:
@@ -404,7 +404,7 @@ jobs:
         
     - run: |
         source /tmp/build.env
-        gradle --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME buildStudio | grep -v -e '^[[:space:]]*$' -e 'Comparing' -e 'Progress'
+        ./gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME buildStudio | grep -v -e '^[[:space:]]*$' -e 'Comparing' -e 'Progress'
     
     - save_cache:
         paths:
