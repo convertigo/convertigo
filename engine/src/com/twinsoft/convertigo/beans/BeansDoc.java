@@ -239,7 +239,7 @@ public class BeansDoc {
 			FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
 		}
 		StringBuilder sb = new StringBuilder();
-		String permalink = "reference-manual/" + normalizedGroup + "/" + normalizedName + ".html";
+		String permalink = "reference-manual/" + normalizedGroup + "/" + normalizedName + "/index.html";
 		sb.append(
 			"---\n" +
 			"layout: page\n" +
@@ -249,7 +249,8 @@ public class BeansDoc {
 			"ObjGroup: " + groupName + "\n" +
 			"ObjName: " + displayName + "\n" +
 			"ObjClass: " + databaseObjectClassName + "\n" +
-			"ObjIcon: images/beans/" + iconPath + "\n" +
+			"ObjIcon: /images/beans/" + iconPath + "\n" +
+			"topnav: topnavobj" + "\n" +
 			"---\n"
 		);
 		
@@ -270,8 +271,7 @@ public class BeansDoc {
 			}
 			
 			sb.append(
-				"##### " + shortDescription + "\n\n" +
-				longDescription + "\n"
+				"##### " + shortDescription + "\n\n" + longDescription + "\n"
 			);
 			
 			SortedMap<String, String> properties = new TreeMap<>();
