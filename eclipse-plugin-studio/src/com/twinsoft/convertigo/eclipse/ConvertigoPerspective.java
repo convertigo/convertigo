@@ -25,10 +25,28 @@ import org.eclipse.ui.IPerspectiveFactory;
 public class ConvertigoPerspective implements IPerspectiveFactory {
 
 	public ConvertigoPerspective() {
-    }
+	}
 
-    public void createInitialLayout(IPageLayout layout) {
-    }
-
+	public void createInitialLayout(IPageLayout layout) {
+//		IWorkbenchWindow workbenchWindow =  PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+//		walkMenuManager(((WorkbenchWindow) workbenchWindow).getMenuBarManager(), "");
+	}
+	
+//	private void walkMenuManager(IMenuManager manager, String path) {
+//		for (IContributionItem item : manager.getItems()) {
+//			String nPath = path + "/" + item.getId();
+//			System.out.println(nPath + " : " + item.toString());
+//			if (item instanceof ActionContributionItem) {
+//				IAction action = ((ActionContributionItem) item).getAction();
+//				System.out.println("action: " + action.getActionDefinitionId() + " " + action.getId());
+//			}
+//			if (item instanceof IActionSetContributionItem) {
+//				System.out.println("actionset: " + ((IActionSetContributionItem) item).getActionSetId());
+//			}
+//			if (item instanceof IMenuManager) {
+//				walkMenuManager((IMenuManager) item, nPath);
+//			}
+//		}
+//	}
 }
 
