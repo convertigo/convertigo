@@ -41,12 +41,12 @@ to create mobile enterprise applications
       <import feature="org.eclipse.egit"/>
       <import feature="org.eclipse.egit.gitflow.feature"/>
       <import feature="org.eclipse.jgit.lfs"/>
-      <import feature="org.eclipse.jdt"/>
-      <import feature="org.eclipse.pde"/>
       <import feature="org.eclipse.platform"/>
       <import feature="org.eclipse.rcp"/>
       <import feature="org.eclipse.wst.common_core.feature"/>
       <import feature="org.eclipse.wst.jsdt.feature"/>
+      <import feature="org.eclipse.wst.json_core.feature"/>
+      <import feature="org.eclipse.wst.json_ui.feature"/>
       <import feature="org.eclipse.wst.web_core.feature"/>
       <import feature="org.eclipse.wst.web_ui.feature"/>
       <import feature="org.eclipse.wst.xml_core.feature"/>

@@ -499,14 +499,10 @@
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"/>
          <view
-               id="org.eclipse.pde.runtime.LogView"
-               relationship="stack"
-               relative="org.eclipse.ui.console.ConsoleView"/>
-         <view
                id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
                relationship="stack"
                minimized="false"
-               relative="org.eclipse.pde.runtime.LogView"/>
+               relative="org.eclipse.ui.console.ConsoleView"/>
          <view
                id="org.eclipse.egit.ui.RepositoriesView"
                relationship="stack"
