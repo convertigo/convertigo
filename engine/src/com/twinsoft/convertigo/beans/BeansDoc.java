@@ -231,15 +231,20 @@ public class BeansDoc {
 			}				
 		} );
 		String displayName = databaseObjectBeanDescriptor.getDisplayName();
-		String normalizedName = StringUtils.normalize(displayName).toLowerCase();
-		String normalizedGroup = StringUtils.normalize(groupName).toLowerCase();
+		String normalizedName = StringUtils.normalize(displayName).toLowerCase().replaceAll("_","-");
+		String normalizedGroup = StringUtils.normalize(groupName).toLowerCase().replaceAll("_","-");
+		String normalizedCatname = StringUtils.normalize(beansCategoryName).toLowerCase().replaceAll("_","-");		
 		String iconName = MySimpleBeanInfo.getIconName(beanInfo, BeanInfo.ICON_COLOR_32x32);
 		String iconPath = iconName.replaceFirst(".*/beans/", "");
 		try (InputStream is = getClass().getResourceAsStream(iconName)) {
 			FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
 		}
 		StringBuilder sb = new StringBuilder();
-		String permalink = "reference-manual/" + normalizedGroup + "/" + normalizedName + "/index.html";
+		String permalink;
+		if(normalizedCatname == "")			
+			permalink = "reference-manual/" + normalizedGroup + "/" + normalizedName + "/index.html";
+		else
+			permalink = "reference-manual/" + normalizedGroup + "/" + normalizedCatname + "/" + normalizedName + "/index.html";
 		sb.append(
 			"---\n" +
 			"layout: page\n" +
@@ -247,6 +252,7 @@ public class BeansDoc {
 			"sidebar: c8o_sidebar\n" +
 			"permalink: " + permalink + "\n" +
 			"ObjGroup: " + groupName + "\n" +
+			"ObjCatName: " + normalizedCatname + "\n" +
 			"ObjName: " + displayName + "\n" +
 			"ObjClass: " + databaseObjectClassName + "\n" +
 			"ObjIcon: /images/beans/" + iconPath + "\n" +
@@ -360,6 +366,6 @@ public class BeansDoc {
 		if (!"\n".equals(System.lineSeparator())) {
 			toWrite = toWrite.replace("\n", System.lineSeparator());
 		}
-		FileUtils.write(new File(outputDirectory, normalizedGroup + "/" + normalizedName + ".md"), toWrite, "UTF-8");
+		FileUtils.write(new File(outputDirectory, normalizedGroup + "/" + normalizedCatname + "/" + normalizedName + ".md"), toWrite, "UTF-8");
 	}
 }
