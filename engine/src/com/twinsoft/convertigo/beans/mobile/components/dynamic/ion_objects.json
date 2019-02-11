@@ -7173,6 +7173,93 @@
       ]
     }
   },
+  "SpeechToTextAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "SpeechToText",
+      "label": "SpeechToText",
+      "description": "Defines a <i>SpeechToText</i> action component. | Listen a speech.<br/>Note that more languages are avaible in an external browser, or device than in Convertigo viewer.<br/><br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Browser</li></ul>You can access data from the next action in the chain in (TS) mode with: <code><ul><li>out: A concatanation of spoken string(s) if the action succeed</li></ul></code>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/speech-recognition/'>SpeechToText</a>.",
+      "group": "Native Actions",
+		"icon16": "speechtotextaction_color_16x16.png",
+    	"icon32": "speechtotextaction_color_32x32.png",
+      "properties": {
+        "locale": {
+          "label": "Locale",
+          "description": "Used language for recognition (default 'en-US')",
+          "category": "@speech options",
+	      "type": "string",
+	      "value": false,
+		  "values": [
+		    false,
+			"en-US",
+			"fr-FR",
+			true
+		  ]
+        },
+        "matches": {
+          "label": "Matches",
+          "description": "Number of return matches (default 5, on iOS: maximum number of matches)",
+          "category": "@speech options",
+	      "type": "number",
+	      "value": false,
+		  "values": [
+		    false,
+			true
+		  ]
+        },
+        "prompt": {
+          "label": "Prompt",
+          "description": "Displayed prompt of listener popup window (default '' Android only)",
+          "category": "@speech options",
+	      "type": "string",
+	      "value": false,
+		  "values": [
+		    false,
+			true
+		  ]
+        },
+        "showPopup": {
+          "label": "Show popup",
+          "description": "Display listener popup window with prompt (default true, Android only)",
+          "category": "@speech options",
+	      "type": "boolean",
+	      "value": "true",
+		  "values": [
+		    "false",
+			"true"
+		  ]
+        },
+        "showPartial": {
+          "label": "Show partial",
+          "description": "Allow partial results to be returned (default false, IOs|Browser only)",
+          "category": "@speech options",
+	      "type": "boolean",
+	      "value": "false",
+		  "values": [
+		    "false",
+			"true"
+		  ]
+        }
+	  },
+      "config": {
+        "action_ts_imports": [
+			{"from":"@ionic-native/speech-recognition", "components":["SpeechRecognition"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/speech-recognition", "components":["SpeechRecognition"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"SpeechRecognition"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/speech-recognition", "version":"4.5.2"}
+        ],
+        "cordova_plugins": [
+			{"plugin":"cordova-plugin-speechrecognition", "version":"1.2.0"}
+        ]
+    }
+  },
   "TextToSpeechAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "TextToSpeech",
