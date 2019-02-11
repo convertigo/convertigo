@@ -1,0 +1,17 @@
+@import url("platform:/plugin/org.eclipse.ui.themes/css/e4-dark.css");
+
+#com-twinsoft-convertigo-eclipse-views-mobile-MobilePaletteView * {
+  background-color: #2f2f2f;
+}
+
+#com-twinsoft-convertigo-eclipse-views-loggers-EngineLogView Table {
+  color: black;
+}
+
+#com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack ToolBar {
+  background-color: #313538;
+}
+
+ComponentExplorerComposite {
+  color: white;
+}

@@ -70,7 +70,7 @@
          </property>
          <property
                name="cssTheme"
-               value="org.eclipse.e4.ui.css.theme.e4_default">
+               value="com.twinsoft.convertigo.studio.css.theme.convertigo_dark">
          </property>
          <property
                name="applicationCSSResources"
@@ -81,6 +81,14 @@
                value="plugin_customization.ini">
          </property>
       </product>
+   </extension>
+   <extension
+         point="org.eclipse.e4.ui.css.swt.theme">
+      <theme
+            basestylesheeturi="css/convertigo-dark.css"
+            id="com.twinsoft.convertigo.studio.css.theme.convertigo_dark"
+            label="Convertigo Dark">
+      </theme>
    </extension>
 
 </plugin>
