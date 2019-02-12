@@ -24,11 +24,12 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -49,7 +50,6 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 
 
 public class BeansDoc {
@@ -62,6 +62,7 @@ public class BeansDoc {
 	private String groupName;
 	private String categoryName;
 	private String beansCategoryName;
+	private Map<String, String> fullnames = new HashMap<String, String>();
 	
 	public static void main(String[] args) throws Exception {
 		int max = -1;
@@ -76,7 +77,7 @@ public class BeansDoc {
 		if (!new File(dir, "_config.yml").exists()) {
 			System.err.println("<output directory>: " + dir.getAbsolutePath() + "\nShould have a _config.yml file.");
 		}
-		File outputDirectory = new File(dir, "_object");
+		File outputDirectory = new File(dir, "reference-manual/convertigo-objects");
 		File imageDirectory = new File(dir, "images/beans");
 		System.out.println("Generating in: " + dir.getAbsolutePath());
 		if (max >= 0) {
@@ -93,6 +94,7 @@ public class BeansDoc {
 		this.outputDirectory = outputDirectory;
 		this.imageDirectory = imageDirectory;
 		this.max = max;
+		fullnames.put("convertigo-objects", "Convertigo Objects");
 	}
 	
 	private int run()  throws Exception {
@@ -119,7 +121,7 @@ public class BeansDoc {
 					beansCategoryName = beansCategory.getName();
 					List<DboBean> beans = beansCategory.getBeans();
 					for (DboBean bean : beans) {
-						if(bean.isEnable()) {
+						if (bean.isEnable()) {
 							if (count == max) {
 								return count;
 							} else {
@@ -133,6 +135,7 @@ public class BeansDoc {
 			}
 		}
 //		handleMobileComponents(documentBeansDoc);
+		makeListingPages(outputDirectory);
 		return count;
 	}
 //	
@@ -210,41 +213,27 @@ public class BeansDoc {
 //	
 	private void createBeanElement(DboBean bean, boolean bEnable) throws Exception {
 		String databaseObjectClassName = bean.getClassName();
-		DatabaseObject databaseObject = (DatabaseObject) Class.forName(databaseObjectClassName).newInstance();
-		boolean isExtractionRule = databaseObject instanceof ExtractionRule;
-		Class<?> databaseObjectClass = databaseObject.getClass();
+		Class<?> databaseObjectClass = Class.forName(databaseObjectClassName);
+		DatabaseObject databaseObject = (DatabaseObject) databaseObjectClass.newInstance();
 		BeanInfo beanInfo = Introspector.getBeanInfo(databaseObjectClass);
 		BeanDescriptor databaseObjectBeanDescriptor = beanInfo.getBeanDescriptor();
-		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 		
-		Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
-				
-			@Override
-			public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-				if (o1.isExpert() == o2.isExpert()) {
-					return o1.getDisplayName().compareTo(o2.getDisplayName());
-				} else if (o1.isExpert()) {
-					return 1;
-				} else { 
-					return -1;
-				}
-			}				
-		} );
 		String displayName = databaseObjectBeanDescriptor.getDisplayName();
-		String normalizedName = StringUtils.normalize(displayName).toLowerCase().replaceAll("_","-");
-		String normalizedGroup = StringUtils.normalize(groupName).toLowerCase().replaceAll("_","-");
-		String normalizedCatname = StringUtils.normalize(beansCategoryName).toLowerCase().replaceAll("_","-");		
+		
+		String normalizedGroupName = normalize(groupName);
+		String normalizedCategoryName = normalize(categoryName);
+		String normalizedBeansCategoryName = normalize(beansCategoryName);
+		String normalizedName = normalize(displayName);
+		
+		String path = (normalizedGroupName + "/" + normalizedCategoryName + "/" + normalizedBeansCategoryName + "/" + normalizedName).replaceAll("/+", "/");
+		
 		String iconName = MySimpleBeanInfo.getIconName(beanInfo, BeanInfo.ICON_COLOR_32x32);
 		String iconPath = iconName.replaceFirst(".*/beans/", "");
 		try (InputStream is = getClass().getResourceAsStream(iconName)) {
 			FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
 		}
 		StringBuilder sb = new StringBuilder();
-		String permalink;
-		if(normalizedCatname == "")			
-			permalink = "reference-manual/" + normalizedGroup + "/" + normalizedName + "/index.html";
-		else
-			permalink = "reference-manual/" + normalizedGroup + "/" + normalizedCatname + "/" + normalizedName + "/index.html";
+		String permalink = "reference-manual/convertigo-objects/" + path + "/";
 		sb.append(
 			"---\n" +
 			"layout: page\n" +
@@ -252,7 +241,7 @@ public class BeansDoc {
 			"sidebar: c8o_sidebar\n" +
 			"permalink: " + permalink + "\n" +
 			"ObjGroup: " + groupName + "\n" +
-			"ObjCatName: " + normalizedCatname + "\n" +
+			"ObjCatName: " + normalizedBeansCategoryName + "\n" +
 			"ObjName: " + displayName + "\n" +
 			"ObjClass: " + databaseObjectClassName + "\n" +
 			"ObjIcon: /images/beans/" + iconPath + "\n" +
@@ -281,6 +270,8 @@ public class BeansDoc {
 			);
 			
 			SortedMap<String, String> properties = new TreeMap<>();
+			
+			PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 			
 			for (PropertyDescriptor databaseObjectPropertyDescriptor : propertyDescriptors) {
 				boolean skip = false;
@@ -316,7 +307,7 @@ public class BeansDoc {
 				}
 				
 				String category = "standard";
-				if (isExtractionRule) {
+				if (databaseObject instanceof ExtractionRule) {
 					category = "configuration";
 					if (databaseObjectPropertyDescriptor.isExpert()) {
 						category = "selection";
@@ -366,6 +357,44 @@ public class BeansDoc {
 		if (!"\n".equals(System.lineSeparator())) {
 			toWrite = toWrite.replace("\n", System.lineSeparator());
 		}
-		FileUtils.write(new File(outputDirectory, normalizedGroup + "/" + normalizedCatname + "/" + normalizedName + ".md"), toWrite, "UTF-8");
+		FileUtils.write(new File(outputDirectory, path + ".md"), toWrite, "UTF-8");
+	}
+	
+	private void makeListingPages(File dir) throws IOException {
+		String path = dir.getAbsolutePath().substring(outputDirectory.getAbsolutePath().length()).replace("\\", "/");
+		String permalink = ("reference-manual/convertigo-objects/" + path + "/").replace("//", "/");
+		StringBuilder sb = new StringBuilder();
+		sb.append(
+			"---\n" +
+			"layout: page\n" +
+			"title: " + fullnames.get(dir.getName()) + "\n" +
+			"sidebar: c8o_sidebar\n" +
+			"permalink: " + permalink + "\n" +
+//			"ObjGroup: " + groupName + "\n" +
+//			"ObjCatName: " + normalizedBeansCategoryName + "\n" +
+//			"ObjName: " + displayName + "\n" +
+//			"ObjClass: " + databaseObjectClassName + "\n" +
+//			"ObjIcon: /images/beans/" + iconPath + "\n" +
+			"topnav: topnavobj" + "\n" +
+			"---\n"
+		);
+		for (File f: dir.listFiles()) {
+			String name = f.getName().replace(".md", "");
+			sb.append("* [" + fullnames.get(name) + "](" + name + "/)\n");
+			if (f.isDirectory()) {
+				makeListingPages(f);
+			}
+		}
+		String toWrite = sb.toString();
+		if (!"\n".equals(System.lineSeparator())) {
+			toWrite = toWrite.replace("\n", System.lineSeparator());
+		}
+		FileUtils.write(new File(outputDirectory, path + "/index.md"), toWrite, "UTF-8");
+	}
+	
+	String normalize(String str) {
+		String normalized = str.toLowerCase().replaceAll("\\W", "-");
+		fullnames.put(normalized, str);
+		return normalized;
 	}
 }
