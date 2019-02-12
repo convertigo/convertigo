@@ -3348,5 +3348,35 @@
     "value": false
    }
   }
+ }},
+ "SpeechToTextAction": {"   7   6   0": {
+  "name": "SpeechToTextAction",
+  "properties": {
+   "locale": {
+    "name": "locale",
+    "mode": "plain",
+    "value": false
+   },
+   "matches": {
+    "name": "matches",
+    "mode": "plain",
+    "value": false
+   },
+   "prompt": {
+    "name": "prompt",
+    "mode": "plain",
+    "value": false
+   },
+   "showPopup": {
+    "name": "showPopup",
+    "mode": "plain",
+    "value": "true"
+   },
+   "showPartial": {
+    "name": "showPartial",
+    "mode": "plain",
+    "value": "false"
+   }
+  }
  }}
 }
