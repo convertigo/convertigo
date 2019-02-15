@@ -51,6 +51,6 @@ public class CommentColumnLabelProvider extends ColumnLabelProvider {
 
 	@Override
 	public Color getForeground(Object element) {
-		return Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN);
+		return Display.getCurrent().getSystemColor(SWT.COLOR_GREEN);
 	}
 }

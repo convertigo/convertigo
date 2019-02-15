@@ -26,10 +26,6 @@
   background-color: inherit;
 }
 
-ComponentExplorerComposite {
-  color: white;
-}
-
 .View Tree {
   color: white;
   swt-selection-background-color: rgb(81, 86, 88);

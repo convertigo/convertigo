@@ -73,10 +73,7 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class ComponentExplorerComposite extends Composite {
-	//static private Pattern removeTag = Pattern.compile("</?\\w+ ?/?>");
 
-	protected Color FOREGROUND_COLOR;
-	protected Color BACKGROUND_COLOR;
 	protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
 	protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
 
@@ -141,7 +138,7 @@ public class ComponentExplorerComposite extends Composite {
 				{
 					composites[i] = new Composite(bar, SWT.NONE);
 					composites[i].setLayout(rowLayout);
-					composites[i].setBackground(BACKGROUND_COLOR);
+					composites[i].setBackground(bar.getBackground());
 					items[i] = new ExpandItem(bar, SWT.NONE, i);
 					items[i].setControl(composites[i]);
 					items[i].setExpanded(true);
@@ -224,13 +221,10 @@ public class ComponentExplorerComposite extends Composite {
 
 		if (bSelected) {
 			currentSelectedObject = label;
-
-			FOREGROUND_COLOR = currentSelectedObject.getForeground();
-			BACKGROUND_COLOR = currentSelectedObject.getBackground();
-
+			
 			currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 			currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-
+			
 			Component currentSelectedComponent = getCurrentSelectedComponent();
 			if (currentSelectedComponent != null) {
 				updateHelpText(currentSelectedComponent);
@@ -249,17 +243,14 @@ public class ComponentExplorerComposite extends Composite {
 				public void dragStart(DragSourceEvent event) {
 					try {
 						if (currentSelectedObject != null) {
-							currentSelectedObject.setForeground(FOREGROUND_COLOR);
-							currentSelectedObject.setBackground(BACKGROUND_COLOR);
+							currentSelectedObject.setForeground(label.getForeground());
+							currentSelectedObject.setBackground(label.getBackground());
 						}
 						currentSelectedObject = label;
 						
-						FOREGROUND_COLOR = currentSelectedObject.getForeground();
-						BACKGROUND_COLOR = currentSelectedObject.getBackground();
-						
 						currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 						currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-
+						
 						Component c = (Component) objectsMap.get(label);
 						DatabaseObject dbo = ComponentManager.createBean(c);
 						if (dbo != null) {
@@ -281,24 +272,22 @@ public class ComponentExplorerComposite extends Composite {
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent e) {
-				if (currentSelectedObject == (CLabel) e.getSource())
+				CLabel label = (CLabel) e.getSource();
+				if (currentSelectedObject == label)
 					return;
 
 				if (currentSelectedObject != null) {
-					currentSelectedObject.setForeground(FOREGROUND_COLOR);
-					currentSelectedObject.setBackground(BACKGROUND_COLOR);
+					currentSelectedObject.setForeground(label.getForeground());
+					currentSelectedObject.setBackground(label.getBackground());
 				}
 
 				currentSelectedObject = (CLabel) e.getSource();
 
 				ConvertigoPlugin.logDebug("currentSelectedObject: '" + currentSelectedObject.getText() + "'.");
 				
-				FOREGROUND_COLOR = currentSelectedObject.getForeground();
-				BACKGROUND_COLOR = currentSelectedObject.getBackground();
-
 				currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 				currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-
+				
 				Component currentSelectedComponent = getCurrentSelectedComponent();
 				if (currentSelectedComponent != null) {
 					updateHelpText(currentSelectedComponent);
@@ -520,14 +509,13 @@ public class ComponentExplorerComposite extends Composite {
 		beanLongDescription = cleanDescription(beanLongDescription,true);
 		
 		Color bg = getBackground();
-		Color fg = getForeground();
 		String background = "rgb(" + bg.getRed() + "," + bg.getGreen() + "," + bg.getBlue() + ")";
-		String foreground = "rgb(" + fg.getRed() + "," + fg.getGreen() + "," + fg.getBlue() + ")";
+		String foreground = bg.getRed() < 128 ? "white" : "black";
 		
 		String propertiesDescription = component.getPropertiesDescription();
 
 		if (helpBrowser != null) {
-			helpBrowser.setText("<html>" +
+			helpBrowser.getBrowser().getDocument().getDocumentElement().setInnerHTML(
 					"<head>" +
 					"<script type=\"text/javascript\">" +
 					"document.oncontextmenu = new Function(\"return false\");" +
@@ -543,13 +531,13 @@ public class ComponentExplorerComposite extends Composite {
 					"margin-top: 10px;" +
 					"}" +
 					"</style>" +
-					"</head><p>" 
+					"</head><body><p>" 
 					+ "<font size=\"4.5\"><u><b>" + beanDisplayName + "</b></u></font>" + "<br><br>" 
 					+ "<i>" + beanShortDescription+"</i>" + "<br><br>" 
 					+ beanLongDescription + "<br><br>"
 					+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
 					+ propertiesDescription
-					+ "</p></html>");
+					+ "</p></body>");
 		}
 	}
 }
