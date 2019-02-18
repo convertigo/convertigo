@@ -1012,7 +1012,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		xmlView = new StructuredTextViewer(compositeXml, null, null, false, SWT.H_SCROLL | SWT.V_SCROLL);
 		xmlView.setEditable(false);
 
-		colorManager = new ColorManager();
+		colorManager = new ColorManager(sashForm.getBackground().getRed() < 128);
 		xmlView.configure(new XMLConfiguration(colorManager));
 
 		Document document = new Document(

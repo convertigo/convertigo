@@ -39,7 +39,7 @@
       </win>
    </launcher>
 
-   <intro introId="com.twinsoft.convertigo.product.intro"/>
+   <intro introId="com.twinsoft.convertigo.studio.product.intro"/>
 
    <vm>
    </vm>

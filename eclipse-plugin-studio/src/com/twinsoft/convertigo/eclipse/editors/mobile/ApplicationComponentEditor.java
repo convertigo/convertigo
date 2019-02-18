@@ -1157,10 +1157,15 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
 		final MobileBuilderBuildMode buildMode = this.buildMode;
 		final int buildCount = ++this.buildCount;
+		final boolean isDark = toolbar.getBackground().getRed() < 128;
 		
 		Engine.execute(() -> {
 			try {
-				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
+				String loader = IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8");
+				if (isDark) {
+					loader = loader.replace("lightblue", "rgb(47,47,47); color: white");
+				}
+				browser.loadHTML(loader);
 			} catch (Exception e1) {
 				throw new RuntimeException(e1);
 			}

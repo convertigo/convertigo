@@ -994,6 +994,8 @@ public class EnginePropertiesManager {
     				propertyValue = Crypto2.encodeToHexString(propertyValue);
     			}
     			modifiedProperties.put(property.getKey(), propertyValue);
+    		} else {
+    			outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue()).getBytes("UTF-8"));
     		}
     	}
     	PropertiesUtils.store(modifiedProperties, outputStream, comments);

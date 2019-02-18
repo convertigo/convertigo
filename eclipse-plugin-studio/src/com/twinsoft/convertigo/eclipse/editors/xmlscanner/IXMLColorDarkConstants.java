@@ -21,11 +21,11 @@ package com.twinsoft.convertigo.eclipse.editors.xmlscanner;
 
 import org.eclipse.swt.graphics.RGB;
 
-public interface IXMLColorConstants {
-	RGB XML_COMMENT = new RGB(128, 0, 0);//98,98,98
-	RGB PROC_INSTR = new RGB(128, 128, 128);//254,224,146
-	RGB STRING = new RGB(0, 128, 0);//23,198,163
-	RGB DEFAULT = new RGB(0, 0, 0);//255,255,225
-	RGB TAG = new RGB(0, 0, 128);//12,168,216
-	RGB ATTRIBUTE = new RGB(0, 0, 180);//135,236,32
+public interface IXMLColorDarkConstants {
+	RGB XML_COMMENT = new RGB(98, 98, 98);
+	RGB PROC_INSTR = new RGB(254, 224, 146);
+	RGB STRING = new RGB(23, 198, 163);
+	RGB DEFAULT = new RGB(255, 255, 225);
+	RGB TAG = new RGB(12, 168, 216);
+	RGB ATTRIBUTE = new RGB(135, 236, 32);
 }

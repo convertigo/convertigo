@@ -29,7 +29,12 @@ import org.eclipse.swt.widgets.Display;
 
 public class ColorManager {
 
+	protected boolean isDark;
 	protected Map<RGB, Color> fColorTable = new HashMap<RGB, Color>(10);
+	
+	public ColorManager(boolean isDark) {
+		this.isDark = isDark;
+	}
 
 	public void dispose() {
 		Iterator<Color> e = fColorTable.values().iterator();
@@ -39,8 +44,24 @@ public class ColorManager {
 	public Color getColor(RGB rgb) {
 		Color color = fColorTable.get(rgb);
 		if (color == null) {
+			RGB keyRGB = rgb;
+			if (isDark) {
+				if (rgb == IXMLColorConstants.ATTRIBUTE) {
+					rgb = IXMLColorDarkConstants.ATTRIBUTE;
+				} else if (rgb == IXMLColorConstants.DEFAULT) {
+					rgb = IXMLColorDarkConstants.DEFAULT;
+				} else if (rgb == IXMLColorConstants.PROC_INSTR) {
+					rgb = IXMLColorDarkConstants.PROC_INSTR;
+				} else if (rgb == IXMLColorConstants.STRING) {
+					rgb = IXMLColorDarkConstants.STRING;
+				} else if (rgb == IXMLColorConstants.TAG) {
+					rgb = IXMLColorDarkConstants.TAG;
+				} else if (rgb == IXMLColorConstants.XML_COMMENT) {
+					rgb = IXMLColorDarkConstants.XML_COMMENT;
+				}
+			}
 			color = new Color(Display.getCurrent(), rgb);
-			fColorTable.put(rgb, color);
+			fColorTable.put(keyRGB, color);
 		}
 		return color;
 	}
