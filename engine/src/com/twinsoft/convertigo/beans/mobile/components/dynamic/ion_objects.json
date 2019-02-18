@@ -7173,11 +7173,12 @@
       ]
     }
   },
+  
   "SpeechToTextAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "SpeechToText",
       "label": "SpeechToText",
-      "description": "Defines a <i>SpeechToText</i> action component. | Listen a speech.<br/>Note that more languages are avaible in an external browser, or device than in Convertigo viewer.<br/><br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Browser</li></ul>You can access data from the next action in the chain in (TS) mode with: <code><ul><li>out: A concatanation of spoken string(s) if the action succeed</li></ul></code>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/speech-recognition/'>SpeechToText</a>.",
+      "description": "Defines a <i>SpeechToText</i> action component. | Listen a speech.<br/>This component retrieves speech recognition's data.<br/>Note that more languages are avaible in an external browser, or device than in Convertigo viewer.<br/><br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Browser</li></ul>You can access data from the next action in the chain in (TS) mode with: <code><ul><li>out: A concatenation of spoken string(s) if the action succeed</li></ul></code>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/speech-recognition/'>SpeechRecognition</a>.",
       "group": "Native Actions",
 		"icon16": "speechtotextaction_color_16x16.png",
     	"icon32": "speechtotextaction_color_32x32.png",
@@ -7230,7 +7231,7 @@
         },
         "showPartial": {
           "label": "Show partial",
-          "description": "Allow partial results to be returned (default false, IOs|Browser only)",
+          "description": "Allow partial results to be returned (default false, iOS|Browser only)",
           "category": "@speech options",
 	      "type": "boolean",
 	      "value": "false",

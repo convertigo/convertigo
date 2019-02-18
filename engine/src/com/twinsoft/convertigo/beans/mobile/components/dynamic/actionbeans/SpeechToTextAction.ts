@@ -10,6 +10,7 @@
         
         let options = {
                 locale: props['locale'],            // default "en-US"
+				language: props['locale'],          // default "en-US"
                 matches: props['matches'],          // default 5, on iOS: maximum number of matches
                 prompt: props['prompt'],            // default "", Android only
                 showPopup: props['showPopup'],      // default true, Android only
@@ -23,6 +24,9 @@
                 
                 if ((options.locale == undefined) || (options.locale == '')) {
                     options.locale = 'en-US';
+                }
+                if ((options.language == undefined) || (options.language == '')) {
+                    options.language = 'en-US';
                 }
                 if ((options.matches == undefined) || (options.matches == '')) {
                     options.matches = 5;
