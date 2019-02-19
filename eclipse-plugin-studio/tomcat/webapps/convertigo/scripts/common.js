@@ -42,7 +42,7 @@ function initCommon(callback) {
 				var $form = $(this);
 				var username = $form.find("input[name='username']").val();
 				var password = $form.find("input[name='password']").val();
-				call("services/engine.Authenticate", {
+				call("engine.Authenticate", {
 					authUserName : username,
 					authPassword : password,
 					authType : "login"
