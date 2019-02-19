@@ -18,101 +18,76 @@
             }
             return nativeElement;
         };
-        
-        return new Promise((resolve, reject)=> {
-            let animator : AnimationBuilder = page.getInstance(AnimationService).builder();
-            if (animator != null) {
-                
-                let options = {reject: false};
-                
-                // booleans
-                if (props.useVisibility != null) {
-                    options['useVisibility'] = props.useVisibility === true ? true:false;
-                }
-                if (props.disabled != null) {
-                    options['disabled'] = props.disabled === true ? true:false;
-                }
-                if (props.fixed != null) {
-                    options['fixed'] = props.fixed === true ? true:false;
-                }
-                if (props.pin != null) {
-                    options['pin'] = props.pin === true ? true:false;
-                }
-                
-                // strings
-                if (props.type != null) {
-                    options['type'] = props.type;
-                }
-                if (props.timingFunction != null) {
-                    options['timingFunction'] = props.timingFunction;
-                }
-                if (props.playState != null) {
-                    options['playState'] = props.playState;
-                }
-                if (props.direction != null) {
-                    options['direction'] = props.direction;
-                }
-                if (props.fillMode != null) {
-                    options['fillMode'] = props.fillMode;
-                }
-                
-                // numbers
-                if (props.iterationCount != null) {
-                    options['iterationCount'] = props.iterationCount === '' ? 1 : props.iterationCount;
-                }
-                if (props.duration != null) {
-                    options['duration'] = props.duration === '' ? 1000 : props.duration;
-                }
-                if (props.delay != null) {
-                    options['delay'] = props.delay === '' ? 0 : props.delay;
-                }
-                
-                animator.setOptions(options);
-                
-                let animatable = props.animatable;
-                let animatables = props.animatables;
-                let mode = props.mode == null ? "single":props.mode;
-                
-                if (mode === "single") {
-                    let nativeElement;
-                    if (animatable != null) {
-                        nativeElement = getNativeElement(animatable);
-                    } else if (animatables != null) {
-                        nativeElement = getNativeElement(animatables.first);
-                    }
-                    
-                    if (nativeElement != undefined) {
-                        animator.animate(nativeElement).then(() => {
-                            resolve(true);
-                        });
-                    } else {
-                        page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
-                        resolve(true);
-                    }
-                    
-                }
-                else if (mode === "all") {
-                    if (animatables != null) {
-                        animatables.forEach(
-                            x => {
-                                let nativeElement = getNativeElement(x);
-                                if (nativeElement != undefined) {
-                                    animator.animate(nativeElement).then(() => {
-                                        resolve(true);
-                                    });
-                                } else {
-                                    page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
-                                    resolve(true);
-                                }
-                            }
-                        );
-                    } else {
-                        page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
-                        resolve(true);
-                    }
-                }
-            } else {
-                reject("Unable to instanciate the AnimationBuilder");
-            }
-        });
+        		
+		var animate = function(nativeElement:any, props:any) {
+			nativeElement.style.WebkitAnimation = "none";
+			nativeElement.style.animation = "none";
+			setTimeout(() => {
+				//object.style.animation = "name duration timingFunction delay iterationCount direction fillMode playState"
+				let s = "";//s = "zoomOutUp 4s 2";
+				s += props.type;
+				s += props.duration == null ? 			" 0ms" 		:	" "+props.duration+ "ms";
+				s += props.timingFunction == null ? 	" ease" 	: 	" "+props.timingFunction;
+				s += props.delay == null ? 				" 0ms" 		: 	" "+props.delay+ "ms";
+				s += props.iterationCount == null ? 	" 1" 		: 	" "+props.iterationCount;
+				s += props.direction == null ? 			" normal" 	: 	" "+props.direction;
+				s += props.fillMode == null ? 			" none" 	: 	" "+props.fillMode;
+				s += props.playState == null ? 			" running" 	: 	" "+props.playState;
+				
+				nativeElement.style.WebkitAnimation = s;
+				nativeElement.style.animation = s;
+				page.tick();
+			}, 10);			
+		}
+		
+		return new Promise((resolve, reject)=> {
+			let animatable = props.animatable;
+			let animatables = props.animatables;
+			let mode = props.mode == null ? "single":props.mode;
+
+			let delay = props.delay === "" ? 0: props.delay;
+			let animation = props.type === "" ? null: props.type;
+			
+			if (animation) {
+				if (mode === "single") {
+					let nativeElement;
+					if (animatable != null) {
+						nativeElement = getNativeElement(animatable);
+					} else if (animatables != null) {
+						nativeElement = getNativeElement(animatables.first);
+					}
+					
+					if (nativeElement != undefined) {
+						animate(nativeElement, props);
+						resolve(true);
+					} else {
+						page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
+						resolve(true);
+					}
+					
+				}
+				else if (mode === "all") {
+					if (animatables != null) {
+						animatables.forEach(
+							x => {
+								let nativeElement = getNativeElement(x);
+								if (nativeElement != undefined) {
+									animate(nativeElement, props);
+									resolve(true);
+								} else {
+									page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
+									resolve(true);
+								}
+							}
+						);
+					} else {
+						page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
+						resolve(true);
+					}
+				}
+			} else {
+				page.router.c8o.log.warn("[MB] AnimateAction: No animation specified");
+				resolve(true);
+			}
+		});
     }

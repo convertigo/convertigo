@@ -8364,6 +8364,7 @@
       "icon16": "animateaction_color_16x16.png",
       "icon32": "animateaction_color_32x32.png",
       "properties": {
+/*	  
 	      "useVisibility": {
 	        "label": "Use visibility",
 	        "description": "Specify whether the animation use visibility instead of hidden attribute",
@@ -8395,7 +8396,8 @@
 	        "type": "boolean",
 	        "value": false,
 	        "values": [false,"false","true"]
-	      },   
+	      }, 
+*/		  
 	      "type": {
 	        "label": "Animation name",
 	        "description": "Specify the animation name see <a href='https://daneden.github.io/animate.css/' target='_blank'>animate.css</a>",
@@ -8554,15 +8556,15 @@
 	      },   
 	      "duration": {
 	        "label": "Duration",
-	        "description": "Specify the animation duration in ms",
+	        "description": "Specify the animation duration in ms. If not specified, duration is 0ms by default which means no animation will run.",
 	        "category": "@Parameters",
 	        "type": "number",
-	        "value": false,
+	        "value": 1000,
 	        "values": [false,true]
 	      },   
 	      "delay": {
 	        "label": "Delay",
-	        "description": "Specify the animation delay",
+	        "description": "Specify the animation delay in ms",
 	        "category": "@Parameters",
 	        "type": "number",
 	        "value": false,
