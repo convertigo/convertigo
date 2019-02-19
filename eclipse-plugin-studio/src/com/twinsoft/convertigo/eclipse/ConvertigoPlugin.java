@@ -1514,23 +1514,26 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	public IProject createProjectPluginResource(String projectName, String projectDir, IProgressMonitor monitor) throws CoreException {
+		logInfo("createProjectPluginResource for projet '" + projectName + "' from: " + projectDir);
+		
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
 
 		if (!resourceProject.exists()) {
 			if (projectDir == null) {
-				logDebug("createProjectPluginResource : project is in the workspace folder");
-
+				logInfo("createProjectPluginResource: project '" + projectName + "' is in the workspace folder");
 				resourceProject.create(monitor);
 			} else {
-				logDebug("createProjectPluginResource: project isn't in the workspace folder");				
+				logInfo("createProjectPluginResource: project '" + projectName + "' isn't in the workspace folder but: " + projectDir);				
 				IPath projectPath = new Path(projectDir).makeAbsolute();
 				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
 				description.setLocation(projectPath);
 				resourceProject.create(description, monitor);
 				resourceProject.open(monitor);
 			}
+		} else {
+			logInfo("createProjectPluginResource: projet '" + projectName + "' already exist");
 		}
 
 		return resourceProject;

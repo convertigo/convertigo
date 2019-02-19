@@ -646,7 +646,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 						new File(projectDir, ".svn")
 				));
 			} else {
-				Engine.logEngine.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
+				Engine.logDatabaseObjectManager.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
 			}
 		} catch (Exception e) {
 			throw new EngineException(
@@ -725,11 +725,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 		String projectName = project.getName();
 
 		// Export project
-		Engine.logDatabaseObjectManager.debug("Saving project \"" + projectName + "\" to XML file ...");
 		String exportedProjectFileName = Engine.projectFile(projectName).getAbsolutePath();
+		Engine.logDatabaseObjectManager.info("Saving project \"" + projectName + "\" to: " + exportedProjectFileName);
 		CarUtils.exportProject(project, exportedProjectFileName);
 		if (exportedProjectFileName.endsWith(".xml")) {
-			studioProjects.declareProject(projectName, new File(new File(exportedProjectFileName).getParentFile(), "c8oProject.yaml"));
+			File yaml = new File(new File(exportedProjectFileName).getParentFile(), "c8oProject.yaml");
+			Engine.logDatabaseObjectManager.info("Declaring project project \"" + projectName + "\" to: " + yaml.getAbsolutePath());
+			studioProjects.declareProject(projectName, yaml);
 		}
 		RestApiManager.getInstance().putUrlMapper(project);
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
@@ -942,20 +944,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project importProject(String importFileName) throws EngineException {
 		try {
-			boolean doSave = false;
 			File file = new File(importFileName);
-			if (importFileName.endsWith(".xml")) {
-				if (!file.exists()) {
-					importFileName = new File(file.getParentFile(), "c8oProject.yaml").getAbsolutePath();
-				} else {
-					doSave = true;
-				}
+			if (importFileName.endsWith(".xml") && !file.exists()) {
+				String oldName = importFileName;
+				importFileName = new File(file.getParentFile(), "c8oProject.yaml").getAbsolutePath();
+				Engine.logDatabaseObjectManager.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + importFileName);
 			}
 			Project project = importProject(importFileName, null);
-			if (doSave) {
-				exportProject(project);
-			}
 			if (!Engine.isCliMode()) {
+				Engine.logDatabaseObjectManager.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFileName);
 				CouchDbManager.syncDocument(project);
 			}
 			return project;
@@ -966,6 +963,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project importProject(Document document) throws EngineException {
 		try {
+			Engine.logDatabaseObjectManager.debug("Importing a project from Document (DOM)");
 			return importProject(null, document);
 		} catch (Exception e) {
 			throw new EngineException("An error occured while importing project", e);
@@ -1079,8 +1077,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private Project importProject(String importFileName, Document document) throws EngineException {
 		try {
 			File importFile;
-			Engine.logDatabaseObjectManager.info("Importing project ...");
+			
 			if (importFileName != null) {
+				Engine.logDatabaseObjectManager.info("Importing project from: " + importFileName);
 				importFile = new File(importFileName);
 				if (importFile.getName().equals("c8oProject.yaml")) {
 					document = YamlConverter.readYaml(importFile);
@@ -1089,6 +1088,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					document = XMLUtils.loadXml(importFile);
 				}
 			} else {
+				Engine.logDatabaseObjectManager.info("Importing project a Document (DOM)");
 				importFile = null;
 			}
 
@@ -1118,7 +1118,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				project = (Project) importDatabaseObject(projectNode, null);
 			} catch (Exception e) {
 				if (document != null) {
-					Engine.logDatabaseObjectManager.error("Failed to import project \""+projectName+"\":\n"+ XMLUtils.prettyPrintDOM(document));
+					Engine.logDatabaseObjectManager.error("Failed to import project \"" + projectName + "\":\n" + XMLUtils.prettyPrintDOM(document));
 				}
 				throw e;
 			}
