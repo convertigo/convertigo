@@ -63,6 +63,8 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 		ionPull("(ionPull)"),
 		ionRefresh("(ionRefresh)"),
 		ionStart("(ionStart)"),
+		ionClose("(ionClose)"),
+		ionOpen("(ionOpen)"),
 		;
 		
 		String event;
