@@ -1409,7 +1409,7 @@ public class XMLUtils {
 
 			parentElement.appendChild(element);
 
-			if (JSONObject.NULL.equals(object)) {
+			if (JSONObject.NULL.equals(object) || JSONObject.EXPLICIT_NULL.equals(object)) {
 				object = null;
 			}
 			
