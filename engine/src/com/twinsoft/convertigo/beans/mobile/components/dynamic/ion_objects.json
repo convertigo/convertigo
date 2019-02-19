@@ -8364,40 +8364,6 @@
       "icon16": "animateaction_color_16x16.png",
       "icon32": "animateaction_color_32x32.png",
       "properties": {
-/*	  
-	      "useVisibility": {
-	        "label": "Use visibility",
-	        "description": "Specify whether the animation use visibility instead of hidden attribute",
-	        "category": "@Parameters",
-	        "type": "boolean",
-	        "value": false,
-	        "values": [false,"false","true"]
-	      },   
-	      "disabled": {
-	        "label": "Is disabled",
-	        "description": "Specify whether the animation is disabled",
-	        "category": "@Parameters",
-	        "type": "boolean",
-	        "value": false,
-	        "values": [false,"false","true"]
-	      },   
-	      "fixed": {
-	        "label": "Is fixed",
-	        "description": "Specify whether the component's position is fixed",
-	        "category": "@Parameters",
-	        "type": "boolean",
-	        "value": false,
-	        "values": [false,"false","true"]
-	      },   
-	      "pin": {
-	        "label": "Is pined",
-	        "description": "Specify whether the component's style is pined",
-	        "category": "@Parameters",
-	        "type": "boolean",
-	        "value": false,
-	        "values": [false,"false","true"]
-	      }, 
-*/		  
 	      "type": {
 	        "label": "Animation name",
 	        "description": "Specify the animation name see <a href='https://daneden.github.io/animate.css/' target='_blank'>animate.css</a>",
