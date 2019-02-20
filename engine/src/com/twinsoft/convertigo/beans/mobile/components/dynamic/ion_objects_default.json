@@ -152,26 +152,6 @@
  "AnimateAction": {"   7   6   0": {
   "name": "AnimateAction",
   "properties": {
-   "useVisibility": {
-    "name": "useVisibility",
-    "mode": "plain",
-    "value": false
-   },
-   "disabled": {
-    "name": "disabled",
-    "mode": "plain",
-    "value": false
-   },
-   "fixed": {
-    "name": "fixed",
-    "mode": "plain",
-    "value": false
-   },
-   "pin": {
-    "name": "pin",
-    "mode": "plain",
-    "value": false
-   },
    "type": {
     "name": "type",
     "mode": "plain",
@@ -205,7 +185,7 @@
    "duration": {
     "name": "duration",
     "mode": "plain",
-    "value": false
+    "value": 1000
    },
    "delay": {
     "name": "delay",
