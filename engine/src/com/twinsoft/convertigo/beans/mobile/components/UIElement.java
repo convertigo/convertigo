@@ -25,6 +25,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIElement extends UIComponent implements ITagsProperty, IStyleGenerator {
@@ -103,7 +104,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
         	} else {
 	    		String formControlName = getFormControlName();
 	    		if (formControlName.isEmpty()) {
-	    			throw new EngineException("You cannot add validator to this component: Missing \"formControlName\" property or attribute.");
+	    			Engine.logBeans.warn("Validator is missing \"formControlName\" property or attribute for component "+ this.getQName());
 	    		}
 	    		super.addUIComponent(uiComponent, after);
         	}
