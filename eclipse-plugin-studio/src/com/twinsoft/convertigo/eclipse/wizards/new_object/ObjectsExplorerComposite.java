@@ -72,11 +72,8 @@ import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class ObjectsExplorerComposite extends Composite {
 	
-	protected Color FOREGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
-	protected Color BACKGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 	protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
-	protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(
-			SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
+	protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
 
 	private String technology = null;
 	private Class<? extends DatabaseObject> databaseObjectClass = null;
@@ -109,7 +106,6 @@ public class ObjectsExplorerComposite extends Composite {
 		super(parent, style);
 		this.parentObject = (DatabaseObject) parentObject;
 		this.databaseObjectClass = beanClass;
-
 		objectsMap = new HashMap<CLabel, Object>(32);
 		initialize();
 	}
@@ -236,7 +232,7 @@ public class ObjectsExplorerComposite extends Composite {
 					items = new ExpandItem[1];
 					composites[i] = new Composite(bar, SWT.NONE);
 					composites[i].setLayout(rowLayout);
-					composites[i].setBackground(BACKGROUND_COLOR);
+					composites[i].setBackground(bar.getBackground());
 					items[i] = new ExpandItem(bar, SWT.NONE, i);
 					items[i].setControl(composites[i]);
 					items[i].setExpanded(true);
@@ -248,7 +244,7 @@ public class ObjectsExplorerComposite extends Composite {
 					{
 						composites[i] = new Composite(bar, SWT.NONE);
 						composites[i].setLayout(rowLayout);
-						composites[i].setBackground(BACKGROUND_COLOR);
+						composites[i].setBackground(bar.getBackground());
 						items[i] = new ExpandItem(bar, SWT.NONE, i);
 						items[i].setControl(composites[i]);
 						items[i].setExpanded(true);
@@ -343,7 +339,7 @@ public class ObjectsExplorerComposite extends Composite {
 		scrolledComposite = new ScrolledComposite(this, SWT.V_SCROLL);
 		scrolledComposite.setLayoutData(gridData);
 		
-		helpBrowser = new C8oBrowser(this, SWT.BORDER | SWT.MULTI | SWT.WRAP);
+		helpBrowser = new C8oBrowser(this, SWT.MULTI | SWT.WRAP);
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;
@@ -357,36 +353,38 @@ public class ObjectsExplorerComposite extends Composite {
 
 		// retrieve 'project' technology
 		technology = DboUtils.getTechnology(parentObject, databaseObjectClass);
-
-		// find associated database objects
-		findDatabaseObjects();
 		
-		for (ExpandItem expandItem : bar.getItems()) {
-			/* update the item's height if needed in response to changes*/ 
-			final ExpandItem item = expandItem;
-			final Composite composite = (Composite) expandItem.getControl();	
-			composite.addControlListener(new ControlAdapter() {
-				public void controlResized(ControlEvent e) {
-					Point size = composite.getSize();
-					Point size2 = composite.computeSize(size.x,
-							SWT.DEFAULT);
-					item.setHeight(size2.y);
-		     }
-		    });
-		}
-		
-		scrolledComposite.setContent(bar);		
-		scrolledComposite.setExpandVertical(true);
-		scrolledComposite.setExpandHorizontal(true);
-		
-		scrolledComposite.addControlListener(new ControlAdapter() {
-			public void controlResized(ControlEvent e) {
-				Rectangle r = scrolledComposite.getClientArea();
-				scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
+		getDisplay().asyncExec(() -> {
+			// find associated database objects
+			findDatabaseObjects();
+			
+			for (ExpandItem expandItem : bar.getItems()) {
+				/* update the item's height if needed in response to changes*/ 
+				final ExpandItem item = expandItem;
+				final Composite composite = (Composite) expandItem.getControl();	
+				composite.addControlListener(new ControlAdapter() {
+					public void controlResized(ControlEvent e) {
+						Point size = composite.getSize();
+						Point size2 = composite.computeSize(size.x,
+								SWT.DEFAULT);
+						item.setHeight(size2.y);
+					}
+				});
 			}
+			
+			scrolledComposite.setContent(bar);		
+			scrolledComposite.setExpandVertical(true);
+			scrolledComposite.setExpandHorizontal(true);
+			
+			scrolledComposite.addControlListener(new ControlAdapter() {
+				public void controlResized(ControlEvent e) {
+					Rectangle r = scrolledComposite.getClientArea();
+					scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
+				}
+			});
+			
+			layout(true);
 		});
-				
-		this.setSize(new org.eclipse.swt.graphics.Point(800, 400));
 	}
 
 	/*
@@ -415,19 +413,22 @@ public class ObjectsExplorerComposite extends Composite {
 
 		beanShortDescription = BeansUtils.cleanDescription(beanShortDescription, true);
 		beanLongDescription = BeansUtils.cleanDescription(beanLongDescription, true);
-
+		
+		helpBrowser.setBackground(getBackground());
 		helpBrowser.setText("<html>" +
 								"<head>" +
-								"<script type=\"text/javascript\">"+
-							        "document.oncontextmenu = new Function(\"return false\");"+
-							    "</script>"+
-										"<style type=\"text/css\">"+
-											  "body {"+
-											    "font-family: Courrier new, sans-serif;"+
-											    "font-size: 14px;"+
-											    "padding-left: 0.3em;"+
-											    "background-color: #ECEBEB }"+
-										"</style>"+
+								"<script type=\"text/javascript\">" +
+							        "document.oncontextmenu = new Function(\"return false\");" +
+							    "</script>" +
+										"<style type=\"text/css\">" +
+											  "body {" +
+											    "font-family: Courrier new, sans-serif;" +
+											    "font-size: 14px;" +
+											    "padding-left: 0.3em;" +
+											    "color: $foreground$;" +
+											    "background-color: $background$ } \n" +
+											    "a { color: $link$; }" +
+										"</style>" +
 								"</head><p>" 
 							+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 
 							+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
@@ -441,8 +442,6 @@ public class ObjectsExplorerComposite extends Composite {
 		label.setText(beanName);
 		label.setAlignment(SWT.LEFT);
 		label.setToolTipText(beanShortDescription);
-		label.setForeground(FOREGROUND_COLOR);
-		label.setBackground(this.getBackground());
 		label.setCursor(handCursor);
 
 		RowData rowData = new RowData();
@@ -465,21 +464,23 @@ public class ObjectsExplorerComposite extends Composite {
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
-				if (currentSelectedObject == (CLabel) e.getSource())
+				CLabel label = (CLabel) e.getSource();
+				if (currentSelectedObject == label) {
 					return;
-
-				if (currentSelectedObject != null) {
-					currentSelectedObject.setForeground(FOREGROUND_COLOR);
-					currentSelectedObject.setBackground(BACKGROUND_COLOR);
 				}
-
-				currentSelectedObject = (CLabel) e.getSource();
-
+				
+				if (currentSelectedObject != null) {
+					currentSelectedObject.setForeground(label.getForeground());
+					currentSelectedObject.setBackground(label.getBackground());
+				}
+				
+				currentSelectedObject = label;
+				
 				ConvertigoPlugin.logDebug("currentSelectedObject: '" + currentSelectedObject.getText() + "'.");
-
+				
 				currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 				currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-
+				
 				BeanInfo currentSelectedObjectBeanInfo = getCurrentSelectedBeanInfo();
 				if (currentSelectedObjectBeanInfo != null) {
 					updateHelpText(currentSelectedObjectBeanInfo);
@@ -538,15 +539,16 @@ public class ObjectsExplorerComposite extends Composite {
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent e) {
-				if (currentSelectedObject == (CLabel) e.getSource())
+				CLabel label = (CLabel) e.getSource();
+				if (currentSelectedObject == label)
 					return;
 
 				if (currentSelectedObject != null) {
-					currentSelectedObject.setForeground(FOREGROUND_COLOR);
-					currentSelectedObject.setBackground(BACKGROUND_COLOR);
+					currentSelectedObject.setForeground(label.getForeground());
+					currentSelectedObject.setBackground(label.getBackground());
 				}
 
-				currentSelectedObject = (CLabel) e.getSource();
+				currentSelectedObject = label;
 
 				ConvertigoPlugin.logDebug("currentSelectedObject: '" + currentSelectedObject.getText() + "'.");
 

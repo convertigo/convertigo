@@ -59,7 +59,7 @@ public class C8oBrowser extends Composite {
 	private BrowserView browserView;
 
 	private void init(Composite parent, BrowserContext browserContext) {
-	    browserView = new BrowserView(new Browser(browserContext));
+		browserView = new BrowserView(new Browser(browserContext));
 		Frame frame = SWT_AWT.new_Frame(this);
 		frame.add(browserView);
 		threadSwt = parent.getDisplay().getThread();
@@ -129,12 +129,20 @@ public class C8oBrowser extends Composite {
 	}
 	
 	public void setText(String html) {
-		getBrowser().loadHTML(html);
+		html = html.replace("<html>", "").replace("</html>", "");
+		if (html.contains("$background$")) {
+			org.eclipse.swt.graphics.Color bg = getBackground();
+			String background = "rgb(" + bg.getRed() + ", " + bg.getGreen() + ", " + bg.getBlue() + ")";
+			String foreground = bg.getRed() < 128 ? "white" : "black";
+			String link = bg.getRed() < 128 ? "cyan" : "blue";
+			html = html.replace("$background$", background).replace("$foreground$", foreground).replace("$link$", link);
+		}
+		getBrowser().getDocument().getDocumentElement().setInnerHTML(html);
 	}
 	
 	public void reloadText() {
 		Browser browser = getBrowser();
-		browser.loadHTML(browser.getHTML());
+		setText(browser.getHTML());
 	}
 
 	public void setUrl(String url) {

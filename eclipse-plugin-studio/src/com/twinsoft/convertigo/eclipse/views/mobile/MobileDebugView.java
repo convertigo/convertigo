@@ -51,7 +51,8 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
 		browser = c8oBrowser.getBrowser();
 		browser.setZoomEnabled(false);
-		browser.loadHTML("<body>please select a mobile application editor</body>");
+		c8oBrowser.setText("<head><style>color: $foreground$; background-color: $background$;</style></head>"
+				+ "<body>please select a mobile application editor</body>");
 		
 		onActivated(getSite().getPage().getActiveEditor());
 		getSite().getPage().addPartListener(this);

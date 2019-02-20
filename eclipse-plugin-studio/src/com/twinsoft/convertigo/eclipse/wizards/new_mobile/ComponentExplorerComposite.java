@@ -397,7 +397,7 @@ public class ComponentExplorerComposite extends Composite {
 			}
 		});
 
-		helpBrowser = new C8oBrowser(this, SWT.BORDER | SWT.MULTI | SWT.WRAP);
+		helpBrowser = new C8oBrowser(this, SWT.MULTI | SWT.WRAP);
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;
@@ -508,28 +508,23 @@ public class ComponentExplorerComposite extends Composite {
 		beanShortDescription = cleanDescription(beanShortDescription,true);
 		beanLongDescription = cleanDescription(beanLongDescription,true);
 		
-		Color bg = getBackground();
-		String background = "rgb(" + bg.getRed() + "," + bg.getGreen() + "," + bg.getBlue() + ")";
-		String foreground = bg.getRed() < 128 ? "white" : "black";
-		
 		String propertiesDescription = component.getPropertiesDescription();
 
 		if (helpBrowser != null) {
-			helpBrowser.getBrowser().getDocument().getDocumentElement().setInnerHTML(
+			helpBrowser.setText(
 					"<head>" +
-					"<script type=\"text/javascript\">" +
-					"document.oncontextmenu = new Function(\"return false\");" +
-					"</script>" +
-					"<style type=\"text/css\">" +
-					"body {" +
-					"font-family: Courrier new, sans-serif;" +
-					"font-size: 14px;" +
-					"padding-left: 0.3em;" +
-					"color: " + foreground + ";" +
-					"background-color: " + background + " }" +
-					"li {" +
-					"margin-top: 10px;" +
-					"}" +
+					  "<script type=\"text/javascript\">" +
+					    "document.oncontextmenu = new Function(\"return false\");" +
+					  "</script>" +
+					  "<style type=\"text/css\">" +
+					    "body {" +
+					      "font-family: Courrier new, sans-serif;" +
+					      "font-size: 14px;" +
+					      "padding-left: 0.3em;" +
+					      "color: $foreground$;" +
+					      "background-color: $background$; } \n" +
+					    "li { margin-top: 10px; } \n" +
+					    "a { color: $link$; }" +
 					"</style>" +
 					"</head><body><p>" 
 					+ "<font size=\"4.5\"><u><b>" + beanDisplayName + "</b></u></font>" + "<br><br>" 

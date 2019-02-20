@@ -99,6 +99,7 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		Color bg = parent.getBackground();
 		
 		control.setFont(font);
+		control.setForeground(control.getDisplay().getSystemColor(SWT.COLOR_BLACK));
 		control.setBackground(bg);
 		
 		GridLayout gl = new GridLayout(99, false);
@@ -210,6 +211,7 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 				Button button = (Button) e.widget; 
 				button.setSelection(true);
 				
+				comboBox.setForeground(button.getDisplay().getSystemColor(SWT.COLOR_BLACK));
 				comboBox.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
 				
 				Mode mode = (Mode) button.getData(DataKeys.SMART_TYPE.name());

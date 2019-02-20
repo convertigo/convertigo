@@ -38,6 +38,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 
+import com.twinsoft.convertigo.eclipse.ColorEnum;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class EngineLogViewLabelProvider extends CellLabelProvider implements
@@ -66,8 +68,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	protected void initialize(ColumnViewer viewer, ViewerColumn column) {
 		super.initialize(viewer, column);
 		tableViewer = (TableViewer) viewer;
-		Color bg = viewer.getControl().getShell().getBackground();
-		isDark = bg.getRed() < 128;
+		isDark = SwtUtils.isDark();
 		Display d = viewer.getControl().getDisplay();
 		if (isDark) {
 			error = new Color(d, 255, 0, 0);
@@ -95,7 +96,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	}
 	
 	public Color getBackground(Object element, int columnIndex) {
-		return isDark ? Display.getCurrent().getSystemColor(SWT.COLOR_BLACK) : getColor(element);
+		return isDark ? ColorEnum.BACKGROUND_DARK.get() : getColor(element);
 	}
 	
 	public Color getColor(Object element) {

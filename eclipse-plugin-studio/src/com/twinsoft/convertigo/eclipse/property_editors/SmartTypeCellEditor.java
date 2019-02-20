@@ -90,6 +90,7 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
 		control.setLayout(gl);
 		
 		text = new Text(control, SWT.NONE);
+		text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
         text.addKeyListener(new KeyAdapter() {
@@ -149,6 +150,7 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
 				button.setSelection(true);
 				
 				text.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+				text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
 				
 				Mode mode = (Mode) button.getData(DataKeys.SMART_TYPE.name());
 				value.setMode(mode);

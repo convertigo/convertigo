@@ -104,6 +104,7 @@ import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
@@ -1157,7 +1158,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
 		final MobileBuilderBuildMode buildMode = this.buildMode;
 		final int buildCount = ++this.buildCount;
-		final boolean isDark = toolbar.getBackground().getRed() < 128;
+		final boolean isDark = SwtUtils.isDark();
 		
 		Engine.execute(() -> {
 			try {
@@ -1165,7 +1166,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				if (isDark) {
 					loader = loader.replace("lightblue", "rgb(47,47,47); color: white");
 				}
-				browser.loadHTML(loader);
+				c8oBrowser.setText(loader);
 			} catch (Exception e1) {
 				throw new RuntimeException(e1);
 			}

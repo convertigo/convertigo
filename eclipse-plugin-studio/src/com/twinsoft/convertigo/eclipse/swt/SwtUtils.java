@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.swt;
 
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.ui.PlatformUI;
 
 public class SwtUtils {
 	static public GridLayout newGridLayout(int numColumns, boolean makeColumnsEqualWidth, int horizontalSpacing, int verticalSpacing, int marginWidth, int marginHeight) {
@@ -28,7 +29,7 @@ public class SwtUtils {
 		gridLayout.makeColumnsEqualWidth = makeColumnsEqualWidth;
 		gridLayout.horizontalSpacing = horizontalSpacing;
 		gridLayout.verticalSpacing = verticalSpacing;
-		gridLayout.marginWidth = marginWidth;;
+		gridLayout.marginWidth = marginWidth;
 		gridLayout.marginHeight = marginHeight;
 		return gridLayout;
 	}
@@ -41,5 +42,9 @@ public class SwtUtils {
 		gridLayout.marginRight = marginRight;
 		gridLayout.marginTop = marginTop;
 		return gridLayout;
+	}
+
+	public static boolean isDark() {
+		return PlatformUI.getWorkbench().getWorkbenchWindows()[0].getShell().getBackground().getRed() < 128;
 	}
 }
