@@ -651,6 +651,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							if (p_name.equals("fsview")) {
 								key = p_value.toString() + ".view";
 							}
+						} else if (beanName.equals("FullSyncGetAction")) {
+							if (p_name.equals("requestable")) {
+								key = p_value.toString() + ".get";
+							}
 						} else if (beanName.equals("CallSequenceAction")) {
 							if (p_name.equals("requestable")) {
 								key = p_value.toString();

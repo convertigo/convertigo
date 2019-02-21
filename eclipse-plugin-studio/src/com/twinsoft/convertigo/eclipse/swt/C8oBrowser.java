@@ -129,7 +129,7 @@ public class C8oBrowser extends Composite {
 	}
 	
 	public void setText(String html) {
-		html = html.replace("<html>", "").replace("</html>", "");
+		//html = html.replace("<html>", "").replace("</html>", "");
 		if (html.contains("$background$")) {
 			org.eclipse.swt.graphics.Color bg = getBackground();
 			String background = "rgb(" + bg.getRed() + ", " + bg.getGreen() + ", " + bg.getBlue() + ")";
@@ -137,7 +137,11 @@ public class C8oBrowser extends Composite {
 			String link = bg.getRed() < 128 ? "cyan" : "blue";
 			html = html.replace("$background$", background).replace("$foreground$", foreground).replace("$link$", link);
 		}
-		getBrowser().getDocument().getDocumentElement().setInnerHTML(html);
+		if (html.contains("</html>")) {
+			getBrowser().loadHTML(html);
+		} else {
+			getBrowser().getDocument().getDocumentElement().setInnerHTML(html);
+		}
 	}
 	
 	public void reloadText() {
