@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.mobile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +40,14 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -115,7 +119,13 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 				} else if (object instanceof UIForm) {
 					UIForm form = (UIForm)object;
 					param = "form"+ form.priority;
+				} else if (object instanceof ApplicationComponent) {
+					param = "router.sharedObject";
 				}
+			} else {
+				if (infos != null) {
+					
+			}
 			}
 			return param;
 		}
@@ -216,6 +226,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			if (filter.equals(Filter.Form)) {
 				TVObject tvi = root.add(new TVObject("forms"));
 				addForms(tvi, mobileComponent);
+			}
+			if (filter.equals(Filter.Global)) {
+				TVObject tvi = root.add(new TVObject("globals"));
+				addGlobals(tvi, mobileComponent.getApplication());
 			}
 			return root.children.toArray();
 		} else if (parentElement instanceof JSONObject) {
@@ -404,6 +418,80 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					} else {
 						addForms(tvi, uic);
 					}
+				}
+			}
+		}
+	}
+	
+	private void getGlobalActions(Object object, Map<String, UIDynamicAction> globals) {
+		List<UIComponent> list = new ArrayList<>();
+		if (object instanceof ApplicationComponent) {
+			for (UIDynamicMenu menu: ((ApplicationComponent)object).getMenuComponentList()) {
+				list.addAll(menu.getUIComponentList());
+			}
+			for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
+				list.addAll(page.getUIComponentList());
+			}
+		} else if (object instanceof UIComponent) {
+			list.addAll(((UIComponent)object).getUIComponentList());
+		}
+		
+		for (UIComponent uic : list) {
+			if (uic instanceof UIDynamicAction) {
+				UIDynamicAction uida = (UIDynamicAction)uic;
+				if (((UIDynamicAction)uic).isSetGlobalAction()) {
+					String key = uida.getSetGlobalActionKeyName();
+					if (key != null && !key.isEmpty() && !globals.containsKey(key)) {
+						globals.put(key, uida);
+					}
+				}
+				if (((UIDynamicAction)uic).isFullSyncSyncAction()) {
+					String key = "FullSyncSyncAction";
+					if (!globals.containsKey(key)) {
+						globals.put(key, uida);
+					}
+				}
+			}
+			getGlobalActions(uic, globals);
+		}
+	}
+	
+	private void addGlobals(TVObject tvi, Object object) {
+		if (object != null) {
+			Map<String, UIDynamicAction> globals = null;
+			if (object instanceof ApplicationComponent) {
+				globals = new HashMap<>();
+				getGlobalActions(object, globals);
+			}
+			
+			if (globals != null) {
+				try {
+					JSONObject jsonFSSA = new JSONObject().put("FullSyncSyncAction",
+							new JSONObject().put("progress", new JSONObject()
+												.put("changed","")
+												.put("continuous","")
+												.put("finished","")
+												.put("pull","")
+												.put("current","")
+												.put("total","")
+												.put("status","")
+												.put("taskInfo","")
+												.put("raw","")
+											));
+					
+					JSONObject jsonInfos = new JSONObject();
+					for (String key: globals.keySet()) {
+						//UIDynamicAction uida = globals.get(key);
+						if ("FullSyncSyncAction".equals(key)) {
+							jsonInfos.put(key, jsonFSSA.get(key));
+						} else {
+							jsonInfos.put(key, "");
+						}
+					}
+					
+					tvi.add(new TVObject("sharedObject", object, jsonInfos));
+				} catch (JSONException e) {
+					e.printStackTrace();
 				}
 			}
 		}

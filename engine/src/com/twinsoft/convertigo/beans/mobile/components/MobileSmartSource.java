@@ -44,12 +44,14 @@ public class MobileSmartSource {
 	public static Pattern directivePattern = Pattern.compile("(item\\d+)(.+)?");
 	public static Pattern formPattern = Pattern.compile("(form\\d+)(.+)?");
 	public static Pattern cafPattern = Pattern.compile("'([^,]+)(,.+)?'");
+	public static Pattern globalPattern = Pattern.compile("(router\\.sharedObject)(.+)?");
 	
 	public enum Filter {
 		Sequence,
 		Database,
 		Iteration,
-		Form;
+		Form,
+		Global;
 	}
 	
 	public enum Key {
@@ -173,6 +175,14 @@ public class MobileSmartSource {
 					sources.add(form);
 				}
 			}
+		} else if (Filter.Global.equals(getFilter())) {
+			Matcher m = globalPattern.matcher(getInput());
+			if (m.find()) {
+				String gbl = m.group(1);
+				if (gbl != null) {
+					sources.add(gbl);
+				}
+			}
 		} else {
 			Matcher m = listenPattern.matcher(getInput());
 			if (m.find()) {
@@ -197,6 +207,11 @@ public class MobileSmartSource {
 			}
 		} else if (Filter.Form.equals(getFilter())) {
 			Matcher m = formPattern.matcher(getInput());
+			if (m.find()) {
+				modelPath = m.group(2);
+			}
+		} else if (Filter.Global.equals(getFilter())) {
+			Matcher m = globalPattern.matcher(getInput());
 			if (m.find()) {
 				modelPath = m.group(2);
 			}
@@ -296,6 +311,20 @@ public class MobileSmartSource {
 						e.printStackTrace();
 					}
 				}
+			} else if (Filter.Global.equals(getFilter())) {
+				Matcher m = formPattern.matcher(cafInput);
+				if (m.find()) {
+					try {
+						String projectName = getProjectName();
+						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						
+						DatabaseObject dbo = project.getMobileApplication().getApplicationComponent();
+						return dbo;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
 			} else if (Filter.Database.equals(getFilter())) {
 				Matcher m = cafPattern.matcher(cafInput);
 				if (m.find()) {
@@ -357,6 +386,8 @@ public class MobileSmartSource {
 			if (Filter.Iteration.equals(getFilter())) {
 				;
 			} else if (Filter.Form.equals(getFilter())) {
+				;
+			} else if (Filter.Global.equals(getFilter())) {
 				;
 			} else {
 				Matcher m = cafPattern.matcher(cafInput);
