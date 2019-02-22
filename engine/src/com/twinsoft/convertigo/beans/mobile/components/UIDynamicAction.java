@@ -697,5 +697,47 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		}
 		
 		super.addInfos(infoMap);
-	}	
+	}
+
+	public boolean isFullSyncSyncAction() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			return ionBean.getName().equals("FullSyncSyncAction");
+		}
+		return false;
+	}
+	
+	public boolean isSetGlobalAction() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			return ionBean.getName().equals("SetGlobalAction");
+		}
+		return false;
+	}
+	
+	public String getSetGlobalActionKeyName() {
+		if (isSetGlobalAction()) {
+			IonProperty property = getIonBean().getProperty("Property");
+			if (property != null) {
+				Object value = property.getValue();
+				if (!value.equals(false)) {
+					return value.toString();
+				}
+			}
+		}
+		return null;
+	}
+	
+	public Object getSetGlobalActionKeyValue() {
+		if (isSetGlobalAction()) {
+			IonProperty property = getIonBean().getProperty("Value");
+			if (property != null) {
+				Object value = property.getValue();
+				if (!value.equals(false)) {
+					return value;
+				}
+			}
+		}
+		return null;
+	}
 }
