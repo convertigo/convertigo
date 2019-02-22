@@ -27,13 +27,15 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+
 public class ColorManager {
 
 	protected boolean isDark;
 	protected Map<RGB, Color> fColorTable = new HashMap<RGB, Color>(10);
 	
-	public ColorManager(boolean isDark) {
-		this.isDark = isDark;
+	public ColorManager() {
+		isDark = SwtUtils.isDark();
 	}
 
 	public void dispose() {
