@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Display;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider.NamedList;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 
@@ -163,9 +164,15 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 		if (element instanceof XmlSchemaObject) {
 			XmlSchemaObject xso = (XmlSchemaObject) element;
 			return Display.getCurrent().getSystemColor(
+					SwtUtils.isDark() ? (
+					SchemaMeta.isDynamic(xso) ?
+							(SchemaMeta.isReadOnly(xso) ? SWT.COLOR_CYAN : SWT.COLOR_GREEN)
+							: SWT.COLOR_GRAY
+					) : (
 					SchemaMeta.isDynamic(xso) ?
 							(SchemaMeta.isReadOnly(xso) ? SWT.COLOR_DARK_BLUE : SWT.COLOR_DARK_GREEN)
 							: SWT.COLOR_DARK_GRAY
+					)
 			);
 		}
 		return null;

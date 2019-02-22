@@ -127,10 +127,10 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 									public void run() {
 										if (message != null && !message.isDisposed()) {
 											if (exception[0] == null) {
-												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
 												message.setText("The " + projectName + " " + requestableName + " XML response is valid.");
 											} else {
-												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
 												message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].toString()/*exception[0].getMessage()*/);
 											}
 											content.layout(true);
@@ -146,7 +146,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 						Display.getDefault().asyncExec(new Runnable() {
 							
 							public void run() {
-								message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+								message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
 								message.setText("'" + projectName + "' schema generated.");
 							}
 							
@@ -555,10 +555,10 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		
 										public void run() {
 											if (exception[0] == null) {
-												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
 												message.setText("The " + projectName + " schema is valid.");
 											} else {
-												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+												message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
 												message.setText("The " + projectName + " schema is invalid : " + exception[0].toString()/*getMessage()*/);
 											}
 											content.layout(true);
@@ -570,7 +570,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 									Display.getDefault().asyncExec(new Runnable() {
 										
 										public void run() {
-											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+											message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN));
 											message.setText("'" + projectName + "' schema generated.");
 											content.layout(true);
 										}
