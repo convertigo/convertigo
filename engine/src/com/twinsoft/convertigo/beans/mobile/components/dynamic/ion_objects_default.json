@@ -3358,5 +3358,13 @@
     "value": "false"
    }
   }
+ }},
+ "DeleteListenAction": {"   7   6   0": {
+  "name": "DeleteListenAction",
+  "properties": {"requestables": {
+   "name": "requestables",
+   "mode": "script",
+   "value": "[]"
+  }}
  }}
 }

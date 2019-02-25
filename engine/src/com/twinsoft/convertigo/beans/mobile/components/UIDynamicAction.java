@@ -289,6 +289,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						MobileSmartSourceType msst = property.getSmartType();
 						String smartValue = msst.getValue();
 						
+						// Case plain string
 						if (Mode.PLAIN.equals(msst.getMode())) {
 							if (property.getType().equalsIgnoreCase("string")) {
 								smartValue = forTemplate ?
@@ -297,10 +298,22 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 						
+						// Special case for DeleteListenAction
+						if ("DeleteListenAction".equals(getActionBeanName())) {
+							if (Mode.SOURCE.equals(msst.getMode())) {
+								MobileSmartSource mss = msst.getSmartSource();
+								smartValue = mss.getSources(msst.getValue()).toString();
+							}
+						}
+						
+						// Case ts code in HTML template (single action)
 						if (forTemplate) {
 							smartValue = ""+smartValue;
-						} else {
+						}
+						// Case ts code in ActionBeans.service (stack of actions)
+						else {
 							if (Mode.SOURCE.equals(msst.getMode())) {
+								if (!"DeleteListenAction".equals(getActionBeanName())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
 									smartValue = "scope."+ smartValue;
@@ -308,6 +321,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								else {
 									smartValue = "this."+ smartValue;
 								}
+							}
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
@@ -699,20 +713,20 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		super.addInfos(infoMap);
 	}	
 
-	public boolean isFullSyncSyncAction() {
+	public String getActionBeanName() {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
-			return ionBean.getName().equals("FullSyncSyncAction");
+			return ionBean.getName();
 		}
-		return false;
+		return null;
+		}
+	
+	public boolean isFullSyncSyncAction() {
+		return "FullSyncSyncAction".equals(getActionBeanName());
 	}
 	
 	public boolean isSetGlobalAction() {
-		IonBean ionBean = getIonBean();
-		if (ionBean != null) {
-			return ionBean.getName().equals("SetGlobalAction");
-		}
-		return false;
+		return "SetGlobalAction".equals(getActionBeanName());
 	}
 	
 	public String getSetGlobalActionKeyName() {

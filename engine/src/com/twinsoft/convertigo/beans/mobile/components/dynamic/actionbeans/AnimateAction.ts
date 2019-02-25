@@ -19,7 +19,7 @@
             return nativeElement;
         };
         
-		var animate = function(nativeElement:any, props:any) {
+		var animate = function(nativeElement:any, props:any, resolve) {
 			nativeElement.style.WebkitAnimation = "none";
 			nativeElement.style.animation = "none";
 			setTimeout(() => {
@@ -34,9 +34,22 @@
 				s += props.fillMode == null ? 			" none" 	: 	" "+props.fillMode;
 				s += props.playState == null ? 			" running" 	: 	" "+props.playState;
                 
+				page.router.c8o.log.debug("[MB] AnimateAction: animation is '"+ s + "'");
+				
 				nativeElement.style.WebkitAnimation = s;
 				nativeElement.style.animation = s;
 				page.tick();
+				
+                let delay = props.delay == null ? 0:Number(props.delay);
+                let count = props.iterationCount == null ? 1: (isNaN(Number(props.iterationCount)) ? null:Number(props.iterationCount));
+                let duration = props.duration == null ? 0:Number(props.duration);
+                
+                let timeout = count == null ? null: (delay + count*duration);
+				if (timeout != null) {
+                    setTimeout(() => {
+                       resolve(true);
+                    }, timeout);
+				}
 			}, 10);			
                 }
                 
@@ -58,8 +71,7 @@
                     }
                     
                     if (nativeElement != undefined) {
-						animate(nativeElement, props);
-                            resolve(true);
+						animate(nativeElement, props, resolve);
                     } else {
                         page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
                         resolve(true);
@@ -72,8 +84,7 @@
                             x => {
                                 let nativeElement = getNativeElement(x);
                                 if (nativeElement != undefined) {
-									animate(nativeElement, props);
-                                        resolve(true);
+									animate(nativeElement, props, resolve);
                                 } else {
                                     page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
                                     resolve(true);

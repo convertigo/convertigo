@@ -6092,6 +6092,26 @@
   }
 },
 
+    "DeleteListenAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "DeleteListen",
+      "label": "DeleteListen",
+      "description": "Defines a <i>DeleteListen</i> action component. | Use the <i>DeleteListen</i> to delete data stored from a previous fullsync action.",
+      "group": "FullSync Actions",
+      "icon16": "deletelistenaction_color_16x16.png",
+      "icon32": "deletelistenaction_color_32x32.png",
+      "properties": {
+		"requestables": {
+          "label": "requestables",
+          "description": "Defines an array of fullsync requestables. Use (TS) expression <code>['fs://dbname.view#marker1']</code> or select from a source (SC)",
+          "category": "@Properties",
+          "type": "string",
+		  "mode": "script",
+          "value": "[]"
+		}
+	  }
+	},
+	
     "CloseModalAction" : {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName" : "CloseModal",
@@ -8540,11 +8560,11 @@
 	      },   
 	      "iterationCount": {
 	        "label": "Iteration count",
-	        "description": "Specify the animation iteration count",
+	        "description": "Specify the animation iteration count or infinite",
 	        "category": "@Parameters",
-	        "type": "number",
+	        "type": "string",
 	        "value": false,
-	        "values": [false,true]
+	        "values": [false,"infinite",true]
 	      },   
 	      "duration": {
 	        "label": "Duration",
