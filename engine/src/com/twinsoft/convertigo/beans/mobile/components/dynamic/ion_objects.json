@@ -8534,11 +8534,11 @@
 	      },   
 	      "iterationCount": {
 	        "label": "Iteration count",
-	        "description": "Specify the animation iteration count",
+	        "description": "Specify the animation iteration count or infinite",
 	        "category": "@Parameters",
-	        "type": "number",
+	        "type": "string",
 	        "value": false,
-	        "values": [false,true]
+	        "values": [false,"infinite",true]
 	      },   
 	      "duration": {
 	        "label": "Duration",
