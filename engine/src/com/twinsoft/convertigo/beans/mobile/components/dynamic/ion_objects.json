@@ -6041,32 +6041,52 @@
 			true
           ]
 		},
-    "verb": {
-      "label": "Verb",
-      "description": "Defines the fullsync verb.",
-      "category": "@Properties",
-      "value": "get",
-      "type": "string",
-      "values": [
-        "all",
-        "create",
-        "get",
-        "delete",
-        "delete_attachment",
-        "destroy",
-        "post",
-        "put_attachment",
-        "replicate_pull",
-        "replicate_push",
-        "reset",
-        "sync",
-        "view",
-        true
-      ]
-    }
-  }
-},
+		"verb": {
+		  "label": "Verb",
+		  "description": "Defines the fullsync verb.",
+		  "category": "@Properties",
+		  "value": "get",
+		  "type": "string",
+		  "values": [
+			"all",
+			"create",
+			"get",
+			"delete",
+			"delete_attachment",
+			"destroy",
+			"post",
+			"put_attachment",
+			"replicate_pull",
+			"replicate_push",
+			"reset",
+			"sync",
+			"view",
+			true
+		  ]
+		}
+	  }
+	},
 
+    "DeleteListenAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "DeleteListen",
+      "label": "DeleteListen",
+      "description": "Defines a <i>DeleteListen</i> action component. | Use the <i>DeleteListen</i> to delete data stored from a previous fullsync action.",
+      "group": "FullSync Actions",
+      "icon16": "deletelistenaction_color_16x16.png",
+      "icon32": "deletelistenaction_color_32x32.png",
+      "properties": {
+		"requestables": {
+          "label": "requestables",
+          "description": "Defines an array of fullsync requestables. Use (TS) expression <code>['fs://dbname.view#marker1']</code> or select from a source (SC)",
+          "category": "@Properties",
+          "type": "string",
+		  "mode": "script",
+          "value": "[]"
+		}
+	  }
+	},
+	
     "CloseModalAction" : {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName" : "CloseModal",

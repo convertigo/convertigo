@@ -158,9 +158,13 @@ public class MobileSmartSource {
 	}
 	
 	public List<String> getSources() {
+		return getSources(getInput());
+	}
+	
+	public List<String> getSources(String input) {
 		List<String> sources = new ArrayList<String>();
 		if (Filter.Iteration.equals(getFilter())) {
-			Matcher m = directivePattern.matcher(getInput());
+			Matcher m = directivePattern.matcher(input);
 			if (m.find()) {
 				String directive = m.group(1);
 				if (directive != null) {
@@ -168,7 +172,7 @@ public class MobileSmartSource {
 				}
 			}
 		} else if (Filter.Form.equals(getFilter())) {
-			Matcher m = formPattern.matcher(getInput());
+			Matcher m = formPattern.matcher(input);
 			if (m.find()) {
 				String form = m.group(1);
 				if (form != null) {
@@ -176,7 +180,7 @@ public class MobileSmartSource {
 				}
 			}
 		} else if (Filter.Global.equals(getFilter())) {
-			Matcher m = globalPattern.matcher(getInput());
+			Matcher m = globalPattern.matcher(input);
 			if (m.find()) {
 				String gbl = m.group(1);
 				if (gbl != null) {
@@ -184,7 +188,7 @@ public class MobileSmartSource {
 				}
 			}
 		} else {
-			Matcher m = listenPattern.matcher(getInput());
+			Matcher m = listenPattern.matcher(input);
 			if (m.find()) {
 				String array = m.group(1);
 				if (array != null) {
