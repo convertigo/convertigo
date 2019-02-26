@@ -530,8 +530,11 @@ public class BeansDefaultValues {
 				beans.put(nVersion, dBean);
 			}
 		}
-		
-		FileUtils.write(output, jObject.toString(1), "UTF-8");
+		String content = jObject.toString(1);
+		if (System.lineSeparator().equals("\r\n")) {
+			content = content.replace("\n", "\r\n");
+		}
+		FileUtils.write(output, content, "UTF-8");
 	}
 
 	public static void main(String[] args) throws Exception {

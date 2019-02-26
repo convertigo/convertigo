@@ -21,15 +21,15 @@ jobs:
     
     - restore_cache:
         keys:
-        - v1-git-{{ .Revision }}
-        - v1-git-
+        - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
+        - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-
         
     - checkout
     
     - save_cache:
         paths:
         - .git
-        key: v1-git-{{ .Revision }}
+        key: v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
         
     - restore_cache:
         keys:
@@ -53,13 +53,22 @@ jobs:
                export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
           fi
           export CONVERTIGO_BUILD_NUM=$(printf '%05d' $CIRCLE_BUILD_NUM)
+          if [ "$CIRCLE_BRANCH" = "" ] ; then
+              export CONVERTIGO_BRANCH=latest
+              export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CIRCLE_TAG
+              export CONVERTIGO_DOCKER=convertigo/convertigo
+          else
           export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
           export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
+              export CONVERTIGO_DOCKER=convertigo/convertigo-ci
+          fi
           export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
           mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
           export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
           env | grep -e "CIRCLE" -e "CONVERTIGO_" | sort > $CONVERTIGO_DIST/env.txt
           env | grep -e "CONVERTIGO_" > /tmp/build.env
+          echo "/tmp/build.env: "
+          cat /tmp/build.env
           
     - save_cache:
         paths:
@@ -74,10 +83,14 @@ jobs:
         name: Clone convertigo-doc
         command: |
           source /tmp/build.env
+          if [ "$CIRCLE_BRANCH" != "" ] ; then
           git clone --depth 1 -b $CIRCLE_BRANCH --single-branch git@github.com:convertigo/convertigo-doc.git || NOCLONE=true
           if [ "$NOCLONE" = true ]; then
             git clone --depth 1 -b develop --single-branch git@github.com:convertigo/convertigo-doc.git
             (cd convertigo-doc && git checkout -b $CIRCLE_BRANCH --track)
+          fi
+          else
+            echo "No documentation for tag build"
           fi
         
     - run:
@@ -85,18 +98,26 @@ jobs:
         command: |
           source /tmp/build.env
           test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
+          if [ "$CIRCLE_BRANCH" != "" ] ; then
+            sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
+          else
           sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :ciFirstStep
+          fi
         
     - run:
         name: Push to convertigo-doc
         command: |
           source /tmp/build.env
+          if [ "$CIRCLE_BRANCH" != "" ] ; then
           cd convertigo-doc
           git config --global user.email "info@convertigo.com"
           git config --global user.name "$CIRCLE_PROJECT_USERNAME"
           git add .
           git commit -a -m "Automatic commit from $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME@$CIRCLE_SHA1" || echo "Nothing to commit"
           git push origin $CIRCLE_BRANCH || echo "Nothing to push"
+          else
+            echo "No documentation for tag build"
+          fi
           
     - save_cache:
         paths:
@@ -112,6 +133,10 @@ jobs:
     - run:
         name: Clean workspace before saving
         command: rm -rf .git convertigo-doc convertigo-templates gradle-plugin
+    
+    - store_artifacts:
+        path: /home/circleci/s3
+        destination: env
     
     - persist_to_workspace:
         root: ..
@@ -193,13 +218,13 @@ jobs:
               docker build --rm=false -f Dockerfile_base -t $FROM .
               docker push $FROM
           fi
-          docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-          docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH
-          docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
-          docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME
-          if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
-              docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH convertigo/convertigo-ci:$CONVERTIGO_VERSION
-              docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
+          docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
+          if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
+              docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
+              docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
           fi
           
   build_docker_i386:
@@ -235,13 +260,13 @@ jobs:
               docker build --rm=false -f Dockerfile_base -t $FROM .
               docker push $FROM
           fi
-          docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-          docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
-          docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-          docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE        
-          if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
-              docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
-              docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
+          docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
+          if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
+              docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
+              docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
           
   build_docker_alpine:
@@ -277,18 +302,18 @@ jobs:
               docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
               docker push $FROM
           fi
-          docker build --rm=false -t convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
-          docker push convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE
-          docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-          docker push convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-$TYPE
-          if [ "$CONVERTIGO_BRANCH" = "develop" ]; then
-              docker tag convertigo/convertigo-ci:$CONVERTIGO_BRANCH-$TYPE convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
-              docker push convertigo/convertigo-ci:$CONVERTIGO_VERSION-$TYPE
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
+          docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
+          if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
+              docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
+              docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
           TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          TAGS=$(curl 'https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
+          TAGS=$(curl 'https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
           for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do
-              curl "https://hub.docker.com/v2/repositories/convertigo/convertigo-ci/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
+              curl "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
           done
           
   qualif_jmx_1:
@@ -311,7 +336,7 @@ jobs:
         name: Pull the docker i386 image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-i386
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-i386
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -352,7 +377,7 @@ jobs:
         name: Pull the docker alpine image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=convertigo/convertigo-ci:$CONVERTIGO_BUILD_NAME-alpine
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-alpine
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -461,6 +486,37 @@ jobs:
         name: Sync builds to S3
         command: aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
         
+  release:
+    docker:
+    - image: cibuilds/github:latest
+    
+    steps:
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - run:
+        name: Sync builds to GitHub
+        command: |
+          source /tmp/build.env
+          mkdir dist
+          for f in "convertigo-studio-$CONVERTIGO_VERSION-win64.exe" \
+                   "convertigo-studio-$CONVERTIGO_VERSION-win32.exe" \
+                   "convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz" \
+                   "convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz" \
+                   "convertigo-linux32-$CONVERTIGO_VERSION.war" \
+                   "convertigo-$CONVERTIGO_VERSION.war"  ; do
+            curl -sf $CONVERTIGO_URL/$f --output dist/$f || echo "$f not found"
+          done
+          VERSION=$CIRCLE_TAG
+          PRELEASE="-prerelease"
+          if [ "$CONVERTIGO_VERSION_NUMBER" = "$VERSION" ] && \
+             [ $(echo $VERSION | sed -r s/\\d+\\.\\d+\\.\\d+/ok/) = "ok" ] ; then
+            PRELEASE=""
+          fi
+          ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 \
+              -n Convertigo\ $CIRCLE_TAG -b To\ Edit -draft -delete $PRELEASE $VERSION dist
+          
 workflows:
   version: 2
   all:
@@ -470,24 +526,58 @@ workflows:
           branches:
             ignore:
             - 7.5.x
+          tags:
+            only: /^\d+\..*$/
     - build_engine_war:
         requires:
         - build_engine_jar
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_studio:
         requires:
         - build_engine_jar
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_docker_amd64:
         requires:
         - build_engine_war
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_docker_i386:
         requires:
         - build_engine_war
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_docker_alpine:
         requires:
         - build_engine_war
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - qualif_jmx_1:
         requires:
         - build_docker_i386
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - qualif_jmx_2:
         requires:
         - build_docker_alpine
+        filters:
+          tags:
+            only: /^\d+\..*$/
+    - release:
+        requires:
+        - build_docker_amd64
+        - build_docker_i386
+        - build_docker_alpine
+        - build_studio
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^\d+\..*$/
