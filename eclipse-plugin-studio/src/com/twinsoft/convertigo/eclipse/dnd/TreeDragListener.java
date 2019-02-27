@@ -28,6 +28,7 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class TreeDragListener extends DragSourceAdapter {
@@ -59,9 +60,9 @@ public class TreeDragListener extends DragSourceAdapter {
 					event.data = sXml;
 				}
 			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e, "Cannot drag");
+				Engine.logStudio.warn("Cannot drag: (EngineException) "  + e.getMessage());
 			} catch (ParserConfigurationException ee) {
-				ConvertigoPlugin.logException(ee, "Cannot drag");
+				Engine.logStudio.warn("Cannot drag: (ParserConfigurationException) "  + ee.getMessage());
 			}
 		}
 	}
