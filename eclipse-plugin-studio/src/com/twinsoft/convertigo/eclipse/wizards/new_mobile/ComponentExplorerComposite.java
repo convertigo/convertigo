@@ -171,13 +171,6 @@ public class ComponentExplorerComposite extends Composite {
 				// We select by default the first item if no default dbo found.
 				if (currentSelectedObject == null && composites[0].getChildren().length > 0) {
 					currentSelectedObject = (CLabel) composites[0].getChildren()[0];
-					currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
-					currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-
-					Component currentSelectedComponent = getCurrentSelectedComponent();
-					if (currentSelectedComponent != null) {
-						updateHelpText(currentSelectedComponent);
-					}
 				}
 
 				for (ExpandItem expandItem : bar.getItems()) {
@@ -187,6 +180,15 @@ public class ComponentExplorerComposite extends Composite {
 					}
 				}
 
+				Component currentSelectedComponent = getCurrentSelectedComponent();
+				if (currentSelectedComponent != null) {
+					updateHelpText(currentSelectedComponent);
+				}
+
+				if (currentSelectedObject != null) {
+					currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
+					currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
+				}
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to load component objects.");
 			}
@@ -221,14 +223,6 @@ public class ComponentExplorerComposite extends Composite {
 
 		if (bSelected) {
 			currentSelectedObject = label;
-			
-			currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
-			currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-			
-			Component currentSelectedComponent = getCurrentSelectedComponent();
-			if (currentSelectedComponent != null) {
-				updateHelpText(currentSelectedComponent);
-			}
 		}
 
 		// DND support for Mobile palette
@@ -247,10 +241,10 @@ public class ComponentExplorerComposite extends Composite {
 							currentSelectedObject.setBackground(label.getBackground());
 						}
 						currentSelectedObject = label;
-						
+
 						currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 						currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-						
+
 						Component c = (Component) objectsMap.get(label);
 						DatabaseObject dbo = ComponentManager.createBean(c);
 						if (dbo != null) {
@@ -284,10 +278,10 @@ public class ComponentExplorerComposite extends Composite {
 				currentSelectedObject = (CLabel) e.getSource();
 
 				ConvertigoPlugin.logDebug("currentSelectedObject: '" + currentSelectedObject.getText() + "'.");
-				
+
 				currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 				currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-				
+
 				Component currentSelectedComponent = getCurrentSelectedComponent();
 				if (currentSelectedComponent != null) {
 					updateHelpText(currentSelectedComponent);
@@ -407,7 +401,9 @@ public class ComponentExplorerComposite extends Composite {
 
 		ComponentManager.refresh();
 
-		search("");
+		getDisplay().asyncExec(() -> {
+			search("");
+		});
 	}
 
 	private void search(String text) {
@@ -427,30 +423,25 @@ public class ComponentExplorerComposite extends Composite {
 	}
 
 	private void refresh() {
-		Display.getDefault().asyncExec(new Runnable()
-		{
-			@Override
-			public void run()
-			{	        	
-				if (!scrolledComposite.isDisposed() && !bar.isDisposed()) {
-					for (final ExpandItem expandItem : bar.getItems()) {
-						final Control c = expandItem.getControl();
-						Point size = c.getSize();
-						Point size2 = c.computeSize(size.x,SWT.DEFAULT);
-						if (!size2.equals(size)) {
-							expandItem.setHeight(size2.y);
-							c.requestLayout();
-						}
-					}
-					Rectangle r = scrolledComposite.getClientArea();
-					Point size = bar.getSize();
-					Point size2 = bar.computeSize(r.width, SWT.DEFAULT);
+		Display.getDefault().asyncExec(() -> {
+			if (!scrolledComposite.isDisposed() && !bar.isDisposed()) {
+				for (final ExpandItem expandItem : bar.getItems()) {
+					final Control c = expandItem.getControl();
+					Point size = c.getSize();
+					Point size2 = c.computeSize(size.x,SWT.DEFAULT);
 					if (!size2.equals(size)) {
-						scrolledComposite.setMinSize(size2);
-						scrolledComposite.requestLayout();
+						expandItem.setHeight(size2.y);
+						c.requestLayout();
 					}
 				}
-			}	        
+				Rectangle r = scrolledComposite.getClientArea();
+				Point size = bar.getSize();
+				Point size2 = bar.computeSize(r.width, SWT.DEFAULT);
+				if (!size2.equals(size)) {
+					scrolledComposite.setMinSize(size2);
+					scrolledComposite.requestLayout();
+				}
+			}
 		});
 	}
 	/*
@@ -507,32 +498,32 @@ public class ComponentExplorerComposite extends Composite {
 
 		beanShortDescription = cleanDescription(beanShortDescription,true);
 		beanLongDescription = cleanDescription(beanLongDescription,true);
-		
+
 		String propertiesDescription = component.getPropertiesDescription();
 
 		if (helpBrowser != null) {
 			helpBrowser.setText(
 					"<head>" +
-					  "<script type=\"text/javascript\">" +
-					    "document.oncontextmenu = new Function(\"return false\");" +
-					  "</script>" +
-					  "<style type=\"text/css\">" +
-					    "body {" +
-					      "font-family: Courrier new, sans-serif;" +
-					      "font-size: 14px;" +
-					      "padding-left: 0.3em;" +
-					      "color: $foreground$;" +
-					      "background-color: $background$; } \n" +
-					    "li { margin-top: 10px; } \n" +
-					    "a { color: $link$; }" +
-					"</style>" +
-					"</head><body><p>" 
-					+ "<font size=\"4.5\"><u><b>" + beanDisplayName + "</b></u></font>" + "<br><br>" 
-					+ "<i>" + beanShortDescription+"</i>" + "<br><br>" 
-					+ beanLongDescription + "<br><br>"
-					+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
-					+ propertiesDescription
-					+ "</p></body>");
+							"<script type=\"text/javascript\">" +
+							"document.oncontextmenu = new Function(\"return false\");" +
+							"</script>" +
+							"<style type=\"text/css\">" +
+							"body {" +
+							"font-family: Courrier new, sans-serif;" +
+							"font-size: 14px;" +
+							"padding-left: 0.3em;" +
+							"color: $foreground$;" +
+							"background-color: $background$; } \n" +
+							"li { margin-top: 10px; } \n" +
+							"a { color: $link$; }" +
+							"</style>" +
+							"</head><body><p>" 
+							+ "<font size=\"4.5\"><u><b>" + beanDisplayName + "</b></u></font>" + "<br><br>" 
+							+ "<i>" + beanShortDescription+"</i>" + "<br><br>" 
+							+ beanLongDescription + "<br><br>"
+							+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
+							+ propertiesDescription
+							+ "</p></body>");
 		}
 	}
 }

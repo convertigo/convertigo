@@ -71,7 +71,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class ObjectsExplorerComposite extends Composite {
-	
+
 	protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
 	protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
 
@@ -82,7 +82,7 @@ public class ObjectsExplorerComposite extends Composite {
 	private DatabaseObject parentObject = null;
 	protected Cursor handCursor = null;
 	protected Map<CLabel, Object> objectsMap = null;
-	
+
 	protected WizardPage wizardPage = null;
 	private Composite compositeObjects;
 	private C8oBrowser helpBrowser = null;
@@ -91,10 +91,10 @@ public class ObjectsExplorerComposite extends Composite {
 	protected Composite [] composites = null;
 	protected ExpandItem [] items = null;
 	protected ExpandBar bar;
-	
+
 	protected List<String> defaultDboList = new ArrayList<String>();
 	protected List<String> documentedDboList = new ArrayList<String>();
-	
+
 	public ObjectsExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
 			Class<? extends DatabaseObject> beanClass) {
 		this(parent, style, parentObject, beanClass);
@@ -116,7 +116,7 @@ public class ObjectsExplorerComposite extends Composite {
 				Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
 
 				Map<BeanInfo, DboBeans> beanMap = new HashMap<BeanInfo, DboBeans>();
-				
+
 				// Enumeration of the beans
 				ConvertigoPlugin.logDebug2("Exploring Convertigo database objects list...");
 
@@ -131,7 +131,7 @@ public class ObjectsExplorerComposite extends Composite {
 							List<DboBean> beans = beansCategory.getBeans();
 							for (DboBean bean : beans) {
 								if (!bean.isEnable()) continue;
-								
+
 								String className = bean.getClassName();
 								if (bean.isDefault()) {
 									defaultDboList.add(className);
@@ -139,7 +139,7 @@ public class ObjectsExplorerComposite extends Composite {
 								if (bean.isDocumented()) {
 									documentedDboList.add(className);
 								}
-								
+
 								try {
 									Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
 									ConvertigoPlugin.logDebug2("Bean class: "
@@ -153,18 +153,18 @@ public class ObjectsExplorerComposite extends Composite {
 										boolean isFromSpecifiedClass = ((databaseObjectClass == null) ||
 												((databaseObjectClass != null) && (databaseObjectClass.isAssignableFrom(beanClass))));
 										if (isFromSpecifiedClass) {
-	                                        // Check parent
-	                                        boolean bFound = DatabaseObjectsManager.checkParent(parentObjectClass, bean);
-	                                        if (bFound) {
+											// Check parent
+											boolean bFound = DatabaseObjectsManager.checkParent(parentObjectClass, bean);
+											if (bFound) {
 												// Check technology if needed
 												if (technology != null) {
 													Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();
-	
+
 													if (!acceptedTechnologies.isEmpty() && !acceptedTechnologies.contains(technology)) {
 														continue;
 													}
 												}
-	
+
 												String beanInfoClassName = className + "BeanInfo";
 												Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class
 														.forName(beanInfoClassName));
@@ -207,18 +207,18 @@ public class ObjectsExplorerComposite extends Composite {
 						}
 					}
 				}
-				
+
 				List<BeanInfo> beanInfoList = new ArrayList<BeanInfo>(beanMap.keySet());
 				Collections.sort(beanInfoList, new Comparator<BeanInfo>() {
-        			public int compare(BeanInfo o1, BeanInfo o2) {
-                        BeanDescriptor bd1 = o1.getBeanDescriptor();
-                        BeanDescriptor bd2 = o2.getBeanDescriptor();
-                        String name1 = bd1.getDisplayName().toLowerCase();
-                        String name2 = bd2.getDisplayName().toLowerCase();
-        				return name1.compareTo(name2);
-        			}
+					public int compare(BeanInfo o1, BeanInfo o2) {
+						BeanDescriptor bd1 = o1.getBeanDescriptor();
+						BeanDescriptor bd2 = o2.getBeanDescriptor();
+						String name1 = bd1.getDisplayName().toLowerCase();
+						String name2 = bd2.getDisplayName().toLowerCase();
+						return name1.compareTo(name2);
+					}
 				});
-				
+
 				//initialize composites.
 				RowLayout rowLayout = new RowLayout();
 				rowLayout.pack = false;
@@ -259,18 +259,18 @@ public class ObjectsExplorerComposite extends Composite {
 						i++;
 					}
 				}
-				
+
 				handCursor = new Cursor(Display.getDefault(), SWT.CURSOR_HAND);
 
 				boolean bSelected = false;
 				boolean defaultDboFound = false;
 				Iterator<BeanInfo> it = beanInfoList.iterator();
-				
-				
+
+
 				while(it.hasNext()) {
 					BeanInfo beanInfo = it.next();
 					DboBeans beanCategory = beanMap.get(beanInfo);
-					
+
 					Class<DatabaseObject> beanClass = GenericUtils.cast(beanInfo.getBeanDescriptor().getBeanClass());
 					boolean isDefault = defaultDboList.contains(beanClass.getName());
 					boolean isDocumented = documentedDboList.contains(beanClass.getName());
@@ -285,24 +285,27 @@ public class ObjectsExplorerComposite extends Composite {
 						bSelected = true;
 						defaultDboFound = true;
 					}
-					
+
 					addLabelEx(beanImage, beanClass, beanName, beanShortDescription, bSelected, beanInfo, beanCategory);
-					
+
 					bSelected = false;
 				}
-				
+
 				// We select by default the first item if no default dbo found.
 				if (!defaultDboFound && currentSelectedObject == null) {
 					currentSelectedObject = (CLabel) composites[0].getChildren()[0];
+				}
+
+				if (currentSelectedObject != null) {
 					currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 					currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-		
-					BeanInfo currentSelectedObjectBeanInfo = getCurrentSelectedBeanInfo();
-					if (currentSelectedObjectBeanInfo != null) {
-						updateHelpText(currentSelectedObjectBeanInfo);
-					}
 				}
-				
+
+				BeanInfo currentSelectedObjectBeanInfo = getCurrentSelectedBeanInfo();
+				if (currentSelectedObjectBeanInfo != null) {
+					updateHelpText(currentSelectedObjectBeanInfo);
+				}
+
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to load database objects properties.");
 			}
@@ -316,7 +319,7 @@ public class ObjectsExplorerComposite extends Composite {
 		}
 		return bi;
 	}
-	
+
 	/**
 	 * This method initializes this
 	 * 
@@ -325,9 +328,9 @@ public class ObjectsExplorerComposite extends Composite {
 
 		layout(true); 
 		layout(true, true); 
-		
+
 		setLayout(new GridLayout(3, true));
-		
+
 		GridData gridData;
 		gridData = new GridData();
 		gridData.horizontalAlignment = SWT.FILL;
@@ -338,7 +341,7 @@ public class ObjectsExplorerComposite extends Composite {
 
 		scrolledComposite = new ScrolledComposite(this, SWT.V_SCROLL);
 		scrolledComposite.setLayoutData(gridData);
-		
+
 		helpBrowser = new C8oBrowser(this, SWT.MULTI | SWT.WRAP);
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
@@ -353,11 +356,11 @@ public class ObjectsExplorerComposite extends Composite {
 
 		// retrieve 'project' technology
 		technology = DboUtils.getTechnology(parentObject, databaseObjectClass);
-		
+
 		getDisplay().asyncExec(() -> {
 			// find associated database objects
 			findDatabaseObjects();
-			
+
 			for (ExpandItem expandItem : bar.getItems()) {
 				/* update the item's height if needed in response to changes*/ 
 				final ExpandItem item = expandItem;
@@ -371,18 +374,18 @@ public class ObjectsExplorerComposite extends Composite {
 					}
 				});
 			}
-			
+
 			scrolledComposite.setContent(bar);		
 			scrolledComposite.setExpandVertical(true);
 			scrolledComposite.setExpandHorizontal(true);
-			
+
 			scrolledComposite.addControlListener(new ControlAdapter() {
 				public void controlResized(ControlEvent e) {
 					Rectangle r = scrolledComposite.getClientArea();
 					scrolledComposite.setMinSize(bar.computeSize(r.width, SWT.DEFAULT));
 				}
 			});
-			
+
 			layout(true);
 		});
 	}
@@ -413,26 +416,26 @@ public class ObjectsExplorerComposite extends Composite {
 
 		beanShortDescription = BeansUtils.cleanDescription(beanShortDescription, true);
 		beanLongDescription = BeansUtils.cleanDescription(beanLongDescription, true);
-		
+
 		helpBrowser.setBackground(getBackground());
 		helpBrowser.setText("<html>" +
-								"<head>" +
-								"<script type=\"text/javascript\">" +
-							        "document.oncontextmenu = new Function(\"return false\");" +
-							    "</script>" +
-										"<style type=\"text/css\">" +
-											  "body {" +
-											    "font-family: Courrier new, sans-serif;" +
-											    "font-size: 14px;" +
-											    "padding-left: 0.3em;" +
-											    "color: $foreground$;" +
-											    "background-color: $background$ } \n" +
-											    "a { color: $link$; }" +
-										"</style>" +
-								"</head><p>" 
-							+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 
-							+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
-							+ beanLongDescription + "</p></html>");
+				"<head>" +
+				"<script type=\"text/javascript\">" +
+				"document.oncontextmenu = new Function(\"return false\");" +
+				"</script>" +
+				"<style type=\"text/css\">" +
+				"body {" +
+				"font-family: Courrier new, sans-serif;" +
+				"font-size: 14px;" +
+				"padding-left: 0.3em;" +
+				"color: $foreground$;" +
+				"background-color: $background$ } \n" +
+				"a { color: $link$; }" +
+				"</style>" +
+				"</head><p>" 
+				+ "<font size=\"4.5\"><u><b>"+beanDisplayName+"</b></u></font>" + "<br><br>" 
+				+ "<i>"+beanShortDescription+"</i>" + "<br><br>" 
+				+ beanLongDescription + "</p></html>");
 	}
 
 	protected void addLabelEx(Image beanImage, String beanName, String beanShortDescription, boolean selected,
@@ -468,19 +471,19 @@ public class ObjectsExplorerComposite extends Composite {
 				if (currentSelectedObject == label) {
 					return;
 				}
-				
+
 				if (currentSelectedObject != null) {
 					currentSelectedObject.setForeground(label.getForeground());
 					currentSelectedObject.setBackground(label.getBackground());
 				}
-				
+
 				currentSelectedObject = label;
-				
+
 				ConvertigoPlugin.logDebug("currentSelectedObject: '" + currentSelectedObject.getText() + "'.");
-				
+
 				currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 				currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
-				
+
 				BeanInfo currentSelectedObjectBeanInfo = getCurrentSelectedBeanInfo();
 				if (currentSelectedObjectBeanInfo != null) {
 					updateHelpText(currentSelectedObjectBeanInfo);
@@ -503,7 +506,7 @@ public class ObjectsExplorerComposite extends Composite {
 
 	protected void addLabelEx(Image beanImage, Class<DatabaseObject> beanClass, String beanName,
 			String beanShortDescription, boolean selected, Object object, DboBeans beansCategory) {
-	
+
 		if("".equals(beansCategory.getName())) {
 			composite = composites[0];
 		} else {
@@ -513,7 +516,7 @@ public class ObjectsExplorerComposite extends Composite {
 				}
 			}
 		}
-		
+
 		CLabel label = new CLabel(composite, SWT.NONE);
 		label.setImage(beanImage);
 		label.setText(beanName);
@@ -523,7 +526,7 @@ public class ObjectsExplorerComposite extends Composite {
 
 		label.setLayoutData(new RowData());
 		objectsMap.put(label, object);
-		
+
 		if (selected) {
 			currentSelectedObject = label;
 
@@ -574,6 +577,6 @@ public class ObjectsExplorerComposite extends Composite {
 
 		ConvertigoPlugin.logDebug("Loaded '" + beanName + "'.");
 	}
-	
+
 
 } // @jve:decl-index=0:visual-constraint="10,10"
