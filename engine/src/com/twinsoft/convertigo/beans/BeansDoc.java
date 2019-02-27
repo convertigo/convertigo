@@ -333,7 +333,7 @@ public class BeansDoc {
 				}
 				
 				String propDisplayName = databaseObjectPropertyDescriptor.getDisplayName();
-				
+				description = description.replace("|", "&#124;");
 				String line = propDisplayName + " | " +
 						type + " | " +
 						category + " | " +
