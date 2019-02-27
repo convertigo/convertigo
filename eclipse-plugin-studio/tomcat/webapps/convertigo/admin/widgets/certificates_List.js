@@ -265,8 +265,8 @@ function certificates_List_update(){
 				certificateName, 				
 				{ certificateStore: certificateName, 
 				type: createTypeSelect($(this).attr("type")),
-				password: "<input type='password' value='"+$(this).attr("password")+"' />"+error,
-				group:"<input type='text' value='"+$(this).attr("group")+"' />",
+				password: "<input type='password' value='"+$(this).attr("password")+"' autocomplete=\"new-password\" />"+error,
+				group:"<input type='text' value='"+$(this).attr("group")+"' autocomplete=\"new-password\" />",
 				btnDelete: "<a href=\"javascript: deleteCertificate('" + certificateName + "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
 				btnValid: "<a href=\"javascript: updateCertificate('" + certificateName +"')\"><img border=\"0\" title=\"Update\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 				}
@@ -285,8 +285,8 @@ function certificates_List_update(){
 				"new",{				
 					certificateStore: candidateSelectObject, 
 					type: createTypeSelect(""),
-					password: "<input type='password'/>",
-					group: "<input type='text'/>",							
+					password: "<input type='password' autocomplete=\"new-password\" />",
+					group: "<input type='text' autocomplete=\"new-password\" />",							
 					btnValid: "<a href=\"javascript: updateCertificate()\"><img border=\"0\" title=\"Update\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 		);			
@@ -343,9 +343,9 @@ function certificates_List_update(){
 					certificateName+"/"+projectName,{	
 					projectName:projectName,
 					certificateStore: certificateName,
-					virtualServer:"<input type='text' value='"+virtualServeur+"' />",
-					authorizationGroup:"<input type='text' value='"+imputationGroup+"'/>",
-					user:"<input value='"+userName+"' />",
+					virtualServer:"<input type='text' value='"+virtualServeur+"' autocomplete=\"new-password\" />",
+					authorizationGroup:"<input type='text' value='"+imputationGroup+"' autocomplete=\"new-password\" />",
+					user:"<input value='"+userName+"' autocomplete=\"new-password\" />",
 					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
 					btnValid: "<a href=\"javascript:  deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesUserMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
@@ -372,9 +372,9 @@ function certificates_List_update(){
 					"new",{ 
 				projectName: selectProjectName,
 				certificateStore:selectCertificateName,
-				virtualServer:"<input type='text'/>",
-				authorizationGroup:"<input type='text'/>",
-				user:"<input type='text'/>",				
+				virtualServer:"<input type='text' autocomplete=\"new-password\" />",
+				authorizationGroup:"<input type='text' autocomplete=\"new-password\" />",
+				user:"<input type='text' autocomplete=\"new-password\" />",				
 				btnValid: "<a href=\"javascript: configureMapping('certificatesUserMappings','"+NEW_MAPPING_MESSAGE_VALUE+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 				} 	
 			);
