@@ -386,6 +386,11 @@ public class ObjectsExplorerComposite extends Composite {
 				}
 			});
 
+			if (currentSelectedObject != null) {
+				currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
+				currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
+			}
+
 			layout(true);
 		});
 	}

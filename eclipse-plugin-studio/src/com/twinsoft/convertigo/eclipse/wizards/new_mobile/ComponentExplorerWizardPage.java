@@ -160,7 +160,7 @@ public class ComponentExplorerWizardPage extends WizardPage {
 
 	@Override
 	public boolean isPageComplete() {
-		return (getCurrentSelectedComponent() != null);
+		return true;
 	}
 	
 	@Override

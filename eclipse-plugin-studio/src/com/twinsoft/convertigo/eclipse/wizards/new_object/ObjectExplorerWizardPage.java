@@ -205,7 +205,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 
 	@Override
 	public boolean isPageComplete() {
-		return (getCurrentSelectedBeanInfo() != null);
+		return true;
 	}
 	
 	@Override
