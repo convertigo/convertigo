@@ -53,7 +53,9 @@ public class Export extends DownloadService {
 		
 		// if any, backup existing CAR file
 		File f = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+		long lastDate = -1;
 		if (f.exists()) {
+			lastDate = f.lastModified();
 			f.renameTo(new File(Engine.PROJECTS_PATH + "/" + projectName + ".car.old"));
 		}
 
@@ -68,6 +70,9 @@ public class Export extends DownloadService {
 		f = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
 		HeaderName.ContentLength.setHeader(response, "" + f.length());
 		if (f.exists()) {
+			if (lastDate > 0) {
+				f.setLastModified(lastDate);
+			}
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
 			OutputStream outStream = response.getOutputStream();
 			
