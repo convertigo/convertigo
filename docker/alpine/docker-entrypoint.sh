@@ -49,7 +49,7 @@ if [ "$1" = "convertigo" ]; then
     
     ## check and adapt the Java Xmx for limited devices
     
-    if [ "$JXMX" == "" ]; then
+    if [ "$JXMX" = "" ]; then
         JXMX=2048
     fi
     

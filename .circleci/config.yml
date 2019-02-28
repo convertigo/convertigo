@@ -321,9 +321,9 @@ jobs:
               docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
               docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
-          TAGS=$(curl 'https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}")
           for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do
-              curl "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
+              curl -s "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
           done
           
   qualif_jmx_1:
