@@ -45,7 +45,7 @@ ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
 RUN export GNUPGHOME="$(mktemp -d)" \
   && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver pgp.mit.edu --recv-keys "$GOSU_GPG_KEYS" \
-  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" ) \
+  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$GOSU_GPG_KEYS" ) \
   && curl -o /usr/local/bin/gosu -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture)" \
   && curl -o /usr/local/bin/gosu.asc -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture).asc" \
@@ -54,7 +54,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
   && chmod +x /usr/local/bin/gosu \
   && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$TINI_GPG_KEYS" \
   || gpg --batch --keyserver pgp.mit.edu --recv-keys "$TINI_GPG_KEYS" \
-  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" ) \
+  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEYS" ) \
   && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture)" \
   && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture).asc" \
