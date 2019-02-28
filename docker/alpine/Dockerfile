@@ -116,5 +116,5 @@ VOLUME ["/workspace"]
 EXPOSE 28080
 
 
-#ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
+ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
 CMD ["convertigo"]
