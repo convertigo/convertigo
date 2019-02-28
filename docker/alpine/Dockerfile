@@ -13,27 +13,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:7-jre8
+FROM tomcat:7-jre8-alpine
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
-
-## force SWT to use GTK2 instead of GTK3 (no Xulrunner support)
-ENV SWT_GTK3 0
 
 ENV CATALINA_HOME /usr/local/tomcat
 RUN mkdir -p "$CATALINA_HOME"
 WORKDIR $CATALINA_HOME
 
-RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends \
+RUN apk --no-cache add \
     ca-certificates \
     curl \
-    dirmngr \
     gnupg \
-    unzip \
-  && rm -rf /var/lib/apt/lists/*
-
+    unzip
 
 ## grab gosu for easy step-down from root and tini for signal handling
 
@@ -43,6 +36,8 @@ ENV TINI_VERSION 0.16.1
 ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
 
 RUN export GNUPGHOME="$(mktemp -d)" \
+  && apk add --no-cache --virtual .arch dpkg gpgme \
+  && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
   && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver pgp.mit.edu --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" ) \
@@ -61,14 +56,16 @@ RUN export GNUPGHOME="$(mktemp -d)" \
   && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
   && rm /usr/local/bin/tini.asc \
   && chmod +x /usr/local/bin/tini \
-  && rm -rf /tmp/*
+  && rm -rf /tmp/* \
+  && apk del .arch
 
 
 ## create a 'convertigo' user and fix some rights
 
-RUN useradd -s /bin/false -m convertigo \
+RUN adduser -s /bin/false -D convertigo \
     && mkdir -p /workspace/lib /workspace/classes \
     && chown -R convertigo:convertigo /workspace
+
 
 ## disable unused AJP, APR and Jasper features
 ## change HTTP port the historic Convertigo port 28080
@@ -86,7 +83,7 @@ RUN sed -i.bak \
 
 ENV CONVERTIGO_VERSION 7.6.0
 
-ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-linux32-$CONVERTIGO_VERSION.war
+ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
 ENV CONVERTIGO_GPG_KEYS 6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
 
@@ -102,17 +99,16 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && curl -fSL -o /tmp/convertigo.war $CONVERTIGO_WAR_URL \
     && curl -fSL -o /tmp/convertigo.war.asc $CONVERTIGO_WAR_URL.asc \
     && gpg --batch --verify /tmp/convertigo.war.asc /tmp/convertigo.war \
+    && pkill -9 gpg-agent \
     && mkdir webapps/ROOT webapps/convertigo \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
-        && chmod a+x WEB-INF/xvnc/* \
-        && (test "$(dpkg --print-architecture)" != "i386" && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* || true) \
-        && rm -rf /tmp/*)
+        && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* /tmp/*)
 
-## copy the ROOT index that redirect to the 'convertigo' webapp
+## copy the ROOT index that redirect to the 'convertigo' webapps
 
-COPY ./alpine/root-index.html webapps/ROOT/index.html
-COPY ./alpine/docker-entrypoint.sh /
+COPY ./root-index.html webapps/ROOT/index.html
+COPY ./docker-entrypoint.sh /
 
 
 WORKDIR /workspace
