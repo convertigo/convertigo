@@ -207,6 +207,7 @@ jobs:
     - run:
         name: Docker build and push for amd64
         command: |
+          apk add --no-cache jq curl
           source /tmp/build.env
           cd docker
           export TYPE=amd64
@@ -214,8 +215,8 @@ jobs:
           export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
           TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$FROM/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
-          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | xargs -I , date --date=, +%s)
+          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
+          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
           if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
               echo building base $FROM
               docker build --rm=false -f Dockerfile_base -t $FROM .
@@ -251,6 +252,7 @@ jobs:
     - run:
         name: Docker build and push for i386
         command: |
+          apk add --no-cache jq curl
           source /tmp/build.env
           cd docker
           sed -i "s,tomcat:,i386/tomcat:," Dockerfile_base
@@ -259,8 +261,8 @@ jobs:
           export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
           TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$FROM/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
-          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | xargs -I , date --date=, +%s)
+          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
+          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
           if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
               echo building base $FROM
               docker build --rm=false -f Dockerfile_base -t $FROM .
@@ -304,8 +306,8 @@ jobs:
           export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
           TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$FROM/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
-          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | xargs -I , date --date=, +%s)
+          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
+          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
           if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
               echo building base $FROM
               docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
