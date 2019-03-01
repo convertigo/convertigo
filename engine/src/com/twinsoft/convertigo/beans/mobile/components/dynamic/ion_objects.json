@@ -8257,7 +8257,8 @@
           "plugin": "phonegap-plugin-barcodescanner",
           "version": "8.0.1",
           "variables": {
-            "CAMERA_USAGE_DESCRIPTION":"To scan barcodes"
+            "CAMERA_USAGE_DESCRIPTION":"To scan barcodes",
+            "ANDROID_SUPPORT_V4_VERSION":"27.1.1"
           }
         }
       ]
