@@ -8255,7 +8255,7 @@
       "cordova_plugins": [
         {
           "plugin": "phonegap-plugin-barcodescanner",
-          "version": "6.0.8",
+          "version": "8.0.1",
           "variables": {
             "CAMERA_USAGE_DESCRIPTION":"To scan barcodes"
           }
