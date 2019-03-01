@@ -1220,6 +1220,45 @@
         ]
       }         
     },
+    "ProgressBar" : {
+      "tag": "progress-bar",
+        "displayName": "ProgressBar",
+        "label": "ProgressBar",
+        "description": "angular-progress-bar| Defines a ProgressBar component. This component displays a progress bar that helps to monitor progression <br/> For more information: <a href='https://www.npmjs.com/package/angular-progress-bar' target='_blank'>angular-progress-bar</a>.",
+   		"group": "Forms",
+        "icon16": "",
+        "icon32": "",
+      "properties": {
+        "progress": {
+           "mode": "script",
+          "attr":"[progress]",
+          "label": "Progress",
+          "description": "string: progress to be displayed).",
+          "category": "@Attributes",
+          "value": "0"
+        },
+        "color": {
+          "mode": "script",
+          "attr":"[color]",
+          "label": "color",
+          "description": "color: color of the progress bar. Default value is #488aff ",
+          "category": "@Attributes",
+          "value": "'#488aff'"
+        }
+        
+      },
+      "config": {
+        "module_ts_imports": [
+          {"from":"angular-progress-bar", "components":["ProgressBarModule"]}
+        ],
+        "module_ng_imports": [
+          "ProgressBarModule"
+        ],
+        "package_dependencies": [
+          {"package":"angular-progress-bar", "version":"1.0.9"}
+        ]
+      }         
+    },
     "Spinner": {
       "tag": "ion-spinner",
 	  "displayName": "Spinner",
