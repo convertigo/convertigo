@@ -194,6 +194,8 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 			return DesignDocumentFilterTreeObject.class;
 		else if (classname.equals(DesignDocumentUpdateTreeObject.class.getName()))
 			return DesignDocumentUpdateTreeObject.class;
+		else if (classname.equals(DesignDocumentValidateTreeObject.class.getName()))
+			return DesignDocumentValidateTreeObject.class;
 		return DesignDocumentFunctionTreeObject.class;
 	}
 	

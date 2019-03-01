@@ -198,6 +198,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumen
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentUpdateTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentValidateTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
@@ -1185,6 +1186,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									updateDlg = true;
 								} else if (theTreeObject instanceof DesignDocumentUpdateTreeObject) {
 									objectType = "update";
+									updateDlg = true;
+								} else if (theTreeObject instanceof DesignDocumentValidateTreeObject) {
+									objectType = "validate";
 									updateDlg = true;
 								} else if (theTreeObject instanceof MobilePageComponentTreeObject) {
 									objectType = "page";

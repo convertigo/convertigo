@@ -61,6 +61,7 @@ public enum CouchKey {
 	updates,
 	value,
 	views,
+	validate_doc_update,
 	c8oAcl("~c8oAcl"),
 	c8oGrp,
 	c8oHash("~c8oHash");

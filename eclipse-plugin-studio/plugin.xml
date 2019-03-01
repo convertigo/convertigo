@@ -2734,11 +2734,11 @@
                   </separator>
                </menu>
                <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentViewAction"
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentValidateAction"
                      enablesFor="1"
                      icon="icons/studio/new.gif"
-                     id="convertigo.action.newDocumentView"
-                     label="View"
+                     id="convertigo.action.newDocumentValidate"
+                     label="Validate"
                      menubarPath="convertigo.menu.document.new/content">
                </action>
                <action
@@ -2755,6 +2755,14 @@
                      icon="icons/studio/new.gif"
                      id="convertigo.action.newDocumentFilter"
                      label="Filter"
+                     menubarPath="convertigo.menu.document.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentViewAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newDocumentView"
+                     label="View"
                      menubarPath="convertigo.menu.document.new/content">
                </action>
             </objectContribution>

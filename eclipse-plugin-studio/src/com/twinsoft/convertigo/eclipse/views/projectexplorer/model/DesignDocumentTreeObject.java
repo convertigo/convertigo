@@ -46,15 +46,18 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 	private FolderTreeObject fFilters = null;
 	private FolderTreeObject fUpdates = null;
 	private FolderTreeObject fViews = null;
+	private FolderTreeObject fValidate = null;
 	private String lastRev = "?";
 
 	public DesignDocumentTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
+		fValidate = new FolderTreeObject(viewer, "Validate");
 		fFilters = new FolderTreeObject(viewer, "Filters");
 		fUpdates = new FolderTreeObject(viewer, "Updates");
 		fViews = new FolderTreeObject(viewer, "Views");
 		loadFilters();
 		loadUpdates();
+		loadValidate();
 		loadViews();
 		
 		if (object.bNew) {
@@ -133,6 +136,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return "update";
 	}
 
+	public String getDefaultValidateName() {
+		return "validate";
+	}
+
 	@Override
 	public synchronized void hasBeenModified() {
 		JSONObject filters = new JSONObject();
@@ -168,12 +175,23 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			}
 		}
 		
+		String validatefun = null;
+		if (fValidate.hasChildren()) {
+			DesignDocumentValidateTreeObject ddvto = (DesignDocumentValidateTreeObject) fValidate.getChildren().get(0);
+			validatefun = ddvto.getObject().function;
+		}
+		
 		try {
 			DesignDocument dd = getObject();
 			JSONObject jso = dd.getJSONObject();
 			CouchKey.filters.put(jso, filters);
 			CouchKey.updates.put(jso, updates);
 			CouchKey.views.put(jso, views);
+			if (validatefun != null) {
+				CouchKey.validate_doc_update.put(jso, validatefun);
+			} else {
+				CouchKey.validate_doc_update.remove(jso);
+			}
 			dd.hasChanged = true;
 			hasBeenModified(true);
 			
@@ -212,6 +230,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return addUpdate(null);
 	}
 
+	public DesignDocumentValidateTreeObject addNewValidate() {
+		return addValidate(null);
+	}
+
 	public void removeView(DesignDocumentViewTreeObject view) {
 		if (view != null) {
 			fViews.removeChild(view);
@@ -229,6 +251,13 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 	public void removeUpdate(DesignDocumentUpdateTreeObject update) {
 		if (update != null) {
 			fUpdates.removeChild(update);
+			hasBeenModified();
+		}
+	}
+
+	public void removeValidate(DesignDocumentValidateTreeObject validate) {
+		if (validate != null) {
+			fValidate.removeChild(validate);
 			hasBeenModified();
 		}
 	}
@@ -258,6 +287,15 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			hasBeenModified();
 		}
 		return dduto;
+	}
+
+	protected DesignDocumentValidateTreeObject addValidate(DesignDocumentValidateTreeObject validate) {
+		DesignDocumentValidateTreeObject ddvto = (validate == null) ? newValidate() : validate;
+		if (ddvto != null) {
+			fValidate.addChild(ddvto);
+			hasBeenModified();
+		}
+		return ddvto;
 	}
 
 	protected boolean hasView(String viewName) {
@@ -299,6 +337,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		return newUpdate(createUpdateObject());
 	}
 
+	protected DesignDocumentValidateTreeObject newValidate() {
+		return newValidate(createValidateObject());
+	}
+
 	protected DesignDocumentViewTreeObject newView(ViewObject view) {
 		return new DesignDocumentViewTreeObject(viewer, view);
 	}
@@ -309,6 +351,10 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 
 	protected DesignDocumentUpdateTreeObject newUpdate(UpdateObject update) {
 		return new DesignDocumentUpdateTreeObject(viewer, update);
+	}
+
+	protected DesignDocumentValidateTreeObject newValidate(ValidateObject validate) {
+		return new DesignDocumentValidateTreeObject(viewer, validate);
 	}
 
 	protected ViewObject createViewObject() {
@@ -346,6 +392,16 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		
 		UpdateObject update = new UpdateObject(updateName, "function (doc, req) {\r\n\ttry {\r\n\t\tvar json = JSON.parse(req.body);\r\n\t\treturn [doc, {json: {result: 'nothing done'}}];\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}");
 		return update;
+	}
+	
+	protected ValidateObject createValidateObject() {		
+		ValidateObject validate = new ValidateObject("function(newDoc, oldDoc, userCtx, secObj) {\r\n" + 
+				"\t// check if newDoc respect the DB rules\r\n" + 
+				"\t// if not, throw an exception like that:\r\n" + 
+				"\t// throw({forbidden : 'type your error here'});\r\n" + 
+				"\treturn true;\r\n" + 
+				"}");
+		return validate;
 	}
 
 	private void loadViews() {
@@ -411,6 +467,18 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 					Engine.logBeans.warn("[DesignDocument] update named '" + key + "' is null; skipping...");
 				}
 			}
+		}
+	}
+	
+	private void loadValidate() {
+		JSONObject jsonDocument = getObject().getJSONObject();
+		String validatefun = CouchKey.validate_doc_update.String(jsonDocument);
+		
+		if (validatefun != null) {
+			addChild(fValidate);
+			
+			ValidateObject val = new ValidateObject(validatefun);
+			fValidate.addChild(new DesignDocumentValidateTreeObject(viewer, val));
 		}
 	}
 	
@@ -486,6 +554,15 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 				} catch (Exception e) {
 				}
 			}
+			else if (c.equals(DesignDocumentValidateTreeObject.class)) {
+				JSONObject jsonValidate = jsonData.getData();
+				try {
+					String validateValue = jsonValidate.getString("value");
+					ValidateObject validate = new ValidateObject(validateValue);
+					return addValidate(newValidate(validate));
+				} catch (Exception e) {
+				}
+			}
 		}
 		else if (object instanceof DesignDocumentViewTreeObject) {
 			return addView((DesignDocumentViewTreeObject)object);
@@ -495,6 +572,9 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		}
 		else if (object instanceof DesignDocumentUpdateTreeObject) {
 			return addUpdate((DesignDocumentUpdateTreeObject)object);
+		}
+		else if (object instanceof DesignDocumentValidateTreeObject) {
+			return addValidate((DesignDocumentValidateTreeObject)object);
 		}
 		return null;
 	}
@@ -509,6 +589,9 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		}
 		else if (object instanceof DesignDocumentUpdateTreeObject) {
 			removeUpdate((DesignDocumentUpdateTreeObject)object);
+		}
+		else if (object instanceof DesignDocumentValidateTreeObject) {
+			removeValidate((DesignDocumentValidateTreeObject)object);
 		}
 	}
 	
@@ -652,6 +735,13 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 	public class UpdateObject extends FunctionObject {
 		UpdateObject(String name, String function) {
 			super(name, function);
+		}
+		
+	}
+
+	public class ValidateObject extends FunctionObject {
+		ValidateObject(String function) {
+			super("validate", function);
 		}
 		
 	}
