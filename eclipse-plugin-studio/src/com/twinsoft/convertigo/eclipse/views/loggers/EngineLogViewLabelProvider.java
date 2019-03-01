@@ -71,16 +71,11 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 		isDark = SwtUtils.isDark();
 		Display d = viewer.getControl().getDisplay();
 		if (isDark) {
-			error = new Color(d, 255, 0, 0);
-			error_bis = new Color(d, 204, 0, 0);
-			warn = new Color(d, 255, 155, 0);
-			warn_bis = new Color(d, 255, 182, 69);
-			info = new Color(d, 9, 255, 0);
-			info_bis = new Color(d, 6, 178, 0);
-			debug = new Color(d, 0, 255, 249);
-			debug_bis = new Color(d, 0, 163, 159);
-			trace = new Color(d, 240, 255, 0);
-			trace_bis = new Color(d, 168, 178, 0);
+			error = error_bis = new Color(d, 255, 0, 0);
+			warn = warn_bis = new Color(d, 255, 155, 0);
+			info = info_bis = new Color(d, 9, 255, 0);
+			debug = debug_bis = new Color(d, 0, 255, 249);
+			trace = trace_bis = new Color(d, 240, 255, 0);
 		} else {
 			error = new Color(d, 255, 158, 147);
 			error_bis = new Color(d, 255, 186, 178);
