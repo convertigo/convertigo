@@ -207,18 +207,22 @@ jobs:
     - run:
         name: Docker build and push for amd64
         command: |
+          apk add --no-cache jq curl
           source /tmp/build.env
           cd docker
           export TYPE=amd64
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
-          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
+          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          if ! docker pull $FROM ; then
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
+          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
+          if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
               echo building base $FROM
               docker build --rm=false -f Dockerfile_base -t $FROM .
               docker push $FROM
           fi
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -f Dockerfile_ci -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
@@ -248,19 +252,23 @@ jobs:
     - run:
         name: Docker build and push for i386
         command: |
+          apk add --no-cache jq curl
           source /tmp/build.env
           cd docker
           sed -i "s,tomcat:,i386/tomcat:," Dockerfile_base
           export TYPE=i386
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-linux32-$CONVERTIGO_VERSION.war
-          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
+          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          if ! docker pull $FROM ; then
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
+          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
+          if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
               echo building base $FROM
               docker build --rm=false -f Dockerfile_base -t $FROM .
               docker push $FROM
           fi
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -f Dockerfile_ci -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
@@ -295,14 +303,17 @@ jobs:
           cd docker
           export TYPE=alpine
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
-          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile))
+          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          if ! docker pull $FROM ; then
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
+          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
+          if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
               echo building base $FROM
               docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
               docker push $FROM
           fi
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -f Dockerfile_ci -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
@@ -310,10 +321,9 @@ jobs:
               docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
               docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
-          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          TAGS=$(curl 'https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/?page_size=250' -H "Authorization: JWT ${TOKEN}")
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}")
           for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do
-              curl "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
+              curl -s "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
           done
           
   qualif_jmx_1:

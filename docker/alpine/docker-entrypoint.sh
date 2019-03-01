@@ -49,7 +49,10 @@ if [ "$1" = "convertigo" ]; then
     
     ## check and adapt the Java Xmx for limited devices
     
-    JXMX=2048
+    if [ "$JXMX" = "" ]; then
+        JXMX=2048
+    fi
+    
     java -Xmx${JXMX}m -version >/dev/null
     while [ $? != 0 ] && [ $JXMX -gt 200 ]; do
        JXMX=`expr $JXMX / 2 + $JXMX / 4`

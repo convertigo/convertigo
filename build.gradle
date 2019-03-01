@@ -29,7 +29,7 @@ ext.convertigoEngineAPI = '7.6.0-SNAPSHOT'
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
 
-task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest']) {
+task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest', 'generateDockerfile']) {
 	group 'convertigo'
 	description 'Run this task after a Convertigo version change.'
 }
@@ -277,4 +277,18 @@ task makeSplash(dependsOn: 'convertigo-splash:run') {
 
 task ciFirstStep(dependsOn: [':convertigo-templates:buildTemplates', ':engine:jar']) {
 	group 'convertigo'
+}
+
+task generateDockerfile {
+	group 'convertigo'
+	
+	doLast {
+		def base = file('docker/Dockerfile_base').text
+		def chunk = file('docker/Dockerfile_chunk').text.replace('%version%', convertigoVersion)
+		file('docker/Dockerfile').text = base.replace('## CHUNK ##', chunk)
+		
+		base = file('docker/alpine/Dockerfile_base').text
+		chunk = file('docker/alpine/Dockerfile_chunk').text.replace('%version%', convertigoVersion)
+		file('docker/alpine/Dockerfile').text = base.replace('## CHUNK ##', chunk)
+	}
 }

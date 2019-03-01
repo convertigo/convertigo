@@ -57,16 +57,16 @@ if not, see <http://www.gnu.org/licenses/>.
 
 		<tr class="main_even">
 			<td class="small">Server name :</td>
-			<td ><input name="Database server name" type="text" size="30" class="required" value="" id="cacheServerName"/></td>
+			<td ><input name="Database server name" type="text" size="30" class="required" value="" id="cacheServerName" autocomplete="new-password"/></td>
 		</tr>
 		<tr class="main_odd">
 
 			<td  class="small">Access port :</td>
-			<td ><input name="Database server port" type="text" size="5" maxlength="5" class="required" value=""  id="cachePort"  onkeypress="chiffres(event)"/></td>
+			<td ><input name="Database server port" type="text" size="5" maxlength="5" class="required" value=""  id="cachePort"  onkeypress="chiffres(event)" autocomplete="new-password"/></td>
 		</tr>
 		<tr class="main_even">
 			<td class="small">Database|Service name :</td>
-			<td ><input name="Database name" type="text" size="30" value="" id="cacheDatabaseName"/></td>
+			<td ><input name="Database name" type="text" size="30" value="" id="cacheDatabaseName" autocomplete="new-password"/></td>
 		</tr>
 		<tr class="main_headerTab" >
 
@@ -74,16 +74,16 @@ if not, see <http://www.gnu.org/licenses/>.
 		</tr>
 		<tr class="main_even">
 			<td  class="small">User name :</td>
-			<td ><input name="User name" type="text" class="required" size="30" value="" id="cacheUserName"></td>
+			<td ><input name="User name" type="text" class="required" size="30" value="" id="cacheUserName" autocomplete="new-password"></td>
 		</tr>
 		<tr class="main_odd">
 
 			<td class="small">User password :</td>
-			<td ><input id="cachePass1" name="password" type="password" class="cacheUserPassword" size="30" value=""/></td>
+			<td ><input id="cachePass1" name="password" type="password" class="cacheUserPassword" size="30" value="" autocomplete="new-password"/></td>
 		</tr>
 		<tr class="main_even">
 			<td class="small">Confirmation :</td>
-			<td ><input id="cachePass2"  type="password" class="cacheUserPassword" size="30" value=""/></td>
+			<td ><input id="cachePass2"  type="password" class="cacheUserPassword" size="30" value="" autocomplete="new-password"/></td>
 		</tr>
 		<tr class="main_headerTab" >
 
@@ -91,7 +91,7 @@ if not, see <http://www.gnu.org/licenses/>.
 		</tr>
 		<tr class="main_even">
 			<td  class="small">Table name :</td>
-			<td ><input name="Table name" type="text" class="required" size="30" value="" id="cacheTableName"></td>
+			<td ><input name="Table name" type="text" class="required" size="30" value="" id="cacheTableName" autocomplete="new-password"></td>
 		</tr>		
 	</table>	
 	<button  class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary"  id="cacheCreateTable"><span class="ui-button-icon-primary ui-icon ui-icon-check"></span><span class="ui-button-text">Create table and apply</span></button>

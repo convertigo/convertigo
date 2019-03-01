@@ -1,4 +1,4 @@
-# Copyright (c) 2001-2018 Convertigo SA.
+# Copyright (c) 2001-2019 Convertigo SA.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Affero General Public License
@@ -29,25 +29,28 @@ RUN apk --no-cache add \
     unzip
 
 ## grab gosu for easy step-down from root and tini for signal handling
-ENV GOSU_VERSION 1.10
+
+ENV GOSU_VERSION 1.11
 ENV GOSU_GPG_KEYS B42F6819007F00F88E364FD4036A9C25BF357DD4
-ENV TINI_VERSION 0.16.1
+ENV TINI_VERSION 0.18.0
 ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
 
 RUN export GNUPGHOME="$(mktemp -d)" \
   && apk add --no-cache --virtual .arch dpkg gpgme \
   && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-  && ( gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$GOSU_GPG_KEYS" \
-  || gpg --keyserver pgp.mit.edu --recv-keys "$GOSU_GPG_KEYS" \
-  || gpg --keyserver keyserver.pgp.com --recv-keys "$GOSU_GPG_KEYS" ) \
+  && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GOSU_GPG_KEYS" \
+  || gpg --batch --keyserver pgp.mit.edu --recv-keys "$GOSU_GPG_KEYS" \
+  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" \
+  || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$GOSU_GPG_KEYS" ) \
   && curl -o /usr/local/bin/gosu -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${dpkgArch}" \
   && curl -o /usr/local/bin/gosu.asc -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${dpkgArch}.asc" \
   && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
   && rm /usr/local/bin/gosu.asc \
   && chmod +x /usr/local/bin/gosu \
-  && ( gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$TINI_GPG_KEYS" \
-  || gpg --keyserver pgp.mit.edu --recv-keys "$TINI_GPG_KEYS" \
-  || gpg --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEYS" ) \
+  && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$TINI_GPG_KEYS" \
+  || gpg --batch --keyserver pgp.mit.edu --recv-keys "$TINI_GPG_KEYS" \
+  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" \
+  || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEYS" ) \
   && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-${dpkgArch}" \
   && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-${dpkgArch}.asc" \
   && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
@@ -78,6 +81,7 @@ RUN sed -i.bak \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
+## CHUNK ##
 
 ## copy the ROOT index that redirect to the 'convertigo' webapps
 

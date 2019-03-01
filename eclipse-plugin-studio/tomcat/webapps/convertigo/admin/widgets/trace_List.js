@@ -97,7 +97,7 @@ function trace_List_update() {
 											enabledDisabeled : state,
 											port : port,
 											file : $(this).attr("file"),
-											group : "<input type='text' value='" + $(this).attr("group") + "' />",
+											group : "<input type='text' value='" + $(this).attr("group") + "' autocomplete=\"new-password\" />",
 											btnDelete : "<a href=\"javascript: deleteTraces('" + port + "')\"><img border=\"0\" title=\"Delete the trace\" src=\"images/convertigo-administration-picto-delete.png\"></a>"
 										});
 								});
