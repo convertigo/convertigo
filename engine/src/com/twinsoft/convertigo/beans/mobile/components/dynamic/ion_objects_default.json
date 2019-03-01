@@ -3366,5 +3366,35 @@
    "mode": "script",
    "value": "[]"
   }}
+ }},
+ "ChooserAction": {"   7   6   0": {
+  "name": "ChooserAction",
+  "properties": {
+   "mockedResponse": {
+    "name": "mockedResponse",
+    "mode": "plain",
+    "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+   },
+   "mimeType": {
+    "name": "mimeType",
+    "mode": "script",
+    "value": false
+   }
+  }
+ }},
+ "ProgressBar": {"   7   6   0": {
+  "name": "ProgressBar",
+  "properties": {
+   "progress": {
+    "name": "progress",
+    "mode": "script",
+    "value": "0"
+   },
+   "color": {
+    "name": "color",
+    "mode": "script",
+    "value": "'#488aff'"
+   }
+  }
  }}
 }

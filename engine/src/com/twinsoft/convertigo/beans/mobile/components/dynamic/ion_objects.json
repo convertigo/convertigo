@@ -1220,8 +1220,6 @@
         ]
       }         
     },
-
-
     "Spinner": {
       "tag": "ion-spinner",
 	  "displayName": "Spinner",
@@ -7215,6 +7213,55 @@
           {
             "plugin":"cordova-plugin-filepath",
             "version":"1.2.0"
+          }
+      ]
+    }
+  },
+  
+  "ChooserAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "Chooser",
+      "label": "Chooser",
+      "description": "Defines a <i>Chooser</i> action component. | This component helps selecting a file.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li></ul>You can access data from the next action in the chain in (TS) mode with: <code><ul><li>out: {data: Uint8Array, dataURI:string, mediaType: string, name: string, uri:string}</li></ul></code>Whenever cordova platform is not available, the value defined in mocking option is returned.<br/> Default mocked value is <code>'https://www.convertigo.com/wp-content/uploads/2015/01/logoStudio.png'</code>.<br/>It uses the native Chooser to select a file.<br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/v3/native/chooser/'>Chooser</a>.",
+      "group": "Native Actions",
+      "icon16": "filechooseraction_color_16x16.png",
+      "icon32": "filechooseraction_color_32x32.png",
+      "properties": {
+      "mockedResponse": {
+	        "label": "mocked response",
+	        "description": "The mocked response for the File chooser action in case of running not supported platform. Must be a string.",
+	        "category": "@mocking options",
+	        "type": "string",
+	        "value": "https://www.convertigo.com/wp-content/uploads/2015/01/logoStudio.png"
+	      },
+	      "mimeType": {
+	        "label": "mime Type",
+	        "description": "Whenever you want to select a specific type of file you can use mimetype to filer",
+	        "category": "@options",
+	        "type": "string",
+	        "mode": "script",
+	        "value": false
+	      }
+      },
+      "config": {
+        "action_ts_imports": [			
+			{"from":"@ionic-native/chooser", "components":["Chooser"]}
+        ],
+        "module_ts_imports": [
+			{"from":"@ionic-native/chooser", "components":["Chooser"]}
+        ],
+        "module_ng_imports": [
+        ],
+        "module_ng_providers": [
+			"Chooser"
+        ],
+        "package_dependencies": [
+            {"package":"@ionic-native/chooser", "version":"4.20.0"}
+        ],
+        "cordova_plugins": [
+          {
+            "plugin":"cordova-plugin-chooser",
+            "version":"1.2.5"
           }
       ]
     }

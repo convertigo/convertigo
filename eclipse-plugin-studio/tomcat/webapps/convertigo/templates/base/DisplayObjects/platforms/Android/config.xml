@@ -21,6 +21,7 @@
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
 	<engine name="$(CordovaPlatform)$" spec="7.1.2" />
+
 	
 	<!--  Startup page is FlashUpdate  -->
 	<content src="index-fu.html" />
@@ -41,6 +42,12 @@
 	<preference name="AndroidPersistentFileLocation" value="Internal" />
 	
 	<platform name="android">
+		<edit-config
+			file="app/src/main/AndroidManifest.xml"
+			mode="merge"
+			target="/manifest/application">
+			<application android:largeHeap="true" />
+ 		</edit-config>
 		<icon density="ldpi" src="res/icons/android/drawable-ldpi-icon.png" />
 		<icon density="mdpi" src="res/icons/android/drawable-mdpi-icon.png" />
 		<icon density="hdpi" src="res/icons/android/drawable-hdpi-icon.png" />
