@@ -153,7 +153,7 @@ public class CarUtils {
 			exportYAMLProject(fileName, document);
 		} catch (Exception e) {
 			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
-			exportXMLProject(fileName, document);
+			exportXMLProject(new File(new File(fileName).getParentFile(), project.getName() + ".xml").getAbsolutePath(), document);
 		}
 	}
 	
@@ -164,7 +164,7 @@ public class CarUtils {
 			exportYAMLProject(fileName, document);
 		} catch (Exception e) {
 			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
-			exportXMLProject(fileName, document);
+			exportXMLProject(new File(new File(fileName).getParentFile(), project.getName() + ".xml").getAbsolutePath(), document);
 		}
 	}
 	
