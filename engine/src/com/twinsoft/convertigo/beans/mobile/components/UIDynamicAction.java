@@ -298,14 +298,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 						
-						// Special case for DeleteListenAction
-						if ("DeleteListenAction".equals(getActionBeanName())) {
-							if (Mode.SOURCE.equals(msst.getMode())) {
-								MobileSmartSource mss = msst.getSmartSource();
-								smartValue = mss.getSources(msst.getValue()).toString();
-							}
-						}
-						
 						// Case ts code in HTML template (single action)
 						if (forTemplate) {
 							smartValue = ""+smartValue;
@@ -313,14 +305,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						// Case ts code in ActionBeans.service (stack of actions)
 						else {
 							if (Mode.SOURCE.equals(msst.getMode())) {
-								if (!"DeleteListenAction".equals(getActionBeanName())) {
-									MobileSmartSource mss = msst.getSmartSource();
-									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-										smartValue = "scope."+ smartValue;
-									}
-									else {
-										smartValue = "this."+ smartValue;
-									}
+								MobileSmartSource mss = msst.getSmartSource();
+								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+									smartValue = "scope."+ smartValue;
+								}
+								else {
+									smartValue = "this."+ smartValue;
 								}
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
