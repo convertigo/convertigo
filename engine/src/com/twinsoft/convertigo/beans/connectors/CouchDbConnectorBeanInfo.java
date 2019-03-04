@@ -38,7 +38,7 @@ public class CouchDbConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("databaseName", beanClass, "getDatabaseName", "setDatabaseName");
 			properties[0].setDisplayName(getExternalizedString("property.databaseName.display_name"));
@@ -67,42 +67,10 @@ public class CouchDbConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[6] = new PropertyDescriptor("jsonUseType", beanClass, "isJsonUseType", "setJsonUseType");
 			properties[6].setDisplayName(getExternalizedString("property.jsonUseType.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.jsonUseType.short_description"));
-		
-//			properties[4] = new PropertyDescriptor("trustAllServerCertificates", beanClass, "isTrustAllServerCertificates", "setTrustAllServerCertificates");
-//			properties[4].setDisplayName(getExternalizedString("property.trustAllServerCertificates.display_name"));
-//			properties[4].setShortDescription(getExternalizedString("property.trustAllServerCertificates.short_description"));
-//			
-//			properties[5] = new PropertyDescriptor("authUser", beanClass, "getAuthUser", "setAuthUser");
-//			properties[5].setDisplayName(getExternalizedString("property.authUser.display_name"));
-//			properties[5].setShortDescription(getExternalizedString("property.authUser.short_description"));
-//			properties[5].setExpert(true);
-//			
-//			properties[6] = new PropertyDescriptor("authPassword", beanClass, "getAuthPassword", "setAuthPassword");
-//			properties[6].setDisplayName(getExternalizedString("property.authPassword.display_name"));
-//			properties[6].setShortDescription(getExternalizedString("property.authPassword.short_description"));
-//			properties[6].setExpert(true);
-//			
-//			properties[7] = new PropertyDescriptor("authenticationType", beanClass, "getAuthenticationType", "setAuthenticationType");
-//			properties[7].setDisplayName(getExternalizedString("property.authenticationType.display_name"));
-//			properties[7].setShortDescription(getExternalizedString("property.authenticationType.short_description"));
-//			properties[7].setPropertyEditorClass(AuthenticationMode.class);
-//			properties[7].setExpert(true);
-//			
-//			properties[8] = new PropertyDescriptor("NTLMAuthenticationDomain", beanClass, "getNTLMAuthenticationDomain", "setNTLMAuthenticationDomain");
-//			properties[8].setDisplayName(getExternalizedString("property.NTLMAuthenticationDomain.display_name"));
-//			properties[8].setShortDescription(getExternalizedString("property.NTLMAuthenticationDomain.short_description"));
-//			properties[8].setExpert(true);
-//			
-//			properties[9] = new PropertyDescriptor("httpHeaderForward", beanClass, "getHttpHeaderForward", "setHttpHeaderForward");
-//			properties[9].setDisplayName(getExternalizedString("property.httpHeaderForward.display_name"));
-//			properties[9].setShortDescription(getExternalizedString("property.httpHeaderForward.short_description"));
-//			properties[9].setExpert(true);
-//			properties[9].setPropertyEditorClass(getEditorClass("HttpHeaderForwardEditor"));
-//			
-//			properties[10] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
-//			properties[10].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
-//			properties[10].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
-//			properties[10].setExpert(true);
+			
+			properties[7] = new PropertyDescriptor("secureDatabase", beanClass, "isSecureDatabase", "setSecureDatabase");
+			properties[7].setDisplayName(getExternalizedString("property.secureDatabase.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.secureDatabase.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

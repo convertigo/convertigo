@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 
 public class CouchDbConnector extends Connector {
 
@@ -55,6 +56,7 @@ public class CouchDbConnector extends Connector {
 	private String couchUsername = "";
 	private String couchPassword = "";
 	private boolean jsonUseType = true;
+	private boolean secureDatabase = false;
 	
 	private transient CouchClient couchClient = null;
 	
@@ -347,5 +349,16 @@ public class CouchDbConnector extends Connector {
 
 	public void setJsonUseType(boolean jsonUseType) {
 		this.jsonUseType = jsonUseType;
+	}
+
+	public boolean isSecureDatabase() {
+		return secureDatabase;
+	}
+
+	public void setSecureDatabase(boolean secureDatabase) {
+		this.secureDatabase = secureDatabase;
+		if (!isImporting) {
+			CouchDbManager.syncSecurity(this);
+		}
 	}
 }
