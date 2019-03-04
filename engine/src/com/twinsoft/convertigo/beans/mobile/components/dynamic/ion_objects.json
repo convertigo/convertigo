@@ -6129,14 +6129,14 @@
   }
 },
 
-    "DeleteListenAction" : {
+    "ClearDataSourceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-	  "displayName": "DeleteListen",
-      "label": "DeleteListen",
-      "description": "Defines a <i>DeleteListen</i> action component. | Use the <i>DeleteListen</i> to delete data stored from a previous fullsync action.",
+	  "displayName": "ClearDataSource",
+      "label": "ClearDataSource",
+      "description": "Defines a <i>ClearDataSource</i> action component. | Use the <i>ClearDataSource</i> to delete data stored from a previous fullsync action.",
       "group": "FullSync Actions",
-      "icon16": "deletelistenaction_color_16x16.png",
-      "icon32": "deletelistenaction_color_32x32.png",
+      "icon16": "cleardatasourceaction_color_16x16.png",
+      "icon32": "cleardatasourceaction_color_32x32.png",
       "properties": {
 		"requestables": {
           "label": "requestables",

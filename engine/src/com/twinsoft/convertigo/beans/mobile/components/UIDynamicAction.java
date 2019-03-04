@@ -298,8 +298,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 						
-						// Special case for DeleteListenAction
-						if ("DeleteListenAction".equals(getActionBeanName())) {
+						// Special case for ClearDataSourceAction
+						if ("ClearDataSourceAction".equals(getActionBeanName())) {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								smartValue = mss.getSources(msst.getValue()).toString();
@@ -313,7 +313,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						// Case ts code in ActionBeans.service (stack of actions)
 						else {
 							if (Mode.SOURCE.equals(msst.getMode())) {
-								if (!"DeleteListenAction".equals(getActionBeanName())) {
+								if (!"ClearDataSourceAction".equals(getActionBeanName())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
 									smartValue = "scope."+ smartValue;

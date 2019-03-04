@@ -1,4 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <connector classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector" default="false" priority="0" version="   7   6   0">
+        <property name="anonymousReplication">
+            <java.lang.String value="allow"/>
+        </property>
+        <property name="billingClassName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property ciphered="true" name="couchPassword">
+            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
+        </property>
+        <property name="couchUsername">
+            <java.lang.String value=""/>
+        </property>
+        <property name="databaseName">
+            <java.lang.String value="FullSync_connector"/>
+        </property>
+        <property name="endTransactionName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="https">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="isTasAuthenticationRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="jsonUseType">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="FullSync_connector"/>
+        </property>
+        <property name="port">
+            <java.lang.Integer value="5984"/>
+        </property>
+        <property name="secureDatabase">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="server">
+            <java.lang.String value="127.0.0.1"/>
+        </property>
+    </connector>
+    <connector classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector" default="false" priority="0" version="   7   6   0">
+        <property name="billingClassName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property ciphered="true" name="couchPassword">
+            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
+        </property>
+        <property name="couchUsername">
+            <java.lang.String value=""/>
+        </property>
+        <property name="databaseName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="endTransactionName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="https">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="isTasAuthenticationRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="jsonUseType">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="CouchDB_connector"/>
+        </property>
+        <property name="port">
+            <java.lang.Integer value="5984"/>
+        </property>
+        <property name="secureDatabase">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="server">
+            <java.lang.String value="127.0.0.1"/>
+        </property>
+    </connector>
     <variable classname="com.twinsoft.convertigo.beans.variables.StepVariable" priority="0" version="   7   6   0">
         <property name="bSoapArray">
             <java.lang.Boolean value="false"/>
@@ -52,47 +137,7 @@
             <java.lang.String value=""/>
         </property>
     </mobilecomponent>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector" default="false" priority="0" version="   7   6   0">
-        <property name="anonymousReplication">
-            <java.lang.String value="allow"/>
-        </property>
-        <property name="billingClassName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property ciphered="true" name="couchPassword">
-            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
-        </property>
-        <property name="couchUsername">
-            <java.lang.String value=""/>
-        </property>
-        <property name="databaseName">
-            <java.lang.String value="FullSync_connector"/>
-        </property>
-        <property name="endTransactionName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="https">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="isTasAuthenticationRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="jsonUseType">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="FullSync_connector"/>
-        </property>
-        <property name="port">
-            <java.lang.Integer value="5984"/>
-        </property>
-        <property name="server">
-            <java.lang.String value="127.0.0.1"/>
-        </property>
-    </connector>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator" priority="0" version="   7   6   0">
         <property name="async">
             <java.lang.Boolean value="false"/>
@@ -11096,44 +11141,7 @@
         </property>
     </connector>
     
-    <connector classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector" default="false" priority="0" version="   7   6   0">
-        <property name="billingClassName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property ciphered="true" name="couchPassword">
-            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
-        </property>
-        <property name="couchUsername">
-            <java.lang.String value=""/>
-        </property>
-        <property name="databaseName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="endTransactionName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="https">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="isTasAuthenticationRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="jsonUseType">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="CouchDB_connector"/>
-        </property>
-        <property name="port">
-            <java.lang.Integer value="5984"/>
-        </property>
-        <property name="server">
-            <java.lang.String value="127.0.0.1"/>
-        </property>
-    </connector>
+    
     <connector classname="com.twinsoft.convertigo.beans.connectors.CicsConnector" default="false" priority="0" version="   7   6   0">
         <property name="billingClassName">
             <java.lang.String value=""/>

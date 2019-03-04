@@ -3396,5 +3396,13 @@
     "value": "'#488aff'"
    }
   }
+ }},
+ "ClearDataSourceAction": {"   7   6   0": {
+  "name": "ClearDataSourceAction",
+  "properties": {"requestables": {
+   "name": "requestables",
+   "mode": "script",
+   "value": "[]"
+  }}
  }}
 }
