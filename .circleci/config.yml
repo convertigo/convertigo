@@ -182,7 +182,7 @@ jobs:
         command: |
           source /tmp/build.env
           openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
-          mkdir -P ~/.gnugpg
+          mkdir -p ~/.gnugpg
           tar -xvf installers/convertigo.gpg -C ~/.gnugpg
           find $CONVERTIGO_DIST -type f -name "*.war" -exec gpg -ab {} \;
           
@@ -506,7 +506,7 @@ jobs:
         command: |
           source /tmp/build.env
           openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
-          mkdir -P ~/.gnugpg
+          mkdir -p ~/.gnugpg
           tar -xvf installers/convertigo.gpg -C ~/.gnugpg
           find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
           
