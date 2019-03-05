@@ -36,7 +36,7 @@ ENV TINI_VERSION 0.18.0
 ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
 
 RUN export GNUPGHOME="$(mktemp -d)" \
-  && apk add --no-cache --virtual .arch dpkg \
+  && apk add --no-cache --virtual .arch dpkg gpgme \
   && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
   && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver pgp.mit.edu --recv-keys "$GOSU_GPG_KEYS" \
@@ -54,7 +54,6 @@ RUN export GNUPGHOME="$(mktemp -d)" \
   && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-${dpkgArch}" \
   && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-${dpkgArch}.asc" \
   && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
-  && pkill -9 gpg-agent \
   && rm /usr/local/bin/tini.asc \
   && chmod +x /usr/local/bin/tini \
   && rm -rf /tmp/* \
@@ -75,7 +74,7 @@ RUN sed -i.bak \
         -e '/protocol="AJP/d' \
         -e '/AprLifecycleListener/d' \
         -e '/JasperListener/d' \
-        -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
+        -e 's/port="8080"/port="28080" maxThreads="64000"/' \
         conf/server.xml \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \
