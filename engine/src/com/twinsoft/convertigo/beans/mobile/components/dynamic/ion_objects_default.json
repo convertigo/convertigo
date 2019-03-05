@@ -3404,5 +3404,205 @@
    "mode": "script",
    "value": "[]"
   }}
+ }},
+ "AutoScrollComponent": {"   7   6   0": {
+  "name": "AutoScrollComponent",
+  "properties": {
+   "C8oPage": {
+    "name": "C8oPage",
+    "mode": "script",
+    "value": "this"
+   },
+   "C8oSParams": {
+    "name": "C8oSParams",
+    "mode": "script",
+    "value": "{requestable: $[requestable], marker: $[s_marker], limit: $[s_limit], timeout: $[s_timeout], threshold: $[s_threshold], __localCache_priority: $[s_cachePolicy], __localCache_ttl: $[s_cacheTtl]}"
+   },
+   "C8oVParams": {
+    "name": "C8oVParams",
+    "mode": "script",
+    "value": "{fsview: $[fsview], marker: $[v_marker], limit: $[v_limit], descending: $[v_descending], keys: $[v_keys], key: $[v_key], startkey: $[v_startkey], endkey: $[v_endkey], include_docs: $[v_include_docs], inclusive_end: $[v_inclusive_end], conflicts: $[v_conflicts], reduce: $[v_reduce], attachments: $[v_attachments], binary: $[v_binary], group: $[v_group], group_level: $[v_group_level], stale: $[v_stale], __live: $[v_live]}"
+   },
+   "ScrollParams": {
+    "name": "ScrollParams",
+    "mode": "script",
+    "value": "{position: $[ScrollPosition], threshold: $[ScrollThreshold]}"
+   },
+   "ScrollPosition": {
+    "name": "ScrollPosition",
+    "mode": "plain",
+    "value": "bottom"
+   },
+   "ScrollThreshold": {
+    "name": "ScrollThreshold",
+    "mode": "plain",
+    "value": "15%"
+   },
+   "items": {
+    "name": "items",
+    "mode": "script",
+    "value": "[]"
+   },
+   "requestable": {
+    "name": "requestable",
+    "mode": "plain",
+    "value": ""
+   },
+   "s_marker": {
+    "name": "s_marker",
+    "mode": "plain",
+    "value": ""
+   },
+   "s_cachePolicy": {
+    "name": "s_cachePolicy",
+    "mode": "plain",
+    "value": false
+   },
+   "s_cacheTtl": {
+    "name": "s_cacheTtl",
+    "mode": "plain",
+    "value": "3000"
+   },
+   "s_timeout": {
+    "name": "s_timeout",
+    "mode": "plain",
+    "value": false
+   },
+   "s_threshold": {
+    "name": "s_threshold",
+    "mode": "plain",
+    "value": false
+   },
+   "s_limit": {
+    "name": "s_limit",
+    "mode": "plain",
+    "value": "500"
+   },
+   "fsview": {
+    "name": "fsview",
+    "mode": "plain",
+    "value": ""
+   },
+   "v_marker": {
+    "name": "v_marker",
+    "mode": "plain",
+    "value": false
+   },
+   "v_live": {
+    "name": "v_live",
+    "mode": "plain",
+    "value": false
+   },
+   "v_include_docs": {
+    "name": "v_include_docs",
+    "mode": "plain",
+    "value": "false"
+   },
+   "v_conflicts": {
+    "name": "v_conflicts",
+    "mode": "plain",
+    "value": false
+   },
+   "v_reduce": {
+    "name": "v_reduce",
+    "mode": "plain",
+    "value": false
+   },
+   "v_attachments": {
+    "name": "v_attachments",
+    "mode": "plain",
+    "value": false
+   },
+   "v_binary": {
+    "name": "v_binary",
+    "mode": "plain",
+    "value": false
+   },
+   "v_startkey": {
+    "name": "v_startkey",
+    "mode": "plain",
+    "value": false
+   },
+   "v_endkey": {
+    "name": "v_endkey",
+    "mode": "plain",
+    "value": false
+   },
+   "v_inclusive_end": {
+    "name": "v_inclusive_end",
+    "mode": "plain",
+    "value": false
+   },
+   "v_limit": {
+    "name": "v_limit",
+    "mode": "script",
+    "value": "500"
+   },
+   "v_descending": {
+    "name": "v_descending",
+    "mode": "plain",
+    "value": false
+   },
+   "v_key": {
+    "name": "v_key",
+    "mode": "plain",
+    "value": false
+   },
+   "v_keys": {
+    "name": "v_keys",
+    "mode": "plain",
+    "value": false
+   },
+   "v_group": {
+    "name": "v_group",
+    "mode": "plain",
+    "value": false
+   },
+   "v_group_level": {
+    "name": "v_group_level",
+    "mode": "plain",
+    "value": false
+   },
+   "v_stale": {
+    "name": "v_stale",
+    "mode": "plain",
+    "value": false
+   }
+  }
+ }},
+ "InfiniteScroll": {"   7   6   0": {
+  "name": "InfiniteScroll",
+  "properties": {
+   "Enabled": {
+    "name": "Enabled",
+    "mode": "plain",
+    "value": "true"
+   },
+   "Position": {
+    "name": "Position",
+    "mode": "plain",
+    "value": "bottom"
+   },
+   "Threshold": {
+    "name": "Threshold",
+    "mode": "plain",
+    "value": "15%"
+   }
+  }
+ }},
+ "InfiniteScrollContent": {"   7   6   0": {
+  "name": "InfiniteScrollContent",
+  "properties": {
+   "LoadingSpinner": {
+    "name": "LoadingSpinner",
+    "mode": "plain",
+    "value": "bubbles"
+   },
+   "LoadingText": {
+    "name": "LoadingText",
+    "mode": "plain",
+    "value": "Loading more data..."
+   }
+  }
  }}
 }
