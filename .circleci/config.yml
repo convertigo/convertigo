@@ -165,6 +165,7 @@ jobs:
         command: |
           source /tmp/build.env
           sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :engine:warLinux32
+          mv engine/build/libs/*.war $CONVERTIGO_DIST/
           
     - save_cache:
         paths:
@@ -177,10 +178,18 @@ jobs:
         key: v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
     - run:
+        name: Sign WARs with GPG
+        command: |
+          source /tmp/build.env
+          openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
+          mkdir -P ~/.gnugpg
+          tar -xvf installers/convertigo.gpg -C ~/.gnugpg
+          find $CONVERTIGO_DIST -type f -name "*.war" -exec gpg -ab {} \;
+          
+    - run:
         name: Sync WARs to S3
         command: |
           source /tmp/build.env
-          mv engine/build/libs/*.war $CONVERTIGO_DIST/
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
           for folder in $(aws s3 ls s3://convertigo-ci/ | grep convertigo- | head -n -36 | sed "s/ *PRE //"); do
               aws s3 rm s3://convertigo-ci/${folder} --recursive
@@ -491,6 +500,15 @@ jobs:
           for job in $(jobs -p); do
               wait $job
           done
+        
+    - run:
+        name: Sign Studios with GPG
+        command: |
+          source /tmp/build.env
+          openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
+          mkdir -P ~/.gnugpg
+          tar -xvf installers/convertigo.gpg -C ~/.gnugpg
+          find $CONVERTIGO_DIST -type f -exec gpg -ab {} \;
           
     - run:
         name: Sync builds to S3
@@ -517,6 +535,7 @@ jobs:
                    "convertigo-linux32-$CONVERTIGO_VERSION.war" \
                    "convertigo-$CONVERTIGO_VERSION.war"  ; do
             curl -sf $CONVERTIGO_URL/$f --output dist/$f || echo "$f not found"
+            curl -sf $CONVERTIGO_URL/$f.asc --output dist/$f.asc || echo "$f.asc not found"
           done
           VERSION=$CIRCLE_TAG
           PRELEASE="-prerelease"
