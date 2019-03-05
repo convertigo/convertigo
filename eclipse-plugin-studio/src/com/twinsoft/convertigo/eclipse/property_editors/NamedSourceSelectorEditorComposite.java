@@ -54,7 +54,7 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -137,7 +137,8 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 				if (object instanceof DatabaseObject) {
 					DatabaseObject dbo = (DatabaseObject)object;
 					
-					TVObject tvObject = add(new TVObject(dbo.getName(), dbo.toString(), isSelectable(dbo)));
+					boolean isSelectable = isSelectable(dbo);
+					TVObject tvObject = add(new TVObject(dbo.getName(), dbo.toString(), isSelectable));
 					
 					if (object instanceof Project) {
 						MobileApplication mba = ((Project)object).getMobileApplication();
@@ -204,7 +205,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						if (object instanceof DesignDocument) {
 							JSONObject json = ((DesignDocument)object).getJSONObject();
 							DatabaseObject dboo = dboto.getObject();
-							if (dboo instanceof AbstractFullSyncViewListener || dboo instanceof UIDynamicAction) {
+							if (dboo instanceof AbstractFullSyncViewListener || dboo instanceof UIDynamicElement) {
 								JSONObject views = CouchKey.views.JSONObject(json);
 								if (views != null) {
 									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {

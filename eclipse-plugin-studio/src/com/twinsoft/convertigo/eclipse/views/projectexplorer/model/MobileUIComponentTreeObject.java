@@ -641,11 +641,17 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						if (cc.getIonBean().getName().equals("FSImage")) {
 							return nsObject instanceof FullSyncConnector;
 						}
+						if (cc.getIonBean().getName().equals("AutoScrollComponent")) {
+							return nsObject instanceof Sequence;
+						}
 					}
 					if ("fsview".equals(propertyName)) {
 						UIDynamicElement cc = (UIDynamicElement) object;
 						if (cc.getIonBean().getName().equals("FullSyncViewAction")) {
 							return nsObject instanceof String;
+						}
+						if (cc.getIonBean().getName().equals("AutoScrollComponent")) {
+							return nsObject instanceof DesignDocument || nsObject instanceof String;
 						}
 					}
 					if ("page".equals(propertyName)) {
