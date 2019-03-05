@@ -12,7 +12,7 @@
             if (requestables.length > 0) {
                 page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                     page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
-                        if (page.ClearDataSource(requestables)) {
+                        if (page.deleteListen(requestables)) {
                             resolve(true);
                         } else {
                            resolve(false);

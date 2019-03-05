@@ -6623,7 +6623,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "ClearDataSource",
       "label": "ClearDataSource",
-      "description": "Defines a <i>ClearDataSource</i> action component. | Use the <i>ClearDataSource</i> to delete data stored from a previous fullsync action.",
+      "description": "Defines a <i>ClearDataSource</i> action component. | Use the <i>ClearDataSource</i> to delete data stored from a previous fullsync query or sequence call.",
       "group": "FullSync Actions",
       "icon16": "cleardatasourceaction_color_16x16.png",
       "icon32": "cleardatasourceaction_color_32x32.png",
