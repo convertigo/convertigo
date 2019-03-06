@@ -134,14 +134,13 @@ public class BeansDoc {
 					}
 				}
 			}
-		}
-//		handleMobileComponents(documentBeansDoc);		
-		GenerateMobileComponentsMd(outputDirectory);
+		}		
+		generateMobileComponentsMd(outputDirectory);
 		makeListingPages(outputDirectory);		
 		return count;
 	}
 	
-	private static void GenerateMobileComponentsMd(File outputDirectory)
+	private static void generateMobileComponentsMd(File outputDirectory)
 	{		
 		List<Component> grpBeans = ComponentManager.getComponentsByGroup();	
 		
@@ -153,13 +152,14 @@ public class BeansDoc {
 			
 			String imgPathNormalized = beanMB.getImagePath().replaceFirst("/com/twinsoft/convertigo/beans/", "");
 			String classPathNormalized = beanMB.getClass().toString().replaceFirst("class ", "");
-			String grpNameNormalized = grpName;
+			String grpNameNormalized = grpName;			
+			
 			if(!grpName.contains("Components")) {
 				grpNameNormalized = grpName.concat(" Components");	
-			}					
+			}
 			grpNameNormalized = mbNormalize(grpNameNormalized);
 			
-			String objLabelNormalized = mbNormalize(objLabel);			
+			String objLabelNormalized = mbNormalize(objLabel);
 			String path = "/mobile-application/components/" + grpNameNormalized + "/";
 			String permalink = "reference-manual/convertigo-objects" + path + objLabelNormalized + "/";
 			
@@ -176,16 +176,26 @@ public class BeansDoc {
 					"ObjIcon: /images/beans/" + imgPathNormalized + "\n" +
 					"topnav: topnavobj" + "\n" +
 					"---\n");
-			
 			String description = beanMB.getDescription();
-			description = description.replaceAll("<ul>|</li>|</ul>", "");
-			description = description.replace("|","\n\n");
-			description = description.replaceAll("<li>", "<br/> \u2022");
-			sb.append("##### " + description + "\n\n");
+			description = description.replaceAll("\\|", "\n");
+			description = description.replaceAll("<br/>", "\n");
+			description = description.replaceAll("Defines| Defines", "##### Defines");
+//			description = description.replaceAll("<ul>|</ul>", "");
+//			description = description.replaceAll("</li><li>", "\n");
+			sb.append(description + "\n\n");
 			
+			// Prepare properties to create a markdown table
 			String properties = beanMB.getPropertiesDescription();
-			properties = properties.replaceAll("</br>","<br/>");
-			sb.append("Properties :\n" + properties + "\n\n");
+			properties = properties.replaceAll("</i></br>"," | ");
+			properties = properties.replaceAll("<ul>|</ul>","");
+			properties = properties.replaceAll("<li><i>","");
+			properties = properties.replaceAll("</li>","\n");
+			
+			if(!properties.isEmpty()) {
+				sb.append("Name | Description \n");
+				sb.append("--- | ---\n");				
+				sb.append(properties + "\n");
+			}			
 			
 			String toWrite = sb.toString();
 			if (!"\n".equals(System.lineSeparator())) {
@@ -203,93 +213,15 @@ public class BeansDoc {
 	
 	static String mbNormalize(String str) {
 		String normalized = str.toLowerCase();
-		normalized = normalized.replaceAll(" ", "-");
-		normalized.replaceAll("|", "_");		
+		normalized = normalized.replaceAll(" / ", " ");
+		normalized = normalized.replaceAll(" ", "-");		
 		if(!normalized.contains("miscellaneous")) {
 			normalized = normalized.replaceAll("s-c", "-c");
-		}		
+		}
 		fullnames.put(normalized, str);
 		return normalized;
 	}
 	
-//	private static void handleMobileComponents(Document doc) 
-//	{
-//		JXPathContext xpath = JXPathContext.newContext(doc);
-//		Element category = (Element) xpath.selectSingleNode("/database_objects/group[name = 'Mobile Application']/category[name = 'Components']");
-//		xpath = JXPathContext.newContext(category);
-//		Map<String, Element> beansMap = new HashMap<String, Element>();
-//		
-//		for (String group: ComponentManager.getGroups()) 
-//		{
-//			String group_name = group.replaceFirst("s$", "") + " Components";
-//			Element beans = (Element) xpath.selectSingleNode("beans[name = '" + group_name + "']");
-//			if (beans == null) 
-//			{
-//				beans = (Element) category.appendChild(doc.createElement("beans"));
-//				((Element) beans.appendChild(doc.createElement("name"))).setTextContent(group_name);
-//			}
-//			beansMap.put(group, beans);
-//		}
-//		
-//		for (Component component: ComponentManager.getComponentsByGroup()) 
-//		{
-//			DatabaseObject dbo = ComponentManager.createBean(component);
-//			if (!(dbo instanceof UIDynamicElement)) 
-//			{
-//				System.out.println("no UIDynamicElement but " + dbo.getClass());
-//				continue;
-//			}
-//			
-//			IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
-//			
-//			Element beans = beansMap.get(component.getGroup());
-//			
-//			JXPathContext xbeans = JXPathContext.newContext(beans);
-//			Element bean = (Element) xbeans.selectSingleNode("bean[display_name = '" + component.getLabel() + "']");
-//			if (bean != null) {
-//				System.out.println("remove existing " + component.getLabel());
-//				bean.getParentNode().removeChild(bean);
-//			}
-//			
-//			bean = (Element) beans.appendChild(doc.createElement("bean"));
-//			((Element) bean.appendChild(doc.createElement("class"))).setTextContent(ionBean.getClassName());
-//			((Element) bean.appendChild(doc.createElement("icon"))).setTextContent(ionBean.getIconColor32Path());
-//			//((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getDisplayName());
-//			((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getLabel());
-//			String description[] = ionBean.getDescription().split("\\|", 2);
-//			((Element) bean.appendChild(doc.createElement("short_description"))).setTextContent(description[0].trim());
-//			if (description.length > 1) 
-//			{
-//				((Element) bean.appendChild(doc.createElement("long_description"))).setTextContent(description[1].trim());
-//			}
-//			
-//			SortedSet<IonProperty> properties = new TreeSet<IonProperty>(new Comparator<IonProperty>() {
-//
-//				@Override
-//				public int compare(IonProperty o1, IonProperty o2) {
-//					int res = o1.getCategory().startsWith("@") ? (o2.getCategory().startsWith("@") ? 0 : -1) : (o2.getCategory().startsWith("@") ? 1 : 0);
-//					if (res == 0) {
-//						res = o1.getCategory().compareTo(o2.getCategory());
-//					}
-//					if (res == 0) {
-//						res = o1.getLabel().compareTo(o2.getLabel());
-//					}
-//					return res;
-//				}
-//			});
-//			properties.addAll(ionBean.getProperties().values());
-//			for (IonProperty prop: properties) 
-//			{
-//				Element property = (Element) bean.appendChild(doc.createElement("property"));
-//				((Element) property.appendChild(doc.createElement("type"))).setTextContent(prop.getType());
-//				((Element) property.appendChild(doc.createElement("category"))).setTextContent(prop.getCategory());
-//				((Element) property.appendChild(doc.createElement("name"))).setTextContent(prop.getName());
-//				((Element) property.appendChild(doc.createElement("display_name"))).setTextContent(prop.getLabel());
-//				((Element) property.appendChild(doc.createElement("short_description"))).setTextContent(prop.getDescription());
-//			}
-//		}
-//		doc.toString();
-//	}
 	
 	private void createBeanElement(DboBean bean, boolean bEnable) throws Exception {
 		String databaseObjectClassName = bean.getClassName();
