@@ -32,11 +32,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 public class ServletUtils {
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
@@ -83,6 +86,11 @@ public class ServletUtils {
 	
 	public static void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
 		Map<String, String> headers = RequestAttribute.responseHeader.get(request);
+		String user = SessionAttribute.authenticatedUser.string(request.getSession(false));
+		if (user != null) {
+			user = Base64.encodeBase64String(DigestUtils.sha1(request.getSession().getId() + user));
+			HeaderName.XConvertigoAuthenticated.addHeader(response, user);
+		}
 		if (headers != null) {
 			Engine.logContext.debug("Setting custom response headers (" + headers.size() + ")");
 			for (Entry<String, String> header : headers.entrySet()) {
