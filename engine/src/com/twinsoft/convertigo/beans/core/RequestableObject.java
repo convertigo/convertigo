@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import org.mozilla.javascript.FunctionObject;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -53,6 +54,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -397,6 +399,23 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	// does nothing
     }
     
+    static public Object use(String key) {
+    	String mapkey = "__convertigo_user_" + key;
+    	SimpleMap map = Engine.theApp.getShareServerMap();
+    	Object res = map.get(mapkey);
+    	if (res == null) {
+    		try {
+    			org.mozilla.javascript.Context jsContext = org.mozilla.javascript.Context.enter();
+    			res = jsContext.evaluateString(jsContext.initStandardObjects(), key, "use", 1, null);
+    			map.set(mapkey, res);
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    			org.mozilla.javascript.Context.exit();
+    		}
+    	}
+    	return res;
+    }
+    
     protected void insertObjectsInScope() throws EngineException {
 		// Insert the DOM into the scripting context
 		Scriptable jsContext = org.mozilla.javascript.Context.toObject(context, scope);
@@ -413,6 +432,18 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		// Insert the DOM into the scripting context
 		Scriptable jsDOM = org.mozilla.javascript.Context.toObject(context.outputDocument, scope);
 		scope.put("dom", scope, jsDOM);
+		
+		Scriptable jsProject = org.mozilla.javascript.Context.toObject(Engine.theApp.getShareProjectMap(context.project), scope);
+		scope.put("project", scope, jsProject);
+		
+		Scriptable jsServer = org.mozilla.javascript.Context.toObject(Engine.theApp.getShareServerMap(), scope);
+		scope.put("server", scope, jsServer);
+		
+		try {
+			scope.put("use", scope, new FunctionObject("use", getClass().getMethod("use", String.class), scope));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
     
     protected void removeObjectsFromScope() {
