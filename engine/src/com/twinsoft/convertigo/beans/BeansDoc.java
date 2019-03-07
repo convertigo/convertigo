@@ -140,7 +140,7 @@ public class BeansDoc {
 		return count;
 	}
 	
-	private static void generateMobileComponentsMd(File outputDirectory)
+	private void generateMobileComponentsMd(File outputDirectory)
 	{		
 		List<Component> grpBeans = ComponentManager.getComponentsByGroup();	
 		
@@ -149,10 +149,11 @@ public class BeansDoc {
 			String grpName = beanMB.getGroup();
 			String objName = beanMB.getName();
 			String objLabel = beanMB.getLabel();
+			String imgPath = beanMB.getImagePath();			
 			
-			String imgPathNormalized = beanMB.getImagePath().replaceFirst("/com/twinsoft/convertigo/beans/", "");
+			String imgPathNormalized = imgPath.replaceFirst("/com/twinsoft/convertigo/beans/", "");
 			String classPathNormalized = beanMB.getClass().toString().replaceFirst("class ", "");
-			String grpNameNormalized = grpName;			
+			String grpNameNormalized = grpName;
 			
 			if(!grpName.contains("Components")) {
 				grpNameNormalized = grpName.concat(" Components");	
@@ -180,8 +181,6 @@ public class BeansDoc {
 			description = description.replaceAll("\\|", "\n");
 			description = description.replaceAll("<br/>", "\n");
 			description = description.replaceAll("Defines| Defines", "##### Defines");
-//			description = description.replaceAll("<ul>|</ul>", "");
-//			description = description.replaceAll("</li><li>", "\n");
 			sb.append(description + "\n\n");
 			
 			// Prepare properties to create a markdown table
@@ -201,6 +200,16 @@ public class BeansDoc {
 			if (!"\n".equals(System.lineSeparator())) {
 				toWrite = toWrite.replace("\n", System.lineSeparator());
 			}
+			try{
+				InputStream is = getClass().getResourceAsStream(imgPath);
+				System.out.println("imgPath : " + imgPath);
+				String imgPathModified = imgPath.replaceFirst(".*\\w\\/beans", "");
+				FileUtils.copyInputStreamToFile(is, new File(imageDirectory, imgPathModified));
+				System.out.println("Image generated at : " + imageDirectory + imgPathModified);
+			}
+			catch (Exception e) {
+				System.out.println("Unable to copy the image file");
+			}
 			try {
 				FileUtils.write(new File(outputDirectory, path + objLabelNormalized + ".md"), toWrite, "UTF-8");
 				System.out.println("Generated md for : " + objLabel);
@@ -211,7 +220,7 @@ public class BeansDoc {
 		}
 	}
 	
-	static String mbNormalize(String str) {
+	private String mbNormalize(String str) {
 		String normalized = str.toLowerCase();
 		normalized = normalized.replaceAll(" / ", " ");
 		normalized = normalized.replaceAll(" ", "-");		
