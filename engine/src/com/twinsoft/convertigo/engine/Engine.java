@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LogCleaner;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.ApplicationException;
 import com.twinsoft.tas.Authentication;
@@ -295,7 +296,10 @@ public class Engine {
 	public CloseableHttpClient httpClient4;
 	
 	public RsaManager rsaManager;
-
+	
+	private SimpleMap sharedServerMap = new SimpleMap();
+	private Map<String, SimpleMap> sharedProjectMap = new HashMap<>();
+	
 	static {
 		try {
 			Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
@@ -1634,7 +1638,21 @@ public class Engine {
 			}
 		}
 	}
-
+	
+	public SimpleMap getShareServerMap() {
+		return sharedServerMap;
+	}
+	
+	public SimpleMap getShareProjectMap(Project project) {
+		synchronized (sharedProjectMap) {
+			SimpleMap map = sharedProjectMap.get(project.getName());
+			if (map == null) {
+				sharedProjectMap.put(project.getName(), map = new SimpleMap());
+			}
+			return map;
+		}
+	}
+	
 	public static boolean isCloudMode() {
 		return cloud_customer_name != null;
 	}

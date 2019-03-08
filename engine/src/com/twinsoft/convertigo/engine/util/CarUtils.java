@@ -148,13 +148,7 @@ public class CarUtils {
 	}
 
 	public static void exportProject(Project project, String fileName) throws EngineException {
-		Document document = exportProject(project, new ArrayList<TestCase>());
-		try {
-			exportYAMLProject(fileName, document);
-		} catch (Exception e) {
-			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
-			exportXMLProject(new File(new File(fileName).getParentFile(), project.getName() + ".xml").getAbsolutePath(), document);
-		}
+		exportProject(project, fileName, new ArrayList<TestCase>());
 	}
 	
 	public static void exportProject(Project project, String fileName, 
@@ -163,7 +157,7 @@ public class CarUtils {
 		try {
 			exportYAMLProject(fileName, document);
 		} catch (Exception e) {
-			Engine.logEngine.error("Failed to export the project as YAML, export XML instead.", e);
+			Engine.logEngine.error("(CarUtils) Failed to export the project as YAML to '" + fileName + "', export XML instead.", e);
 			exportXMLProject(new File(new File(fileName).getParentFile(), project.getName() + ".xml").getAbsolutePath(), document);
 		}
 	}
@@ -177,6 +171,7 @@ public class CarUtils {
 				new File(fileName).delete();
 			}
 		} catch (Exception e) {
+			Engine.logEngine.error("(CarUtils) exportProject in YAML failed (" + e.getMessage() + ")");
 			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
 		}
 	}

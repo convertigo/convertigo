@@ -75,12 +75,13 @@ public enum HeaderName {
 	SetCookie("Set-Cookie"),
 	TransferEncoding("Transfer-Encoding"),
 	UserAgent("User-Agent"),
-	XConvertigoFrontal("x-convertigo-frontal"),
-	XConvertigoHttpsState("x-convertigo-https-state"),
-	XConvertigoRequestURI("x-convertigo-request-uri"),
-	XConvertigoRequestHost("x-convertigo-request-host"),
-	XConvertigoSDK("x-convertigo-sdk"),
-	XConvertigoMB("x-convertigo-mb"),
+	XConvertigoAuthenticated("X-Convertigo-Authenticated"),
+	XConvertigoFrontal("X-Convertigo-Frontal"),
+	XConvertigoHttpsState("X-Convertigo-Https-State"),
+	XConvertigoRequestURI("X-Convertigo-Request-URI"),
+	XConvertigoRequestHost("X-Convertigo-Request-Host"),
+	XConvertigoSDK("X-Convertigo-SDK"),
+	XConvertigoMB("X-Convertigo-MB"),
 	VOID("");
 	
 	String value;

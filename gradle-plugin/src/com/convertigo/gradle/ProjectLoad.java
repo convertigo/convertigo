@@ -19,6 +19,8 @@
 
 package com.convertigo.gradle;
 
+import java.io.File;
+
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
@@ -56,8 +58,14 @@ public class ProjectLoad extends ConvertigoTask {
 		
 		getProject().afterEvaluate(p -> {
 			getInputs().getProperties().put("convertigo.load.projectVersion", projectVersion);
-			getInputs().file("c8oProject.yaml");
-			getInputs().dir("_c8oProject");
+			File f = p.file("c8oProject.yaml");
+			if (f.exists()) {
+				getInputs().file(f);
+			}
+			File d = p.file("_c8oProject");
+			if (d.exists()) {
+				getInputs().dir(d);
+			}
 			getOutputs().file("c8oProject.yaml");
 			getOutputs().dir("_c8oProject");
 		});

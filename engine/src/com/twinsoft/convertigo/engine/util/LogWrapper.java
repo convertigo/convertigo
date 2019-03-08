@@ -34,9 +34,17 @@ public class LogWrapper extends Log {
 		this.logger = logger;
 	}
 	
+	public void fatal(String message) {
+		logger.fatal(message);
+	}
+	
 	@Override
 	public void error(String message) {
 		logger.fatal(message);
+	}
+	
+	public void error(String message, Throwable e) {
+		logger.error(message, e);
 	}
 	
 	@Override
@@ -56,10 +64,18 @@ public class LogWrapper extends Log {
 		else if (messageLogLevel == Log.LOGLEVEL_DEBUG3) priority = Level.TRACE;
 		logger.log(priority, message);
 	}
+	
+	public void warn(String message) {
+		logger.warn(message);
+	}
 
 	@Override
 	public void warning(String message) {
 		logger.warn(message);
+	}
+	
+	public void info(String message) {
+		logger.info(message);
 	}
 	
 	@Override
@@ -70,6 +86,10 @@ public class LogWrapper extends Log {
 	@Override
 	public void debug(String message) {
 		logger.debug(message);
+	}
+	
+	public void trace(String message) {
+		logger.trace(message);
 	}
 	
 	@Override
