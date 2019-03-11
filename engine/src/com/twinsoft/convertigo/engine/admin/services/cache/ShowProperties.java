@@ -66,7 +66,7 @@ public class ShowProperties extends XmlService {
 			String databaseType = "sqlserver";
 			if (driver.equals("net.sourceforge.jtds.jdbc.Driver")) {
 				databaseType = "sqlserver";
-			} else if (driver.equals("com.mysql.jdbc.Driver")) {
+			} else if (driver.equals("com.mysql.jdbc.Driver") || driver.equals("com.mysql.cj.jdbc.Driver")) {
 				databaseType = "mysql";
 			} else if (driver.equals("oracle.jdbc.driver.OracleDriver")) {
 				databaseType = "oracle";

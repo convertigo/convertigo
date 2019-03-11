@@ -126,7 +126,9 @@ public class JdbcConnectionManager implements AbstractManager {
 			if ("net.sourceforge.jtds.jdbc.Driver".equals(jdbcDriverClassName))
 				query = "SELECT TOP 1 * FROM INFORMATION_SCHEMA.TABLES";
 			/* MYSQL or MariaDB (limit to 1 row)*/
-			else if ("com.mysql.jdbc.Driver".equals(jdbcDriverClassName) || "org.mariadb.jdbc.Driver".equals(jdbcDriverClassName))
+			else if ("com.mysql.jdbc.Driver".equals(jdbcDriverClassName) ||
+					"com.mysql.cj.jdbc.Driver".equals(jdbcDriverClassName) ||
+					"org.mariadb.jdbc.Driver".equals(jdbcDriverClassName))
 				query = "SELECT * FROM INFORMATION_SCHEMA.TABLES LIMIT 1";
 			/* HSQLDB (limit to 1 row)*/
 			else if ("org.hsqldb.jdbcDriver".equals(jdbcDriverClassName))
