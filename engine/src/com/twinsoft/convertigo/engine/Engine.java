@@ -68,6 +68,7 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -280,6 +281,8 @@ public class Engine {
 	 * The engine start/stop date.
 	 */
 	public static long startStopDate;
+	
+	private static ClassLoader engineClassLoader;
 
 	/**
 	 * The scheduler for running jobs.
@@ -343,6 +346,9 @@ public class Engine {
 		Engine.XSL_PATH = new File(Engine.WEBAPP_PATH + "/xsl").getCanonicalPath();
 		Engine.DTD_PATH = new File(Engine.WEBAPP_PATH + "/dtd").getCanonicalPath();
 		Engine.TEMPLATES_PATH = new File(Engine.WEBAPP_PATH + "/templates").getCanonicalPath();
+		
+		new File(Engine.USER_WORKSPACE_PATH + "/libs/classes").mkdirs();
+		engineClassLoader = new DirClassLoader(new File(Engine.USER_WORKSPACE_PATH + "/libs"), Engine.class.getClassLoader());
 		
 		bInitPathsDone = true;
 	}
@@ -990,6 +996,7 @@ public class Engine {
 	 * Constructs a new Engine object.
 	 */
 	public Engine() {
+		engineClassLoader = getClass().getClassLoader();
 		Engine.logEngine.info("===========================================================");
 		Engine.logEngine.info(" Convertigo Enterprise Mobility Server "
 				+ com.twinsoft.convertigo.engine.Version.fullProductVersion);
@@ -998,7 +1005,7 @@ public class Engine {
 		Engine.logEngine.info("===========================================================");
 
 		Engine.logEngine.info("Start date: " + (new Date(startStopDate)).toString());
-		Engine.logEngine.info("Class loader: " + getClass().getClassLoader());
+		Engine.logEngine.info("Class loader: " + engineClassLoader);
 		Engine.logEngine.info("Java Runtime " + System.getProperty("java.version") + " (classes: "
 				+ System.getProperty("java.class.version") + ", vendor: " + System.getProperty("java.vendor")
 				+ ")");
@@ -1768,5 +1775,9 @@ public class Engine {
 
 	public static boolean isProjectFile(String filePath) {
 		return filePath.endsWith(".xml") || new File(filePath).getName().equals("c8oProject.yaml");
+	}
+	
+	public static ClassLoader getEngineClassLoader() {
+		return engineClassLoader;
 	}
 }

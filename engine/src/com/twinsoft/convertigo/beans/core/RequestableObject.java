@@ -280,9 +280,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
             
             runningThread = new RequestableThread();
-            String currentThreadName = Thread.currentThread().getName();
-            runningThread.setName(currentThreadName + "/RequestableThread");
-            runningThread.setDaemon(true);
             runningThread.start();
             
             try {
@@ -773,11 +770,15 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         
         public RequestableThread() {
         	super();
-            callingThread = Thread.currentThread();
-            engineId = Engine.startStopDate;
+        	callingThread = Thread.currentThread();
+        	setName(callingThread.getName() + "/RequestableThread");
+        	setDaemon(true);
+        	setContextClassLoader(context.project.getProjectClassLoader());
+
+        	engineId = Engine.startStopDate;
         }
-        
-        @Override
+
+		@Override
         public void run() {
         	context.statistics.stop(workerThreadCreationStatistic);
         	

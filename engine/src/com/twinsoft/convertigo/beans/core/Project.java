@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -157,6 +158,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	transient private String oldName;
 
 	transient private long lastChange = 0L;
+	
+	transient private ClassLoader loader;
 	
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
@@ -415,11 +418,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		String newDatabaseObjectName = getChildBeanName(vReferences, reference.getName(), reference.bNew);
 		reference.setName(newDatabaseObjectName);
 		vReferences.add(reference);
+		loader = null;
 		super.add(reference);
 	}
 
 	public void removeReference(Reference device) throws EngineException {
 		checkSubLoaded();
+		loader = null;
 		vReferences.remove(device);
 	}
 
@@ -800,5 +805,37 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	public void setXpathEngine(XPathEngine xpathEngine) {
 		this.xpathEngine = xpathEngine;
+	}
+	
+	private List<File> addClassPathDirs(List<File> dirs) {
+		File dir = new File(getDirPath(), "libs");
+		if (!dirs.contains(dir)) {
+			dirs.add(dir);
+			Map<String, Boolean> missingProjects = getNeededProjects();
+			for (Entry<String, Boolean> project: new HashMap<>(missingProjects).entrySet()) {
+				try {
+					Project prj = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project.getKey(), project.getValue());
+					if (prj != null) {
+						prj.addClassPathDirs(dirs);
+					}
+				} catch (Exception e) {
+				}
+			}
+		}
+		return dirs;
+	}
+	
+	public ClassLoader getProjectClassLoader() {
+		Object original = getOriginal();
+		if (original != this) {
+			return ((Project) original).getProjectClassLoader();
+		}
+		synchronized (this) {
+			if (loader == null) {
+				List<File> dirs = addClassPathDirs(new LinkedList<>());
+				loader = new DirClassLoader(dirs, Engine.getEngineClassLoader());
+			}
+		}
+		return loader;
 	}
 }

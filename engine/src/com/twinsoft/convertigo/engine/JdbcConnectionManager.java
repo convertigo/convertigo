@@ -20,12 +20,19 @@
 package com.twinsoft.convertigo.engine;
 
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
+import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
@@ -36,12 +43,14 @@ import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 public class JdbcConnectionManager implements AbstractManager {
 
 	private Map<String,BasicDataSource> databasePools;
+	private Set<String> driversLoaded;
 	
 	public JdbcConnectionManager() {
 	}
 
 	public void init() throws EngineException {
-		databasePools = new HashMap<String,BasicDataSource>(2048);
+		databasePools = new HashMap<>(2048);
+		driversLoaded = new HashSet<>();
 	}
 	
 	public void destroy() throws EngineException {
@@ -181,51 +190,100 @@ public class JdbcConnectionManager implements AbstractManager {
 		if ((connection = connector.getJNDIConnection()) != null) {
 			Engine.logEngine.debug("(JdbcConnectionManager) getJNDIConnection for "
 					+ connector.getProject().getName() + "." + connector.getName());
-		}
-		else if (connector.getConnectionPool()) {
-			Engine.logEngine.debug("(JdbcConnectionManager) getConnection for "
-					+ connector.getProject().getName() + "." + connector.getName());
-			
-			BasicDataSource pool = getDatabasePool(connector);
-			Engine.logEngine.debug("(JdbcConnectionManager) pool = " + pool);
-			Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
-			Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
-			
-			connection = pool.getConnection();
-			Engine.logEngine.debug("(JdbcConnectionManager) pooled connection = " + connection);
-			Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
-			Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
-		}
-		else {
+		} else {
 			// Attempt to load the database driver
 			String jdbcDriverClassName = connector.getJdbcDriverClassName();
 			Engine.logEngine.debug("(JdbcConnectionManager) JDBC driver: " + jdbcDriverClassName);
-			Class.forName(jdbcDriverClassName);
+			try {
+				checkDriverLoaded(jdbcDriverClassName);
+			} catch (ClassNotFoundException e) {
+				throw e;
+			} catch (SQLException e) {
+				throw e;
+			} catch (NamingException e) {
+				throw e;
+			}catch (Exception e) {
+				throw new ClassNotFoundException("Failed to load the JDBC driver: " + jdbcDriverClassName, e);
+			}
+
 			Engine.logEngine.debug("(JdbcConnectionManager) JDBC driver loaded");
-			
-			String jdbcURL = connector.getRealJdbcURL();
-			Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
-			String user = connector.getJdbcUserName();
-			Engine.logEngine.debug("(JdbcConnectionManager) User: " + user);
-			String password = connector.getJdbcUserPassword();
-			Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
+			if (connector.getConnectionPool()) {
+				Engine.logEngine.debug("(JdbcConnectionManager) getConnection for "
+						+ connector.getProject().getName() + "." + connector.getName());
 
-			if ("".equals(user)) {
-				Engine.logEngine.debug("(JdbcConnectionManager) Anonymous connection requested");
-				connection = DriverManager.getConnection(jdbcURL);
-			}
-			else {
-				Engine.logEngine.debug("(JdbcConnectionManager) Non anonymous connection requested");
-				connection = DriverManager.getConnection(
-						jdbcURL,
-						user,
-						password);
-			}
+				BasicDataSource pool = getDatabasePool(connector);
+				Engine.logEngine.debug("(JdbcConnectionManager) pool = " + pool);
+				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
+				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
 
-			Engine.logEngine.debug("(JdbcConnectionManager) non pooled connection = " + connection);
+				connection = pool.getConnection();
+				Engine.logEngine.debug("(JdbcConnectionManager) pooled connection = " + connection);
+				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
+				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
+			} else {
+
+				String jdbcURL = connector.getRealJdbcURL();
+				Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
+				String user = connector.getJdbcUserName();
+				Engine.logEngine.debug("(JdbcConnectionManager) User: " + user);
+				String password = connector.getJdbcUserPassword();
+				Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
+
+				if ("".equals(user)) {
+					Engine.logEngine.debug("(JdbcConnectionManager) Anonymous connection requested");
+					connection = DriverManager.getConnection(jdbcURL);
+				}
+				else {
+					Engine.logEngine.debug("(JdbcConnectionManager) Non anonymous connection requested");
+					connection = DriverManager.getConnection(
+							jdbcURL,
+							user,
+							password);
+				}
+
+				Engine.logEngine.debug("(JdbcConnectionManager) non pooled connection = " + connection);
+			}
 		}
-
 		return connection;
 	}
-
+	
+	private void checkDriverLoaded(String jdbcDriverClassName) throws Exception {
+		synchronized (driversLoaded) {
+			if (!driversLoaded.contains(jdbcDriverClassName)) {
+				ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+				Driver d = (Driver) classLoader.loadClass(jdbcDriverClassName).newInstance();
+				DriverManager.registerDriver(new DriverShim(d));
+				driversLoaded.add(jdbcDriverClassName);
+			}
+		}
+	}
+	
+	private class DriverShim implements Driver {
+		private Driver driver;
+		DriverShim(Driver d) {
+			this.driver = d;
+		}
+		public boolean acceptsURL(String u) throws SQLException {
+			return this.driver.acceptsURL(u);
+		}
+		public Connection connect(String u, Properties p) throws SQLException {
+			return this.driver.connect(u, p);
+		}
+		public int getMajorVersion() {
+			return this.driver.getMajorVersion();
+		}
+		public int getMinorVersion() {
+			return this.driver.getMinorVersion();
+		}
+		public DriverPropertyInfo[] getPropertyInfo(String u, Properties p) throws SQLException {
+			return this.driver.getPropertyInfo(u, p);
+		}
+		public boolean jdbcCompliant() {
+			return this.driver.jdbcCompliant();
+		}
+		@Override
+		public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+			return this.driver.getParentLogger();
+		}
+	}
 }
