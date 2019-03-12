@@ -311,6 +311,7 @@ public class BeansDefaultValues {
 		}
 		
 		void unshrinkChildren(Element element, Element nParent) {
+			Document document = nParent.getOwnerDocument();
 			for (Node pBeanNode: xpath.selectList(element, "bean[@yaml_key]")) {
 				Element pBean = (Element) pBeanNode;
 				
@@ -326,11 +327,17 @@ public class BeansDefaultValues {
 				
 				Element nBean = null;
 				try {
-					nBean = (Element) nParent.getOwnerDocument().importNode(dBean, true);
+					nBean = (Element) document.importNode(dBean, true);
 					nBean.removeAttribute("version");
 				} catch (Exception e) {
-					e.printStackTrace();
+					nBean = document.createElement("bean");
+					nBean.setAttribute("classname", classname);
+					Element prop = document.createElement("property");
+					prop.setAttribute("name", "name");
+					prop.appendChild(document.createElement("java.lang.String"));
+					nBean.appendChild(prop);
 				}
+				
 				nParent.appendChild(nBean);
 				
 				for (Node pAttr: xpath.selectList(pBean, "@*")) {
@@ -351,10 +358,10 @@ public class BeansDefaultValues {
 					if (nProp == null) {
 						Element nOther = (Element) xpath.selectNode(nBean, propName);
 						if (nOther != null) {
-							nBean.replaceChild(nBean.getOwnerDocument().importNode(pPropNode, true), nOther);
+							nBean.replaceChild(document.importNode(pPropNode, true), nOther);
 							continue;	
 						} else {
-							nProp = (Element) nBean.appendChild(nBean.getOwnerDocument().createElement("property"));
+							nProp = (Element) nBean.appendChild(document.createElement("property"));
 						}
 					}
 					nProp.setAttribute("name", propName);
@@ -369,7 +376,7 @@ public class BeansDefaultValues {
 					if (xpath.selectNode(pPropNode, "*") == null) {
 						Element nValue = (Element) xpath.selectNode(nProp, "*");
 						if (nValue == null) {
-							nValue = (Element) nProp.appendChild(nBean.getOwnerDocument().createElement("java.lang.String"));
+							nValue = (Element) nProp.appendChild(document.createElement("java.lang.String"));
 						}
 						String value = ((Element) pPropNode).getTextContent();
 						
@@ -413,7 +420,7 @@ public class BeansDefaultValues {
 						}
 						Node pNode = pPropNode.getFirstChild();
 						while (pNode != null) {
-							nProp.appendChild(nProp.getOwnerDocument().importNode(pNode, true));
+							nProp.appendChild(document.importNode(pNode, true));
 							pNode = pNode.getNextSibling();
 						}
 					}
