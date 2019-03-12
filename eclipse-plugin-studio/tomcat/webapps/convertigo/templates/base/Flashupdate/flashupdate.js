@@ -315,7 +315,10 @@ var F = {
 				
 				F.copyCordovaFiles(filesToCopy, function () {
 					F.debug("all cordova files writen");
-					window.location.href = F.env.webLocalBase + "/index-fu.html";				
+					if (window.Ionic.WebView.convertFileSrc)  // Handle special WKWebView for iOS
+						window.location.href = window.Ionic.WebView.convertFileSrc(F.env.webLocalBase + "/index-fu.html");	
+					else	
+						window.location.href = F.env.webLocalBase + "/index-fu.html";				
 				});
 			}
 		});
