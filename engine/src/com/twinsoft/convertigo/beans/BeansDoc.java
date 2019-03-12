@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -399,8 +400,11 @@ public class BeansDoc {
 			"topnav: topnavobj" + "\n" +
 			"---\n"
 		);
-		for (File f: dir.listFiles()) {
-			String name = f.getName().replace(".md", "");
+		String[] files = dir.list();
+		Arrays.sort(files);
+		for (String name: files) {
+			File f = new File(dir, name);
+			name = name.replace(".md", "");
 			sb.append("* [" + fullnames.get(name) + "](" + name + "/)\n");
 			if (f.isDirectory()) {
 				makeListingPages(f);
