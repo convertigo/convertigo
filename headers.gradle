@@ -23,6 +23,7 @@ task updateJavaHeaders {
 	def files = fileTree(dir: 'engine/src', include: '**/*.java')
 		.plus(fileTree(dir: 'eclipse-plugin-studio/src', include: '**/*.java'))
 		.plus(fileTree(dir: 'gradle-plugin/src', include: '**/*.java'))
+		.plus(fileTree(dir: 'placeholders/src', include: '**/*.java'))
 	
 	doFirst {
 		def javaHeader = licenseText.replaceAll('(.*)\r?\n', ' * $1' + System.lineSeparator());
