@@ -25,6 +25,7 @@ include 'mobilebuilder_tpl_7_5_3'
 include 'mobilebuilder_tpl_7_5_4'
 include 'mobilebuilder_tpl_7_5_5'
 include 'mobilebuilder_tpl_7_5_6'
+include 'mobilebuilder_tpl_7_6_0'
 
 include 'FlightShare'
 include 'IonicConferenceApp'
