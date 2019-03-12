@@ -17,12 +17,19 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.convertigo.jdbc;
+package com.mysql.cj.jdbc;
 
-public class FakeJarException extends RuntimeException {
-	private static final long serialVersionUID = 2538809576678969198L;
+import com.convertigo.jdbc.CommonDriver;
 
-	public FakeJarException(String message) {
-		super(message);
+public class Driver {
+	final static String classPath = "com.mysql.cj.jdbc.Driver";
+	final static String jarName = "mysql-connector.jar";
+	
+	static {
+		init();
+	}
+	
+	static void init() {
+		CommonDriver.init(classPath, jarName, "you can download it for free at http://www.mysql.com/downloads/connector/j/.");
 	}
 }
