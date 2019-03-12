@@ -33,7 +33,7 @@
     "@ngx-translate/core":"9.0.2",
     "@ngx-translate/http-loader":"2.0.1",
     "animate.css": "3.7.0",  
-    "c8osdkangular": "2.2.6",
+    "c8osdkangular": "2.2.10-beta10",
     "c8ocaf": "1.1.6"
   },
   "devDependencies": {
