@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,7 +36,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.FunctionObject;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -53,6 +56,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
@@ -396,19 +400,43 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	// does nothing
     }
     
-    static public Object use(String key) {
-    	String mapkey = "__convertigo_user_" + key;
-    	SimpleMap map = Engine.theApp.getShareServerMap();
+    static public Object useInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+    	if (args.length < 1) {
+    		return null;
+    	}
+    	String key = (String) args[0];
+    	String mapkey = "__convertigo_use_" + key;
+    	SimpleMap map = (SimpleMap) ((NativeJavaObject) thisObj.get("project", thisObj)).unwrap();
     	Object res = map.get(mapkey);
     	if (res == null) {
     		try {
-    			org.mozilla.javascript.Context jsContext = org.mozilla.javascript.Context.enter();
-    			res = jsContext.evaluateString(jsContext.initStandardObjects(), key, "use", 1, null);
+    			res = cx.evaluateString(thisObj, key, "use", 1, null);
     			map.set(mapkey, res);
     		} catch (Exception e) {
     			e.printStackTrace();
-    			org.mozilla.javascript.Context.exit();
     		}
+    	}
+    	return res;
+    }
+    
+    static public Object includeInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+    	Object res = Scriptable.NOT_FOUND;
+    	if (args.length < 1) {
+    		return res;
+    	}
+    	String path = (String) args[0];
+    	Context context =(Context) ((NativeJavaObject) thisObj.get("context", thisObj)).unwrap();
+    	Project project = context.project;
+    	
+    	File js = new File(project.getDirPath(), path);
+    	if (js.exists()) {
+    		try {
+				res = cx.evaluateString(thisObj, FileUtils.readFileToString(js, "UTF-8"), path, 1, null);
+			} catch (IOException e) {
+				Engine.logBeans.warn("Cannot include '" + js + "' because of a read failure!", e);
+			}
+    	} else {
+    		Engine.logBeans.warn("Cannot include '" + js + "' because it doesn't exist!");
     	}
     	return res;
     }
@@ -437,9 +465,15 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		scope.put("server", scope, jsServer);
 		
 		try {
-			scope.put("use", scope, new FunctionObject("use", getClass().getMethod("use", String.class), scope));
+			scope.put("use", scope, new FunctionObject("use", getClass().getMethod("useInScope", org.mozilla.javascript.Context.class, Scriptable.class, Object[].class, Function.class), scope));
 		} catch (Exception e) {
-			e.printStackTrace();
+			Engine.logBeans.warn("Failed to declare 'use' in the JS scope", e);
+		}
+		
+		try {
+			scope.put("include", scope, new FunctionObject("include", getClass().getMethod("includeInScope", org.mozilla.javascript.Context.class, Scriptable.class, Object[].class, Function.class), scope));
+		} catch (Exception e) {
+			Engine.logBeans.warn("Failed to declare 'include' in the JS scope", e);
 		}
     }
     

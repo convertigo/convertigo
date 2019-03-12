@@ -175,7 +175,7 @@ dependencies {
 	compile 'org.hibernate:hibernate-core:5.2.10.Final'
 	runtime 'org.hsqldb:hsqldb:1.8.0.10'
 	runtime 'org.mariadb.jdbc:mariadb-java-client:2.4.0'
-	compile 'org.mozilla:rhino:[1.7,)'
+	compile 'org.mozilla:rhino:1.7.10'
 	runtime 'org.postgresql:postgresql:[42,43['
 	compile 'org.quartz-scheduler:quartz:[1.7,1.8['
 	compile 'regexp:regexp:1.3'
