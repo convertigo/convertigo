@@ -1294,10 +1294,15 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 	
 	private IWorkbenchPage getActivePage() {
-		return PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
+		IWorkbench wb = PlatformUI.getWorkbench();
+		if (wb != null) {
+			IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+			if (win != null) {
+				IWorkbenchPage page = win.getActivePage();
+				return page;
+			}
+		}
+		return null;
 	}
 
 	/**
