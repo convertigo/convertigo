@@ -540,8 +540,18 @@ public class UICustomAction extends UIComponent implements IAction {
 			tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
-			tsCode +="\t\treturn this."+actionName+"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
-														cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
+			if (getStack() != null) {
+				tsCode +="\t\treturn this.actionBeans."+ actionName +
+							"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+										cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+ 
+											System.lineSeparator();
+			} else {
+				tsCode +="\t\treturn this."+ actionName+ 
+							"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+										cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ 
+											System.lineSeparator();
+			}
+			
 			tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
 			tsCode += "\t\tparent = self;"+ System.lineSeparator();
 			tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
@@ -615,7 +625,17 @@ public class UICustomAction extends UIComponent implements IAction {
 		return new Contributor() {
 			@Override
 			public Map<String, String> getActionTsFunctions() {
-				return new HashMap<String, String>();
+				Map<String, String> functions = new HashMap<String, String>();
+				if (getStack() != null) {
+					String actionName = getActionName();
+					String actionCode = computeActionMain();
+					if (compareToTplVersion("7.5.2.0") < 0 ) {
+						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
+						actionCode = actionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
+					}
+					functions.put(actionName, actionCode);
+				}
+				return functions;
 			}
 
 			@Override

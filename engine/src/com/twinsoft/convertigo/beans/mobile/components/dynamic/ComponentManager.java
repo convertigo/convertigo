@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
@@ -66,6 +67,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
@@ -274,23 +276,31 @@ public class ComponentManager {
 		return instance.makeGroups();
 	}
 	
+	private static String GROUP_SHARED_ACTIONS = "Shared Actions";
+	private static String GROUP_CUSTOMS = "Customs";
+	private static String GROUP_CONTROLS = "Controls";
+	private static String GROUP_ACTIONS = "Actions";
+	
 	private synchronized List<String> makeGroups() {
 		if (groups != null) {
 			return groups;
 		}
 		groups = new ArrayList<String>(10);
-		groups.add("Customs");
+		groups.add(GROUP_CUSTOMS);
 		for (final IonBean bean: instance.bCache.values()) {
 			if (!groups.contains(bean.getGroup())) {
 				groups.add(bean.getGroup());
 			}
 		}
 		
-		groups.remove("Controls");
-		groups.add("Controls");
+		groups.remove(GROUP_SHARED_ACTIONS);
+		groups.add(GROUP_SHARED_ACTIONS);
 		
-		groups.remove("Actions");
-		groups.add("Actions");
+		groups.remove(GROUP_CONTROLS);
+		groups.add(GROUP_CONTROLS);
+		
+		groups.remove(GROUP_ACTIONS);
+		groups.add(GROUP_ACTIONS);
 		
 		return groups = Collections.unmodifiableList(groups);
 	}
@@ -330,7 +340,7 @@ public class ComponentManager {
 		try {
 			String group;
 			// Add Customs
-			group = "Customs";
+			group = GROUP_CUSTOMS;
 			components.add(getDboComponent(UIElement.class,group));
 			components.add(getDboComponent(UIAttribute.class,group));
 			components.add(getDboComponent(UIAnimation.class,group));
@@ -339,8 +349,13 @@ public class ComponentManager {
 			components.add(getDboComponent(UIStyle.class,group));
 			components.add(getDboComponent(UITheme.class,group));
 			
+			// Add shared components
+			group = GROUP_SHARED_ACTIONS;
+			components.add(getDboComponent(UIActionStack.class,group));
+			components.add(getDboComponent(UIStackVariable.class,group));
+			
 			// Add Controls
-			group = "Controls";
+			group = GROUP_CONTROLS;
 			components.add(getDboComponent(UIControlEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
 			components.add(getDboComponent(UIEventSubscriber.class,group));
@@ -349,7 +364,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
-			group = "Actions";
+			group = GROUP_ACTIONS;
 			components.add(getDboComponent(UIControlVariable.class,group));
 			components.add(getDboComponent(UICustomAction.class,group));
 			
@@ -494,7 +509,8 @@ public class ComponentManager {
 		if (UIComponent.class.isAssignableFrom(dboClass)) {
 			if (dboParent instanceof ApplicationComponent) {
 				if (UIStyle.class.isAssignableFrom(dboClass) ||
-					UIDynamicMenu.class.isAssignableFrom(dboClass)) {
+					UIDynamicMenu.class.isAssignableFrom(dboClass) ||
+					UIActionStack.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
 			} else if (dboParent instanceof PageComponent) {
@@ -519,9 +535,16 @@ public class ComponentManager {
 					}
 				}
 				
-				if (dboParent instanceof UIPageEvent || 
-					dboParent instanceof UIEventSubscriber || 
-					dboParent instanceof UIControlEvent) {
+				if (dboParent instanceof UIActionStack) {
+					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
+						UIStackVariable.class.isAssignableFrom(dboClass) ||
+						IAction.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				else if (dboParent instanceof UIPageEvent || 
+						dboParent instanceof UIControlEvent ||
+						dboParent instanceof UIEventSubscriber) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
@@ -552,6 +575,7 @@ public class ComponentManager {
 					}
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
+						!UIStackVariable.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&

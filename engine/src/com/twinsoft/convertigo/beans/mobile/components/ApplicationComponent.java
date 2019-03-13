@@ -66,11 +66,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedStacks = new XMLVector<XMLVector<Long>>();
 	
 	private String tplProjectName = "";
 	private String tplProjectVersion = "";
 	private String splitPaneLayout = "not set";
 	private boolean isPWA = false;
+	
+	transient private Runnable _markApplicationAsDirty;
 	
 	public ApplicationComponent() {
 		super();
@@ -86,6 +89,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
+		
+		orderedStacks = new XMLVector<XMLVector<Long>>();
+		orderedStacks.add(new XMLVector<Long>());
 	}
 
 	@Override
@@ -94,6 +100,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
+		cloned.vStackComponents = new LinkedList<UIActionStack>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.appImports = new HashMap<String, String>();
 		cloned.computedContents = null;
@@ -291,6 +298,38 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
         hasChanged = true;
     }
     
+	public XMLVector<XMLVector<Long>> getOrderedStacks() {
+		return orderedStacks;
+	}
+    
+	public void setOrderedStacks(XMLVector<XMLVector<Long>> orderedStacks) {
+		this.orderedStacks = orderedStacks;
+	}
+	
+    private void insertOrderedStack(UIActionStack component, Long after) {
+    	List<Long> ordered = orderedStacks.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = 0L;
+    		if (size > 0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = !isImporting;
+    }
+    
+    private void removeOrderedStack(Long value) {
+        Collection<Long> ordered = orderedStacks.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
 		increaseOrder(databaseObject, priority);
 	}
@@ -305,6 +344,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		ordered = orderedRoutes.get(0);
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
+    	else if (databaseObject instanceof UIActionStack)
+    		ordered = orderedStacks.get(0);
     	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
@@ -335,6 +376,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		ordered = orderedRoutes.get(0);
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
+    	else if (databaseObject instanceof UIActionStack)
+    		ordered = orderedStacks.get(0);
     	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
@@ -398,6 +441,13 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted menu for application \""+ getName() +"\". MenuComponent \""+ ((UIDynamicMenu)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else if (object instanceof UIActionStack) {
+        	List<Long> ordered = orderedStacks.get(0);
+        	long time = ((UIActionStack)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". StackComponent \""+ ((UIActionStack)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
@@ -705,6 +755,43 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		throw new EngineException("There is no UI component named \"" + uiName + "\" found into this page.");
 	}
 	
+	/**
+	 * The list of available stack of shared actions for this application.
+	 */
+	transient private List<UIActionStack> vStackComponents = new LinkedList<UIActionStack>();
+	
+	protected void addStackComponent(UIActionStack stackComponent) throws EngineException {
+		addStackComponent(stackComponent, null);
+	}
+	
+	protected void addStackComponent(UIActionStack stackComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vStackComponents, stackComponent.getName(), stackComponent.bNew);
+		stackComponent.setName(newDatabaseObjectName);
+		vStackComponents.add(stackComponent);
+		super.add(stackComponent);
+		
+		insertOrderedStack(stackComponent, after);
+		
+		if (stackComponent.bNew) {
+			markApplicationAsDirty();
+		}
+	}
+
+	protected void removeStackComponent(UIActionStack stackComponent) throws EngineException {
+		checkSubLoaded();
+		vStackComponents.remove(stackComponent);
+		
+		removeOrderedStack(stackComponent.priority);
+		
+		markApplicationAsDirty();
+	}
+
+	public List<UIActionStack> getStackComponentList() {
+		checkSubLoaded();
+		return sort(vStackComponents);
+	}
+	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
@@ -712,6 +799,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		rep.addAll(getRouteComponentList());
 		rep.addAll(getMenuComponentList());
 		rep.addAll(getPageComponentList());
+		rep.addAll(getStackComponentList());
 		rep.addAll(getUIComponentList());
 		return rep;
 	}
@@ -724,6 +812,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			addPageComponent((PageComponent) databaseObject);
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			addMenuComponent((UIDynamicMenu) databaseObject);
+		} else if (databaseObject instanceof UIActionStack) {
+			addStackComponent((UIActionStack) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			addUIComponent((UIComponent) databaseObject, after);
 		} else {
@@ -744,6 +834,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			removePageComponent((PageComponent) databaseObject);
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			removeMenuComponent((UIDynamicMenu) databaseObject);
+		} else if (databaseObject instanceof UIActionStack) {
+			removeStackComponent((UIActionStack) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			removeUIComponent((UIComponent) databaseObject);
 		} else {
@@ -853,62 +945,68 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 	
     public void markApplicationAsDirty() throws EngineException {
-		if (isImporting) {
-			return;
-		}
-    	
-		try {
-			JSONObject oldComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			doComputeContents();
-			
-			JSONObject newComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getJSONObject("scripts").toString()
-						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-					getProject().getMobileBuilder().appTsChanged(this, true);
+    	if (_markApplicationAsDirty == null) {
+    		_markApplicationAsDirty = () -> {
+				if (isImporting) {
+					return;
 				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("style")
-						.equals(oldComputedContent.getString("style")))) {
-					getProject().getMobileBuilder().appStyleChanged(this);
+				try {
+					JSONObject oldComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					doComputeContents();
+					
+					JSONObject newComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getJSONObject("scripts").toString()
+								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+							getProject().getMobileBuilder().appTsChanged(this, true);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("style")
+								.equals(oldComputedContent.getString("style")))) {
+							getProject().getMobileBuilder().appStyleChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("theme")
+								.equals(oldComputedContent.getString("theme")))) {
+							getProject().getMobileBuilder().appThemeChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("route")
+								.equals(oldComputedContent.getString("route")))) {
+							getProject().getMobileBuilder().appRouteChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("template")
+								.equals(oldComputedContent.getString("template")))) {
+							getProject().getMobileBuilder().appTemplateChanged(this);
+						}
+					}
+					
+					String oldContributors = contributors == null ? null: contributors.toString();
+					doGetContributors();
+					String newContributors = contributors == null ? null: contributors.toString();
+					if (oldContributors != null && newContributors != null) {
+						if (!(oldContributors.equals(newContributors))) {
+							getProject().getMobileBuilder().appContributorsChanged(this);
+						}
+					}
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("theme")
-						.equals(oldComputedContent.getString("theme")))) {
-					getProject().getMobileBuilder().appThemeChanged(this);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("route")
-						.equals(oldComputedContent.getString("route")))) {
-					getProject().getMobileBuilder().appRouteChanged(this);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("template")
-						.equals(oldComputedContent.getString("template")))) {
-					getProject().getMobileBuilder().appTemplateChanged(this);
-				}
-			}
-			
-			String oldContributors = contributors == null ? null: contributors.toString();
-			doGetContributors();
-			String newContributors = contributors == null ? null: contributors.toString();
-			if (oldContributors != null && newContributors != null) {
-				if (!(oldContributors.equals(newContributors))) {
-					getProject().getMobileBuilder().appContributorsChanged(this);
-				}
-			}
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+    		};
+    	}
+    	checkBatchOperation(_markApplicationAsDirty);
     }
     
 	public void markRootAsDirty() throws EngineException {

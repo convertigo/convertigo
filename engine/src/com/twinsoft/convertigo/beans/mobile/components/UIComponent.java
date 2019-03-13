@@ -313,6 +313,18 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 			return (UIDynamicMenu) databaseObject;
 	}
 	
+	public UIActionStack getStack() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof UIActionStack) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (UIActionStack) databaseObject;
+	}
+	
 	public PageComponent getPage() {
 		DatabaseObject databaseObject = this;
 		while (!(databaseObject instanceof PageComponent) && databaseObject != null) { 

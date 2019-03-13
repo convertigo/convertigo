@@ -95,6 +95,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
+				// we add a page to this app
 				if (dbo instanceof PageComponent && getObject().equals(dbo.getParent())) {
 					PageComponent page = (PageComponent)dbo;
 					if (page.bNew) {
@@ -130,25 +131,28 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 				else if (getObject().equals(dbo.getParent().getParent())) {
 					markApplicationAsDirty();
 				}
-				// for any UI component inside a menu
+				// for any UI component inside a menu or a stack
 				else if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
+					
 					UIDynamicMenu menu = uic.getMenu();
-					if (menu != null && getObject().equals(menu.getParent())) {
-						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
-							if (!newValue.equals(oldValue)) {
-								try {
-									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
-									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-									String form = uic.getUIForm().getFormGroupName();
-									if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-										this.viewer.refresh();
-									}
-								} catch (Exception e) {}
+					if (menu != null) {
+						if (getObject().equals(menu.getParent())) {
+							if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
+								if (!newValue.equals(oldValue)) {
+									try {
+										String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+										String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+										String form = uic.getUIForm().getFormGroupName();
+										if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+											this.viewer.refresh();
+										}
+									} catch (Exception e) {}
+								}
 							}
+							
+							markApplicationAsDirty();
 						}
-						
-						markApplicationAsDirty();
 					}
 				}
 				// for this application

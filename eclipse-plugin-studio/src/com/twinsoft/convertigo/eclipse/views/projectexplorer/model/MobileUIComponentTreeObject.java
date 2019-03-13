@@ -60,7 +60,9 @@ import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
@@ -74,6 +76,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
@@ -134,7 +137,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor and Reopen it after file has been rewritten
-			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(main);
+			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(uic);
 			IFile file = project.getFile(relativePath);
 			closeComponentFileEditor(file);
 			
@@ -145,7 +148,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					return;
 				}
 			}
-			uic.getProject().getMobileBuilder().writeFunctionTempTsFile(main, functionMarker);
+			uic.getProject().getMobileBuilder().writeFunctionTempTsFile(uic, functionMarker);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor
@@ -531,6 +534,15 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("identifiable");
 					}
 				}
+				else if (object instanceof UIDynamicInvoke) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("stack");
+					}
+				}
 				else if (object instanceof UIDynamicElement) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						SequenceTreeObject.class.isAssignableFrom(c) ||
@@ -571,6 +583,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				else if (object instanceof UIDynamicAnimate) {
 					return "identifiable".equals(propertyName);
 				}
+				else if (object instanceof UIDynamicInvoke) {
+					return "stack".equals(propertyName);
+				}
 				else if (object instanceof UIDynamicElement) {
 					return "requestable".equals(propertyName) || 
 								"fsview".equals(propertyName) ||
@@ -606,6 +621,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 								return !ue.getIdentifier().isEmpty();
 							}
 						}
+					}
+				}
+				else if (object instanceof UIDynamicInvoke) {
+					if ("stack".equals(propertyName)) {
+						return nsObject instanceof UIActionStack;
 					}
 				}
 				else if (object instanceof UIDynamicElement) {
@@ -705,6 +725,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									hasBeenRenamed = true;
 								}
 							}
+							else if (object instanceof UIDynamicInvoke) {
+								if ("stack".equals(propertyName)) {
+									((UIDynamicInvoke)object).setActionStack(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
 							else if (object instanceof UIDynamicElement) {
 								if ("requestable".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
@@ -776,5 +802,111 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}
 			}
 		};
+	}
+	
+	@Override
+	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectAdded(treeObjectEvent);
+
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject dbo = doto.getObject();
+			
+			if (dbo instanceof UIComponent) {
+				UIComponent uic = (UIComponent)dbo;
+				
+				if (uic.getStack() != null) {
+					handleStackChanged(uic.getStack());
+				}
+			}
+		}
+	}
+
+	
+	@Override
+	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectRemoved(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			
+			if (!(treeObject.equals(this))) {
+				if (treeObject.getParents().contains(this)) {
+					// a child of this stack has been removed
+					if (getObject() instanceof UIActionStack) {
+						try {
+							((UIActionStack)getObject()).getApplication().markApplicationAsDirty();
+						} catch (EngineException e) {
+							ConvertigoPlugin.logWarning(e, "Could not update in tree UIActionStack \""+getObject().getName()+"\" !");
+						}
+					}
+				}
+				else {
+					// a child of this referenced stack has been removed
+					if (getObject() instanceof UIDynamicInvoke) {
+						UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
+						
+						for (TreeObject to: doto.getParents()) {
+							if (to instanceof DatabaseObjectTreeObject) {
+								if (udi.getActionStack().equals(((DatabaseObjectTreeObject)to).getObject().getQName())) {
+									try {
+										udi.getPage().markPageAsDirty();
+									} catch (EngineException e) {
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectPropertyChanged(treeObjectEvent);
+
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject dbo = doto.getObject();
+			
+			if (dbo instanceof UIComponent) {
+				UIComponent uic = (UIComponent)dbo;
+				
+				// a stack property has changed
+				UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getStack();
+				if (stack != null) {
+					handleStackChanged(stack);
+				}
+			}
+		}
+	}
+
+	protected void handleStackChanged(UIActionStack stack) {
+		if (getObject() instanceof UIDynamicInvoke) {
+			UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
+			if (stack != null) {
+				// a uic has changed/added/removed from a stack referenced by this UIDynamicInvoke contained inside a page
+				if (udi.getActionStack().equals(stack.getQName())) {
+					try {
+						udi.getPage().markPageAsDirty();
+					} catch (EngineException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 }

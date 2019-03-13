@@ -46,6 +46,8 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.Contributor;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EventHelper;
@@ -810,10 +812,13 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	public String getFunctionTempTsRelativePath(IScriptComponent main) {
+	public String getFunctionTempTsRelativePath(UIComponent uic) {
+		IScriptComponent main = uic.getMainScriptComponent();
 		if (main != null) {
 			if (main instanceof ApplicationComponent) {
-				File tempTsFile = new File(ionicWorkDir, "src/app/app.component.function.temp.ts");
+				UIActionStack stack = uic.getStack();
+				File tempTsFile = stack == null ? new File(ionicWorkDir, "src/app/app.component.function.temp.ts") :
+													new File(ionicWorkDir, "src/services/actionbeans.service.function.temp.ts");
 				return tempTsFile.getPath().replace(projectDir.getPath(), "/");
 			}
 			if (main instanceof PageComponent) {
@@ -827,17 +832,20 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	public void writeFunctionTempTsFile(IScriptComponent main, String functionMarker) throws EngineException {
+	public void writeFunctionTempTsFile(UIComponent uic, String functionMarker) throws EngineException {
 		try {
+			IScriptComponent main = uic.getMainScriptComponent();
 			if (main != null) {
 				String tempTsFileName = null, tsContent = null;
 				File tempTsDir = null;
 				
 				if (main instanceof ApplicationComponent) {
-					tempTsDir = new File(ionicWorkDir, "src/app");
-					tempTsFileName = "app.component.function.temp.ts";
+					UIActionStack stack = uic.getStack();
+					tempTsDir = stack == null ? new File(ionicWorkDir, "src/app") : new File(ionicWorkDir, "src/services");
+					tempTsFileName = stack == null ? "app.component.function.temp.ts" : "actionbeans.service.function.temp.ts";
 					
-					File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
+					File appTsFile = stack == null ? new File(ionicWorkDir, "src/app/app.component.ts") : 
+														new File(ionicWorkDir, "src/services/actionbeans.service.ts");
 					synchronized (writtenFiles) {
 						if (writtenFiles.contains(appTsFile)) {
 							File appTsFileTmp = toTmpFile(appTsFile);
@@ -1337,7 +1345,10 @@ public class MobileBuilder {
 				String c8o_ActionTsImports = "";
 				for (String comp : action_ts_imports.keySet()) {
 					if (!getActionTplTsImports().containsKey(comp)) {
-						c8o_ActionTsImports += "import { "+comp+" } from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						if (comp.indexOf(" as ") == -1)
+							c8o_ActionTsImports += "import { "+comp+" } from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						else
+							c8o_ActionTsImports += "import "+comp+" from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
 					}
 				}
 				

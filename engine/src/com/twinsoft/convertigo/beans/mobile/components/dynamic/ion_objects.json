@@ -9160,6 +9160,19 @@
 	        "values": [false,true]
 	      }
       }
+    },
+    
+    "InvokeAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke",
+	  "displayName": "InvokeSharedAction",
+      "label": "Invoke SharedAction",
+      "description": "Defines an <i>Invoke SharedAction</i> component. | This component helps invoking any mobile application's <i>SharedAction</i> component.",
+      "group": "Actions",
+      "icon16": "invokesharedaction_color_16x16.png",
+      "icon32": "invokesharedaction_color_32x32.png",
+      "properties": {
+      }
     }
+    
   }
 }

@@ -123,6 +123,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "ATS"+ this.priority;
 	}
 
+	@Override
+	public String getActionName() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			return ionBean.getName();
+		}
+		return getName();
+	}
+	
 	protected int numberOfActions() {
 		int num = 0;
 		Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -242,7 +251,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			} else {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					String actionName = ionBean.getName();
+					String actionName = getActionName();
 					
 					String props = "{}", vars = "{}";
 					String inputs = computeActionInputs(true);
@@ -259,9 +268,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 					
 					if (compareToTplVersion("1.0.91") >= 0) {
-						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +"))";
+						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +", $event))";
 					} else {
-						return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +")";
+						return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +", $event)";
 					}
 				}
 			}
@@ -299,7 +308,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						}
 						
 						// Special case for ClearDataSourceAction
-						if ("ClearDataSourceAction".equals(getActionBeanName())) {
+						if ("ClearDataSourceAction".equals(getActionName())) {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								smartValue = mss.getSources(msst.getValue()).toString();
@@ -313,7 +322,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						// Case ts code in ActionBeans.service (stack of actions)
 						else {
 							if (Mode.SOURCE.equals(msst.getMode())) {
-								if (!"ClearDataSourceAction".equals(getActionBeanName())) {
+								if (!"ClearDataSourceAction".equals(getActionName())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
 									smartValue = "scope."+ smartValue;
@@ -478,7 +487,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
 				int numThen = numberOfActions();
-				String actionName = ionBean.getName();
+				String actionName = getActionName();
 				String inputs = computeActionInputs(false);
 				
 				StringBuilder sbCatch = new StringBuilder();
@@ -515,7 +524,23 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				tsCode += "\t\tself = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 				
-				tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, "+ cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+				if ("InvokeAction".equals(ionBean.getName())) {
+					if (getStack() != null) {
+						tsCode +="\t\treturn this.actionBeans."+actionName+
+								"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+											cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+
+												System.lineSeparator();
+					} else {
+						tsCode +="\t\treturn this.actionBeans."+actionName+
+								"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+											cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ 
+												System.lineSeparator();
+					}
+				} else {
+					tsCode +="\t\treturn this.actionBeans."+actionName+
+									"(this, self.in.props, "+ cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+				}
+				
 				tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
 				tsCode += "\t\tparent = self;"+ System.lineSeparator();
 				tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
@@ -573,14 +598,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				Map<String, String> functions = new HashMap<String, String>();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					String actionName = ionBean.getName();
-					
+					String actionName = getActionName();
 					String actionCode = ComponentManager.getActionTsCode(actionName);
 					if (compareToTplVersion("7.5.2.0") < 0 ) {
 						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
 						actionCode = actionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
 					}
-					
 					functions.put(actionName, actionCode);
 				}
 				return functions;
@@ -713,20 +736,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		super.addInfos(infoMap);
 	}	
 
-	public String getActionBeanName() {
-		IonBean ionBean = getIonBean();
-		if (ionBean != null) {
-			return ionBean.getName();
-		}
-		return null;
-		}
-	
 	public boolean isFullSyncSyncAction() {
-		return "FullSyncSyncAction".equals(getActionBeanName());
+		return "FullSyncSyncAction".equals(getActionName());
 	}
 	
 	public boolean isSetGlobalAction() {
-		return "SetGlobalAction".equals(getActionBeanName());
+		return "SetGlobalAction".equals(getActionName());
 	}
 	
 	public String getSetGlobalActionKeyName() {

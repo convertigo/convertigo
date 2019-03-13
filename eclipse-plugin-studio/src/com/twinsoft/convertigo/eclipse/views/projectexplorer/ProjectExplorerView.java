@@ -149,9 +149,11 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -1194,8 +1196,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									objectType = "page";
 									updateDlg = true;
 								} else if (theTreeObject instanceof MobileUIComponentTreeObject) {
-									objectType = "menu";
-									updateDlg = ((DatabaseObject)theTreeObject.getObject()) instanceof UIDynamicMenu ? true:false;
+									DatabaseObject dbo = (DatabaseObject)theTreeObject.getObject();
+									if (dbo instanceof UIDynamicMenu) {
+										objectType = "menu";
+										updateDlg = true;
+									}
+									if (dbo instanceof UIActionStack) {
+										objectType = "stack";
+										updateDlg = true;
+									}
 								}
 
 								if (updateDlg) {
@@ -1569,6 +1578,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PAGES;
 							databaseObjectTreeObject = new MobilePageComponentTreeObject(viewer, (PageComponent) databaseObject, false);
 
+						} else if (databaseObject instanceof UIActionStack) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STACKS;
+							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIActionStack) databaseObject, false);
+
 						} else if (databaseObject instanceof UIDynamicMenu) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MENUS;
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIDynamicMenu) databaseObject, false);
@@ -1584,6 +1597,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STYLES;
 							}
 							else if (databaseObject instanceof UIControlVariable) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
+							}
+							else if (databaseObject instanceof UIStackVariable) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 							}
 							else if (databaseObject instanceof UIFormValidator) {
