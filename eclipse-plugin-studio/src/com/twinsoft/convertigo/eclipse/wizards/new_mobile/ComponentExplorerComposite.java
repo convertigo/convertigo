@@ -185,7 +185,7 @@ public class ComponentExplorerComposite extends Composite {
 					updateHelpText(currentSelectedComponent);
 				}
 
-				if (currentSelectedObject != null) {
+				if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
 					currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 					currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
 				}
@@ -236,7 +236,7 @@ public class ComponentExplorerComposite extends Composite {
 				@Override
 				public void dragStart(DragSourceEvent event) {
 					try {
-						if (currentSelectedObject != null) {
+						if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
 							currentSelectedObject.setForeground(label.getForeground());
 							currentSelectedObject.setBackground(label.getBackground());
 						}
@@ -270,7 +270,7 @@ public class ComponentExplorerComposite extends Composite {
 				if (currentSelectedObject == label)
 					return;
 
-				if (currentSelectedObject != null) {
+				if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
 					currentSelectedObject.setForeground(label.getForeground());
 					currentSelectedObject.setBackground(label.getBackground());
 				}

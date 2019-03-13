@@ -1519,28 +1519,38 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	public IProject createProjectPluginResource(String projectName, String projectDir, IProgressMonitor monitor) throws CoreException {
-		logInfo("createProjectPluginResource for projet '" + projectName + "' from: " + projectDir);
-		
-		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-
-		if (!resourceProject.exists()) {
-			if (projectDir == null) {
-				logInfo("createProjectPluginResource: project '" + projectName + "' is in the workspace folder");
-				resourceProject.create(monitor);
-			} else {
-				logInfo("createProjectPluginResource: project '" + projectName + "' isn't in the workspace folder but: " + projectDir);				
-				IPath projectPath = new Path(projectDir).makeAbsolute();
-				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
-				description.setLocation(projectPath);
-				resourceProject.create(description, monitor);
-				resourceProject.open(monitor);
+		IProject resourceProject;
+		StringBuilder sb = new StringBuilder();
+		try {
+			sb.append("createProjectPluginResource for projet '" + projectName + "'");
+			if (projectDir != null) {
+				sb.append(" from: " + projectDir);
 			}
-		} else {
-			logInfo("createProjectPluginResource: projet '" + projectName + "' already exist");
+			
+			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+			resourceProject = myWorkspaceRoot.getProject(projectName);
+	
+			if (!resourceProject.exists()) {
+				if (projectDir == null) {
+					sb.append(" in the workspace folder.");
+					resourceProject.create(monitor);
+				} else {
+					sb.append(" isn't in the workspace folder.");				
+					IPath projectPath = new Path(projectDir).makeAbsolute();
+					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
+					description.setLocation(projectPath);
+					resourceProject.create(description, monitor);
+					resourceProject.open(monitor);
+				}
+			} else {
+				sb = null;
+			}
+		} finally {
+			if (sb != null) {
+				logInfo(sb.toString());
+			}
 		}
-
 		return resourceProject;
 	}
 

@@ -296,7 +296,7 @@ public class ObjectsExplorerComposite extends Composite {
 					currentSelectedObject = (CLabel) composites[0].getChildren()[0];
 				}
 
-				if (currentSelectedObject != null) {
+				if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
 					currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 					currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
 				}
@@ -386,7 +386,7 @@ public class ObjectsExplorerComposite extends Composite {
 				}
 			});
 
-			if (currentSelectedObject != null) {
+			if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
 				currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
 				currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
 			}
@@ -477,7 +477,7 @@ public class ObjectsExplorerComposite extends Composite {
 					return;
 				}
 
-				if (currentSelectedObject != null) {
+				if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
 					currentSelectedObject.setForeground(label.getForeground());
 					currentSelectedObject.setBackground(label.getBackground());
 				}
@@ -551,7 +551,7 @@ public class ObjectsExplorerComposite extends Composite {
 				if (currentSelectedObject == label)
 					return;
 
-				if (currentSelectedObject != null) {
+				if (currentSelectedObject != null && !currentSelectedObject.isDisposed()) {
 					currentSelectedObject.setForeground(label.getForeground());
 					currentSelectedObject.setBackground(label.getBackground());
 				}

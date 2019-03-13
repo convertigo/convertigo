@@ -68,30 +68,30 @@ public class UnloadedProjectDeleteAction extends MyAbstractAction {
 					for (TreeObject treeObject :treeObjects) {
 						if (treeObject instanceof UnloadedProjectTreeObject) {
 							String projectName = ((UnloadedProjectTreeObject) treeObject).getName();
-							
+
 							if (dialog.shouldBeDeleted("Do you really want to delete the project \"" + projectName + "\" and all its sub-objects?")) {
-			    				// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
-			    				//Engine.theApp.databaseObjectsManager.deleteProject(projectName);
+								// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
+								//Engine.theApp.databaseObjectsManager.deleteProject(projectName);
 								Job rmProject = new Job("Remove '" + projectName + "' project") {
-									
+
 									@Override
 									protected IStatus run(IProgressMonitor monitor) {
-			    		        		try {
+										try {
 											if (dialog.getToggleState()) {
 												Engine.theApp.databaseObjectsManager.deleteProjectAndCar(projectName);
 											}
-						    				ConvertigoPlugin.getDefault().deleteProjectPluginResource(dialog.getToggleState(), projectName);
-						    				explorerView.removeProjectTreeObject(treeObject);
-						    				explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
+											ConvertigoPlugin.getDefault().deleteProjectPluginResource(dialog.getToggleState(), projectName);
 										} catch (Exception e) {
 											ConvertigoPlugin.logException(e, "Unable to delete the '" + projectName + "' project.");
 											return new MultiStatus(ConvertigoPlugin.PLUGIN_UNIQUE_ID, IStatus.ERROR, "Failed to remove the '" + projectName + "' project.", e);
 										}
 										return Status.OK_STATUS;
 									}
-	    		        			
-	    		        		};
-	    		        		rmProject.schedule();
+
+								};
+								rmProject.schedule();
+								explorerView.removeProjectTreeObject(treeObject);
+								explorerView.fireTreeObjectRemoved(new TreeObjectEvent(treeObject));
 							}
 						}
 					}
