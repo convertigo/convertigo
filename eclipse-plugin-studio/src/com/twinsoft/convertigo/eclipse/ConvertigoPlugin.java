@@ -171,6 +171,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
 	public static final String PREFERENCE_LOCAL_BUILD_FOLDER = "localBuild.folder";
 	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
+	public static final String PREFERENCE_MOBILE_BUILDER_THRESHOLD = "mobileBuilder.threshold";
 
 
 	private static Display display = null;
@@ -751,6 +752,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			studioLog.warning("Unable to retrieve the auto open default connector option; using default (false).");
 		}
 
+		try {
+			mobileBuilderThreshold = new Integer(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MOBILE_BUILDER_THRESHOLD)).intValue();
+		}
+		catch(NumberFormatException e) {
+			studioLog.warning("Unable to retrieve the mobile builder threshold option; using default (200).");
+		}
+
 		// In STUDIO, the Convertigo User Workspace is in the current Eclipse Workspace/.metadata/.plugins/com.twinsoft.convertigo.studio
 		Engine.USER_WORKSPACE_PATH = getDefault().getStateLocation().toFile().getCanonicalPath();
 
@@ -1030,6 +1038,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	public static void setAutoOpenDefaultConnector(boolean autoOpen) {
 		autoOpenDefaultConnector = autoOpen;
+	}
+
+	private static int mobileBuilderThreshold = 200;
+
+	public static int getMobileBuilderThreshold() {
+		return mobileBuilderThreshold;
+	}
+
+	public static void setMobileBuilderThreshold(int threshold) {
+		mobileBuilderThreshold = threshold;
 	}
 
 	/**

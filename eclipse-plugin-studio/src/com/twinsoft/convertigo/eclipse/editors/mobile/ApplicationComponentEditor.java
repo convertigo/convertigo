@@ -1239,7 +1239,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			} catch (CoreException ce) {}
 			
 			try {
-				File displayObjectsMobile = new File(project.getDirPath() + "/DisplayObjects/mobile");
+				File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
 				displayObjectsMobile.mkdirs();				
 				
 				appendOutput("removing previous build directory");
@@ -1250,6 +1250,20 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				}
 				appendOutput("previous build directory removed");
 				this.applicationEditorInput.application.checkFolder();
+				
+				try {
+					File watchJS = new File(project.getDirPath(), "_private/ionic/node_modules/@ionic/app-scripts/dist/watch.js");
+					if (watchJS.exists()) {
+						int ms = ConvertigoPlugin.getMobileBuilderThreshold();
+						String txt = FileUtils.readFileToString(watchJS, "UTF-8");
+						String ntxt = txt.replaceAll("var BUILD_UPDATE_DEBOUNCE_MS = \\d+;", "var BUILD_UPDATE_DEBOUNCE_MS = " + ms + ";");
+						if (!txt.equals(ntxt)); {
+							FileUtils.writeStringToFile(watchJS, ntxt, "UTF-8");
+						}
+					}
+				} catch (Exception e) {
+					Engine.logStudio.warn("Failed to update DEBOUNCE", e);
+				}
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
 				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
