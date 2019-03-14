@@ -100,17 +100,17 @@ public class MobileBuilder {
 					}
 					
 					boolean hasMovedCfgFiles = false;
-					//boolean hasMovedAppFiles = false;
+					boolean hasMovedAppFiles = false;
 					boolean hasMovedFiles = false;
-					//Set<String> appFiles = new HashSet<>();
+					Set<String> appFiles = new HashSet<>();
 					Set<String> cfgFiles = new HashSet<>();
 					
 					Engine.logEngine.debug("(MobileBuilder) Start to move " + map.size() + " files.");
 					for (String path: map.keySet()) {
 						try {
-							/*if (path.indexOf("\\src\\app\\") != -1) {
+							if (path.indexOf("\\src\\app\\") != -1) {
 								appFiles.add(path);
-							} else*/ if (path.endsWith("package.json")) {
+							} else if (path.endsWith("package.json")) {
 								cfgFiles.add(path);
 							} else {
 								FileUtils.write(new File(path), map.get(path), "UTF-8");
@@ -146,7 +146,7 @@ public class MobileBuilder {
 							} catch (InterruptedException e) {}							
 						}
 					}
-				/*
+					
 					String lastModulePath = null;
 					String lastComponentPath = null;
 					CharSequence lastModuleContent = null;
@@ -211,7 +211,7 @@ public class MobileBuilder {
 						}
 						
 					}
-				*/
+					
 					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
 					inProcess = false;
 				}
