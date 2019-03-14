@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -121,6 +123,18 @@ public class UIActionStack extends UIComponent {
 	@Override
 	public String computeTemplate() {
 		return null;
+	}
+	
+	public List<UIStackVariable> getVariables() {
+		List<UIStackVariable> list = new ArrayList<>();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIStackVariable) {
+				list.add((UIStackVariable)component);
+			}
+		}
+		return Collections.unmodifiableList(list);
 	}
 	
 	protected String computeStackParams() {

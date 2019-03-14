@@ -921,7 +921,7 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.MobileComponentImportVariablesAction"
                enablesFor="1"
                id="convertigo.action.componentImportVariables"
-               label="Import variables from the call target"
+               label="Import variables from the targeted object"
                menubarPath="import">
          </action>
       </objectContribution>

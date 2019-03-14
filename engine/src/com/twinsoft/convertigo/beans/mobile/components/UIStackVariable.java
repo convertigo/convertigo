@@ -43,7 +43,7 @@ public class UIStackVariable extends UIComponent {
 		return getName();
 	}
 	
-	private String value = "";
+	private String value = "''";
 	
 	public String getVariableValue() {
 		return value;

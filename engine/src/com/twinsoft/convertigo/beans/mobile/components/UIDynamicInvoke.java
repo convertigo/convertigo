@@ -57,7 +57,7 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		this.stack = stack;
 	}
 
-	private UIActionStack getTargetStack() {
+	public UIActionStack getTargetStack() {
 		try {
 			String qname =  getActionStack();
 			if (qname != null && qname.indexOf('.') != -1) {

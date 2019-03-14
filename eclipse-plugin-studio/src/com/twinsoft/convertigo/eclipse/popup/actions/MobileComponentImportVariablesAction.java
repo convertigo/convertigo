@@ -32,9 +32,15 @@ import org.eclipse.ui.IWorkbenchPart;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
+import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -61,8 +67,15 @@ public class MobileComponentImportVariablesAction extends MyAbstractAction {
 				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
 				if (dbo instanceof UIDynamicAction) {
 					IonBean ionBean = ((UIDynamicAction)dbo).getIonBean();
-					if (ionBean != null && ionBean.getName().equals("CallSequenceAction")) {
-						enable = true;
+					if (ionBean != null) {
+						String beanName = ionBean.getName();
+						enable = beanName.equals("CallSequenceAction") || beanName.equals("InvokeAction");
+						if (enable) {
+							String text = beanName.equals("CallSequenceAction") ? 
+											"Import variables from the targeted sequence" : 
+												"Import variables from the targeted shared action";
+							action.setText(text);
+						}
 					}
 				}
 			}
@@ -86,43 +99,85 @@ public class MobileComponentImportVariablesAction extends MyAbstractAction {
     			if ((databaseObject != null) && (databaseObject instanceof UIDynamicAction)) {
     				UIDynamicAction dynAction = (UIDynamicAction)databaseObject;
 					IonBean ionBean = ((UIDynamicAction)dynAction).getIonBean();
-					if (ionBean != null && ionBean.getName().equals("CallSequenceAction")) {
-						Object value = ionBean.getProperty("requestable").getValue();
-						if (!value.equals(false)) {
-							String target = value.toString();
-							if (!target.isEmpty()) {
-						    	try {
-						    		String projectName = target.substring(0, target.indexOf('.'));
-						    		String sequenceName = target.substring(target.indexOf('.')+1);
-						    		Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-						    		Sequence sequence = p.getSequenceByName(sequenceName);
-						    		
-						    		int size = sequence.numberOfVariables();
-						    		for (int i=0; i<size; i++) {
-						    			RequestableVariable variable = (RequestableVariable) sequence.getVariable(i);
-						    			if (variable != null) {
-						    				String variableName = variable.getName();
-						    				if (dynAction.getVariable(variableName) == null) {
-						    					if (!StringUtils.isNormalized(variableName))
-						    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
-						    					
-						    					UIControlVariable uiVariable = new UIControlVariable();
-						    					uiVariable.setName(variableName);
-						    					uiVariable.setComment(variable.getDescription());
-						    					uiVariable.setVarSmartType(new MobileSmartSourceType(variable.getDefaultValue().toString()));
-						    					dynAction.addUIComponent(uiVariable);
-
-						    					uiVariable.bNew = true;
-						    					uiVariable.hasChanged = true;
-						    					dynAction.hasChanged = true;
-						    				}
-						    			}
-						    		}
-						    		
-						    	} catch (Exception e) {}
+					if (ionBean != null) {
+						// Case of CallSequenceAction
+						if (ionBean.getName().equals("CallSequenceAction")) {
+							Object value = ionBean.getProperty("requestable").getValue();
+							if (!value.equals(false)) {
+								String target = value.toString();
+								if (!target.isEmpty()) {
+							    	try {
+							    		String projectName = target.substring(0, target.indexOf('.'));
+							    		String sequenceName = target.substring(target.indexOf('.')+1);
+							    		Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+							    		Sequence sequence = p.getSequenceByName(sequenceName);
+							    		
+							    		int size = sequence.numberOfVariables();
+							    		for (int i=0; i<size; i++) {
+							    			RequestableVariable variable = (RequestableVariable) sequence.getVariable(i);
+							    			if (variable != null) {
+							    				String variableName = variable.getName();
+							    				if (dynAction.getVariable(variableName) == null) {
+							    					if (!StringUtils.isNormalized(variableName))
+							    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
+							    					
+							    					UIControlVariable uiVariable = new UIControlVariable();
+							    					uiVariable.setName(variableName);
+							    					uiVariable.setComment(variable.getDescription());
+							    					uiVariable.setVarSmartType(new MobileSmartSourceType(variable.getDefaultValue().toString()));
+							    					dynAction.addUIComponent(uiVariable);
+	
+							    					uiVariable.bNew = true;
+							    					uiVariable.hasChanged = true;
+							    					dynAction.hasChanged = true;
+							    				}
+							    			}
+							    		}
+							    		
+							    	} catch (Exception e) {}
+								}
 							}
 						}
+						// Case of InvokeAction
+						else if (ionBean.getName().equals("InvokeAction")) {
+							UIDynamicInvoke dynInvoke = (UIDynamicInvoke)databaseObject;
+							UIActionStack stack = dynInvoke.getTargetStack();
+							if (stack != null) {
+								for (UIStackVariable variable: stack.getVariables()) {
+				    				String variableName = variable.getName();
+				    				if (dynAction.getVariable(variableName) == null) {
+				    					if (!StringUtils.isNormalized(variableName))
+				    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
+				    					
+				    					UIControlVariable uiVariable = new UIControlVariable();
+				    					uiVariable.setName(variableName);
+				    					uiVariable.setComment(variable.getComment());
+				    					
+				    					MobileSmartSourceType msst = new MobileSmartSourceType();
+				    					msst.setMode(MobileSmartSourceType.Mode.SCRIPT);
+				    					msst.setSmartValue(variable.getVariableValue());
+				    					uiVariable.setVarSmartType(msst);
+				    					dynAction.addUIComponent(uiVariable);
+
+				    					uiVariable.bNew = true;
+				    					uiVariable.hasChanged = true;
+				    					dynAction.hasChanged = true;
+				    				}
+								}
+							}
+						}
+						
 	    				if (dynAction.hasChanged) {
+	    					IScriptComponent main = dynAction.getMainScriptComponent();
+	    					if (main != null) {
+	    						if (main instanceof ApplicationComponent) {
+	    							((ApplicationComponent)main).markApplicationAsDirty();
+	    						}
+	    						if (main instanceof PageComponent) {
+	    							((PageComponent)main).markPageAsDirty();
+	    						}
+	    					}
+	    					
 	    					explorerView.reloadTreeObject(treeObject);
 							StructuredSelection structuredSelection = new StructuredSelection(treeObject);
 							ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);

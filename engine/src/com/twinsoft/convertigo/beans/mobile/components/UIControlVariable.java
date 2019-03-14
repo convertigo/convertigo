@@ -78,9 +78,8 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 
 	@Override
 	public String toString() {
-		String label = getVarName();
-		label = label + (label.isEmpty() ? "":"=") + getVarLabel();
-		return label;
+		String val = getVarLabel();
+		return getVarName() + (val.isEmpty() ? "" : "="+val);
 	}
 
 	@Override

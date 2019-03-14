@@ -352,12 +352,17 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					if (component instanceof UIControlVariable) {
 						UIControlVariable uicv = (UIControlVariable)component;
 						if (uicv.isEnabled()) {
-							sbVars.append(sbVars.length() > 0 ? ", ":"");
-							sbVars.append(uicv.getVarName()).append(": ");
-							
+							// Case code generated in HTML
 							if (forTemplate) {
-								sbVars.append(uicv.getVarValue());
-							} else {
+								String varValue = uicv.getVarValue();
+								if (!varValue.isEmpty()) {
+									sbVars.append(sbVars.length() > 0 ? ", ":"");
+									sbVars.append(uicv.getVarName()).append(": ");
+									sbVars.append(varValue);
+								}
+							}
+							// Case code generated in TS
+							else {
 								MobileSmartSourceType msst = uicv.getVarSmartType();
 								
 								String smartValue = msst.getValue();
@@ -374,11 +379,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 										smartValue = "this."+ smartValue;
 									}
 								}
+								
 								smartValue = smartValue.replaceAll("\\?\\.", ".");
 								smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-								smartValue = "get(`"+smartValue+"`)";
 								
-								sbVars.append(smartValue);
+								if (!smartValue.isEmpty()) {
+									sbVars.append(sbVars.length() > 0 ? ", ":"");
+									sbVars.append(uicv.getVarName()).append(": ");
+									sbVars.append("get(`"+smartValue+"`)");
+								}
 							}
 						}
 					}
