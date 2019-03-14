@@ -44,7 +44,12 @@ public class SwtUtils {
 		return gridLayout;
 	}
 
+	private static boolean lastDark = false;
 	public static boolean isDark() {
-		return PlatformUI.getWorkbench().getWorkbenchWindows()[0].getShell().getBackground().getRed() < 128;
+		try {
+			return lastDark = PlatformUI.getWorkbench().getWorkbenchWindows()[0].getShell().getBackground().getRed() < 128;
+		} catch (Exception e) {
+			return lastDark;
+		}
 	}
 }
