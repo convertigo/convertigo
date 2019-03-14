@@ -102,15 +102,15 @@ public class MobileBuilder {
 					boolean hasMovedCfgFiles = false;
 					//boolean hasMovedAppFiles = false;
 					boolean hasMovedFiles = false;
-					Set<String> appFiles = new HashSet<>();
+					//Set<String> appFiles = new HashSet<>();
 					Set<String> cfgFiles = new HashSet<>();
 					
 					Engine.logEngine.debug("(MobileBuilder) Start to move " + map.size() + " files.");
 					for (String path: map.keySet()) {
 						try {
-							if (path.indexOf("\\src\\app\\") != -1) {
+							/*if (path.indexOf("\\src\\app\\") != -1) {
 								appFiles.add(path);
-							} else if (path.endsWith("package.json")) {
+							} else*/ if (path.endsWith("package.json")) {
 								cfgFiles.add(path);
 							} else {
 								FileUtils.write(new File(path), map.get(path), "UTF-8");
