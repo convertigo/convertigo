@@ -100,7 +100,7 @@ public class MobileBuilder {
 					}
 					
 					boolean hasMovedCfgFiles = false;
-					boolean hasMovedAppFiles = false;
+					//boolean hasMovedAppFiles = false;
 					boolean hasMovedFiles = false;
 					Set<String> appFiles = new HashSet<>();
 					Set<String> cfgFiles = new HashSet<>();
@@ -146,7 +146,7 @@ public class MobileBuilder {
 							} catch (InterruptedException e) {}							
 						}
 					}
-					
+				/*
 					String lastModulePath = null;
 					String lastComponentPath = null;
 					CharSequence lastModuleContent = null;
@@ -211,7 +211,7 @@ public class MobileBuilder {
 						}
 						
 					}
-					
+				*/
 					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
 					inProcess = false;
 				}
