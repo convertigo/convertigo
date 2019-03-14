@@ -22,11 +22,16 @@ package com.twinsoft.convertigo.eclipse.dnd;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Tree;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -34,6 +39,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class TreeDragListener extends DragSourceAdapter {
 
 	private StructuredViewer viewer;
+	private Color background = null;
 
 	public TreeDragListener(StructuredViewer viewer) {
 		this.viewer = viewer;
@@ -44,7 +50,11 @@ public class TreeDragListener extends DragSourceAdapter {
 	 */
 	@Override
 	public void dragFinished(DragSourceEvent event) {
-		if (!event.doit) return;
+		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (background != null && explorerView != null) {
+			explorerView.viewer.getTree().setBackground(background);
+			background = null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -55,6 +65,15 @@ public class TreeDragListener extends DragSourceAdapter {
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (explorerView != null) {
 			try {
+				if (SwtUtils.isDark()) {
+					if (background == null) {
+						Tree tree = explorerView.viewer.getTree();
+						background = tree.getBackground();
+						tree.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY));
+					}
+				} else {
+					background = null;
+				}
 				String sXml = ClipboardAction.dnd.copy(explorerView);
 				if (sXml != null) {
 					event.data = sXml;

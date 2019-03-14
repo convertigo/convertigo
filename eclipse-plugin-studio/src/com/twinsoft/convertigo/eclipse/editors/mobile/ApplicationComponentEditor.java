@@ -441,8 +441,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						JSObject window = browser.executeJavaScriptAndReturnValue("window").asObject();
 						window.setProperty("java", browserInterface);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
 					}
 				}
 				browser.setZoomLevel(zoomFactor.zoomLevel());

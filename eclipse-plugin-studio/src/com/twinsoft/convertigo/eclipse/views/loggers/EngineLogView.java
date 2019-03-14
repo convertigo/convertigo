@@ -1054,36 +1054,34 @@ public class EngineLogView extends ViewPart {
 						curLine = logLines.size();
 						
 						// Refresh the list view
-						Display.getDefault().syncExec(new Runnable() {
-						
-							public void run() {
-								int topIndex = tableViewer.getTable().getTopIndex();
-								if (!tableViewer.getTable().isDisposed()) {
-									tableViewer.getTable().setVisible(false);
-									if (rmRow[0] > -1) {
-										topIndex -= rmRow[0] + 1;
-										tableViewer.getTable().remove(0, rmRow[0]);
-									}
+						Display.getDefault().syncExec(() -> {
+							int topIndex = tableViewer.getTable().getTopIndex();
+							if (!tableViewer.getTable().isDisposed()) {
+								tableViewer.getTable().setVisible(false);
+								if (rmRow[0] > -1) {
+									topIndex -= rmRow[0] + 1;
+									tableViewer.getTable().remove(0, rmRow[0]);
 								}
-								
-								if (!tableViewer.getTable().isDisposed()) {
-									tableViewer.add(buf[0]);
-									tableViewer.getTable().setVisible(true);
-								}
-								
-								if (!tableViewer.getTable().isDisposed()) {
-									tableViewer.getTable().setTopIndex(!scrollLock ? tableViewer.getTable().getItemCount() - 1 : Math.max(topIndex, 0));
-								}
-								
-								if (activateOnNewEvents) {
-									IWorkbenchWindow workbenchWindow = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
-									if (workbenchWindow != null) {
-										workbenchWindow.getActivePage().bringToTop(engineLogView);
-									}
-								}
+								tableViewer.add(buf[0]);
+								tableViewer.getTable().setVisible(true);
+								tableViewer.getTable().setTopIndex(!scrollLock ? tableViewer.getTable().getItemCount() - 1 : Math.max(topIndex, 0));
 							}
 							
+							if (activateOnNewEvents) {
+								IWorkbenchWindow workbenchWindow = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+								if (workbenchWindow != null) {
+									workbenchWindow.getActivePage().bringToTop(engineLogView);
+								}
+							}
 						});
+						
+						if (!scrollLock) {
+							Display.getDefault().syncExec(() -> {
+								if (!tableViewer.getTable().isDisposed()) {
+									tableViewer.getTable().setTopIndex(tableViewer.getTable().getItemCount() - 1);
+								}
+							});
+						}
 					}
 				} catch (InterruptedException e) {
 					ConvertigoPlugin.logException(e, "The engine log viewer thread has been interrupted");

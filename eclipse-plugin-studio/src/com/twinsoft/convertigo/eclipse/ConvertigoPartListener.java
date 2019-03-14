@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -138,6 +139,13 @@ public class ConvertigoPartListener implements IPartListener {
 				if (view.getCurrentPage().getControl() instanceof Tree) {
 					Tree tree = (Tree) view.getCurrentPage().getControl();
 					if (tree != null) {
+						if (SwtUtils.isDark()) {
+							tree.setLinesVisible(false);
+						}
+						try {
+							tree.getColumn(1).setWidth(tree.getBounds().width);
+						} catch (Exception e) {
+						}
 						tree.addKeyListener(new KeyAdapter() {
 							
 							@Override
