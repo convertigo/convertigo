@@ -24,12 +24,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -1254,7 +1254,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
-			Set<String> projects = new HashSet<>();
+			TreeSet<String> projects = new TreeSet<String>();
 			projects.add(this.tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
@@ -1263,7 +1263,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				};
 			}
 			
-			return projects.toArray(new String[projects.size()]);
+			return projects.descendingSet().toArray(new String[projects.size()]);
 		}
 		if (propertyName.equals("splitPaneLayout")) {
 			return new String[] {"not set","xs","sm","md","lg","xl"};

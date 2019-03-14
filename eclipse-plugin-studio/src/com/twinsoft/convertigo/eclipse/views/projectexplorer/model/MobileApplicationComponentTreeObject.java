@@ -171,6 +171,10 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);
+						
+						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName());
+						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
+						
 						for (TreeObject to: this.getChildren()) {
 							if (to instanceof ObjectsFolderTreeObject) {
 								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
