@@ -10,9 +10,10 @@
             <java.lang.String value="SharedAction_Variable"/>
         </property>
         <property name="value">
-            <java.lang.String value=""/>
+            <java.lang.String value="''"/>
         </property>
     </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
