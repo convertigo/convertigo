@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -56,8 +57,10 @@ import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
@@ -66,10 +69,12 @@ import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
+import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
@@ -856,7 +861,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							if (to instanceof DatabaseObjectTreeObject) {
 								if (udi.getActionStack().equals(((DatabaseObjectTreeObject)to).getObject().getQName())) {
 									try {
-										udi.getPage().markPageAsDirty();
+										markMainAsDirty(udi);
 									} catch (EngineException e) {
 										e.printStackTrace();
 									}
@@ -882,28 +887,136 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			
-			if (dbo instanceof UIComponent) {
-				UIComponent uic = (UIComponent)dbo;
-				
-				// a stack property has changed
-				UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getStack();
-				if (stack != null) {
-					handleStackChanged(stack);
+			if (propertyName.equals("name")) {
+				handlesBeanNameChanged(treeObjectEvent);
+			}
+			else {
+				if (dbo instanceof UIComponent) {
+					UIComponent uic = (UIComponent)dbo;
+					UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getStack();
+					if (stack != null) {
+						handleStackChanged(stack);
+					}
 				}
 			}
 		}
 	}
-
+	
 	protected void handleStackChanged(UIActionStack stack) {
-		if (getObject() instanceof UIDynamicInvoke) {
-			UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
-			if (stack != null) {
-				// a uic has changed/added/removed from a stack referenced by this UIDynamicInvoke contained inside a page
+		if (stack != null) {
+			// a uic has changed/added/removed from a stack referenced by this UIDynamicInvoke
+			if (getObject() instanceof UIDynamicInvoke) {
+				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
 				if (udi.getActionStack().equals(stack.getQName())) {
 					try {
-						udi.getPage().markPageAsDirty();
+						markMainAsDirty(udi);
 					} catch (EngineException e) {
 						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	protected void markMainAsDirty(UIComponent uic) throws EngineException {
+		if (uic != null) {
+			IScriptComponent main = uic.getMainScriptComponent();
+			if (main instanceof ApplicationComponent) {
+				((ApplicationComponent)main).markApplicationAsDirty();
+			}
+			if (main instanceof PageComponent) {
+				((PageComponent)main).markPageAsDirty();
+			}
+		}
+	}
+
+	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
+		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		int update = treeObjectEvent.update;
+		
+		if (update != TreeObjectEvent.UPDATE_NONE) {
+			// Case a UIStackVariable has been renamed
+			if (databaseObject instanceof UIStackVariable) {
+				UIStackVariable variable = (UIStackVariable)databaseObject;
+				UIActionStack stack = variable.getStack();
+				if (stack != null) {
+					// rename variable for InvokeAction
+					if (getObject() instanceof UIDynamicInvoke) {
+						UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
+						if (udi.getActionStack().equals(stack.getQName())) {
+							boolean isLocalProject = variable.getProject().equals(udi.getProject());
+							boolean isSameValue = variable.getName().equals(oldValue);
+							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
+							
+							if (!isSameValue && shouldUpdate) {
+								try {
+									Iterator<UIComponent> it = udi.getUIComponentList().iterator();
+									while (it.hasNext()) {
+										UIComponent component = (UIComponent)it.next();
+										if (component instanceof UIControlVariable) {
+											UIControlVariable uicv = (UIControlVariable)component;
+											if (uicv.getName().equals(oldValue)) {
+												uicv.setName((String) newValue);
+												uicv.hasChanged = true;
+												viewer.refresh();
+												
+												markMainAsDirty(udi);
+												break;
+											}
+										}
+									}
+								} catch (EngineException e) {
+									ConvertigoPlugin.logException(e, "Unable to rename the variable references of '" + databaseObject.getName() + "'!");
+								}
+							}
+						}
+					}
+				}
+			}
+			// Case a RequestableVariable has been renamed
+			else if (databaseObject instanceof RequestableVariable) {
+				RequestableVariable variable = (RequestableVariable)databaseObject;
+				DatabaseObject parent = variable.getParent();
+				if (getObject() instanceof UIDynamicAction) {
+					UIDynamicAction uia = (UIDynamicAction)getObject();
+					IonBean ionBean = uia.getIonBean();
+					if (ionBean != null) {
+						// rename variable for CallSequenceAction
+						if (ionBean.getName().equals("CallSequenceAction")) {
+							Object p_val = ionBean.getProperty("requestable").getValue();
+							if (!p_val.equals(false)) {
+								if (parent.getQName().equals(p_val.toString())) {
+									boolean isLocalProject = variable.getProject().equals(uia.getProject());
+									boolean isSameValue = variable.getName().equals(oldValue);
+									boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
+									
+									if (!isSameValue && shouldUpdate) {
+										try {
+											Iterator<UIComponent> it = uia.getUIComponentList().iterator();
+											while (it.hasNext()) {
+												UIComponent component = (UIComponent)it.next();
+												if (component instanceof UIControlVariable) {
+													UIControlVariable uicv = (UIControlVariable)component;
+													if (uicv.getName().equals(oldValue)) {
+														uicv.setName((String) newValue);
+														uicv.hasChanged = true;
+														viewer.refresh();
+														
+														markMainAsDirty(uia);
+														break;
+													}
+												}
+											}
+										} catch (EngineException e) {
+											ConvertigoPlugin.logException(e, "Unable to rename the variable references of '" + databaseObject.getName() + "'!");
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}

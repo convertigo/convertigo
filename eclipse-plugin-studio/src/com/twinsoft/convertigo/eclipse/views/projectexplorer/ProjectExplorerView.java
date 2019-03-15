@@ -1202,7 +1202,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										updateDlg = true;
 									}
 									if (dbo instanceof UIActionStack) {
-										objectType = "stack";
+										objectType = "action";
+										updateDlg = true;
+									}
+									if (dbo instanceof UIStackVariable) {
+										objectType = "variable";
 										updateDlg = true;
 									}
 								}
