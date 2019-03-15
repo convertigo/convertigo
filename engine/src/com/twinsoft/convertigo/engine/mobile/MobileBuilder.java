@@ -100,12 +100,77 @@ public class MobileBuilder {
 					}
 					
 					boolean hasMovedCfgFiles = false;
-					boolean hasMovedAppFiles = false;
+					//boolean hasMovedAppFiles = false;
 					boolean hasMovedFiles = false;
-					Set<String> appFiles = new HashSet<>();
-					Set<String> cfgFiles = new HashSet<>();
+					//Set<String> appFiles = new HashSet<>();
+					//Set<String> cfgFiles = new HashSet<>();
 					
 					Engine.logEngine.debug("(MobileBuilder) Start to move " + map.size() + " files.");
+					
+					// FIRST: move all files
+					for (String path: map.keySet()) {
+						try {
+							FileUtils.write(new File(path), map.get(path), "UTF-8");
+							Engine.logEngine.debug("(MobileBuilder) Moved " + path);
+							hasMovedFiles = true;
+							
+							if (path.endsWith("package.json")) {
+								hasMovedCfgFiles = true;
+							}
+						} catch (IOException e) {
+							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
+						}
+					}
+					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
+					
+					// Need package installation
+					if (hasMovedCfgFiles && getNeedPkgUpdate()) {
+						hasMovedFiles = false;
+						MobileBuilder.this.firePackageUpdated();
+					}
+					
+					if (hasMovedFiles) {
+						if (buildMutex != null) {
+							synchronized (buildMutex) {
+								try {
+									buildMutex.wait(hasMovedFiles ? 60000 : 10);
+								} catch (InterruptedException e) {}							
+							}
+							Engine.logEngine.debug("(MobileBuilder) build finished.");
+						}
+						
+						// THEN: move again app files
+						int count = 0;
+						hasMovedFiles = false;
+						for (String path: map.keySet()) {
+							try {
+								if (path.indexOf("\\src\\pages\\") != -1) {
+									continue;
+								}
+								
+								FileUtils.write(new File(path), map.get(path), "UTF-8");
+								Engine.logEngine.debug("(MobileBuilder) Moved again " + path);
+								hasMovedFiles = true;
+								count++;
+							} catch (IOException e) {
+								Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
+							}
+						}
+						
+						if (hasMovedFiles) {
+							Engine.logEngine.debug("(MobileBuilder) End to move again " + count + " files.");
+							if (buildMutex != null) {
+								synchronized (buildMutex) {
+									try {
+										buildMutex.wait(hasMovedFiles ? 60000 : 10);
+									} catch (InterruptedException e) {}							
+								}
+								Engine.logEngine.debug("(MobileBuilder) build finished.");
+							}
+						}
+					}
+
+				/*
 					for (String path: map.keySet()) {
 						try {
 							if (path.indexOf("\\src\\app\\") != -1) {
@@ -170,7 +235,7 @@ public class MobileBuilder {
 							}
 						}
 						appFiles.clear();
-						
+
 						if (buildMutex != null) {
 							synchronized (buildMutex) {
 								try {
@@ -201,7 +266,7 @@ public class MobileBuilder {
 								Engine.logEngine.warn("(MobileBuilder) Failed to copy the last content of " + lastComponentPath, e);
 							}
 						}
-						
+
 						if (buildMutex != null) {
 							synchronized (buildMutex) {
 								try {
@@ -211,8 +276,9 @@ public class MobileBuilder {
 						}
 						
 					}
-					
+				
 					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
+				*/
 					inProcess = false;
 				}
 			}
@@ -320,7 +386,7 @@ public class MobileBuilder {
 			}
 		}
 	}
-	
+
 	public void setBuildMutex(Object mutex) {
 		buildMutex = mutex;
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
