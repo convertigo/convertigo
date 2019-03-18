@@ -144,7 +144,8 @@ public class MobileBuilder {
 						hasMovedFiles = false;
 						for (String path: map.keySet()) {
 							try {
-								if (path.indexOf("\\src\\pages\\") != -1) {
+								String search = File.separator + "src"+ File.separator +"pages" + File.separator;
+								if (path.indexOf(search) != -1) {
 									continue;
 								}
 								
@@ -868,7 +869,7 @@ public class MobileBuilder {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				return filePath;
 			}
 		}
@@ -885,14 +886,14 @@ public class MobileBuilder {
 				UIActionStack stack = uic.getStack();
 				File tempTsFile = stack == null ? new File(ionicWorkDir, "src/app/app.component.function.temp.ts") :
 													new File(ionicWorkDir, "src/services/actionbeans.service.function.temp.ts");
-				return tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 			}
 			if (main instanceof PageComponent) {
 				PageComponent page = (PageComponent)main;
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
-				return tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 			}
 		}
 		return null;
@@ -1266,7 +1267,7 @@ public class MobileBuilder {
 		try {
 			if (app != null) {
 				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
-				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), "/");
+				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				return filePath;
 			}
 		}
