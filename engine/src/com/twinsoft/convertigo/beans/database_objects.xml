@@ -1207,7 +1207,10 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
             </beans>
-            <beans groupname="Other transactions">                
+            <beans groupname="Other transactions">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
@@ -1218,6 +1221,9 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
             </beans>
@@ -1305,6 +1311,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
@@ -1313,6 +1322,9 @@
                 </bean>
             </beans>
             <beans groupname="Other transactions">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>

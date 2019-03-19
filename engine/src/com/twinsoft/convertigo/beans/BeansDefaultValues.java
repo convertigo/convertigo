@@ -171,6 +171,7 @@ public class BeansDefaultValues {
 					String name = pAttr.getNodeName();
 					if (!name.equals("classname") &&
 							!name.equals("priority") && (
+							dBean == null ||
 							!dBean.hasAttribute(name) ||
 							!pAttr.getNodeValue().equals(dBean.getAttribute(name))
 					)) {
@@ -181,7 +182,7 @@ public class BeansDefaultValues {
 				for (Node pPropNode: xpath.selectList(pBean, "property[@name]")) {
 					Element pProp = (Element) pPropNode;
 					String name = pProp.getAttribute("name");
-					Element dProp = (Element) xpath.selectNode(dBean, "property[@name='" + name + "']");
+					Element dProp = dBean == null ? null : (Element) xpath.selectNode(dBean, "property[@name='" + name + "']");
 					if (!"name".equals(name) &&
 							(dProp == null || !checkIsSame(pProp, dProp)
 					)) {
@@ -191,6 +192,7 @@ public class BeansDefaultValues {
 							String aName = pAttr.getNodeName();
 							if (!aName.equals("name") && 
 									!aName.equals("isNull") && (
+									dProp == null ||
 									!dProp.hasAttribute(aName) ||
 									!pAttr.getNodeValue().equals(dProp.getAttribute(aName))
 							)) {
@@ -239,7 +241,7 @@ public class BeansDefaultValues {
 				
 				for (Node pOther: xpath.selectList(pBean, "*[local-name()!='property' and not(@classname)]")) {
 					String name = pOther.getNodeName();
-					Element dOther = (Element) xpath.selectNode(dBean, name);
+					Element dOther = dBean == null ? null : (Element) xpath.selectNode(dBean, name);
 					if (!checkIsSame(dOther, (Element) pOther)) {
 						Element nImport = (Element) nCopy.getOwnerDocument().importNode(pOther, true);
 						nCopy.appendChild(nImport);
@@ -332,6 +334,7 @@ public class BeansDefaultValues {
 				} catch (Exception e) {
 					nBean = document.createElement("bean");
 					nBean.setAttribute("classname", classname);
+					nBean.setAttribute("priority", "0");
 					Element prop = document.createElement("property");
 					prop.setAttribute("name", "name");
 					prop.appendChild(document.createElement("java.lang.String"));

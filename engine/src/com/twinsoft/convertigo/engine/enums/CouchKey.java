@@ -34,6 +34,7 @@ public enum CouchKey {
 	id,
 	items,
 	cancel,
+	changes,
 	continuous,
 	create_target,
 	data,
@@ -44,11 +45,13 @@ public enum CouchKey {
 	error,
 	filters,
 	keys,
+	last_seq,
 	map,
 	name,
 	ok,
 	password,
 	proxy,
+	purged,
 	reason,
 	reduce,
 	results,
@@ -57,6 +60,7 @@ public enum CouchKey {
 	seq,
 	source,
 	target,
+	total_purged,
 	total_rows,
 	updates,
 	value,
@@ -64,6 +68,7 @@ public enum CouchKey {
 	validate_doc_update,
 	c8oAcl("~c8oAcl"),
 	c8oGrp,
+	c8oDbVersion("~c8oDbVersion"),
 	c8oHash("~c8oHash");
 	
 	String key;

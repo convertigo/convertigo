@@ -44,10 +44,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.ICouchParametersExtra;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
@@ -104,17 +101,8 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		
 		/* */
 		Collection<CouchExtraVariable> extraVariables = null;
-		if (couchDbTransaction instanceof PostBulkDocumentsTransaction){
-			extraVariables = ((PostBulkDocumentsTransaction) couchDbTransaction).getCouchParametersExtra();
-		}
-		if (couchDbTransaction instanceof PostDocumentTransaction) {
-			extraVariables = ((PostDocumentTransaction) couchDbTransaction).getCouchParametersExtra();
-		}
-		if (couchDbTransaction instanceof PostUpdateTransaction) {
-			extraVariables = ((PostUpdateTransaction) couchDbTransaction).getCouchParametersExtra();
-		}
-		if (couchDbTransaction instanceof PutUpdateTransaction) {
-			extraVariables = ((PutUpdateTransaction) couchDbTransaction).getCouchParametersExtra();
+		if (couchDbTransaction instanceof ICouchParametersExtra){
+			extraVariables = ((ICouchParametersExtra) couchDbTransaction).getCouchParametersExtra();
 		}
 		
 		if (extraVariables != null ){

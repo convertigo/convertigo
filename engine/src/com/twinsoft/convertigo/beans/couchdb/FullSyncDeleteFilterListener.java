@@ -72,7 +72,7 @@ public class FullSyncDeleteFilterListener extends AbstractFullSyncFilterListener
 			query.put("include_docs", "true");
 			
 			Engine.logBeans.debug("(FullSyncDeleteFilterListener) Listener \"" + getName() + "\" : post filter for _id keys " + deletedIds);
-			JSONObject json = getCouchClient().postChange(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), deletedIds));
+			JSONObject json = getCouchClient().postChanges(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), deletedIds));
 			Engine.logBeans.debug("(FullSyncDeleteFilterListener) Listener \"" + getName() + "\" : post filter returned following documents :\n" + json.toString());
 			
 			if (json != null) {

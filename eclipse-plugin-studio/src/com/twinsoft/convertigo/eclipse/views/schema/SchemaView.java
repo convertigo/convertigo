@@ -106,7 +106,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 						Display.getDefault().asyncExec(new Runnable() {
 	
 							public void run() {
-								message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+								message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
 								message.setText("Waiting for " + projectName + " " + requestableName + " XML response validation");
 							}
 							

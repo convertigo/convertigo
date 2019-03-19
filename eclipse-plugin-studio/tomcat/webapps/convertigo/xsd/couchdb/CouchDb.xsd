@@ -136,7 +136,11 @@
 							type="tns:string-with-type-keyname" />
 						<xsd:element name="X_Couch_Id" minOccurs="0"
 							type="tns:string-with-type-keyname" />
+						<xsd:element name="X_Couch_Request_ID" minOccurs="0"
+							type="tns:string-with-type-keyname" />
 						<xsd:element name="X_Couch_Update_NewRev" minOccurs="0"
+							type="tns:string-with-type-keyname" />
+						<xsd:element name="X_CouchDB_Body_Time" minOccurs="0"
 							type="tns:string-with-type-keyname" />
 					</xsd:sequence>
 					<xsd:attribute name="type" type="xsd:string" use="optional" />
@@ -976,6 +980,43 @@
 							</xsd:element>
 						</xsd:sequence>
 						<xsd:attribute name="type" type="xsd:string" use="optional" />
+						<xsd:attribute name="length" type="xsd:string" use="optional" />
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="total_rows" type="tns:int-with-type" />
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute name="type" type="xsd:string" use="optional" />
+	</xsd:complexType>
+
+	<xsd:complexType name="allDocsType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup" />
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="offset" type="tns:int-with-type" />
+				<xsd:element name="rows">
+					<xsd:complexType>
+						<xsd:sequence minOccurs="0">
+							<xsd:element name="item" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="id" type="tns:string-with-type" />
+										<xsd:element name="key" type="tns:string-with-type" />
+										<xsd:element name="value">
+											<xsd:complexType>
+												<xsd:sequence>
+													<xsd:element name="rev" type="tns:string-with-type" />
+												</xsd:sequence>
+												<xsd:attribute name="type" type="xsd:string" use="optional" />
+											</xsd:complexType>
+										</xsd:element>
+									</xsd:sequence>
+									<xsd:attribute name="type" type="xsd:string" use="optional" />
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="type" type="xsd:string" use="optional" />
+						<xsd:attribute name="length" type="xsd:string" use="optional" />
 					</xsd:complexType>
 				</xsd:element>
 				<xsd:element name="total_rows" type="tns:int-with-type" />
@@ -1018,6 +1059,7 @@
 							</xsd:element>
 						</xsd:sequence>
 						<xsd:attribute name="type" type="xsd:string" use="optional" />
+						<xsd:attribute name="length" type="xsd:string" use="optional" />
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
@@ -1089,6 +1131,25 @@
 	<xsd:complexType name="postUpdateType">
 		<xsd:sequence>
 			<xsd:group ref="tns:couchTransactionGroup" />
+		</xsd:sequence>
+		<xsd:attribute name="type" type="xsd:string" use="optional" />
+	</xsd:complexType>
+
+	<xsd:complexType name="purgeDatabaseType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup" />
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="purge_seq" type="tns:string-with-type" />
+				<xsd:element name="purged">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:any namespace="##any" processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+						</xsd:sequence>
+						<xsd:attribute name="type" type="xsd:string" use="optional" />
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="total_purged" type="tns:string-with-type" />
+			</xsd:sequence>
 		</xsd:sequence>
 		<xsd:attribute name="type" type="xsd:string" use="optional" />
 	</xsd:complexType>
