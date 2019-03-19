@@ -21,7 +21,7 @@
                 modal.onDidDismiss(data => {
                     let dataStr = "";
                     try{
-                        dataStr = JSON.Stringify(data);
+                        dataStr = JSON.stringify(data);
                     }
                     catch(err){
                         // Do nothing
