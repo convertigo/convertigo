@@ -74,7 +74,7 @@ RUN sed -i.bak \
         -e '/protocol="AJP/d' \
         -e '/AprLifecycleListener/d' \
         -e '/JasperListener/d' \
-        -e 's/port="8080"/port="28080" maxThreads="64000"/' \
+        -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
         conf/server.xml \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \
