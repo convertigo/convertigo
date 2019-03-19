@@ -90,6 +90,7 @@ public class ServletUtils {
 		if (user != null) {
 			user = Base64.encodeBase64String(DigestUtils.sha1(request.getSession().getId() + user));
 			HeaderName.XConvertigoAuthenticated.addHeader(response, user);
+			HeaderName.AccessControlExposeHeaders.addHeader(response, HeaderName.XConvertigoAuthenticated.value());
 		}
 		if (headers != null) {
 			Engine.logContext.debug("Setting custom response headers (" + headers.size() + ")");

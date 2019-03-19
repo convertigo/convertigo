@@ -3125,6 +3125,7 @@
             	objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
 				<visibility>
 					<or>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction"/>
@@ -3132,6 +3133,7 @@
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction"/>

@@ -40,6 +40,7 @@ public enum HeaderName {
 	AccessControlAllowHeaders("Access-Control-Allow-Headers"),
 	AccessControlAllowMethods("Access-Control-Allow-Methods"),
 	AccessControlAllowOrigin("Access-Control-Allow-Origin"),
+	AccessControlExposeHeaders("Access-Control-Expose-Headers"),
 	AccessControlRequestHeaders("Access-Control-Request-Headers"),
 	AccessControlRequestMethod("Access-Control-Request-Method"),
 	Authenticate("WWW-Authenticate"),
