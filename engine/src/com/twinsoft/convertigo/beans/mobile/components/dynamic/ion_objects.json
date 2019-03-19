@@ -6193,7 +6193,17 @@
           "type": "string",
           "value": false
         },
-
+		"blockWhileDisplayed": {
+          "label": "Block while displayed",
+          "description": "Define if execution of next actions has to be blocked while modal page is displayed",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": false,
+          "values": [
+            "false",
+            "true"
+          ]
+        },
         "showBackdrop": {
           "label": "Show Backdrop",
           "description": "Show a backdrop (dark background) behind the page. This will only occur if the page is displayed as popup as defined in the <i>Theme</i> component. See <code>$modal-inset-min-width</code>.",
