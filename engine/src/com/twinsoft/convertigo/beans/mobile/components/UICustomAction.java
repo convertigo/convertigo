@@ -469,7 +469,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
-			computed += "\t\tlet self;" + System.lineSeparator();
+			//computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
@@ -537,7 +537,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			
 			String tsCode = "";
 			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-			tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
+			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
 			tsCode +="\t\treturn this."+actionName+"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
