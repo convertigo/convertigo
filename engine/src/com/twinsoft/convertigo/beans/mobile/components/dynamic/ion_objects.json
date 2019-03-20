@@ -5339,9 +5339,9 @@
      */
     "InfiniteScroll" : {
       "tag": "ion-infinite-scroll",
-      "displayName": "CustomScroll",
-      "label": "Custom Scroll",
-      "description": "ion-infinite-scroll. | The <i>Custom Scroll</i> component holds an infinite scroll logic and requires a <b>child</b> <i>Scroll Content</i> component in order to display its content.<br/>It allows you to perform a given task when the user scrolls a specified distance from the bottom or top of the page.<br/>To do so, add the <b>ionInfinite</b> <i>Event</i> to your <i>Custom Scroll</i> with a <i>CustomAction</i> inside.<br/>Copy/paste below code in your action and add yours.<br/><code><pre>//disable scroll\nevent.enable(false);\n\nlet isOK = true;\n//TODO: add your code\n//get next items and push them\n//...\nif (isOK) {\n\t//enable scroll\n\tevent.enable(true);\n}\n\n//specify loading is complete\nevent.complete();\nresolve();\n</pre></code><br/>For more information: <a href='https://ionicframework.com/docs/v3/api/components/infinite-scroll/InfiniteScroll/' target='_blank'>InfiniteScroll</a>.",
+      "displayName": "InfiniteScroll",
+      "label": "InfiniteScroll",
+      "description": "ion-infinite-scroll. | The <i>InfiniteScroll</i> component holds an infinite scroll logic and requires a <b>child</b> <i>InfiniteScrollContent</i> component in order to display its content.<br/>It allows you to perform a given task when the user scrolls a specified distance from the bottom or top of the page.<br/>To do so, add the <b>ionInfinite</b> <i>Event</i> to your <i>Custom Scroll</i> with a <i>CustomAction</i> inside.<br/>Copy/paste below code in your action and add yours.<br/><code><pre>//disable scroll\nevent.enable(false);\n\nlet isOK = true;\n//TODO: add your code\n//get next items and push them\n//...\nif (isOK) {\n\t//enable scroll\n\tevent.enable(true);\n}\n\n//specify loading is complete\nevent.complete();\nresolve();\n</pre></code><br/>For more information: <a href='https://ionicframework.com/docs/v3/api/components/infinite-scroll/InfiniteScroll/' target='_blank'>InfiniteScroll</a>.",
       "group": "Lists",
       "icon16": "infinitescroll_color_16x16.png",
       "icon32": "infinitescroll_color_32x32.png",
@@ -5401,9 +5401,9 @@
      */
     "InfiniteScrollContent" : {
       "tag": "ion-infinite-scroll-content",
-      "displayName": "ScrollContent",
-      "label": "Scroll Content",
-      "description": "ion-infinite-scroll-content. | The <i>Scroll Content</i> component displays its <b>parent</b> infinite scroll.<br/>You may add it under a <i>Custom Scroll</i> component.<br/>For more information: <a href='https://ionicframework.com/docs/v3/api/components/infinite-scroll/InfiniteScroll/' target='_blank'>InfiniteScrollContent</a>.",
+      "displayName": "InfiniteScrollContent",
+      "label": "InfiniteScrollContent",
+      "description": "ion-infinite-scroll-content. | The <i>InfiniteScrollContent</i> component displays its <b>parent</b> infinite scroll.<br/>You may add it under a <i>InfiniteScroll</i> component.<br/>For more information: <a href='https://ionicframework.com/docs/v3/api/components/infinite-scroll/InfiniteScroll/' target='_blank'>InfiniteScrollContent</a>.",
       "group": "Lists",
       "icon16": "infinitescrollcontent_color_16x16.png",
       "icon32": "infinitescrollcontent_color_32x32.png",
@@ -5440,42 +5440,19 @@
     },
     
     /*
-     * AutoScrollComponent
+     * AutoInfiniteScroll
      */
-    "AutoScrollComponent" : {
-      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
+    "AutoInfiniteScroll" : {
+      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicInfiniteScroll",
       "tag": "c8o-scroll-infinite",
-      "displayName": "AutoScroll",
-      "label": "Auto Scroll",
-      "description": "c8o-scroll-infinite. | The <i>Auto Scroll</i> component holds an automatic infinite scroll logic.<br/>It allows you to perform a given <b>Sequence call</b> or <b>Fullsync view query</b> when the user scrolls a specified distance from the bottom or top of the page.",
+      "displayName": "AutoInfiniteScroll",
+      "label": "AutoInfiniteScroll",
+      "description": "c8o-scroll-infinite. | The <i>AutoInfiniteScroll</i> component holds an automatic infinite scroll logic.<br/>It allows you to perform a given <b>Sequence call</b> or <b>Fullsync view query</b> when the user scrolls a specified distance from the bottom or top of the page.",
       "group": "Lists",
-      "icon16": "autoscrollcomponent_color_16x16.png",
-      "icon32": "autoscrollcomponent_color_32x32.png",
+      "icon16": "autoinfinitescroll_color_16x16.png",
+      "icon32": "autoinfinitescroll_color_32x32.png",
       
       "properties": {
-        "C8oPage": {
-          "attr": "[c8oPage]",
-          "label": "c8oPage",
-          "description": "Define the c8oPage.",
-          "hidden": true,
-          "mode": "script",
-          "type": "string",
-          "value": "this"
-        },
-        "C8oSParams": {
-          "attr": "[c8oSParams]",
-          "hidden": true,
-          "mode": "script",
-          "type": "string",
-          "value": "{requestable: $[requestable], marker: $[s_marker], limit: $[s_limit], timeout: $[s_timeout], threshold: $[s_threshold], __localCache_priority: $[s_cachePolicy], __localCache_ttl: $[s_cacheTtl]}"
-        },
-        "C8oVParams": {
-          "attr": "[c8oVParams]",
-          "hidden": true,
-          "mode": "script",
-          "type": "string",
-          "value": "{fsview: $[fsview], marker: $[v_marker], limit: $[v_limit], descending: $[v_descending], keys: $[v_keys], key: $[v_key], startkey: $[v_startkey], endkey: $[v_endkey], include_docs: $[v_include_docs], inclusive_end: $[v_inclusive_end], conflicts: $[v_conflicts], reduce: $[v_reduce], attachments: $[v_attachments], binary: $[v_binary], group: $[v_group], group_level: $[v_group_level], stale: $[v_stale], __live: $[v_live]}"
-        },
         "ScrollParams": {
           "attr": "[scrollParams]",
           "hidden": true,
@@ -5492,7 +5469,6 @@
           "type": "string",
           "value": "bottom",
           "values": [
-            "top",
             "bottom"
           ]
         },
@@ -5511,7 +5487,7 @@
             true
           ]
         },
-        "items": {
+        "ScrollItems": {
           "attr": "[c8oItems]",
           "label": "Scrollable items",
           "description": "Defines the array of items to bind to.",
@@ -5523,289 +5499,7 @@
             false,
 			true
           ]
-        },
-        "requestable": {
-          "composite": true,
-          "editor": "NamedSourceSelectorEditor",
-          "label": "Requestable",
-          "description": "Defines the target sequence.",
-          "category": "@Sequencer",
-          "type": "string",
-          "value": "",
-          "values": [
-            false,
-			true
-          ]
-        },
-		"s_marker": {
-		  "composite": true,
-          "label": "Marker",
-          "description": "Defines the sequence's marker.",
-          "category": "@Sequencer",
-          "type": "string",
-          "value": "",
-          "values": [
-            false,
-			true
-          ]
-		},
-		"s_cachePolicy": {
-		  "composite": true,
-          "label": "Local cache policy",
-          "description": "Defines the local cache policy.",
-          "category": "@Sequencer",
-          "type": "string",
-          "value": false,
-          "values": [
-            false,
-			"priority_server",
-			"priority_local"
-          ]
-		},
-		"s_cacheTtl": {
-		  "composite": true,
-          "label": "Local cache time to live",
-          "description": "Defines the local cache time to live (in milliseconds).",
-          "category": "@Sequencer",
-          "type": "number",
-          "value": "3000",
-          "values": [
-            false,
-			true
-          ]
-		},
-		"s_timeout": {
-		  "composite": true,
-          "label": "Timeout",
-          "description": "Defines the maximum time to wait for the response (in milliseconds). May be used to detect slow network conditions.",
-          "category": "@Sequencer",
-          "type": "number",
-          "value": false,
-          "values": [
-            false,
-            true
-          ]
-		},
-		"s_threshold": {
-		  "composite": true,
-          "label": "Threshold",
-          "description": "Defines the minimum time to wait for the Loading spinner to show up (in milliseconds).",
-          "category": "@Sequencer",
-          "type": "number",
-          "value": false,
-          "values": [
-            false,
-            true
-          ]
-		},
-	    "s_limit": {
-	      "composite": true,
-	      "label": "Rows limit",
-	      "description": "Maximum number of rows to return. Always limit your queries to some maximum to avoid UI lagging and excessive memory consumption.",
-	      "category": "@Sequencer",
-	      "type": "string",
-	      "value": "500"
-	    },
-	    
-		  "fsview": {
-		    "composite": true,
-		    "editor": "NamedSourceSelectorEditor",
-		    "label": "View",
-		    "description": "The view to query (in the form Project.database.DesignDoc.view).",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": ""
-		  },
-		  "v_marker": {
-		    "composite": true,
-		    "label": "Marker",
-		    "description": "Use Markers to differentiate queries in order to be able to listen to a given query response. Use <code>listen([fs://mydatabase.view#MYMARKER])</code> syntax to listen to a given 'Marked' query.",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false
-		  },
-		  "v_live": {
-		    "composite": true,
-		    "description": "If set to an ID,  will automatically monitor any database change (From continuous replication or from local changes) and re-run the query. Using 'Live' is the best way to refresh automatically your UI when data changes in the database. You can cancel an 'live' view by calling the c8o.cancelLive(id) API.",
-		    "label": "Live",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "ID1",
-		      "ID2",
-		      "ID3",
-		      "ID4",
-		      "ID5",
-		      true
-		    ]
-		  },
-		  "v_include_docs": {
-		    "composite": true,
-		    "description": "Include the document in each row in the doc field. This may be useful for joined queries or if you do not want to 'emit' too much 'values' in your map functions.<br/><br/>See <a href='https://wiki.apache.org/couchdb/Introduction_to_CouchDB_views#Linked_documents' target='_blank'>joined queries</a>.",
-		    "label": "include_docs",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": "false",
-		    "values": [
-		      "false",
-		      "true"
-		    ]
-		  },
-		  "v_conflicts": {
-		    "composite": true,
-		    "description": "Include conflicts in the _conflicts field of a doc.",
-		    "label": "Conflicts",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "true",
-		      "false"
-		    ]
-		  },
-		  "v_reduce": {
-		    "composite": true,
-		    "description": "Call the view reduced.",
-		    "label": "Reduce",
-		    "category": "@Fullsync",
-		    "type": "boolean",
-		    "value": false,
-		    "values": [
-		      false,
-		      "true",
-		      "false"
-		    ]
-		  },
-		  "v_attachments": {
-		    "composite": true,
-		    "description": "Include attachment data.",
-		    "label": "Attachments",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "true",
-		      "false"
-		    ]
-		  },
-		  "v_binary": {
-		    "composite": true,
-		    "description": "Return attachment data as Blobs/Buffers, instead of as base64-encoded strings.",
-		    "label": "Attachments binary",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "true",
-		      "false"
-		    ]
-		  },
-		  "v_startkey": {
-		    "composite": true,
-		    "description": "Get rows with keys in a certain range (inclusive/inclusive) from the start key.",
-		    "label": "StartKey",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false
-		  },
-		  "v_endkey": {
-		    "composite": true,
-		    "description": "Get rows with keys in a certain range (inclusive/inclusive) from the end key.",
-		    "label": "EndKey",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false
-		  },
-		  "v_inclusive_end": {
-		    "composite": true,
-		    "description": "Include rows having a key equal to the given options.endkey. Default: true",
-		    "label": "Inclusive end",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "true",
-		      "false"
-		    ]
-		  },
-		  "v_limit": {
-		    "composite": true,
-		    "mode":"script",
-		    "description": "Maximum number of rows to return. Always limit your queries to some maximum to avoid UI lagging and excessive memory consumption.",
-		    "label": "limit",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": "500"
-		  },
-		  "v_descending": {
-		    "composite": true,
-		    "description": "Reverse the order of the output rows.",
-		    "label": "Descending",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "false",
-		      "true"
-		    ]
-		  },
-		  "v_key": {
-		    "composite": true,
-		    "description": "Only return rows matching this key.",
-		    "label": "key",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false
-		  },
-		  "v_keys": {
-		    "composite": true,
-		    "description": "Array of keys to fetch in a single shot. Neither startkey nor endkey can be specified with this option. The rows are returned in the same order as the supplied keys array. The row for a deleted document will have the revision ID of the deletion, and an extra key 'deleted':true in the value property. The row for a nonexistent document will just contain an 'error' property with the value 'not_found'.",
-		    "label": "keys",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false
-		  },
-		  "v_group": {
-		    "composite": true,
-		    "description": "True if you want the reduce function to group results by keys, rather than returning a single result. Defaults to false.",
-		    "label": "group",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "false",
-		      "true"
-		    ]
-		  },
-		  "v_group_level": {
-		    "composite": true,
-		    "description": "Number of elements in a key to group by, assuming the keys are arrays. Defaults to the full length of the array.",
-		    "label": "Group level",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false
-		  },
-		  "v_stale": {
-		    "composite": true,
-		    "description": "Can be one of: unspecified (default): Returns the latest results, waiting for the view to build if necessary. 'ok': Returns results immediately, even if they are out-of-date. 'update_after': Returns results immediately, but kicks off a build afterwards.",
-		    "label": "Stale",
-		    "category": "@Fullsync",
-		    "type": "string",
-		    "value": false,
-		    "values": [
-		      false,
-		      "ok",
-		      "update_after"
-		    ]
-		  }
+        }
       },
       "config": {
         "module_ts_imports": [

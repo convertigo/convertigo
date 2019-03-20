@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInfiniteScroll;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
@@ -548,6 +549,16 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("stack");
 					}
 				}
+				else if (object instanceof UIDynamicInfiniteScroll) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+						MobilePageComponentTreeObject.class.isAssignableFrom(c) ||
+						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("scrollaction");
+					}
+				}
 				else if (object instanceof UIDynamicElement) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						SequenceTreeObject.class.isAssignableFrom(c) ||
@@ -591,6 +602,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				else if (object instanceof UIDynamicInvoke) {
 					return "stack".equals(propertyName);
 				}
+				else if (object instanceof UIDynamicInfiniteScroll) {
+					return "scrollaction".equals(propertyName);
+				}
 				else if (object instanceof UIDynamicElement) {
 					return "requestable".equals(propertyName) || 
 								"fsview".equals(propertyName) ||
@@ -631,6 +645,21 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				else if (object instanceof UIDynamicInvoke) {
 					if ("stack".equals(propertyName)) {
 						return nsObject instanceof UIActionStack;
+					}
+				}
+				else if (object instanceof UIDynamicInfiniteScroll) {
+					if ("scrollaction".equals(propertyName)) {
+						if (nsObject instanceof UIDynamicAction) {
+							UIDynamicAction uida = (UIDynamicAction) nsObject;
+							if (uida.getProject().equals(object.getProject())) {
+								if (uida.getIonBean().getName().equals("CallSequenceAction")) {
+									return true;
+								}
+								if (uida.getIonBean().getName().equals("FullSyncViewAction")) {
+									return true;
+								}
+							}
+						}
 					}
 				}
 				else if (object instanceof UIDynamicElement) {
@@ -733,6 +762,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							else if (object instanceof UIDynamicInvoke) {
 								if ("stack".equals(propertyName)) {
 									((UIDynamicInvoke)object).setActionStack(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+							else if (object instanceof UIDynamicInfiniteScroll) {
+								if ("scrollaction".equals(propertyName)) {
+									((UIDynamicInfiniteScroll)object).setScrollAction(_pValue);
 									hasBeenRenamed = true;
 								}
 							}

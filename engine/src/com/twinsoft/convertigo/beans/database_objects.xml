@@ -210,6 +210,9 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
 				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInfiniteScroll">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+				</bean>
 			</beans>
 			<beans groupname="Form Components">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIForm">

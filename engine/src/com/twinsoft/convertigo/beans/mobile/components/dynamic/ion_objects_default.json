@@ -2084,6 +2084,11 @@
     "mode": "plain",
     "value": false
    },
+   "blockWhileDisplayed": {
+    "name": "blockWhileDisplayed",
+    "mode": "plain",
+    "value": false
+   },
    "showBackdrop": {
     "name": "showBackdrop",
     "mode": "plain",
@@ -3608,5 +3613,30 @@
  "InvokeAction": {"   7   6   0": {
   "name": "InvokeAction",
   "properties": {}
+ }},
+ "AutoInfiniteScroll": {"   7   6   0": {
+  "name": "AutoInfiniteScroll",
+  "properties": {
+   "ScrollParams": {
+    "name": "ScrollParams",
+    "mode": "script",
+    "value": "{position: $[ScrollPosition], threshold: $[ScrollThreshold]}"
+   },
+   "ScrollPosition": {
+    "name": "ScrollPosition",
+    "mode": "plain",
+    "value": "bottom"
+   },
+   "ScrollThreshold": {
+    "name": "ScrollThreshold",
+    "mode": "plain",
+    "value": "15%"
+   },
+   "ScrollItems": {
+    "name": "ScrollItems",
+    "mode": "script",
+    "value": "[]"
+   }
+  }
  }}
 }
