@@ -778,4 +778,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		}
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		if (isSetGlobalAction()) {
+			String key = getSetGlobalActionKeyName();
+			if (key != null && !key.isEmpty()) {
+				Object val = getSetGlobalActionKeyValue();
+				return ""+ key + " = " + (val == null || val.toString().isEmpty() ? "?": val.toString());
+			}
+		}
+		return super.toString();
+	}
 }
