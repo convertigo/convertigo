@@ -52,6 +52,7 @@ import org.xml.sax.SAXException;
  * 
  * @xsl.usage internal
  */
+@SuppressWarnings("all")
 abstract public class ToStream extends SerializerBase
 {
 
@@ -1594,6 +1595,13 @@ abstract public class ToStream extends SerializerBase
                         writer.write("&#8232;");
                         lastDirtyCharProcessed = i;
                     }
+                    else if (Encodings.isHighUTF16Surrogate(ch)) {
+                        // As of Java 1.5, we could use Character.isHighSurrogate(ch),
+                        // but this codebase needs to be Java 1.3 compliant (even though that is seriously outdated),
+                        // which is why we settle for Encodings.isHighUTF16Surrogate(ch).
+                        lastDirtyCharProcessed = processDirty(chars, end, i, ch, lastDirtyCharProcessed, true);
+                        i = lastDirtyCharProcessed;
+                    }
                     else if (m_encodingInfo.isInEncoding(ch)) {
                         // If the character is in the encoding, and
                         // not in the normal ASCII range, we also
@@ -2102,6 +2110,7 @@ abstract public class ToStream extends SerializerBase
         }
         string.getChars(0,len, m_attrBuff, 0);   
         final char[] stringChars = m_attrBuff;
+        int lastDirtyCharProcessed = -1;
 
         for (int i = 0; i < len; i++)
         {
@@ -2111,7 +2120,7 @@ abstract public class ToStream extends SerializerBase
                 // The character is supposed to be replaced by a String
                 // e.g.   '&'  -->  "&amp;"
                 // e.g.   '<'  -->  "&lt;"
-                accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
+            	lastDirtyCharProcessed = accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
             }
             else {
                 if (0x0 <= ch && ch <= 0x1F) {
@@ -2133,17 +2142,21 @@ abstract public class ToStream extends SerializerBase
 
                     case CharInfo.S_HORIZONAL_TAB:
                         writer.write("&#9;");
+                        lastDirtyCharProcessed = i;
                         break;
                     case CharInfo.S_LINEFEED:
                         writer.write("&#10;");
+                        lastDirtyCharProcessed = i;
                         break;
                     case CharInfo.S_CARRIAGERETURN:
                         writer.write("&#13;");
+                        lastDirtyCharProcessed = i;
                         break;
                     default:
                         writer.write("&#");
                         writer.write(Integer.toString(ch));
                         writer.write(';');
+                        lastDirtyCharProcessed = i;
                         break;
 
                     }
@@ -2152,6 +2165,7 @@ abstract public class ToStream extends SerializerBase
                     // Range 0x20 through 0x7E inclusive
                     // Normal ASCII chars
                         writer.write(ch);
+                        lastDirtyCharProcessed = i;
                 }
                 else if (ch <= 0x9F){
                     // Range 0x7F through 0x9F inclusive
@@ -2159,16 +2173,23 @@ abstract public class ToStream extends SerializerBase
                     writer.write("&#");
                     writer.write(Integer.toString(ch));
                     writer.write(';');
+                    lastDirtyCharProcessed = i;
                 }
                 else if (ch == CharInfo.S_LINE_SEPARATOR) {
                     // LINE SEPARATOR
                     writer.write("&#8232;");
+                    lastDirtyCharProcessed = i;
+                }
+                else if (Encodings.isHighUTF16Surrogate(ch)) {
+                    lastDirtyCharProcessed = processDirty(stringChars, len, i, ch, lastDirtyCharProcessed, false);
+                    i = lastDirtyCharProcessed;
                 }
                 else if (m_encodingInfo.isInEncoding(ch)) {
                     // If the character is in the encoding, and
                     // not in the normal ASCII range, we also
                     // just write it out
                     writer.write(ch);
+                    lastDirtyCharProcessed = i;
                 }
                 else {
                     // This is a fallback plan, we should never get here
@@ -2178,6 +2199,7 @@ abstract public class ToStream extends SerializerBase
                     writer.write("&#");
                     writer.write(Integer.toString(ch));
                     writer.write(';');
+                    lastDirtyCharProcessed = i;
                 }
                     
             }
