@@ -165,12 +165,18 @@ public class BeansDoc {
 			String path = "/mobile-application/components/" + grpNameNormalized + "/";
 			String permalink = "reference-manual/convertigo-objects" + path + objLabelNormalized + "/";
 			
-			StringBuilder sb = new StringBuilder();			
+			String metadesc = beanMB.getDescription();
+			
+			if(metadesc.length() >= 150)
+				metadesc = metadesc.substring(0, 150);
+			
+			StringBuilder sb = new StringBuilder();
 			sb.append("---\n" +
 					"layout: page\n" +
 					"title: " + objLabel + "\n" +
 					"sidebar: c8o_sidebar\n" +
 					"permalink: " + permalink + "\n" +
+					"metadesc: " + metadesc + "\n" +
 					"ObjGroup: " + grpName + "\n" +
 					"ObjCatName: " + grpNameNormalized + "\n" +
 					"ObjName: " + objName + "\n" +
@@ -256,12 +262,14 @@ public class BeansDoc {
 		}
 		StringBuilder sb = new StringBuilder();
 		String permalink = "reference-manual/convertigo-objects/" + path + "/";
+		String metadesc = databaseObjectBeanDescriptor.getShortDescription();
 		sb.append(
 			"---\n" +
 			"layout: page\n" +
 			"title: " + displayName + "\n" +
 			"sidebar: c8o_sidebar\n" +
 			"permalink: " + permalink + "\n" +
+			"metadesc: " + metadesc + "\n" +
 			"ObjGroup: " + groupName + "\n" +
 			"ObjCatName: " + normalizedBeansCategoryName + "\n" +
 			"ObjName: " + displayName + "\n" +
