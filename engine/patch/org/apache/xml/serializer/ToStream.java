@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /*
- * $Id$
+ * $Id: ToStream.java 1225444 2011-12-29 05:52:39Z mrglavas $
  */
 package org.apache.xml.serializer;
 
@@ -52,7 +52,6 @@ import org.xml.sax.SAXException;
  * 
  * @xsl.usage internal
  */
-@SuppressWarnings("all")
 abstract public class ToStream extends SerializerBase
 {
 
@@ -717,11 +716,7 @@ abstract public class ToStream extends SerializerBase
         {
             // We wrap the OutputStream with a writer, but
             // not one set by the user
-        	try {
-        		setWriterInternal(new WriterToUTF8Buffered(output), false);
-        	} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+            setWriterInternal(new WriterToUTF8Buffered(output), false);
         } else if (
                 "WINDOWS-1250".equals(encoding)
                 || "US-ASCII".equals(encoding)
@@ -1599,13 +1594,6 @@ abstract public class ToStream extends SerializerBase
                         writer.write("&#8232;");
                         lastDirtyCharProcessed = i;
                     }
-                    else if (Encodings.isHighUTF16Surrogate(ch)) {
-                        // As of Java 1.5, we could use Character.isHighSurrogate(ch),
-                        // but this codebase needs to be Java 1.3 compliant (even though that is seriously outdated),
-                        // which is why we settle for Encodings.isHighUTF16Surrogate(ch).
-                        lastDirtyCharProcessed = processDirty(chars, end, i, ch, lastDirtyCharProcessed, true);
-                        i = lastDirtyCharProcessed;
-                    }
                     else if (m_encodingInfo.isInEncoding(ch)) {
                         // If the character is in the encoding, and
                         // not in the normal ASCII range, we also
@@ -2114,7 +2102,6 @@ abstract public class ToStream extends SerializerBase
         }
         string.getChars(0,len, m_attrBuff, 0);   
         final char[] stringChars = m_attrBuff;
-        int lastDirtyCharProcessed = -1;
 
         for (int i = 0; i < len; i++)
         {
@@ -2124,7 +2111,7 @@ abstract public class ToStream extends SerializerBase
                 // The character is supposed to be replaced by a String
                 // e.g.   '&'  -->  "&amp;"
                 // e.g.   '<'  -->  "&lt;"
-                lastDirtyCharProcessed = accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
+                accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
             }
             else {
                 if (0x0 <= ch && ch <= 0x1F) {
@@ -2146,21 +2133,17 @@ abstract public class ToStream extends SerializerBase
 
                     case CharInfo.S_HORIZONAL_TAB:
                         writer.write("&#9;");
-                        lastDirtyCharProcessed = i;
                         break;
                     case CharInfo.S_LINEFEED:
                         writer.write("&#10;");
-                        lastDirtyCharProcessed = i;
                         break;
                     case CharInfo.S_CARRIAGERETURN:
                         writer.write("&#13;");
-                        lastDirtyCharProcessed = i;
                         break;
                     default:
                         writer.write("&#");
                         writer.write(Integer.toString(ch));
                         writer.write(';');
-                        lastDirtyCharProcessed = i;
                         break;
 
                     }
@@ -2169,7 +2152,6 @@ abstract public class ToStream extends SerializerBase
                     // Range 0x20 through 0x7E inclusive
                     // Normal ASCII chars
                         writer.write(ch);
-                    lastDirtyCharProcessed = i;
                 }
                 else if (ch <= 0x9F){
                     // Range 0x7F through 0x9F inclusive
@@ -2177,23 +2159,16 @@ abstract public class ToStream extends SerializerBase
                     writer.write("&#");
                     writer.write(Integer.toString(ch));
                     writer.write(';');
-                    lastDirtyCharProcessed = i;
                 }
                 else if (ch == CharInfo.S_LINE_SEPARATOR) {
                     // LINE SEPARATOR
                     writer.write("&#8232;");
-                    lastDirtyCharProcessed = i;
-                }
-                else if (Encodings.isHighUTF16Surrogate(ch)) {
-                    lastDirtyCharProcessed = processDirty(stringChars, len, i, ch, lastDirtyCharProcessed, false);
-                    i = lastDirtyCharProcessed;
                 }
                 else if (m_encodingInfo.isInEncoding(ch)) {
                     // If the character is in the encoding, and
                     // not in the normal ASCII range, we also
                     // just write it out
                     writer.write(ch);
-                    lastDirtyCharProcessed = i;
                 }
                 else {
                     // This is a fallback plan, we should never get here
@@ -2203,7 +2178,6 @@ abstract public class ToStream extends SerializerBase
                     writer.write("&#");
                     writer.write(Integer.toString(ch));
                     writer.write(';');
-                    lastDirtyCharProcessed = i;
                 }
                     
             }
@@ -2744,7 +2718,7 @@ abstract public class ToStream extends SerializerBase
      * OutputProperties. Eventually this method should go away and a call
      * to setCdataSectionElements(Vector v) should be made directly.
      */
-    private void setCdataSectionElements(String key, Properties props)
+	private void setCdataSectionElements(String key, Properties props)
     {
 
         String s = props.getProperty(key);
