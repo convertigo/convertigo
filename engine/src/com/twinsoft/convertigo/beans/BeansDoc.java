@@ -166,6 +166,9 @@ public class BeansDoc {
 			String permalink = "reference-manual/convertigo-objects" + path + objLabelNormalized + "/";
 			
 			String metadesc = beanMB.getDescription();
+			metadesc = metadesc.replaceAll("<[a-zA-Z]*>|<\\/[a-zA-Z]*>|<br\\/>", " ");
+			metadesc = metadesc.replaceAll(":", " ");
+			metadesc = metadesc.replaceAll("\\|", " ");
 			
 			if(metadesc.length() >= 150)
 				metadesc = metadesc.substring(0, 150);
@@ -262,7 +265,15 @@ public class BeansDoc {
 		}
 		StringBuilder sb = new StringBuilder();
 		String permalink = "reference-manual/convertigo-objects/" + path + "/";
+		
 		String metadesc = databaseObjectBeanDescriptor.getShortDescription();
+		metadesc = metadesc.replaceAll("<[a-zA-Z]*>|<\\/[a-zA-Z]*>|<br\\/>", " ");
+		metadesc = metadesc.replaceAll(":", " ");
+		metadesc = metadesc.replaceAll("\\|", " ");
+		
+		if(metadesc.length() >= 150)
+			metadesc = metadesc.substring(0, 150);
+		
 		sb.append(
 			"---\n" +
 			"layout: page\n" +
