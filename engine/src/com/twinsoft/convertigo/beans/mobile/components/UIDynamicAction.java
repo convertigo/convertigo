@@ -461,7 +461,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
-			computed += "\t\tlet self;" + System.lineSeparator();
+			//computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
@@ -530,7 +530,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				
 				String tsCode = "";
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-				tsCode += "\t\tself = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 				
 				if ("InvokeAction".equals(ionBean.getName())) {

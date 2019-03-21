@@ -51,7 +51,7 @@ public class CopyDocumentTransaction extends AbstractDocumentTransaction {
 		String db = getTargetDatabase();
 		String docid = getParameterStringValue(CouchParam.docid);
 		String destination = getParameterStringValue(CouchParam.destination);
-		String destination_rev = getParameterStringValue(CouchParam.destination);
+		String destination_rev = getParameterStringValue(CouchParam.destination_rev);
 		Map<String, String> query = getQueryVariableValues();
 		
 		JSONObject response = getCouchClient().copyDocument(db, docid, destination, destination_rev, query);
