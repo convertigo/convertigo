@@ -114,21 +114,15 @@ public class CarUtils {
 		File carFile = new File(projectDir, projectName + ".car");
 		undeployedFiles.add(carFile);
 		
-		for (File file : projectDir.listFiles()) {
-			if (file.getName().startsWith(".")) {
-				undeployedFiles.add(file);
-			}
-		}
-		
-		new FileWalker(){
+		new FileWalker() {
 
 			@Override
 			public void walk(File file) {
 				String filename = file.getName(); 
-				if (filename.equals(".svn") || filename.equals("CVS") || filename.equals("node_modules")) {
+				if (filename.equals(".svn") || filename.equals(".git") || filename.equals(".gradle") || filename.equals("CVS") || filename.equals("node_modules")) {
 					undeployedFiles.add(file);
 				} else {
-					super.walk(file);					
+					super.walk(file);
 				}
 			}
 			
