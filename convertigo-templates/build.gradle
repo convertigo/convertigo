@@ -1,6 +1,7 @@
 if (!rootProject.name.equals(name)) {
 
-	org.apache.tools.ant.DirectoryScanner.removeDefaultExclude("**/.gitignore")
+	org.apache.tools.ant.DirectoryScanner.removeDefaultExclude('**/.gitignore')
+	org.apache.tools.ant.DirectoryScanner.removeDefaultExclude('**/.gitattributes')
 
 	task copyTemplatesCommons {
 		group 'convertigo'
