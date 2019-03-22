@@ -67,9 +67,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedStacks = new XMLVector<XMLVector<Long>>();
+	transient private String tplProjectVersion = "";
 	
 	private String tplProjectName = "";
-	private String tplProjectVersion = "";
 	private String splitPaneLayout = "not set";
 	private boolean isPWA = false;
 	

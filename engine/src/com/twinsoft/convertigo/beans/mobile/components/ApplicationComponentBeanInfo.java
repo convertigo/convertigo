@@ -38,7 +38,7 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[4];
 
 			properties[0] = new PropertyDescriptor("componentScriptContent", beanClass, "getComponentScriptContent", "setComponentScriptContent");
 			properties[0].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
@@ -49,20 +49,15 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.tplProjectName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.tplProjectName.short_description"));
 			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
-
-			properties[2] = new PropertyDescriptor("tplProjectVersion", beanClass, "getTplProjectVersion", "setTplProjectVersion");
-			properties[2].setDisplayName(getExternalizedString("property.tplProjectVersion.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.tplProjectVersion.short_description"));
-			properties[2].setValue("disable", Boolean.TRUE);
 			
-			properties[3] = new PropertyDescriptor("splitPaneLayout", beanClass, "getSplitPaneLayout", "setSplitPaneLayout");
-			properties[3].setDisplayName(getExternalizedString("property.splitPaneLayout.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.splitPaneLayout.short_description"));
-			properties[3].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			properties[2] = new PropertyDescriptor("splitPaneLayout", beanClass, "getSplitPaneLayout", "setSplitPaneLayout");
+			properties[2].setDisplayName(getExternalizedString("property.splitPaneLayout.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.splitPaneLayout.short_description"));
+			properties[2].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 			
-			properties[4] = new PropertyDescriptor("isPWA", beanClass, "isPWA", "setPWA");
-			properties[4].setDisplayName(getExternalizedString("property.isPWA.display_name"));
-			properties[4].setShortDescription(getExternalizedString("property.isPWA.short_description"));
+			properties[3] = new PropertyDescriptor("isPWA", beanClass, "isPWA", "setPWA");
+			properties[3].setDisplayName(getExternalizedString("property.isPWA.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.isPWA.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

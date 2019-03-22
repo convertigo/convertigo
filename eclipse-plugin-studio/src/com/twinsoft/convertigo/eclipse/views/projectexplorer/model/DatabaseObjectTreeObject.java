@@ -693,12 +693,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		else if (propertyName.equals(P_PRIORITY))
 			return Long.toString(databaseObject.priority);
 		else if (propertyName.equals(P_DEPTH)) {
-	        if (databaseObject instanceof ScreenClass) return Integer.toString(((ScreenClass) databaseObject).getDepth());
-			else return "n/a";
+			if (databaseObject instanceof ScreenClass) return Integer.toString(((ScreenClass) databaseObject).getDepth());
+			else return org.apache.commons.lang3.StringUtils.countMatches(databaseObject.getQName(), '.');
 		}
 		else if (propertyName.equals(P_EXPORTED)) {
-			if (databaseObject instanceof Project) return ((Project)databaseObject).getInfoForProperty("exported");
-			else return "n/a";
+			return databaseObject.getProject().getInfoForProperty("exported");
 		}
 		else {
 			try {

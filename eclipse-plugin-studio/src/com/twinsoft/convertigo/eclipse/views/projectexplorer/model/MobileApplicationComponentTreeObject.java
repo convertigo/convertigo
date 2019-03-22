@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.security.InvalidParameterException;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
@@ -37,6 +38,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -57,6 +59,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
+	public static final String P_TPL_VERSION = "#tplVersion";
 	
 	public MobileApplicationComponentTreeObject(Viewer viewer, ApplicationComponent object) {
 		super(viewer, object);
@@ -375,4 +378,23 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		}
 		return editorPart;
 	}
+	
+	@Override
+	protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
+		List<PropertyDescriptor> l = super.getDynamicPropertyDescriptors();
+		PropertyDescriptor pd = new PropertyDescriptor(P_TPL_VERSION, "Template version");
+		pd.setDescription("The project's ionicTpl version.");
+		pd.setCategory("Information");
+		l.add(pd);
+		return l;
+	}
+
+	@Override
+	public Object getPropertyValue(Object id) {
+		if (P_TPL_VERSION.equals(id)) {
+			return getObject().getTplProjectVersion();
+		}
+		return super.getPropertyValue(id);
+	}	
+	
 }
