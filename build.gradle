@@ -13,6 +13,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import groovy.xml.XmlUtil
 
 apply from: 'headers.gradle'
+apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
