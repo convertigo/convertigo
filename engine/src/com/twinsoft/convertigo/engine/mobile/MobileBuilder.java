@@ -1426,8 +1426,8 @@ public class MobileBuilder {
 				
 				File appServiceTpl = new File(ionicTplDir, "src/services/actionbeans.service.ts");
 				String mContent = FileUtils.readFileToString(appServiceTpl, "UTF-8");
-				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsImports\\*/",c8o_ActionTsImports);
-				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsFunctions\\*/",c8o_ActionTsFunctions);
+				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsImports\\*/",Matcher.quoteReplacement(c8o_ActionTsImports));
+				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsFunctions\\*/",Matcher.quoteReplacement(c8o_ActionTsFunctions));
 				File appServiceTsFile = new File(ionicWorkDir, "src/services/actionbeans.service.ts");
 				writeFile(appServiceTsFile, mContent, "UTF-8");
 				
