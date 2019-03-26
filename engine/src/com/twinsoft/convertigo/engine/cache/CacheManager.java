@@ -43,6 +43,12 @@ public abstract class CacheManager extends AbstractRunnableManager {
 	
 	public void init() throws EngineException {
 		Engine.logCacheManager.debug("Initializing cache manager...");
+		isRunning = true;
+		Thread vulture = new Thread(this);
+		executionThread = vulture;
+		vulture.setName("CacheManager");
+		vulture.setDaemon(true);
+		vulture.start();
 	}
 	
 	public void destroy() throws EngineException {
