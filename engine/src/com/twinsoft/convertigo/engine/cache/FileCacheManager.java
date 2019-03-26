@@ -31,17 +31,68 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.events.BaseEventListener;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class FileCacheManager extends MemoryCacheManager {
+public class FileCacheManager extends MemoryCacheManager implements BaseEventListener {
 	
 	public FileCacheManager() {
 		Engine.logCacheManager.debug("Using a file cache manager: " + Engine.CACHE_PATH);
 	}
 	
 	private static final String KEY_INDEX = "Convertigo.FileCacheManager: index";
+	
+	@Override
+	public void init() throws EngineException {
+		File cacheDir = new File(EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY));
+		try {
+			if (cacheDir.exists() && !cacheDir.isDirectory()) {
+				Engine.logEngine.error("(FileCacheManager) The 'file cache directory' must be a directory : " + cacheDir);
+			} else {
+				cacheDir.mkdirs();
+				File testWrite = new File(cacheDir, ".testWrite");
+				if (testWrite.createNewFile()) {
+					testWrite.delete();
+					Engine.CACHE_PATH = cacheDir.getCanonicalPath();
+				} else {
+					Engine.logEngine.error("(FileCacheManager) Failed to write to : " + testWrite);
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("(FileCacheManager) Failed to write to : " + cacheDir, e);
+		}
+		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
+		super.init();
+	}
+
+	@Override
+	public void destroy() throws EngineException {
+		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
+		super.destroy();
+	}
+
+	public void onEvent(PropertyChangeEvent event) {
+		PropertyName name = event.getKey();
+		String cacheDir = EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY);
+		if (!cacheDir.equals(Engine.CACHE_PATH) && name.equals(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY)) {
+			try {
+				destroy();
+			} catch(EngineException e) {
+				Engine.logEngine.error("Error on FileCacheManager.destroy", e);
+			}
+			try {
+				init();
+			} catch(EngineException e) {
+				Engine.logEngine.error("Error on FileCacheManager.init", e);
+			}
+		}
+	}
 	
 	protected long getNextIndex() {
 		long index = 1;

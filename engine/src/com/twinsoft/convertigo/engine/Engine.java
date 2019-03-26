@@ -635,12 +635,6 @@ public class Engine {
 					Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName)
 							.newInstance();
 					Engine.theApp.cacheManager.init();
-
-					Thread vulture = new Thread(Engine.theApp.cacheManager);
-					Engine.theApp.cacheManager.executionThread = vulture;
-					vulture.setName("CacheManager");
-					vulture.setDaemon(true);
-					vulture.start();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the cache manager.", e);
 				}
