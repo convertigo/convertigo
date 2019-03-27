@@ -54,10 +54,10 @@ public class Statistics {
      */
     public synchronized long getLatestDuration(String taskID) {
         try {
-            return latestDuration.getOrDefault(taskID, (long) -1);
+            return latestDuration.getOrDefault(taskID, -1L);
         }
         catch(Exception e) {
-            return -1;
+            return -1L;
         }
     }
     
@@ -76,10 +76,10 @@ public class Statistics {
 	        	long taskNum = dividers.get(taskID).longValue();
 	            return taskDurations / taskNum;
         	}
-            return -1;
+            return -1L;
         }
         catch(Exception e) {
-            return -1;
+            return -1L;
         }
     }
     
@@ -179,7 +179,7 @@ public class Statistics {
         try {
         	long l = 0;
             try {
-                l = dividers.get(taskID);
+                l = dividers.getOrDefault(taskID, 0L);
                 l++;
             }
             catch(Exception e){
