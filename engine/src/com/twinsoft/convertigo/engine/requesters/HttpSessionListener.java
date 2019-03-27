@@ -25,7 +25,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -158,6 +157,8 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     }
     
     static public Collection<HttpSession> getSessions() {
-    	return Collections.unmodifiableCollection(httpSessions.values());
+    	synchronized (httpSessions) {
+        	return new ArrayList<>(httpSessions.values());
+		}
     }
 }

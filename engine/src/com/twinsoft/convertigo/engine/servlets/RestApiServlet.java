@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
@@ -55,6 +56,7 @@ import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.tas.KeyManager;
+import com.twinsoft.tas.TASException;
 
 public class RestApiServlet extends GenericServlet {
 
@@ -115,6 +117,13 @@ public class RestApiServlet extends GenericServlet {
 		
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
 		request = wrapped_request;
+		
+		try {
+			HttpSessionListener.checkSession(request);
+		} catch (TASException e) {
+			HttpUtils.terminateSession(request.getSession());
+			throw new RuntimeException(e);
+		}
 		
 		HttpSession httpSession = request.getSession();
 		
