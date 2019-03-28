@@ -589,6 +589,9 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
     public void addUrlMapper(UrlMapper urlMapper) throws EngineException {
+    	if (!isOriginal()) {
+    		return;
+    	};
     	if (this.urlMapper != null) {
     		throw new EngineException("The project \"" + getName() + "\" already contains an URL mapper! Please delete it first.");
     	}
@@ -598,6 +601,9 @@ public class Project extends DatabaseObject implements IInfoProperty {
     }
     
     public void removeUrlMapper(UrlMapper urlMapper) {
+    	if (!isOriginal()) {
+    		return;
+    	};
     	if (urlMapper != null && urlMapper.equals(this.urlMapper)) {
     		this.urlMapper = null;
     		RestApiManager.getInstance().removeUrlMapper(getName());

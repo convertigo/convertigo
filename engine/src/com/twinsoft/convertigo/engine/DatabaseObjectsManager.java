@@ -244,7 +244,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		
 		String projectPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
 		
-		if (checkOpenable && !canOpenProject(projectName) || !new File(projectPath).exists()) {
+		if (checkOpenable && !canOpenProject(projectName)) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
 			return null;
@@ -256,7 +256,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			project = projects.get(projectName);
 		}
 		
-		if (project == null) {		
+		if (project == null) {
 			long t0 = Calendar.getInstance().getTime().getTime();
 
 			try {

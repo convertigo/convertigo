@@ -28,6 +28,7 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -750,6 +751,20 @@ public class Engine {
 				isStarted = true;
 
 				Engine.logEngine.info("Convertigo engine started");
+				
+				if (Engine.isEngineMode()) {
+					Engine.execute(() -> {
+						List<String> names = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+						Engine.logEngine.info("Convertigo engine will load: " + names);
+						for (String name: names) {
+							try {
+								Engine.theApp.databaseObjectsManager.getProjectByName(name);
+							} catch (Exception e) {
+								Engine.logEngine.error("Failed to load " + name, e);
+							}
+						}
+					});
+				}
 			} catch (Throwable e) {
 				isStartFailed = true;
 				Engine.logEngine.error("Unable to successfully start the engine.", e);

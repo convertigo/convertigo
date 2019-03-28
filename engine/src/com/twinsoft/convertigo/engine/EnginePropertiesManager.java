@@ -708,7 +708,7 @@ public class EnginePropertiesManager {
      */
     public static String servletPath;
     
-    public static synchronized String getProperty(PropertyName property) {
+    public static String getProperty(PropertyName property) {
     	return getProperty(property, true);
     }
     
@@ -718,7 +718,7 @@ public class EnginePropertiesManager {
     	return current_value.equals(value);
     }
     
-    public static synchronized long getPropertyAsLong(PropertyName property) {
+    public static long getPropertyAsLong(PropertyName property) {
     	try {
     		return Long.parseLong(getProperty(property, true));
     	} catch (Exception e) {
@@ -726,15 +726,15 @@ public class EnginePropertiesManager {
     	}
     }
     
-    public static synchronized boolean getPropertyAsBoolean(PropertyName property) {
+    public static boolean getPropertyAsBoolean(PropertyName property) {
     	return "true".equals(getProperty(property, true));
     }
     
-    public static synchronized String getOriginalProperty(PropertyName property) {
+    public static String getOriginalProperty(PropertyName property) {
     	return getProperty(property, false);
     }
     
-    public static synchronized String getProperty(PropertyName property, boolean bSubstitute) {
+    public static String getProperty(PropertyName property, boolean bSubstitute) {
         if (property == null) {
         	throw new IllegalArgumentException("Null property key");
         }
@@ -765,11 +765,11 @@ public class EnginePropertiesManager {
         return result;
     }
     
-    public static synchronized String[] getOriginalPropertyAsStringArray(PropertyName property) {
+    public static String[] getOriginalPropertyAsStringArray(PropertyName property) {
     	return getPropertyAsStringArray(property, false);
     }
     
-    public static synchronized String[] getPropertyAsStringArray(PropertyName property) {
+    public static String[] getPropertyAsStringArray(PropertyName property) {
     	return getPropertyAsStringArray(property, true);
     }
     
