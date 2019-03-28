@@ -30,27 +30,38 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.events.BaseEventListener;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class MemoryCacheManager extends CacheManager {
+public abstract class MemoryCacheManager extends CacheManager implements BaseEventListener {
 	
 	protected Map<String, CacheEntry> cacheIndex;
 	private WeakReference<Map<String, Document>> weakCache;
+	private boolean useWeakCache = false;
 	
 	public void init() throws EngineException {
 		super.init();
 
+		useWeakCache = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.CACHE_MANAGER_USE_WEAK);
+		
 		// Default cache index
 		cacheIndex = Collections.synchronizedMap(new HashMap<String, CacheEntry>());
 		
 		// Trying to restore the previous cache index if any
 		restoreCacheIndex();
+
+		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
 	}
 	
 	public void destroy() throws EngineException {
 		super.destroy();
 
+		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
 		cacheIndex = null;
 	} 
 
@@ -75,7 +86,9 @@ public abstract class MemoryCacheManager extends CacheManager {
 	}
 	
 	protected CacheEntry storeResponse(Document response, String requestString, long expiryDate) throws EngineException {
-		storeWeakResponse(response, requestString);
+		if (useWeakCache) {
+			storeWeakResponse(response, requestString);
+		}
 		CacheEntry cacheEntry = storeResponseToRepository(response, requestString, expiryDate);
 		cacheIndex.put(requestString, cacheEntry);
 		return cacheEntry;
@@ -96,7 +109,7 @@ public abstract class MemoryCacheManager extends CacheManager {
 
 	protected Document getStoredResponse(Requester requester, CacheEntry cacheEntry) throws EngineException {
 		Document response = null;
-		if (weakCache != null) {
+		if (useWeakCache && weakCache != null) {
 			Map<String, Document> wc = weakCache.get();
 			if (wc != null) {
 				Document cached = wc.get(cacheEntry.requestString);
@@ -204,5 +217,15 @@ public abstract class MemoryCacheManager extends CacheManager {
 			} catch(Exception e) {
 				Engine.logCacheManager.error("An unexpected error has occured in the MemoryCacheManager vulture while removing the cache entry \"" + cacheEntry.toString() + "\".", e);
 			}
+	}
+	
+	public void onEvent(PropertyChangeEvent event) {
+		PropertyName name = event.getKey();
+		if (name.equals(PropertyName.CACHE_MANAGER_USE_WEAK)) {
+			useWeakCache = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.CACHE_MANAGER_USE_WEAK);
+			if (!useWeakCache) {
+				weakCache = null;
+			}
+		}
 	}
 }

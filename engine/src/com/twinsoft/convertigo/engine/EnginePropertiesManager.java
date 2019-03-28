@@ -545,6 +545,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		CACHE_MANAGER_FILECACHE_DIRECTORY ("cache_manager.filecache.directory", "${user.workspace}/cache", "File cache directory", PropertyCategory.Cache),
 		CACHE_MANAGER_SCAN_DELAY ("cache_manager.scan_delay", "60", "Cache scan delay (in seconds)", PropertyCategory.Cache),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		CACHE_MANAGER_USE_WEAK ("cache_manager.weak", "false", "Allow to cache responses in memory until the next GC", PropertyCategory.Cache),
 		@PropertyOptions(advance = false, propertyType = PropertyType.Boolean)
 		DISABLE_CACHE ("disable.cache", "false", "Disable Cache", PropertyCategory.Cache),
 		
