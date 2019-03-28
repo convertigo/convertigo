@@ -478,7 +478,15 @@ public class ContextManager extends AbstractRunnableManager {
 	public void removeAll(String sessionID) {
 		try {
 			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
-			List<Context> contextList = GenericUtils.clone(GenericUtils.cast(httpSession.getAttribute("contexts")));
+			if (httpSession == null) {
+				return;
+			}
+			Object o = httpSession.getAttribute("contexts");
+			if (o == null) {
+				return;
+			}
+			
+			List<Context> contextList = GenericUtils.clone(GenericUtils.cast(o));
 			
 			for (Context context: contextList) {
 				remove(context);
