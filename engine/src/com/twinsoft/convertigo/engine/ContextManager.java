@@ -479,7 +479,7 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (Exception e) {
 			if (e instanceof IllegalStateException || e instanceof NullPointerException) {
 				try {
-					for (String contextID: GenericUtils.clone(contexts).keySet()) {
+					for (String contextID: contexts.keySet()) {
 						if (contextID.startsWith(sessionID)) {
 							remove(contextID);
 						}
@@ -495,7 +495,7 @@ public class ContextManager extends AbstractRunnableManager {
 	public void removeAll() {
 		Engine.logContextManager.debug("Removing all contexts...");
 		try {
-			for (String contextID : GenericUtils.clone(contexts).keySet()) {
+			for (String contextID : contexts.keySet()) {
 				remove(contextID);
 			}
 		} catch(NullPointerException e) {
@@ -565,7 +565,7 @@ public class ContextManager extends AbstractRunnableManager {
 	private void removeExpiredContexts() {
 		Engine.logContextManager.debug("Executing vulture thread for context expiration");
 
-		for (Map.Entry<String, Context> entry : GenericUtils.clone(contexts).entrySet()) {
+		for (Map.Entry<String, Context> entry : contexts.entrySet()) {
 			if (!isRunning) return;
 			String contextID = entry.getKey();
 			long expirationTime;
