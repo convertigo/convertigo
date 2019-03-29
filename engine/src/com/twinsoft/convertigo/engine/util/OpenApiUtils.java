@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,8 +38,23 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.codehaus.jettison.json.JSONObject;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.IMappingRefModel;
@@ -69,6 +85,13 @@ import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+
+import io.swagger.v3.core.jackson.SchemaSerializer;
+import io.swagger.v3.core.jackson.mixin.ComponentsMixin;
+import io.swagger.v3.core.jackson.mixin.ExtensionsMixin;
+import io.swagger.v3.core.jackson.mixin.OpenAPIMixin;
+import io.swagger.v3.core.jackson.mixin.OperationMixin;
+import io.swagger.v3.core.util.DeserializationModule;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.oas.models.Components;
@@ -83,10 +106,14 @@ import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.links.Link;
+import io.swagger.v3.oas.models.links.LinkParameter;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.Encoding;
+import io.swagger.v3.oas.models.media.EncodingProperty;
 import io.swagger.v3.oas.models.media.FileSchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.MediaType;
@@ -94,6 +121,7 @@ import io.swagger.v3.oas.models.media.NumberSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.media.XML;
 import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.PathParameter;
@@ -101,9 +129,14 @@ import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.security.OAuthFlow;
+import io.swagger.v3.oas.models.security.OAuthFlows;
+import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.servers.ServerVariable;
+import io.swagger.v3.oas.models.servers.ServerVariables;
 import io.swagger.v3.oas.models.tags.Tag;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -949,8 +982,101 @@ public class OpenApiUtils {
 		return Json.pretty(openAPI);
 	}
 	
+    static ObjectMapper mapper;
+
+    @SuppressWarnings({ "serial", "deprecation" })
+	private static ObjectMapper objectMapper() {
+        if (mapper == null) {
+            YAMLFactory factory = new YAMLFactory();
+            factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+            factory.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
+            factory.disable(YAMLGenerator.Feature.SPLIT_LINES);
+            factory.enable(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS);
+            
+            mapper = new ObjectMapper(factory);
+
+            // handle ref schema serialization skipping all other props
+            mapper.registerModule(new SimpleModule() {
+                @Override
+                public void setupModule(SetupContext context) {
+                    super.setupModule(context);
+                    context.addBeanSerializerModifier(new BeanSerializerModifier() {
+                        @SuppressWarnings("unchecked")
+						@Override
+                        public JsonSerializer<?> modifySerializer(
+                                SerializationConfig config, BeanDescription desc, JsonSerializer<?> serializer) {
+                            if (Schema.class.isAssignableFrom(desc.getBeanClass())) {
+                                return new SchemaSerializer((JsonSerializer<Object>) serializer);
+                            }
+                            return serializer;
+                        }
+                    });
+                }
+            });
+
+            Module deserializerModule = new DeserializationModule();
+            mapper.registerModule(deserializerModule);
+
+            Map<Class<?>, Class<?>> sourceMixins = new LinkedHashMap<>();
+
+            sourceMixins.put(ApiResponses.class, ExtensionsMixin.class);
+            sourceMixins.put(ApiResponse.class, ExtensionsMixin.class);
+            sourceMixins.put(Callback.class, ExtensionsMixin.class);
+            sourceMixins.put(Components.class, ComponentsMixin.class);
+            sourceMixins.put(Contact.class, ExtensionsMixin.class);
+            sourceMixins.put(Encoding.class, ExtensionsMixin.class);
+            sourceMixins.put(EncodingProperty.class, ExtensionsMixin.class);
+            sourceMixins.put(Example.class, ExtensionsMixin.class);
+            sourceMixins.put(ExternalDocumentation.class, ExtensionsMixin.class);
+            sourceMixins.put(Header.class, ExtensionsMixin.class);
+            sourceMixins.put(Info.class, ExtensionsMixin.class);
+            sourceMixins.put(License.class, ExtensionsMixin.class);
+            sourceMixins.put(Link.class, ExtensionsMixin.class);
+            sourceMixins.put(LinkParameter.class, ExtensionsMixin.class);
+            sourceMixins.put(MediaType.class, ExtensionsMixin.class);
+            sourceMixins.put(OAuthFlow.class, ExtensionsMixin.class);
+            sourceMixins.put(OAuthFlows.class, ExtensionsMixin.class);
+            sourceMixins.put(OpenAPI.class, OpenAPIMixin.class);
+            sourceMixins.put(Operation.class, OperationMixin.class);
+            sourceMixins.put(Parameter.class, ExtensionsMixin.class);
+            sourceMixins.put(PathItem.class, ExtensionsMixin.class);
+            sourceMixins.put(Paths.class, ExtensionsMixin.class);
+            sourceMixins.put(RequestBody.class, ExtensionsMixin.class);
+            sourceMixins.put(Scopes.class, ExtensionsMixin.class);
+            sourceMixins.put(SecurityScheme.class, ExtensionsMixin.class);
+            sourceMixins.put(Server.class, ExtensionsMixin.class);
+            sourceMixins.put(ServerVariable.class, ExtensionsMixin.class);
+            sourceMixins.put(ServerVariables.class, ExtensionsMixin.class);
+            sourceMixins.put(Tag.class, ExtensionsMixin.class);
+            sourceMixins.put(XML.class, ExtensionsMixin.class);
+            sourceMixins.put(Schema.class, ExtensionsMixin.class);
+
+            mapper.setMixIns(sourceMixins);
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+            mapper.configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+            return mapper;
+        }
+        return mapper;
+    }
+
+    public static String yamlPretty(Object o) {
+        try {
+        	ObjectWriter ow = objectMapper().writer(new DefaultPrettyPrinter());
+            return ow.writeValueAsString(o);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+	
 	public static String prettyPrintYaml(OpenAPI openAPI) {
-		return Yaml.pretty(openAPI);
+		//return Yaml.pretty(openAPI);
+		return yamlPretty(openAPI);
 	}
 	
 	public static String getYamlDefinition(String requestUrl, Object object) throws JsonProcessingException {

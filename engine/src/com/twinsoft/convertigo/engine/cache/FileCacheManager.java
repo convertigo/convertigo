@@ -33,14 +33,12 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.events.BaseEventListener;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
-import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class FileCacheManager extends MemoryCacheManager implements BaseEventListener {
+public class FileCacheManager extends MemoryCacheManager {
 	
 	public FileCacheManager() {
 		Engine.logCacheManager.debug("Using a file cache manager: " + Engine.CACHE_PATH);
@@ -67,17 +65,17 @@ public class FileCacheManager extends MemoryCacheManager implements BaseEventLis
 		} catch (Exception e) {
 			Engine.logEngine.error("(FileCacheManager) Failed to write to : " + cacheDir, e);
 		}
-		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
 		super.init();
 	}
 
 	@Override
 	public void destroy() throws EngineException {
-		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
 		super.destroy();
 	}
 
+	@Override
 	public void onEvent(PropertyChangeEvent event) {
+		super.onEvent(event);
 		PropertyName name = event.getKey();
 		String cacheDir = EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY);
 		if (!cacheDir.equals(Engine.CACHE_PATH) && name.equals(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY)) {

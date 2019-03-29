@@ -351,7 +351,9 @@ public class MobileApplication extends DatabaseObject {
 	@Override
 	public void setParent(DatabaseObject databaseObject) {
 		super.setParent(databaseObject);
-		checkFolder();
+		if (isOriginal()) {
+			checkFolder();
+		}
 	}
 	
 	@Override

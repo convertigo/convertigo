@@ -25,11 +25,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -52,20 +51,20 @@ import com.twinsoft.tas.TASException;
  */
 public class HttpSessionListener implements HttpSessionBindingListener {
 	private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy-hh:mm:ss.SSS");
-    private static final Map<String, HttpSession> httpSessions = new HashMap<String, HttpSession>();
+    private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<String, HttpSession>();
     
     public void valueBound(HttpSessionBindingEvent event) {
         try {
             Engine.logEngine.debug("HTTP session starting...");
             HttpSession httpSession = event.getSession();
             String httpSessionID = httpSession.getId();
-            synchronized (httpSessions) {
                 httpSessions.put(httpSessionID, httpSession);				
-			}
             Engine.logEngine.debug("HTTP session started [" + httpSessionID + "]");
             
             if (Engine.isEngineMode()) {
+            	synchronized (dateFormat) {
             	KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
+            }
             }
         } catch(TASException e) {
 			SessionAttribute.isTasException.set(event.getSession(), e);
@@ -105,40 +104,36 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     }
     
     static public void terminateSession(String httpSessionID) {
-        synchronized (httpSessions) {
-        	HttpSession session;
-            if ((session = httpSessions.remove(httpSessionID)) != null) {
-            	HttpUtils.terminateSession(session);
-            	if (Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
-            		KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
-            	}
-            }
-        }    	
+    	HttpSession session;
+    	if ((session = httpSessions.remove(httpSessionID)) != null) {
+    		HttpUtils.terminateSession(session);
+    		if (Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
+    			synchronized (dateFormat) {
+    				KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
+    			}
+    		}
+    	}
     }
     
     static public void removeSession(String httpSessionID) {
-        synchronized (httpSessions) {
-            HttpSession session;
-            if ((session = httpSessions.remove(httpSessionID)) != null && Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
-            	KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
-            }
-        }    	
+    	HttpSession session;
+    	if ((session = httpSessions.remove(httpSessionID)) != null && Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
+			synchronized (dateFormat) {
+				KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
+			}
+    	}
     }
     
     static public HttpSession getHttpSession(String sessionID) {
-        synchronized (httpSessions) {
         	return httpSessions.get(sessionID);
         }
-    }
     
     static public void removeAllSession() {
-        synchronized (httpSessions) {
-        	for (Entry<String, HttpSession> entry: new ArrayList<Entry<String, HttpSession>>(httpSessions.entrySet())) {
+    	for (Entry<String, HttpSession> entry: httpSessions.entrySet()) {
         		HttpUtils.terminateSession(entry.getValue());
         		removeSession(entry.getKey());        		
         	}
         }
-    }
     
     static public void checkSession(HttpServletRequest request) throws TASException {
     	HttpSession httpSession = request.getSession();
@@ -160,7 +155,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     }
     
     static public Collection<HttpSession> getSessions() {
-    	return Collections.unmodifiableCollection(httpSessions.values());
+    	return new ArrayList<>(httpSessions.values());
     }
     
     static public int countSessions() {

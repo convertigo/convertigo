@@ -8,14 +8,24 @@ task makeChangelog {
 		def url = 'https://api.github.com/repos/convertigo/convertigo/milestones'
 		def json = jsonSlurper.parseText(new URL(url).text)
 		def milestone = json.find { it.title == convertigoVersion }.number
-		url = ('https://api.github.com/repos/convertigo/convertigo/issues?'
-		+ "milestone=${milestone}")
-		json = jsonSlurper.parseText(new URL(url).text)
 		def tickets = ['new feature':[:], 'improvement':[:], 'bug':[:]]
-		json.each {
-			def label = it.labels.find { tickets.containsKey(it.name) }
-			if (label != null) {
-				tickets[label.name]["${it.number}"] = "[#${it.number}](${it.html_url}) ${it.title}"
+		def page = 1
+		while (page > 0) {
+			url = ('https://api.github.com/repos/convertigo/convertigo/issues?'
+			+ "milestone=${milestone}"
+			+ '&state=all'
+			+ "&page=${page}")
+			json = jsonSlurper.parseText(new URL(url).text)
+			if (json.size() > 0) {
+				json.each {
+					def label = it.labels.find { tickets.containsKey(it.name) }
+					if (label != null) {
+						tickets[label.name]["${it.number}"] = "[#${it.number}](${it.html_url}) ${it.title}"
+					}
+				}
+				page++;
+			} else {
+				page = -1
 			}
 		}
 		

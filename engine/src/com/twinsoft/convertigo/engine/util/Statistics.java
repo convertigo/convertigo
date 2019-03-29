@@ -54,10 +54,10 @@ public class Statistics {
      */
     public synchronized long getLatestDuration(String taskID) {
         try {
-            return latestDuration.get(taskID).longValue();
+            return latestDuration.getOrDefault(taskID, -1L);
         }
         catch(Exception e) {
-            return -1;
+            return -1L;
         }
     }
     
@@ -71,12 +71,15 @@ public class Statistics {
      */
     public synchronized static long getAverage(String taskID) {
         try {
+        	if (sums.containsKey(taskID) && dividers.containsKey(taskID)) {
         	long taskDurations = sums.get(taskID).longValue();
         	long taskNum = dividers.get(taskID).longValue();
             return taskDurations / taskNum;
         }
+            return -1L;
+        }
         catch(Exception e) {
-            return -1;
+            return -1L;
         }
     }
     
@@ -176,7 +179,7 @@ public class Statistics {
         try {
         	long l = 0;
             try {
-                l = dividers.get(taskID);
+                l = dividers.getOrDefault(taskID, 0L);
                 l++;
             }
             catch(Exception e){
