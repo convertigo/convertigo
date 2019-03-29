@@ -97,7 +97,7 @@ public class List extends XmlService{
         rootElement.appendChild(contextsNumberElement);
         
         Element sessionsInUseElement = document.createElement("sessionsInUse");
-        sessionsInUseElement.setTextContent("" + Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE) - KeyManager.getCV(Session.EmulIDSE)));
+        sessionsInUseElement.setTextContent("" + HttpSessionListener.countSessions());
         rootElement.appendChild(sessionsInUseElement);
         
         Element sessionsIsOverflowElement = document.createElement("sessionsIsOverflow");

@@ -29,6 +29,7 @@ public enum SessionAttribute {
 	exception,
 	fullSyncRequests,
 	isNew,
+	isTasException,
 	httpClient3("__httpClient3__"),
 	httpClient4("__httpClient4__"),
 	sessionListener;

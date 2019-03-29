@@ -45,6 +45,7 @@ public class Delete extends XmlService {
         	HttpSessionListener.terminateSession(sessionId);
         } else if ("true".equals(request.getParameter("removeAll"))) {
         	HttpSessionListener.removeAllSession();
+        	Engine.theApp.contextManager.removeAll();
         } else {
         	throw new IllegalArgumentException();
         }
