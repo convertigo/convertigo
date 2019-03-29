@@ -282,7 +282,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 		}
 		
-		if (checkOpenable && !canOpenProject(projectName) || projectPath == null || !projectPath.exists()) {
+		if (checkOpenable && !canOpenProject(projectName)) {
 			Engine.logDatabaseObjectManager.trace("The project \"" + projectName + "\" cannot be open");
 			clearCache(projectName);
 			return null;

@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.cache;
 
 import java.util.Date;
 
+import javax.servlet.http.HttpSession;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
@@ -36,6 +37,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -241,6 +243,13 @@ public abstract class CacheManager extends AbstractRunnableManager {
 			}
 		}
 
+		if ("true".equals(response.getDocumentElement().getAttribute("fromcache"))) {
+			HttpSession session = context.httpSession;
+			if (session != null && session.isNew()) {
+				HttpSessionListener.terminateSession(session.getId());
+			}
+		}
+		
 		return response;
 	}
 
