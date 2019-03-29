@@ -194,10 +194,10 @@ public class FileCacheManager extends MemoryCacheManager {
 				indexFileName = Engine.CACHE_PATH + "/index.sav";
 			}
 			
-			ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(indexFileName));
-			Object serializedCacheIndex = objectInputStream.readObject();
-			if (serializedCacheIndex != null) cacheIndex = GenericUtils.cast(serializedCacheIndex); 
-			objectInputStream.close();
+			try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(indexFileName))) {;
+				Object serializedCacheIndex = objectInputStream.readObject();
+				if (serializedCacheIndex != null) cacheIndex = GenericUtils.cast(serializedCacheIndex); 
+			}
 			
 			Engine.logCacheManager.debug("The cache index has been reloaded; index=" + cacheIndex.get("index"));
 		}
@@ -215,21 +215,21 @@ public class FileCacheManager extends MemoryCacheManager {
 			backupFile = new File(Engine.CACHE_PATH + "/index.sav");
 			if (backupFile.exists()) {
 				if (!backupFile.delete()) {
-					throw new EngineException("Unable to delete the backup cache index file.");
+					Engine.logCacheManager.warn("Unable to delete the backup cache index file: " + backupFile);
 				}
 			}
 			if (!file.renameTo(backupFile)) {
-				throw new EngineException("Unable to backup the cache index.");
+				Engine.logCacheManager.warn("Unable to backup the cache index: " + file + " to " + backupFile);
 			} 
 		}
 			
 		try {
 			makeDirectory();
 
-			ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(indexFileName));
-			objectOutputStream.writeObject(cacheIndex);
-			objectOutputStream.flush();
-			objectOutputStream.close();
+			try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(indexFileName))) {
+				objectOutputStream.writeObject(cacheIndex);
+				objectOutputStream.flush();
+			}
 		}
 		catch(Exception e) {
 			throw new EngineException("Unable to save the cache index.", e);
@@ -237,7 +237,7 @@ public class FileCacheManager extends MemoryCacheManager {
 		
 		if (backupFile != null) {
 			if (!backupFile.delete()) {
-				throw new EngineException("Unable to delete the backup cache index file.");
+				Engine.logCacheManager.warn("Unable to delete the backup cache index file.");
 			}
 		}
 	}

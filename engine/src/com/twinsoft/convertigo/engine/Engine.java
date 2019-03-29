@@ -753,14 +753,22 @@ public class Engine {
 				Engine.logEngine.info("Convertigo engine started");
 				
 				if (Engine.isEngineMode()) {
-					Engine.execute(() -> {
-						List<String> names = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-						Engine.logEngine.info("Convertigo engine will load: " + names);
-						for (String name: names) {
-							try {
-								Engine.theApp.databaseObjectsManager.getProjectByName(name);
-							} catch (Exception e) {
-								Engine.logEngine.error("Failed to load " + name, e);
+					theApp.addMigrationListener(new MigrationListener() {
+						
+						@Override
+						public void projectMigrated(EngineEvent engineEvent) {
+						}
+						
+						@Override
+						public void migrationFinished(EngineEvent engineEvent) {
+							List<String> names = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+							Engine.logEngine.info("Convertigo engine will load: " + names);
+							for (String name: names) {
+								try {
+									Engine.theApp.databaseObjectsManager.getProjectByName(name);
+								} catch (Exception e) {
+									Engine.logEngine.error("Failed to load " + name, e);
+								}
 							}
 						}
 					});
