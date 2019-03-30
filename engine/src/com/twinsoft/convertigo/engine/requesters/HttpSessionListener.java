@@ -51,7 +51,8 @@ import com.twinsoft.tas.TASException;
  */
 public class HttpSessionListener implements HttpSessionBindingListener {
 	private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy-hh:mm:ss.SSS");
-    private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<String, HttpSession>();
+    private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<>();
+    private static final Map<String, Object> tasExceptions = new ConcurrentHashMap<>();
     
     public void valueBound(HttpSessionBindingEvent event) {
         try {
@@ -67,7 +68,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
             }
             }
         } catch(TASException e) {
-			SessionAttribute.isTasException.set(event.getSession(), e);
+        	tasExceptions.put(event.getSession().getId(), e);
 			if (KeyManager.hasExpired((long) Session.EmulIDSE)) {
 				Engine.logEngine.warn("The Standard Edition key is expired");
 			} else if (e.isOverflow()) {
@@ -107,7 +108,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     	HttpSession session;
     	if ((session = httpSessions.remove(httpSessionID)) != null) {
     		HttpUtils.terminateSession(session);
-    		if (Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
+    		if (Engine.isEngineMode() && tasExceptions.remove(httpSessionID) == null) {
     			synchronized (dateFormat) {
     				KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
     			}
@@ -116,8 +117,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
     }
     
     static public void removeSession(String httpSessionID) {
-    	HttpSession session;
-    	if ((session = httpSessions.remove(httpSessionID)) != null && Engine.isEngineMode() && !SessionAttribute.isTasException.has(session)) {
+    	if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode() && tasExceptions.remove(httpSessionID) == null) {
 			synchronized (dateFormat) {
 				KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
 			}

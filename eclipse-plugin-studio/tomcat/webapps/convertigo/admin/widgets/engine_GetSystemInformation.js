@@ -18,7 +18,7 @@
  */
 
 function engine_GetSystemInformation_init(){
-	$("#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables").button({ icons: { primary: "ui-icon-script" } });
+	$("#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables, #performsGC").button({ icons: { primary: "ui-icon-script" } });
 
 	initSystemInformationDialogs();
 	engine_GetSystemInformation_update();
@@ -63,6 +63,18 @@ function initSystemInformationDialogs() {
 			function(xml) {
 				$("#sysinfoDialogJavaSystemProperties > textarea").text($(xml).find("admin").text());
 				$("#sysinfoDialogJavaSystemProperties").dialog('open');
+			}
+		);
+
+		return false;
+	});
+
+	$("#performsGC").click(function() {	
+		$.get("services/engine.PerformsGC", { }, 
+			function(xml) {
+				window.setTimeout(function () {
+					engine_GetSystemInformation_update();
+				}, 500);
 			}
 		);
 

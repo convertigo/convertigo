@@ -412,12 +412,8 @@ text-transform: uppercase;
 
 
 
-#sysinfoGetJavaSystemProperties {
+#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables, #performsGC {
 	margin-top: 5px !important;
-}
-
-#sysinfoGetEnvironmentVariables {
-	margin-top: 5px;
 }
 
 #statusRestartEngine {
