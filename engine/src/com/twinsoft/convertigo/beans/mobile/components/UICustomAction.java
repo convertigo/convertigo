@@ -629,6 +629,10 @@ public class UICustomAction extends UIComponent implements IAction {
 		return computed;
 	}
 	
+	public Contributor getActionContributor() {
+		return getContributor();
+	}
+	
 	protected Contributor getContributor() {
 		return new Contributor() {
 			@Override
@@ -648,7 +652,13 @@ public class UICustomAction extends UIComponent implements IAction {
 
 			@Override
 			public Map<String, String> getActionTsImports() {
-				return new HashMap<String, String>();
+				Map<String, String> imports = new HashMap<String, String>();
+				if (getStack() != null) {
+					for (XMLVector<String> v : page_ts_imports) {
+						imports.put(v.get(0).trim(), v.get(1).trim());
+					}
+				}
+				return imports;
 			}
 
 			@Override

@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EventHelper;
@@ -905,9 +906,10 @@ public class MobileBuilder {
 			if (main != null) {
 				String tempTsFileName = null, tsContent = null;
 				File tempTsDir = null;
+				UIActionStack stack = null;
 				
 				if (main instanceof ApplicationComponent) {
-					UIActionStack stack = uic.getStack();
+					stack = uic.getStack();
 					tempTsDir = stack == null ? new File(ionicWorkDir, "src/app") : new File(ionicWorkDir, "src/services");
 					tempTsFileName = stack == null ? "app.component.function.temp.ts" : "actionbeans.service.function.temp.ts";
 					
@@ -948,6 +950,7 @@ public class MobileBuilder {
 				}
 				
 				// Replace all Begin_c8o_XXX, End_c8o_XXX except for functionMarker
+				boolean found = false;
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
 				Matcher matcher = pattern.matcher(tsContent);
 				while (matcher.find()) {
@@ -957,6 +960,41 @@ public class MobileBuilder {
 						String endMarker = "/*End_c8o_" + markerId + "*/";
 						tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
 						tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+					} else {
+						found = true;
+					}
+				}
+				
+				// Always be able to edit a CustomAction within a SharedAction
+				if (!found && stack != null && uic instanceof UICustomAction) {
+					UICustomAction uica = (UICustomAction)uic;
+					Contributor contributor = uica.getActionContributor();
+					int index = -1;
+					
+					Map<String, String> mapi = contributor.getActionTsImports();
+					String imports = "";
+					for (String comp : mapi.keySet()) {
+						if (!getActionTplTsImports().containsKey(comp)) {
+							if (comp.indexOf(" as ") == -1)
+								imports += "import { "+comp+" } from '"+ mapi.get(comp) +"';"+ System.lineSeparator();
+							else
+								imports += "import "+comp+" from '"+ mapi.get(comp) +"';"+ System.lineSeparator();
+						}
+					}
+					index = tsContent.indexOf("@Injectable");
+					if (index != -1) {
+						tsContent = tsContent.substring(0, index -1) + System.lineSeparator() 
+							+ Matcher.quoteReplacement(imports) + System.lineSeparator()
+							+ tsContent.substring(index);
+					}
+					
+					Map<String, String> mapf = contributor.getActionTsFunctions();
+					String code = mapf.get(uica.getActionName());
+					index = tsContent.lastIndexOf("}");
+					if (index != -1) {
+						tsContent = tsContent.substring(0, index -1) + System.lineSeparator() 
+									+ Matcher.quoteReplacement(code) + System.lineSeparator()
+									+ tsContent.substring(index);
 					}
 				}
 				
