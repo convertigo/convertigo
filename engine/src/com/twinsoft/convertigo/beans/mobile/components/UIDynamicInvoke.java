@@ -44,9 +44,13 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	}
 	
 	@Override
+	protected boolean isBroken() {
+		return getTargetStack() == null;
+	}
+	
+	@Override
 	public String getActionName() {
-		UIActionStack uias = getTargetStack();
-		return uias == null ? "ErrorAction" : uias.getStackName();
+		return isBroken() ? "ErrorAction" : getTargetStack().getStackName();
 	}
 
 	public String getActionStack() {
@@ -81,7 +85,7 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	@Override
 	protected Contributor getContributor() {
 		// ErrorAction contributor or null
-		return getTargetStack() == null ? super.getContributor() : null;
+		return isBroken() ? super.getContributor() : null;
 	}
 	
 	@Override
@@ -89,9 +93,8 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		super.addContributors(contributors);
 		
 		// Now, add target stack contributors
-		UIActionStack uias = getTargetStack();
-		if (uias != null) {
-			uias.addContributors(contributors);
+		if (!isBroken()) {
+			getTargetStack().addContributors(contributors);
 		}
 	}
 

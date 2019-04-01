@@ -192,6 +192,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return null;
 	}
 	
+	protected boolean isBroken() {
+		return false;
+	}
+	
 	protected boolean isStacked() {
 		return handleError() || handleFailure() || numberOfActions() > 0 || 
 				getParent() instanceof UIPageEvent || getParent() instanceof UIEventSubscriber;
@@ -540,16 +544,22 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 				
 				if ("InvokeAction".equals(ionBean.getName())) {
-					if (getStack() != null) {
+					if (isBroken()) {
 						tsCode +="\t\treturn this.actionBeans."+actionName+
-								"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
-											cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+
-												System.lineSeparator();
+								"(this, "+ cafMerge +"(self.in.props, {message: 'Invoke source is broken'}), "+
+									cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
 					} else {
-						tsCode +="\t\treturn this.actionBeans."+actionName+
-								"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
-											cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ 
-												System.lineSeparator();
+						if (getStack() != null) {
+							tsCode +="\t\treturn this.actionBeans."+actionName+
+									"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+												cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+
+													System.lineSeparator();
+						} else {
+							tsCode +="\t\treturn this.actionBeans."+actionName+
+									"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+												cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ 
+													System.lineSeparator();
+						}
 					}
 				} else {
 					tsCode +="\t\treturn this.actionBeans."+actionName+
