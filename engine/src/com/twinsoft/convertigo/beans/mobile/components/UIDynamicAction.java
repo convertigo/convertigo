@@ -311,7 +311,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						if ("ClearDataSourceAction".equals(getActionName())) {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
-								smartValue = mss.getSources(msst.getValue()).toString();
+								if (mss != null) {
+									smartValue = mss.getSources(msst.getValue()).toString();
+								}
 							}
 						}
 						
@@ -323,14 +325,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						else {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								if (!"ClearDataSourceAction".equals(getActionName())) {
-								MobileSmartSource mss = msst.getSmartSource();
-								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-									smartValue = "scope."+ smartValue;
+									MobileSmartSource mss = msst.getSmartSource();
+									if (mss != null) {
+										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+											smartValue = "scope."+ smartValue;
+										}
+										else {
+											smartValue = "this."+ smartValue;
+										}
+									}
 								}
-								else {
-									smartValue = "this."+ smartValue;
-								}
-							}
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
@@ -372,11 +376,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								
 								if (Mode.SOURCE.equals(msst.getMode())) {
 									MobileSmartSource mss = msst.getSmartSource();
-									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-										smartValue = "scope."+ smartValue;
-									}
-									else {
-										smartValue = "this."+ smartValue;
+									if (mss != null) {
+										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+											smartValue = "scope."+ smartValue;
+										}
+										else {
+											smartValue = "this."+ smartValue;
+										}
 									}
 								}
 								

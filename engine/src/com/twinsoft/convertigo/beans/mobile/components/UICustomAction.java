@@ -370,11 +370,13 @@ public class UICustomAction extends UIComponent implements IAction {
 							
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
-								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-									smartValue = "scope."+ smartValue;
-								}
-								else {
-									smartValue = "this."+ smartValue;
+								if (mss != null) {
+									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+										smartValue = "scope."+ smartValue;
+									}
+									else {
+										smartValue = "this."+ smartValue;
+									}
 								}
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");

@@ -138,7 +138,12 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 	}
 
 	public MobileSmartSource getSmartSource() {
-		return Mode.SOURCE.equals(mode) ?  MobileSmartSource.valueOf(sourceValue) : null;
+		if (Mode.SOURCE.equals(mode)) {
+			if (sourceValue != null && !sourceValue.isEmpty() && !sourceValue.equals("{}")) {
+				return MobileSmartSource.valueOf(sourceValue);
+			}
+		}
+		return null;
 	}
 			
 	public String getValue() {
