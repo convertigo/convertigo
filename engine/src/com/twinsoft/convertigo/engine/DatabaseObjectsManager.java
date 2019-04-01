@@ -397,7 +397,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public Project getProjectByName(String projectName) throws EngineException {
 		try {
-			return getOriginalProjectByName(projectName).clone();
+			Project project = getOriginalProjectByName(projectName);
+			return project != null ? project.clone() : null;
 		} catch (CloneNotSupportedException e) {
 			throw new EngineException("Exception on getProjectByName", e);
 		}
