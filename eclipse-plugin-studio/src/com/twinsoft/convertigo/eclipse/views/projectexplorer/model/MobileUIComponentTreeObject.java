@@ -737,8 +737,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						pValue = (String) oValue;
 					}
 					
-					if (pValue != null && pValue.startsWith(oldName)) {
-						String _pValue = newName + pValue.substring(oldName.length());
+					String _pValue = pValue;
+					if (pValue != null && (pValue.startsWith(oldName + ".") || pValue.equals(oldName))) {
+						_pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
 							UIComponent object = getObject();
 							if (object instanceof UIDynamicTab) {
@@ -799,11 +800,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
+						viewer.refresh();
 						
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
 						
-		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, "", "");
+		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, pValue, _pValue);
 		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
@@ -812,6 +814,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			@Override
 			protected void handleSmartSourceRenamed(Class<?> c, String oldName, String newName) {
 				try {
+					// A project has been renamed
 					if (ProjectTreeObject.class.isAssignableFrom(c)) {
 						UIComponent object = getObject();
 						for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(object).getPropertyDescriptors()) {
@@ -820,20 +823,27 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 								Object oValue = getPropertyValue(propertyName);
 								MobileSmartSourceType msst = (MobileSmartSourceType) oValue;
 								MobileSmartSource mss = msst.getSmartSource();
+								boolean hasBeenChanged = false;
 								if (mss != null) {
 									if (oldName.equals(mss.getProjectName())) {
 										mss.setProjectName(newName);
 										msst.setSmartValue(mss.toJsonString());
+										hasBeenChanged = true;
 									}
 								}
 								
-								hasBeenModified(true);
-								
-								ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
-								getDescriptors();// refresh editors (e.g labels in combobox)
-								
-				    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, "", "");
-				    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+								if (hasBeenChanged) {
+									Object nValue = getPropertyValue(propertyName);
+									
+									hasBeenModified(true);
+									viewer.refresh();
+									
+									ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
+									getDescriptors();// refresh editors (e.g labels in combobox)
+									
+					    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, oValue, nValue);
+					    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+								}
 							}
 						}
 					}
