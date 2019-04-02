@@ -164,10 +164,12 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
 			Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-			return p.getTargetNamespace();
+			if (p != null) {
+				return p.getTargetNamespace();
+			}
 		} catch (EngineException e) {
-			return CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
 		}
+		return CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
 	}
 	
     /**
