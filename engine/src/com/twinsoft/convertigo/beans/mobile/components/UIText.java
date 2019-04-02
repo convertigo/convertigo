@@ -103,12 +103,12 @@ public class UIText extends UIComponent implements ITagsProperty {
 
 	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
+		boolean updated = false;
 		String smartValue = textValue.getSmartValue();
 		if (smartValue.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(smartValue).find()) {
 			textValue.setSmartValue(smartValue.replaceAll(oldString, newString));
-			this.hasChanged = true;
+			updated = this.hasChanged = true;
 		}
-		boolean updated = super.updateSmartSource(oldString, newString);
-		return updated || this.hasChanged;
+		return updated;
 	}
 }

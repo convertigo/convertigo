@@ -49,6 +49,7 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
@@ -812,7 +813,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 			
 			@Override
-			protected void handleSmartSourceRenamed(Class<?> c, String oldName, String newName) {
+			protected void refactorSmartSources(Class<?> c, String oldName, String newName) {
 				try {
 					// A project has been renamed
 					if (ProjectTreeObject.class.isAssignableFrom(c)) {
@@ -928,19 +929,29 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
 		
+		refactorSmartSources(treeObjectEvent);
+		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			
-			if (propertyName.equals("name")) {
-				handlesBeanNameChanged(treeObjectEvent);
-			}
-			else {
-				if (dbo instanceof UIComponent) {
-					UIComponent uic = (UIComponent)dbo;
-					UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getStack();
-					if (stack != null) {
-						handleStackChanged(stack);
+			if (this.equals(treeObject)) {
+				try {
+					markMainAsDirty(getObject());
+				} catch (EngineException e) {
+					e.printStackTrace();
+				}
+			} else {
+				if (propertyName.equals("name")) {
+					handlesBeanNameChanged(treeObjectEvent);
+				}
+				else {
+					if (dbo instanceof UIComponent) {
+						UIComponent uic = (UIComponent)dbo;
+						UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getStack();
+						if (stack != null) {
+							handleStackChanged(stack);
+						}
 					}
 				}
 			}
@@ -975,6 +986,150 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
+	protected void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		
+		// Case of DatabaseObjectTreeObject
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject dbo = doto.getObject();
+			try {
+				boolean sourcesUpdated = false;
+				
+				// A bean name has changed
+				if (propertyName.equals("name")) {
+					boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
+						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+						try {
+							if (dbo instanceof Project) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("'"+oldName+"\\.", "'"+newName+".")) {
+										sourcesUpdated = true;
+									}
+									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof Sequence) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								String projectName = dbo.getProject().getName();
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("'"+projectName+"\\."+oldName, "'"+projectName+"."+newName)) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof FullSyncConnector) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								String projectName = dbo.getProject().getName();
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("\\/"+projectName+"\\."+oldName+"\\.", "/"+projectName+"."+newName+".")) {
+										sourcesUpdated = true;
+									}
+									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+							else if (dbo instanceof DesignDocument) {
+								String oldName = (String)oldValue;
+								String newName = (String)newValue;
+								if (!newValue.equals(oldValue)) {
+									if (getObject().updateSmartSource("ddoc='"+oldName+"'", "ddoc='"+newName+"'")) {
+										sourcesUpdated = true;
+									}
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				
+				if (dbo instanceof UIComponent) {
+					UIComponent uic = (UIComponent)dbo;
+					if (getObject().getMainScriptComponent().equals(uic.getMainScriptComponent())) {
+						// A FormControlName property has changed
+						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
+							if (!newValue.equals(oldValue)) {
+								try {
+									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+									String form = uic.getUIForm().getFormGroupName();
+									if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+										sourcesUpdated = true;
+									}
+								} catch (Exception e) {}
+							}
+						}
+					}
+				}
+				
+				// Need TS regeneration
+				if (sourcesUpdated) {
+					hasBeenModified(true);
+					viewer.refresh();
+					
+					markMainAsDirty(getObject());
+				}
+				
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		// Case of DesignDocumentViewTreeObject
+		else if (treeObject instanceof DesignDocumentViewTreeObject) {
+			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)treeObject;
+			try {
+				boolean sourcesUpdated = false;
+				
+				// View name changed
+				if (propertyName.equals("name")) {
+					boolean fromSameProject = getProjectTreeObject().equals(ddvto.getProjectTreeObject());
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
+						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+						try {
+							String oldName = (String)oldValue;
+							String newName = (String)newValue;
+							if (!newValue.equals(oldValue)) {
+								if (getObject().updateSmartSource("view='"+oldName+"'", "view='"+newName+"'")) {
+									sourcesUpdated = true;
+								}
+							}
+						}
+						catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				
+				// Need TS regeneration
+				if (sourcesUpdated) {
+					hasBeenModified(true);
+					
+					viewer.refresh();
+					markMainAsDirty(getObject());
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
@@ -997,24 +1152,26 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
 							
 							if (!isSameValue && shouldUpdate) {
-								try {
-									Iterator<UIComponent> it = udi.getUIComponentList().iterator();
-									while (it.hasNext()) {
-										UIComponent component = (UIComponent)it.next();
-										if (component instanceof UIControlVariable) {
-											UIControlVariable uicv = (UIControlVariable)component;
-											if (uicv.getName().equals(oldValue)) {
+								Iterator<UIComponent> it = udi.getUIComponentList().iterator();
+								while (it.hasNext()) {
+									UIComponent component = (UIComponent)it.next();
+									if (component instanceof UIControlVariable) {
+										UIControlVariable uicv = (UIControlVariable)component;
+										if (uicv.getName().equals(oldValue)) {
+											try {
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
-												viewer.refresh();
 												
+												viewer.refresh();
 												markMainAsDirty(udi);
+												
+												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue);
 												break;
+											} catch (EngineException e) {
+												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for InvokeAction !");
 											}
 										}
 									}
-								} catch (EngineException e) {
-									ConvertigoPlugin.logException(e, "Unable to rename the variable references of '" + databaseObject.getName() + "'!");
 								}
 							}
 						}
@@ -1039,24 +1196,26 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
 									
 									if (!isSameValue && shouldUpdate) {
-										try {
-											Iterator<UIComponent> it = uia.getUIComponentList().iterator();
-											while (it.hasNext()) {
-												UIComponent component = (UIComponent)it.next();
-												if (component instanceof UIControlVariable) {
-													UIControlVariable uicv = (UIControlVariable)component;
-													if (uicv.getName().equals(oldValue)) {
+										Iterator<UIComponent> it = uia.getUIComponentList().iterator();
+										while (it.hasNext()) {
+											UIComponent component = (UIComponent)it.next();
+											if (component instanceof UIControlVariable) {
+												UIControlVariable uicv = (UIControlVariable)component;
+												if (uicv.getName().equals(oldValue)) {
+													try {
 														uicv.setName((String) newValue);
 														uicv.hasChanged = true;
-														viewer.refresh();
 														
+														viewer.refresh();
 														markMainAsDirty(uia);
+														
+														notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue);
 														break;
+													} catch (EngineException e) {
+														ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for CallSequenceAction !");
 													}
 												}
 											}
-										} catch (EngineException e) {
-											ConvertigoPlugin.logException(e, "Unable to rename the variable references of '" + databaseObject.getName() + "'!");
 										}
 									}
 								}
@@ -1066,5 +1225,17 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				}
 			}
 		}
+	}
+	
+	protected void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue) {
+		TreeObject to = ConvertigoPlugin.projectManager.getProjectExplorerView().findTreeObjectByUserObject(dbo);
+		if (to != null) {
+			notifyTreeObjectPropertyChanged(to, propertyName, oldValue, newValue);
+		}
+	}
+	
+	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue) {
+        TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue);
+        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);;
 	}
 }

@@ -795,10 +795,10 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.isEnabled = isEnabled;
 	}
 
-	public boolean updateSmartSource(String oldString, String newString) {
+	public boolean updateSmartSources(String oldString, String newString) {
 		boolean updated = false;
 		for (UIComponent uic : getUIComponentList()) {
-			if (uic.updateSmartSource(oldString, newString)) {
+			if (uic.updateSmartSources(oldString, newString)) {
 				updated = true;
 			}
 		}

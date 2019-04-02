@@ -246,16 +246,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
+		boolean updated = false;
 		if (beanData != null) {
 			if (beanData.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(beanData).find()) {
 				beanData = beanData.replaceAll(oldString, newString);
 				ionBean = null;
-				this.hasChanged = true;
+				updated = this.hasChanged = true;
 			}
-			
 		}
-		boolean updated = super.updateSmartSource(oldString, newString);
-		return updated || this.hasChanged;
+		return updated;
 	}
 	
 	protected String getEventAttr(String eventName) {

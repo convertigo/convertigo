@@ -174,12 +174,12 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 
 	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
+		boolean updated = false;
 		String smartValue = directiveSource.getSmartValue();
 		if (smartValue.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(smartValue).find()) {
 			directiveSource.setSmartValue(smartValue.replaceAll(oldString, newString));
-			this.hasChanged = true;
+			updated = this.hasChanged = true;
 		}
-		boolean updated = super.updateSmartSource(oldString, newString);
-		return updated || this.hasChanged;
+		return updated;
 	}
 }

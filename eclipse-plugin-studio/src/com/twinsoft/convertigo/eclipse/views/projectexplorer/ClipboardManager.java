@@ -333,11 +333,20 @@ public class ClipboardManager {
 		}
 		
 		for (Object ob : pastedObjects) {
-			if (ob instanceof UIComponent) {
+			if (ob instanceof PageComponent) {
+				PageComponent page = (PageComponent)ob;
+				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
+					if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+						page.markPageAsDirty();
+					}
+				}
+			}
+			else if (ob instanceof UIComponent) {
 				UIComponent uic = (UIComponent)ob;
 				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
-					uic.updateSmartSource(entry.getKey(), String.valueOf(entry.getValue().priority));
-					uic.markAsDirty();
+					if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+						uic.markAsDirty();
+					}
 				}
 			}
 		}

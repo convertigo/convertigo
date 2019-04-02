@@ -73,7 +73,7 @@ public abstract class NamedSourceSelector {
 							|| ((update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject(treeObject));
 					
 					if (shoudRename) {
-						handleSmartSourceRenamed(treeObject.getClass(), oldTokenPath, newTokenPath);
+						refactorSmartSources(treeObject.getClass(), oldTokenPath, newTokenPath);
 						for (String _propertyName : getPropertyNamesForSource(treeObject.getClass())) {
 							handleSourceRenamed(_propertyName, oldTokenPath, newTokenPath);
 						}
@@ -114,7 +114,7 @@ public abstract class NamedSourceSelector {
 		
 	}
 	
-	protected void handleSmartSourceRenamed(Class<?> c, String oldName, String newName) {
+	protected void refactorSmartSources(Class<?> c, String oldName, String newName) {
 		
 	}
 }
