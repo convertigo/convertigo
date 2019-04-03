@@ -218,15 +218,23 @@ public class DatabaseObjectsManager implements AbstractManager {
 		SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 		projectNames.addAll(studioProjects.getProjects(checkOpenable).keySet());
 		
-		for (File projectDir : projectsDir.listFiles()) {
-			String projectName = projectDir.getName();
-			
-			if (!projectNames.contains(projectName) && projectDir.isDirectory() &&
-					(new File(projectDir, projectName + ".xml").exists() || new File(projectDir, "c8oProject.yaml").exists())) {
-				if (!checkOpenable || canOpenProject(projectName)) {
-					projectNames.add(projectName);
-				} else {
-					clearCache(projectName);
+		File[] list = projectsDir.listFiles();
+		if (list == null) {
+			projectsDir.mkdirs();
+			list = projectsDir.listFiles();
+		}
+		
+		if (list != null) {
+			for (File projectDir : projectsDir.listFiles()) {
+				String projectName = projectDir.getName();
+				
+				if (!projectNames.contains(projectName) && projectDir.isDirectory() &&
+						(new File(projectDir, projectName + ".xml").exists() || new File(projectDir, "c8oProject.yaml").exists())) {
+					if (!checkOpenable || canOpenProject(projectName)) {
+						projectNames.add(projectName);
+					} else {
+						clearCache(projectName);
+					}
 				}
 			}
 		}

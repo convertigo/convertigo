@@ -412,7 +412,7 @@ text-transform: uppercase;
 
 
 
-#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables, #performsGC {
+#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables, #performGC {
 	margin-top: 5px !important;
 }
 

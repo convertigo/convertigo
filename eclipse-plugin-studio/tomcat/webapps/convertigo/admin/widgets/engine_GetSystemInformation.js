@@ -18,7 +18,7 @@
  */
 
 function engine_GetSystemInformation_init(){
-	$("#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables, #performsGC").button({ icons: { primary: "ui-icon-script" } });
+	$("#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables, #performGC").button({ icons: { primary: "ui-icon-script" } });
 
 	initSystemInformationDialogs();
 	engine_GetSystemInformation_update();
@@ -69,8 +69,8 @@ function initSystemInformationDialogs() {
 		return false;
 	});
 
-	$("#performsGC").click(function() {	
-		$.get("services/engine.PerformsGC", { }, 
+	$("#performGC").click(function() {	
+		$.get("services/engine.PerformGC", { }, 
 			function(xml) {
 				window.setTimeout(function () {
 					engine_GetSystemInformation_update();
