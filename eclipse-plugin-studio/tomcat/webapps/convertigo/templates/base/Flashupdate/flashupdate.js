@@ -333,11 +333,11 @@ var F = {
 		});
 	},
 	
-	moveiOS: ()=>{
+	moveiOS: function () {
 		window.location.href = window.Ionic.WebView.convertFileSrc(F.env.webLocalBase + "/index-fu.html");
 	},
 	
-	moveOthers: ()=>{
+	moveOthers: function () {
 		window.location.href = F.env.webLocalBase + "/index-fu.html";
 	},
 	copyCordovaFiles: function (files, success) {
