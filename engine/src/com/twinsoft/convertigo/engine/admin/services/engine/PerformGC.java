@@ -24,19 +24,23 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
-		name = "PerformsGC",
+		name = "PerformGC",
 		roles = { Role.WEB_ADMIN, Role.MANAGER, Role.HOME_CONFIG },
 		parameters = {},
 		returnValue = "the Java system properties"
 	)
-public class PerformsGC extends XmlService{
+public class PerformGC extends XmlService{
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		Engine.logEngine.info("Performing GC from an admin request ...");
+		long now = System.currentTimeMillis();
 		System.gc();
+		Engine.logEngine.info("GC done in " + (System.currentTimeMillis() - now) + " ms");
 	}
 
 }
