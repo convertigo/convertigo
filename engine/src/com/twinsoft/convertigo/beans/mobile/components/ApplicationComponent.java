@@ -901,8 +901,11 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	protected void doGetContributors() {
 		contributors = new ArrayList<Contributor>();
-		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addContributors(contributors);
+		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
+			uiMenu.addContributors(contributors);
+		}
+		for (UIEventSubscriber suscriber : getUIEventSubscriberList()) {
+			suscriber.addContributors(contributors);
 		}
 	}
     
