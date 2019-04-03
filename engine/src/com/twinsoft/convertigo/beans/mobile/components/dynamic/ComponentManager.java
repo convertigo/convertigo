@@ -510,7 +510,8 @@ public class ComponentManager {
 			if (dboParent instanceof ApplicationComponent) {
 				if (UIStyle.class.isAssignableFrom(dboClass) ||
 					UIDynamicMenu.class.isAssignableFrom(dboClass) ||
-					UIActionStack.class.isAssignableFrom(dboClass)) {
+					UIActionStack.class.isAssignableFrom(dboClass) ||
+					UIEventSubscriber.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
 			} else if (dboParent instanceof PageComponent) {
