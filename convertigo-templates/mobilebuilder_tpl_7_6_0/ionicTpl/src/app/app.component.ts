@@ -1,7 +1,7 @@
 import { Component, ViewChild}                              from '@angular/core';
 import { ChangeDetectorRef, Injector}                       from '@angular/core';
 
-import { Platform, Nav, App, LoadingController}             from 'ionic-angular';
+import { Platform, Nav, App, Events, LoadingController}     from 'ionic-angular';
 import { StatusBar }                                        from '@ionic-native/status-bar';
 import { TranslateService }                                 from '@ngx-translate/core';
 
@@ -47,6 +47,7 @@ export class MyApp extends C8oPageBase {
     pages : Array<{title: string, icon: string, iconPos: string, component: any, includedInAutoMenu?: boolean}>;
     pagesKeyValue: any;
     public actionBeans: ActionBeans;
+    public events : Events;
     /*=c8o_AppDeclarations*/
     
 	/*Begin_c8o_AppDeclaration*/
@@ -57,6 +58,7 @@ export class MyApp extends C8oPageBase {
         super(injector, router, loader, ref);
         
         this.actionBeans = this.getInstance(ActionBeans);
+        this.events = this.getInstance(Events);
         
         /**
          * declaring page to show in Menu
