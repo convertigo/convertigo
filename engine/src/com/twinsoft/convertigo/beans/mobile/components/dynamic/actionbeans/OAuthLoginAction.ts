@@ -56,7 +56,7 @@
 
                         case "openid":
                             scope = props.scope ? props.scope : 'openid'
-                            response_type = 'id_token+token'
+                            response_type = props.response_type ?  props.response_type:'id_token+token'
                                     
                             if (!props.authorization_endpoint) {
                                 page.c8o.log.error("[MB] OAuth login, Authorization endpoint no set for OpenID provider")
