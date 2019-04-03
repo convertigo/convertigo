@@ -1087,32 +1087,34 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			menu.computeScripts(jsonScripts);
 		}
 		
-		// App subscribers
-		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
-		if (!subscriberList.isEmpty()) {
-			try {
-				String subscribers = UIEventSubscriber.computeConstructors(null, subscriberList);
-				String constructors = jsonScripts.getString("constructors") + subscribers;
-				jsonScripts.put("constructors", constructors);
-			} catch (JSONException e) {
-				e.printStackTrace();
+		if (compareToTplVersion("7.6.0.1") >= 0) {
+			// App subscribers
+			List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
+			if (!subscriberList.isEmpty()) {
+				try {
+					String subscribers = UIEventSubscriber.computeConstructors(null, subscriberList);
+					String constructors = jsonScripts.getString("constructors") + subscribers;
+					jsonScripts.put("constructors", constructors);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				try {
+					String function = UIEventSubscriber.computeNgDestroy(null, subscriberList); 
+					String functions = jsonScripts.getString("functions") + function;
+					jsonScripts.put("functions", functions);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 			}
-			
-			try {
-				String function = UIEventSubscriber.computeNgDestroy(null, subscriberList); 
-				String functions = jsonScripts.getString("functions") + function;
-				jsonScripts.put("functions", functions);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-	
 		
-		// Component typescripts
-		Iterator<UIComponent> itm = getUIComponentList().iterator();
-		while (itm.hasNext()) {
-			UIComponent component = (UIComponent)itm.next();
-			component.computeScripts(jsonScripts);
+			
+			// Component typescripts
+			Iterator<UIComponent> itm = getUIComponentList().iterator();
+			while (itm.hasNext()) {
+				UIComponent component = (UIComponent)itm.next();
+				component.computeScripts(jsonScripts);
+			}
 		}
 	}
 	

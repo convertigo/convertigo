@@ -510,9 +510,14 @@ public class ComponentManager {
 			if (dboParent instanceof ApplicationComponent) {
 				if (UIStyle.class.isAssignableFrom(dboClass) ||
 					UIDynamicMenu.class.isAssignableFrom(dboClass) ||
-					UIActionStack.class.isAssignableFrom(dboClass) ||
-					UIEventSubscriber.class.isAssignableFrom(dboClass)) {
+					UIActionStack.class.isAssignableFrom(dboClass)) {
 					return true;
+				}
+				if (UIEventSubscriber.class.isAssignableFrom(dboClass)) {
+					ApplicationComponent app = (ApplicationComponent)dboParent;
+					if (app.compareToTplVersion("7.6.0.1") >= 0) {
+						return true;
+					}
 				}
 			} else if (dboParent instanceof PageComponent) {
 				if (!UITheme.class.isAssignableFrom(dboClass) &&
