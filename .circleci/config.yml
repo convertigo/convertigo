@@ -512,10 +512,10 @@ jobs:
               tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64 &
           fi
           if [ -d ${dir_mac} ]; then
-              dir_mac_web=$(dirname ${dir_lin}/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
+              dir_mac_web=$(dirname ${dir_mac}/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
               echo "build.version=${convertigoRevision}" > ${dir_mac_web}/build.txt
               echo "build.date=$(date)" >> ${dir_mac_web}/build.txt
-              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz" >> ${dir_mac_web}/build.txt
+              echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz" >> ${dir_mac_web}/build.txt
               mv ${dir_mac} convertigo-studio-$CONVERTIGO_VERSION-macosx
               tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-macosx.tar.gz convertigo-studio-$CONVERTIGO_VERSION-macosx &
           fi

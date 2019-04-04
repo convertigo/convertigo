@@ -71,6 +71,11 @@ public class StartupDiagnostics {
 			Engine.logEngine.info("*** STARTUP DIAGNOSTICS ***");
 
 			String os = System.getProperty("os.name");
+
+			boolean isLinux = os.startsWith("Linux");
+			// boolean isWindows = os.startsWith("Windows");
+			boolean isMacOS = os.startsWith("Mac OS X");
+			
 			Architecture architecture = getArchitecture();
 			Engine.logEngine.info("Detected OS: " + os + " "
 					+ (architecture == Architecture.x32bits ? "(32 bits)" :
@@ -88,9 +93,11 @@ public class StartupDiagnostics {
 				}
 				else {
 					Engine.logEngine.info("WAR file name: " + buildFileName);
-					String archSuffix = ((architecture == Architecture.x32bits ? "32.war" :
-						architecture == Architecture.x64bits ? "64.war" : ""));
-					testsSummary += (buildFileName.endsWith(archSuffix) ? TEST_SUCCESS : TEST_FAILED);
+					if (buildFileName.contains("linux32") && !(isLinux && architecture == Architecture.x32bits)) {
+						testsSummary += TEST_FAILED;
+					} else {
+						testsSummary += TEST_SUCCESS;
+					}
 				}
 			} catch (FileNotFoundException e) {
 				Engine.logEngine.warn("The build info file (" + buildInfoFile.getPath() + ") does not exist!");
@@ -99,10 +106,6 @@ public class StartupDiagnostics {
 				Engine.logEngine.warn("Unable to read the build info file (" + buildInfoFile.getPath() + ")!", e);
 				testsSummary += TEST_WARN;
 			}
-
-			boolean isLinux = os.startsWith("Linux");
-			// boolean isWindows = os.startsWith("Windows");
-			boolean isMacOS = os.startsWith("Mac OS X");
 
 			if (isLinux) {
 				String sysLdLibraryPath = System.getenv("LD_LIBRARY_PATH");
