@@ -513,6 +513,12 @@ public class ComponentManager {
 					UIActionStack.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
+				if (UIEventSubscriber.class.isAssignableFrom(dboClass)) {
+					ApplicationComponent app = (ApplicationComponent)dboParent;
+					if (app.compareToTplVersion("7.6.0.1") >= 0) {
+						return true;
+					}
+				}
 			} else if (dboParent instanceof PageComponent) {
 				if (!UITheme.class.isAssignableFrom(dboClass) &&
 					!UIDynamicMenu.class.isAssignableFrom(dboClass) &&

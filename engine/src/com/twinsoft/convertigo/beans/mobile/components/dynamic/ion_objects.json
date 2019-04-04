@@ -8550,6 +8550,21 @@
             "value": false
           },
           
+          "response_type": {
+            "label": "Response Type",
+            "description": "The response type. If not set, response type is automatically configured from the 'provider' setting, by you may override this setting here.",
+            "category": "@parameters",
+            "type": "string",
+            "value": false,
+            "values": [
+              	false,
+                "code",
+                "id_token+token",
+                true
+              ]
+          },
+
+          
          "loginRequestable": {
             "label": "Server LoginSequence",
             "description": "&lt;Project.Sequence&gt;. The MBaaS Server sequence to call for login. If not set, is automatically configured from the 'provider' setting. You may override this setting here.",

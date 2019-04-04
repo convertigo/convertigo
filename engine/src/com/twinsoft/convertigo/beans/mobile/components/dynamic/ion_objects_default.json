@@ -2144,6 +2144,11 @@
     "mode": "plain",
     "value": false
    },
+   "response_type": {
+    "name": "response_type",
+    "mode": "plain",
+    "value": false
+   },
    "loginRequestable": {
     "name": "loginRequestable",
     "mode": "plain",

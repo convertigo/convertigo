@@ -53,6 +53,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.IEventListener;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
@@ -874,6 +875,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				if (uic.getStack() != null) {
 					handleStackChanged(uic.getStack());
 				}
+				else if (uic.getPage() == null) {
+					try {
+						markMainAsDirty(uic);
+					} catch (EngineException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 	}
@@ -888,19 +896,20 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			
 			if (!(treeObject.equals(this))) {
+				UIComponent uic = getObject();
 				if (treeObject.getParents().contains(this)) {
-					// a child of this stack has been removed
-					if (getObject() instanceof UIActionStack) {
+					// a child of this object has been removed
+					if (uic instanceof UIActionStack || (uic instanceof IEventListener && uic.getPage() == null)) {
 						try {
-							((UIActionStack)getObject()).getApplication().markApplicationAsDirty();
+							markMainAsDirty(uic);
 						} catch (EngineException e) {
-							ConvertigoPlugin.logWarning(e, "Could not update in tree UIActionStack \""+getObject().getName()+"\" !");
+							ConvertigoPlugin.logWarning(e, "Could not update in tree \""+getObject().getName()+"\" !");
 						}
 					}
 				}
 				else {
 					// a child of this referenced stack has been removed
-					if (getObject() instanceof UIDynamicInvoke) {
+					if (uic instanceof UIDynamicInvoke) {
 						UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
 						
 						for (TreeObject to: doto.getParents()) {
