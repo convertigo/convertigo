@@ -290,26 +290,12 @@ public class StartupDiagnostics {
 				return;
 			}
 
-			// Checking DISPLAY
-			if (isLinux) {
-				testsSummary += " - DISPLAY environment variable ............... ";
-				String display = System.getenv("DISPLAY");
-				Engine.logEngine.info("DISPLAY=" + display);
-
-				if (display == null) {
-					Engine.logEngine.error("The DISPLAY environment variable is not set!");
-					testsSummary += TEST_FAILED;
-				} else {
-					testsSummary += TEST_SUCCESS;
-				}
-			}
-
 			// Check the XulRunner libraries dependencies
-			testsSummary += " - XulRunner libraries dependencies ........... ";
 			File xulrunnerLibDir = new File(Engine.WEBAPP_PATH + "/WEB-INF/xulrunner/");
 
 			boolean hasXulrunner = false;
 			if (isLinux && xulrunnerLibDir.exists()) {
+				testsSummary += " - XulRunner libraries dependencies ........... ";
 				Engine.logEngine.info("XulRunner libraries directory: " + xulrunnerLibDir.getPath());
 				LddLibrariesResult lddLibrariesResult = lddLibraries(xulrunnerLibDir,
 						xulrunnerLibDir.toString(), null);
@@ -324,12 +310,24 @@ public class StartupDiagnostics {
 					hasXulrunner = true;
 					testsSummary += TEST_SUCCESS;
 				}
-			} else {
-				testsSummary += "IGNORED\n";
 			}
 
 			if (hasXulrunner) {
 				try {
+					// Checking DISPLAY
+					if (isLinux) {
+						testsSummary += " - DISPLAY environment variable ............... ";
+						String display = System.getenv("DISPLAY");
+						Engine.logEngine.info("DISPLAY=" + display);
+
+						if (display == null) {
+							Engine.logEngine.error("The DISPLAY environment variable is not set!");
+							testsSummary += TEST_FAILED;
+						} else {
+							testsSummary += TEST_SUCCESS;
+						}
+					}
+					
 					// SWT libraries dependencies
 					testsSummary += " - SWT libraries dependencies ................. ";
 
