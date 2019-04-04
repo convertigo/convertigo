@@ -72,6 +72,14 @@ war {
 	
 	doFirst {
 		project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
+		file('build/tmp/build.txt').text = """\
+build.version=${convertigoRevision}
+build.date=${new Date().toString()}
+build.filename=${war.archiveName}"""
+	}
+	
+	from 'build/tmp/build.txt', {
+		into 'WEB-INF'
 	}
 	
 	exclude '**/keys.txt'
@@ -249,7 +257,20 @@ task warLinux32(type: Zip, dependsOn: [war, downloadXulrunnerLinux32, downloadXv
 	archiveName war.archiveName.replace(war.baseName, war.baseName + '-linux32')
 	destinationDir war.destinationDir
 	
-	from zipTree(war.archivePath)
+	doFirst {
+		file('build/tmp/build.txt').text = """\
+build.version=${convertigoRevision}
+build.date=${new Date().toString()}
+build.filename=${archiveName}"""
+	}
+	
+	from zipTree(war.archivePath), {
+		exclude 'WEB-INF/build.txt'
+	}
+	
+	from 'build/tmp/build.txt', {
+		into 'WEB-INF'
+	}
 	
 	from downloadXulrunnerLinux32.ext.dir, {
 		into 'WEB-INF/xulrunner'
