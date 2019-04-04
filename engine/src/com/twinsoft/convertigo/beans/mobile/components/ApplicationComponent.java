@@ -1109,14 +1109,13 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
-			}
-		
-			
-			// Component typescripts
-			Iterator<UIComponent> itm = getUIComponentList().iterator();
-			while (itm.hasNext()) {
-				UIComponent component = (UIComponent)itm.next();
-				component.computeScripts(jsonScripts);
+				
+				// Component typescripts
+				Iterator<UIEventSubscriber> its = subscriberList.iterator();
+				while (its.hasNext()) {
+					UIEventSubscriber subscriber = its.next();
+					subscriber.computeScripts(jsonScripts);
+				}
 			}
 		}
 	}
