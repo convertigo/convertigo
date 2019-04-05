@@ -662,6 +662,18 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
+    - qualif_jmx_1:
+        requires:
+        - build_docker_i386
+        filters:
+          tags:
+            only: /^\d+\..*$/
+    - qualif_jmx_3:
+        requires:
+        - build_docker_amd64
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - release:
         requires:
         - build_docker_amd64
