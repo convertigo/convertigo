@@ -100,6 +100,8 @@ public class MobileBuilder {
 						map.putAll(m);
 					}
 					
+					boolean hasMovedAppOrServFiles = false;
+					boolean hasMovedPageFiles = false;
 					boolean hasMovedCfgFiles = false;
 					boolean hasMovedFiles = false;
 					
@@ -112,6 +114,12 @@ public class MobileBuilder {
 							Engine.logEngine.debug("(MobileBuilder) Moved " + path);
 							hasMovedFiles = true;
 							
+							if (isAppFile(path) || isServiceFile(path)) {
+								hasMovedAppOrServFiles = true;
+							}
+							if (isPageFile(path)) {
+								hasMovedPageFiles = true;
+							}
 							if (path.endsWith("package.json")) {
 								hasMovedCfgFiles = true;
 							}
@@ -131,40 +139,38 @@ public class MobileBuilder {
 						if (buildMutex != null) {
 							synchronized (buildMutex) {
 								try {
-									buildMutex.wait(hasMovedFiles ? 60000 : 10);
+									buildMutex.wait(60000);
 								} catch (InterruptedException e) {}							
 							}
 							Engine.logEngine.debug("(MobileBuilder) build finished.");
 						}
 						
-						// THEN: move again app files
-						int count = 0;
-						hasMovedFiles = false;
-						for (String path: map.keySet()) {
-							try {
-								String search = File.separator + "src"+ File.separator +"pages" + File.separator;
-								if (path.indexOf(search) != -1) {
-									continue;
-								}
-								
-								FileUtils.write(new File(path), map.get(path), "UTF-8");
-								Engine.logEngine.debug("(MobileBuilder) Moved again " + path);
-								hasMovedFiles = true;
-								count++;
-							} catch (IOException e) {
-								Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
-							}
-						}
-						
-						if (hasMovedFiles) {
-							Engine.logEngine.debug("(MobileBuilder) End to move again " + count + " files.");
-							if (buildMutex != null) {
-								synchronized (buildMutex) {
+						// THEN: move again app or service files 
+						if (hasMovedPageFiles && hasMovedAppOrServFiles) {
+							int count = 0;
+							for (String path: map.keySet()) {
+								if (isAppFile(path) || isServiceFile(path)) {
 									try {
-										buildMutex.wait(hasMovedFiles ? 60000 : 10);
-									} catch (InterruptedException e) {}							
+										FileUtils.write(new File(path), map.get(path), "UTF-8");
+										Engine.logEngine.debug("(MobileBuilder) Moved again " + path);
+										count++;
+									} catch (IOException e) {
+										Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
+									}
 								}
-								Engine.logEngine.debug("(MobileBuilder) build finished.");
+							}
+							
+							if (count > 0) {
+								Engine.logEngine.debug("(MobileBuilder) End to move again " + count + " files.");
+								
+								if (buildMutex != null) {
+									synchronized (buildMutex) {
+										try {
+											buildMutex.wait(60000);
+										} catch (InterruptedException e) {}							
+									}
+									Engine.logEngine.debug("(MobileBuilder) build finished.");
+								}
 							}
 						}
 					}
@@ -175,7 +181,6 @@ public class MobileBuilder {
 		
 		@Override
 		public void run() {
-			
 			while (isRunning) {
 				try {
 					process();
@@ -222,6 +227,21 @@ public class MobileBuilder {
 	
 	File projectDir, ionicTplDir, ionicWorkDir;
 	
+	static private boolean isAppFile(String path) {
+		String search = File.separator + "src" + File.separator + "app" + File.separator;
+		return path == null ? false : path.indexOf(search) != -1;
+	}
+	
+	static private boolean isPageFile(String path) {
+		String search = File.separator + "src" + File.separator + "pages" + File.separator;
+		return path == null ? false : path.indexOf(search) != -1;
+	}
+	
+	static private boolean isServiceFile(String path) {
+		String search = File.separator + "src" + File.separator + "services" + File.separator;
+		return path == null ? false : path.indexOf(search) != -1;
+	}
+		
 	static public void initBuilder(Project project) {
 		if ((Engine.isStudioMode() || Engine.isCliMode()) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
@@ -298,7 +318,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			setAppWpaAble(app.isPWA());
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appPwaChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
 		}
 	}
 	
@@ -311,7 +331,7 @@ public class MobileBuilder {
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appRootChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
 
@@ -324,7 +344,7 @@ public class MobileBuilder {
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appRouteChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appRouteChanged'");
 		}
 	}
 	
@@ -343,7 +363,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			addPage(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageEnabled'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageEnabled'");
 		}
 	}
 	
@@ -356,7 +376,7 @@ public class MobileBuilder {
 					writePageSourceFiles(page);
 					writeAppSourceFiles(application);
 					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageDisabled'");
+					Engine.logEngine.trace("(MobileBuilder) Handled 'pageDisabled'");
 				}
 			}
 		}
@@ -366,7 +386,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && page.bNew && initDone) {
 			addPage(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageAdded'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageAdded'");
 		}
 	}
 	
@@ -379,7 +399,7 @@ public class MobileBuilder {
 					writeAppSourceFiles(application);
 					deleteUselessDir(page.getName());
 					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRemoved'");
+					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRemoved'");
 				}
 			}
 		}
@@ -395,7 +415,7 @@ public class MobileBuilder {
 					writeAppSourceFiles(application);
 					deleteUselessDir(oldName);
 					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRenamed'");
+					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRenamed'");
 				}
 			}
 		}
@@ -405,7 +425,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTemplate(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTemplateChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageTemplateChanged'");
 		}
 	}
 	
@@ -413,7 +433,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageStyle(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageStyleChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageStyleChanged'");
 		}
 	}
 
@@ -424,7 +444,7 @@ public class MobileBuilder {
 			writeAppServiceTs(app);
 			writeAppModuleTs(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appContributorsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
 		}
 	}
 	
@@ -440,7 +460,7 @@ public class MobileBuilder {
 				writePageTempTs(page);
 			}
 			
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageTsChanged'");
 		}
 	}
 
@@ -454,7 +474,7 @@ public class MobileBuilder {
 				writeAppComponentTempTs(app);
 			}
 			
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appTsChanged'");
 		}
 	}
 
@@ -462,7 +482,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppStyle(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appStyleChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appStyleChanged'");
 		}
 	}
 
@@ -470,7 +490,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppTemplate(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appTemplateChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appTemplateChanged'");
 		}
 	}
 	
@@ -478,7 +498,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppTheme(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appThemeChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appThemeChanged'");
 		}
 	}
 	
@@ -486,7 +506,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appCompTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appCompTsChanged'");
 		}
 	}
 	
@@ -494,7 +514,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppModuleTs(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appModuleTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appModuleTsChanged'");
 		}
 	}
 	
@@ -633,13 +653,13 @@ public class MobileBuilder {
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/version.json"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
-		Engine.logEngine.debug("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
+		Engine.logEngine.trace("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
 	}
 	
 	private void copyTemplateFiles() throws EngineException {
 		try {
 			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir);
-			Engine.logEngine.debug("(MobileBuilder) Template files copied for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.trace("(MobileBuilder) Template files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
@@ -656,7 +676,7 @@ public class MobileBuilder {
 				content = content.replaceAll("../Flashupdate","../../Flashupdate");
 				writeFile(f, content, "UTF-8");
 			}
-			Engine.logEngine.debug("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.trace("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to update configuration files for ionic project '"+ project.getName() +"'",e);
@@ -694,7 +714,7 @@ public class MobileBuilder {
 						writeAppSourceFiles(application);
 						removeUselessPages(application);
 						
-						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
+						Engine.logEngine.trace("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 					} else {
 						cleanDirectories();
 						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
@@ -723,7 +743,7 @@ public class MobileBuilder {
 				writeFile(pageHtmlFile, computedTemplate, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -742,7 +762,7 @@ public class MobileBuilder {
 				writeFile(pageScssFile, computedScss, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -958,7 +978,7 @@ public class MobileBuilder {
 				writeFile(pageTsFile, getPageTsContent(page), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -1256,7 +1276,7 @@ public class MobileBuilder {
 				writeFile(appPlgConfig, mandatoryPlugins, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) App plugins config file generated");
+					Engine.logEngine.trace("(MobileBuilder) App plugins config file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -1302,7 +1322,7 @@ public class MobileBuilder {
 				writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic package json file generated");
+					Engine.logEngine.trace("(MobileBuilder) Ionic package json file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -1357,7 +1377,7 @@ public class MobileBuilder {
 				writeFile(appServiceTsFile, mContent, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic service ts file generated for 'app'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic service ts file generated for 'app'");
 				}
 			}
 		} catch (Exception e) {
@@ -1509,7 +1529,7 @@ public class MobileBuilder {
 				}
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic module ts file generated for 'app'");
 				}
 			}
 		}
@@ -1592,7 +1612,7 @@ public class MobileBuilder {
 				writeFile(appComponentTsFile, getAppComponentTsContent(app), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic component ts file generated for 'app'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic component ts file generated for 'app'");
 				}
 			}
 		}
@@ -1634,7 +1654,7 @@ public class MobileBuilder {
 				writeFile(appHtmlFile, computedTemplate, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1652,7 +1672,7 @@ public class MobileBuilder {
 				writeFile(appScssFile, computedScss, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1670,7 +1690,7 @@ public class MobileBuilder {
 				writeFile(themeScssFile, tContent, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1720,7 +1740,7 @@ public class MobileBuilder {
 				writeAppStyle(application);
 				writeAppTheme(application);
 
-				Engine.logEngine.debug("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
+				Engine.logEngine.trace("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
 			}
 		}
 		catch (Exception e) {
@@ -1741,7 +1761,7 @@ public class MobileBuilder {
 			writePageTemplate(page);
 			
 			if (initDone) {
-				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
+				Engine.logEngine.trace("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
 			}
 		}
 		catch (Exception e) {
@@ -1919,7 +1939,7 @@ public class MobileBuilder {
 					}
 					
 					if (content.equals(excontent)) {
-						Engine.logEngine.debug("(MobileBuilder) No change for " + file.getPath());
+						Engine.logEngine.trace("(MobileBuilder) No change for " + file.getPath());
 						return;
 					}
 				}
