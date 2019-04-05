@@ -210,14 +210,12 @@ public class BeansDoc {
 			if (!"\n".equals(System.lineSeparator())) {
 				toWrite = toWrite.replace("\n", System.lineSeparator());
 			}
-			try{
-				InputStream is = getClass().getResourceAsStream(imgPath);
+			try (InputStream is = getClass().getResourceAsStream(imgPath)) {
 				System.out.println("imgPath : " + imgPath);
 				String imgPathModified = imgPath.replaceFirst(".*\\w\\/beans", "");
 				FileUtils.copyInputStreamToFile(is, new File(imageDirectory, imgPathModified));
 				System.out.println("Image generated at : " + imageDirectory + imgPathModified);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				System.out.println("Unable to copy the image file");
 			}
 			try {
@@ -260,8 +258,16 @@ public class BeansDoc {
 		
 		String iconName = MySimpleBeanInfo.getIconName(beanInfo, BeanInfo.ICON_COLOR_32x32);
 		String iconPath = iconName.replaceFirst(".*/beans/", "");
-		try (InputStream is = getClass().getResourceAsStream(iconName)) {
-			FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
+		try {
+			try (InputStream is = getClass().getResourceAsStream(iconName)) {
+				FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
+			}
+		} catch (Exception e) {
+			iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
+			iconPath = iconName.replaceFirst(".*/beans/", "");
+			try (InputStream is = getClass().getResourceAsStream(iconName)) {
+				FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
+			}
 		}
 		StringBuilder sb = new StringBuilder();
 		String permalink = "reference-manual/convertigo-objects/" + path + "/";
