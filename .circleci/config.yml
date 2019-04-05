@@ -417,6 +417,47 @@ jobs:
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
           
+  qualif_jmx_3:
+    <<: *defaults
+    steps:
+    
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    
+    - setup_remote_docker
+    
+    - run:
+        name: Checkout the qualif-jmx-3 project
+        command: |
+          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+          git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
+          
+    - run:
+        name: Pull the docker alpine image
+        command: |
+          source /tmp/build.env
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
+          
+          docker pull $CONVERTIGO_IMAGE
+          docker tag $CONVERTIGO_IMAGE c8o:latest
+          docker pull convertigo/qualif-jmeter:v2
+          
+    - run:
+        name: Run the qualif
+        command: |
+          source /tmp/build.env
+          cd convertigo-qualif-jmx-3
+          sh run.sh
+          mkdir -p $CONVERTIGO_DIST
+          mv out $CONVERTIGO_DIST/qualif
+          
+    - run:
+        name: Sync results to S3
+        command: |
+          source /tmp/build.env
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/          
+          
   build_studio:
     <<: *defaults
     steps:
