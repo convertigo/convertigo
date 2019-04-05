@@ -150,6 +150,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
@@ -1608,6 +1609,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							else if (databaseObject instanceof UIFormValidator) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS;
+							}
+							else if (databaseObject instanceof UIAppEvent) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
 							}
 							else if (databaseObject instanceof UIPageEvent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;

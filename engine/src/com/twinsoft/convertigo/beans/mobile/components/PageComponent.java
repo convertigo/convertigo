@@ -636,6 +636,42 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return "";
 	}
 
+	private String computeEventConstructors(List<UIEventSubscriber> subscriberList) {
+		String computed = "";
+		if (!subscriberList.isEmpty()) {
+			String nbi = getName() +".nbInstance";
+			computed += ""+nbi+"++;"+System.lineSeparator();
+			computed += "\t\tif ("+nbi+" == 1) {"+System.lineSeparator();
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String constructor = subscriber.computeConstructor();
+				computed += constructor.isEmpty() ? "": "\t" + constructor;
+			}
+			computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\t";
+		}
+		return computed;
+	}
+	
+	private String computeNgDestroy(List<UIEventSubscriber> subscriberList) {
+		String computed = "";
+		if (!subscriberList.isEmpty()) {
+			String nbi = getName() +".nbInstance";
+			computed += "ngOnDestroy() {"+ System.lineSeparator();
+			computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
+			computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String desctructor = subscriber.computeDestructor();
+				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
+			}
+			computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
+			computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+			computed += "\t}"+ System.lineSeparator();
+			computed += "\t";
+		}
+		return computed;
+	}
+	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		// Page menu
@@ -662,10 +698,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				e1.printStackTrace();
 			}
 			
-			String nbi = getName() +".nbInstance";
 			try {
-				String subscribers = UIEventSubscriber.computeConstructors(nbi, subscriberList)
-									+ System.lineSeparator() + "\t\t";
+				String subscribers = computeEventConstructors(subscriberList);
+				subscribers += subscribers.isEmpty() ? "" : System.lineSeparator() + "\t\t";
 				String constructors = jsonScripts.getString("constructors") + subscribers;
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
@@ -673,8 +708,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			}
 			
 			try {
-				String function = UIEventSubscriber.computeNgDestroy(nbi, subscriberList) 
-								+ System.lineSeparator() + "\t";
+				String function = computeNgDestroy(subscriberList);
+				function += function.isEmpty() ? "" : System.lineSeparator() + "\t";
 				String functions = jsonScripts.getString("functions") + function;
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {

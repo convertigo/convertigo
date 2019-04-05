@@ -248,6 +248,11 @@ public class UICustomAction extends UIComponent implements IAction {
 				if (uiControlEvent.isEnabled()) {
 					return uiControlEvent.getErrorEvent();
 				}
+			} else if (parent instanceof UIAppEvent) {
+				UIAppEvent uiAppEvent = (UIAppEvent)parent;
+				if (uiAppEvent.isEnabled()) {
+					return uiAppEvent.getErrorEvent();
+				}
 			} else if (parent instanceof UIPageEvent) {
 				UIPageEvent uiPageEvent = (UIPageEvent)parent;
 				if (uiPageEvent.isEnabled()) {
@@ -265,13 +270,14 @@ public class UICustomAction extends UIComponent implements IAction {
 
 	protected boolean isStacked() {
 		return handleError() || handleFailure() || numberOfActions() > 0 || 
-				getParent() instanceof UIPageEvent || getParent() instanceof UIEventSubscriber;
+				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent ||
+				getParent() instanceof UIEventSubscriber;
 	}
 	
 	protected String getScope() {
 		String scope = "";
 		DatabaseObject parent = getParent();
-		while (parent != null && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
+		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent)&& !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {

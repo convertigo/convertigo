@@ -24,43 +24,91 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class UIEventSubscriber extends UIComponent implements IEventListener {
+public class UIAppEvent extends UIComponent implements ITagsProperty {
 
-	private static final long serialVersionUID = -7552967959256066078L;
-
-	public UIEventSubscriber() {
+	private static final long serialVersionUID = 2861783522824694904L;
+	
+	private transient UIActionErrorEvent errorEvent = null;
+	
+	public enum AppEventType {
+		ionicPromise,
+		ionicObservable,
+		c8oObservable
+	}
+	
+	public enum AppEvent {
+		//onAppReady("ready", AppEventType.ionicPromise),
+		onAppPause("pause", AppEventType.ionicObservable),
+		onAppResume("resume", AppEventType.ionicObservable),
+		onAppResize("resize", AppEventType.ionicObservable),
+		//onSessionEnd("end", AppEventType.c8oObservable)
+		;
+		
+		String event;
+		AppEventType type;
+		AppEvent(String event, AppEventType type) {
+			this.event = event;
+			this.type = type;
+		}
+		
+		String computeConstructor(String functionName) {
+			if (type.equals(AppEventType.ionicObservable)) {
+				return "\t\tplatform."+ event +".subscribe(() => {this."+ functionName +"('"+ event +"')});"+ System.lineSeparator();
+			}
+			if (type.equals(AppEventType.c8oObservable)) {
+				//TODO
+			}
+			if (type.equals(AppEventType.ionicPromise)) {
+				//TODO
+			}
+			return "";
+		}
+		
+		String computeDestructor() {
+			if (type.equals(AppEventType.ionicObservable)) {
+				return "\t\tthis.getInstance(Platform)."+ event +".unsubscribe();"+ System.lineSeparator();
+			}
+			if (type.equals(AppEventType.c8oObservable)) {
+				//TODO
+			}
+			return "";
+		}
+	}
+	
+	public UIAppEvent() {
 		super();
 	}
-
+	
 	@Override
-	public UIEventSubscriber clone() throws CloneNotSupportedException {
-		UIEventSubscriber cloned = (UIEventSubscriber) super.clone();
+	public UIAppEvent clone() throws CloneNotSupportedException {
+		UIAppEvent cloned = (UIAppEvent) super.clone();
 		cloned.errorEvent = null;
 		return cloned;
 	}
+
+	@Override
+	protected String getRequiredTplVersion() {
+		return "7.6.0.1";
+	}
 	
-	private transient UIActionErrorEvent errorEvent = null;
+	private AppEvent appEvent = AppEvent.onAppPause;
+
+	public AppEvent getAppEvent() {
+		return appEvent;
+	}
+
+	public void setAppEvent(AppEvent appEvent) {
+		this.appEvent = appEvent;
+	}
 	
 	protected UIActionErrorEvent getErrorEvent() {
 		return this.errorEvent;
 	}
 	
-	private String topic = "";
-	
-	/**
-	 * @return the topic
-	 */
-	public String getTopic() {
-		return topic;
-	}
-
-	@Override
-	protected String getRequiredTplVersion() {
-		return "7.5.2.0";// since _tpl_7_5_2
-	}
-
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
 		checkSubLoaded();
@@ -109,19 +157,6 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		super.decreaseOrder(databaseObject, after);
 	}
 	
-	/**
-	 * @param topic the topic to set
-	 */
-	public void setTopic(String topic) {
-		this.topic = topic;
-	}
-
-	@Override
-	public String toString() {
-		String label = getTopic();
-		return "on(" + (label.isEmpty() ? "?":label) + ")";
-	}
-	
 	public String getFunctionName() {
 		return "ETS"+ this.priority;
 	}
@@ -131,26 +166,9 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		return "";
 	}
 
-	public String computeConstructor() {
-		String computed = "";
-		if (isEnabled() && !getTopic().isEmpty()) {
-			computed += "\t\tthis.events.subscribe('"+ getTopic() +"', "
-						+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
-		}
-		return computed;
-	}
-	
-	public String computeDestructor() {
-		String computed = "";
-		if (isEnabled() && !getTopic().isEmpty()) {
-			computed += "\t\tthis.events.unsubscribe('"+ getTopic() +"');"+ System.lineSeparator();
-		}
-		return computed;
-	}
-	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		if (isEnabled() && !topic.isEmpty()) {
+		if (isEnabled()) {
 			try {
 				String functions = jsonScripts.getString("functions") + System.lineSeparator() + computeListenerFunction();
 				jsonScripts.put("functions", functions);
@@ -174,7 +192,7 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 				if (component instanceof IAction) {
 					if (component.isEnabled()) {
 						sb.append("\t\tthis.").append(((IAction)component).getFunctionName())
-							.append("({root: {scope:{}, in:{}, out:data}})")
+							.append("({root: {scope:{}, in:{}, out:event}})")
 								.append(";").append(System.lineSeparator());
 					}
 				}
@@ -187,17 +205,30 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
-			cartridge.append("\t * @param data , the event data object").append(System.lineSeparator());
+			cartridge.append("\t * @param event , the event object").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
-			computed += "\t"+ functionName + "(data) {" + System.lineSeparator();
-			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": '"+topic+"' received\");" + System.lineSeparator();
+			computed += "\t"+ functionName + "(event) {" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": \"+  event.toString() +\" received\");" + System.lineSeparator();
 			computed += sb.toString();
 			computed += "\t}";
 		}
 		return computed;
 	}
 	
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("appEvent")) {
+			return EnumUtils.toNames(AppEvent.class);
+		}
+		return new String[0];
+	}
+	
+	@Override
+	public String toString() {
+		String label = appEvent.name();
+		return label.isEmpty() ? "?":label;
+	}
 }

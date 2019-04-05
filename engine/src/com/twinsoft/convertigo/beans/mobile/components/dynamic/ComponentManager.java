@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAnimation;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
@@ -357,6 +358,7 @@ public class ComponentManager {
 			// Add Controls
 			group = GROUP_CONTROLS;
 			components.add(getDboComponent(UIControlEvent.class,group));
+			components.add(getDboComponent(UIAppEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
 			components.add(getDboComponent(UIEventSubscriber.class,group));
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
@@ -510,7 +512,8 @@ public class ComponentManager {
 			if (dboParent instanceof ApplicationComponent) {
 				if (UIStyle.class.isAssignableFrom(dboClass) ||
 					UIDynamicMenu.class.isAssignableFrom(dboClass) ||
-					UIActionStack.class.isAssignableFrom(dboClass)) {
+					UIActionStack.class.isAssignableFrom(dboClass) ||
+					UIAppEvent.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
 				if (UIEventSubscriber.class.isAssignableFrom(dboClass)) {
@@ -523,6 +526,8 @@ public class ComponentManager {
 				if (!UITheme.class.isAssignableFrom(dboClass) &&
 					!UIDynamicMenu.class.isAssignableFrom(dboClass) &&
 					!UIDynamicMenuItem.class.isAssignableFrom(dboClass) &&
+					!UIAppEvent.class.isAssignableFrom(dboClass) &&
+					!UIActionStack.class.isAssignableFrom(dboClass) &&
 					!UIFormValidator.class.isAssignableFrom(dboClass) &&
 					!UIAttribute.class.isAssignableFrom(dboClass) &&
 					!UIControlVariable.class.isAssignableFrom(dboClass) &&
@@ -548,7 +553,8 @@ public class ComponentManager {
 						return true;
 					}
 				}
-				else if (dboParent instanceof UIPageEvent || 
+				else if (dboParent instanceof UIAppEvent ||
+						dboParent instanceof UIPageEvent || 
 						dboParent instanceof UIControlEvent ||
 						dboParent instanceof UIEventSubscriber) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
@@ -582,6 +588,7 @@ public class ComponentManager {
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
 						!UIStackVariable.class.isAssignableFrom(dboClass) &&
+						!UIAppEvent.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&

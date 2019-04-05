@@ -755,6 +755,16 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		throw new EngineException("There is no UI component named \"" + uiName + "\" found into this page.");
 	}
 	
+	public List<UIAppEvent> getUIAppEventList() {
+		List<UIAppEvent> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIAppEvent) {
+				eventList.add((UIAppEvent) uiComponent);
+			}
+		}
+		return eventList;
+	}
+	
 	public List<UIEventSubscriber> getUIEventSubscriberList() {
 		List<UIEventSubscriber> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
@@ -906,6 +916,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		}
 		for (UIEventSubscriber suscriber : getUIEventSubscriberList()) {
 			suscriber.addContributors(contributors);
+		}
+		for (UIAppEvent appEvent : getUIAppEventList()) {
+			appEvent.addContributors(contributors);
 		}
 	}
     
@@ -1081,6 +1094,40 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return sb.toString();
 	}
 
+	private String computeEventConstructors() {
+		String computed = "";
+		for (UIEventSubscriber subscriber: getUIEventSubscriberList()) {
+			if (subscriber.isEnabled()) {
+				computed += subscriber.computeConstructor();
+			}
+		}
+		for (UIAppEvent event: getUIAppEventList()) {
+			if (event.isEnabled()) {
+				computed += event.getAppEvent().computeConstructor(event.getFunctionName());
+			}
+		}
+		return computed;
+	}
+	
+	private String computeNgDestroy() {
+		String computed = "";
+		computed += "ngOnDestroy() {"+ System.lineSeparator();
+		for (UIEventSubscriber subscriber: getUIEventSubscriberList()) {
+			if (subscriber.isEnabled()) {
+				computed += subscriber.computeDestructor();
+			}
+		}
+		for (UIAppEvent event: getUIAppEventList()) {
+			if (event.isEnabled()) {
+				computed += event.getAppEvent().computeDestructor();
+			}
+		}
+		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+		computed += "\t}"+ System.lineSeparator();
+		computed += "\t";
+		return computed;
+	}
+	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		// App menus
@@ -1090,32 +1137,30 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			menu.computeScripts(jsonScripts);
 		}
 		
+		// App events
 		if (compareToTplVersion("7.6.0.1") >= 0) {
-			// App subscribers
-			List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
-			if (!subscriberList.isEmpty()) {
-				try {
-					String subscribers = UIEventSubscriber.computeConstructors(null, subscriberList);
-					String constructors = jsonScripts.getString("constructors") + subscribers;
-					jsonScripts.put("constructors", constructors);
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-				
-				try {
-					String function = UIEventSubscriber.computeNgDestroy(null, subscriberList); 
-					String functions = jsonScripts.getString("functions") + function;
-					jsonScripts.put("functions", functions);
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-				
-				// Component typescripts
-				Iterator<UIEventSubscriber> its = subscriberList.iterator();
-				while (its.hasNext()) {
-					UIEventSubscriber subscriber = its.next();
-					subscriber.computeScripts(jsonScripts);
-				}
+			try {
+				String subscribers = computeEventConstructors();
+				String constructors = jsonScripts.getString("constructors") + subscribers;
+				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				String function = computeNgDestroy(); 
+				String functions = jsonScripts.getString("functions") + function;
+				jsonScripts.put("functions", functions);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			// Component typescripts
+			for (UIEventSubscriber subscriber: getUIEventSubscriberList()) {
+				subscriber.computeScripts(jsonScripts);
+			}
+			for (UIAppEvent event: getUIAppEventList()) {
+				event.computeScripts(jsonScripts);
 			}
 		}
 	}
@@ -1363,6 +1408,24 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			String menuTplVersion = menu.requiredTplVersion();
 			if (MobileBuilder.compareVersions(tplVersion, menuTplVersion) <= 0) {
 				tplVersion = menuTplVersion;
+			}
+		}
+		
+		for (UIActionStack stack : getStackComponentList()) {
+			String satckTplVersion = stack.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, satckTplVersion) <= 0) {
+				tplVersion = satckTplVersion;
+			}
+		}
+		
+		for (UIComponent uic : getUIComponentList()) {
+			String uicTplVersion = uic.requiredTplVersion();
+			if (uic instanceof UIEventSubscriber) {
+				uicTplVersion = "7.6.0.1";
+			}
+			
+			if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+				tplVersion = uicTplVersion;
 			}
 		}
 		
