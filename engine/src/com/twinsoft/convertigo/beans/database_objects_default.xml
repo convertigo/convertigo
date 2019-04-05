@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent" priority="0" version="   7   6   0">
         <property name="appEvent">
-            <java.lang.String value="onAppReady"/>
+            <java.lang.String value="onAppPause"/>
         </property>
         <property name="comment">
             <java.lang.String value=""/>
