@@ -247,10 +247,12 @@ public class FullSyncServlet extends HttpServlet {
 			HttpEntity httpEntity = null;
 			JSONObject bulkDocsRequest = null;
 			boolean isCBL = false;
+			boolean isCBLiOS = false;
 			{
 				String agent = HeaderName.UserAgent.getHeader(request);
 				isCBL = agent != null && agent.startsWith("CouchbaseLite/1.");
 				if (isCBL) {
+					isCBLiOS = agent.contains("iOS");
 					isCBL = version != null && version.compareTo("1.7") >= 0;
 				}
 			}
@@ -476,7 +478,10 @@ public class FullSyncServlet extends HttpServlet {
 			
 			int code = newResponse.getStatusLine().getStatusCode();
 			debug.append("response Code: " + code + " in " + requestTime + " ms\n");
-			
+			if (isCBLiOS && code == 400) {
+				code = 500;
+				debug.append("response changed Code to: " + code + " (for iOS CBL)\n");
+			}
 			response.setStatus(code);
 			
 			boolean isCblBulkGet = isCBL && version.compareTo("2.3.") < 0 &&"_bulk_get".equals(special);
