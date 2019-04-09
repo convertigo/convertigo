@@ -108,7 +108,9 @@ export class MyApp extends C8oPageBase {
             .setLogRemote(true)
             .setLogC8o(true)
             .setLogLevelLocal(C8oLogLevel.DEBUG);
-
+        /*Begin_c8o_AppSettings*/
+        /*End_c8o_AppSettings*/
+        
         /**
          * Then we assign C8oSettings to our c8o Object with the init method
          */
