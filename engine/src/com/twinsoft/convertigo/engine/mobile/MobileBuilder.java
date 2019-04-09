@@ -900,7 +900,7 @@ public class MobileBuilder {
 					index = tsContent.lastIndexOf("}");
 					if (index != -1) {
 						tsContent = tsContent.substring(0, index -1) + System.lineSeparator() 
-									+ Matcher.quoteReplacement(code) + System.lineSeparator()
+									+ code + System.lineSeparator()
 									+ tsContent.substring(index);
 					}
 				}
