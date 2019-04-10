@@ -45,7 +45,8 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		onAppPause("pause", AppEventType.ionicObservable),
 		onAppResume("resume", AppEventType.ionicObservable),
 		onAppResize("resize", AppEventType.ionicObservable),
-		//onSessionEnd("end", AppEventType.c8oObservable)
+		onSessionLost("handleSessionLost()", AppEventType.c8oObservable),
+		onNetworkChanged("handleNetworkEvents()", AppEventType.c8oObservable)
 		;
 		
 		String event;
@@ -57,10 +58,10 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		
 		String computeConstructor(String functionName) {
 			if (type.equals(AppEventType.ionicObservable)) {
-				return "\t\tplatform."+ event +".subscribe(() => {this."+ functionName +"('"+ event +"')});"+ System.lineSeparator();
+				return "\t\tplatform."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
 			}
 			if (type.equals(AppEventType.c8oObservable)) {
-				//TODO
+				return "\t\tthis.c8o."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
 			}
 			if (type.equals(AppEventType.ionicPromise)) {
 				//TODO
@@ -73,7 +74,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 				return "\t\tthis.getInstance(Platform)."+ event +".unsubscribe();"+ System.lineSeparator();
 			}
 			if (type.equals(AppEventType.c8oObservable)) {
-				//TODO
+				return "\t\tthis.c8o."+ event +".unsubscribe();"+ System.lineSeparator();
 			}
 			return "";
 		}
@@ -205,13 +206,15 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
-			cartridge.append("\t * @param event , the event object").append(System.lineSeparator());
+			cartridge.append("\t * @param data , the event data").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
+			
+			String eventName = appEvent.name();
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
-			computed += "\t"+ functionName + "(event) {" + System.lineSeparator();
-			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": \"+  event.toString() +\" received\");" + System.lineSeparator();
+			computed += "\t"+ functionName + "(data) {" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": '"+ eventName +"' received\");" + System.lineSeparator();
 			computed += sb.toString();
 			computed += "\t}";
 		}
