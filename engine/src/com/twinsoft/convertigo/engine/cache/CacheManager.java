@@ -246,7 +246,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 		if ("true".equals(response.getDocumentElement().getAttribute("fromcache"))) {
 			HttpSession session = context.httpSession;
 			if (session != null && session.isNew()) {
-				HttpSessionListener.terminateSession(session.getId());
+				HttpSessionListener.terminateSession(session);
 			}
 		}
 		

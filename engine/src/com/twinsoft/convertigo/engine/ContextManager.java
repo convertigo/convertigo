@@ -460,13 +460,17 @@ public class ContextManager extends AbstractRunnableManager {
 		}
     }
 
-	public void removeAll(String sessionID) {
+    public void removeAll(String sessionID) {
+    	HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
+    	if (httpSession != null) {
+    		removeAll(httpSession);
+    	}
+    }
+
+	public void removeAll(HttpSession httpSession) {
+		String sessionID = httpSession.getId();
 		Engine.logContextManager.debug("Removing all contexts for " + sessionID + "...");
 		try {
-			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
-			if (httpSession == null) {
-				return;
-			}
 			Object o = httpSession.getAttribute("contexts");
 			if (o == null) {
 				return;

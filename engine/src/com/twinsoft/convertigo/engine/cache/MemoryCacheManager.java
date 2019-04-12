@@ -125,7 +125,7 @@ public abstract class MemoryCacheManager extends CacheManager implements BaseEve
 		}
 		if (response == null) {
 			response = getStoredResponseFromRepository(requester, cacheEntry);
-			if (response != null) {
+			if (useWeakCache && response != null) {
 				storeWeakResponse(response, cacheEntry.requestString);
 			}
 		}

@@ -95,7 +95,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
             HttpSession httpSession = event.getSession();
             String httpSessionID = httpSession.getId();
 
-            if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSessionID);
+            if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSession);
             removeSession(httpSessionID);
             
             Engine.logContext.debug("HTTP session stopped [" + httpSessionID + "]");
@@ -104,15 +104,15 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         }
     }
     
+    static public void terminateSession(HttpSession session) {
+    	HttpUtils.terminateSession(session);
+    	removeSession(session.getId());
+    }
+    
     static public void terminateSession(String httpSessionID) {
-    	HttpSession session;
-    	if ((session = httpSessions.remove(httpSessionID)) != null) {
-    		HttpUtils.terminateSession(session);
-    		if (Engine.isEngineMode() && tasExceptions.remove(httpSessionID) == null) {
-    			synchronized (dateFormat) {
-    				KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
-    			}
-    		}
+    	HttpSession session = httpSessions.get(httpSessionID);
+    	if (session != null) {
+    		terminateSession(session);
     	}
     }
     

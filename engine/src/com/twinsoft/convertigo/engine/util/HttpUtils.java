@@ -252,7 +252,7 @@ public class HttpUtils {
 			if (force || Engine.authenticatedSessionManager.isAnonymous(httpSession)) {
 				httpSession.setMaxInactiveInterval(1);
 				if (Engine.theApp != null && Engine.theApp.contextManager != null) {
-					Engine.theApp.contextManager.removeAll(httpSession.getId());
+					Engine.theApp.contextManager.removeAll(httpSession);
 				}
 			}
 		}
