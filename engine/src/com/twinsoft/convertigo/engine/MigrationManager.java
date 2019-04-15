@@ -111,7 +111,7 @@ public class MigrationManager {
 					long t1 = Calendar.getInstance().getTime().getTime();
 					Engine.logEngine.trace("Migration took (" + (t1 - t0) + "ms).");
 					Engine.logEngine.info("Migration finished");
-					if (Engine.isStarted && Engine.isStudioMode())
+					if (Engine.isStarted)
 						Engine.theApp.fireMigrationFinished(new EngineEvent(""));
 				}
 			}

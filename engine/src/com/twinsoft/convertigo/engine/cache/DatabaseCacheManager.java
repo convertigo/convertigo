@@ -22,9 +22,12 @@ package com.twinsoft.convertigo.engine.cache;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.lang.ref.WeakReference;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
@@ -32,6 +35,9 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -55,6 +61,7 @@ public class DatabaseCacheManager extends CacheManager {
 	public static final String DB_PROP_FILE_NAME			 						= "/database_cache_manager.properties";
 
 	private SqlRequester sqlRequester = null;
+	private WeakReference<Map<String, CacheEntry>> weakEntry;
 	
 	public DatabaseCacheManager() {
 		Engine.logCacheManager.debug("Using a database cache manager...");
@@ -83,6 +90,53 @@ public class DatabaseCacheManager extends CacheManager {
 		
 		if (sqlRequester != null)
 			sqlRequester.close();
+	}
+	
+	private void storeWeakEntry(CacheEntry cacheEntry) {
+		if (useWeakCache && cacheEntry != null) {
+			synchronized (this) {
+				Map<String, CacheEntry> we = null;
+				if (weakEntry != null) {
+					we = weakEntry.get();
+				}
+				if (we == null) {
+					weakEntry = new WeakReference<Map<String, CacheEntry>>(we = new ConcurrentHashMap<>());
+				}
+				we.put(cacheEntry.requestString, cacheEntry);
+			}
+		}
+	}
+	
+	private CacheEntry getWeakEntry(String requestString) throws EngineException {
+		CacheEntry response = null;
+		if (useWeakCache && weakEntry != null) {
+			Map<String, CacheEntry> we = weakEntry.get();
+			if (we != null) {
+				response = we.get(requestString);
+			}
+		}
+		return response;
+	}
+	
+	@Override
+	protected void removeWeakResponse(CacheEntry cacheEntry) {
+		super.removeWeakResponse(cacheEntry);
+		Map<String, CacheEntry> we;
+		if (weakEntry != null && (we = weakEntry.get()) != null) {
+			we.remove(cacheEntry.requestString);
+		}
+	}
+	
+	@Override
+	public void onEvent(PropertyChangeEvent event) {
+		super.onEvent(event);
+		PropertyName name = event.getKey();
+		if (name.equals(PropertyName.CACHE_MANAGER_USE_WEAK)) {
+			useWeakCache = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.CACHE_MANAGER_USE_WEAK);
+			if (!useWeakCache) {
+				weakEntry = null;
+			}
+		}
 	}
 
 	public void updateCacheEntry(CacheEntry cacheEntry) throws EngineException {
@@ -177,6 +231,11 @@ public class DatabaseCacheManager extends CacheManager {
 	
 	public CacheEntry getCacheEntry(String requestString) throws EngineException {
 		try {
+			DatabaseCacheEntry cacheEntry = null;
+			CacheEntry ce = null;
+			if ((ce = getWeakEntry(requestString)) != null && ce instanceof DatabaseCacheEntry) {
+				return ce;
+			}
 			Engine.logCacheManager.debug("Trying to get the cache entry from this request string: "+requestString);
 			sqlRequester.checkConnection();
 			
@@ -191,7 +250,6 @@ public class DatabaseCacheManager extends CacheManager {
 
 			Statement statement = null;
 			ResultSet rs = null;
-			DatabaseCacheEntry cacheEntry = null;
 			try {
 				statement = sqlRequester.connection.createStatement();
 				rs = statement.executeQuery(sSqlRequest);
@@ -217,7 +275,7 @@ public class DatabaseCacheManager extends CacheManager {
 			}
 			
 			Engine.logCacheManager.debug("The cache entry has been retrieved: [" + cacheEntry + "]");
-
+			storeWeakEntry(cacheEntry);
 			return cacheEntry;
 		}
 		catch(Exception e) {
@@ -233,6 +291,7 @@ public class DatabaseCacheManager extends CacheManager {
 
 	protected CacheEntry storeResponse(Document response, String requestString, long expiryDate) throws EngineException {
 		try {
+			storeWeakResponse(response, requestString);
 			Engine.logCacheManager.debug("Trying to store the response in the cache Database");
 			sqlRequester.checkConnection();
 			
@@ -311,7 +370,7 @@ public class DatabaseCacheManager extends CacheManager {
 			cacheEntry.expiryDate = expiryDate;
 
 			Engine.logCacheManager.debug("The response has been stored: [" + cacheEntry + "]");
-
+			storeWeakEntry(cacheEntry);
 			return cacheEntry;
 		}
 		catch(Exception e) {
@@ -320,6 +379,12 @@ public class DatabaseCacheManager extends CacheManager {
 	}
 
 	protected Document getStoredResponse(Requester requester, CacheEntry cacheEntry) throws EngineException {
+		Document document = getWeakResponse(cacheEntry);
+		
+		if (document != null) {
+			return document;
+		}
+		
 		DatabaseCacheEntry dbCacheEntry = (DatabaseCacheEntry) cacheEntry;
 		Engine.logCacheManager.debug("cacheEntry=[" + cacheEntry.toString() + "]");
 
@@ -342,8 +407,6 @@ public class DatabaseCacheManager extends CacheManager {
 	
 			String sSqlRequest = sqlRequest.toString();
 			Engine.logCacheManager.debug("SQL: " + sSqlRequest);
-	
-			Document document = null; 
 
 			// Case Oracle DB with XMLTYPE for Xml column : use prepared statement
 			// SELECT x.Xml.getCLOBVal() Xml FROM CacheTable x WHERE Id \= {Id}
@@ -402,7 +465,7 @@ public class DatabaseCacheManager extends CacheManager {
 			}
 			
 			Engine.logCacheManager.debug("Response built from the cache");
-
+			storeWeakResponse(document, cacheEntry.requestString);
 			return document;
 		}
 		catch(Exception e) {
@@ -411,6 +474,7 @@ public class DatabaseCacheManager extends CacheManager {
 	}
 
 	protected synchronized void removeStoredResponse(CacheEntry cacheEntry) throws EngineException {
+		removeWeakResponse(cacheEntry);
 		DatabaseCacheEntry dbCacheEntry = (DatabaseCacheEntry) cacheEntry;
 		Engine.logCacheManager.debug("cacheEntry=[" + cacheEntry.toString() + "]");
 
