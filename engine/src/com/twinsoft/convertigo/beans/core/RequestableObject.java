@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -410,7 +411,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	Object res = map.get(mapkey);
     	if (res == null) {
     		try {
-    			res = cx.evaluateString(thisObj, key, "use", 1, null);
+    			res = RhinoUtils.evalCachedJavascript(cx, thisObj, key, "use", 1, null);
     			map.set(mapkey, res);
     		} catch (Exception e) {
     			e.printStackTrace();
@@ -431,7 +432,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	File js = new File(project.getDirPath(), path);
     	if (js.exists()) {
     		try {
-				res = cx.evaluateString(thisObj, FileUtils.readFileToString(js, "UTF-8"), path, 1, null);
+    			res = RhinoUtils.evalCachedJavascript(cx, thisObj, FileUtils.readFileToString(js, "UTF-8"), path, 1, null);
 			} catch (IOException e) {
 				Engine.logBeans.warn("Cannot include '" + js + "' because of a read failure!", e);
 			}

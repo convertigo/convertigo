@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.tas.Authentication;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -531,8 +532,8 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 			// Insert the dataStableThreshold object in the script scope
 			Scriptable jsDataStableThreshold = org.mozilla.javascript.Context.toObject(new Integer(threshold), scope);
 			scope.put("threshold", scope, jsDataStableThreshold);
-
-			javascriptContext.evaluateString(scope, connectionSyncCode, getName() + " - Connection synchronization code", 1, null);
+			
+			RhinoUtils.evalCachedJavascript(javascriptContext, scope, connectionSyncCode, getName() + " - Connection synchronization code", 1, null);
 		}
 		catch(EcmaError e) {
 			EngineException ee = new EngineException(

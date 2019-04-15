@@ -36,6 +36,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class CustomTransaction extends AbstractCouchDbTransaction {
 
@@ -145,7 +146,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	private void evaluateUrl(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
-			eUrl = javascriptContext.evaluateString(scope, getSubUrl(), "subUrl", 1, null);
+			eUrl = RhinoUtils.evalCachedJavascript(javascriptContext, scope, getSubUrl(), "subUrl", 1, null);
 			if (eUrl instanceof org.mozilla.javascript.Undefined) {
 				eUrl = null;
 			}
@@ -179,7 +180,7 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	private void evaluateData(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
-			eData = javascriptContext.evaluateString(scope, getHttpData(), "httpData", 1, null);
+			eData = RhinoUtils.evalCachedJavascript(javascriptContext, scope, getHttpData(), "httpData", 1, null);
 			if (eData instanceof org.mozilla.javascript.Undefined) {
 				eData = null;
 			}

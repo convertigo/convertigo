@@ -19,15 +19,38 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
 public class RhinoUtils {
+	static final private Map<String, Script> compiledScript = new ConcurrentHashMap<String, Script>();
+	
 	static public Scriptable copyScope(Context context, Scriptable scope) {
 		Scriptable scopeCopy = context.initStandardObjects();
 		for (Object id : scope.getIds()) {
 			scopeCopy.put(id.toString(), scopeCopy, scope.get(id.toString(), scope));
 		}
 		return scopeCopy;
+	}
+	
+	static public Object evalCachedJavascript(Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
+		Script script = compiledScript.get(source);
+		if (script == null) {
+			cx.setOptimizationLevel(9);
+			script = cx.compileString(source, sourceName, lineno, securityDomain);
+			compiledScript.put(source, script);
+		}
+		Object result = script.exec(cx, scope);
+		return result;
+	}
+	
+	static public Object evalInterpretedJavascript(Context cx, Scriptable scope, String source, String sourceName, int lineno, Object securityDomain) {
+		cx.setOptimizationLevel(-1);
+		Object result = cx.evaluateString(scope, source, sourceName, lineno, securityDomain);
+		return result;
 	}
 }

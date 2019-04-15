@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.requesters.PoolRequester;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class PoolTranslator implements Translator {
 	
@@ -69,7 +70,7 @@ public class PoolTranslator implements Translator {
 	
 						variableValue = row.get(2);
 						try {
-							variableValue  = (String) javascriptContext.evaluateString(scope, variableValue, "", 1, null);
+							variableValue  = (String) RhinoUtils.evalInterpretedJavascript(javascriptContext, scope, variableValue, "", 1, null);
 						}
 						catch(EcmaError e) {
 							Engine.logBeans.warn("(ContextManager) " + poolContextID + " ECMA error for the transaction variable \"" + variableName + "\": " + e.getMessage() + ". Setting the value without evaluation...");

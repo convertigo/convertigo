@@ -33,6 +33,8 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
+
 public class PacManager {
 
 	private final String scriptUrl;
@@ -47,9 +49,9 @@ public class PacManager {
 			Context ctx = Context.enter();
 			scope = ctx.initStandardObjects();
 			scope.put("pacMethods", scope, new PacScriptMethods());
-			ctx.evaluateString(scope, getScriptContent(), "pac", 0, null);
+			RhinoUtils.evalInterpretedJavascript(ctx, scope, getScriptContent(), "pac", 0, null);
 			for (PacScriptMethods.jsFunctions function : PacScriptMethods.jsFunctions.values()) {
-				ctx.evaluateString(scope,
+				RhinoUtils.evalInterpretedJavascript(ctx, scope,
 						"function " + function.name() + " () {" + "return pacMethods." + function.name() + ".apply(pacMethods, arguments); }",
 						function.name(), 0, null);
 			}
@@ -105,7 +107,7 @@ public class PacManager {
 		Object result = "";
 		try {
 			Context ctx = Context.enter();
-			result = ctx.evaluateString(scope, "FindProxyForURL (\"" + url + "\",\"" + host + "\")", "check", 0, null);
+			result = RhinoUtils.evalInterpretedJavascript(ctx, scope, "FindProxyForURL (\"" + url + "\",\"" + host + "\")", "check", 0, null);
 		} catch (Exception e) {
 			Engine.logProxyManager.error("(PacManager) Failed to evaluate .pac for " + url + " from " + host, e);
 		} finally {

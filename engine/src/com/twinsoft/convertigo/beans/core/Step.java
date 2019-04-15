@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -775,7 +776,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		String message = null;
 		evaluated = null;
 		try {
-			evaluated = javascriptContext.evaluateString(scope, source, sourceName, 1, null);
+			evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, source, sourceName, 1, null);
 			if (evaluated != null && evaluated instanceof NativeJavaObject) {
 				evaluated = ((NativeJavaObject) evaluated).unwrap();
 			}

@@ -545,7 +545,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 						clonedScope.put(objectName, clonedScope, objectsToAddInScope.get(objectName));
 					}
 					
-					Object res = ctx.evaluateString(clonedScope, expression, "", 0, null);
+					Object res = RhinoUtils.evalCachedJavascript(ctx, clonedScope, expression, "SCexpression", 1, null);
 					return res;
 				} finally {
 					org.mozilla.javascript.Context.exit();
@@ -1047,6 +1047,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				
 				Engine.logSiteClipper.debug("(SiteClipperConnector) CertificateManager has changed: " + certificateManager.hasChanged);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) Using MySSLSocketFactory for creating the SSL socket");
+				@SuppressWarnings("deprecation")
 				Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
 					certificateManager.keyStore, certificateManager.keyStorePassword,
 					certificateManager.trustStore, certificateManager.trustStorePassword,

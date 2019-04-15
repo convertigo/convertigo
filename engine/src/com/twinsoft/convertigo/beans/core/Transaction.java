@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -171,7 +172,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
         	insertObjectsInScope();
 			
         	try {
-				javascriptContext.evaluateString(scope, handlers, getName(), 1, null);
+        		RhinoUtils.evalCachedJavascript(javascriptContext, scope, handlers, getName(), 1, null);
 				Engine.logBeans.debug("(Transaction) Handlers main code executed");
         	}
 			catch(EcmaError e) {
