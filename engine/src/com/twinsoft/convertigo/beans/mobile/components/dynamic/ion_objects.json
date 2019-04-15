@@ -8891,6 +8891,27 @@
       "icon32": "invokesharedaction_color_32x32.png",
       "properties": {
       }
+    },
+    
+    "IterateAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate",
+	  "displayName": "IterateAction",
+      "label": "IterateAction",
+      "description": "Defines an <i>IterateAction</i> component. | This component helps iterating any objects array.",
+      "group": "Actions",
+      "icon16": "iterateaction_color_16x16.png",
+      "icon32": "iterateaction_color_32x32.png",
+      "properties": {
+	      "items": {
+	        "label": "Items",
+	        "description": "Specify the array of items to iterate on",
+	        "category": "@Properties",
+	        "mode": "script",
+	        "type": "string",
+	        "value": "[]",
+	        "values": [false,true]
+	      }
+      }
     }
     
   }

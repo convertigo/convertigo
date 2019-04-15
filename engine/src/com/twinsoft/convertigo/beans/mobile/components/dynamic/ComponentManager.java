@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAnimation;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
@@ -58,6 +59,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
@@ -363,6 +365,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIEventSubscriber.class,group));
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
+			components.add(getDboComponent(UIActionLoopEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
@@ -572,6 +575,11 @@ public class ComponentManager {
 						UIControlVariable.class.isAssignableFrom(dboClass) ||
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
+					}
+					if (dboParent instanceof UIDynamicIterate) {
+						if (UIActionLoopEvent.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
 					}
 				} else if (dboParent instanceof UIDynamicMenuItem) {
 					if (UIAttribute.class.isAssignableFrom(dboClass)) {
