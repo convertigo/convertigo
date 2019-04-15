@@ -597,7 +597,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				} else {
 					tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
 				}
-				tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+				
+				if ("IfAction".equals(ionBean.getName())) {
+					tsCode += "\t\t}, (error: any) => {if (\"c8oSkipError\" === error.message) {resolve(false);} else {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);}})"+ System.lineSeparator();
+				} else {
+					tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+				}
 				tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
 				tsCode += "\t\t})"+ System.lineSeparator();
 				return tsCode;
