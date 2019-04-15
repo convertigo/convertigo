@@ -304,7 +304,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Ba
 			}
 		}
 
-		if ("true".equals(response.getDocumentElement().getAttribute("fromcache"))) {
+		if ("true".equals(response.getDocumentElement().getAttribute("fromcache")) && context.parentContext == null) {
 			HttpSession session = context.httpSession;
 			if (session != null && session.isNew()) {
 				HttpSessionListener.terminateSession(session);
