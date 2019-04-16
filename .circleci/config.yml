@@ -65,8 +65,12 @@ jobs:
           export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
           mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
           export CONVERTIGO_DIST=$(cd ~/s3/convertigo-$CONVERTIGO_BUILD_NAME; pwd)
-          env | grep -e "CIRCLE" -e "CONVERTIGO_" | sort > $CONVERTIGO_DIST/env.txt
-          env | grep -e "CONVERTIGO_" > /tmp/build.env
+          
+          export echo DATE=$(date)
+          
+          env | grep -e "^CIRCLE" -e "^CONVERTIGO_" -e "^DATE=" | sort > $CONVERTIGO_DIST/env.txt
+          env | grep -e "^CONVERTIGO_" -e "^DATE=" > /tmp/build.env
+          
           echo "/tmp/build.env: "
           cat /tmp/build.env
           

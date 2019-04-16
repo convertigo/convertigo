@@ -41,7 +41,7 @@ eclipse {
 
 dependencies {
 	runtime project(':engine')
-	runtime 'com.convertigo.lib:jxbrowser-license:2018.04.03'
+	runtime 'com.convertigo.lib:jxbrowser-license:2019.04.02'
 	runtime 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
 	runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
 	runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:7.0.82'
