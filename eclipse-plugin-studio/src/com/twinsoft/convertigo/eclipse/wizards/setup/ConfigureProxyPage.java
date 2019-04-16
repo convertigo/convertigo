@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.CheckConnectedCallback;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -358,10 +359,10 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,C
 				
 				if (!isConnected) {
 					msg = "Connection error : " + message;
-					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED)); 
+					statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ?SWT.COLOR_MAGENTA : SWT.COLOR_RED)); 
 				} else {
 					msg = "The connection test was successful!";
-					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_GREEN)); 
+					statusConnection.setForeground(Display.getDefault().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN)); 
 				}
 				statusConnection.setText(msg);
 			}

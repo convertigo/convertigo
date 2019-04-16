@@ -143,10 +143,11 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 	private void initialize() {
 		this.setLayout(new GridLayout(1, false));
 		this.setLayoutData(new GridData(GridData.FILL_BOTH));
-
+		Label title = new Label(this, SWT.NONE);
+		title.setText("Response lifetime");
+		title.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		/* GROUP Response Lifetime */
 		groupResponseLifetime = new Group(this, SWT.NONE);
-		groupResponseLifetime.setText("Response lifetime");
 		groupResponseLifetime.setLayout(new GridLayout(2, false));
 		groupResponseLifetime.setLayoutData(new GridData(GridData.FILL_BOTH));
 
