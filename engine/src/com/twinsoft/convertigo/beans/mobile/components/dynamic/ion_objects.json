@@ -8897,7 +8897,7 @@
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate",
 	  "displayName": "IterateAction",
       "label": "IterateAction",
-      "description": "Defines an <i>IterateAction</i> component. | This component helps iterating any objects array.",
+      "description": "Defines an <i>IterateAction</i> component. | This component helps iterating any objects array.<br/>To work properly the <i>IterateAction</i> needs a <i>Loop Handler</i> in which you may add any kind of action to be executed at each loop.<br/>The <i>Loop Handler</i> exposes the loop's current item and index you can use in actions.",
       "group": "Actions",
       "icon16": "iterateaction_color_16x16.png",
       "icon32": "iterateaction_color_32x32.png",
