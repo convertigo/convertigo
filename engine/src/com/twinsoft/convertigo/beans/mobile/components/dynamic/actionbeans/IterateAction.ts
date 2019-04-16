@@ -23,7 +23,7 @@
                     await doLoop(page, arr[i], i)
                     page.c8o.log.trace("[MB] IterateAction : loop "+ (i+1) + " done")
                 } catch (error) {
-                    throw new Error(error.message)
+                    throw new Error(error.message ? error.message : error)
                 }
             }
             return "done";
