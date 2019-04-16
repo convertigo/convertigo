@@ -38,7 +38,17 @@ public class UIActionLoopEventBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[2];
+			
+			properties[0] = new PropertyDescriptor("varItemName", beanClass, "getVarItemName", "setVarItemName");
+			properties[0].setDisplayName(getExternalizedString("property.varItemName.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.varItemName.short_description"));
+			properties[0].setValue("category", "@Properties");
+			
+			properties[1] = new PropertyDescriptor("varIndexName", beanClass, "getVarIndexName", "setVarIndexName");
+			properties[1].setDisplayName(getExternalizedString("property.varIndexName.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.varIndexName.short_description"));
+			properties[1].setValue("category", "@Properties");
 			
 		}
 		catch(Exception e) {

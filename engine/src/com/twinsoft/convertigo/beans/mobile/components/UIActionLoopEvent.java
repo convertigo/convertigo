@@ -37,4 +37,42 @@ public class UIActionLoopEvent extends UIActionEvent {
 	public String toString() {
 		return "onNextItem";
 	}
+
+	private String varItemName = "item";
+	
+	public String getVarItemName() {
+		return varItemName;
+	}
+
+	public void setVarItemName(String varItemName) {
+		this.varItemName = varItemName;
+	}
+
+	private String varIndexName = "index";
+	
+	public String getVarIndexName() {
+		return varIndexName;
+	}
+
+	public void setVarIndexName(String varIndexName) {
+		this.varIndexName = varIndexName;
+	}
+
+	@Override
+	public String computeEvent() {
+		String loopIn = super.computeEvent();
+		if (!loopIn.isEmpty()) {
+			String item = varItemName.isEmpty() ? "item" : varItemName;
+			String index = varIndexName.isEmpty() ? "index" : varIndexName;
+			
+			String tsCode = "";
+			tsCode += "\t\tconst doLoop = (c8oPage : C8oPageBase, "+ item +" : any, "+ index +" : number) : Promise<any> => {" + System.lineSeparator();
+			tsCode += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('(' + key + ')') );}catch(e){c8oPage.c8o.log.warn(\"[MB] doLoop: \"+e.message)}return val;}" + System.lineSeparator();
+			tsCode += loopIn;
+			tsCode += "\t\t}" + System.lineSeparator();
+			
+			return tsCode;
+		}
+		return "";
+	}
 }

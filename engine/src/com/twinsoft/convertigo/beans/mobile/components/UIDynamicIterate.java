@@ -157,14 +157,13 @@ public class UIDynamicIterate extends UIDynamicAction {
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
 				tsCode += "\t\t" + System.lineSeparator();
 				
-				tsCode += "\t\tconst doLoop = (c8oPage : C8oPageBase, item : any, index : number) : Promise<any> => {" + System.lineSeparator();
 				if (sbLoop.length() > 0) {
-					tsCode += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('(' + key + ')') );}catch(e){c8oPage.c8o.log.warn(\"[MB] doLoop: \"+e.message)}return val;}" + System.lineSeparator();
 					tsCode += sbLoop.toString();
 				} else {
+					tsCode += "\t\tconst doLoop = (c8oPage : C8oPageBase, item : any, index : number) : Promise<any> => {" + System.lineSeparator();
 					tsCode += "\t\treturn Promise.reject('no loop handler');" + System.lineSeparator();
+					tsCode += "\t\t}" + System.lineSeparator();
 				}
-				tsCode += "\t\t}" + System.lineSeparator();
 				tsCode += "\t\t" + System.lineSeparator();
 				
 				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
