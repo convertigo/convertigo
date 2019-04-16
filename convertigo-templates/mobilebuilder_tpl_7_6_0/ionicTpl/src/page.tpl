@@ -60,6 +60,10 @@ export class /*=c8o_PageName*/ extends C8oPage  {
 		
     }
 	
+	instance() {
+		return this;
+	}
+	
 	/*Begin_c8o_PageFunction*/
 	/*End_c8o_PageFunction*/
 	

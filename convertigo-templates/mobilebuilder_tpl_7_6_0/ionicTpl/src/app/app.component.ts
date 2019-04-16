@@ -139,7 +139,11 @@ export class MyApp extends C8oPageBase {
         });
 
     }
-
+    
+    instance() {
+        return this;
+    }
+    
 	getRootNav() {
 		let rootNavs = this.app.getRootNavs();
 		return rootNavs.length > 0 ? rootNavs[0]:null;
