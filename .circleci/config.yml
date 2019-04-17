@@ -69,7 +69,7 @@ jobs:
           export echo DATE=$(date)
           
           env | grep -e "^CIRCLE" -e "^CONVERTIGO_" -e "^DATE=" | sort > $CONVERTIGO_DIST/env.txt
-          env | grep -e "^CONVERTIGO_" -e "^DATE=" > /tmp/build.env
+          env | grep -e "^CONVERTIGO_" -e "^DATE=" | sed -e "s, ,\\\\ ,g" > /tmp/build.env
           
           echo "/tmp/build.env: "
           cat /tmp/build.env
