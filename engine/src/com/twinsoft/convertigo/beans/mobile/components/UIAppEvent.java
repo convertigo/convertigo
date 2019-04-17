@@ -19,14 +19,17 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.EnumUtils;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class UIAppEvent extends UIComponent implements ITagsProperty {
 
@@ -41,19 +44,33 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	}
 	
 	public enum AppEvent {
-		//onAppReady("ready", AppEventType.ionicPromise),
-		onAppPause("pause", AppEventType.ionicObservable),
-		onAppResume("resume", AppEventType.ionicObservable),
-		onAppResize("resize", AppEventType.ionicObservable),
-		onSessionLost("handleSessionLost()", AppEventType.c8oObservable),
-		onNetworkChanged("handleNetworkEvents()", AppEventType.c8oObservable)
+		//onAppReady("ready", AppEventType.ionicPromise, ?),
+		onAppPause("pause", AppEventType.ionicObservable, "7.6.0.1"),
+		onAppResume("resume", AppEventType.ionicObservable, "7.6.0.1"),
+		onAppResize("resize", AppEventType.ionicObservable, "7.6.0.1"),
+		onSessionLost("handleSessionLost()", AppEventType.c8oObservable, "7.6.0.1"),
+		onNetworkChanged("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.1")
 		;
 		
 		String event;
+		String tplVersion;
 		AppEventType type;
-		AppEvent(String event, AppEventType type) {
+		AppEvent(String event, AppEventType type, String tplVersion) {
 			this.event = event;
 			this.type = type;
+			this.tplVersion = tplVersion;
+		}
+		
+		static String[] getTagsForProperty(String tplVersion) {
+			List<String> tagList = new ArrayList<String>();
+			if (tplVersion != null) {
+				for (AppEvent appEvent: AppEvent.values()) {
+					if (MobileBuilder.compareVersions(tplVersion, appEvent.tplVersion) >= 0) {
+						tagList.add(appEvent.name());
+					}
+				}
+			}
+			return tagList.toArray(new String[tagList.size()]);
 		}
 		
 		String computeConstructor(String functionName) {
@@ -93,7 +110,11 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 
 	@Override
 	protected String getRequiredTplVersion() {
-		return "7.6.0.1";
+		return appEvent.tplVersion;
+	}
+	
+	public boolean isAvailable() {
+		return compareToTplVersion(getRequiredTplVersion()) >= 0;
 	}
 	
 	private AppEvent appEvent = AppEvent.onAppPause;
@@ -224,7 +245,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("appEvent")) {
-			return EnumUtils.toNames(AppEvent.class);
+			return AppEvent.getTagsForProperty(getTplVersion());
 		}
 		return new String[0];
 	}

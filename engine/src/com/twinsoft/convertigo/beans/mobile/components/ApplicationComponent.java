@@ -1102,7 +1102,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			}
 		}
 		for (UIAppEvent event: getUIAppEventList()) {
-			if (event.isEnabled()) {
+			if (event.isEnabled() && event.isAvailable()) {
 				computed += event.getAppEvent().computeConstructor(event.getFunctionName());
 			}
 		}
@@ -1118,7 +1118,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			}
 		}
 		for (UIAppEvent event: getUIAppEventList()) {
-			if (event.isEnabled()) {
+			if (event.isEnabled() && event.isAvailable()) {
 				computed += event.getAppEvent().computeDestructor();
 			}
 		}
@@ -1160,7 +1160,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				subscriber.computeScripts(jsonScripts);
 			}
 			for (UIAppEvent event: getUIAppEventList()) {
-				event.computeScripts(jsonScripts);
+				if (event.isEnabled() && event.isAvailable()) {
+					event.computeScripts(jsonScripts);
+				}
 			}
 		}
 	}
