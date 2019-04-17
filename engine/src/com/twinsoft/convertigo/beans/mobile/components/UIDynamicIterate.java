@@ -46,17 +46,25 @@ public class UIDynamicIterate extends UIDynamicAction {
 	}
 	
 	
+	protected boolean hasLoopEvent() {
+		return this.loopEvent != null;
+	}
+	
+	protected boolean hasFailureEvent() {
+		return this.failureEvent != null;
+	}
+	
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
 		checkSubLoaded();
 		
 		if (uiComponent instanceof UIActionLoopEvent) {
-    		if (this.loopEvent != null) {
+    		if (hasLoopEvent()) {
     			throw new EngineException("The action \"" + getName() + "\" already contains a loop event! Please delete it first.");
     		}
     		else {
     			this.loopEvent = (UIActionLoopEvent)uiComponent;
-    			after = -1L;// to be first
+    			after = hasFailureEvent() ? this.failureEvent.priority : -1L;
     		}
 		}
 		
@@ -76,9 +84,9 @@ public class UIDynamicIterate extends UIDynamicAction {
 	protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
 		if (databaseObject.equals(this.loopEvent)) {
 			return;
-		} else if (this.loopEvent != null) {
+		} else if (hasLoopEvent()) {
 			int pos = getOrderedComponents().get(0).indexOf(databaseObject.priority);
-			if (pos-1 <= 0) {
+			if ((hasFailureEvent() ? pos-2 : pos-1) <= 0) {
 				return;
 			}
 		}

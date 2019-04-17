@@ -45,7 +45,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 
 	private static final long serialVersionUID = 5988583131428053374L;
 
-	private transient UIActionFailureEvent failureEvent = null;
+	protected transient UIActionFailureEvent failureEvent = null;
 	
 	public UIDynamicAction() {
 		super();
