@@ -26,6 +26,7 @@ public enum SessionAttribute {
 	authenticatedUserGrp,
 	authenticatedUserGrpCheck,
 	clientIP,
+	contexts,
 	exception,
 	fullSyncRequests,
 	isNew,

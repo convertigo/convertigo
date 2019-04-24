@@ -628,6 +628,7 @@ public class Context extends AbstractContext implements Cloneable {
 		httpSession = null;
 		requestHeaders = null;
 		parentContext = null;
+		requestedObject = null;
 	}
 	
 	public Scriptable getSharedScope() {

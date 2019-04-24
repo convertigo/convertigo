@@ -389,6 +389,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             */
         } finally {
         	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_FINISHED);
+        	this.context = null;
+        	this.requester = null;
+        	this.runningThread = null;
+        	this.scope = null;
         }
         
         return context.outputDocument;

@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -36,6 +38,7 @@ import com.twinsoft.convertigo.beans.scheduler.AbstractJob;
 import com.twinsoft.convertigo.beans.scheduler.JobGroupJob;
 import com.twinsoft.convertigo.beans.scheduler.ScheduledJob;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -64,13 +67,14 @@ public class SchedulerJob implements Job {
 			long start = System.currentTimeMillis();
 			if (job instanceof AbstractConvertigoJob) {
 				AbstractConvertigoJob convertigoJob = (AbstractConvertigoJob) job;
-				
+				HttpServletRequest request = null;
 				try {
 					Engine.logScheduler.info("Prepare job " + jdName + " for " + convertigoJob.getProjectName());
 					
 					Map<String, String[]> parameters = convertigoJob.getConvertigoParameters();
-					Object response = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters)).processRequest();
-					
+					InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters));
+					HttpSessionListener.checkSession(request = requester.getHttpServletRequest());
+					Object response = requester.processRequest();
 					String message = "Completed job " + jdName + " with success";
 					if (convertigoJob.isWriteOutput()) {
 						if (response instanceof Document) {
@@ -81,6 +85,10 @@ public class SchedulerJob implements Job {
 					Engine.logScheduler.info(message);
 				} catch (Exception e) {
 					Engine.logScheduler.error("Failed job " + jdName, e);
+				} finally {
+					if (request != null) {
+						request.getSession(true).invalidate();
+					}
 				}
 			} else if (job instanceof JobGroupJob) {
 				JobGroupJob jobGroupJob = (JobGroupJob) job;

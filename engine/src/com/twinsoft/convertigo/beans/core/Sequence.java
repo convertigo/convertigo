@@ -1487,9 +1487,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	private void removeSequenceContext() {
 		if (Engine.isEngineMode()) {
-			if (!context.isAsync) {
-				if (Engine.logBeans.isDebugEnabled())
+			if (!context.isAsync && ("default".equals(context.name) || context.name.startsWith("Container-"))) {
+				if (Engine.logBeans.isDebugEnabled()) {
 					Engine.logBeans.debug("(Sequence) Requires its context removal");
+				}
 				context.requireRemoval(true);
 			}
 		}

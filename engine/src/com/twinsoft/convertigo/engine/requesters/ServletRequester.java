@@ -195,7 +195,6 @@ public abstract class ServletRequester extends GenericRequester {
 			if (context.project != null && context.project.getName().equals(context.projectName)) {
 				String defaultConnectorName = context.project.getDefaultConnector().getName();
 				if (!defaultConnectorName.equals(context.connectorName)) {
-					context.isNewSession = true;
 					context.connectorName = defaultConnectorName;
 				}
 			}

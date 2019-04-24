@@ -360,10 +360,10 @@ public abstract class GenericRequester extends Requester {
 		if (context.httpSession != null) {
 			synchronized (context.httpSession) {
 				try {
-					ArrayList<Context> contextList = GenericUtils.cast(context.httpSession.getAttribute("contexts"));
+					ArrayList<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(context.httpSession));
 					if (contextList == null)
 						contextList = new ArrayList<Context>();
-						context.httpSession.setAttribute("contexts", contextList);
+						SessionAttribute.contexts.set(context.httpSession, contextList);
 					if (!contextList.contains(context)) {
 						contextList.add(context);
 						Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
@@ -396,7 +396,7 @@ public abstract class GenericRequester extends Requester {
 		else if (parameterName.equals(Parameter.Sequence.getName())) {
 			if ((parameterValue != null) && (!parameterValue.equals(""))) {
 				if (!parameterValue.equals(context.sequenceName)) {
-					context.isNewSession = true;
+//					context.isNewSession = true;
 					context.sequenceName = parameterValue;
 					Engine.logContext.debug("The sequence is overridden to \"" + context.sequenceName + "\".");
 				}

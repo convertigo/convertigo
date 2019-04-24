@@ -132,6 +132,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -1641,14 +1642,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				public void run() {
 					try {
 						InternalHttpServletRequest request;
-						if (session == null) {
+						if (session == null || session.getMaxInactiveInterval() <= 1) {
 							request = new InternalHttpServletRequest();
-							session = request.getSession();
+							session = request.getSession("studio");
 						} else {
 							request = new InternalHttpServletRequest(session);
 						}
 
-						new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request).processRequest();
+						InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);
+						HttpSessionListener.checkSession(requester.getHttpServletRequest());
+						requester.processRequest();
 					} catch (Exception e) {
 						logException(e, "Failed to run the requestable of project " + projectName);
 					}

@@ -136,7 +136,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
         }
     
     static public void checkSession(HttpServletRequest request) throws TASException {
-    	HttpSession httpSession = request.getSession();
+    	HttpSession httpSession = request.getSession(true);
     	SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
 		if (!SessionAttribute.sessionListener.has(httpSession)) {
 			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");

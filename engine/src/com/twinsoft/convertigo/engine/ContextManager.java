@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
@@ -288,7 +289,7 @@ public class ContextManager extends AbstractRunnableManager {
     public List<Context> getContexts(HttpSession httpSession) {
 		try {
 			synchronized (httpSession) {
-				return GenericUtils.cast(httpSession.getAttribute("contexts"));
+				return GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
 			}
 		}
 		catch (Exception e) {
@@ -438,12 +439,11 @@ public class ContextManager extends AbstractRunnableManager {
 			if (httpSession != null) {
 				synchronized (httpSession) {
 					try {
-						List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+						List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
 						if ((contextList != null) && contextList.contains(context)) {
 							contextList.remove(context);
 							Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
 						}
-						httpSession.setAttribute("contexts", contextList);
 					}
 					catch (Exception e) {
 						// Ignore: HTTP session may have already been invalidated
@@ -471,7 +471,7 @@ public class ContextManager extends AbstractRunnableManager {
 		String sessionID = httpSession.getId();
 		Engine.logContextManager.debug("Removing all contexts for " + sessionID + "...");
 		try {
-			Object o = httpSession.getAttribute("contexts");
+			Object o = SessionAttribute.contexts.get(httpSession);
 			if (o == null) {
 				return;
 			}
@@ -643,7 +643,7 @@ public class ContextManager extends AbstractRunnableManager {
 				Engine.logContextManager.trace("Analyzing project " + projectName);
 				Project project = null;
 				try {
-					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 				} catch (Exception e) {
 					Engine.logContextManager.warn("Unable to load project '" + projectName
 							+ "'; avorting pool research for this project", e);
@@ -677,7 +677,7 @@ public class ContextManager extends AbstractRunnableManager {
 						if (pooledContexts > 0) {
 							for (int i = 1 ; i <= pool.getNumberOfContexts() ; i++) {
 								if (!isRunning) return;
-					            Project localProject = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+					            Project localProject = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 								Connector localConnector = localProject.getConnectorByName(connector.getName());
 								Pool localPool = localConnector.getPoolByName(pool.getName());
 								String servCode = localPool.getServiceCode();
