@@ -15,6 +15,7 @@ META-INF
 
 **/.gradle
 /build
+/pom.xml
 /convertigo-splash/splash.bmp
 /convertigo-templates/*/*.gradle
 !/convertigo-templates/common/*.gradle

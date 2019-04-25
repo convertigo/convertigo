@@ -55,6 +55,8 @@ to create mobile enterprise applications
       <import feature="ts-feature"/>
       <import feature="ts-jsdt-feature"/>
       <import feature="ts-json-feature"/>
+      <import feature="ts-nodejs.embed-feature"/>
+      <import feature="ts-validation-feature"/>
    </requires>
 
    <plugin

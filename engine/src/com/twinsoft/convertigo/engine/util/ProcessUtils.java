@@ -34,6 +34,14 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 
 public class ProcessUtils {
 	
+	public static void setNpmFolder(File npmFolder) {
+		if (new File(npmFolder, "npm").exists()) {
+			npmPath = npmFolder.getAbsolutePath();
+		}
+	}
+	
+	private static String npmPath = null;
+	
 	public static String searchFullPath(String paths, String command) throws IOException {
 		String shellFullpath = null;
 		// Checks if the command is already full path 
@@ -79,7 +87,7 @@ public class ProcessUtils {
 		}
 		paths += File.pathSeparator + defaultPaths;
 		
-		return paths;		
+		return paths;
 	}
 	
 	public static ProcessBuilder getProcessBuilder(String paths, List<String> command) throws IOException {
@@ -108,6 +116,12 @@ public class ProcessUtils {
 		
 		if (Engine.isWindows()) {
 			command.set(0, "npm.cmd");
+		}
+		
+		if (paths.isEmpty()) {
+			paths = npmPath;
+		} else {
+			paths = npmPath + File.pathSeparator + paths;
 		}
 		
 		ProcessBuilder pb = getProcessBuilder(paths, command);

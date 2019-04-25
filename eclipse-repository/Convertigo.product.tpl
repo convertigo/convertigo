@@ -92,6 +92,8 @@
       <feature id="ts-feature"/>
       <feature id="ts-jsdt-feature"/>
       <feature id="ts-json-feature"/>
+      <feature id="ts-nodejs.embed-feature"/>
+      <feature id="ts-validation-feature"/>
    </features>
 
    <configurations>
@@ -106,9 +108,9 @@
    </configurations>
 
    <repositories>
-      <repository location="http://download.eclipse.org/releases/oxygen" enabled="true" />
-      <repository location="http://download.eclipse.org/eclipse/updates/4.7" enabled="true" />
-      <repository location="http://download.convertigo.com/studio/7.6" enabled="true" />
+      <repository location="http://download.eclipse.org/releases/2019-03" enabled="true" />
+<!--      <repository location="http://download.eclipse.org/eclipse/updates/4.7" enabled="true" /> -->
+<!--      <repository location="http://download.convertigo.com/studio/7.6" enabled="true" /> -->
    </repositories>
 
    <preferencesInfo>
