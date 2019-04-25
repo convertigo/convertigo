@@ -223,6 +223,7 @@ task buildStudio(type: Exec, dependsOn: ['buildStudio32']) {
 	doFirst {
 		file('pom.xml').bytes = file('pom-commons.xml').bytes
 		if (target32.exists()) {
+			file('build').mkdirs()
 			target32.renameTo(tmp32)
 		}
 	}
