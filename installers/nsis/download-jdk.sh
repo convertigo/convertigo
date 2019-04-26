@@ -5,7 +5,7 @@ JDK_NAME=$( echo $JDK_URL | sed "s,.*/\(.*\)\\.zip,\\1," )
 
 cd /tmp
 curl -fSL -o ${JDK_NAME}.zip ${JDK_URL}
-unzip -q ${JDK_NAME}.zip ${JDK_NAME}/jre/**
+unzip -q ${JDK_NAME}.zip
 mkdir -p /tmp/c8o_jre
-mv ${JDK_NAME}/jre /tmp/c8o_jre/${JDK_ARCH}
-rm -rf ${JDK_NAME}*
+mv ${JDK_NAME} /tmp/c8o_jre/${JDK_ARCH}
+rm /tmp/c8o_jre/${JDK_ARCH}/src.zip
