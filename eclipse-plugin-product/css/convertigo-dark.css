@@ -42,3 +42,8 @@ ComponentExplorerComposite, ComponentExplorerComposite *,
 ObjectsExplorerComposite, ObjectsExplorerComposite * {
 	background-color: inherit;
 }
+
+#com-twinsoft-convertigo-eclipse-views-loggers-EngineLogView Table {
+  color: unset;
+  background-color: unset;
+}

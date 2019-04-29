@@ -116,16 +116,17 @@ public class EngineLogView extends ViewPart {
 	private EngineLogViewLabelProvider labelProvider;
 
 	private static final ColumnInfo[] DEFAULT_COLUMN_INFOS = { new ColumnInfo("Date", false, 80),
-			new ColumnInfo("Time", true, 90), new ColumnInfo("DeltaTime", true, 60),
-			new ColumnInfo("Message", true, 400), new ColumnInfo("Level", false, 50),
-			new ColumnInfo("Category", true, 80), new ColumnInfo("Thread", true, 180),
-			new ColumnInfo("Project", true, 70), new ColumnInfo("Connector", true, 70),
-			new ColumnInfo("Transaction", true, 70), new ColumnInfo("Sequence", true, 70),
-			new ColumnInfo("ContextID", true, 160), new ColumnInfo("UID", false, 50),
-			new ColumnInfo("User", false, 50), new ColumnInfo("ClientIP", false, 50),
-			new ColumnInfo("ClientHostName", false, 50), new ColumnInfo("UUID", false, 50) };
+			new ColumnInfo("Time", true, 100), new ColumnInfo("DeltaTime", true, 70),
+			new ColumnInfo("Message", true, 600), new ColumnInfo("Level", false, 60),
+			new ColumnInfo("Category", true, 110), new ColumnInfo("Thread", true, 190),
+			new ColumnInfo("Project", true, 100), new ColumnInfo("Connector", true, 100),
+			new ColumnInfo("Transaction", true, 100), new ColumnInfo("Sequence", true, 100),
+			new ColumnInfo("ContextID", true, 160), new ColumnInfo("UID", false, 60),
+			new ColumnInfo("User", false, 60), new ColumnInfo("ClientIP", false, 60),
+			new ColumnInfo("ClientHostName", false, 60), new ColumnInfo("UUID", false, 60),
+			new ColumnInfo("", true, 500)};
 
-	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
 
 	private static ColumnInfo[] clone(ColumnInfo[] array) {
 		ColumnInfo[] clonedArray = array.clone();
@@ -557,7 +558,7 @@ public class EngineLogView extends ViewPart {
 		layout.marginWidth = 10;
 
 		tableViewer = new TableViewer(compositeTableViewer, SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL
-				| SWT.FULL_SELECTION | SWT.BORDER | SWT.VERTICAL | SWT.FILL);
+				| SWT.FULL_SELECTION | SWT.VERTICAL | SWT.FILL);
 
 		layoutData = new GridData();
 		layoutData.horizontalAlignment = SWT.FILL;
@@ -570,6 +571,7 @@ public class EngineLogView extends ViewPart {
 		createContextualTableViewerMenu();
 
 		final Table table = tableViewer.getTable();
+		table.setLinesVisible(false);
 		table.setHeaderVisible(true);
 		table.pack();
 		tableViewer.setLabelProvider(labelProvider);
@@ -720,6 +722,9 @@ public class EngineLogView extends ViewPart {
 				int i = 0;
 				for (ColumnInfo columnInfo : columnInfos) {
 					String columnName = columnInfo.getName();
+					if (columnName.isEmpty()) {
+						continue;
+					}
 					MenuItem item = new MenuItem(selectColumnsMenu, SWT.CHECK);
 					item.setText(columnName);
 					item.setSelection(columnInfo.isVisible());
@@ -978,8 +983,8 @@ public class EngineLogView extends ViewPart {
 		final String columnName = columnInfo.getName();
 		column.setText(columnName);
 
-		column.setResizable(columnInfo.isVisible());
-		column.setMoveable(columnInfo.isVisible());
+		column.setResizable(columnInfo.isVisible() || !columnName.isEmpty());
+		column.setMoveable(columnInfo.isVisible() || !columnName.isEmpty());
 		column.setWidth(columnInfo.isVisible() ? columnInfo.getSize() : 0);
 
 		column.addControlListener(new ControlListener() {

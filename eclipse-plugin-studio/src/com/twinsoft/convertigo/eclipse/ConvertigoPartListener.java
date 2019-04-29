@@ -56,6 +56,24 @@ public class ConvertigoPartListener implements IPartListener {
 	 * @see org.eclipse.ui.IPartListener#partActivated(org.eclipse.ui.IWorkbenchPart)
 	 */
 	public void partActivated(IWorkbenchPart part) {
+		if (part instanceof PropertySheet) {
+			PropertySheet view = (PropertySheet)part;
+			if (view != null) {
+				if (view.getCurrentPage().getControl() instanceof Tree) {
+					Tree tree = (Tree) view.getCurrentPage().getControl();
+					if (tree != null) {
+						if (SwtUtils.isDark()) {
+							tree.setLinesVisible(false);
+						}
+						try {
+							tree.getColumn(1).setWidth(tree.getBounds().width);
+						} catch (Exception e) {
+							
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* (non-Javadoc)
