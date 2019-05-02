@@ -49,14 +49,14 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
+import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory;
-import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
-public class MySSLSocketFactory implements SecureProtocolSocketFactory {
-	static Map<String, SecureProtocolSocketFactory> cache = new HashMap<>();
+public class MySSLSocketFactory implements ProtocolSocketFactory {
+	static Map<String, ProtocolSocketFactory> cache = new HashMap<>();
 	static long checkExpires = System.currentTimeMillis() + 300000;
 
 	protected String keyStore;
@@ -68,11 +68,11 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 	
 	private SSLContext sslcontext = null;
 	
-	static public SecureProtocolSocketFactory getSSLSocketFactory(String keyStore, String keyStorePassword, String trustStore, String trustStorePassword, boolean trustAllServerCertificates) {
+	static public ProtocolSocketFactory getSSLSocketFactory(String keyStore, String keyStorePassword, String trustStore, String trustStorePassword, boolean trustAllServerCertificates) {
 		String key = "" + keyStore + "|" + keyStorePassword + "|" + trustStore + "|" + trustStorePassword + "|" + trustAllServerCertificates;
 		
 		synchronized (cache) {
-			SecureProtocolSocketFactory socketFactory = cache.get(key);
+			ProtocolSocketFactory socketFactory = cache.get(key);
 			if (socketFactory == null) {
 				Engine.logCertificateManager.debug("(MySSLSocketFactory) Create new SSLSocketFactory (" + key + ")");
 				socketFactory = "||||false".equals(key) ? new SSLProtocolSocketFactory() : new MySSLSocketFactory(keyStore, keyStorePassword, trustStore, trustStorePassword, trustAllServerCertificates);
@@ -90,8 +90,8 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 			if (now >= checkExpires) {
 				int removed = 0;
 				
-				for (Iterator<SecureProtocolSocketFactory> i = cache.values().iterator(); i.hasNext();) {
-					SecureProtocolSocketFactory cachedSocketFactory = i.next();
+				for (Iterator<ProtocolSocketFactory> i = cache.values().iterator(); i.hasNext();) {
+					ProtocolSocketFactory cachedSocketFactory = i.next();
 					if (cachedSocketFactory instanceof MySSLSocketFactory ) {
 						if (now >= ((MySSLSocketFactory) cachedSocketFactory).expire) {
 							removed++;
