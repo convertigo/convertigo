@@ -333,7 +333,7 @@ task unzipSwaggerUI {
 	
 	doLast {
 		file('build/tmp').mkdirs()
-		new URL("https://github.com/swagger-api/swagger-ui/archive/v${swaggerUiVersion}.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}		    
+		new URL("https://github.com/swagger-api/swagger-ui/archive/v${swaggerUiVersion}.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}
 		dist.delete()
 		copy {
 			from zipTree(zip)

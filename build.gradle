@@ -22,7 +22,7 @@ ext.convertigoTag = 'beta'
 ext.convertigoCodename = 'osmium'
 ext.convertigoCode = 'Os'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-ext.jxBrowserVersion = '6.21'
+ext.jxBrowserVersion = '6.23.1'
 ext.swaggerUiVersion = '3.19.3'
 
 ext.convertigoEngineAPI = '7.6.0-SNAPSHOT'
