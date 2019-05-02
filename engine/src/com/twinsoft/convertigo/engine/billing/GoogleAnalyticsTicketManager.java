@@ -154,11 +154,6 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 		}
 	}
 
-	public synchronized Ticket peekTicket() throws BillingException {
-		log.warn("(GoogleAnalyticsTicketManager) peekTicket not implemenented");
-		return null;
-	}
-
 	public synchronized void removeTicket(Ticket ticket) throws BillingException {
 		log.warn("(GoogleAnalyticsTicketManager) removeTicket not implemenented");
 	}

@@ -25,8 +25,6 @@ public interface ITicketManager {
 	public void addTicket(Ticket ticket) throws BillingException;
 
 	public void removeTicket(Ticket ticket) throws BillingException;
-
-	public Ticket peekTicket() throws BillingException;
 	
 	public Ticket newTicket() throws BillingException;
 	
