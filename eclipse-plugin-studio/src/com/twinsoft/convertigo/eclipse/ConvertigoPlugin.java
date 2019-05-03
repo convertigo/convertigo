@@ -647,35 +647,41 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	private void initializeBrowser(Composite parent, ProgressListener progressListener) throws IOException {
-
-		final C8oBrowser browser;
-		try {
-			browser = new C8oBrowser(parent, SWT.NONE);
-		} catch (SWTError e) {
-			System.out.println("Could not instantiate Browser: " + e.getMessage());
-			return;
-		}
-
+		final Composite filler = new Composite(parent, SWT.NONE); 
 		GridData gridData = new GridData();
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.grabExcessVerticalSpace = true;
-		browser.setLayoutData(gridData);
+		filler.setLayoutData(gridData);
+		filler.setLayout(new FillLayout());
 
-		String username = "n/a";
-		try {
-			Properties properties = decodePsc();
-			username = DeploymentKey.adminUser.value(properties, 1);
-		} catch (Exception e) {}
+		parent.getDisplay().asyncExec(() -> {
+			final C8oBrowser browser;
+			try {
+				browser = new C8oBrowser(filler, SWT.NONE);
+			} catch (SWTError e) {
+				System.out.println("Could not instantiate Browser: " + e.getMessage());
+				return;
+			}
 
-		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-		url += "&" + URLUtils.encodePart("user", username);
-		url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
 
-		browser.addProgressListener(progressListener);
-		browser.setUrl(url);
+
+			String username = "n/a";
+			try {
+				Properties properties = decodePsc();
+				username = DeploymentKey.adminUser.value(properties, 1);
+			} catch (Exception e) {}
+
+			String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
+			url += "&" + URLUtils.encodePart("user", username);
+			url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
+
+			browser.addProgressListener(progressListener);
+			browser.setUrl(url);
+			parent.layout(true, true);
+		});
 	}
 
 	/**
