@@ -123,7 +123,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	public String getColumnText(Object element, int columnIndex) {
 		LogLine line = (LogLine) element;
 		
-		Table table = tableViewer.getTable();		
+		Table table = tableViewer.getTable();
 		String columnName = table.getColumn(columnIndex).getText();
 		
 		Class<LogLine> logLineClass = GenericUtils.cast(line.getClass());

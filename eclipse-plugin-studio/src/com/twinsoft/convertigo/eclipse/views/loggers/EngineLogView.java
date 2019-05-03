@@ -293,8 +293,6 @@ public class EngineLogView extends ViewPart {
 		createActions();
 		createToolbar();
 		createMenu();
-
-		createLogViewThread();
 	}
 
 	/*
@@ -554,66 +552,71 @@ public class EngineLogView extends ViewPart {
 		compositeTableViewer.setLayoutData(layoutData);
 
 		GridLayout layout = new GridLayout(1, false);
-		compositeTableViewer.setLayout(layout);
 		layout.marginWidth = 10;
+		compositeTableViewer.setLayout(layout);
+		parent.getDisplay().asyncExec(() -> {
+			tableViewer = new TableViewer(compositeTableViewer, SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL
+					| SWT.FULL_SELECTION | SWT.VERTICAL | SWT.FILL);
 
-		tableViewer = new TableViewer(compositeTableViewer, SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL
-				| SWT.FULL_SELECTION | SWT.VERTICAL | SWT.FILL);
+			GridData layoutData2 = new GridData();
+			layoutData2.horizontalAlignment = SWT.FILL;
+			layoutData2.verticalAlignment = SWT.FILL;
+			layoutData2.grabExcessHorizontalSpace = true;
+			layoutData2.grabExcessVerticalSpace = true;
+			tableViewer.getTable().setLayoutData(layoutData2);
 
-		layoutData = new GridData();
-		layoutData.horizontalAlignment = SWT.FILL;
-		layoutData.verticalAlignment = SWT.FILL;
-		layoutData.grabExcessHorizontalSpace = true;
-		layoutData.grabExcessVerticalSpace = true;
-		tableViewer.getTable().setLayoutData(layoutData);
+			createColumns();
+			createContextualTableViewerMenu();
 
-		createColumns();
-		createContextualTableViewerMenu();
-
-		final Table table = tableViewer.getTable();
-		table.setLinesVisible(false);
-		table.setHeaderVisible(true);
-		table.pack();
-		tableViewer.setLabelProvider(labelProvider);
-		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
-			public void doubleClick(DoubleClickEvent event) {
-				ISelection selection = event.getSelection();
-				if (selection instanceof IStructuredSelection) {
-					Object selectedObject = ((IStructuredSelection) selection).getFirstElement();
-					if (selectedObject instanceof LogLine) {
-						LogLine logLine = (LogLine) selectedObject;
-						EventDetailsDialog dialog = new EventDetailsDialog(Display.getCurrent()
-								.getActiveShell(), EventDetailsDialogComposite.class, "Event Details",
-								logLine);
-						dialog.open();
+			final Table table = tableViewer.getTable();
+			table.setLinesVisible(false);
+			table.setHeaderVisible(true);
+			table.pack();
+			tableViewer.setLabelProvider(labelProvider);
+			tableViewer.addDoubleClickListener(new IDoubleClickListener() {
+				public void doubleClick(DoubleClickEvent event) {
+					ISelection selection = event.getSelection();
+					if (selection instanceof IStructuredSelection) {
+						Object selectedObject = ((IStructuredSelection) selection).getFirstElement();
+						if (selectedObject instanceof LogLine) {
+							LogLine logLine = (LogLine) selectedObject;
+							EventDetailsDialog dialog = new EventDetailsDialog(Display.getCurrent()
+									.getActiveShell(), EventDetailsDialogComposite.class, "Event Details",
+									logLine);
+							dialog.open();
+						}
 					}
 				}
-			}
-		});
+			});
 
-		table.addMenuDetectListener(new MenuDetectListener() {
-			public void menuDetected(MenuDetectEvent event) {
-				Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y));
-				if (tableViewer.getCell(pt) != null) {
-					selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
-					addVariableItem.setEnabled(selectedColumnIndex > 4 && selectedColumnIndex < 14 ? true
-							: false);
+			table.addMenuDetectListener(new MenuDetectListener() {
+				public void menuDetected(MenuDetectEvent event) {
+					Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y));
+					if (tableViewer.getCell(pt) != null) {
+						selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
+						addVariableItem.setEnabled(selectedColumnIndex > 4 && selectedColumnIndex < 14 ? true
+								: false);
+					}
 				}
-			}
-		});
+			});
 
-		/*
-		 * IMPORTANT: Dispose the menus (only the current menu, set with
-		 * setMenu(), will be automatically disposed)
-		 */
-		table.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				tableMenu.dispose();
-			}
-		});
+			/*
+			 * IMPORTANT: Dispose the menus (only the current menu, set with
+			 * setMenu(), will be automatically disposed)
+			 */
+			table.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					tableMenu.dispose();
+				}
+			});
 
-		// Make the selection available to other views
-		getSite().setSelectionProvider(tableViewer);
+			// Make the selection available to other views
+			getSite().setSelectionProvider(tableViewer);
+
+			mainComposite.layout(true, true);
+			table.setVisible(false);
+			createLogViewThread();
+		});
 	}
 
 	private ColumnInfo getColumnInfo(String columnName) {
@@ -668,7 +671,7 @@ public class EngineLogView extends ViewPart {
 			}
 		};
 		limitLogCharsAction.setEnabled(true);
-		        
+		
 		settingsEngine = new Action("Configure Log level"){
 			public void run(){
 				EnginePreferenceDialog dialog = new EnginePreferenceDialog(Display.getDefault().getActiveShell());
@@ -779,6 +782,7 @@ public class EngineLogView extends ViewPart {
 		counter = 0;
 		charMeter = 0;
 		curLine = 0;
+		tableViewer.getTable().setVisible(false);
 	}
 
 	private void createToolbar() {
