@@ -117,8 +117,8 @@ if not, see <http://www.gnu.org/licenses/>.
 			<td><select  multiple="multiple" name="jobsname" class="schedulerSelect schedulerSelect_jobs" id="schedulerDialogGroupJobField"></select></td>
 		</tr>
 		<tr class="schedulerNewJobGroupJob">
-			<td><label for="schedulerDialogSerialField">Serial execution: </label></td>
-			<td><input name="serial" type="checkbox" id="schedulerDialogSerialField"/></td>
+			<td><label for="schedulerDialogParallelJobField">Parallel Job execution: </label></td>
+			<td><input name="parallelJob" type="number" min="1" max="99" id="schedulerDialogParallelJobField" value="1"/></td>
 		</tr>
 		<tr class="schedulerNewScheduleCron">
 			<td><label for="schedulerCron">Cron: </label></td>

@@ -65,21 +65,20 @@ public class SchedulerManager {
 		try {
 			sched = schedFact.getScheduler();
 			sched.start();
-			
-			XMLDecoder decoder = null;
-			try{
-				decoder = new XMLDecoder(new FileInputStream(getFileURL()));
-				schedulerXML = (SchedulerXML) decoder.readObject();
+			try {
+				load();
 			} catch (Exception e) {
 				schedulerXML = new SchedulerXML();
-			} finally {
-				if (decoder != null) {
-					decoder.close();
-				}
 			}
 		} catch (Exception e) {
 			schedulerOn = false;
 			Engine.logEngine.error("Unexpected exception", e);
+		}
+	}
+	
+	public void load() throws FileNotFoundException {
+		try (XMLDecoder decoder = new XMLDecoder(new FileInputStream(getFileURL()))) {
+			schedulerXML = (SchedulerXML) decoder.readObject();
 		}
 	}
 	
@@ -235,14 +234,18 @@ public class SchedulerManager {
 	}
 	
 	public void save() {
-		try {
+		try (XMLEncoder encoder = new XMLEncoder(new FileOutputStream(getFileURL()))) {
 			Engine.logEngine.debug("(Scheduler Manager) Start jobs saving ...");
-			XMLEncoder encoder = new XMLEncoder(new FileOutputStream(getFileURL()));
 			encoder.writeObject(schedulerXML);
-			encoder.close();
-			Engine.logEngine.debug("(Scheduler Manager) ... jobs saving finished !");
 		} catch (FileNotFoundException e) {
 			Engine.logEngine.error("(Scheduler Manager) ... jobs saving failed !", e);
+		}
+		
+		try {
+			load();
+			Engine.logEngine.debug("(Scheduler Manager) ... jobs saving finished !");
+		} catch (FileNotFoundException e) {
+			Engine.logEngine.error("(Scheduler Manager) ... jobs reloading failed !", e);
 		}
 	}
 	

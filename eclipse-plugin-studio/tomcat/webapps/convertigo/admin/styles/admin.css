@@ -719,6 +719,11 @@ background-position-x: -2px;
 	text-align: center;
 }
 
+#schedulerDialogGroupJobField {
+	min-width: 200px;
+	min-height: 200px;
+}
+
 #sysinfoDialogEnvironmentVariables {
 	overflow-x: hidden;
 }

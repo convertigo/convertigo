@@ -19,7 +19,9 @@
 
 package com.twinsoft.convertigo.engine.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -96,24 +98,42 @@ public class SchedulerJob implements Job {
 				SortedSet<AbstractJob> jobs = jobGroupJob.getJobGroup();
 
 				Engine.logScheduler.info("Prepare job " + jdName + " for " + jobs.size() + " jobs. Serial ? " + jobGroupJob.isSerial());
-
-				if (jobGroupJob.isSerial()) {
+				int parallelJob = jobGroupJob.getParallelJob();
+				if (parallelJob <= 1) {
 					for (AbstractJob abstractJob : jobs) {
 						executeJob(abstractJob, jdName + "[" + abstractJob.getName() + "]");
 					}
 				} else {
-					Set<Thread> threads = new HashSet<Thread>();
-					for (final AbstractJob abstractJob : jobs) {
-						final String subname = jdName + "[" + abstractJob.getName() + "]";
-						Thread thread = new Thread(new Runnable() {
-							public void run() {
-								executeJob(abstractJob, subname);
+					int[] jobCount = {0};
+					Set<Thread> threads = new HashSet<>();
+					List<AbstractJob> list = new ArrayList<>(jobs);
+					while (!list.isEmpty()) {
+						synchronized (jobCount) {
+							if (jobCount[0] == parallelJob) {
+								try {
+									jobCount.wait();
+								} catch (InterruptedException e) {
+								}
 							}
-						});
-						threads.add(thread);
-						thread.setDaemon(true);
-						thread.start();
+							jobCount[0]++;
+							AbstractJob abstractJob = list.remove(0);
+							final String subname = jdName + "[" + abstractJob.getName() + "]";
+							Thread thread = new Thread(() -> {
+								try {
+									executeJob(abstractJob, subname);
+								} finally {
+									synchronized (jobCount) {
+										jobCount[0]--;
+										jobCount.notify();
+									}
+								}
+							});
+							threads.add(thread);
+							thread.setDaemon(true);
+							thread.start();
+						}
 					}
+					
 					for (Thread thread : threads) {
 						try {
 							thread.join();
