@@ -73,11 +73,13 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
@@ -687,6 +689,27 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					}
 					catch (Exception e) {
 						throw new EngineException("Unable to create filled Form from requestable", e);
+					}
+					return true;
+				}
+			}
+			else if (parent instanceof UIPageEvent || parent instanceof UIDynamicAction) {
+				UIComponent uiComponent = (UIComponent) parent;
+				if (databaseObject instanceof Sequence) {
+					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+					Sequence sequence = (Sequence) databaseObject;
+					
+					DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("CallSequenceAction"));
+					if (call != null && call instanceof UIDynamicAction) {
+						IonBean ionBean = ((UIDynamicAction)call).getIonBean();
+						if (ionBean != null && ionBean.hasProperty("requestable")) {
+							ionBean.setPropertyValue("requestable", new MobileSmartSourceType(projectName + "." + sequence.getName()));
+							call.bNew = true;
+							call.hasChanged = true;
+							
+							uiComponent.add(call);
+							uiComponent.hasChanged = true;
+						}
 					}
 					return true;
 				}
