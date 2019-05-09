@@ -29,6 +29,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.JsonData;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -220,15 +221,19 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IClosabl
 	
 	@Override
 	public Element toXml(Document document) {
+		DesignDocument ddoc = getParentDesignTreeObject().getObject();
+		ViewObject view = getObject();
+		String qname = ddoc.getQName() + "." + view.getName();
 		Element element = document.createElement("view");
 		element.setAttribute("classname", getClass().getName());
 		JSONObject jsondata = new JSONObject();
 		try {
-			jsondata.put("name", getObject().getName());
-			jsondata.put("value", getObject().getJSONObject());
+			jsondata.put("name", view.getName());
+			jsondata.put("value", view.getJSONObject());
+			jsondata.put("qname", qname);
 		} catch (JSONException e) {}
-        CDATASection cDATASection = document.createCDATASection(jsondata.toString());
-        element.appendChild(cDATASection);
+		CDATASection cDATASection = document.createCDATASection(jsondata.toString());
+		element.appendChild(cDATASection);
 		return element;
 	}
 

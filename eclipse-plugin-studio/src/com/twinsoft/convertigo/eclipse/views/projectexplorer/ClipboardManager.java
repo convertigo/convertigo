@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -63,15 +65,19 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -772,6 +778,29 @@ public class ClipboardManager {
 			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
+		} else if (object instanceof JsonData && (parentDatabaseObject instanceof UIPageEvent || parentDatabaseObject instanceof UIDynamicAction)) {
+			JsonData jsonData = (JsonData) object;
+			JSONObject json = jsonData.getData();
+			if (json.has("qname")) {
+				try {
+					UIComponent uiComponent = (UIComponent) parentDatabaseObject;
+						
+					DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("FullSyncViewAction"));
+					if (call != null && call instanceof UIDynamicAction) {
+						IonBean ionBean = ((UIDynamicAction)call).getIonBean();
+						if (ionBean != null && ionBean.hasProperty("fsview")) {
+							call.bNew = true;
+							call.hasChanged = true;
+							ionBean.setPropertyValue("fsview", new MobileSmartSourceType(json.getString("qname")));
+							uiComponent.add(call);
+							uiComponent.hasChanged = true;
+						}
+						return call;
+					}
+				} catch (JSONException e) {
+					Engine.logStudio.warn("Failed to create a FullSyncViewAction", e);
+				}
+			}
 		}
 		return null;
 	}
