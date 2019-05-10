@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -483,10 +484,11 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 	
 	protected void doGetContributors() {
-		contributors = new ArrayList<Contributor>();
+		contributors = new ArrayList<>();
+		Set<UIComponent> done = new HashSet<>();
 		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder 
 			for (UIComponent uiComponent : getUIComponentList()) {
-				uiComponent.addContributors(contributors);
+				uiComponent.addContributors(done, contributors);
 			}
 		//}		
 	}

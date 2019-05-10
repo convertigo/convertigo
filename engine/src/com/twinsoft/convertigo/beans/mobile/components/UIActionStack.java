@@ -356,8 +356,8 @@ public class UIActionStack extends UIComponent {
 	}
 
 	@Override
-	protected void addContributors(List<Contributor> contributors) {
-		super.addContributors(contributors);
+	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
+		super.addContributors(done, contributors);
 	}
 
 }

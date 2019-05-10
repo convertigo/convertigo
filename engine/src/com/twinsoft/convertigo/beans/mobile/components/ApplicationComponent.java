@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -910,15 +911,16 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 	
 	protected void doGetContributors() {
-		contributors = new ArrayList<Contributor>();
+		contributors = new ArrayList<>();
+		Set<UIComponent> done = new HashSet<>();
 		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
-			uiMenu.addContributors(contributors);
+			uiMenu.addContributors(done, contributors);
 		}
 		for (UIEventSubscriber suscriber : getUIEventSubscriberList()) {
-			suscriber.addContributors(contributors);
+			suscriber.addContributors(done, contributors);
 		}
 		for (UIAppEvent appEvent : getUIAppEventList()) {
-			appEvent.addContributors(contributors);
+			appEvent.addContributors(done, contributors);
 		}
 	}
     

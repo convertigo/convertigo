@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.List;
+import java.util.Set;
+
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -89,12 +91,12 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	}
 	
 	@Override
-	protected void addContributors(List<Contributor> contributors) {
-		super.addContributors(contributors);
+	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
+		super.addContributors(done, contributors);
 		
 		// Now, add target stack contributors
 		if (!isBroken()) {
-			getTargetStack().addContributors(contributors);
+			getTargetStack().addContributors(done, contributors);
 		}
 	}
 

@@ -399,8 +399,11 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return null;
 	}
 	
-	protected void addContributors(List<Contributor> contributors) {
+	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
 		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder
+			if (!done.add(this)) {
+				return;
+			}
 			Contributor contributor = getContributor();
 			if (contributor != null) {
 				if (!contributors.contains(contributor)) {
@@ -408,7 +411,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 				}
 			}
 			for (UIComponent uiComponent : getUIComponentList()) {
-				uiComponent.addContributors(contributors);
+				uiComponent.addContributors(done, contributors);
 			}
 		//}
 	}

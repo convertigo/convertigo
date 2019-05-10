@@ -123,6 +123,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
@@ -301,16 +302,19 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							// Try to parse text data into an XML document
 							String source = data.toString();
 							document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(source)));
-							
+							BatchOperationHelper.start();
 							ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
+							BatchOperationHelper.stop();
 				            return true;
 					    } catch (SAXException sax) {
+					    	BatchOperationHelper.cancel();
 							// Parse failed probably because data was not XML but an XPATH String
 							// in this case, create DatabaseObjects of the correct Type according to the folder where the XPATH is dropped on  
 							performDrop(data, explorerView, targetTreeObject);
 							return true;
 					    }
 					} catch (Exception e) {
+						BatchOperationHelper.cancel();
 						if (e instanceof ObjectWithSameNameException) {
 							document = null;
 						}
