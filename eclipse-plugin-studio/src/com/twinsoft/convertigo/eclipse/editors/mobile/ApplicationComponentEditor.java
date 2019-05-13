@@ -112,6 +112,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
@@ -396,9 +397,11 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 							
 							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
+							BatchOperationHelper.start();
 							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
-							
+							BatchOperationHelper.stop();
 						} catch (Exception e) {
+							BatchOperationHelper.cancel();
 							Engine.logStudio.debug("Failed to drop: " + e.getMessage());
 						} finally {
 							PaletteSourceTransfer.getInstance().setPaletteSource(null);
@@ -1289,7 +1292,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						appendOutput(line);
 						if (line.contains("build finished")) {
 							synchronized (mutex) {
-								mutex.notify();								
+								mutex.notify();
 							}
 						}
 						Matcher m = pIsServerRunning.matcher(line);

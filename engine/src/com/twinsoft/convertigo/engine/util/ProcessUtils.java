@@ -98,9 +98,9 @@ public class ProcessUtils {
 		paths = getAllPaths(paths);
 		command.set(0, searchFullPath(paths, command.get(0)));
 		ProcessBuilder pb = new ProcessBuilder(command);
-		Map<String, String> pbEnv = pb.environment();		
-		// must set "Path" for Windows 8.1 64
-		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
+		Map<String, String> pbEnv = pb.environment();
+//		// must set "Path" for Windows 8.1 64
+//		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
 		pbEnv.put("JAVA_HOME", System.getProperty("java.home"));
 		return pb; 
 	}
@@ -125,13 +125,13 @@ public class ProcessUtils {
 		}
 		
 		ProcessBuilder pb = getProcessBuilder(paths, command);
-		Map<String, String> pbEnv = pb.environment();
 		
 		String proxyMode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE);
 		if (proxyMode.equals(ProxyMode.manual.getValue())) {
 			String proxyAuthMethod = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_METHOD);
 
 			if (proxyAuthMethod.equals(ProxyMethod.anonymous.getValue()) || proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
+				Map<String, String> pbEnv = pb.environment();
 				String proxyHost = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
 				String proxyPort = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT);
 				
