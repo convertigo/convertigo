@@ -1243,7 +1243,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			
 			try {
 				File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
-				displayObjectsMobile.mkdirs();				
+				displayObjectsMobile.mkdirs();
 				
 				appendOutput("removing previous build directory");
 				for (File f: displayObjectsMobile.listFiles()) {
@@ -1266,6 +1266,15 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					}
 				} catch (Exception e) {
 					Engine.logStudio.warn("Failed to update DEBOUNCE", e);
+				}
+				
+				File assets = new File(displayObjectsMobile, "assets");
+				if (assets.exists() && assets.isDirectory()) {
+					appendOutput("Handle application assets");
+					Engine.logStudio.info("Handle application assets");
+					File privAssets = new File(ionicDir, "src/assets");
+					FileUtils.deleteDirectory(privAssets);
+					FileUtils.copyDirectory(assets, privAssets);
 				}
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
