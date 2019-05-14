@@ -1226,8 +1226,8 @@
         "label": "ProgressBar",
         "description": "angular-progress-bar| Defines a ProgressBar component. This component displays a progress bar that helps to monitor progression <br/> For more information: <a href='https://www.npmjs.com/package/angular-progress-bar' target='_blank'>angular-progress-bar</a>.",
    		"group": "Forms",
-        "icon16": "",
-        "icon32": "",
+        "icon16": "progressbar_color_16x16.png",
+        "icon32": "progressbar_color_32x32.png",
       "properties": {
         "progress": {
            "mode": "script",
