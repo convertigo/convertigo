@@ -84,7 +84,7 @@ public class UICustom extends UIComponent {
 							}
 							subBeans.remove(uicPriority);
 						} catch (Exception e) {
-							Engine.logStudio.warn("Could not replace template for id='"+ id +"' in fragment component");
+							Engine.logStudio.warn("Could not replace template for component with id='"+ id +"' in fragment");
 						}
 					}
 				}
@@ -96,14 +96,18 @@ public class UICustom extends UIComponent {
 			while (matcher.find()) {
 				String sequence = matcher.group(0);
 				if (sequence != null) {
-					String uicTpl = "";
-					for (String s: subBeans.values()) {
-						uicTpl += s;
+					try {
+						String uicTpl = "";
+						for (String s: subBeans.values()) {
+							uicTpl += s;
+						}
+						if (!uicTpl.isEmpty()) {
+							template = template.replace(sequence, System.lineSeparator() + uicTpl);
+						}
+						break;
+					} catch (Exception e) {
+						Engine.logStudio.warn("Could not replace template of sub components in fragment");
 					}
-					if (!uicTpl.isEmpty()) {
-						template = template.replaceFirst(sequence, System.lineSeparator() + uicTpl);
-					}
-					break;
 				}
 			}
 			
