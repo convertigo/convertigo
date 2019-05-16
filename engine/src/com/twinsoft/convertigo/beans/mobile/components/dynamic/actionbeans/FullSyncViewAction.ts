@@ -22,7 +22,7 @@
             for (let key in props) {
                 if (key != "marker" && key!= "fsview") {
                     if (props[key] != null) {
-                        if (props[key] == "true") { d
+                        if (props[key] == "true") {
                             options[key] = true;
                         } else if (props[key] == "false") { 
                             options[key] = false;
