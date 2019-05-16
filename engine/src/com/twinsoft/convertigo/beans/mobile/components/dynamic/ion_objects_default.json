@@ -575,6 +575,11 @@
     "name": "verb",
     "mode": "plain",
     "value": "get"
+   },
+   "noLoading": {
+    "name": "noLoading",
+    "mode": "plain",
+    "value": false
    }
   }
  }},
@@ -608,6 +613,11 @@
    },
    "threshold": {
     "name": "threshold",
+    "mode": "plain",
+    "value": false
+   },
+   "noLoading": {
+    "name": "noLoading",
     "mode": "plain",
     "value": false
    }
@@ -1072,6 +1082,11 @@
     "mode": "plain",
     "value": ""
    },
+   "noLoading": {
+    "name": "noLoading",
+    "mode": "plain",
+    "value": false
+   },
    "marker": {
     "name": "marker",
     "mode": "plain",
@@ -1097,6 +1112,11 @@
     "mode": "plain",
     "value": ""
    },
+   "noLoading": {
+    "name": "noLoading",
+    "mode": "plain",
+    "value": false
+   },
    "docid": {
     "name": "docid",
     "mode": "plain",
@@ -1116,6 +1136,11 @@
     "name": "requestable",
     "mode": "plain",
     "value": ""
+   },
+   "noLoading": {
+    "name": "noLoading",
+    "mode": "plain",
+    "value": false
    },
    "marker": {
     "name": "marker",
@@ -1141,6 +1166,11 @@
     "name": "requestable",
     "mode": "plain",
     "value": ""
+   },
+   "noLoading": {
+    "name": "noLoading",
+    "mode": "plain",
+    "value": false
    },
    "_id": {
     "name": "_id",
@@ -1171,6 +1201,11 @@
     "name": "requestable",
     "mode": "plain",
     "value": ""
+   },
+   "noLoading": {
+    "name": "noLoading",
+    "mode": "plain",
+    "value": false
    },
    "docid": {
     "name": "docid",
@@ -1232,6 +1267,11 @@
  "FullSyncViewAction": {"   7   6   0": {
   "name": "FullSyncViewAction",
   "properties": {
+   "noLoading": {
+    "name": "noLoading",
+    "mode": "plain",
+    "value": false
+   },
    "marker": {
     "name": "marker",
     "mode": "plain",
@@ -3650,6 +3690,18 @@
    "name": "items",
    "mode": "script",
    "value": "[]"
+  }}
+ }},
+ "CloseLoadingAction": {"   7   6   0": {
+  "name": "CloseLoadingAction",
+  "properties": {}
+ }},
+ "ShowLoadingAction": {"   7   6   0": {
+  "name": "ShowLoadingAction",
+  "properties": {"content": {
+   "name": "content",
+   "mode": "plain",
+   "value": ""
   }}
  }}
 }
