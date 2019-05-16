@@ -189,7 +189,10 @@ public class BeansDoc {
 					"---\n");
 			String description = beanMB.getDescription();
 			description = description.replaceAll("\\|", "\n");
-			description = description.replaceAll("<br/>", "\n");
+			description = description.replaceAll("<br>|<br/>", "\n");
+			description = description.replaceAll("<ul>|</ul>","");
+			description = description.replaceAll("<li>"," - ");
+			description = description.replaceAll("</li>","\n");
 			description = description.replaceAll("Defines| Defines", "##### Defines");
 			sb.append(description + "\n\n");
 			
