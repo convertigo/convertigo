@@ -191,8 +191,8 @@ public class BeansDoc {
 			description = description.replaceAll("\\|", "\n");
 			description = description.replaceAll("<br>|<br/>", "\n");
 			description = description.replaceAll("<ul>|</ul>","");
-			description = description.replaceAll("<li>"," - ");
-			description = description.replaceAll("</li>","\n");
+			description = description.replaceAll("<li>","\n - ");
+			description = description.replaceAll("</li>","");
 			description = description.replaceAll("Defines| Defines", "##### Defines");
 			sb.append(description + "\n\n");
 			
