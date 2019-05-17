@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.twinsoft.convertigo.beans.core.Project;
@@ -97,6 +98,17 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		// Now, add target stack contributors
 		if (!isBroken()) {
 			getTargetStack().addContributors(done, contributors);
+		}
+	}
+
+	
+	@Override
+	protected void addInfos(Map<String, Set<String>> infoMap) {
+		super.addInfos(infoMap);
+		
+		// Now, add target stack infos
+		if (!isBroken()) {
+			getTargetStack().addInfos(infoMap);
 		}
 	}
 

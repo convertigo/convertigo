@@ -19,6 +19,10 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIDynamicMenu extends UIDynamicElement {
@@ -56,4 +60,13 @@ public class UIDynamicMenu extends UIDynamicElement {
 			app.markApplicationAsDirty();
 		}
 	}
+	
+	protected Map<String, Set<String>> getInfoMap() {
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			uiComponent.addInfos(map);
+		}
+		return map;
+	}
+	
 }

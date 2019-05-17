@@ -1365,6 +1365,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	public Map<String, Set<String>> getInfoMap() {
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		for (UIDynamicMenu menu: getMenuComponentList()) {
+			map.putAll(menu.getInfoMap());
+		}
 		for (PageComponent page : getPageComponentList()) {
 			map.putAll(page.getInfoMap());
 		}
