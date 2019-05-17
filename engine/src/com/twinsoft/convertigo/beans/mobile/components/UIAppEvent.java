@@ -47,9 +47,9 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		//onAppReady("ready", AppEventType.ionicPromise, ?),
 		onAppPause("pause", AppEventType.ionicObservable, "7.6.0.1"),
 		onAppResume("resume", AppEventType.ionicObservable, "7.6.0.1"),
-		onAppResize("resize", AppEventType.ionicObservable, "7.6.0.1")
-		//onSessionLost("handleSessionLost()", AppEventType.c8oObservable, ?),
-		//onNetworkChanged("handleNetworkEvents()", AppEventType.c8oObservable, ?)
+		onAppResize("resize", AppEventType.ionicObservable, "7.6.0.1"),
+		onSessionLost("handleSessionLost()", AppEventType.c8oObservable, "7.6.0.2"),
+		onNetworkChanged("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.2")
 		;
 		
 		String event;
