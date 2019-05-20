@@ -214,7 +214,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 				if (component instanceof IAction) {
 					if (component.isEnabled()) {
 						sb.append("\t\tthis.").append(((IAction)component).getFunctionName())
-							.append("({root: {scope:{}, in:{}, out:event}})")
+							.append("({root: {scope:{}, in:{}, out:data}})")
 								.append(";").append(System.lineSeparator());
 					}
 				}
