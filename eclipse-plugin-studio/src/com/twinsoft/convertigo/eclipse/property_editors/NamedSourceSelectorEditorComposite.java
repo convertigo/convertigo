@@ -166,7 +166,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
 							tvObject.addObject(page);
 						}
-						for (UIActionStack stack: ((ApplicationComponent)object).getStackComponentList()) {
+						for (UIActionStack stack: ((ApplicationComponent)object).getSharedActionList()) {
 							tvObject.addObject(stack);
 						}
 					}

@@ -70,6 +70,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
@@ -280,6 +281,7 @@ public class ComponentManager {
 	}
 	
 	private static String GROUP_SHARED_ACTIONS = "Shared Actions";
+	private static String GROUP_SHARED_COMPONENTS = "Shared Components";
 	private static String GROUP_CUSTOMS = "Customs";
 	private static String GROUP_CONTROLS = "Controls";
 	private static String GROUP_ACTIONS = "Actions";
@@ -295,6 +297,9 @@ public class ComponentManager {
 				groups.add(bean.getGroup());
 			}
 		}
+		
+		groups.remove(GROUP_SHARED_COMPONENTS);
+		groups.add(GROUP_SHARED_COMPONENTS);
 		
 		groups.remove(GROUP_SHARED_ACTIONS);
 		groups.add(GROUP_SHARED_ACTIONS);
@@ -353,6 +358,10 @@ public class ComponentManager {
 			components.add(getDboComponent(UITheme.class,group));
 			
 			// Add shared components
+			group = GROUP_SHARED_COMPONENTS;
+			components.add(getDboComponent(UISharedComponent.class,group));
+			
+			// Add shared actions
 			group = GROUP_SHARED_ACTIONS;
 			components.add(getDboComponent(UIActionStack.class,group));
 			components.add(getDboComponent(UIStackVariable.class,group));
@@ -544,6 +553,7 @@ public class ComponentManager {
 				if (UIStyle.class.isAssignableFrom(dboClass) ||
 					UIDynamicMenu.class.isAssignableFrom(dboClass) ||
 					UIActionStack.class.isAssignableFrom(dboClass) ||
+					UISharedComponent.class.isAssignableFrom(dboClass) ||
 					UIAppEvent.class.isAssignableFrom(dboClass)) {
 					return true;
 				}
@@ -559,6 +569,7 @@ public class ComponentManager {
 					!UIDynamicMenuItem.class.isAssignableFrom(dboClass) &&
 					!UIAppEvent.class.isAssignableFrom(dboClass) &&
 					!UIActionStack.class.isAssignableFrom(dboClass) &&
+					!UISharedComponent.class.isAssignableFrom(dboClass) &&
 					!UIFormValidator.class.isAssignableFrom(dboClass) &&
 					!UIAttribute.class.isAssignableFrom(dboClass) &&
 					!UIControlVariable.class.isAssignableFrom(dboClass) &&
@@ -583,6 +594,15 @@ public class ComponentManager {
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
+				}
+				else if (dboParent instanceof UISharedComponent) {
+					if (UIText.class.isAssignableFrom(dboClass) ||
+						UICustom.class.isAssignableFrom(dboClass) ||
+						UIElement.class.isAssignableFrom(dboClass)) {
+						if (!IAction.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
+					}					
 				}
 				else if (dboParent instanceof UIAppEvent ||
 						dboParent instanceof UIPageEvent || 

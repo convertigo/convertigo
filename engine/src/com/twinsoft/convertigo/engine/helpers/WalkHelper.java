@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
@@ -141,8 +142,14 @@ public class WalkHelper {
 			}
 			
 			if (before(databaseObject, UIActionStack.class)) {
-				for (UIActionStack stack : applicationComponent.getStackComponentList()) {
-					walk(stack);
+				for (UIActionStack uisa : applicationComponent.getSharedActionList()) {
+					walk(uisa);
+				}
+			}
+			
+			if (before(databaseObject, UISharedComponent.class)) {
+				for (UISharedComponent uisc : applicationComponent.getSharedComponentList()) {
+					walk(uisc);
 				}
 			}
 			
@@ -181,10 +188,18 @@ public class WalkHelper {
 				}
 			}
 		} else if (databaseObject instanceof UIActionStack) {
-			UIActionStack uiStack = (UIActionStack)databaseObject;
+			UIActionStack uisa = (UIActionStack)databaseObject;
 			
 			if (before(databaseObject, UIComponent.class)) {
-				for (UIComponent ui : uiStack.getUIComponentList()) {
+				for (UIComponent ui : uisa.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof UISharedComponent) {
+			UISharedComponent uisc = (UISharedComponent)databaseObject;
+			
+			if (before(databaseObject, UIComponent.class)) {
+				for (UIComponent ui : uisc.getUIComponentList()) {
 					walk(ui);
 				}
 			}

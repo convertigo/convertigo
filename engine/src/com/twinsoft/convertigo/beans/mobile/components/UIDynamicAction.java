@@ -555,7 +555,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								"(this, "+ cafMerge +"(self.in.props, {message: 'Invoke source is broken'}), "+
 									cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
 					} else {
-						if (getStack() != null) {
+						if (getSharedAction() != null) {
 							tsCode +="\t\treturn this.actionBeans."+actionName+
 									"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
 												cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+

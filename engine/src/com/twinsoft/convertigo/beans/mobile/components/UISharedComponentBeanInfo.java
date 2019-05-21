@@ -23,25 +23,22 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class UIDynamicInvokeBeanInfo extends MySimpleBeanInfo {
+public class UISharedComponentBeanInfo extends MySimpleBeanInfo {
 
-	public UIDynamicInvokeBeanInfo() {
+	public UISharedComponentBeanInfo() {
 		try {
-			beanClass = UIDynamicInvoke.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction.class;
+			beanClass = UISharedComponent.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.UIComponent.class;
 
-			resourceBundle = getResourceBundle("res/UIDynamicInvoke");
+			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/uisharedcomponent_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/uisharedcomponent_color_32x32.png";
+			
+			resourceBundle = getResourceBundle("res/UISharedComponent");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
-			
-			properties[0] = new PropertyDescriptor("stack", beanClass, "getSharedActionQName", "setSharedActionQName");
-			properties[0].setDisplayName(getExternalizedString("property.stack.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.stack.short_description"));
-            properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
-            properties[0].setValue("category", "@Component");
+			properties = new PropertyDescriptor[0];
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

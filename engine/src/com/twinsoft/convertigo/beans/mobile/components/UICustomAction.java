@@ -556,7 +556,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
-			if (getStack() != null) {
+			if (getSharedAction() != null) {
 				tsCode +="\t\treturn this.actionBeans."+ actionName +
 							"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
 										cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+ 
@@ -646,7 +646,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();
-				if (getStack() != null) {
+				if (getSharedAction() != null) {
 					String actionName = getActionName();
 					String actionCode = computeActionMain();
 					if (compareToTplVersion("7.5.2.0") < 0 ) {
@@ -661,7 +661,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				if (getStack() != null) {
+				if (getSharedAction() != null) {
 					for (XMLVector<String> v : page_ts_imports) {
 						imports.put(v.get(0).trim(), v.get(1).trim());
 					}

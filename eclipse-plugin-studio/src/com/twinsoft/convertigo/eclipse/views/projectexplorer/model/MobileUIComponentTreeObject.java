@@ -55,6 +55,7 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IEventListener;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
+import com.twinsoft.convertigo.beans.mobile.components.IShared;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
@@ -764,7 +765,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							}
 							else if (object instanceof UIDynamicInvoke) {
 								if ("stack".equals(propertyName)) {
-									((UIDynamicInvoke)object).setActionStack(_pValue);
+									((UIDynamicInvoke)object).setSharedActionQName(_pValue);
 									hasBeenRenamed = true;
 								}
 							}
@@ -872,8 +873,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			if (dbo instanceof UIComponent) {
 				UIComponent uic = (UIComponent)dbo;
 				
-				if (uic.getStack() != null) {
-					handleStackChanged(uic.getStack());
+				if (uic.getSharedAction() != null) {
+					handleSharedActionChanged(uic.getSharedAction());
 				}
 				else if (uic.getPage() == null) {
 					try {
@@ -899,7 +900,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				UIComponent uic = getObject();
 				if (treeObject.getParents().contains(this)) {
 					// a child of this object has been removed
-					if (uic instanceof UIActionStack || (uic instanceof IEventListener && uic.getPage() == null)) {
+					if (uic instanceof IShared || (uic instanceof IEventListener && uic.getPage() == null)) {
 						try {
 							markMainAsDirty(uic);
 						} catch (EngineException e) {
@@ -914,7 +915,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						
 						for (TreeObject to: doto.getParents()) {
 							if (to instanceof DatabaseObjectTreeObject) {
-								if (udi.getActionStack().equals(((DatabaseObjectTreeObject)to).getObject().getQName())) {
+								if (udi.getSharedActionQName().equals(((DatabaseObjectTreeObject)to).getObject().getQName())) {
 									try {
 										markMainAsDirty(udi);
 									} catch (EngineException e) {
@@ -957,9 +958,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				else {
 					if (dbo instanceof UIComponent) {
 						UIComponent uic = (UIComponent)dbo;
-						UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getStack();
+						UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getSharedAction();
 						if (stack != null) {
-							handleStackChanged(stack);
+							handleSharedActionChanged(stack);
 						}
 					}
 				}
@@ -967,12 +968,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 	
-	protected void handleStackChanged(UIActionStack stack) {
-		if (stack != null) {
-			// a uic has changed/added/removed from a stack referenced by this UIDynamicInvoke
+	protected void handleSharedActionChanged(UIActionStack sharedAction) {
+		if (sharedAction != null) {
+			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
 			if (getObject() instanceof UIDynamicInvoke) {
 				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
-				if (udi.getActionStack().equals(stack.getQName())) {
+				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
 					try {
 						markMainAsDirty(udi);
 					} catch (EngineException e) {
@@ -1150,12 +1151,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			// Case a UIStackVariable has been renamed
 			if (databaseObject instanceof UIStackVariable) {
 				UIStackVariable variable = (UIStackVariable)databaseObject;
-				UIActionStack stack = variable.getStack();
+				UIActionStack stack = variable.getSharedAction();
 				if (stack != null) {
 					// rename variable for InvokeAction
 					if (getObject() instanceof UIDynamicInvoke) {
 						UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
-						if (udi.getActionStack().equals(stack.getQName())) {
+						if (udi.getSharedActionQName().equals(stack.getQName())) {
 							boolean isLocalProject = variable.getProject().equals(udi.getProject());
 							boolean isSameValue = variable.getName().equals(oldValue);
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
