@@ -141,7 +141,7 @@ public class MobileComponentImportVariablesAction extends MyAbstractAction {
 						// Case of InvokeAction
 						else if (ionBean.getName().equals("InvokeAction")) {
 							UIDynamicInvoke dynInvoke = (UIDynamicInvoke)databaseObject;
-							UIActionStack stack = dynInvoke.getTargetStack();
+							UIActionStack stack = dynInvoke.getTargetSharedAction();
 							if (stack != null) {
 								for (UIStackVariable variable: stack.getVariables()) {
 				    				String variableName = variable.getName();

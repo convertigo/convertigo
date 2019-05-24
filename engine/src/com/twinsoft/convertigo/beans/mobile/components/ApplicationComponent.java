@@ -67,7 +67,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
-	transient private XMLVector<XMLVector<Long>> orderedStacks = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedSharedActions = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedSharedComponents = new XMLVector<XMLVector<Long>>();
+	
 	transient private String tplProjectVersion = "";
 	
 	private String tplProjectName = "";
@@ -91,8 +93,11 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
 		
-		orderedStacks = new XMLVector<XMLVector<Long>>();
-		orderedStacks.add(new XMLVector<Long>());
+		orderedSharedActions = new XMLVector<XMLVector<Long>>();
+		orderedSharedActions.add(new XMLVector<Long>());
+		
+		orderedSharedComponents = new XMLVector<XMLVector<Long>>();
+		orderedSharedComponents.add(new XMLVector<Long>());
 	}
 
 	@Override
@@ -101,7 +106,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
-		cloned.vStackComponents = new LinkedList<UIActionStack>();
+		cloned.vSharedActions = new LinkedList<UIActionStack>();
+		cloned.vSharedComponents = new LinkedList<UISharedComponent>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.appImports = new HashMap<String, String>();
 		cloned.computedContents = null;
@@ -299,16 +305,16 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
         hasChanged = true;
     }
     
-	public XMLVector<XMLVector<Long>> getOrderedStacks() {
-		return orderedStacks;
+	public XMLVector<XMLVector<Long>> getOrderedSharedActions() {
+		return orderedSharedActions;
 	}
     
-	public void setOrderedStacks(XMLVector<XMLVector<Long>> orderedStacks) {
-		this.orderedStacks = orderedStacks;
+	public void setOrderedSharedActions(XMLVector<XMLVector<Long>> orderedStacks) {
+		this.orderedSharedActions = orderedStacks;
 	}
 	
-    private void insertOrderedStack(UIActionStack component, Long after) {
-    	List<Long> ordered = orderedStacks.get(0);
+    private void insertOrderedSharedAction(UIActionStack component, Long after) {
+    	List<Long> ordered = orderedSharedActions.get(0);
     	int size = ordered.size();
     	
     	if (ordered.contains(component.priority))
@@ -325,13 +331,45 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	hasChanged = !isImporting;
     }
     
-    private void removeOrderedStack(Long value) {
-        Collection<Long> ordered = orderedStacks.get(0);
+    private void removeOrderedSharedAction(Long value) {
+        Collection<Long> ordered = orderedSharedActions.get(0);
         ordered.remove(value);
         hasChanged = true;
     }
     
-	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
+	public XMLVector<XMLVector<Long>> getOrderedSharedComponents() {
+		return orderedSharedComponents;
+	}
+    
+	public void setOrderedSharedComponents(XMLVector<XMLVector<Long>> orderedComponents) {
+		this.orderedSharedComponents = orderedComponents;
+	}
+	
+    private void insertOrderedSharedComponent(UISharedComponent component, Long after) {
+    	List<Long> ordered = orderedSharedComponents.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = 0L;
+    		if (size > 0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = !isImporting;
+    }
+    
+    private void removeOrderedSharedComponent(Long value) {
+        Collection<Long> ordered = orderedSharedComponents.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
+    public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
 		increaseOrder(databaseObject, priority);
 	}
     
@@ -346,7 +384,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
     	else if (databaseObject instanceof UIActionStack)
-    		ordered = orderedStacks.get(0);
+    		ordered = orderedSharedActions.get(0);
+    	else if (databaseObject instanceof UISharedComponent)
+    		ordered = orderedSharedComponents.get(0);
     	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
@@ -378,7 +418,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
     	else if (databaseObject instanceof UIActionStack)
-    		ordered = orderedStacks.get(0);
+    		ordered = orderedSharedActions.get(0);
+    	else if (databaseObject instanceof UISharedComponent)
+    		ordered = orderedSharedComponents.get(0);
     	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
@@ -444,11 +486,18 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
         	else throw new EngineException("Corrupted menu for application \""+ getName() +"\". MenuComponent \""+ ((UIDynamicMenu)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIActionStack) {
-        	List<Long> ordered = orderedStacks.get(0);
+        	List<Long> ordered = orderedSharedActions.get(0);
         	long time = ((UIActionStack)object).priority;
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
-        	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". StackComponent \""+ ((UIActionStack)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". SharedAction \""+ ((UIActionStack)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else if (object instanceof UISharedComponent) {
+        	List<Long> ordered = orderedSharedComponents.get(0);
+        	long time = ((UISharedComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". SharedComponent \""+ ((UISharedComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
@@ -779,38 +828,75 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	/**
 	 * The list of available stack of shared actions for this application.
 	 */
-	transient private List<UIActionStack> vStackComponents = new LinkedList<UIActionStack>();
+	transient private List<UIActionStack> vSharedActions = new LinkedList<UIActionStack>();
 	
-	protected void addStackComponent(UIActionStack stackComponent) throws EngineException {
-		addStackComponent(stackComponent, null);
+	protected void addSharedAction(UIActionStack stackComponent) throws EngineException {
+		addSharedAction(stackComponent, null);
 	}
 	
-	protected void addStackComponent(UIActionStack stackComponent, Long after) throws EngineException {
+	protected void addSharedAction(UIActionStack stackComponent, Long after) throws EngineException {
 		checkSubLoaded();
-		String newDatabaseObjectName = getChildBeanName(vStackComponents, stackComponent.getName(), stackComponent.bNew);
+		String newDatabaseObjectName = getChildBeanName(vSharedActions, stackComponent.getName(), stackComponent.bNew);
 		stackComponent.setName(newDatabaseObjectName);
-		vStackComponents.add(stackComponent);
+		vSharedActions.add(stackComponent);
 		super.add(stackComponent);
 		
-		insertOrderedStack(stackComponent, after);
+		insertOrderedSharedAction(stackComponent, after);
 		
 		if (stackComponent.bNew) {
 			markApplicationAsDirty();
 		}
 	}
 
-	protected void removeStackComponent(UIActionStack stackComponent) throws EngineException {
+	protected void removeSharedAction(UIActionStack stackComponent) throws EngineException {
 		checkSubLoaded();
-		vStackComponents.remove(stackComponent);
+		vSharedActions.remove(stackComponent);
 		
-		removeOrderedStack(stackComponent.priority);
+		removeOrderedSharedAction(stackComponent.priority);
 		
 		markApplicationAsDirty();
 	}
 
-	public List<UIActionStack> getStackComponentList() {
+	public List<UIActionStack> getSharedActionList() {
 		checkSubLoaded();
-		return sort(vStackComponents);
+		return sort(vSharedActions);
+	}
+	
+	/**
+	 * The list of available stack of shared components for this application.
+	 */
+	transient private List<UISharedComponent> vSharedComponents = new LinkedList<UISharedComponent>();
+	
+	protected void addSharedComponent(UISharedComponent stackComponent) throws EngineException {
+		addSharedComponent(stackComponent, null);
+	}
+	
+	protected void addSharedComponent(UISharedComponent stackComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vSharedComponents, stackComponent.getName(), stackComponent.bNew);
+		stackComponent.setName(newDatabaseObjectName);
+		vSharedComponents.add(stackComponent);
+		super.add(stackComponent);
+		
+		insertOrderedSharedComponent(stackComponent, after);
+		
+		if (stackComponent.bNew) {
+			markApplicationAsDirty();
+		}
+	}
+
+	protected void removeSharedComponent(UISharedComponent stackComponent) throws EngineException {
+		checkSubLoaded();
+		vSharedComponents.remove(stackComponent);
+		
+		removeOrderedSharedComponent(stackComponent.priority);
+		
+		markApplicationAsDirty();
+	}
+
+	public List<UISharedComponent> getSharedComponentList() {
+		checkSubLoaded();
+		return sort(vSharedComponents);
 	}
 	
 	@Override
@@ -820,7 +906,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		rep.addAll(getRouteComponentList());
 		rep.addAll(getMenuComponentList());
 		rep.addAll(getPageComponentList());
-		rep.addAll(getStackComponentList());
+		rep.addAll(getSharedActionList());
+		rep.addAll(getSharedComponentList());
 		rep.addAll(getUIComponentList());
 		return rep;
 	}
@@ -834,7 +921,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			addMenuComponent((UIDynamicMenu) databaseObject);
 		} else if (databaseObject instanceof UIActionStack) {
-			addStackComponent((UIActionStack) databaseObject);
+			addSharedAction((UIActionStack) databaseObject);
+		} else if (databaseObject instanceof UISharedComponent) {
+			addSharedComponent((UISharedComponent) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			addUIComponent((UIComponent) databaseObject, after);
 		} else {
@@ -856,7 +945,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			removeMenuComponent((UIDynamicMenu) databaseObject);
 		} else if (databaseObject instanceof UIActionStack) {
-			removeStackComponent((UIActionStack) databaseObject);
+			removeSharedAction((UIActionStack) databaseObject);
+		} else if (databaseObject instanceof UISharedComponent) {
+			removeSharedComponent((UISharedComponent) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			removeUIComponent((UIComponent) databaseObject);
 		} else {
@@ -1418,10 +1509,17 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			}
 		}
 		
-		for (UIActionStack stack : getStackComponentList()) {
-			String satckTplVersion = stack.requiredTplVersion();
-			if (MobileBuilder.compareVersions(tplVersion, satckTplVersion) <= 0) {
-				tplVersion = satckTplVersion;
+		for (UIActionStack sa : getSharedActionList()) {
+			String saTplVersion = sa.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, saTplVersion) <= 0) {
+				tplVersion = saTplVersion;
+			}
+		}
+		
+		for (UISharedComponent sc : getSharedComponentList()) {
+			String scTplVersion = sc.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, scTplVersion) <= 0) {
+				tplVersion = scTplVersion;
 			}
 		}
 		

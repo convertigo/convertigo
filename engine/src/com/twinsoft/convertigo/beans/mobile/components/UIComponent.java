@@ -66,6 +66,13 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return cloned;
 	}
 
+	// Used by UISharedComponent for UIUseShared !
+	protected UIComponent cloneSetParent(MobileComponent newParent) throws CloneNotSupportedException {
+		UIComponent cloned = clone();
+		cloned.parent = newParent;
+		return cloned;
+	}
+	
 	public XMLVector<XMLVector<Long>> getOrderedComponents() {
 		return orderedComponents;
 	}
@@ -313,7 +320,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 			return (UIDynamicMenu) databaseObject;
 	}
 	
-	public UIActionStack getStack() {
+	public UIActionStack getSharedAction() {
 		DatabaseObject databaseObject = this;
 		while (!(databaseObject instanceof UIActionStack) && databaseObject != null) { 
 			databaseObject = databaseObject.getParent();
@@ -323,6 +330,18 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 			return null;
 		else
 			return (UIActionStack) databaseObject;
+	}
+	
+	public UISharedComponent getSharedComponent() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof UISharedComponent) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (UISharedComponent) databaseObject;
 	}
 	
 	public PageComponent getPage() {

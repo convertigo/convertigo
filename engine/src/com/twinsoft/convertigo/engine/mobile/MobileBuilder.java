@@ -791,7 +791,7 @@ public class MobileBuilder {
 		IScriptComponent main = uic.getMainScriptComponent();
 		if (main != null) {
 			if (main instanceof ApplicationComponent) {
-				UIActionStack stack = uic.getStack();
+				UIActionStack stack = uic.getSharedAction();
 				File tempTsFile = stack == null ? new File(ionicWorkDir, "src/app/app.component.function.temp.ts") :
 													new File(ionicWorkDir, "src/services/actionbeans.service.function.temp.ts");
 				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
@@ -816,7 +816,7 @@ public class MobileBuilder {
 				UIActionStack stack = null;
 				
 				if (main instanceof ApplicationComponent) {
-					stack = uic.getStack();
+					stack = uic.getSharedAction();
 					tempTsDir = stack == null ? new File(ionicWorkDir, "src/app") : new File(ionicWorkDir, "src/services");
 					tempTsFileName = stack == null ? "app.component.function.temp.ts" : "actionbeans.service.function.temp.ts";
 					

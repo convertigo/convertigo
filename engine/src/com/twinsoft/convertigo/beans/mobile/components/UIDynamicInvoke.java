@@ -48,31 +48,31 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	
 	@Override
 	protected boolean isBroken() {
-		return getTargetStack() == null;
+		return getTargetSharedAction() == null;
 	}
 	
 	@Override
 	public String getActionName() {
-		return isBroken() ? "ErrorAction" : getTargetStack().getStackName();
+		return isBroken() ? "ErrorAction" : getTargetSharedAction().getActionName();
 	}
 
-	public String getActionStack() {
+	public String getSharedActionQName() {
 		return stack;
 	}
 
-	public void setActionStack(String stack) {
+	public void setSharedActionQName(String stack) {
 		this.stack = stack;
 	}
 
-	public UIActionStack getTargetStack() {
+	public UIActionStack getTargetSharedAction() {
 		try {
-			String qname =  getActionStack();
+			String qname =  getSharedActionQName();
 			if (qname != null && qname.indexOf('.') != -1) {
 				String p_name = qname.substring(0, qname.indexOf('.'));
 				Project project = this.getProject();
 				Project p = p_name.equals(project.getName()) ? project: Engine.theApp.databaseObjectsManager.getOriginalProjectByName(p_name);
 				if (p != null) {
-					for (UIActionStack uias: p.getMobileApplication().getApplicationComponent().getStackComponentList()) {
+					for (UIActionStack uias: p.getMobileApplication().getApplicationComponent().getSharedActionList()) {
 						if (uias.getQName().equals(qname)) {
 							return uias;
 						}
@@ -97,7 +97,7 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		
 		// Now, add target stack contributors
 		if (!isBroken()) {
-			getTargetStack().addContributors(done, contributors);
+			getTargetSharedAction().addContributors(done, contributors);
 		}
 	}
 
@@ -108,7 +108,7 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		
 		// Now, add target stack infos
 		if (!isBroken()) {
-			getTargetStack().addInfos(infoMap);
+			getTargetSharedAction().addInfos(infoMap);
 		}
 	}
 

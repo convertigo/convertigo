@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -166,8 +167,11 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
 							tvObject.addObject(page);
 						}
-						for (UIActionStack stack: ((ApplicationComponent)object).getStackComponentList()) {
-							tvObject.addObject(stack);
+						for (UIActionStack uisa: ((ApplicationComponent)object).getSharedActionList()) {
+							tvObject.addObject(uisa);
+						}
+						for (UISharedComponent uisc: ((ApplicationComponent)object).getSharedComponentList()) {
+							tvObject.addObject(uisc);
 						}
 					}
 					else if (object instanceof UIDynamicMenu) {

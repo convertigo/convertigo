@@ -32,7 +32,7 @@ import java.util.Set;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class UIActionStack extends UIComponent {
+public class UIActionStack extends UIComponent implements IShared {
 
 	private static final long serialVersionUID = -5668525501858865747L;
 
@@ -112,12 +112,12 @@ public class UIActionStack extends UIComponent {
 		return handleError;
 	}
 	
-	public String getStackName() {
+	public String getActionName() {
 		return "STS"+ this.priority;
 	}
 	
 	private String getFunctionName() {
-		return getStackName();
+		return getActionName();
 	}
 
 	@Override

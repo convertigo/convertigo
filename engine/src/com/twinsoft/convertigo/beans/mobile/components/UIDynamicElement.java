@@ -58,7 +58,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	@Override
 	public UIDynamicElement clone() throws CloneNotSupportedException {
 		UIDynamicElement cloned = (UIDynamicElement) super.clone();
-		cloned.ionBean = null;
+		cloned.ionBean = ionBean; // needed by UISharedComponent for UIUseShared !
 		return cloned;
 	}
 

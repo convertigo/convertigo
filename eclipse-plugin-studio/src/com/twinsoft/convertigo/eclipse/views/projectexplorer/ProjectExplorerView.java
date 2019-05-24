@@ -154,6 +154,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
@@ -1203,7 +1204,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										updateDlg = true;
 									}
 									if (dbo instanceof UIActionStack) {
-										objectType = "action";
+										objectType = "shared action";
+										updateDlg = true;
+									}
+									if (dbo instanceof UISharedComponent) {
+										objectType = "shared component";
 										updateDlg = true;
 									}
 									if (dbo instanceof UIStackVariable) {
@@ -1584,8 +1589,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							databaseObjectTreeObject = new MobilePageComponentTreeObject(viewer, (PageComponent) databaseObject, false);
 
 						} else if (databaseObject instanceof UIActionStack) {
-							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STACKS;
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS;
 							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UIActionStack) databaseObject, false);
+
+						} else if (databaseObject instanceof UISharedComponent) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS;
+							databaseObjectTreeObject = new MobileUIComponentTreeObject(viewer, (UISharedComponent) databaseObject, false);
 
 						} else if (databaseObject instanceof UIDynamicMenu) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MENUS;

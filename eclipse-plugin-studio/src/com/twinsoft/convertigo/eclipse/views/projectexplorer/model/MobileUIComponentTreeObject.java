@@ -70,8 +70,10 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
@@ -551,6 +553,15 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						list.add("stack");
 					}
 				}
+				else if (object instanceof UIUseShared) {
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("sharedcomponent");
+					}
+				}
 				else if (object instanceof UIDynamicInfiniteScroll) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
@@ -604,6 +615,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				else if (object instanceof UIDynamicInvoke) {
 					return "stack".equals(propertyName);
 				}
+				else if (object instanceof UIUseShared) {
+					return "sharedcomponent".equals(propertyName);
+				}
 				else if (object instanceof UIDynamicInfiniteScroll) {
 					return "scrollaction".equals(propertyName);
 				}
@@ -647,6 +661,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				else if (object instanceof UIDynamicInvoke) {
 					if ("stack".equals(propertyName)) {
 						return nsObject instanceof UIActionStack;
+					}
+				}
+				else if (object instanceof UIUseShared) {
+					if ("sharedcomponent".equals(propertyName)) {
+						return nsObject instanceof UISharedComponent;
 					}
 				}
 				else if (object instanceof UIDynamicInfiniteScroll) {
@@ -764,7 +783,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							}
 							else if (object instanceof UIDynamicInvoke) {
 								if ("stack".equals(propertyName)) {
-									((UIDynamicInvoke)object).setActionStack(_pValue);
+									((UIDynamicInvoke)object).setSharedActionQName(_pValue);
+									hasBeenRenamed = true;
+								}
+							}
+							else if (object instanceof UIUseShared) {
+								if ("sharedcomponent".equals(propertyName)) {
+									((UIUseShared)object).setSharedComponentQName(_pValue);
 									hasBeenRenamed = true;
 								}
 							}
@@ -872,8 +897,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			if (dbo instanceof UIComponent) {
 				UIComponent uic = (UIComponent)dbo;
 				
-				if (uic.getStack() != null) {
-					handleStackChanged(uic.getStack());
+				if (uic.getSharedAction() != null) {
+					handleSharedActionChanged(uic.getSharedAction());
+				}
+				else if (uic.getSharedComponent() != null) {
+					handleSharedComponentChanged(uic.getSharedComponent());
 				}
 				else if (uic.getPage() == null) {
 					try {
@@ -893,32 +921,65 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
 			
-			if (!(treeObject.equals(this))) {
-				UIComponent uic = getObject();
-				if (treeObject.getParents().contains(this)) {
+			if (!(deletedTreeObject.equals(this))) {
+				UIComponent currentDbo = getObject();
+				
+				if (deletedTreeObject.getParents().contains(this)) {
 					// a child of this object has been removed
-					if (uic instanceof UIActionStack || (uic instanceof IEventListener && uic.getPage() == null)) {
+					if (currentDbo instanceof UIActionStack || (currentDbo instanceof IEventListener && currentDbo.getPage() == null)) {
 						try {
-							markMainAsDirty(uic);
+							markMainAsDirty(currentDbo);
 						} catch (EngineException e) {
 							ConvertigoPlugin.logWarning(e, "Could not update in tree \""+getObject().getName()+"\" !");
 						}
-					}
+					}					
 				}
 				else {
-					// a child of this referenced stack has been removed
-					if (uic instanceof UIDynamicInvoke) {
-						UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
+					// a child of a shared action has been removed
+					if (currentDbo instanceof UIDynamicInvoke) {
+						UIDynamicInvoke udi = (UIDynamicInvoke)currentDbo;
 						
-						for (TreeObject to: doto.getParents()) {
+						for (TreeObject to: deletedTreeObject.getParents()) {
 							if (to instanceof DatabaseObjectTreeObject) {
-								if (udi.getActionStack().equals(((DatabaseObjectTreeObject)to).getObject().getQName())) {
-									try {
-										markMainAsDirty(udi);
-									} catch (EngineException e) {
-										e.printStackTrace();
+								DatabaseObject parentDbo = ((DatabaseObjectTreeObject)to).getObject();
+								if (parentDbo instanceof UIActionStack) {
+									if (udi.getSharedActionQName().equals(parentDbo.getQName())) {
+										try {
+											markMainAsDirty(udi);
+										} catch (EngineException e) {
+											e.printStackTrace();
+										}
+										break;
+									}
+								}
+							}
+						}
+					}
+					// a child of a shared component has been removed
+					if (currentDbo instanceof UIUseShared) {
+						UIUseShared udu = (UIUseShared)currentDbo;
+						
+						for (TreeObject to: deletedTreeObject.getParents()) {
+							if (to instanceof DatabaseObjectTreeObject) {
+								DatabaseObject parentDbo = ((DatabaseObjectTreeObject)to).getObject();
+								if (parentDbo instanceof UISharedComponent) {
+									if (udu.getSharedComponentQName().equals(parentDbo.getQName())) {
+										UISharedComponent uisc = udu.getSharedComponent();
+										// udu inside a shared component
+										if (uisc != null) {
+											notifyDataseObjectPropertyChanged(uisc, "", null, null);
+										}
+										// udu inside a page or menu
+										else {
+											try {
+												markMainAsDirty(udu);
+											} catch (EngineException e) {
+												e.printStackTrace();
+											}
+										}
+										break;
 									}
 								}
 							}
@@ -957,9 +1018,15 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				else {
 					if (dbo instanceof UIComponent) {
 						UIComponent uic = (UIComponent)dbo;
-						UIActionStack stack = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getStack();
-						if (stack != null) {
-							handleStackChanged(stack);
+						
+						UIActionStack uisa = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getSharedAction();
+						if (uisa != null) {
+							handleSharedActionChanged(uisa);
+						}
+
+						UISharedComponent uisc = dbo instanceof UISharedComponent ? ((UISharedComponent)dbo) : uic.getSharedComponent();
+						if (uisc != null) {
+							handleSharedComponentChanged(uisc);
 						}
 					}
 				}
@@ -967,16 +1034,41 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 	
-	protected void handleStackChanged(UIActionStack stack) {
-		if (stack != null) {
-			// a uic has changed/added/removed from a stack referenced by this UIDynamicInvoke
+	protected void handleSharedActionChanged(UIActionStack sharedAction) {
+		if (sharedAction != null) {
+			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
 			if (getObject() instanceof UIDynamicInvoke) {
 				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
-				if (udi.getActionStack().equals(stack.getQName())) {
+				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
 					try {
 						markMainAsDirty(udi);
 					} catch (EngineException e) {
 						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	protected void handleSharedComponentChanged(UISharedComponent sharedComponent) {
+		if (sharedComponent != null) {
+			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
+			if (getObject() instanceof UIUseShared) {
+				UIUseShared udu = (UIUseShared)getObject();
+				
+				if (udu.getSharedComponentQName().equals(sharedComponent.getQName())) {
+					UISharedComponent uisc = udu.getSharedComponent();
+					// udu inside a shared component
+					if (uisc != null) {
+						notifyDataseObjectPropertyChanged(uisc, "", null, null);
+					}
+					// udu inside a page or menu
+					else {
+						try {
+							markMainAsDirty(udu);
+						} catch (EngineException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -1150,12 +1242,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			// Case a UIStackVariable has been renamed
 			if (databaseObject instanceof UIStackVariable) {
 				UIStackVariable variable = (UIStackVariable)databaseObject;
-				UIActionStack stack = variable.getStack();
+				UIActionStack stack = variable.getSharedAction();
 				if (stack != null) {
 					// rename variable for InvokeAction
 					if (getObject() instanceof UIDynamicInvoke) {
 						UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
-						if (udi.getActionStack().equals(stack.getQName())) {
+						if (udi.getSharedActionQName().equals(stack.getQName())) {
 							boolean isLocalProject = variable.getProject().equals(udi.getProject());
 							boolean isSameValue = variable.getName().equals(oldValue);
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
@@ -1245,6 +1337,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	
 	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue) {
         TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue);
-        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);;
+        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
 	}
 }
