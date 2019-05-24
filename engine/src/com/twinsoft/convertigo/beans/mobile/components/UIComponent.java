@@ -66,6 +66,13 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return cloned;
 	}
 
+	// Used by UISharedComponent for UIUseShared !
+	protected UIComponent cloneSetParent(MobileComponent newParent) throws CloneNotSupportedException {
+		UIComponent cloned = clone();
+		cloned.parent = newParent;
+		return cloned;
+	}
+	
 	public XMLVector<XMLVector<Long>> getOrderedComponents() {
 		return orderedComponents;
 	}

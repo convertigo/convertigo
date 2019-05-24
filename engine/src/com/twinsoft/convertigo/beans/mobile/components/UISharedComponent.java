@@ -19,6 +19,14 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.twinsoft.convertigo.engine.Engine;
+
 public class UISharedComponent extends UIComponent implements IShared {
 
 	private static final long serialVersionUID = -2430482045373902567L;
@@ -38,4 +46,89 @@ public class UISharedComponent extends UIComponent implements IShared {
 		return null;
 	}
 
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		// does nothing
+	}
+
+	@Override
+	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
+		// does nothing
+	}
+
+	@Override
+	protected void addInfos(Map<String, Set<String>> infoMap) {
+		// does nothing
+	}
+
+	protected String computeTemplate(UIUseShared uiUse) {
+		String computed = "";
+		if (isEnabled()) {
+			for (UIComponent uic: getUIComponentList()) {
+				try {
+					computed += uic.cloneSetParent(uiUse).computeTemplate();
+				} catch (CloneNotSupportedException e) {
+					Engine.logBeans.warn("(UISharedComponent) computeTemplate: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
+			}
+		}
+		return computed;
+	}
+	
+	protected void computeScripts(UIUseShared uiUse, JSONObject jsonScripts) {
+		if (isEnabled()) {
+			for (UIComponent uic: getUIComponentList()) {
+				try {
+					uic.cloneSetParent(uiUse).computeScripts(jsonScripts);
+				} catch (CloneNotSupportedException e) {
+					Engine.logBeans.warn("(UISharedComponent) computeScripts: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
+			}
+		}
+	}
+	
+	protected String computeStyle(UIUseShared uiUse) {
+		String computed = "";
+		if (isEnabled()) {
+			for (UIComponent uic: getUIComponentList()) {
+				if (uic instanceof UIElement) {
+					try {
+						computed += ((UIElement)uic.cloneSetParent(uiUse)).computeStyle();
+					} catch (CloneNotSupportedException e) {
+						Engine.logBeans.warn("(UISharedComponent) computeStyle: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+					}
+				}
+			}
+		}
+		return computed;
+	}
+	
+	protected void addContributors(UIUseShared uiUse, Set<UIComponent> done, List<Contributor> contributors) {
+		if (!done.add(this)) {
+			return;
+		}
+		Contributor contributor = getContributor();
+		if (contributor != null) {
+			if (!contributors.contains(contributor)) {
+				contributors.add(contributor);
+			}
+		}
+		for (UIComponent uic : getUIComponentList()) {
+			try {
+				uic.cloneSetParent(uiUse).addContributors(done, contributors);
+			} catch (CloneNotSupportedException e) {
+				Engine.logBeans.warn("(UISharedComponent) addContributors: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+			}
+		}
+	}
+	
+	protected void addInfos(UIUseShared uiUse, Map<String, Set<String>> infoMap) {
+		for (UIComponent uic : getUIComponentList()) {
+			try {
+				uic.cloneSetParent(uiUse).addInfos(infoMap);
+			} catch (CloneNotSupportedException e) {
+				Engine.logBeans.warn("(UISharedComponent) addInfos: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+			}
+		}		
+	}
 }

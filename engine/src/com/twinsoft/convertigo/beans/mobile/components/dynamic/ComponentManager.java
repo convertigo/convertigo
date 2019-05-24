@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
@@ -360,6 +361,7 @@ public class ComponentManager {
 			// Add shared components
 			group = GROUP_SHARED_COMPONENTS;
 			components.add(getDboComponent(UISharedComponent.class,group));
+			components.add(getDboComponent(UIUseShared.class,group));
 			
 			// Add shared actions
 			group = GROUP_SHARED_ACTIONS;
