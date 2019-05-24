@@ -1016,7 +1016,9 @@ public class EngineLogView extends ViewPart {
 	 */
 	@Override
 	public void setFocus() {
-		tableViewer.getControl().setFocus();
+		if (tableViewer != null) {
+			tableViewer.getControl().setFocus();
+		}
 	}
 
 	private void createLogViewThread() {
