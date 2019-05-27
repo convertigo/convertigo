@@ -10,6 +10,7 @@ import { C8oRouter }                                        from 'c8ocaf';
 import { C8oRoute, C8oRouteOptions, C8oRouteListener}       from 'c8ocaf'
 import { C8oPage, C8oPageBase, C8oCafUtils}                 from "c8ocaf";
 import { C8o, C8oSettings, C8oLogLevel,C8oProgress }        from "c8osdkangular";
+import { C8oNetworkStatus }                                 from "c8osdkangular";
 
 import { ActionBeans }                                      from '../services/actionbeans.service';
 

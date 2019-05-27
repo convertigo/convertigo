@@ -12,6 +12,7 @@ import { C8oPage,
 		 C8oPageBase,
 		 C8oRouter, 
 		 C8oCafUtils }                      										from 'c8ocaf';
+import { C8oNetworkStatus }                                 						from 'c8osdkangular';
 import { ChangeDetectorRef,
 		 ChangeDetectionStrategy,
 		 InjectionToken,
