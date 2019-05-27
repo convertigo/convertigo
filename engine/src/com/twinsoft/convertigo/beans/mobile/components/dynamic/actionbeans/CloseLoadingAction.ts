@@ -11,6 +11,7 @@
                 if(page.global["_c8o_loaders"] != undefined){
                     page.global["_c8o_loaders"].dismiss();
                     delete page.global["_c8o_loaders"];
+                    resolve();
                 }
             }
             catch(err) {
