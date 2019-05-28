@@ -288,6 +288,7 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		return control;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public LayoutData getLayoutData() {
 		LayoutData layoutData = super.getLayoutData();
 		if ((comboBox == null) || comboBox.isDisposed()) {
@@ -295,8 +296,8 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		} else {
 			// make the comboBox 10 characters wide
 			GC gc = new GC(comboBox);
-			layoutData.minimumWidth = (int) Math.round((gc.getFontMetrics()
-					.getAverageCharacterWidth() * 10) + 10);
+			layoutData.minimumWidth = (gc.getFontMetrics()
+					.getAverageCharWidth() * 10) + 10;
 			gc.dispose();
 		}
 		return layoutData;
