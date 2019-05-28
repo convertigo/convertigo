@@ -48,8 +48,11 @@ public class ScriptCellEditor extends TextCellEditor {
 	@Override
 	protected Control createControl(Composite parent) {
 		super.createControl(parent);
-        text.setFont(getFont());
-        text.setBackground(getBackground());		
+		parent.getDisplay().asyncExec(() -> {
+			text.setFont(getFont());
+			text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+			text.setBackground(getBackground());
+		});
 		return text;
 	}
 
@@ -83,4 +86,6 @@ public class ScriptCellEditor extends TextCellEditor {
 		}
 		super.dispose();
 	}
+	
+	
 }

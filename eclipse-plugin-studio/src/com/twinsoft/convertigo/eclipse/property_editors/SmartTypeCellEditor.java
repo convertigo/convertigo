@@ -149,8 +149,10 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
 				Button button = (Button) e.widget; 
 				button.setSelection(true);
 				
-				text.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
-				text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+				text.getDisplay().asyncExec(() -> {
+					text.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+					text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+				});
 				
 				Mode mode = (Mode) button.getData(DataKeys.SMART_TYPE.name());
 				value.setMode(mode);

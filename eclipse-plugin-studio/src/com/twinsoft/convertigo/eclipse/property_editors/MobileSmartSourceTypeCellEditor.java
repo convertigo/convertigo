@@ -211,8 +211,10 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 				Button button = (Button) e.widget; 
 				button.setSelection(true);
 				
-				comboBox.setForeground(button.getDisplay().getSystemColor(SWT.COLOR_BLACK));
-				comboBox.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+				comboBox.getDisplay().asyncExec(() -> {
+					comboBox.setForeground(button.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+					comboBox.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+				});
 				
 				Mode mode = (Mode) button.getData(DataKeys.SMART_TYPE.name());
 				msst.setMode(mode);
@@ -293,8 +295,8 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		} else {
 			// make the comboBox 10 characters wide
 			GC gc = new GC(comboBox);
-			layoutData.minimumWidth = (gc.getFontMetrics()
-					.getAverageCharWidth() * 10) + 10;
+			layoutData.minimumWidth = (int) Math.round((gc.getFontMetrics()
+					.getAverageCharacterWidth() * 10) + 10);
 			gc.dispose();
 		}
 		return layoutData;
