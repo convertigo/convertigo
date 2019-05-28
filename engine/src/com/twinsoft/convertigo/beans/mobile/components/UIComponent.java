@@ -392,6 +392,28 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return false;
 	}
 	
+	protected String computeInnerGet(String pageKey, String functionName) {
+		String computed = "";
+		computed += "\t\tlet get = function(keyName, keyVal) {"+ System.lineSeparator();
+		computed += "\t\t\tlet val=undefined;"+ System.lineSeparator();
+		computed += "\t\t\ttry {"+ System.lineSeparator();
+		computed += "\t\t\t\tval=eval(ts.transpile('('+ keyVal + ')'));"+ System.lineSeparator();
+		
+		computed += "\t\t\t\tif (val == undefined) {"+ System.lineSeparator();
+		computed += "\t\t\t\t\t"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=undefined\");"+ System.lineSeparator();
+		computed += "\t\t\t\t} else {"+ System.lineSeparator();
+		computed += "\t\t\t\t\t"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=\"+ val);"+ System.lineSeparator();
+		computed += "\t\t\t\t}"+ System.lineSeparator();
+		
+		computed += "\t\t\t} catch(e) {"+ System.lineSeparator();
+		computed += "\t\t\t\tlet sKeyVal = keyVal == null ? \"null\" : (keyVal == undefined ? \"undefined\" : keyVal);"+ System.lineSeparator();
+		computed += "\t\t\t\t"+pageKey+".c8o.log.warn(\"[MB] "+functionName+": For \"+ keyName +\":\"+ sKeyVal + \", \"+ e.message);"+ System.lineSeparator();
+		computed += "\t\t\t}"+ System.lineSeparator();
+		computed += "\t\t\treturn val;"+ System.lineSeparator();
+		computed += "\t\t}" + System.lineSeparator();
+		return computed;
+	}
+	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		if (isEnabled()) {

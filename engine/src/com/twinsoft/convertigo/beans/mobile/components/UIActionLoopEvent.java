@@ -67,7 +67,7 @@ public class UIActionLoopEvent extends UIActionEvent {
 			
 			String tsCode = "";
 			tsCode += "\t\tconst doLoop = (c8oPage : C8oPageBase, "+ item +" : any, "+ index +" : number) : Promise<any> => {" + System.lineSeparator();
-			tsCode += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('(' + key + ')') );}catch(e){c8oPage.c8o.log.warn(\"[MB] doLoop: \"+e.message)}return val;}" + System.lineSeparator();
+			tsCode += computeInnerGet("c8oPage", "doLoop");
 			tsCode += loopIn;
 			tsCode += "\t\t}" + System.lineSeparator();
 			

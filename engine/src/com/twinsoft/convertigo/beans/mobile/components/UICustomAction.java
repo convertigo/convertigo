@@ -391,7 +391,7 @@ public class UICustomAction extends UIComponent implements IAction {
 							if (!smartValue.isEmpty()) {
 								sbVars.append(sbVars.length() > 0 ? ", ":"");
 								sbVars.append(uicv.getVarName()).append(": ");
-								sbVars.append("get(`"+smartValue+"`)");
+								sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`)");
 							}
 						}
 					}
@@ -489,7 +489,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('('+ key  + ')'));}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
+			computed += computeInnerGet("c8oPage",functionName);
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();

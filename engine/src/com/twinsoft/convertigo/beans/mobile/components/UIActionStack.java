@@ -150,7 +150,7 @@ public class UIActionStack extends UIComponent implements IShared {
 					if (!paramValue.toString().isEmpty()) {
 						sbParams.append(sbParams.length() > 0 ? ", " : "");
 						sbParams.append(param.getVariableName()).append(": ");
-						sbParams.append("get(`"+ paramValue +"`)");
+						sbParams.append("get('"+ param.getVariableName() +"', `"+ paramValue +"`)");
 					}
 				}
 			}
@@ -200,7 +200,7 @@ public class UIActionStack extends UIComponent implements IShared {
 			computed += "\t\tlet out = event;" + System.lineSeparator();
 			computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('('+ key  + ')'));}catch(e){page.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
+			computed += computeInnerGet("page",functionName);
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tlet params = "+ cafMerge +"("+ computeStackParams() +", vars);" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
