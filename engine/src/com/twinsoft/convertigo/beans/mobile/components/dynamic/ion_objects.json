@@ -6390,7 +6390,7 @@
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName" : "CloseModal",
       "label" : "CloseModal",
-      "description" : "Defines a <i>Close Modal</i> action component. | Use this action to close a modal page opened previously.<br/>Add a <i>CloseModal</i> action under an Event.",
+      "description" : "Defines a <i>Close Modal</i> action component. | Use this action to close a modal page opened previously. It can also be used to close a PopOver Page.<br/>Add a <i>CloseModal</i> action under an Event.",
       "group" : "Actions",
       "icon16": "closemodalaction_color_16x16.png",
       "icon32": "closemodalaction_color_32x32.png",
