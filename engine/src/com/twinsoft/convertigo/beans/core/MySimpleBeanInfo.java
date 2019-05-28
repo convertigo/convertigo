@@ -27,6 +27,7 @@ import java.beans.MethodDescriptor;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
@@ -285,6 +286,11 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 				} catch (IntrospectionException e) {
 				}
     		}
+    		
+    		Arrays.sort(properties, (p1, p2) -> {
+    			return p1.getName().compareTo(p2.getName());
+    		});
+    		
     		additionalPropertiesLoaded = true;
     	}
     }
