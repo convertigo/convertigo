@@ -70,6 +70,8 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
@@ -778,7 +780,8 @@ public class ClipboardManager {
 			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
-		} else if (object instanceof JsonData && (parentDatabaseObject instanceof UIPageEvent || parentDatabaseObject instanceof UIDynamicAction)) {
+		} else if (object instanceof JsonData && (parentDatabaseObject instanceof UIPageEvent || parentDatabaseObject instanceof UIAppEvent || 
+													parentDatabaseObject instanceof UIDynamicAction || parentDatabaseObject instanceof UIActionStack)) {
 			JsonData jsonData = (JsonData) object;
 			JSONObject json = jsonData.getData();
 			if (json.has("qname")) {
