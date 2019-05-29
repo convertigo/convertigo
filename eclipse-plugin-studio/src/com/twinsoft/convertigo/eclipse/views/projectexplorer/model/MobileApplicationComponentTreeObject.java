@@ -146,9 +146,11 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 									try {
 										String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
 										String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-										String form = uic.getUIForm().getFormGroupName();
-										if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-											this.viewer.refresh();
+										if (uic.getUIForm() != null) {
+											String form = uic.getUIForm().getFormGroupName();
+											if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+												this.viewer.refresh();
+											}
 										}
 									} catch (Exception e) {}
 								}

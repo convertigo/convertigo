@@ -1182,9 +1182,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 								try {
 									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
 									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-									String form = uic.getUIForm().getFormGroupName();
-									if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-										sourcesUpdated = true;
+									if (uic.getUIForm() != null) {
+										String form = uic.getUIForm().getFormGroupName();
+										if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+											sourcesUpdated = true;
+										}
 									}
 								} catch (Exception e) {}
 							}
