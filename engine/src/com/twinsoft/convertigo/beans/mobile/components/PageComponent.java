@@ -483,7 +483,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return contributors;
 	}
 	
-	protected void doGetContributors() {
+	protected synchronized void doGetContributors() {
 		contributors = new ArrayList<>();
 		Set<UIComponent> done = new HashSet<>();
 		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder 

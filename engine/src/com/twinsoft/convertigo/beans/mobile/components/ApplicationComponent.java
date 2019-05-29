@@ -1001,7 +1001,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return contributors;
 	}
 	
-	protected void doGetContributors() {
+	protected synchronized void doGetContributors() {
 		contributors = new ArrayList<>();
 		Set<UIComponent> done = new HashSet<>();
 		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
