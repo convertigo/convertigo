@@ -73,6 +73,8 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
@@ -697,7 +699,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					return true;
 				}
 			}
-			else if (parent instanceof UIPageEvent || parent instanceof UIDynamicAction) {
+			else if (parent instanceof UIPageEvent || parent instanceof UIAppEvent ||
+					parent instanceof UIDynamicAction || parent instanceof UIActionStack) {
 				UIComponent uiComponent = (UIComponent) parent;
 				if (databaseObject instanceof Sequence) {
 					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
