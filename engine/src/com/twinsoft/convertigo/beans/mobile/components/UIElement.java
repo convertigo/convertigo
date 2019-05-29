@@ -251,10 +251,13 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		if (!identifier.isEmpty()) {
 			try {
-				IScriptComponent main = getMainScriptComponent();
-				
 				String imports = jsonScripts.getString("imports");
 				if (main.addImport("ViewChild", "@angular/forms")) {
 					imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();

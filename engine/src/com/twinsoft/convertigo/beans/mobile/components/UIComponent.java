@@ -415,7 +415,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	}
 	
 	@Override
-	public void computeScripts(JSONObject jsonScripts) {
+	public void computeScripts(JSONObject jsonScripts) {		
 		if (isEnabled()) {
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {

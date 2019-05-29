@@ -416,9 +416,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		try {
-			IScriptComponent main = getMainScriptComponent();
-			
 			String imports = jsonScripts.getString("imports");
 			
 			if (main.addImport("* as ts", "typescript")) {

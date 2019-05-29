@@ -135,10 +135,13 @@ public class UIForm extends UIElement {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		if (isEnabled()) {
 			try {
-				IScriptComponent main = getMainScriptComponent();
-				
 				String imports = jsonScripts.getString("imports");
 				if (main.addImport("FormGroup", "@angular/forms")) {
 					imports += "import { FormGroup } from '@angular/forms';" + System.lineSeparator();

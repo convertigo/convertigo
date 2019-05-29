@@ -405,9 +405,12 @@ public class UICustomAction extends UIComponent implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		try {
-			IScriptComponent main = getMainScriptComponent();
-			
 			String imports = jsonScripts.getString("imports");
 			for (XMLVector<String> v : page_ts_imports) {
 				String name = v.get(0).trim();

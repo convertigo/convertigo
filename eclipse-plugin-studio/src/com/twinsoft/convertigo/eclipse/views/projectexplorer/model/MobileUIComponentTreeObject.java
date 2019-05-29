@@ -140,6 +140,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	private void editFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
 		try {
 			IScriptComponent main = uic.getMainScriptComponent();
+			if (main == null) {
+				return;
+			}
 			
 			// Refresh project resources for editor
 			String projectName = uic.getProject().getName();
@@ -652,7 +655,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						UIDynamicAnimate uda = (UIDynamicAnimate) object;
 						if (nsObject instanceof UIElement) {
 							UIElement ue = (UIElement)nsObject;
-							if (uda.getMainScriptComponent().equals(ue.getMainScriptComponent())) {
+							if (hasSameScriptComponent(uda, ue)) {
 								return !ue.getIdentifier().isEmpty();
 							}
 						}
@@ -1078,15 +1081,26 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	protected void markMainAsDirty(UIComponent uic) throws EngineException {
 		if (uic != null) {
 			IScriptComponent main = uic.getMainScriptComponent();
-			if (main instanceof ApplicationComponent) {
-				((ApplicationComponent)main).markApplicationAsDirty();
-			}
-			if (main instanceof PageComponent) {
-				((PageComponent)main).markPageAsDirty();
+			if (main != null) {
+				if (main instanceof ApplicationComponent) {
+					((ApplicationComponent)main).markApplicationAsDirty();
+				}
+				if (main instanceof PageComponent) {
+					((PageComponent)main).markPageAsDirty();
+				}
 			}
 		}
 	}
 
+	protected boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
+		if (uic1 != null && uic2 != null) {
+			try {
+				return uic1.getMainScriptComponent().equals(uic2.getMainScriptComponent());
+			} catch (Exception e) {}
+		}
+		return false;
+	}
+	
 	protected void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
@@ -1161,7 +1175,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
-					if (getObject().getMainScriptComponent().equals(uic.getMainScriptComponent())) {
+					if (hasSameScriptComponent(getObject(), uic)) {
 						// A FormControlName property has changed
 						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
 							if (!newValue.equals(oldValue)) {

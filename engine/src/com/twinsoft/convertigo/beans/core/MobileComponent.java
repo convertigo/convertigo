@@ -58,7 +58,11 @@ public abstract class MobileComponent extends MobileObject {
 	}
 	
 	public String getTplVersion() {
-		MobileBuilder mb = getProject().getMobileBuilder();
+		MobileBuilder mb = null;
+		Project p = getProject();
+		if (p != null) {
+			mb = p.getMobileBuilder();
+		}
 		return mb == null ? null : mb.getTplVersion();
 	}
 	
