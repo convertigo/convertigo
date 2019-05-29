@@ -7,6 +7,7 @@
         return new Promise((resolve, reject) => {
             let view = page.getInstance(ViewController)
             view.dismiss();
+            resolve();
       	});
     }
     
