@@ -573,12 +573,14 @@ public class MobilePickerComposite extends Composite {
 	private void updateMessage(String msg) {
 		String msgTxt = "      ";
 		if (currentMC == null) {
-			msgTxt = msgTxt + "Please select a mobile Page or a Menu";
+			msgTxt = msgTxt + "Please select any Application sub component";
 		} else {
 			if (currentMC instanceof PageComponent)
 				msgTxt = msgTxt + "Page : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
 			else if (currentMC instanceof UIDynamicMenu)
 				msgTxt = msgTxt + "Menu : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
+			else if (currentMC instanceof ApplicationComponent)
+				msgTxt = msgTxt + "App : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
 		}
 		message.setText(msgTxt);
 	}
@@ -963,7 +965,7 @@ public class MobilePickerComposite extends Composite {
 				currentMC = ((MobilePageComponentTreeObject) selected).getObject();
 			} else if (selected instanceof MobileUIComponentTreeObject) {
 				uic = ((MobileUIComponentTreeObject) selected).getObject();
-				currentMC = uic.getPage() == null ? uic.getMenu() : uic.getPage();
+				currentMC = uic.getPage() != null ? uic.getPage() : (uic.getMenu() != null ?  uic.getMenu() : uic.getApplication());
 			}
 			
 			if (currentMC == null) {

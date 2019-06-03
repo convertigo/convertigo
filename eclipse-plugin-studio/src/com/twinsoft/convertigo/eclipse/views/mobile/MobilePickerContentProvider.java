@@ -43,11 +43,13 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -428,6 +430,12 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		if (object instanceof ApplicationComponent) {
 			for (UIDynamicMenu menu: ((ApplicationComponent)object).getMenuComponentList()) {
 				list.addAll(menu.getUIComponentList());
+			}
+			for (UIEventSubscriber suscriber :  ((ApplicationComponent)object).getUIEventSubscriberList()) {
+				list.addAll(suscriber.getUIComponentList());
+			}
+			for (UIAppEvent event: ((ApplicationComponent)object).getUIAppEventList()) {
+				list.addAll(event.getUIComponentList());
 			}
 			for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
 				list.addAll(page.getUIComponentList());

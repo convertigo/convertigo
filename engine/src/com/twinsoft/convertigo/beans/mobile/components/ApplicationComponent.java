@@ -1454,14 +1454,35 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return new String[0];
 	}
 	
+	private void putAllInfos(Map<String, Set<String>> toMap, Map<String, Set<String>> fromMap) {
+		if (toMap != null && fromMap != null) {
+			for (String key: fromMap.keySet()) {
+				Set<String> infos = toMap.get(key);
+				if (infos == null) {
+					infos = new HashSet<String>();
+				}
+				
+				infos.addAll(fromMap.get(key));
+				toMap.put(key, infos);
+			}
+		}
+	}
+	
 	public Map<String, Set<String>> getInfoMap() {
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 		for (UIDynamicMenu menu: getMenuComponentList()) {
-			map.putAll(menu.getInfoMap());
+			putAllInfos(map, menu.getInfoMap());
+		}
+		for (UIEventSubscriber suscriber : getUIEventSubscriberList()) {
+			putAllInfos(map, suscriber.getInfoMap());
+		}
+		for (UIAppEvent appEvent: getUIAppEventList()) {
+			putAllInfos(map, appEvent.getInfoMap());
 		}
 		for (PageComponent page : getPageComponentList()) {
-			map.putAll(page.getInfoMap());
+			putAllInfos(map, page.getInfoMap());
 		}
+		// do not add from shared : will be done by invoke shared action or use shared component
 		return map;
 	}
 	

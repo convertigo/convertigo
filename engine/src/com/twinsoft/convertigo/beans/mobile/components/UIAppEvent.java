@@ -20,8 +20,11 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -191,6 +194,14 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	
 	public String getFunctionName() {
 		return "ETS"+ this.priority;
+	}
+	
+	protected Map<String, Set<String>> getInfoMap() {
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			uiComponent.addInfos(map);
+		}
+		return map;
 	}
 	
 	@Override
