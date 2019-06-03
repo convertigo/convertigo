@@ -256,21 +256,36 @@ public class ClipboardManager {
 	private void appendDndData(Element element, DatabaseObject databaseObject) {
 		Element dnd = clipboardDocument.createElement("dnd");
 		Element e;
-		if (databaseObject instanceof Sequence) {
-			Sequence sequence = (Sequence)databaseObject;
-			e = clipboardDocument.createElement("project");
-			e.setAttribute("name", sequence.getProject().getName());
-			dnd.appendChild(e);
-		} else if (databaseObject instanceof Transaction) {
-			Transaction transaction = (Transaction)databaseObject;
-			e = clipboardDocument.createElement("project");
-			e.setAttribute("name", transaction.getProject().getName());
-			dnd.appendChild(e);
-			
-			e = clipboardDocument.createElement("connector");
-			e.setAttribute("name", transaction.getConnector().getName());
-			dnd.appendChild(e);
-		}
+		try {
+			if (databaseObject instanceof Sequence) {
+				Sequence sequence = (Sequence)databaseObject;
+				e = clipboardDocument.createElement("project");
+				e.setAttribute("name", sequence.getProject().getName());
+				dnd.appendChild(e);
+			} else if (databaseObject instanceof Transaction) {
+				Transaction transaction = (Transaction)databaseObject;
+				e = clipboardDocument.createElement("project");
+				e.setAttribute("name", transaction.getProject().getName());
+				dnd.appendChild(e);
+				
+				e = clipboardDocument.createElement("connector");
+				e.setAttribute("name", transaction.getConnector().getName());
+				dnd.appendChild(e);
+			} else if (databaseObject instanceof UIComponent) {
+				UIComponent uic = (UIComponent)databaseObject;
+				e = clipboardDocument.createElement("project");
+				e.setAttribute("name", uic.getProject().getName());
+				dnd.appendChild(e);
+	
+				e = clipboardDocument.createElement("mobileapplication");
+				e.setAttribute("name", uic.getApplication().getParent().getName());
+				dnd.appendChild(e);
+	
+				e = clipboardDocument.createElement("application");
+				e.setAttribute("name", uic.getApplication().getName());
+				dnd.appendChild(e);
+			}
+		} catch (Exception ex) {}
 		element.appendChild(dnd);
 	}
 
@@ -537,6 +552,8 @@ public class ClipboardManager {
 					((ApplicationComponent)databaseObject).setOrderedMenus(getNewOrdered());
 					((ApplicationComponent)databaseObject).setOrderedPages(getNewOrdered());
 					((ApplicationComponent)databaseObject).setOrderedComponents(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedSharedActions(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedSharedComponents(getNewOrdered());
 				}
 				if (databaseObject instanceof RouteComponent) {
 					((RouteComponent)databaseObject).setOrderedActions(getNewOrdered());

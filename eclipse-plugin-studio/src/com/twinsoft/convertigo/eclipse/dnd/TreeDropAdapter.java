@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -80,9 +81,13 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
+import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
@@ -617,108 +622,159 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 			// MOBILE COMPONENTS
-			else if (parent instanceof UIForm) {
-				UIForm uiForm = (UIForm)parent;
+			else if (parent instanceof MobileComponent) {
 				
-				// Add child components to fill the form
+				// Case dbo is a Sequence
 				if (databaseObject instanceof Sequence) {
-					try {
+					Sequence sequence = (Sequence)databaseObject;
+					
+					// Add child components to fill the form
+					if (parent instanceof UIForm) {
+						UIForm uiForm = (UIForm)parent;
+						try {
+							String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+							
+							// add an onSubmit event with a callSequence
+							UIControlEvent event = new UIControlEvent();
+							event.setEventName(AttrEvent.onSubmit.name());
+							event.bNew = true;
+							event.hasChanged = true;
+							
+							DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("CallSequenceAction"));
+							if (call != null && call instanceof UIDynamicAction) {
+								IonBean ionBean = ((UIDynamicAction)call).getIonBean();
+								if (ionBean != null && ionBean.hasProperty("requestable")) {
+									ionBean.setPropertyValue("requestable", new MobileSmartSourceType(projectName + "." + sequence.getName()));
+								}
+							}
+							call.bNew = true;
+							call.hasChanged = true;
+							
+							event.add(call);
+							
+							// add a list of item with label & input for each variable
+							DatabaseObject dboList = ComponentManager.createBean(ComponentManager.getComponentByName("List"));
+							for (RequestableVariable variable: sequence.getVariables()) {
+								DatabaseObject dboItem = ComponentManager.createBean(ComponentManager.getComponentByName("ListItem"));
+								dboList.add(dboItem);
+								
+								DatabaseObject dboLabel = ComponentManager.createBean(ComponentManager.getComponentByName("Label"));
+								dboItem.add(dboLabel);
+								
+								UIText uiText = new UIText();
+								uiText.bNew = true;
+								uiText.hasChanged = true;
+								uiText.setTextSmartType(new MobileSmartSourceType(variable.getName()+":"));
+								dboLabel.add(uiText);
+								
+								DatabaseObject dboInput = ComponentManager.createBean(ComponentManager.getComponentByName("Input"));
+								if (dboInput != null && dboInput instanceof UIDynamicElement) {
+									IonBean ionBean = ((UIDynamicElement)dboInput).getIonBean();
+									if (ionBean != null && ionBean.hasProperty("FormControlName")) {
+										ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType(variable.getName()));
+									}
+									dboItem.add(dboInput);
+								}
+							}
+							
+							// add a buttonset with a submit and a reset button
+							DatabaseObject dboBtnSet = ComponentManager.createBean(ComponentManager.getComponentByName("ButtonSet"));
+							
+							DatabaseObject dboSubmit = ComponentManager.createBean(ComponentManager.getComponentByName("SubmitButton"));
+							dboBtnSet.add(dboSubmit);
+							UIText sText = new UIText();
+							sText.bNew = true;
+							sText.hasChanged = true;
+							sText.setTextSmartType(new MobileSmartSourceType("Submit"));
+							dboSubmit.add(sText);
+							
+							DatabaseObject dboReset = ComponentManager.createBean(ComponentManager.getComponentByName("ResetButton"));
+							dboBtnSet.add(dboReset);
+							UIText rText = new UIText();
+							rText.bNew = true;
+							rText.hasChanged = true;
+							rText.setTextSmartType(new MobileSmartSourceType("Reset"));
+							dboReset.add(rText);
+							
+							uiForm.add(event);
+							uiForm.add(dboList);
+							uiForm.add(dboBtnSet);
+						}
+						catch (Exception e) {
+							throw new EngineException("Unable to create filled Form from requestable", e);
+						}
+						return true;
+					}
+					// Add a CallSequenceAction
+					else if (parent instanceof UIPageEvent || parent instanceof UIAppEvent ||
+							parent instanceof UIDynamicAction || parent instanceof UIActionStack) {
+						UIComponent uiComponent = (UIComponent) parent;
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-						
-						Sequence sequence = (Sequence)databaseObject;
-						
-						// add an onSubmit event with a callSequence
-						UIControlEvent event = new UIControlEvent();
-						event.setEventName(AttrEvent.onSubmit.name());
-						event.bNew = true;
-						event.hasChanged = true;
 						
 						DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("CallSequenceAction"));
 						if (call != null && call instanceof UIDynamicAction) {
 							IonBean ionBean = ((UIDynamicAction)call).getIonBean();
 							if (ionBean != null && ionBean.hasProperty("requestable")) {
 								ionBean.setPropertyValue("requestable", new MobileSmartSourceType(projectName + "." + sequence.getName()));
+								call.bNew = true;
+								call.hasChanged = true;
+								
+								uiComponent.add(call);
+								uiComponent.hasChanged = true;
 							}
 						}
-						call.bNew = true;
-						call.hasChanged = true;
-						
-						event.add(call);
-						
-						// add a list of item with label & input for each variable
-						DatabaseObject dboList = ComponentManager.createBean(ComponentManager.getComponentByName("List"));
-						for (RequestableVariable variable: sequence.getVariables()) {
-							DatabaseObject dboItem = ComponentManager.createBean(ComponentManager.getComponentByName("ListItem"));
-							dboList.add(dboItem);
-							
-							DatabaseObject dboLabel = ComponentManager.createBean(ComponentManager.getComponentByName("Label"));
-							dboItem.add(dboLabel);
-							
-							UIText uiText = new UIText();
-							uiText.bNew = true;
-							uiText.hasChanged = true;
-							uiText.setTextSmartType(new MobileSmartSourceType(variable.getName()+":"));
-							dboLabel.add(uiText);
-							
-							DatabaseObject dboInput = ComponentManager.createBean(ComponentManager.getComponentByName("Input"));
-							if (dboInput != null && dboInput instanceof UIDynamicElement) {
-								IonBean ionBean = ((UIDynamicElement)dboInput).getIonBean();
-								if (ionBean != null && ionBean.hasProperty("FormControlName")) {
-									ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType(variable.getName()));
-								}
-								dboItem.add(dboInput);
-							}
-						}
-						
-						// add a buttonset with a submit and a reset button
-						DatabaseObject dboBtnSet = ComponentManager.createBean(ComponentManager.getComponentByName("ButtonSet"));
-						
-						DatabaseObject dboSubmit = ComponentManager.createBean(ComponentManager.getComponentByName("SubmitButton"));
-						dboBtnSet.add(dboSubmit);
-						UIText sText = new UIText();
-						sText.bNew = true;
-						sText.hasChanged = true;
-						sText.setTextSmartType(new MobileSmartSourceType("Submit"));
-						dboSubmit.add(sText);
-						
-						DatabaseObject dboReset = ComponentManager.createBean(ComponentManager.getComponentByName("ResetButton"));
-						dboBtnSet.add(dboReset);
-						UIText rText = new UIText();
-						rText.bNew = true;
-						rText.hasChanged = true;
-						rText.setTextSmartType(new MobileSmartSourceType("Reset"));
-						dboReset.add(rText);
-						
-						uiForm.add(event);
-						uiForm.add(dboList);
-						uiForm.add(dboBtnSet);
+						return true;
 					}
-					catch (Exception e) {
-						throw new EngineException("Unable to create filled Form from requestable", e);
-					}
-					return true;
 				}
-			}
-			else if (parent instanceof UIPageEvent || parent instanceof UIAppEvent ||
-					parent instanceof UIDynamicAction || parent instanceof UIActionStack) {
-				UIComponent uiComponent = (UIComponent) parent;
-				if (databaseObject instanceof Sequence) {
-					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-					Sequence sequence = (Sequence) databaseObject;
+				// Case dbo is a SharedAction
+				else if (databaseObject instanceof UIActionStack) {
+					UIActionStack stack = (UIActionStack)databaseObject;
 					
-					DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("CallSequenceAction"));
-					if (call != null && call instanceof UIDynamicAction) {
-						IonBean ionBean = ((UIDynamicAction)call).getIonBean();
-						if (ionBean != null && ionBean.hasProperty("requestable")) {
-							ionBean.setPropertyValue("requestable", new MobileSmartSourceType(projectName + "." + sequence.getName()));
-							call.bNew = true;
-							call.hasChanged = true;
+					// Add an InvokeAction
+					if (parent instanceof UIPageEvent || parent instanceof UIAppEvent ||
+							parent instanceof UIDynamicAction || parent instanceof UIActionStack) {
+						UIComponent uiComponent = (UIComponent) parent;
+						
+						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+						String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
+						String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
+						
+						UIDynamicInvoke invoke = new UIDynamicInvoke();
+						if (invoke != null) {
+							invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
+							invoke.bNew = true;
+							invoke.hasChanged = true;
 							
-							uiComponent.add(call);
+							uiComponent.add(invoke);
 							uiComponent.hasChanged = true;
 						}
+						return true;
 					}
-					return true;
+				}
+				// Case dbo is a SharedComponent
+				else if (databaseObject instanceof UISharedComponent) {
+					UISharedComponent usc = (UISharedComponent)databaseObject;
+					
+					// Add a UseShared component
+					if (parent instanceof UISharedComponent || parent instanceof UIElement &&
+							!(parent instanceof UIDynamicAction) && !(parent instanceof UIUseShared)) {
+						UIComponent uiComponent = (UIComponent) parent;
+						
+						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+						String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
+						String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
+						
+						UIUseShared use = new UIUseShared();
+						if (use != null) {
+							use.setSharedComponentQName(projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName());
+							use.bNew = true;
+							use.hasChanged = true;
+							
+							uiComponent.add(use);
+							uiComponent.hasChanged = true;
+						}
+						return true;
+					}
 				}
 			}
 		}
