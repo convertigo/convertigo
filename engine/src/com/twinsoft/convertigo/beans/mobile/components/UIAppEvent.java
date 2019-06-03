@@ -52,9 +52,9 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		onAppResume("resume", AppEventType.ionicObservable, "7.6.0.1"),
 		onAppResize("resize", AppEventType.ionicObservable, "7.6.0.1"),
 		onSessionLost("handleSessionLost()", AppEventType.c8oObservable, "7.6.0.2"),
-		onNetWorkReachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
-		onNetWorkUnreachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
-		onNetWorkOffline("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3")
+		onNetworkReachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
+		onNetworkUnreachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
+		onNetworkOffline("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3")
 		;
 		
 		String event;
@@ -83,13 +83,13 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 				return "\t\tplatform."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
 			}
 			if (type.equals(AppEventType.c8oObservable)) {
-				if (this.equals(onNetWorkReachable)) {
+				if (this.equals(onNetworkReachable)) {
 					return "\t\tthis.c8o."+ event +".subscribe((data) => {if (data == C8oNetworkStatus.Reachable) {this."+ functionName +"(data)}});"+ System.lineSeparator();
 				}
-				if (this.equals(onNetWorkUnreachable)) {
+				if (this.equals(onNetworkUnreachable)) {
 					return "\t\tthis.c8o."+ event +".subscribe((data) => {if (data == C8oNetworkStatus.NotReachable) {this."+ functionName +"(data)}});"+ System.lineSeparator();
 				}
-				if (this.equals(onNetWorkOffline)) {
+				if (this.equals(onNetworkOffline)) {
 					return "\t\tthis.c8o."+ event +".subscribe((data) => {if (data == C8oNetworkStatus.Offline) {this."+ functionName +"(data)}});"+ System.lineSeparator();
 				}
 			}
