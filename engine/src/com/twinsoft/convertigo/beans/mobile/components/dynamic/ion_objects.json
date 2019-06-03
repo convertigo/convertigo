@@ -5249,7 +5249,7 @@
 
         "disableWeeks":{	
           "composite": true,
-          "label": "Disable weeks days",
+          "label": "Disable week days",
           "description": "Weeks days to be disabled (0 to 6).",
           "category": "@Properties",
           "type": "string",
@@ -5259,7 +5259,7 @@
 
         "monthFormat":{	
           "composite": true,
-          "label": "Month fomat",
+          "label": "Month format",
           "description": "Month format ('MMM YYYY').",
           "category": "@Properties",
           "type": "string",
@@ -5268,7 +5268,7 @@
 
         "monthPickerFormat":{	
           "composite": true,
-          "label": "Month picker fomat",
+          "label": "Month picker format",
           "description": "Month Labels.",
           "category": "@Properties",
           "mode": "script",
@@ -6658,8 +6658,7 @@
           "description": "The default title displayed for Days.",
           "category": "@Properties",
           "type": "string",
-          "value": "",
-		  "values": ["",true]
+          "value": false
         },
 
         "defaultSubtitle":{	
@@ -6667,12 +6666,11 @@
           "description": "The default  subtitle displayed for Days.",
           "category": "@Properties",
           "type": "string",
-          "value": "",
-		  "values": ["",true]
+          "value": false
         },
 
         "disableWeeks":{	
-          "label": "Disable weeks days",
+          "label": "Disable week days",
           "description": "Weeks days to be disabled (0 to 6).",
           "category": "@Properties",
           "type": "string",
@@ -6681,13 +6679,22 @@
         },
 
         "monthFormat":{	
-          "label": "Month fomat",
+          "label": "Month format",
           "description": "Month format ('MMM YYYY').",
           "category": "@Properties",
           "type": "string",
           "value": "MMM YYYY"
         },
 
+        "monthPickerFormat":{	
+          "label": "Month picker format",
+          "description": "Month Labels.",
+          "category": "@Properties",
+          "mode": "script",
+          "type": "string",
+          "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
+        },
+        
         "weekdays":{	
           "label": "Weekdays labels",
           "description": "Define the week days labels.",

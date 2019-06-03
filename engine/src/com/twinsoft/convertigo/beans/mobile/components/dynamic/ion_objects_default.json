@@ -524,12 +524,12 @@
    "defaultTitle": {
     "name": "defaultTitle",
     "mode": "plain",
-    "value": ""
+    "value": false
    },
    "defaultSubtitle": {
     "name": "defaultSubtitle",
     "mode": "plain",
-    "value": ""
+    "value": false
    },
    "disableWeeks": {
     "name": "disableWeeks",
@@ -540,6 +540,11 @@
     "name": "monthFormat",
     "mode": "plain",
     "value": "MMM YYYY"
+   },
+   "monthPickerFormat": {
+    "name": "monthPickerFormat",
+    "mode": "script",
+    "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
    },
    "weekdays": {
     "name": "weekdays",
