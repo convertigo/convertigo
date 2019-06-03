@@ -1233,7 +1233,7 @@
            "mode": "script",
           "attr":"[progress]",
           "label": "Progress",
-          "description": "string: progress to be displayed).",
+          "description": "progress to be displayed.",
           "category": "@Attributes",
           "value": "0"
         },
@@ -1241,7 +1241,7 @@
           "mode": "script",
           "attr":"[color]",
           "label": "color",
-          "description": "color: color of the progress bar. Default value is #488aff ",
+          "description": "color of the progress bar. Default value is #488aff ",
           "category": "@Attributes",
           "value": "'#488aff'"
         }
