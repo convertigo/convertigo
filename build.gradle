@@ -199,10 +199,16 @@ task buildStudio32(type: Exec, dependsOn: ['writeManifest']) {
 	
 	doFirst {
 		file('pom.xml').bytes = file('pom-32.xml').bytes
+		def featureFile = file('eclipse-feature/feature.xml')
+		def featureTxt = featureFile.text
+		featureFile.renameTo(file('eclipse-feature/feature-commons.xml'))
+		featureTxt = (featureTxt =~ /(?s)<!--no win32-->.*?<!--\/no win32-->/).replaceAll('')
+		featureFile.text = featureTxt
 	}
 	
 	doLast {
 		file('pom.xml').delete()
+		file('eclipse-feature/feature-commons.xml').renameTo(file('eclipse-feature/feature.xml'))
 	}
 	
 	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {

@@ -91,7 +91,7 @@ to create mobile enterprise applications
          install-size="0"
          version="7.6.0.qualifier"
          fragment="true"/>
-
+<!--no win32-->
    <plugin
          id="com.twinsoft.convertigo.studio.jxbrowser.win64"
          os="win32"
@@ -121,4 +121,5 @@ to create mobile enterprise applications
          install-size="0"
          version="7.6.0.qualifier"
          fragment="true"/>
+<!--/no win32-->
 </feature>
