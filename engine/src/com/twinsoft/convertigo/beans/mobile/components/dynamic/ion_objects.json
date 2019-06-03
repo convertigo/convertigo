@@ -6190,7 +6190,9 @@
 	  "displayName": "Close Loading",
       "label": "Close Loading",
       "description": "Defines a <i>Close Loading</i> action component. | This component closes a laoding opened by 'Show Loading'",
-      "group": "Actions"
+      "group": "Actions",
+      "icon16": "closeloadingaction_color_16x16.png",
+      "icon32": "closeloadingaction_color_32x32.png"
     },
     "ShowLoadingAction":{
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
@@ -6198,6 +6200,8 @@
       "label": "Show Loading",
       "description": "Defines a <i>Show Loading</i> action component. | This component show a laoding",
       "group": "Actions",
+      "icon16": "showloadingaction_color_16x16.png",
+      "icon32": "showloadingaction_color_32x32.png",
       "properties": {
         "content": {
         "label": "Content",
