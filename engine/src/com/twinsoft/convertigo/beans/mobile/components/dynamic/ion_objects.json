@@ -5865,9 +5865,9 @@
 
   "ModalAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
-	  "displayName": "Modal Page",
-      "label": "ModalPage",
-      "description": "Displays a Modal Page. | A Modal is a content pane that goes over the user's current page. Usually it is used for making a choice or editing an item. You can use the <i>PopPage</i> action  to dismiss a Modal Page. You can also pass data to the page, the passed data will be available in the <i>NavParams</i> Object.<br/><br/>By default, Modal pages will be displayed as full screen on small devices (SmartPhones) or as an Popup overlays on larget Devices (Tablets). If you want to change this behavior, you can customize the following parameters for your app in the <i>Theme</i> Component:<br/><br/> \u2022 $modal-inset-min-width:768px; //Minimum width of the modal inset. Any device screen width larger than this value will display the page as a popup<br/> \u2022 $modal-inset-min-height-small:600px; 	//Minimum height of the small modal inset<br/> \u2022 $modal-inset-min-height-large:768px; 	//Minimum height of the large modal inset<br/> \u2022 $modal-inset-width:600px; 	//Width of the large modal inset<br/> \u2022 $modal-inset-height-small:500px;  //Height of the small modal inset<br/> \u2022 $modal-inset-height-large:600px;  //Height of the large modal inset.",
+	  "displayName": "ModalPage",
+      "label": "Modal Page",
+      "description": "Displays a Modal Page. | A Modal is a content pane that goes over the user's current page. Usually it is used for making a choice or editing an item.<br/>You can use the <i>Close Modal</i> action  to dismiss a Modal Page.<br/>You can also pass data to the page, the passed data will be available in the <i>NavParams</i> Object.<br/><br/>By default, Modal pages will be displayed as full screen on small devices (SmartPhones) or as an Popup overlays on larget Devices (Tablets). If you want to change this behavior, you can customize the following parameters for your app in the <i>Theme</i> Component:<br/><br/> \u2022 $modal-inset-min-width:768px; //Minimum width of the modal inset. Any device screen width larger than this value will display the page as a popup<br/> \u2022 $modal-inset-min-height-small:600px; 	//Minimum height of the small modal inset<br/> \u2022 $modal-inset-min-height-large:768px; 	//Minimum height of the large modal inset<br/> \u2022 $modal-inset-width:600px; 	//Width of the large modal inset<br/> \u2022 $modal-inset-height-small:500px;  //Height of the small modal inset<br/> \u2022 $modal-inset-height-large:600px;  //Height of the large modal inset.",
       "group": "Actions",
       "icon16": "modalaction_color_16x16.png",
       "icon32": "modalaction_color_32x32.png",
@@ -5933,12 +5933,26 @@
 	  }
 	},
 
+    "ClosePopoverAction" : {
+    	"classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    	"displayName" : "ClosePopover",
+      	"label" : "Close Popover",
+      	"description" : "Defines a <i>Close Popover</i> action component. | Use this action to close a popover page previously opened using a <i>Popover Page</i> action.<br/>Add a <i>Close Popover</i> action under an Event.",
+      	"group" : "Actions",
+      	"icon16": "closepopoveraction_color_16x16.png",
+      	"icon32": "closepopoveraction_color_32x32.png",
+      	"config": {
+        	"action_ts_imports": [
+          		{"from":"ionic-angular", "components":["ViewController"]}
+        	]
+      	}
+    },
 
   "PopoverAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "Popover",
       "label": "Popover Page",
-      "description": "Displays a Popover Page. | The Popover is a view that floats above an app’s content. Popovers provide an easy way to present or gather information from the user and are commonly used in the following situations:<br/><br/><br/> \u2022 Show more info about the current view<br/> \u2022 Select a commonly used tool or configuration<br/> \u2022 Present a list of actions to perform inside one of your views.",
+      "description": "Displays a Popover Page. | The Popover is a view that floats above an app’s content. Popovers provide an easy way to present or gather information from the user and are commonly used in the following situations:<br/><br/><br/> \u2022 Show more info about the current view<br/> \u2022 Select a commonly used tool or configuration<br/> \u2022 Present a list of actions to perform inside one of your views.<br/><br/>You can use the <i>Close Popover</i> action to dismiss a Popover.",
       "group": "Actions",
       "icon16": "popoveraction_color_16x16.png",
       "icon32": "popoveraction_color_32x32.png",
@@ -6393,8 +6407,8 @@
     "CloseModalAction" : {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName" : "CloseModal",
-      "label" : "CloseModal",
-      "description" : "Defines a <i>Close Modal</i> action component. | Use this action to close a modal page opened previously. It can also be used to close a PopOver Page.<br/>Add a <i>CloseModal</i> action under an Event.",
+      "label" : "Close Modal",
+      "description" : "Defines a <i>Close Modal</i> action component. | Use this action to close a modal page previously opened through the <i>Modal Page</i> action.<br/>Add a <i>Close Modal</i> action under an Event.",
       "group" : "Actions",
       "icon16": "closemodalaction_color_16x16.png",
       "icon32": "closemodalaction_color_32x32.png"
