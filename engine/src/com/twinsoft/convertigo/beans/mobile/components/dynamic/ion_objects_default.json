@@ -3708,5 +3708,9 @@
    "mode": "plain",
    "value": ""
   }}
+ }},
+ "ClosePopoverAction": {"   7   6   0": {
+  "name": "ClosePopoverAction",
+  "properties": {}
  }}
 }
