@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -53,40 +54,41 @@ public class Delete extends XmlService {
 	
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element rootElement = document.getDocumentElement();
-      
-        //String classToCreate = ServiceUtils.getRequiredParameter(request, "classToCreate");
-			
-        FileAndProperties rep=ServiceUtils.startCertificate();
-		File file=rep.getF();
-		Properties storesProperties=rep.getP();
-		 
-	 	String certificateName;
 
-	 	int i = 1;	  	
-	 	ArrayList<String> mappingsToDelete = new ArrayList<String>();
- 		while ( (certificateName = (String)request.getParameter("certificateName_"+i)) != null) {
- 			Iterator<Object> it = storesProperties.keySet().iterator();
-			while (it.hasNext()) {
-				String propertyName = (String) it.next();
-				String propertyValue = storesProperties.getProperty(propertyName); 	
-				if( propertyValue.equals(certificateName)){ 				 
-					mappingsToDelete.add(propertyName); 				    
+		//String classToCreate = ServiceUtils.getRequiredParameter(request, "classToCreate");
+		synchronized (Engine.CERTIFICATES_PATH) {
+			FileAndProperties rep=ServiceUtils.startCertificate();
+			File file=rep.getF();
+			Properties storesProperties=rep.getP();
+
+			String certificateName;
+
+			int i = 1;	  	
+			ArrayList<String> mappingsToDelete = new ArrayList<String>();
+			while ( (certificateName = (String)request.getParameter("certificateName_"+i)) != null) {
+				Iterator<Object> it = storesProperties.keySet().iterator();
+				while (it.hasNext()) {
+					String propertyName = (String) it.next();
+					String propertyValue = storesProperties.getProperty(propertyName); 	
+					if( propertyValue.equals(certificateName)){ 				 
+						mappingsToDelete.add(propertyName); 				    
+					}
 				}
+				for(int j = 0; j < mappingsToDelete.size(); j++){ 					
+					//delete found mappings
+					ServiceUtils.deleteMapping(storesProperties, mappingsToDelete.get(j), document, rootElement);
+				}
+				if(storesProperties.remove(certificateName)!= null){
+					ServiceUtils.addMessage(document,rootElement,"Certificate "+certificateName+" has successfully been deleted.","message"); 				
+				}
+				else
+					throw new ServiceException("Certificate "+certificateName+" didn't exist");
+				storesProperties.remove(certificateName+".type");
+				storesProperties.remove(certificateName+".group");
+				i++;
 			}
-			for(int j = 0; j < mappingsToDelete.size(); j++){ 					
-				//delete found mappings
-				ServiceUtils.deleteMapping(storesProperties, mappingsToDelete.get(j), document, rootElement);
-			}
- 			if(storesProperties.remove(certificateName)!= null){
- 				ServiceUtils.addMessage(document,rootElement,"Certificate "+certificateName+" has successfully been deleted.","message"); 				
- 			}
- 			else
- 				throw new ServiceException("Certificate "+certificateName+" didn't exist");
- 			storesProperties.remove(certificateName+".type");
- 			storesProperties.remove(certificateName+".group");
- 			i++;
- 		}
- 		
- 		PropertiesUtils.store(storesProperties, file);
+
+			PropertiesUtils.store(storesProperties, file);
+		}
 	}
 }	

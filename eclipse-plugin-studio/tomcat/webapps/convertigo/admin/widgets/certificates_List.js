@@ -310,18 +310,15 @@ function certificates_List_update(){
 			var projectName,deleteParams;	
 			
 			//anonymous mappings
-			$(xml).find("anonymous > binding").each(function(){			
+			$(xml).find("anonymous > binding").each(function(){
 				certificateName = $(this).attr("certificateName");
-				projectName= $(this).attr("projectName");				
-				
-				deleteParams="('" + projectName + "','"+certificateName+"');";
-				
+				projectName = $(this).attr("projectName");
 				$("#certificatesAnonymousMappings").jqGrid("addRowData",
-					certificateName+"/"+projectName,{	
+					certificateName+"/"+projectName,{
 					projectName:projectName,
 					certificateStore: certificateName,
-					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-					btnValid: "<a href=\"javascript: deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesAnonymousMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+					btnDelete: "<a href=\"javascript: deleteMapping('" + projectName + "','" + certificateName + "') \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+					btnValid: "<a href=\"javascript: deleteMappingWithUpdate('" + projectName + "','" + certificateName + "','certificatesAnonymousMappings')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 				);
 				
@@ -337,8 +334,6 @@ function certificates_List_update(){
 				imputationGroup=$(this).attr("imputationGroup");
 				userName=$(this).attr("userName");
 				
-				deleteParams="('" + projectName + "','"+certificateName+"','tas','"+virtualServeur+"','"+imputationGroup+"','"+userName+"');";
-				
 				$("#certificatesUserMappings").jqGrid("addRowData",
 					certificateName+"/"+projectName,{	
 					projectName:projectName,
@@ -346,8 +341,8 @@ function certificates_List_update(){
 					virtualServer:"<input type='text' value='"+virtualServeur+"' autocomplete=\"new-password\" />",
 					authorizationGroup:"<input type='text' value='"+imputationGroup+"' autocomplete=\"new-password\" />",
 					user:"<input value='"+userName+"' autocomplete=\"new-password\" />",
-					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-					btnValid: "<a href=\"javascript:  deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesUserMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+					btnDelete: "<a href=\"javascript: deleteMapping('" + projectName + "','"+certificateName+"','tas','"+virtualServeur+"','"+imputationGroup+"','"+userName+"') \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+					btnValid: "<a href=\"javascript:  deleteMappingWithUpdate('" + projectName + "','"+certificateName+"','certificatesUserMappings','tas','"+virtualServeur+"','"+imputationGroup+"','"+userName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 				);
 				
@@ -518,9 +513,11 @@ function deleteMapping(project,certificateName,tas,server,authgroup,user){
 	});
 }
 
-function deleteMappingWithoutUpdate(project,certificateName,tas,server,authgroup,user){
+function deleteMappingWithUpdate(project,certificateName,table, tas,server,authgroup,user){
 	var params=createDeleteMappingParams(project,certificateName,tas,server,authgroup,user);		
-	callService("certificates.mappings.Delete", function(){},params);
+	callService("certificates.mappings.Delete", function(){
+		configureMapping(table,project,certificateName);
+	},params);
 }
 
 function createDeleteMappingParams(project,certificateName,tas,server,authgroup,user){

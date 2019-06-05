@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
@@ -47,18 +48,20 @@ public class Delete extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element rootElement = document.getDocumentElement();
 
-		FileAndProperties rep=ServiceUtils.startCertificate();
-		File file=rep.getF();
-		Properties storesProperties=rep.getP();
+		synchronized (Engine.CERTIFICATES_PATH) {
+			FileAndProperties rep=ServiceUtils.startCertificate();
+			File file=rep.getF();
+			Properties storesProperties=rep.getP();
 
-        //String message="";
-		String link;
+			//String message="";
+			String link;
 
-		int i = 1;
-		while ( (link = (String)request.getParameter("link_"+i)) != null ) {
-			ServiceUtils.deleteMapping(storesProperties, link, document, rootElement);
-			i++;
+			int i = 1;
+			while ( (link = (String)request.getParameter("link_"+i)) != null ) {
+				ServiceUtils.deleteMapping(storesProperties, link, document, rootElement);
+				i++;
+			}
+			PropertiesUtils.store(storesProperties, file);
 		}
-		PropertiesUtils.store(storesProperties, file);	
 	}
 }	

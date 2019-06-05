@@ -51,72 +51,75 @@ public class Configure extends XmlService {
 		Element rootElement = document.getDocumentElement();
 				
 		File file;
-		
+
 		file = new File(Engine.CERTIFICATES_PATH + "/" + CertificateManager.STORES_PROPERTIES_FILE_NAME);
-		Properties storesProperties = PropertiesUtils.load(file);
 
-		// Creation of the vector containing the certificates and the one containing the links
-		List<String> certifVector = new ArrayList<String>();
-		List<String> linksVector = new ArrayList<String>();
-		String tmp = "";
-		Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
-		while(storesKeysEnum.hasMoreElements()) {
-			tmp = (String)storesKeysEnum.nextElement();
-			if ( tmp.indexOf("projects.")!=0 && tmp.indexOf("tas.")!=0 ) {
-				if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") )
-					certifVector.add(tmp);
-			} else
-				linksVector.add(tmp);
-		}
-		Collections.sort(linksVector);
-				
-		String certifName = "";
-		//Properties newStoresProperties = new Properties();
+		synchronized (Engine.CERTIFICATES_PATH) {
+			Properties storesProperties = PropertiesUtils.load(file);
 
-		int i = 0;
-		while ( (tmp=(String)request.getParameter("targettedObject_"+i)) != null) {
-			certifName = (String)request.getParameter("cert_"+i);
-			if (  !certifName.equals("")) {
-				String link = tmp + ".";
-				if (tmp.equals("projects")) {
-					if ( ((tmp=(String)request.getParameter("convProject_"+i)) != null))
-						link += tmp + ".";
-				}
-				if (tmp.equals("tas")) {
-					if ( ((tmp=(String)request.getParameter("virtualServer_"+i)) != null) ) {
-						link += tmp + ".";
-						if ( ((tmp=(String)request.getParameter("group_"+i)) != null)) {
+			// Creation of the vector containing the certificates and the one containing the links
+			List<String> certifVector = new ArrayList<String>();
+			List<String> linksVector = new ArrayList<String>();
+			String tmp = "";
+			Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
+			while(storesKeysEnum.hasMoreElements()) {
+				tmp = (String)storesKeysEnum.nextElement();
+				if ( tmp.indexOf("projects.")!=0 && tmp.indexOf("tas.")!=0 ) {
+					if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") )
+						certifVector.add(tmp);
+				} else
+					linksVector.add(tmp);
+			}
+			Collections.sort(linksVector);
+
+			String certifName = "";
+			//Properties newStoresProperties = new Properties();
+
+			int i = 0;
+			while ( (tmp=(String)request.getParameter("targettedObject_"+i)) != null) {
+				certifName = (String)request.getParameter("cert_"+i);
+				if (  !certifName.equals("")) {
+					String link = tmp + ".";
+					if (tmp.equals("projects")) {
+						if ( ((tmp=(String)request.getParameter("convProject_"+i)) != null))
 							link += tmp + ".";
-							if ( ((tmp=(String)request.getParameter("user_"+i)) != null))
-								link += tmp + ".";
-						}
 					}
-					if ( ((tmp=(String)request.getParameter("project_"+i)) != null))
-						link += "projects" + "." + tmp + ".";
+					if (tmp.equals("tas")) {
+						if ( ((tmp=(String)request.getParameter("virtualServer_"+i)) != null) ) {
+							link += tmp + ".";
+							if ( ((tmp=(String)request.getParameter("group_"+i)) != null)) {
+								link += tmp + ".";
+								if ( ((tmp=(String)request.getParameter("user_"+i)) != null))
+									link += tmp + ".";
+							}
+						}
+						if ( ((tmp=(String)request.getParameter("project_"+i)) != null))
+							link += "projects" + "." + tmp + ".";
+					}
+
+					link += storesProperties.getProperty(certifName+".type") + ".store";
+
+					storesProperties.setProperty(link, certifName);
+
+
 				}
-
-				link += storesProperties.getProperty(certifName+".type") + ".store";
-				
-				storesProperties.setProperty(link, certifName);
-				
-
+				i++;
 			}
-			i++;
-		}
 
-		String group;
-		storesKeysEnum = Collections.enumeration(certifVector);
-		while (storesKeysEnum.hasMoreElements()) {
-			certifName = (String) storesKeysEnum.nextElement();
-			storesProperties.setProperty(certifName, storesProperties.getProperty(certifName));
-			storesProperties.setProperty(certifName+".type", storesProperties.getProperty(certifName+".type"));
-			group = (String) storesProperties.getProperty(certifName+".group");
-			if (group != null) {
-				storesProperties.setProperty(certifName+".group", group);
+			String group;
+			storesKeysEnum = Collections.enumeration(certifVector);
+			while (storesKeysEnum.hasMoreElements()) {
+				certifName = (String) storesKeysEnum.nextElement();
+				storesProperties.setProperty(certifName, storesProperties.getProperty(certifName));
+				storesProperties.setProperty(certifName+".type", storesProperties.getProperty(certifName+".type"));
+				group = (String) storesProperties.getProperty(certifName+".group");
+				if (group != null) {
+					storesProperties.setProperty(certifName+".group", group);
+				}
 			}
+
+			PropertiesUtils.store(storesProperties, file);
 		}
-		
-		PropertiesUtils.store(storesProperties, file);
 		ServiceUtils.addMessage(document,rootElement,"The mappings have successfully been updated.","message");
 	}
 		
