@@ -7,13 +7,13 @@
     "clean": "ionic-app-scripts clean",
     "build": "ionic-app-scripts build --enableLint false --generateSourceMap false",
     "ionic:build": "ionic-app-scripts build --enableLint false",
-    "ionic:build:prod": "ionic-app-scripts build --prod --enableLint false",
+    "ionic:build:prod":"node --max_old_space_size=8192 ./node_modules/@ionic/app-scripts/bin/ionic-app-scripts.js  build --prod --enableLint false",
     "ionic:serve:eval": "ionic-app-scripts serve --enableLint false --sourceMapType eval",
     "ionic:serve:nosourcemap": "ionic-app-scripts serve --enableLint false --generateSourceMap false",
     "ionic:serve": "ionic-app-scripts serve --enablelint false"
   },
   "dependencies": {
-      "@angular/animations": "5.2.11",
+     "@angular/animations": "5.2.11",
     "@angular/common": "5.2.11",
     "@angular/compiler": "5.2.11",
     "@angular/compiler-cli": "5.2.11",
@@ -57,4 +57,3 @@
   },
   "cordovaPlatforms": []
 }
-
