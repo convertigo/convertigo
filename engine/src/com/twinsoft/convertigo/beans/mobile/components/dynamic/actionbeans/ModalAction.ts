@@ -6,6 +6,19 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     ModalAction(page: C8oPageBase, props, vars) : Promise<any> {
+        
+        function toString(data) {
+            if (data) {
+                try {
+                    return JSON.stringify(data);
+                } catch(e) {
+                    return data.toString();
+                }
+            } else {
+               return "no data"; 
+            }
+        }
+        
         return new Promise((resolve, reject) => {
             let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
@@ -17,25 +30,32 @@
                 enableBackdropDismiss   : props.enableBackdropDismiss,
                 cssClass                : props.cssClass
             });
-            if(props.blockWhileDisplayed){
-                modal.onDidDismiss(data => {
-                    let dataStr = "";
-                    try{
-                        dataStr = JSON.stringify(data);
-                    }
-                    catch(err){
-                        // Do nothing
-                    }
-                    page.c8o.log.debug("[MB] Modal page Did dismiss: " + dataStr);
-                    resolve(data);
-                  });
+            
+            let modals = page.router.sharedObject["ModalPages"];
+            if (modals == undefined) {
+                page.router.sharedObject["ModalPages"] = [];
             }
             
-            modal.present();
-            page.c8o.log.debug("[MB] Modal Page displayed");
-            if(!props.blockWhileDisplayed){
-                resolve();    
-            }
+            modal.onDidDismiss((data) => {
+                // case view not dismissed using CloseModal
+                let index = page.router.sharedObject["ModalPages"].indexOf(modal);
+                if (index != -1) {
+                    page.router.sharedObject["ModalPages"] = page.router.sharedObject["ModalPages"].splice(index,1);
+                }
+                
+                page.c8o.log.debug("[MB] Modal Page '"+p+"' dismissed: " + toString(data));
+                if (props.blockWhileDisplayed) {
+                    resolve(data)
+                }
+            })
             
+            modal.present().then((data) => {
+                page.router.sharedObject["ModalPages"].push(modal);
+                
+                page.c8o.log.debug("[MB] Modal Page '"+p+"' displayed: " + toString(data));
+                if (!props.blockWhileDisplayed) {
+                    resolve();
+                }
+            })
         });
     }
