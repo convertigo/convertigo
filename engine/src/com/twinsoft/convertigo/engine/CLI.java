@@ -81,7 +81,7 @@ public class CLI {
 		return loadProject(projectDir, null);
 	}
 	
-	public Project loadProject(File projectDir, String version) throws EngineException {		
+	public Project loadProject(File projectDir, String version) throws EngineException {
 		File projectFile = new File(projectDir, "c8oProject.yaml");
 		if (!projectFile.exists()) {
 			projectFile = new File(projectDir, projectDir.getName() + ".xml");
@@ -92,10 +92,21 @@ public class CLI {
 		
 		checkInit();
 		
-		Project project = Engine.theApp.databaseObjectsManager.importProject(projectFile);
+		Project project;
+		try {
+			project = Engine.theApp.databaseObjectsManager.importProject(projectFile);
+		} catch (Exception e) {
+			Engine.logConvertigo.warn("Failed to import the project from '" + projectFile + "' (" + e.getMessage() + ") trying again...");
+			project = Engine.theApp.databaseObjectsManager.importProject(projectFile);
+		}
 		if (version != null) {
 			project.setVersion(version);
-			Engine.theApp.databaseObjectsManager.exportProject(project);
+			try {
+				Engine.theApp.databaseObjectsManager.exportProject(project);
+			} catch (Exception e) {
+				Engine.logConvertigo.warn("Failed to export the project from '" + projectDir + "' (" + e.getMessage() + ") trying again...");
+				Engine.theApp.databaseObjectsManager.exportProject(project);
+			}
 		}
 		return project;
 	}
