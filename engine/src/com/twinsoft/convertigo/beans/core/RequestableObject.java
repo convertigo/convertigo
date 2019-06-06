@@ -829,6 +829,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             	// - the timeout is set before requestable execution in case of inner requestable calls
     			if (context.httpServletRequest != null) {
     				HttpServletRequest request = context.httpServletRequest;
+    				if (request.getAttribute("convertigo.charset") == null) {
+    					request.setAttribute("convertigo.charset", getEncodingCharSet());	
+    				}
     				int maxInactiveInterval = request.getSession().getMaxInactiveInterval();
     				try {
     					Engine.logContext.debug("(RequestableObject) Http session : is new " + request.getSession().isNew());
