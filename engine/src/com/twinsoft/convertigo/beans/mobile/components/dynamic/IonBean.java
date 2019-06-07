@@ -247,8 +247,21 @@ public class IonBean {
 	}
 	public String getDescription() {
 		try {
-			return jsonBean.getString(Key.description.name());
-		} catch (JSONException e) {
+			Object desc = jsonBean.get(Key.description.name());
+			String description;
+			if (desc instanceof JSONArray) {
+				JSONArray descs = ((JSONArray) desc);
+				StringBuilder sb = new StringBuilder();
+				int len = descs.length();
+				for (int i = 0; i < len; i++) {
+					sb.append(descs.getString(i));
+				}
+				description = sb.toString();
+			} else {
+				description = desc.toString();
+			}
+			return description;
+		} catch (Exception e) {
 			e.printStackTrace();
 			return "description";
 		}
