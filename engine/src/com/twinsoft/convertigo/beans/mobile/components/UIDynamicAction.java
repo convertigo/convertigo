@@ -809,12 +809,22 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return null;
 	}
 	
+	public Object getSetGlobalActionValueLabel() {
+		if (isSetGlobalAction()) {
+			IonProperty property = getIonBean().getProperty("Value");
+			if (property != null) {
+				return property.getSmartType().getLabel();
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public String toString() {
 		if (isSetGlobalAction()) {
 			String key = getSetGlobalActionKeyName();
 			if (key != null && !key.isEmpty()) {
-				Object val = getSetGlobalActionKeyValue();
+				Object val = getSetGlobalActionValueLabel();
 				return ""+ key + " = " + (val == null || val.toString().isEmpty() ? "?": val.toString());
 			}
 		}
