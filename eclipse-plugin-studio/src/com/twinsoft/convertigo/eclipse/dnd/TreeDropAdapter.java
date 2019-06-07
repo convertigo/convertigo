@@ -312,14 +312,16 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							BatchOperationHelper.start();
 							ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
 							BatchOperationHelper.stop();
-				            return true;
-					    } catch (SAXException sax) {
-					    	BatchOperationHelper.cancel();
+							return true;
+						} catch (SAXException sax) {
+							BatchOperationHelper.cancel();
+							BatchOperationHelper.start();
 							// Parse failed probably because data was not XML but an XPATH String
 							// in this case, create DatabaseObjects of the correct Type according to the folder where the XPATH is dropped on  
 							performDrop(data, explorerView, targetTreeObject);
+							BatchOperationHelper.stop();
 							return true;
-					    }
+						}
 					} catch (Exception e) {
 						BatchOperationHelper.cancel();
 						if (e instanceof ObjectWithSameNameException) {
