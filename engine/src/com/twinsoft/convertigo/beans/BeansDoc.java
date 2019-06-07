@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -38,11 +39,17 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
+import org.json.JSONString;
+import org.json.JSONStringer;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
@@ -111,7 +118,6 @@ public class BeansDoc {
 		EnginePropertiesManager.initProperties();
 
 		DboExplorerManager manager = new DboExplorerManager();
-		
 		List<DboGroup> groups = manager.getGroups();
 		for (DboGroup group : groups) {
 			groupName = group.getName();
@@ -144,17 +150,32 @@ public class BeansDoc {
 	private void generateMobileComponentsMd(File outputDirectory)
 	{		
 		List<Component> grpBeans = ComponentManager.getComponentsByGroup();	
+		Map<String,IonBean> map = ComponentManager.getIonBeans();		
 		
 		for(Component beanMB: grpBeans)
 		{
 			String grpName = beanMB.getGroup();
 			String objName = beanMB.getName();
 			String objLabel = beanMB.getLabel();
-			String imgPath = beanMB.getImagePath();			
+			String imgPath = beanMB.getImagePath();
 			
 			String imgPathNormalized = imgPath.replaceFirst("/com/twinsoft/convertigo/beans/", "");
-			String classPathNormalized = beanMB.getClass().toString().replaceFirst("class ", "");
+			String classPathNormalized = "ion_objects.json"; // We are changing it if the bean is not an IonBean just below
 			String grpNameNormalized = grpName;
+			
+			Boolean isIonBean = false;
+			
+			// Here we are checking that our bean is not in an IonBean
+			// If it is we set isIonBean to true;
+			for (Map.Entry<String, IonBean> ionbean : map.entrySet()) {
+				if(objName == ionbean.getKey()) {
+					isIonBean = true;
+				}				
+			}
+			// If this bean is not an IonBean we simply add this class
+			if(isIonBean == false) {
+				classPathNormalized = "com.twinsoft.convertigo.beans.mobile.components.res."+objName;
+			}				
 			
 			if(!grpName.contains("Components")) {
 				grpNameNormalized = grpName.concat(" Components");	
