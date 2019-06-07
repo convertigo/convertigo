@@ -649,7 +649,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();
-				if (getSharedAction() != null) {
+				if (getSharedAction() != null || getSharedComponent() != null) {
 					String actionName = getActionName();
 					String actionCode = computeActionMain();
 					if (compareToTplVersion("7.5.2.0") < 0 ) {
@@ -664,7 +664,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				if (getSharedAction() != null) {
+				if (getSharedAction() != null  || getSharedComponent() != null) {
 					for (XMLVector<String> v : page_ts_imports) {
 						imports.put(v.get(0).trim(), v.get(1).trim());
 					}
