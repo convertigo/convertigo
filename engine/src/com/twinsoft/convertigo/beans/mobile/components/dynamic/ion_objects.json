@@ -1239,15 +1239,16 @@
         "tooltip": {
           "attr":"tooltip",
           "label": "Tooltip string",
-          "description": "string: string to be displayed. 'empty string = disabled').",
+          "description": "string to be displayed. 'empty string = disabled').",
           "category": "@Attributes",
-          "value": "a tooltip to display"
+          "value": "a tooltip to display",
+          "values": [true, true]
         },
 
         "navTooltip": {
           "attr":"navTooltip",
           "label": "Navbar Tooltip",
-          "description": "boolean: add this attribute or set it's value to true to specify that the tooltip belongs to a nav button. Defaults to not set.",
+          "description": "add this attribute or set it's value to true to specify that the tooltip belongs to a nav button. Defaults to not set.",
           "category": "@Attributes",
           "value": false, // optional value (default is not set)
           "values": [ // possible values (false means do no set)
@@ -1259,7 +1260,7 @@
         "event": {
           "attr":"event",
           "label": "Showing event",
-          "description": "string: the event to show the tooltip on. Can be either 'hover', 'click' or 'press'. Defaults to hover.",
+          "description": "the event to show the tooltip on. Can be either 'hover', 'click' or 'press'. Defaults to hover.",
           "category": "@Attributes",
           "value": "hover", // optional value (default is hover)
           "values": [ // possible values 
@@ -1270,7 +1271,7 @@
         },
         "arrow": {
           "label": "Displays arrow",
-          "description": "boolean: add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to true.",
+          "description": "add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to true.",
           "category": "@Attributes",
           "value": "arrow", // optional value (default is true)
           "values": [ // possible values (false means no set)
@@ -1282,7 +1283,7 @@
         "positionH": {
           "attr":"positionH",
           "label": "Horizontal Position",
-          "description": "string: specifies the horizontal position of the tooltip. Can be either 'right' or 'left'",
+          "description": "specifies the horizontal position of the tooltip. Can be either 'right' or 'left'",
           "category": "@Attributes",
           "value": "right", // optional value (default is right)
           "values": [ // possible values (false means do no set)
@@ -1294,13 +1295,35 @@
         "positionV": {
           "attr":"positionV",
           "label": "Vertical Position",
-          "description": "string: specifies the vertical position of the tooltip. Can be either 'top' or 'bottom'.",
+          "description": "specifies the vertical position of the tooltip. Can be either 'top' or 'bottom'.",
           "category": "@Attributes",
           "value": "top", // optional value (default is top)
           "values": [ // possible values (false means do no set)
             false,
             "top",
             "bottom"
+          ]
+        },
+        "topOffset": {
+          "attr": "topOffset",
+          "label": "Top Offset",
+          "description": "add this attribute to offset the vertical position of the tooltip. Defaults to 0.",
+          "category": "@Attributes",
+          "value": "0", // optional value (default is 0)
+          "values": [ // possible values (false means no set)
+	    false,
+            true,
+          ]
+        },
+        "leftOffset": {
+          "attr": "leftOffset",
+          "label": "Left Offset",
+          "description": "add this attribute to offset the horizontal position of the tooltip. Defaults to 0.",
+          "category": "@Attributes",
+          "value": "0", // optional value (default is 0)
+          "values": [ // possible values (false means no set)
+	    false,
+            true,
           ]
         },
         "duration": {
