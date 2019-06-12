@@ -741,7 +741,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
 						String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
 						
-						UIDynamicInvoke invoke = new UIDynamicInvoke();
+						UIDynamicInvoke invoke = (UIDynamicInvoke) ComponentManager.createBean(ComponentManager.getComponentByName("InvokeAction"));
 						if (invoke != null) {
 							invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
 							invoke.bNew = true;
