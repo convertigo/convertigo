@@ -949,10 +949,18 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 								DatabaseObject parentDbo = ((DatabaseObjectTreeObject)to).getObject();
 								if (parentDbo instanceof UIActionStack) {
 									if (udi.getSharedActionQName().equals(parentDbo.getQName())) {
-										try {
-											markMainAsDirty(udi);
-										} catch (EngineException e) {
-											e.printStackTrace();
+										UISharedComponent uisc = udi.getSharedComponent();
+										// udi inside a shared component
+										if (uisc != null) {
+											notifyDataseObjectPropertyChanged(uisc, "", null, null);
+										}
+										// udi inside a page or menu
+										else {
+											try {
+												markMainAsDirty(udi);
+											} catch (EngineException e) {
+												e.printStackTrace();
+											}
 										}
 										break;
 									}
@@ -1018,19 +1026,18 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				if (propertyName.equals("name")) {
 					handlesBeanNameChanged(treeObjectEvent);
 				}
-				else {
-					if (dbo instanceof UIComponent) {
-						UIComponent uic = (UIComponent)dbo;
-						
-						UIActionStack uisa = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getSharedAction();
-						if (uisa != null) {
-							handleSharedActionChanged(uisa);
-						}
+				
+				if (dbo instanceof UIComponent) {
+					UIComponent uic = (UIComponent)dbo;
+					
+					UIActionStack uisa = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getSharedAction();
+					if (uisa != null) {
+						handleSharedActionChanged(uisa);
+					}
 
-						UISharedComponent uisc = dbo instanceof UISharedComponent ? ((UISharedComponent)dbo) : uic.getSharedComponent();
-						if (uisc != null) {
-							handleSharedComponentChanged(uisc);
-						}
+					UISharedComponent uisc = dbo instanceof UISharedComponent ? ((UISharedComponent)dbo) : uic.getSharedComponent();
+					if (uisc != null) {
+						handleSharedComponentChanged(uisc);
 					}
 				}
 			}
@@ -1043,10 +1050,18 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			if (getObject() instanceof UIDynamicInvoke) {
 				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
 				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
-					try {
-						markMainAsDirty(udi);
-					} catch (EngineException e) {
-						e.printStackTrace();
+					UISharedComponent uisc = udi.getSharedComponent();
+					// udi inside a shared component
+					if (uisc != null) {
+						notifyDataseObjectPropertyChanged(uisc, "", null, null);
+					}
+					// udi inside a page or menu
+					else {
+						try {
+							markMainAsDirty(udi);
+						} catch (EngineException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}

@@ -98,6 +98,9 @@ public class UIUseShared extends UIElement {
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
 		UISharedComponent uisc = getTargetSharedComponent();
 		if (uisc != null) {
+			if (!done.add(this)) {
+				return;
+			}
 			uisc.addContributors(this, done, contributors);
 		}
 	}
