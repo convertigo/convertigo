@@ -459,6 +459,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 
+			databaseObject.isImporting = false; // needed !
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
 		}
