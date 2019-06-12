@@ -479,17 +479,17 @@ public class ComponentManager {
 						dboClass = Class.forName(bean.getClassName());
 						BeanInfo beanInfo = Introspector.getBeanInfo(dboClass);
 						PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-						Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
-							@Override
-							public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-								if(o1.isExpert() == o2.isExpert())
-									return o1.getDisplayName().compareTo(o2.getDisplayName());
-								else if(o1.isExpert())
-									return 1;
-								else 
-									return -1;
-							}				
-						} );
+						
+						propertyDescriptors = propertyDescriptors.clone();
+						Arrays.sort(propertyDescriptors, (o1, o2) -> {
+							if(o1.isExpert() == o2.isExpert()) {
+								return o1.getDisplayName().compareTo(o2.getDisplayName());
+							} else if(o1.isExpert()) {
+								return 1;
+							} else { 
+								return -1;
+							}
+						});
 						
 						for (PropertyDescriptor dbopd : propertyDescriptors) {
 							if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue("disable"))) {
@@ -714,17 +714,17 @@ public class ComponentManager {
 				try {
 					beanInfo = Introspector.getBeanInfo(dboClass);
 					PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-					Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
-						@Override
-						public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-							if(o1.isExpert() == o2.isExpert())
-								return o1.getDisplayName().compareTo(o2.getDisplayName());
-							else if(o1.isExpert())
-								return 1;
-							else 
-								return -1;
-						}				
-					} );
+					
+					propertyDescriptors = propertyDescriptors.clone();
+					Arrays.sort(propertyDescriptors, (o1, o2) -> {
+						if(o1.isExpert() == o2.isExpert()) {
+							return o1.getDisplayName().compareTo(o2.getDisplayName());
+						} else if(o1.isExpert()) {
+							return 1;
+						} else { 
+							return -1;
+						}
+					});
 					
 					String propertiesDescription = "";
 					for (PropertyDescriptor dbopd : propertyDescriptors) {
