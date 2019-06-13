@@ -8,11 +8,11 @@
     CloseLoadingAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
             try {
-                if(page.global["_c8o_loaders"] != undefined){
+                if (page.global["_c8o_loaders"] != undefined) {
                     page.global["_c8o_loaders"].dismiss();
                     delete page.global["_c8o_loaders"];
-                    resolve();
                 }
+                resolve();
             }
             catch(err) {
                 reject(err)
