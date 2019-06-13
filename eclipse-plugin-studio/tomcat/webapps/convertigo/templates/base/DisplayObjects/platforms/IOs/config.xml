@@ -25,7 +25,7 @@
 	
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<engine name="$(CordovaPlatform)$" spec="4.5.5" />
+	<engine name="$(CordovaPlatform)$" spec="5.0.1" />
 	
 	<!--  Startup page is FlashUpdate  -->
 	<content src="ionic://localhost/index-fu.html" />

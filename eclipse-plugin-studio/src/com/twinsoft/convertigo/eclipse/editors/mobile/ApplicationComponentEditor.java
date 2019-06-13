@@ -261,9 +261,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "-version");
 			pb.redirectError(pb.redirectInput());
 			Process process = pb.start();
-			process.waitFor();
+			int code = process.waitFor();
 			String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
-			Engine.logStudio.info("npm -version: " + output);
+			Engine.logStudio.info("npm -version: [" + code + "] " + output);
 			int major = Integer.parseInt(output.replaceAll("^(\\d+)\\.[\\d\\D]*", "$1")); 
 			if (major < 5) {
 				throw new Exception();

@@ -50,7 +50,7 @@ public class ProcessUtils {
 			for (String path: paths.split(Pattern.quote(File.pathSeparator))) {
 				File candidate = new File(path, command);
 				if (candidate.exists()) {
-					shellFullpath = candidate.getCanonicalPath();
+					shellFullpath = candidate.getAbsolutePath();
 					break;
 				}
 			}
@@ -100,7 +100,7 @@ public class ProcessUtils {
 		ProcessBuilder pb = new ProcessBuilder(command);
 		Map<String, String> pbEnv = pb.environment();
 //		// must set "Path" for Windows 8.1 64
-//		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
+		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
 		pbEnv.put("JAVA_HOME", System.getProperty("java.home"));
 		return pb; 
 	}

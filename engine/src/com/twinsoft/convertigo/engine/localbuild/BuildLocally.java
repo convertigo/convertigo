@@ -700,10 +700,11 @@ public abstract class BuildLocally {
 						parameters = new LinkedList<String>();
 						parameters.add("--prefix");
 						parameters.add(cordovaInstallDir.getAbsolutePath());
+						parameters.add("--unsafe-perm=true");
 						parameters.add("install");
 						parameters.add("cordova@" + cliVersion);
 						
-						this.runCommand(cordovaInstallDir, "npm", parameters, true);	
+						this.runCommand(cordovaInstallDir, "npm", parameters, true);
 					}
 					
 					Engine.logEngine.info("Cordova is now installed.");
