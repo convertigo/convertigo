@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MobileComponent extends MobileObject {
@@ -58,12 +59,27 @@ public abstract class MobileComponent extends MobileObject {
 	}
 	
 	public String getTplVersion() {
-		MobileBuilder mb = null;
 		Project p = getProject();
-		if (p != null) {
-			mb = p.getMobileBuilder();
+		MobileBuilder mb = p == null ? null : p.getMobileBuilder();
+		String version = mb == null ? null : mb.getTplVersion();
+		
+		if (p == null) {
+			String message = "(MobileComponent.getTplVersion()) project is null for component " + getName() + 
+								(Engine.isStudioMode() ? " (probably cutted component)": "");
+			if (Engine.isStudioMode()) {
+				Engine.logBeans.debug(message);
+			} else {
+				Engine.logBeans.warn(message);
+			}
+		} else {
+			if (mb == null) {
+				Engine.logBeans.warn("(MobileComponent.getTplVersion()) MB is null for component " + getQName());
+			} else if (version == null) {
+				Engine.logBeans.warn("(MobileComponent.getTplVersion()) Tpl version is null for component " + getQName() +
+						" (MB probably not intialized)");
+			}
 		}
-		return mb == null ? null : mb.getTplVersion();
+		return version;
 	}
 	
 	public int compareToTplVersion(String version) {
