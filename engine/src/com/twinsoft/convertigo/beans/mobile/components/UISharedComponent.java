@@ -57,7 +57,7 @@ public class UISharedComponent extends UIComponent implements IShared {
 	}
 
 	@Override
-	protected void addInfos(Map<String, Set<String>> infoMap) {
+	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
 		// does nothing
 	}
 
@@ -122,10 +122,13 @@ public class UISharedComponent extends UIComponent implements IShared {
 		}
 	}
 	
-	protected void addInfos(UIUseShared uiUse, Map<String, Set<String>> infoMap) {
+	protected void addInfos(UIUseShared uiUse, Set<UIComponent> done, Map<String, Set<String>> infoMap) {
+		if (!done.add(this)) {
+			return;
+		}
 		for (UIComponent uic : getUIComponentList()) {
 			try {
-				uic.cloneSetParent(uiUse).addInfos(infoMap);
+				uic.cloneSetParent(uiUse).addInfos(done, infoMap);
 			} catch (CloneNotSupportedException e) {
 				Engine.logBeans.warn("(UISharedComponent) addInfos: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
 			}

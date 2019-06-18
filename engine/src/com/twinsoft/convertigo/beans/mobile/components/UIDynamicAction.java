@@ -709,7 +709,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 
 	@Override
-	protected void addInfos(Map<String, Set<String>> infoMap) {
+	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
+		super.addInfos(done, infoMap);
+		
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
 			String beanName = ionBean.getName(); 
@@ -771,8 +773,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 			}
 		}
-		
-		super.addInfos(infoMap);
 	}	
 
 	public boolean isFullSyncSyncAction() {

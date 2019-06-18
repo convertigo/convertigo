@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -197,9 +198,10 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	}
 	
 	protected Map<String, Set<String>> getInfoMap() {
+		Set<UIComponent> done = new HashSet<>();
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addInfos(map);
+			uiComponent.addInfos(done, map);
 		}
 		return map;
 	}

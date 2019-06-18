@@ -103,12 +103,12 @@ public class UIDynamicInvoke extends UIDynamicAction {
 
 	
 	@Override
-	protected void addInfos(Map<String, Set<String>> infoMap) {
-		super.addInfos(infoMap);
+	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
+		super.addInfos(done, infoMap);
 		
 		// Now, add target stack infos
 		if (!isBroken()) {
-			getTargetSharedAction().addInfos(infoMap);
+			getTargetSharedAction().addInfos(done, infoMap);
 		}
 	}
 

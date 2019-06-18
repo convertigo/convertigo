@@ -457,9 +457,12 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		//}
 	}
 	
-	protected void addInfos(Map<String, Set<String>> infoMap) {
+	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
+		if (!done.add(this)) {
+			return;
+		}
 		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addInfos(infoMap);
+			uiComponent.addInfos(done, infoMap);
 		}
 	}
 	

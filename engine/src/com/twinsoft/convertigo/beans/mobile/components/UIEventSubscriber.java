@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -205,9 +206,10 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	}
 	
 	protected Map<String, Set<String>> getInfoMap() {
+		Set<UIComponent> done = new HashSet<>();
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addInfos(map);
+			uiComponent.addInfos(done, map);
 		}
 		return map;
 	}

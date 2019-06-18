@@ -467,9 +467,10 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 	
 	protected Map<String, Set<String>> getInfoMap() {
+		Set<UIComponent> done = new HashSet<>();
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addInfos(map);
+			uiComponent.addInfos(done, map);
 		}
 		return map;
 	}

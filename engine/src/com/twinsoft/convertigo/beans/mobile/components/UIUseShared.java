@@ -106,10 +106,13 @@ public class UIUseShared extends UIElement {
 	}
 	
 	@Override
-	protected void addInfos(Map<String, Set<String>> infoMap) {
+	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
 		UISharedComponent uisc = getTargetSharedComponent();
 		if (uisc != null) {
-			uisc.addInfos(this, infoMap);
+			if (!done.add(this)) {
+				return;
+			}
+			uisc.addInfos(this, done, infoMap);
 		}
 	}
 	
