@@ -2184,6 +2184,11 @@
     "mode": "plain",
     "value": false
    },
+   "tenantid": {
+    "name": "tenantid",
+    "mode": "plain",
+    "value": false
+   },
    "scope": {
     "name": "scope",
     "mode": "plain",
