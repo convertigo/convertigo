@@ -80,6 +80,7 @@ import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
+import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.URLrewriter;
 import com.twinsoft.twinj.Javelin;
@@ -146,6 +147,8 @@ public class Context extends AbstractContext implements Cloneable {
 	
 	public IdToXpathManager idToXpathManager = null;
 	public URLrewriter urlRewriter = null;
+	
+	public SimpleMap server = Engine.theApp.getShareServerMap();
 	
 	private Map<String, Connector> used_connectors = new HashMap<String, Connector>();
 	private Set<Connector> opened_connectors = new HashSet<Connector>();

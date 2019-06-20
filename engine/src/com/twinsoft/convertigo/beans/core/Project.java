@@ -846,4 +846,12 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return loader;
 	}
+	
+	public void set(String key, Object value) {
+		Engine.theApp.getShareProjectMap(this).set(key, value);
+	}
+	
+	public Object get(String key) {
+		return Engine.theApp.getShareProjectMap(this).get(key);
+	}
 }

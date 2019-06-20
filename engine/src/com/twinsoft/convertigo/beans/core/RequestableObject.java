@@ -463,12 +463,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		Scriptable jsDOM = org.mozilla.javascript.Context.toObject(context.outputDocument, scope);
 		scope.put("dom", scope, jsDOM);
 		
-		Scriptable jsProject = org.mozilla.javascript.Context.toObject(Engine.theApp.getShareProjectMap(context.project), scope);
-		scope.put("project", scope, jsProject);
-		
-		Scriptable jsServer = org.mozilla.javascript.Context.toObject(Engine.theApp.getShareServerMap(), scope);
-		scope.put("server", scope, jsServer);
-		
 		try {
 			scope.put("use", scope, new FunctionObject("use", getClass().getMethod("useInScope", org.mozilla.javascript.Context.class, Scriptable.class, Object[].class, Function.class), scope));
 		} catch (Exception e) {
