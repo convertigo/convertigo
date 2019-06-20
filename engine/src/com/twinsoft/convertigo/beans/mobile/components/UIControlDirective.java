@@ -141,16 +141,20 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 			if (AttrDirective.ForEach.equals(attrDirective)) {
 				String item = "item"+ this.priority;
 				
+				// add index
 				String indexName = getDirectiveIndexName();
 				if (!indexName.isEmpty()) {
 					sbListen.append("let "+ indexName).append(" = ").append("index;");
 				}
+				// add item
 				String itemName = getDirectiveItemName();
 				if (!itemName.isEmpty()) {
 					sbListen.append("let "+ itemName).append(" of ");
 				}
+				// add source
 				sbListen.append("let "+ item).append(" of ").append(sbSource);
 				
+				// add custom expression
 				if (!directiveExpression.trim().isEmpty()) {
 					if (StringUtils.isAlphanumeric(""+directiveExpression.trim().charAt(0))) {
 						sbListen.append(";");
