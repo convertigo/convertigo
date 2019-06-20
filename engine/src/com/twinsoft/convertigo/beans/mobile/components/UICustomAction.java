@@ -283,6 +283,17 @@ public class UICustomAction extends UIComponent implements IAction {
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
 					scope += !scope.isEmpty() ? ", ":"";
 					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+					
+					String item = uicd.getDirectiveItemName();
+					if (!item.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += item + ": "+ item;
+					}
+					String index = uicd.getDirectiveIndexName();
+					if (!index.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += index + ":" + index;
+					}
 				}
 			}
 			if (parent instanceof UIElement) {
@@ -316,12 +327,9 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 			
-			//String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
-			
+			String scope = getScope();
+			String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 			if (isStacked()) {
-				String scope = getScope();
-				//String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
-				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
 			} else {
 				String props = "{}", vars = "{}";
@@ -337,6 +345,9 @@ public class UICustomAction extends UIComponent implements IAction {
 					//vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
 					vars = "merge("+formGroupName +".value, "+ vars +")";
 				}
+				
+				String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
+				props = "merge("+ props  +", "+ stack +")";
 				
 				String actionName = getActionName();
 				return ""+ actionName + "(this,"+ props + ","+ vars +", $event)";
