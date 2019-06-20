@@ -9397,6 +9397,14 @@
             "type": "string",
             "value": false
           },
+
+          "tenantid": {
+            "label": "Tenant ID",
+            "description": "The AzureAD tenant ID as configured in the AzureAD portal. (AzureAD only) If left empty, will default to 'common'", 
+            "category": "@parameters",
+            "type": "string",
+            "value": false
+          },
           
           "scope": {
             "label": "Scope",

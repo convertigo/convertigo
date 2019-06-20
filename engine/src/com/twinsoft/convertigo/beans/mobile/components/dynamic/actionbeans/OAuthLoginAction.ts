@@ -9,6 +9,7 @@
         return new Promise((resolve, reject) => {
             let clientid = props.clientid;
             let provider = props.provider;
+            let tenenantid = props.tenantid ? props.tenantid:"common";
             let scope, response_mode, response_type, callbackurl, oAuthUrl
             let loginRequestable
             let checkAccessTokenRequestable
@@ -26,7 +27,7 @@
                                     'https://login.live.com/oauth20_desktop.srf' :
                                     page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html"   // the call back URL to check (As declared in the app portal)
                                 
-                            oAuthUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?' +     
+                            oAuthUrl = 'https://login.microsoftonline.com/' + tenantid + '/oauth2/v2.0/authorize?' +     
                                 'client_id=' + clientid +                                             
                                 '&response_type='+ response_type +                                    
                                 '&scope=' + scope +
