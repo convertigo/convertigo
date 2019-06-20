@@ -9,7 +9,7 @@
         return new Promise((resolve, reject) => {
             let clientid = props.clientid;
             let provider = props.provider;
-            let tenenantid = props.tenantid ? props.tenantid:"common";
+            let tenantid = props.tenantid ? props.tenantid:"common";
             let scope, response_mode, response_type, callbackurl, oAuthUrl
             let loginRequestable
             let checkAccessTokenRequestable
