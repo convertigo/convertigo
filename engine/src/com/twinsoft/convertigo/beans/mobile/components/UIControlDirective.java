@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
@@ -83,6 +85,26 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 		this.directiveName = directiveName;
 	}
 
+	private String directiveItemName = "";
+	
+	public String getDirectiveItemName() {
+		return directiveItemName;
+	}
+
+	public void setDirectiveItemName(String directiveItemName) {
+		this.directiveItemName = directiveItemName;
+	}
+
+	private String directiveIndexName = "";
+	
+	public String getDirectiveIndexName() {
+		return directiveIndexName;
+	}
+
+	public void setDirectiveIndexName(String directiveIndexName) {
+		this.directiveIndexName = directiveIndexName;
+	}
+
 	/*
 	 * The directive value
 	 */
@@ -110,27 +132,38 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 	}
 
 	protected String getComputedValue() {
-		StringBuilder sbListen = new StringBuilder();
-		sbListen.append(directiveSource.getValue());
+		StringBuilder sbSource = new StringBuilder();
+		sbSource.append(directiveSource.getValue());
 		
-		StringBuilder children = new StringBuilder();
-		if (sbListen.length() > 0) {
+		StringBuilder sbListen = new StringBuilder();
+		if (sbSource.length() > 0) {
 			AttrDirective attrDirective = AttrDirective.getDirective(getDirectiveName());
 			if (AttrDirective.ForEach.equals(attrDirective)) {
 				String item = "item"+ this.priority;
-				children.append("let "+ item).append(" of ").append(sbListen);
 				
-				if (!directiveExpression.trim().startsWith(";")) {
-					children.append(";");
+				String indexName = getDirectiveIndexName();
+				if (!indexName.isEmpty()) {
+					sbListen.append("let "+ indexName).append(" = ").append("index;");
+				}
+				String itemName = getDirectiveItemName();
+				if (!itemName.isEmpty()) {
+					sbListen.append("let "+ itemName).append(" of ");
+				}
+				sbListen.append("let "+ item).append(" of ").append(sbSource);
+				
+				if (!directiveExpression.trim().isEmpty()) {
+					if (StringUtils.isAlphanumeric(""+directiveExpression.trim().charAt(0))) {
+						sbListen.append(";");
+					}
 				}
 			}
 			else {
-				children.append(sbListen);
+				sbListen.append(sbSource);
 			}
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		sb.append(children).append(directiveExpression);
+		sb.append(sbListen).append(directiveExpression);
 		
 		return sb.toString();
 	}
