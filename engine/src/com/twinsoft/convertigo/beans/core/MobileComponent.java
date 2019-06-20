@@ -65,9 +65,9 @@ public abstract class MobileComponent extends MobileObject {
 		
 		if (p == null) {
 			String message = "(MobileComponent.getTplVersion()) project is null for component " + getName() + 
-								(Engine.isStudioMode() ? " (probably cutted component)": "");
+								(Engine.isStudioMode() ? " (probably removed component)": "");
 			if (Engine.isStudioMode()) {
-				Engine.logBeans.debug(message);
+				Engine.logBeans.trace(message);
 			} else {
 				Engine.logBeans.warn(message);
 			}

@@ -1408,10 +1408,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						if (parentTreeObject != null) {
 
 							// Reload is complete, notify now for newly added objects
+							Set<Object> done = new HashSet<Object>();
 							for (TreeObject ob: addedTreeObjects) {
-								fireTreeObjectAdded(new TreeObjectEvent(ob));
+								fireTreeObjectAdded(new TreeObjectEvent(ob, null, null, null, 0, done));
 							}
 							addedTreeObjects.clear();
+							done.clear();
 
 							refreshTreeObject(parentTreeObject);
 

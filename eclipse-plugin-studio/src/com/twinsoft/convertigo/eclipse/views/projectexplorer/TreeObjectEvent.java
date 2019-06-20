@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.util.EventObject;
+import java.util.Set;
 
 public class TreeObjectEvent extends EventObject {
 
@@ -33,6 +34,7 @@ public class TreeObjectEvent extends EventObject {
 	public Object oldValue = null;
 	public Object newValue = null;
 	public int update = 0;
+	public Set<Object> done = null;
 	
 	/** Creates new TreeObjectEvent */
 	public TreeObjectEvent(Object source) {
@@ -44,10 +46,15 @@ public class TreeObjectEvent extends EventObject {
 	}
 	
 	public TreeObjectEvent(Object source, String propertyName, Object oldValue, Object newValue, int update) {
+		this(source, propertyName, oldValue, newValue, update, null);
+	}
+	
+	public TreeObjectEvent(Object source, String propertyName, Object oldValue, Object newValue, int update, Set<Object> done) {
 		super(source);
 		this.propertyName = propertyName;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
 		this.update = update;
+		this.done = done;
 	}
 }

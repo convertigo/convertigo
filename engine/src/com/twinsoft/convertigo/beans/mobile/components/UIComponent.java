@@ -429,10 +429,16 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	PageComponent page = getPage();
     	if (page != null) {
     		page.markPageAsDirty();
-    	}
-    	UIDynamicMenu menu = getMenu();
-    	if (menu != null) {
-    		menu.markMenuAsDirty();
+    	} else {
+	    	UIDynamicMenu menu = getMenu();
+	    	if (menu != null) {
+	    		menu.markMenuAsDirty();
+	    	} else {
+	    		ApplicationComponent app = getApplication();
+	    		if (app != null) {
+	    			app.markApplicationAsDirty();
+	    		}
+	    	}
     	}
 	}
 
