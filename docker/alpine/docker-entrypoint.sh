@@ -72,13 +72,18 @@ if [ "$1" = "convertigo" ]; then
     
     unset JXMX
     
-    ## the web-connector version need can use an existing DISPLAY or declare one
+    ## the web-connector version can use an existing DISPLAY or declare one
     ## the mbaas version need to be headless and remove the DISPLAY variable
     
     if [ -d $WEB_INF/xvnc ]; then
         export DISPLAY=${DISPLAY:-:0}
     else
         unset DISPLAY
+    fi
+    
+    if [ "$COOKIE_PATH" != "" ]; then
+        sed -i.bak -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml
+        unset COOKIE_PATH
     fi
     
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run

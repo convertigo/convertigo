@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:7-jre8
+FROM tomcat:7-jdk8
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -79,6 +79,9 @@ RUN sed -i.bak \
         -e '/JasperListener/d' \
         -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
         conf/server.xml \
+    && sed -i.bak \
+        -e 's,<Context>,<Context sessionCookiePath="/">,' \
+        conf/context.xml \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \
     && chown -R convertigo:convertigo conf temp work logs \
