@@ -37,12 +37,12 @@ public class StreamUtils {
 			@Override
 			public void run() {
 				try {
-					byte[] buf = new byte[512];
+					byte[] buf = new byte[1024 * 5];
 					int read = is.read(buf);
 					while (read >= 0 && running[0]) {
 						nbBytes[0] += read;
 						synchronized (os) {
-							os.write(buf, 0, read);							
+							os.write(buf, 0, read);
 						}
 						read = is.read(buf);
 					}
@@ -68,9 +68,9 @@ public class StreamUtils {
 				if (running[0]) {
 					try {
 						synchronized (os) {
-							os.flush();							
+							os.flush();
 						}
-					} catch (IOException ioex) {						
+					} catch (IOException ioex) {
 						if (throwable[0] == null) {
 							throwable[0] = ioex;
 						}
