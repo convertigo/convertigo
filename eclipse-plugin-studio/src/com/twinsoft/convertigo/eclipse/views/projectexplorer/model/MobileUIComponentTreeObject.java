@@ -24,8 +24,11 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -53,7 +56,6 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.IEventListener;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
@@ -889,6 +891,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		super.treeObjectAdded(treeObjectEvent);
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Set<Object> done = checkDone(treeObjectEvent);
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
@@ -897,22 +900,26 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			
-			if (dbo instanceof UIComponent) {
-				UIComponent uic = (UIComponent)dbo;
-				
-				if (uic.getSharedAction() != null) {
-					handleSharedActionChanged(uic.getSharedAction());
-				}
-				else if (uic.getSharedComponent() != null) {
-					handleSharedComponentChanged(uic.getSharedComponent());
-				}
-				else if (uic.getPage() == null) {
-					try {
-						markMainAsDirty(uic);
-					} catch (EngineException e) {
-						e.printStackTrace();
+			try {
+				if (this.equals(treeObject)) {
+					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
+					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
+					if (uisa != null && !uisa.equals(getObject())) {
+						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
+					}
+					if (uisc != null && !uisc.equals(getObject())) {
+						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
+					}
+				} else {
+					if (dbo instanceof UIActionStack) {
+						handleSharedActionChanged((UIActionStack) dbo, done);
+					}
+					else if (dbo instanceof UISharedComponent) {
+						handleSharedComponentChanged((UISharedComponent) dbo, done);
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
@@ -923,80 +930,25 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		super.treeObjectRemoved(treeObjectEvent);
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Set<Object> done = checkDone(treeObjectEvent);
+		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
-			
-			if (!(deletedTreeObject.equals(this))) {
-				UIComponent currentDbo = getObject();
-				
-				if (deletedTreeObject.getParents().contains(this)) {
-					// a child of this object has been removed
-					if (currentDbo instanceof UIActionStack || (currentDbo instanceof IEventListener && currentDbo.getPage() == null)) {
-						try {
-							markMainAsDirty(currentDbo);
-						} catch (EngineException e) {
-							ConvertigoPlugin.logWarning(e, "Could not update in tree \""+getObject().getName()+"\" !");
-						}
-					}					
-				}
-				else {
-					// a child of a shared action has been removed
-					if (currentDbo instanceof UIDynamicInvoke) {
-						UIDynamicInvoke udi = (UIDynamicInvoke)currentDbo;
-						
-						for (TreeObject to: deletedTreeObject.getParents()) {
-							if (to instanceof DatabaseObjectTreeObject) {
-								DatabaseObject parentDbo = ((DatabaseObjectTreeObject)to).getObject();
-								if (parentDbo instanceof UIActionStack) {
-									if (udi.getSharedActionQName().equals(parentDbo.getQName())) {
-										UISharedComponent uisc = udi.getSharedComponent();
-										// udi inside a shared component
-										if (uisc != null) {
-											notifyDataseObjectPropertyChanged(uisc, "", null, null);
-										}
-										// udi inside a page or menu
-										else {
-											try {
-												markMainAsDirty(udi);
-											} catch (EngineException e) {
-												e.printStackTrace();
-											}
-										}
-										break;
-									}
-								}
-							}
-						}
+			try {
+				if (deletedTreeObject.getParentDatabaseObjectTreeObject().equals(this)) {
+					UIComponent currentDbo = getObject();
+					
+					UIActionStack uisa = currentDbo.getSharedAction();
+					UISharedComponent uisc = currentDbo.getSharedComponent();
+					if (uisa != null) {
+						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
 					}
-					// a child of a shared component has been removed
-					if (currentDbo instanceof UIUseShared) {
-						UIUseShared udu = (UIUseShared)currentDbo;
-						
-						for (TreeObject to: deletedTreeObject.getParents()) {
-							if (to instanceof DatabaseObjectTreeObject) {
-								DatabaseObject parentDbo = ((DatabaseObjectTreeObject)to).getObject();
-								if (parentDbo instanceof UISharedComponent) {
-									if (udu.getSharedComponentQName().equals(parentDbo.getQName())) {
-										UISharedComponent uisc = udu.getSharedComponent();
-										// udu inside a shared component
-										if (uisc != null) {
-											notifyDataseObjectPropertyChanged(uisc, "", null, null);
-										}
-										// udu inside a page or menu
-										else {
-											try {
-												markMainAsDirty(udu);
-											} catch (EngineException e) {
-												e.printStackTrace();
-											}
-										}
-										break;
-									}
-								}
-							}
-						}
+					else if (uisc != null) {
+						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
@@ -1006,6 +958,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		super.treeObjectPropertyChanged(treeObjectEvent);
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Set<Object> done = checkDone(treeObjectEvent);
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
@@ -1016,44 +969,52 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			
-			if (this.equals(treeObject)) {
-				try {
+			try {
+				if (this.equals(treeObject)) {
 					markMainAsDirty(getObject());
-				} catch (EngineException e) {
-					e.printStackTrace();
-				}
-			} else {
-				if (propertyName.equals("name")) {
-					handlesBeanNameChanged(treeObjectEvent);
-				}
-				
-				if (dbo instanceof UIComponent) {
-					UIComponent uic = (UIComponent)dbo;
 					
-					UIActionStack uisa = dbo instanceof UIActionStack ? ((UIActionStack)dbo) : uic.getSharedAction();
-					if (uisa != null) {
-						handleSharedActionChanged(uisa);
+					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
+					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
+					if (uisa != null && !uisa.equals(getObject())) {
+						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
 					}
-
-					UISharedComponent uisc = dbo instanceof UISharedComponent ? ((UISharedComponent)dbo) : uic.getSharedComponent();
-					if (uisc != null) {
-						handleSharedComponentChanged(uisc);
+					if (uisc != null && !uisc.equals(getObject())) {
+						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
+					}
+				} else {
+					if (propertyName.equals("name")) {
+						handlesBeanNameChanged(treeObjectEvent);
+					}
+					
+					if (dbo instanceof UIActionStack) {
+						handleSharedActionChanged((UIActionStack) dbo, done);
+					}
+					else if (dbo instanceof UISharedComponent) {
+						handleSharedComponentChanged((UISharedComponent) dbo, done);
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
 	
-	protected void handleSharedActionChanged(UIActionStack sharedAction) {
+	protected void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
 		if (sharedAction != null) {
 			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
 			if (getObject() instanceof UIDynamicInvoke) {
 				UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
 				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
+					UIActionStack uisa = udi.getSharedAction();
 					UISharedComponent uisc = udi.getSharedComponent();
+					
+					// udi inside a shared action
+					if (uisa != null && !uisa.equals(sharedAction)) {
+						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
+					}
 					// udi inside a shared component
-					if (uisc != null) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null);
+					else if (uisc != null) {
+						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
 					}
 					// udi inside a page or menu
 					else {
@@ -1068,7 +1029,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 	
-	protected void handleSharedComponentChanged(UISharedComponent sharedComponent) {
+	protected void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
 		if (sharedComponent != null) {
 			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
 			if (getObject() instanceof UIUseShared) {
@@ -1077,8 +1038,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				if (udu.getSharedComponentQName().equals(sharedComponent.getQName())) {
 					UISharedComponent uisc = udu.getSharedComponent();
 					// udu inside a shared component
-					if (uisc != null) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null);
+					if (uisc != null && !uisc.equals(sharedComponent)) {
+						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
 					}
 					// udu inside a page or menu
 					else {
@@ -1297,7 +1258,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 												viewer.refresh();
 												markMainAsDirty(udi);
 												
-												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue);
+												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 												break;
 											} catch (EngineException e) {
 												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for InvokeAction !");
@@ -1341,7 +1302,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 														viewer.refresh();
 														markMainAsDirty(uia);
 														
-														notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue);
+														notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 														break;
 													} catch (EngineException e) {
 														ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for CallSequenceAction !");
@@ -1359,15 +1320,22 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 	
-	protected void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue) {
+	protected void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		TreeObject to = ConvertigoPlugin.projectManager.getProjectExplorerView().findTreeObjectByUserObject(dbo);
 		if (to != null) {
-			notifyTreeObjectPropertyChanged(to, propertyName, oldValue, newValue);
+			notifyTreeObjectPropertyChanged(to, propertyName, oldValue, newValue, done);
 		}
 	}
 	
-	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue) {
-        TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue);
+	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
+		if (done == null) {
+			done = new HashSet<Object>();
+		}
+		if (!done.add(to)) {
+			return;
+		}
+		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");
+        TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, 0, done);
         ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
 	}
 }

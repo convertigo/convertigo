@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -1217,13 +1218,22 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		return imageName;
 	}
 	
+	protected Set<Object> checkDone(TreeObjectEvent treeObjectEvent) {
+		if (treeObjectEvent.done == null) {
+			treeObjectEvent.done = new HashSet<Object>();
+		}
+		return treeObjectEvent.done;
+	}
+	
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		checkDone(treeObjectEvent);
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		if (!(treeObject.equals(this)))
 			getDescriptors();// refresh editors (e.g labels in combobox)
 	}
 
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		checkDone(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
 		if (!(treeObject.equals(this))) {
@@ -1258,6 +1268,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		checkDone(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
