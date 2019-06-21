@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
@@ -734,8 +735,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					UIActionStack stack = (UIActionStack)databaseObject;
 					
 					// Add an InvokeAction
-					if (parent instanceof UIPageEvent || parent instanceof UIAppEvent ||
-							parent instanceof UIDynamicAction || parent instanceof UIActionStack) {
+					if (parent instanceof UIPageEvent || parent instanceof UIAppEvent || parent instanceof UIControlEvent ||
+							parent instanceof IAction || parent instanceof UIActionStack) {
 						UIComponent uiComponent = (UIComponent) parent;
 						
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
@@ -759,8 +760,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					UISharedComponent usc = (UISharedComponent)databaseObject;
 					
 					// Add a UseShared component
-					if (parent instanceof UISharedComponent || parent instanceof UIElement &&
-							!(parent instanceof UIDynamicAction) && !(parent instanceof UIUseShared)) {
+					if (parent instanceof UISharedComponent || parent instanceof UIElement && !(parent instanceof UIUseShared)) {
 						UIComponent uiComponent = (UIComponent) parent;
 						
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
