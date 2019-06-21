@@ -2275,7 +2275,7 @@
    "event": {
     "name": "event",
     "mode": "script",
-    "value": "$event"
+    "value": "(event == undefined ? $event : event)"
    },
    "cssClass": {
     "name": "cssClass",

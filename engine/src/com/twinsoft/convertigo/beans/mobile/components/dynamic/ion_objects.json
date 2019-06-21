@@ -6458,7 +6458,7 @@
           "category": "@Properties",
           "type": "string",
           "mode": "script",
-          "value": "$event"
+          "value": "(event == undefined ? $event : event)"
         },
 
         "cssClass": {
