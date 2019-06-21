@@ -115,7 +115,7 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	@Override
 	public String toString() {
 		String stackName = this.stack.isEmpty() ? "?" : this.stack.substring(this.stack.lastIndexOf('.') + 1);
-		return "invoke " + stackName;
+		return super.toString() + " (invoke " + stackName + ")";
 	}
 	
 }
