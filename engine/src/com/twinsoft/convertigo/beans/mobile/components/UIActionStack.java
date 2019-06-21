@@ -193,9 +193,9 @@ public class UIActionStack extends UIComponent implements IShared {
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +"): Promise<any> {" + System.lineSeparator();
 			//computed += "\t\tlet stack = props[\"stack\"];" + System.lineSeparator();
-			//computed += "\t\tlet scope = stack[\"root\"].scope;" + System.lineSeparator();
 			computed += "\t\tlet hasStack = props[\"stack\"] != undefined;" + System.lineSeparator();
 			computed += "\t\tlet stack = hasStack ? props[\"stack\"] : {root: {scope: {}, in: {}, out: event}};" + System.lineSeparator();
+			computed += "\t\tlet scope = stack[\"root\"].scope;" + System.lineSeparator();
 			computed += "\t\tlet parent = props[\"parent\"];" + System.lineSeparator();
 			computed += "\t\tlet out = event;" + System.lineSeparator();
 			computed += "\t\tlet self;" + System.lineSeparator();
