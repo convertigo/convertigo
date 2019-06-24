@@ -105,10 +105,10 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && curl -fSL -o /tmp/convertigo.war $CONVERTIGO_WAR_URL \
     && curl -fSL -o /tmp/convertigo.war.asc $CONVERTIGO_WAR_URL.asc \
     && gpg --batch --verify /tmp/convertigo.war.asc /tmp/convertigo.war \
-    && mkdir webapps/ROOT webapps/convertigo \
+    && mkdir -p webapps/ROOT webapps/convertigo \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
-        && chmod a+x WEB-INF/xvnc/* \
+        && (chmod -f a+x WEB-INF/xvnc/* || true) \
         && (test "$(dpkg --print-architecture)" != "i386" && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* || true) \
         && rm -rf /tmp/*)
 
