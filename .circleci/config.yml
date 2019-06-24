@@ -224,8 +224,10 @@ jobs:
           export TYPE=default
           cd docker/$TYPE
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
+          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
+          sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
@@ -259,8 +261,10 @@ jobs:
           export TYPE=slim
           cd docker/$TYPE
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
+          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
+          sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
@@ -294,8 +298,10 @@ jobs:
           export TYPE=openj9
           cd docker/$TYPE
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
+          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
+          sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
