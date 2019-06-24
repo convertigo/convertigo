@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:7-jdk8
+FROM tomcat:7-jdk8-adoptopenjdk-openj9
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -89,7 +89,7 @@ RUN sed -i.bak \
 
 ENV CONVERTIGO_VERSION 7.6.0
 
-ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-linux32-$CONVERTIGO_VERSION.war
+ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
 ENV CONVERTIGO_GPG_KEYS 6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
 
@@ -114,8 +114,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 ## copy the ROOT index that redirect to the 'convertigo' webapp
 
-COPY ./alpine/root-index.html webapps/ROOT/index.html
-COPY ./alpine/docker-entrypoint.sh /
+COPY ./root-index.html webapps/ROOT/index.html
+COPY ./docker-entrypoint.sh /
 
 
 WORKDIR /workspace
