@@ -1242,7 +1242,7 @@
           "description": "string to be displayed. 'empty string = disabled').",
           "category": "@Attributes",
           "value": "a tooltip to display",
-          "values": [true, true]
+          "values": ["",true]
         },
 
         "navTooltip": {
@@ -1252,9 +1252,9 @@
           "category": "@Attributes",
           "value": false, // optional value (default is not set)
           "values": [ // possible values (false means do no set)
-          false,
-          true,
-          "false"
+          	false,
+         	"false",
+          	true
           ]
         },
         "event": {
@@ -1275,7 +1275,7 @@
           "category": "@Attributes",
           "value": "arrow", // optional value (default is true)
           "values": [ // possible values (false means no set)
-	    false,
+	    	false,
             "arrow"
           ]
         },
@@ -1311,7 +1311,7 @@
           "category": "@Attributes",
           "value": "0", // optional value (default is 0)
           "values": [ // possible values (false means no set)
-	    false,
+	    	false,
             true,
           ]
         },
@@ -1322,7 +1322,7 @@
           "category": "@Attributes",
           "value": "0", // optional value (default is 0)
           "values": [ // possible values (false means no set)
-	    false,
+	    	false,
             true,
           ]
         },
