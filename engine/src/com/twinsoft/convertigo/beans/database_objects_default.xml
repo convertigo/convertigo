@@ -13,7 +13,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="IfThenElseAction"/>
+            <java.lang.String value="IfElseAction"/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -22,6 +22,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent" priority="0" version="   7   6   0">
         <property name="comment">
             <java.lang.String value=""/>
