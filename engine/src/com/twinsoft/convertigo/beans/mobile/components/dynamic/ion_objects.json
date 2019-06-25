@@ -6624,6 +6624,39 @@
     }
   },
 
+  "IfThenElseAction": {
+    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf",
+    "displayName": "IfThenElse",
+    "label": "IfThenElse",
+    "description": [
+"Defines an <i>IfThenElse</i> action component. | This component helps handling decisions to control the actions workflow by testing the result of the given <i>condition</i> property.<br/>",
+"If the <i>condition</i> is verified, it will execute the next action underneath, otherwise it will execute actions placed under the <b><i>Else Handler</i></b> you may have added.<br/>",
+"You can use the <i>Negate</i> property to test the reverse condition.<br/>"],
+    "group": "Actions",
+    "icon16": "ifthenelseaction_color_16x16.png",
+    "icon32": "ifthenelseaction_color_32x32.png",
+    "properties": {
+      "condition": {
+        "mode": "script",
+        "label": "Condition",
+        "description": "The expression to be tested.",
+        "category": "@Properties",
+        "type": "string",
+        "value": "parent.out"
+      },
+      "negate": {
+        "label": "Negate",
+        "description": "Negate the condition.",
+        "category": "@Properties",
+        "type": "boolean",
+        "value": "false",
+        "values": [
+            "false",
+			"true"
+        ]
+      }
+    }
+  },
   
   "LogAction": {
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",

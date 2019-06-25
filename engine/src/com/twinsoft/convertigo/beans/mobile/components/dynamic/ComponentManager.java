@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
@@ -59,6 +60,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
@@ -377,6 +379,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
 			components.add(getDboComponent(UIActionLoopEvent.class,group));
+			components.add(getDboComponent(UIActionElseEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
@@ -631,6 +634,11 @@ public class ComponentManager {
 							return true;
 						}
 					}
+					if (dboParent instanceof UIDynamicIf) {
+						if (UIActionElseEvent.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
+					}					
 				} else if (dboParent instanceof UIDynamicMenuItem) {
 					if (UIAttribute.class.isAssignableFrom(dboClass)) {
 						return true;

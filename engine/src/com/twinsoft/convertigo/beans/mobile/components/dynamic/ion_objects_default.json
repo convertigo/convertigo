@@ -3727,5 +3727,20 @@
  "ClosePopoverAction": {"   7   6   0": {
   "name": "ClosePopoverAction",
   "properties": {}
+ }},
+ "IfThenElseAction": {"   7   6   0": {
+  "name": "IfThenElseAction",
+  "properties": {
+   "condition": {
+    "name": "condition",
+    "mode": "script",
+    "value": "parent.out"
+   },
+   "negate": {
+    "name": "negate",
+    "mode": "plain",
+    "value": "false"
+   }
+  }
  }}
 }
