@@ -199,7 +199,7 @@ jobs:
               aws s3 rm s3://convertigo-ci/${folder} --recursive
           done
           
-  build_docker_amd64:
+  build_docker_default:
     <<: *defaults
     
     docker:
@@ -218,24 +218,16 @@ jobs:
     - setup_remote_docker
     
     - run:
-        name: Docker build and push for amd64
+        name: Docker build and push for default
         command: |
-          apk add --no-cache jq curl
           source /tmp/build.env
-          cd docker
-          export TYPE=amd64
+          export TYPE=default
+          cd docker/$TYPE
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
-          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
+          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
+          sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
-          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
-          if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
-              echo building base $FROM
-              docker build --rm=false -f Dockerfile_base -t $FROM .
-              docker push $FROM
-          fi
-          docker build --rm=false -f Dockerfile_ci -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
@@ -244,7 +236,7 @@ jobs:
               docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
           fi
           
-  build_docker_i386:
+  build_docker_slim:
     <<: *defaults
     
     docker:
@@ -263,25 +255,16 @@ jobs:
     - setup_remote_docker
     
     - run:
-        name: Docker build and push for i386
+        name: Docker build and push for slim
         command: |
-          apk add --no-cache jq curl
           source /tmp/build.env
-          cd docker
-          sed -i "s,tomcat:,i386/tomcat:," Dockerfile_base
-          export TYPE=i386
-          export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-linux32-$CONVERTIGO_VERSION.war
-          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
+          export TYPE=slim
+          cd docker/$TYPE
+          export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
+          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
+          sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
-          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
-          if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
-              echo building base $FROM
-              docker build --rm=false -f Dockerfile_base -t $FROM .
-              docker push $FROM
-          fi
-          docker build --rm=false -f Dockerfile_ci -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
@@ -290,7 +273,7 @@ jobs:
               docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
           
-  build_docker_alpine:
+  build_docker_openj9:
     <<: *defaults
     
     docker:
@@ -309,24 +292,16 @@ jobs:
     - setup_remote_docker
     
     - run:
-        name: Docker build and push for alpine
+        name: Docker build and push for openj9
         command: |
-          apk add --no-cache jq curl
           source /tmp/build.env
-          cd docker
-          export TYPE=alpine
+          export TYPE=openj9
+          cd docker/$TYPE
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
-          export FROM=$(eval echo $(sed -n "s/FROM \(.*\)/\1/p" Dockerfile_ci))
+          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
+          sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'$DOCKER_USERNAME'", "password": "'$DOCKER_PASSWORD'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          LAST_UPDATE=$(curl -s "https://hub.docker.com/v2/repositories/$(echo $FROM | cut -d: -f1)/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}" \
-          | jq -r ".results[] | select(.name == \"$TYPE-v1\").last_updated" | cut -c1-10 | xargs -I , date --date=, +%s)
-          if [ $(( $LAST_UPDATE + (60 * 60 * 24 * 7) )) -lt $(date +%s) ] || ! docker pull $FROM ; then
-              echo building base $FROM
-              docker build --rm=false -f alpine/Dockerfile_base -t $FROM alpine
-              docker push $FROM
-          fi
-          docker build --rm=false -f Dockerfile_ci -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE --build-arg TYPE=$TYPE --build-arg CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL .
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE .
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
           docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
           docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
@@ -334,10 +309,6 @@ jobs:
               docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
               docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
-          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/?page_size=250" -H "Authorization: JWT ${TOKEN}")
-          for tag in $( echo $TAGS | jq -r .results[].name | tail -n +36); do
-              curl -s "https://hub.docker.com/v2/repositories/$CONVERTIGO_DOCKER/tags/${tag%$'\r'}/" -X DELETE -H "Authorization: JWT ${TOKEN}"
-          done
           
   qualif_jmx_1:
     <<: *defaults
@@ -357,10 +328,10 @@ jobs:
           git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
           
     - run:
-        name: Pull the docker i386 image
+        name: Pull the docker slim image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-i386
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-slim
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -399,10 +370,10 @@ jobs:
           git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
           
     - run:
-        name: Pull the docker alpine image
+        name: Pull the docker openj9 image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-alpine
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-openj9
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -441,7 +412,7 @@ jobs:
           git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
           
     - run:
-        name: Pull the docker alpine image
+        name: Pull the docker default image
         command: |
           source /tmp/build.env
           CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
@@ -463,7 +434,7 @@ jobs:
         name: Sync results to S3
         command: |
           source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/          
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
           
   build_studio:
     <<: *defaults
@@ -639,19 +610,19 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
-    - build_docker_amd64:
+    - build_docker_default:
         requires:
         - build_engine_war
         filters:
           tags:
             only: /^\d+\..*$/
-    - build_docker_i386:
+    - build_docker_slim:
         requires:
         - build_engine_war
         filters:
           tags:
             only: /^\d+\..*$/
-    - build_docker_alpine:
+    - build_docker_openj9:
         requires:
         - build_engine_war
         filters:
@@ -659,33 +630,27 @@ workflows:
             only: /^\d+\..*$/
     - qualif_jmx_1:
         requires:
-        - build_docker_i386
+        - build_docker_slim
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_2:
         requires:
-        - build_docker_alpine
-        filters:
-          tags:
-            only: /^\d+\..*$/
-    - qualif_jmx_1:
-        requires:
-        - build_docker_i386
+        - build_docker_openj9
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_3:
         requires:
-        - build_docker_amd64
+        - build_docker_default
         filters:
           tags:
             only: /^\d+\..*$/
     - release:
         requires:
-        - build_docker_amd64
-        - build_docker_i386
-        - build_docker_alpine
+        - build_docker_default
+        - build_docker_slim
+        - build_docker_openj9
         - build_studio
         filters:
           branches:

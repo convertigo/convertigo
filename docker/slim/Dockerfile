@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:7-jdk8
+FROM tomcat:7-jdk8-openjdk-slim
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -89,7 +89,7 @@ RUN sed -i.bak \
 
 ENV CONVERTIGO_VERSION 7.6.0
 
-ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-linux32-$CONVERTIGO_VERSION.war
+ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
 ENV CONVERTIGO_GPG_KEYS 6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
 
@@ -105,17 +105,17 @@ RUN export GNUPGHOME="$(mktemp -d)" \
     && curl -fSL -o /tmp/convertigo.war $CONVERTIGO_WAR_URL \
     && curl -fSL -o /tmp/convertigo.war.asc $CONVERTIGO_WAR_URL.asc \
     && gpg --batch --verify /tmp/convertigo.war.asc /tmp/convertigo.war \
-    && mkdir webapps/ROOT webapps/convertigo \
+    && mkdir -p webapps/ROOT webapps/convertigo \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
-        && chmod a+x WEB-INF/xvnc/* \
+        && (chmod -f a+x WEB-INF/xvnc/* || true) \
         && (test "$(dpkg --print-architecture)" != "i386" && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* || true) \
         && rm -rf /tmp/*)
 
 ## copy the ROOT index that redirect to the 'convertigo' webapp
 
-COPY ./alpine/root-index.html webapps/ROOT/index.html
-COPY ./alpine/docker-entrypoint.sh /
+COPY ./root-index.html webapps/ROOT/index.html
+COPY ./docker-entrypoint.sh /
 
 
 WORKDIR /workspace

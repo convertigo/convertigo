@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:7-jdk8
+FROM tomcat:7-jdk8-adoptopenjdk-openj9
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -79,17 +79,43 @@ RUN sed -i.bak \
         -e '/JasperListener/d' \
         -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
         conf/server.xml \
+    && sed -i.bak \
+        -e 's,<Context>,<Context sessionCookiePath="/">,' \
+        conf/context.xml \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
-## CHUNK ##
+ENV CONVERTIGO_VERSION 7.6.0
+
+ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
+
+ENV CONVERTIGO_GPG_KEYS 6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
+
+
+## download and extract the convertigo webapps
+## and remove unnecessary components for the mbaas version
+
+RUN export GNUPGHOME="$(mktemp -d)" \
+    && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$CONVERTIGO_GPG_KEYS" \
+    || gpg --batch --keyserver pgp.mit.edu --recv-keys "$CONVERTIGO_GPG_KEYS" \
+    || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$CONVERTIGO_GPG_KEYS" \
+    || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$CONVERTIGO_GPG_KEYS" ) \
+    && curl -fSL -o /tmp/convertigo.war $CONVERTIGO_WAR_URL \
+    && curl -fSL -o /tmp/convertigo.war.asc $CONVERTIGO_WAR_URL.asc \
+    && gpg --batch --verify /tmp/convertigo.war.asc /tmp/convertigo.war \
+    && mkdir -p webapps/ROOT webapps/convertigo \
+    && (cd webapps/convertigo \
+        && unzip -q /tmp/convertigo.war \
+        && (chmod -f a+x WEB-INF/xvnc/* || true) \
+        && (test "$(dpkg --print-architecture)" != "i386" && rm -rf WEB-INF/xulrunner WEB-INF/xvnc WEB-INF/lib/swt_* || true) \
+        && rm -rf /tmp/*)
 
 ## copy the ROOT index that redirect to the 'convertigo' webapp
 
-COPY ./alpine/root-index.html webapps/ROOT/index.html
-COPY ./alpine/docker-entrypoint.sh /
+COPY ./root-index.html webapps/ROOT/index.html
+COPY ./docker-entrypoint.sh /
 
 
 WORKDIR /workspace

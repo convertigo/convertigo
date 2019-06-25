@@ -335,12 +335,19 @@ task generateDockerfile {
 	group 'convertigo'
 	
 	doLast {
-		def base = file('docker/Dockerfile_base').text
-		def chunk = file('docker/Dockerfile_chunk').text.replace('%version%', convertigoVersion)
-		file('docker/Dockerfile').text = base.replace('## CHUNK ##', chunk)
+		def base = file('docker/Dockerfile.tpl').text
+		base = base.replace('%VERSION%', convertigoVersion)
 		
-		base = file('docker/alpine/Dockerfile_base').text
-		chunk = file('docker/alpine/Dockerfile_chunk').text.replace('%version%', convertigoVersion)
-		file('docker/alpine/Dockerfile').text = base.replace('## CHUNK ##', chunk)
+		file('docker/default/Dockerfile').text = base.replace('%FROM%', 'tomcat:7-jdk8-openjdk')
+		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
+		file('docker/default/root-index.html').text = file('docker/root-index.html').text
+		
+		file('docker/slim/Dockerfile').text = base.replace('%FROM%', 'tomcat:7-jdk8-openjdk-slim')
+		file('docker/slim/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
+		file('docker/slim/root-index.html').text = file('docker/root-index.html').text
+		
+		file('docker/openj9/Dockerfile').text = base.replace('%FROM%', 'tomcat:7-jdk8-adoptopenjdk-openj9')
+		file('docker/openj9/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
+		file('docker/openj9/root-index.html').text = file('docker/root-index.html').text
 	}
 }
