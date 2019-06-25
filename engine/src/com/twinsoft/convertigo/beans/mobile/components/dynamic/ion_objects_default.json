@@ -3728,8 +3728,8 @@
   "name": "ClosePopoverAction",
   "properties": {}
  }},
- "IfThenElseAction": {"   7   6   0": {
-  "name": "IfThenElseAction",
+ "IfElseAction": {"   7   6   0": {
+  "name": "IfElseAction",
   "properties": {
    "condition": {
     "name": "condition",
