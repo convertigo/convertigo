@@ -20,7 +20,7 @@ task makeChangelog {
 				json.each {
 					def label = it.labels.find { tickets.containsKey(it.name) }
 					if (label != null) {
-						tickets[label.name]["${it.number}"] = "[#${it.number}](${it.html_url}) ${it.title}"
+						tickets[label.name][it.number] = "[#${it.number}](${it.html_url}) ${it.title}"
 					}
 				}
 				page++;
@@ -62,15 +62,20 @@ task makeChangelog {
 				if (line.isEmpty()) {
 					state += 1
 				} else {
-					changelog += "${line}\n"
 					def m = (line =~ /- .*?\[#(\d+)\]/)
 					if (m.find()) {
-						tickets[key].remove m[0][1]
+						def num = m[0][1].toInteger()
+						if (tickets[key].containsKey(num)) {
+							tickets[key].remove num
+						} else {
+							line = line.replaceFirst(/^- /, '- ? ')
+						}
 					}
+					changelog += "${line}\n"
 				}
 			} else if (state == 5 + inc) { // add new feature
-				tickets[key].values().sort().each {
-					changelog += "- * ${it}\n"
+				tickets[key].keySet().sort().each {
+					changelog += "- * ${tickets[key][it]}\n"
 				}
 				changelog += '\n'
 				state += 1
