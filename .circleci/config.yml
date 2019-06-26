@@ -48,19 +48,25 @@ jobs:
           export CONVERTIGO_VERSION_NUMBER=$(sed -n "s/ext.convertigoVersion = '\(.*\)'/\\1/p" build.gradle)
           export CONVERTIGO_VERSION_TAG=$(sed -n "s/ext.convertigoTag = '\(.*\)'/\\1/p" build.gradle)
           if [ "$CONVERTIGO_VERSION_TAG" = "" ] ; then
-               export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER
+            export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER
           else
-               export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
+            export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER-$CONVERTIGO_VERSION_TAG
           fi
           export CONVERTIGO_BUILD_NUM=$(printf '%05d' $CIRCLE_BUILD_NUM)
           if [ "$CIRCLE_BRANCH" = "" ] ; then
+            export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CIRCLE_TAG
+            export CONVERTIGO_DOCKER_IMAGE=$CIRCLE_TAG
+            export CONVERTIGO_DOCKER=convertigo/convertigo
+            if [[ "$CIRCLE_TAG" =~ [a-zA-Z] ]] ; then
+              export CONVERTIGO_BRANCH=""
+            else
               export CONVERTIGO_BRANCH=latest
-              export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CIRCLE_TAG
-              export CONVERTIGO_DOCKER=convertigo/convertigo
+            fi
           else
-          export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
-          export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
-              export CONVERTIGO_DOCKER=convertigo/convertigo-ci
+            export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
+            export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
+            export CONVERTIGO_DOCKER_IMAGE=$CONVERTIGO_BUILD_NUM-$CIRCLE_TAG
+            export CONVERTIGO_DOCKER=convertigo/convertigo-ci
           fi
           export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
           mkdir -p ~/s3/convertigo-$CONVERTIGO_BUILD_NAME
@@ -196,7 +202,7 @@ jobs:
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
           for folder in $(aws s3 ls s3://convertigo-ci/ | grep convertigo- | head -n -36 | sed "s/ *PRE //"); do
-              aws s3 rm s3://convertigo-ci/${folder} --recursive
+            aws s3 rm s3://convertigo-ci/${folder} --recursive
           done
           
   build_docker_default:
@@ -227,13 +233,15 @@ jobs:
           echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
           sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH .
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
-          docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE .
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE
+          if [ "$CONVERTIGO_BRANCH" != "" ] ; then
+            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
+            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH
+          fi
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-              docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
-              docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
+            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
+            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
           fi
           
   build_docker_slim:
@@ -264,13 +272,15 @@ jobs:
           echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
           sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE .
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
-          docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE .
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE
+          if [ "$CONVERTIGO_BRANCH" != "" ] ; then
+            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
+            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
+          fi
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-              docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
-              docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
+            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
+            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
           
   build_docker_openj9:
@@ -301,13 +311,15 @@ jobs:
           echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
           sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
           echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE .
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
-          docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-$TYPE
+          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE .
+          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE
+          if [ "$CONVERTIGO_BRANCH" != "" ] ; then
+            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
+            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
+          fi
           if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-              docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
-              docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
+            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
+            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
           fi
           
   qualif_jmx_1:
@@ -331,7 +343,7 @@ jobs:
         name: Pull the docker slim image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-slim
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-slim
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -373,7 +385,7 @@ jobs:
         name: Pull the docker openj9 image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME-openj9
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-openj9
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -415,7 +427,7 @@ jobs:
         name: Pull the docker default image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_BUILD_NAME
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
