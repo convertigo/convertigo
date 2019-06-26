@@ -34,8 +34,8 @@
     "@ngx-translate/core":"9.0.2",
     "@ngx-translate/http-loader":"2.0.1",
     "animate.css": "3.7.0",  
-    "c8osdkangular": "3.0.0-beta15",
-    "c8ocaf": "1.1.7-beta9"
+    "c8osdkangular": "3.0.0",
+    "c8ocaf": "1.1.7"
   },
   "devDependencies": {
     "@ionic/app-scripts": "3.2.0",
