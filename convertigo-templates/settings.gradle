@@ -10,6 +10,7 @@ include 'template_siteClipper'
 include 'template_SQL'
 include 'template_webIntegration'
 
+include 'lib_AmazonLEX'
 include 'lib_FileTransfer'
 include 'lib_FullSyncGrp'
 include 'lib_OAuth'

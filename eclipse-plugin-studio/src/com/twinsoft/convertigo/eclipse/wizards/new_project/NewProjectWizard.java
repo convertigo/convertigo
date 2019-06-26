@@ -132,10 +132,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	static final int LIBRARY_PUSH_MANAGER = 804;
 	static final int LIBRARY_TWITTER = 805;
 	static final int LIBRARY_OAUTH = 806;
+	static final int LIBRARY_AMAZON_LEX = 807;
 	static final int LIBRARY_FILE_TRANSFER = 808;
 	static final int LIBRARY_SIGFOX = 809;
 	static final int LIBRARY_SALESFORCE = 810;
-	static final int LIBRARY_FULLSYNC_GRP = 811;	
+	static final int LIBRARY_FULLSYNC_GRP = 811;
 	
 	// mobile samples
 	static final int SAMPLE_OFFCHAT = 1317;
@@ -180,6 +181,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	// rest samples
 	private static final String SAMPLE_MAPPERSHOP_PROJECT_FILE_NAME = "sampleMapperShop.car";
 	// libraries
+	private static final String AMAZON_LEX_LIBRARY_PROJECT_FILE_NAME = "lib_AmazonLEX.car";
 	private static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
 	private static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
 	private static final String OAUTH_LIBRARY_PROJECT_FILE_NAME = "lib_OAuth.car";
@@ -236,6 +238,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_HELLOWORLD:
 		case SAMPLE_CONFERENCEAPP:
 		case SAMPLE_MAPPERSHOP:
+		case LIBRARY_AMAZON_LEX:
 		case LIBRARY_PUSH_MANAGER:
 		case LIBRARY_TWITTER:
 		case LIBRARY_OAUTH:
@@ -438,6 +441,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_FLIGHTSHARE:
 			case SAMPLE_HELLOWORLD:
 			case SAMPLE_MAPPERSHOP:
+			case LIBRARY_AMAZON_LEX:
 			case LIBRARY_SALESFORCE:
 			case LIBRARY_PUSH_MANAGER:
 			case LIBRARY_TWITTER:
@@ -945,6 +949,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SITECLIPPER_DOC_PROJECT_FILE_NAME;
 			projectName = SITECLIPPER_DOC_PROJECT_FILE_NAME.substring(0, SITECLIPPER_DOC_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_AMAZON_LEX:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + AMAZON_LEX_LIBRARY_PROJECT_FILE_NAME;
+			projectName = AMAZON_LEX_LIBRARY_PROJECT_FILE_NAME.substring(0, AMAZON_LEX_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case LIBRARY_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_LIBRARY_PROJECT_FILE_NAME;
