@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
 import com.twinsoft.convertigo.engine.JobManager;
 import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -213,6 +214,7 @@ public abstract class GenericRequester extends Requester {
 
 		Object result = null;
 		boolean needRetry;
+		boolean addStatistics = false;
 
     	try {
     		do {
@@ -288,6 +290,9 @@ public abstract class GenericRequester extends Requester {
 		    				Engine.logContext.trace("Bugfix #853, #2254");
 		    				Engine.logContext.trace("context=" + context);
 	    					Engine.logContext.trace("Removing request and session objects from the context");
+	    					if (context.requestedObject != null) {
+	    						addStatistics = context.requestedObject.getAddStatistics();
+	    					}
 	    					context.clearRequest();
 	    				}
 		            }
@@ -311,9 +316,13 @@ public abstract class GenericRequester extends Requester {
     				result = addStatisticsAsText(stats, result);
     			}
     			
-    			// Requestable data statistics
-    			addStatisticsAsData(result);
-    			
+    			if (addStatistics) {
+    				// Requestable data statistics
+    				addStatisticsAsData(result);
+    			}
+    			if (result instanceof Document) {
+    				Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent((Document) result, context.projectName, context.sequenceName, context.connectorName));
+    			}
     			context.waitingRequests--;
         		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
     		}

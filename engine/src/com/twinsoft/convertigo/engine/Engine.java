@@ -1334,8 +1334,6 @@ public class Engine {
 			if (context.userReference != null) {
 				documentElement.setAttribute("userReference", context.userReference);
 			}
-
-			fireDocumentGenerated(new RequestableEngineEvent(outputDom, context.projectName, context.sequenceName, context.connectorName));
 		} catch (EngineException e) {
 			String message = "[Engine.getDocument()] Context ID#" + context.contextID
 					+ " - Unable to build the XML document.";
