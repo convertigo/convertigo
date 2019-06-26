@@ -541,11 +541,6 @@
     "mode": "plain",
     "value": "MMM YYYY"
    },
-   "monthPickerFormat": {
-    "name": "monthPickerFormat",
-    "mode": "script",
-    "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
-   },
    "weekdays": {
     "name": "weekdays",
     "mode": "script",

@@ -7237,15 +7237,6 @@
           "value": "MMM YYYY"
         },
 
-        "monthPickerFormat":{	
-          "label": "Month picker format",
-          "description": "Month Labels.",
-          "category": "@Properties",
-          "mode": "script",
-          "type": "string",
-          "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
-        },
-        
         "weekdays":{	
           "label": "Weekdays labels",
           "description": "Define the week days labels.",
