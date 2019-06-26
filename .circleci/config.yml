@@ -65,7 +65,7 @@ jobs:
           else
             export CONVERTIGO_BRANCH=$(echo $CIRCLE_BRANCH | sed "s,/,-,")
             export CONVERTIGO_BUILD_NAME=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
-            export CONVERTIGO_DOCKER_IMAGE=$CONVERTIGO_BUILD_NUM-$CIRCLE_TAG
+            export CONVERTIGO_DOCKER_IMAGE=$CONVERTIGO_BUILD_NUM-$CONVERTIGO_BRANCH-$CONVERTIGO_VERSION
             export CONVERTIGO_DOCKER=convertigo/convertigo-ci
           fi
           export CONVERTIGO_URL=https://convertigo-ci.s3-eu-west-3.amazonaws.com/convertigo-$CONVERTIGO_BUILD_NAME
