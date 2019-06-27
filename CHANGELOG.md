@@ -9,7 +9,6 @@
 - [#9](https://github.com/convertigo/convertigo/issues/9) Integrate PDFBox jar file and create a PDF form step
 - [#13](https://github.com/convertigo/convertigo/issues/13) Add a Mobile Builder Tooltip component
 - [#22](https://github.com/convertigo/convertigo/issues/22) Implement a Database revision number for FullSync that allows to reset clients FS base automatically
-- [#29](https://github.com/convertigo/convertigo/issues/29) 
 - [#42](https://github.com/convertigo/convertigo/issues/42) Make a dark theme for Convertigo Studio
 - [#54](https://github.com/convertigo/convertigo/issues/54) Studio: remove unwanted menu and toolbar item for Convertigo perspective
 - [#55](https://github.com/convertigo/convertigo/issues/55) Better security for CouchDB to restrict access for the admin user
@@ -43,7 +42,7 @@
 - [#66](https://github.com/convertigo/convertigo/issues/66) Add a Mobile Builder Chooser action that both support iOS and Android
 - [#67](https://github.com/convertigo/convertigo/issues/67) Add a Mobile Builder Progress Bar component
 - [#71](https://github.com/convertigo/convertigo/issues/71) Mobile Builder SetGlobal actions are now displayed according to 'Property' and 'value' properties
-- [#77](https://github.com/convertigo/convertigo/issues/77) JS `log` object accepts log4j levels methods (fatal, info, warn, trace)
+- [#77](https://github.com/convertigo/convertigo/issues/77) JS 'log' object accepts log4j levels methods (fatal, info, warn, trace)
 - [#81](https://github.com/convertigo/convertigo/issues/81) Enhance support for wkWebview for iOS for better performances
 - [#86](https://github.com/convertigo/convertigo/issues/86) Improve Mobile Builder page generation speed
 - [#87](https://github.com/convertigo/convertigo/issues/87) Sort mobile app template projects by descending order
@@ -52,10 +51,8 @@
 - [#96](https://github.com/convertigo/convertigo/issues/96) Convertigo SDK settings are now customizable
 - [#102](https://github.com/convertigo/convertigo/issues/102) Re-use compiled expression for RhinoJS to reduce JVM classes memory space and have better performance
 - [#104](https://github.com/convertigo/convertigo/issues/104) Scheduler now handles order and limited number of parallel job
-- [#107](https://github.com/convertigo/convertigo/issues/107)
 - [#109](https://github.com/convertigo/convertigo/issues/109) Mobile component help in Reference Manual is better rendered
 - [#110](https://github.com/convertigo/convertigo/issues/110) Mobile Builder Sequence Calls Actions loading spinner can now be disabled, and 2 new actions has been added to show and close loading spinners
-- [#119](https://github.com/convertigo/convertigo/issues/119)
 - [#133](https://github.com/convertigo/convertigo/issues/133) Improve MB ForEach bean, now item and index elements be customized so they can be inserted in nested loops.
 - [#134](https://github.com/convertigo/convertigo/issues/134) Handle TenantID in OAuth action for Azure
 - [#140](https://github.com/convertigo/convertigo/issues/140) Enable GZip compression for text response by default
@@ -63,16 +60,12 @@
 
 #### Bug Fixes:
 
-- [#16](https://github.com/convertigo/convertigo/issues/16)
 - [#18](https://github.com/convertigo/convertigo/issues/18) Fixed the double save dialog on Studio closing without saving
-- [#21](https://github.com/convertigo/convertigo/issues/21)
 - [#24](https://github.com/convertigo/convertigo/issues/24) Fixed the Call Step generates invalid call data when a variable sources a self closing tag
-- * [#26](https://github.com/convertigo/convertigo/issues/26) CalendarPickerAction isn't working as expected
-- [#28](https://github.com/convertigo/convertigo/issues/28)
+- [#26](https://github.com/convertigo/convertigo/issues/26) Fixed Mobile Builder CalendarPickerAction to work as expected
 - [#32](https://github.com/convertigo/convertigo/issues/32) Fixed invalid XML generated with some unicode characters
 - [#38](https://github.com/convertigo/convertigo/issues/38) Fixed extra blank lines added in saved content of editable mobile components
 - [#39](https://github.com/convertigo/convertigo/issues/39) Fixed extra markers added in saved TS content of editable mobile components
-- [#40](https://github.com/convertigo/convertigo/issues/40)
 - [#41](https://github.com/convertigo/convertigo/issues/41) Fixed the Mobile Palette that does not show all components
 - [#43](https://github.com/convertigo/convertigo/issues/43) Fixed JDBC Oracle poor performances
 - [#47](https://github.com/convertigo/convertigo/issues/47) Fixed UrlMapper: context/session not always removed
@@ -86,25 +79,14 @@
 - [#68](https://github.com/convertigo/convertigo/issues/68) Fixed barcodescanner plugin build for Android
 - [#69](https://github.com/convertigo/convertigo/issues/69) Fixed all Mobile palette documentation links now to ionic3 documentation
 - [#75](https://github.com/convertigo/convertigo/issues/75) Fixed ‘Null’ error when deleting a project
-- [#79](https://github.com/convertigo/convertigo/issues/79)
 - [#80](https://github.com/convertigo/convertigo/issues/80) Fixed the popup error when no bean found with the search bar
-- [#82](https://github.com/convertigo/convertigo/issues/82)
 - [#85](https://github.com/convertigo/convertigo/issues/85) Fixed the Invalid Thread Exception when adding a Component that requiring additional packages
-- [#92](https://github.com/convertigo/convertigo/issues/92)
-- [#100](https://github.com/convertigo/convertigo/issues/100)
 - [#103](https://github.com/convertigo/convertigo/issues/103) Fixed Scheduler to count session and clear contexts
-- [#108](https://github.com/convertigo/convertigo/issues/108)
 - [#114](https://github.com/convertigo/convertigo/issues/114) Fixed Certificate Mappings configuration in administration
-- [#116](https://github.com/convertigo/convertigo/issues/116) Fixed NPE in the Studio stdout console when selecting the LogView 
-- [#118](https://github.com/convertigo/convertigo/issues/118)
-- [#120](https://github.com/convertigo/convertigo/issues/120)
-- [#121](https://github.com/convertigo/convertigo/issues/121)
-- [#122](https://github.com/convertigo/convertigo/issues/122)
-- [#123](https://github.com/convertigo/convertigo/issues/123)
+- [#116](https://github.com/convertigo/convertigo/issues/116) Fixed NPE in the Studio stdout console when selecting the LogView
 - [#126](https://github.com/convertigo/convertigo/issues/126) Fixed "heap out of memory" for some Mobile Builder builds in production mode
 - [#128](https://github.com/convertigo/convertigo/issues/128) Fixed the transpilation failure for empty value in TS mode of Mobile Builder actions
 - [#129](https://github.com/convertigo/convertigo/issues/129) Fixed Mobile Builder missing rebuilds 
 - [#130](https://github.com/convertigo/convertigo/issues/130) Fixed Http response always in UTF-8 even if the Requestable defines an another Charset
-- [#131](https://github.com/convertigo/convertigo/issues/131)
 
 ## [pre 7.6.0 versions changelog](CHANGELOG.pre.7-6-0.md)
