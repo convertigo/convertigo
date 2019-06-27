@@ -19,17 +19,17 @@ jobs:
     
     steps:
     
-    - restore_cache:
-        keys:
-        - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
-        - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-
+#     - restore_cache:
+#         keys:
+#         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
+#         - v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-
         
     - checkout
     
-    - save_cache:
-        paths:
-        - .git
-        key: v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
+#     - save_cache:
+#         paths:
+#         - .git
+#         key: v1-git-{{ .Branch }}-{{ .Environment.CIRCLE_TAG }}-{{ .Revision }}
         
     - restore_cache:
         keys:
