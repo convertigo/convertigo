@@ -1,0 +1,204 @@
+accessibility: Hidden
+comment: 'hidden: add a product using simple variables'
+↓Input_variables [steps.InputVariablesStep-1462357796576]: 
+↓jIfThenElse [steps.IfThenElseStep-1462289607981]: 
+  condition: isNaN(cat_id)
+  ↓jThen [steps.ThenStep-1462289609673]: 
+    ↓Error_structure [steps.XMLErrorStep-1462289703472]: 
+      code: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: 10
+      details: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: identifier must be an integer
+      message: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: invalid category identifier
+  ↓jElse [steps.ElseStep-1462289609675]: 
+    ↓jIfThenElse [steps.IfThenElseStep-1462289807562]: 
+      condition: parseInt(cat_id) < 1 || parseInt(cat_id) > 10
+      ↓jThen [steps.ThenStep-1462289808681]: 
+        ↓Error_structure [steps.XMLErrorStep-1462289822143]: 
+          code: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+              - SmartType: 
+                - ↑mode: PLAIN
+                - →→: 10
+          details: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+              - SmartType: 
+                - ↑mode: PLAIN
+                - →→: identifier must be an integer between 1 and 10
+          message: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+              - SmartType: 
+                - ↑mode: PLAIN
+                - →→: invalid category identifier
+      ↓jElse [steps.ElseStep-1462289808683]: 
+        ↓Call_Transaction [steps.TransactionStep-1462289926450]: 
+          sourceTransaction: sampleMapperShop.hsqldb._InsertProduct
+          ↓description [variables.StepVariable-1462202784445]: 
+            comment: the product description
+            description: description
+          ↓code [variables.StepVariable-1462202784447]: 
+            comment: the product code
+            description: code
+          ↓price [variables.StepVariable-1462202784449]: 
+            comment: the product price
+            description: price
+          ↓cat_id [variables.StepVariable-1462202784451]: 
+            comment: the product's category id
+            description: cat_id
+        ↓IfExistThenElse [steps.IfExistThenElseStep-1462289926785]: 
+          sourceDefinition: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+              - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: 1462289926450
+                - java.lang.String: 
+                  - ↑value: ./document/sql_output
+          ↓jThen [steps.ThenStep-1462288581964]: 
+            ↓Call_Transaction [steps.TransactionStep-1462288765527]: 
+              sourceTransaction: sampleMapperShop.hsqldb._GetProductByCode
+              ↓code [variables.StepVariable-1462288765529]: 
+                description: code
+                required: true
+            ↓Complex [steps.XMLComplexStep-1462288824765]: 
+              nodeName: product
+              ↓Element3 [steps.XMLElementStep-1462355327543]: 
+                nodeName: art_id
+                sourceDefinition: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1462288765527
+                      - java.lang.String: 
+                        - ↑value: ./document/sql_output/row[last()]/@ART_ID
+                ↓Attribute [steps.XMLAttributeStep-1462968183696]: 
+                  nodeName: type
+                  nodeText: integer
+              ↓Element4 [steps.XMLElementStep-1462355331405]: 
+                nodeName: cat_id
+                sourceDefinition: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1462288765527
+                      - java.lang.String: 
+                        - ↑value: ./document/sql_output/row[last()]/@CAT_ID
+                ↓Attribute [steps.XMLAttributeStep-1462968208523]: 
+                  nodeName: type
+                  nodeText: integer
+              ↓Element [steps.XMLElementStep-1462288824800]: 
+                nodeName: code
+                sourceDefinition: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1462288765527
+                      - java.lang.String: 
+                        - ↑value: ./document/sql_output/row[last()]/@CODE
+              ↓Element2 [steps.XMLElementStep-1462288824812]: 
+                nodeName: price
+                sourceDefinition: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1462288765527
+                      - java.lang.String: 
+                        - ↑value: ./document/sql_output/row[last()]/@PRICE
+              ↓Element1 [steps.XMLElementStep-1462288824823]: 
+                nodeName: description
+                sourceDefinition: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1462288765527
+                      - java.lang.String: 
+                        - ↑value: ./document/sql_output/row[last()]/@DESCRIPTION
+          ↓jElse [steps.ElseStep-1462288581966]: 
+            ↓Error_structure [steps.XMLErrorStep-1462288669879]: 
+              code: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+                  - SmartType: 
+                    - ↑mode: PLAIN
+                    - →→: 15
+              details: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+                  - SmartType: 
+                    - ↑mode: SOURCE
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: 1462289926450
+                      - java.lang.String: 
+                        - ↑value: ./document/error/message/text()
+              message: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+                  - SmartType: 
+                    - ↑mode: PLAIN
+                    - →→: unable to add product
+↓code [variables.RequestableVariable-1462203125573]: 
+  description: code
+  required: true
+↓description [variables.RequestableVariable-1462203125571]: 
+  description: description
+  required: true
+↓price [variables.RequestableVariable-1462203125575]: 
+  description: price
+  value: 0,00
+↓cat_id [variables.RequestableVariable-1462203125577]: 
+  description: cat_id
+  value: 1
+↓Test_KO_InvalidMissing [core.TestCase]: 
+  ↓code [variables.TestCaseVariable-1462285827132]: 
+    description: code
+  ↓description [variables.TestCaseVariable-1462285827134]: 
+    description: description
+    value: a product description
+↓Test_KO_InvalidValue [core.TestCase]: 
+  ↓code [variables.TestCaseVariable-1462289959974]: 
+    description: code
+    value: CODEGT
+  ↓description [variables.TestCaseVariable-1462289959984]: 
+    description: description
+    value: a product description
+  ↓price [variables.TestCaseVariable-1462290023075]: 
+    description: price
+    value: 5,90
+  ↓cat_id [variables.TestCaseVariable-1462290023077]: 
+    description: cat_id
+    value: 14
+↓Test_OK_Valid [core.TestCase]: 
+  ↓description [variables.TestCaseVariable-1462206069064]: 
+    description: description
+    value: A product
+  ↓code [variables.TestCaseVariable-1462206069066]: 
+    description: code
+    value: XXXXXX
+  ↓price [variables.TestCaseVariable-1462206069068]: 
+    description: price
+    value: 0,00
+  ↓cat_id [variables.TestCaseVariable-1462206069070]: 
+    description: cat_id
+    value: 1

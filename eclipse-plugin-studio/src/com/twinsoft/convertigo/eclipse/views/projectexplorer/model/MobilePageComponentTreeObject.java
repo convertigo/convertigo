@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -38,15 +38,8 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
-import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
@@ -182,150 +175,34 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		
-		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
-			DatabaseObject dbo = doto.getObject();
-			try {
-				if (propertyName.equals("name")) {
-					boolean sourcesUpdated = false;
-					boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
-					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
-						try {
-							if (dbo instanceof Project) {
-								String oldName = (String)oldValue;
-								String newName = (String)newValue;
-								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("'"+oldName+"\\.", "'"+newName+".")) {
-										sourcesUpdated = true;
-									}
-									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
-										sourcesUpdated = true;
-									}
-								}
-							}
-							else if (dbo instanceof Sequence) {
-								String oldName = (String)oldValue;
-								String newName = (String)newValue;
-								String projectName = dbo.getProject().getName();
-								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("'"+projectName+"\\."+oldName, "'"+projectName+"."+newName)) {
-										sourcesUpdated = true;
-									}
-								}
-							}
-							else if (dbo instanceof FullSyncConnector) {
-								String oldName = (String)oldValue;
-								String newName = (String)newValue;
-								String projectName = dbo.getProject().getName();
-								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("\\/"+projectName+"\\."+oldName+"\\.", "/"+projectName+"."+newName+".")) {
-										sourcesUpdated = true;
-									}
-									if (getObject().updateSmartSource("\\/"+oldName+"\\.", "/"+newName+".")) {
-										sourcesUpdated = true;
-									}
-								}
-							}
-							else if (dbo instanceof DesignDocument) {
-								String oldName = (String)oldValue;
-								String newName = (String)newValue;
-								if (!newValue.equals(oldValue)) {
-									if (getObject().updateSmartSource("ddoc='"+oldName+"'", "ddoc='"+newName+"'")) {
-										sourcesUpdated = true;
-									}
-								}
-							}
-						} catch (Exception e) {}
-					}
-					
-					if (sourcesUpdated) {
-						ProjectTreeObject projectTree = getProjectTreeObject();
-						if (projectTree != null) {
-							projectTree.hasBeenModified(true);
-						}
-						this.viewer.refresh();
+		try {
+			if (this.equals(treeObject)) {
+				if (propertyName.equals("scriptContent")) {
+					if (!newValue.equals(oldValue)) {
+						markPageTsAsDirty();
 						markPageAsDirty();
 					}
-					
-				}
-				
-				if (dbo instanceof UIComponent) {
-					UIComponent uic = (UIComponent)dbo;
-					if (getObject().equals(uic.getPage())) {
-						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
-							if (!newValue.equals(oldValue)) {
-								try {
-									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
-									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-									String form = uic.getUIForm().getFormGroupName();
-									if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-										this.viewer.refresh();
-									}
-								} catch (Exception e) {}
-							}
-						}
-						
-						markPageAsDirty();
+				} else if (propertyName.equals("isEnabled")) {
+					if (!newValue.equals(oldValue)) {
+						markPageEnabledAsDirty();
 					}
-				}
-				else if (this.equals(doto)) {
-					if (propertyName.equals("scriptContent")) {
-						if (!newValue.equals(oldValue)) {
-							markPageTsAsDirty();
-							markPageAsDirty();
-						}
-					} else if (propertyName.equals("isEnabled")) {
-						if (!newValue.equals(oldValue)) {
-							markPageEnabledAsDirty();
-						}
-					} else if (propertyName.equals("segment")) {
-						if (!newValue.equals(oldValue)) {
-							markAppModuleTsAsDirty();
-						}
-					} else if (propertyName.equals("title") || 
-								propertyName.equals("icon") ||
-								propertyName.equals("iconPosition") || 
-								propertyName.equals("inAutoMenu")) {
-						if (!newValue.equals(oldValue)) {
-							markAppComponentTsAsDirty();
-						}
-					} else {
-						markPageAsDirty();
+				} else if (propertyName.equals("segment")) {
+					if (!newValue.equals(oldValue)) {
+						markAppModuleTsAsDirty();
 					}
-				}
-			} catch (Exception e) {}
-		}
-		else if (treeObject instanceof DesignDocumentViewTreeObject) {
-			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)treeObject;
-			try {
-				if (propertyName.equals("name")) {
-					boolean sourcesUpdated = false;
-					boolean fromSameProject = getProjectTreeObject().equals(ddvto.getProjectTreeObject());
-					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
-						try {
-							String oldName = (String)oldValue;
-							String newName = (String)newValue;
-							if (!newValue.equals(oldValue)) {
-								if (getObject().updateSmartSource("view='"+oldName+"'", "view='"+newName+"'")) {
-									sourcesUpdated = true;
-								}
-							}
-						}
-						catch (Exception e) {}
+				} else if (propertyName.equals("title") || 
+							propertyName.equals("icon") ||
+							propertyName.equals("iconPosition") || 
+							propertyName.equals("inAutoMenu")) {
+					if (!newValue.equals(oldValue)) {
+						markAppComponentTsAsDirty();
 					}
-					
-					if (sourcesUpdated) {
-						ProjectTreeObject projectTree = getProjectTreeObject();
-						if (projectTree != null) {
-							projectTree.hasBeenModified(true);
-						}
-						this.viewer.refresh();
-						markPageAsDirty();
-					}
+				} else {
+					markPageAsDirty();
 				}
-			} catch (Exception e) {}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

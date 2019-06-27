@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -45,7 +45,7 @@ public class StartupDiagnostics {
 	private static enum Architecture {
 		x32bits, x64bits, unknown
 	}
-	
+
 	private static Architecture getArchitecture() {
 		String osArchitecture = System.getProperty("os.arch");
 		if ("i386".equals(osArchitecture) || "x86".equals(osArchitecture)) {
@@ -58,7 +58,7 @@ public class StartupDiagnostics {
 			return Architecture.unknown;
 		}
 	}
-	
+
 	protected static void run() {
 		String testsSummary = "";
 		Level currentLevel = Engine.logEngine.getEffectiveLevel();
@@ -71,6 +71,11 @@ public class StartupDiagnostics {
 			Engine.logEngine.info("*** STARTUP DIAGNOSTICS ***");
 
 			String os = System.getProperty("os.name");
+
+			boolean isLinux = os.startsWith("Linux");
+			// boolean isWindows = os.startsWith("Windows");
+			boolean isMacOS = os.startsWith("Mac OS X");
+			
 			Architecture architecture = getArchitecture();
 			Engine.logEngine.info("Detected OS: " + os + " "
 					+ (architecture == Architecture.x32bits ? "(32 bits)" :
@@ -88,9 +93,11 @@ public class StartupDiagnostics {
 				}
 				else {
 					Engine.logEngine.info("WAR file name: " + buildFileName);
-					String archSuffix = ((architecture == Architecture.x32bits ? "32.war" :
-						architecture == Architecture.x64bits ? "64.war" : ""));
-					testsSummary += (buildFileName.endsWith(archSuffix) ? TEST_SUCCESS : TEST_FAILED);
+					if (buildFileName.contains("linux32") && !(isLinux && architecture == Architecture.x32bits)) {
+						testsSummary += TEST_FAILED;
+					} else {
+						testsSummary += TEST_SUCCESS;
+					}
 				}
 			} catch (FileNotFoundException e) {
 				Engine.logEngine.warn("The build info file (" + buildInfoFile.getPath() + ") does not exist!");
@@ -99,16 +106,12 @@ public class StartupDiagnostics {
 				Engine.logEngine.warn("Unable to read the build info file (" + buildInfoFile.getPath() + ")!", e);
 				testsSummary += TEST_WARN;
 			}
-			
-			boolean isLinux = os.startsWith("Linux");
-			// boolean isWindows = os.startsWith("Windows");
-			boolean isMacOS = os.startsWith("Mac OS X");
 
 			if (isLinux) {
 				String sysLdLibraryPath = System.getenv("LD_LIBRARY_PATH");
 				Engine.logEngine.info("System LD_LIBRARY_PATH: " + sysLdLibraryPath);
 			}			
-			
+
 			String javaHome = System.getProperty("java.home");
 			Engine.logEngine.info("Java home: " + javaHome);
 
@@ -153,6 +156,8 @@ public class StartupDiagnostics {
 							+ e.getMessage());
 					testsSummary += TEST_WARN;
 				}
+			} else {
+				testsSummary += TEST_SUCCESS;
 			}
 
 			// Checking user home
@@ -190,27 +195,26 @@ public class StartupDiagnostics {
 						try {
 							File etcPasswdFile = new File("/etc/passwd");
 							List<String> lines = FileUtils.readLines(etcPasswdFile, "UTF-8");
-	
+
 							String etcPasswdUserHome = null;
 							for (String line : lines) {
 								if (line.startsWith(userName)) {
 									String[] parts = line.split(":");
-									int len = parts.length;
-									if (len > 2) {
-										etcPasswdUserHome = parts[parts.length - 2];
+									if (parts.length > 5) {
+										etcPasswdUserHome = parts[5];
 										break;
 									}
 								}
 							}
-	
+
 							if (etcPasswdUserHome == null) {
 								Engine.logEngine.warn("Unable to find the user home in /etc/passwd");
 								testsSummary += TEST_WARN;
 							} else {
-								Engine.logEngine.info("User home as defined in /etc/passwd: " + userHome);
+								Engine.logEngine.info("User home as defined in /etc/passwd: " + etcPasswdUserHome);
 								if (!etcPasswdUserHome.equals(userHome)) {
 									Engine.logEngine
-											.error("The user home defined in /etc/passwd differs from the user home!");
+									.error("The user home defined in /etc/passwd differs from the user home!");
 									testsSummary += TEST_FAILED;
 								} else {
 									testsSummary += TEST_SUCCESS;
@@ -289,25 +293,12 @@ public class StartupDiagnostics {
 				return;
 			}
 
-			// Checking DISPLAY
-			if (isLinux) {
-				testsSummary += " - DISPLAY environment variable ............... ";
-				String display = System.getenv("DISPLAY");
-				Engine.logEngine.info("DISPLAY=" + display);
-				
-				if (display == null) {
-					Engine.logEngine.error("The DISPLAY environment variable is not set!");
-					testsSummary += TEST_FAILED;
-				} else {
-					testsSummary += TEST_SUCCESS;
-				}
-			}
-
 			// Check the XulRunner libraries dependencies
-			testsSummary += " - XulRunner libraries dependencies ........... ";
 			File xulrunnerLibDir = new File(Engine.WEBAPP_PATH + "/WEB-INF/xulrunner/");
 
-			if (isLinux) {
+			boolean hasXulrunner = false;
+			if (isLinux && xulrunnerLibDir.exists()) {
+				testsSummary += " - XulRunner libraries dependencies ........... ";
 				Engine.logEngine.info("XulRunner libraries directory: " + xulrunnerLibDir.getPath());
 				LddLibrariesResult lddLibrariesResult = lddLibraries(xulrunnerLibDir,
 						xulrunnerLibDir.toString(), null);
@@ -319,83 +310,98 @@ public class StartupDiagnostics {
 				} else if (lddLibrariesResult.lddError) {
 					testsSummary += TEST_FAILED;
 				} else {
+					hasXulrunner = true;
 					testsSummary += TEST_SUCCESS;
 				}
-			} else {
-				testsSummary += "IGNORED\n";
 			}
 
-			try {
-				// SWT libraries dependencies
-				testsSummary += " - SWT libraries dependencies ................. ";
-
-				File convertigoLib = new File(Engine.WEBAPP_PATH + "/WEB-INF/lib/");
-
-				String[] swtFoundJars = convertigoLib.list(new FilenameFilter() {
-					public boolean accept(File dir, String name) {
-						return name.startsWith("swt_") && name.endsWith(".jar");
-					}
-				});
-
-				if (swtFoundJars == null || swtFoundJars.length == 0) {
-					Engine.logEngine.error("Unable to find the SWT jar in " + convertigoLib.getPath());
-					testsSummary += TEST_FAILED;
-				} else {
-					String swtJar = swtFoundJars[0];
-
-					Engine.logEngine.info("Found SWT jar: " + swtJar);
-
-					File swtJarFile = new File(convertigoLib, swtJar);
-					try {
-						FileUtils.copyFileToDirectory(swtJarFile, testTmpDir);
-					} catch (IOException e) {
-						Engine.logEngine.error("Unable to copy the SWT jar: " + e.getMessage());
-						testsSummary += TEST_FAILED;
-					}
-
-					try {
-						// Unzip the SWT jar
-						ZipUtils.expandZip(new File(testTmpDir, swtJar).toString(), testTmpDir.toString());
-					} catch (Exception e) {
-						Engine.logEngine.error("Unable to unzip the SWT jar: " + e.getMessage());
-						testsSummary += TEST_FAILED;
-					}
-
-					// Check the SWT libraries dependencies
+			if (hasXulrunner) {
+				try {
+					// Checking DISPLAY
 					if (isLinux) {
-						String osArchitecture = ((architecture == Architecture.x32bits ? "i386" :
-							architecture == Architecture.x64bits ? "amd64" : ""));
-						
-						String libraryPath = xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":" + javaHome + "/lib/" + osArchitecture;
-						
-						File javaLib = new File(javaHome + "/lib/" + osArchitecture);
-						libraryPath += ":" + javaLib;
-						for (File javaSubLib : javaLib.listFiles()) {
-							if (javaSubLib.isDirectory()) {
-								libraryPath += ":" + javaSubLib.getAbsolutePath();
-							}
-						}
+						testsSummary += " - DISPLAY environment variable ............... ";
+						String display = System.getenv("DISPLAY");
+						Engine.logEngine.info("DISPLAY=" + display);
 
-						LddLibrariesResult lddLibrariesResult = lddLibraries(testTmpDir,
-								libraryPath,
-								".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)|(pi3-gtk)).*");
-						Engine.logEngine.info("Checking SWT libraries dependencies:\n"
-								+ lddLibrariesResult.response);
-						if (lddLibrariesResult.linkErrorFound) {
-							Engine.logEngine.error("Missing some SWT libraries dependencies");
-							testsSummary += TEST_FAILED;
-						} else if (lddLibrariesResult.lddError) {
+						if (display == null) {
+							Engine.logEngine.error("The DISPLAY environment variable is not set!");
 							testsSummary += TEST_FAILED;
 						} else {
 							testsSummary += TEST_SUCCESS;
 						}
-					} else {
-						testsSummary += "IGNORED\n";
 					}
-				}
-			} finally {
-				if (!FileUtils.deleteQuietly(testTmpDir)) {
-					Engine.logEngine.warn("Unable to delete tmp test dir: " + testTmpDir.getPath());
+					
+					// SWT libraries dependencies
+					testsSummary += " - SWT libraries dependencies ................. ";
+
+					File convertigoLib = new File(Engine.WEBAPP_PATH + "/WEB-INF/lib/");
+
+					String[] swtFoundJars = convertigoLib.list(new FilenameFilter() {
+						public boolean accept(File dir, String name) {
+							return name.startsWith("swt_") && name.endsWith(".jar");
+						}
+					});
+
+					if (swtFoundJars == null || swtFoundJars.length == 0) {
+						Engine.logEngine.error("Unable to find the SWT jar in " + convertigoLib.getPath());
+						testsSummary += TEST_FAILED;
+					} else {
+						String swtJar = swtFoundJars[0];
+
+						Engine.logEngine.info("Found SWT jar: " + swtJar);
+
+						File swtJarFile = new File(convertigoLib, swtJar);
+						try {
+							FileUtils.copyFileToDirectory(swtJarFile, testTmpDir);
+						} catch (IOException e) {
+							Engine.logEngine.error("Unable to copy the SWT jar: " + e.getMessage());
+							testsSummary += TEST_FAILED;
+						}
+
+						try {
+							// Unzip the SWT jar
+							ZipUtils.expandZip(new File(testTmpDir, swtJar).toString(), testTmpDir.toString());
+						} catch (Exception e) {
+							Engine.logEngine.error("Unable to unzip the SWT jar: " + e.getMessage());
+							testsSummary += TEST_FAILED;
+						}
+
+						// Check the SWT libraries dependencies
+						if (isLinux) {
+							String osArchitecture = ((architecture == Architecture.x32bits ? "i386" :
+								architecture == Architecture.x64bits ? "amd64" : ""));
+
+							String libraryPath = xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":" + javaHome + "/lib/" + osArchitecture;
+
+							File javaLib = new File(javaHome + "/lib/" + osArchitecture);
+							libraryPath += ":" + javaLib;
+							for (File javaSubLib : javaLib.listFiles()) {
+								if (javaSubLib.isDirectory()) {
+									libraryPath += ":" + javaSubLib.getAbsolutePath();
+								}
+							}
+
+							LddLibrariesResult lddLibrariesResult = lddLibraries(testTmpDir,
+									libraryPath,
+									".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)|(pi3-gtk)).*");
+							Engine.logEngine.info("Checking SWT libraries dependencies:\n"
+									+ lddLibrariesResult.response);
+							if (lddLibrariesResult.linkErrorFound) {
+								Engine.logEngine.error("Missing some SWT libraries dependencies");
+								testsSummary += TEST_FAILED;
+							} else if (lddLibrariesResult.lddError) {
+								testsSummary += TEST_FAILED;
+							} else {
+								testsSummary += TEST_SUCCESS;
+							}
+						} else {
+							testsSummary += "IGNORED\n";
+						}
+					}
+				} finally {
+					if (!FileUtils.deleteQuietly(testTmpDir)) {
+						Engine.logEngine.warn("Unable to delete tmp test dir: " + testTmpDir.getPath());
+					}
 				}
 			}
 

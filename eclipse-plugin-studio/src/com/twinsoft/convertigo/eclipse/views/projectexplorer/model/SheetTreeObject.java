@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -82,5 +82,10 @@ public class SheetTreeObject extends DatabaseObjectTreeObject implements IEditab
 				ConvertigoPlugin.logException(e, "Error while loading the xsl editor '" + parentStyleSheet + "'");
 			}
 		}
+	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
 	}
 }

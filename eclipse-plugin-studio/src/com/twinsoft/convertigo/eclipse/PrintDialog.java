@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -86,7 +86,7 @@ public class PrintDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		printDialogArea = new PrintDialogArea(parent, 0);		
 		String projectName = project.getName();
-		String outputFileName = Engine.PROJECTS_PATH + "\\" + projectName;
+		String outputFileName = Engine.projectDir(projectName);
 		printDialogArea.setFileLocation(outputFileName);
 		return printDialogArea;
 	}

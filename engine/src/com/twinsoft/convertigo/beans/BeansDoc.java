@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,65 +21,89 @@ package com.twinsoft.convertigo.beans;
  
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.FileWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.xpath.XPathExpressionException;
-
-import org.apache.commons.jxpath.JXPathContext;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.ProcessingInstruction;
-import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.Component;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBean.DocumentedMode;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
 public class BeansDoc {
-	//private static Map<String, Element> collision = new HashMap<String, Element>();
-	private static final Pattern pDescription = Pattern.compile("(.*?)(?:\\|(.*))?");
-
-	public static void main(String[] args) throws Exception {
-		Document documentBeansDoc = CreateDocumentBeansDoc();
+	private static final Pattern pDescription = Pattern.compile("(.*?)(?:\\|\\s*(.*))?");
 	
-		String sDocument = XMLUtils.prettyPrintDOM(documentBeansDoc);
-		System.out.println(sDocument);
-		FileWriter writer = new FileWriter("beans.xml");
-		writer.write(sDocument);
-		writer.close();
+	private int max;
+	private int count = 0;
+	private File outputDirectory;
+	private File imageDirectory;
+	private String groupName;
+	private String categoryName;
+	private String beansCategoryName;
+	private static Map<String, String> fullnames = new HashMap<String, String>();
+	
+	public static void main(String[] args) throws Exception {
+		int max = -1;
+		switch (args.length) {
+		case 0:
+			System.err.println("Missing arguments: <output directory> (optional: max objects)");
+			System.exit(1);
+		case 2:
+			max = Integer.parseInt(args[1]);
+		}
+		File dir = new File(args[0]);
+		if (!new File(dir, "_config.yml").exists()) {
+			System.err.println("<output directory>: " + dir.getAbsolutePath() + "\nShould have a _config.yml file.");
+		}
+		File outputDirectory = new File(dir, "reference-manual/convertigo-objects");
+		File imageDirectory = new File(dir, "images/beans");
+		System.out.println("Generating in: " + dir.getAbsolutePath());
+		if (max >= 0) {
+			System.out.println("Generating max " + max + " objects");
+		}
+		long start = System.currentTimeMillis();
+		int count = new BeansDoc(outputDirectory, imageDirectory, max).run();
+		long total = System.currentTimeMillis() - start;
+		System.out.println("\nGenerated in: " + dir.getAbsolutePath());
+		System.out.println("Generated " + count + " objects in: " + total + " ms (" + (total * 1.0f / count) + " ms / object)");
 	}
 	
-	public static Document CreateDocumentBeansDoc() throws Exception
-	{
+	private BeansDoc(File outputDirectory, File imageDirectory, int max) {
+		this.outputDirectory = outputDirectory;
+		this.imageDirectory = imageDirectory;
+		this.max = max;
+		fullnames.put("convertigo-objects", "Convertigo Objects");
+	}
+	
+	private int run()  throws Exception {
+		FileUtils.deleteQuietly(outputDirectory);
+		FileUtils.deleteQuietly(imageDirectory);
 		// Loggers
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 		Engine.logContext = Logger.getLogger(BeansDoc.class);
@@ -88,216 +112,233 @@ public class BeansDoc {
 		// Engine properties manager
 		EnginePropertiesManager.initProperties();
 
-		// Starting the DBO database exploration...
-		Document documentBeansDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-		ProcessingInstruction pi = documentBeansDoc.createProcessingInstruction("xml",
-				"version=\"1.0\" encoding=\"UTF-8\"");
-		documentBeansDoc.appendChild(pi);
-
-		Element dbdRoot = documentBeansDoc.createElement("database_objects");
-		documentBeansDoc.appendChild(dbdRoot);
-		
 		DboExplorerManager manager = new DboExplorerManager();
-		
 		List<DboGroup> groups = manager.getGroups();
-		
 		for (DboGroup group : groups) {
-			Element dbdGroup = documentBeansDoc.createElement("group");
-			dbdRoot.appendChild(dbdGroup);	
-			Element dbdGroupName = documentBeansDoc.createElement("name");
-			Text groupName = documentBeansDoc.createTextNode(group.getName());
-			dbdGroupName.appendChild(groupName);
-			dbdGroup.appendChild(dbdGroupName);
+			groupName = group.getName();
 			List<DboCategory> categories = group.getCategories();
 			for (DboCategory category : categories) {
-				String categoryName = category.getName();
-				Element dbdCategory = documentBeansDoc.createElement("category");
-				dbdGroup.appendChild(dbdCategory);	
-				Element dbdCategoryName = documentBeansDoc.createElement("name");
-				if (!"".equals(categoryName)) {
-					dbdCategoryName.appendChild(documentBeansDoc.createTextNode(categoryName));
-					dbdCategory.appendChild(dbdCategoryName);
-				}
+				categoryName = category.getName();
 				List<DboBeans> beansCategories = category.getBeans(); 
 				for (DboBeans beansCategory : beansCategories) {
-					String beansCategoryName = beansCategory.getName();
-					Element dbdBeans = documentBeansDoc.createElement("beans");
-					dbdCategory.appendChild(dbdBeans);	
-					Element dbdBeansName = documentBeansDoc.createElement("name");
-					if( !"".equals(beansCategoryName)) {
-						Text beansName = documentBeansDoc.createTextNode(beansCategoryName);
-						dbdBeansName.appendChild(beansName);
-						dbdBeans.appendChild(dbdBeansName);
-					}
+					beansCategoryName = beansCategory.getName();
 					List<DboBean> beans = beansCategory.getBeans();
 					for (DboBean bean : beans) {
-						if(bean.isEnable()) {
-							switch (bean.getDocumentedMode()) {
-							case TRUE:
-								createBeanElement(bean, documentBeansDoc, dbdBeans, true);
-								break;
-							case FALSE:
-								createBeanElement(bean, documentBeansDoc, dbdBeans, false);
-								break;
-							default: break;
+						if (bean.isEnable()) {
+							if (count == max) {
+								return count;
+							} else {
+								count++;
 							}
+							System.out.println("handle /" + groupName + "/" + categoryName + "/" + beansCategoryName + "/" + bean.getClassName());
+							createBeanElement(bean, bean.getDocumentedMode() == DocumentedMode.TRUE);
 						}
 					}
 				}
 			}
-		}
-		handleMobileComponents(documentBeansDoc);
-		return documentBeansDoc;
+		}		
+		generateMobileComponentsMd(outputDirectory);
+		makeListingPages(outputDirectory);		
+		return count;
 	}
 	
-	private static void handleMobileComponents(Document doc) {
-		JXPathContext xpath = JXPathContext.newContext(doc);
-		Element category = (Element) xpath.selectSingleNode("/database_objects/group[name = 'Mobile Application']/category[name = 'Components']");
-		xpath = JXPathContext.newContext(category);
-		Map<String, Element> beansMap = new HashMap<String, Element>();
+	private void generateMobileComponentsMd(File outputDirectory)
+	{		
+		List<Component> grpBeans = ComponentManager.getComponentsByGroup();	
+		Map<String,IonBean> map = ComponentManager.getIonBeans();		
 		
-		for (String group: ComponentManager.getGroups()) {
-			String group_name = group.replaceFirst("s$", "") + " Components";
-			Element beans = (Element) xpath.selectSingleNode("beans[name = '" + group_name + "']");
-			if (beans == null) {
-				beans = (Element) category.appendChild(doc.createElement("beans"));
-				((Element) beans.appendChild(doc.createElement("name"))).setTextContent(group_name);
+		for(Component beanMB: grpBeans)
+		{
+			String grpName = beanMB.getGroup();
+			String objName = beanMB.getName();
+			String objLabel = beanMB.getLabel();
+			String imgPath = beanMB.getImagePath();
+			
+			String imgPathNormalized = imgPath.replaceFirst("/com/twinsoft/convertigo/beans/", "");
+			String classPathNormalized = "ion_objects.json"; // We are changing it if the bean is not an IonBean just below
+			String grpNameNormalized = grpName;
+			
+			Boolean isIonBean = false;
+			
+			// Here we are checking that our bean is not in an IonBean
+			// If it is we set isIonBean to true;
+			for (Map.Entry<String, IonBean> ionbean : map.entrySet()) {
+				if(objName == ionbean.getKey()) {
+					isIonBean = true;
+				}				
 			}
-			beansMap.put(group, beans);
+			// If this bean is not an IonBean we simply add this class
+			if(isIonBean == false) {
+				classPathNormalized = "com.twinsoft.convertigo.beans.mobile.components.res."+objName;
+			}				
+			
+			if(!grpName.contains("Components")) {
+				grpNameNormalized = grpName.concat(" Components");	
+			}
+			grpNameNormalized = mbNormalize(grpNameNormalized);
+			
+			String objLabelNormalized = mbNormalize(objLabel);
+			String path = "/mobile-application/components/" + grpNameNormalized + "/";
+			String permalink = "reference-manual/convertigo-objects" + path + objLabelNormalized + "/";
+			
+			String metadesc = beanMB.getDescription();
+			metadesc = metadesc.replaceAll("<[a-zA-Z]*>|<\\/[a-zA-Z]*>|<br\\/>", " ");
+			metadesc = metadesc.replaceAll(":", " ");
+			metadesc = metadesc.replaceAll("\\|", " ");
+			
+			if(metadesc.length() >= 150)
+				metadesc = metadesc.substring(0, 150);
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("---\n" +
+					"layout: page\n" +
+					"title: " + objLabel + "\n" +
+					"sidebar: c8o_sidebar\n" +
+					"permalink: " + permalink + "\n" +
+					"metadesc: " + metadesc + "\n" +
+					"ObjGroup: " + grpName + "\n" +
+					"ObjCatName: " + grpNameNormalized + "\n" +
+					"ObjName: " + objName + "\n" +
+					"ObjClass: " + classPathNormalized + "\n" +
+					"ObjIcon: /images/beans/" + imgPathNormalized + "\n" +
+					"topnav: topnavobj" + "\n" +
+					"---\n");
+			String description = beanMB.getDescription();
+			description = description.replaceAll("\\|", "<br/>\n");
+			description = description.replaceAll("<br\\/>", "<br/>\n");
+			description = description.replaceAll("Defines| Defines", "##### Defines");
+			sb.append(description + "\n\n");
+			
+			// Prepare properties to create a markdown table
+			String properties = beanMB.getPropertiesDescription();
+			properties = properties.replaceAll("</i></br>"," | ");
+			properties = properties.replaceAll("<ul>|</ul>","");
+			properties = properties.replaceAll("<li><i>","");
+			properties = properties.replaceAll("</li>","\n");
+			
+			if(!properties.isEmpty()) {
+				sb.append("Name | Description \n");
+				sb.append("--- | ---\n");				
+				sb.append(properties + "\n");
+			}			
+			
+			String toWrite = sb.toString();
+			if (!"\n".equals(System.lineSeparator())) {
+				toWrite = toWrite.replace("\n", System.lineSeparator());
+			}
+			try (InputStream is = getClass().getResourceAsStream(imgPath)) {
+				System.out.println("imgPath : " + imgPath);
+				String imgPathModified = imgPath.replaceFirst(".*\\w\\/beans", "");
+				FileUtils.copyInputStreamToFile(is, new File(imageDirectory, imgPathModified));
+				System.out.println("Image generated at : " + imageDirectory + imgPathModified);
+			} catch (Exception e) {
+				System.out.println("Unable to copy the image file");
+			}
+			try {
+				FileUtils.write(new File(outputDirectory, path + objLabelNormalized + ".md"), toWrite, "UTF-8");
+				System.out.println("Generated md for : " + objLabel);
+			}
+			catch (IOException e) {
+				System.out.println("Unable to write the file");
+			}
 		}
-		
-		for (Component component: ComponentManager.getComponentsByGroup()) {
-			DatabaseObject dbo = ComponentManager.createBean(component);
-			if (!(dbo instanceof UIDynamicElement)) {
-				System.out.println("no UIDynamicElement but " + dbo.getClass());
-				continue;
-			}
-			
-			IonBean ionBean = ((UIDynamicElement) dbo).getIonBean();
-			
-			Element beans = beansMap.get(component.getGroup());
-			
-			JXPathContext xbeans = JXPathContext.newContext(beans);
-			Element bean = (Element) xbeans.selectSingleNode("bean[display_name = '" + component.getLabel() + "']");
-			if (bean != null) {
-				System.out.println("remove existing " + component.getLabel());
-				bean.getParentNode().removeChild(bean);
-			}
-			
-			bean = (Element) beans.appendChild(doc.createElement("bean"));
-			((Element) bean.appendChild(doc.createElement("class"))).setTextContent(ionBean.getClassName());
-			((Element) bean.appendChild(doc.createElement("icon"))).setTextContent(ionBean.getIconColor32Path());
-			//((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getDisplayName());
-			((Element) bean.appendChild(doc.createElement("display_name"))).setTextContent(ionBean.getLabel());
-			String description[] = ionBean.getDescription().split("\\|", 2);
-			((Element) bean.appendChild(doc.createElement("short_description"))).setTextContent(description[0].trim());
-			if (description.length > 1) {
-				((Element) bean.appendChild(doc.createElement("long_description"))).setTextContent(description[1].trim());
-			}
-			
-			SortedSet<IonProperty> properties = new TreeSet<IonProperty>(new Comparator<IonProperty>() {
-
-				@Override
-				public int compare(IonProperty o1, IonProperty o2) {
-					int res = o1.getCategory().startsWith("@") ? (o2.getCategory().startsWith("@") ? 0 : -1) : (o2.getCategory().startsWith("@") ? 1 : 0);
-					if (res == 0) {
-						res = o1.getCategory().compareTo(o2.getCategory());
-					}
-					if (res == 0) {
-						res = o1.getLabel().compareTo(o2.getLabel());
-					}
-					return res;
-				}
-			});
-			properties.addAll(ionBean.getProperties().values());
-			for (IonProperty prop: properties) {
-				Element property = (Element) bean.appendChild(doc.createElement("property"));
-				((Element) property.appendChild(doc.createElement("type"))).setTextContent(prop.getType());
-				((Element) property.appendChild(doc.createElement("category"))).setTextContent(prop.getCategory());
-				((Element) property.appendChild(doc.createElement("name"))).setTextContent(prop.getName());
-				((Element) property.appendChild(doc.createElement("display_name"))).setTextContent(prop.getLabel());
-				((Element) property.appendChild(doc.createElement("short_description"))).setTextContent(prop.getDescription());
-			}
-		}
-		doc.toString();
 	}
 	
-	private static void createBeanElement(DboBean bean, Document document, Element parentElement, Boolean bEnable)
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IntrospectionException, XPathExpressionException {
+	private String mbNormalize(String str) {
+		String normalized = str.toLowerCase();
+		normalized = normalized.replaceAll(" / ", " ");
+		normalized = normalized.replaceAll(" ", "-");		
+		if(!normalized.contains("miscellaneous")) {
+			normalized = normalized.replaceAll("s-c", "-c");
+		}
+		fullnames.put(normalized, str);
+		return normalized;
+	}
+	
+	
+	private void createBeanElement(DboBean bean, boolean bEnable) throws Exception {
 		String databaseObjectClassName = bean.getClassName();
-		DatabaseObject databaseObject = (DatabaseObject) Class.forName(
-				databaseObjectClassName).newInstance();
-
-		boolean isExtractionRule = databaseObject instanceof ExtractionRule;
-		Class<?> databaseObjectClass = databaseObject.getClass();
+		Class<?> databaseObjectClass = Class.forName(databaseObjectClassName);
+		DatabaseObject databaseObject = (DatabaseObject) databaseObjectClass.newInstance();
 		BeanInfo beanInfo = Introspector.getBeanInfo(databaseObjectClass);
 		BeanDescriptor databaseObjectBeanDescriptor = beanInfo.getBeanDescriptor();
-		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 		
-		Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
-				
-			@Override
-			public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-				if(o1.isExpert() == o2.isExpert())
-					return o1.getDisplayName().compareTo(o2.getDisplayName());
-				else if(o1.isExpert())
-					return 1;
-				else 
-					return -1;
-			}				
-		} );
-		
-		Element elementBean = document.createElement("bean");
-		parentElement.appendChild(elementBean);
-
-		Element elementSub;
-		Text elementText;
 		String displayName = databaseObjectBeanDescriptor.getDisplayName();
-
-		elementSub = document.createElement("class");
-		elementText = document.createTextNode(databaseObjectClassName);
-		elementSub.appendChild(elementText);
-		elementBean.appendChild(elementSub);
-
-		elementSub = document.createElement("icon");
-		elementText = document.createTextNode(MySimpleBeanInfo.getIconName(beanInfo, BeanInfo.ICON_COLOR_32x32));
-		elementSub.appendChild(elementText);
-		elementBean.appendChild(elementSub);
-
-		elementSub = document.createElement("display_name");
-		elementText = document.createTextNode(displayName);
-		elementSub.appendChild(elementText);
-		elementBean.appendChild(elementSub);
-
-		String description = databaseObjectBeanDescriptor.getShortDescription();
 		
-		String shortDescpription = description;
+		String normalizedGroupName = normalize(groupName);
+		String normalizedCategoryName = normalize(categoryName);
+		String normalizedBeansCategoryName = normalize(beansCategoryName);
+		String normalizedName = normalize(displayName);
 		
-		String longDescpription = "";
+		String path = (normalizedGroupName + "/" + normalizedCategoryName + "/" + normalizedBeansCategoryName + "/" + normalizedName).replaceAll("/+", "/");
 		
-		Matcher mDescription = pDescription.matcher(description);
-		if (mDescription.matches()) {
-			shortDescpription = mDescription.group(1);
-			if (mDescription.group(2) != null) {
-				longDescpription = mDescription.group(2);
+		String iconName = MySimpleBeanInfo.getIconName(beanInfo, BeanInfo.ICON_COLOR_32x32);
+		String iconPath = iconName.replaceFirst(".*/beans/", "");
+		try {
+			try (InputStream is = getClass().getResourceAsStream(iconName)) {
+				FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
+			}
+		} catch (Exception e) {
+			iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
+			iconPath = iconName.replaceFirst(".*/beans/", "");
+			try (InputStream is = getClass().getResourceAsStream(iconName)) {
+				FileUtils.copyInputStreamToFile(is, new File(imageDirectory, iconPath));
 			}
 		}
+		StringBuilder sb = new StringBuilder();
+		String permalink = "reference-manual/convertigo-objects/" + path + "/";
+		
+		String metadesc = databaseObjectBeanDescriptor.getShortDescription();
+		metadesc = metadesc.replaceAll("<[a-zA-Z]*>|<\\/[a-zA-Z]*>|<br\\/>", " ");
+		metadesc = metadesc.replaceAll(":", " ");
+		metadesc = metadesc.replaceAll("\\|", " ");
+		
+		if(metadesc.length() >= 150)
+			metadesc = metadesc.substring(0, 150);
+		
+		sb.append(
+			"---\n" +
+			"layout: page\n" +
+			"title: " + displayName + "\n" +
+			"sidebar: c8o_sidebar\n" +
+			"permalink: " + permalink + "\n" +
+			"metadesc: " + metadesc + "\n" +
+			"ObjGroup: " + groupName + "\n" +
+			"ObjCatName: " + normalizedBeansCategoryName + "\n" +
+			"ObjName: " + displayName + "\n" +
+			"ObjClass: " + databaseObjectClassName + "\n" +
+			"ObjIcon: /images/beans/" + iconPath + "\n" +
+			"topnav: topnavobj" + "\n" +
+			"---\n"
+		);
 		
 		if (bEnable) {
-			elementSub = document.createElement("short_description");
-			elementText = document.createTextNode(shortDescpription);
-			elementSub.appendChild(elementText);
-			elementBean.appendChild(elementSub);
-	
-			elementSub = document.createElement("long_description");
-			longDescpription.replaceAll("\\n", "\n");
-			elementText = document.createTextNode(longDescpription);
-			elementSub.appendChild(elementText);
-			elementBean.appendChild(elementSub);
-	
+			String description = databaseObjectBeanDescriptor.getShortDescription();
+			
+			String shortDescription = description;
+			
+			String longDescription = "";
+			
+			Matcher mDescription = pDescription.matcher(description);
+			if (mDescription.matches()) {
+				shortDescription = mDescription.group(1);
+				if (mDescription.group(2) != null) {
+					longDescription = mDescription.group(2);
+					longDescription.replaceAll("\\n", "\n\n");
+				}
+			}
+			
+			sb.append(
+				"##### " + shortDescription + "\n\n" + longDescription + "\n"
+			);
+			
+			SortedMap<String, String> properties = new TreeMap<>();
+			
+			PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+			
 			for (PropertyDescriptor databaseObjectPropertyDescriptor : propertyDescriptors) {
 				boolean skip = false;
-				longDescpription = "";
+				longDescription = "";
 				
 				// Don't display hidden property descriptors
 				if (databaseObjectPropertyDescriptor.isHidden()) {
@@ -306,7 +347,7 @@ public class BeansDoc {
 				
 				Method getter = databaseObjectPropertyDescriptor.getReadMethod();
 				Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
-	
+				
 				// Only display read/write property descriptors
 				if (getter == null || setter == null) {
 					skip = true;
@@ -319,8 +360,8 @@ public class BeansDoc {
 						String parentName = parent.getClassName();
 						if (blackListedForParentClass.equals(parentName)) {
 							skip = true;
-							continue;
-						}							
+							break;
+						}
 					}
 				}
 				
@@ -329,7 +370,7 @@ public class BeansDoc {
 				}
 				
 				String category = "standard";
-				if (isExtractionRule) {
+				if (databaseObject instanceof ExtractionRule) {
 					category = "configuration";
 					if (databaseObjectPropertyDescriptor.isExpert()) {
 						category = "selection";
@@ -337,71 +378,89 @@ public class BeansDoc {
 				} else if (databaseObjectPropertyDescriptor.isExpert()) {
 					category = "expert";
 				}
-	
-				description = databaseObjectPropertyDescriptor
-						.getShortDescription();
+				
+				description = databaseObjectPropertyDescriptor.getShortDescription();
 				
 				mDescription = pDescription.matcher(description);
 				
 				if (mDescription.matches()) {
-					shortDescpription = mDescription.group(1).trim();
+					description = mDescription.group(1).trim();
 					if (mDescription.group(2) != null) {
-						longDescpription = mDescription.group(2).trim();
+						description += "<br/>" + mDescription.group(2).trim();
 					}
 				}
 				
-	
-				Element elementProperty = document.createElement("property");
-				elementBean.appendChild(elementProperty);
-	
-				elementSub = document.createElement("type");
-				if (databaseObjectPropertyDescriptor.getValue("scriptable") != null && 
-						databaseObjectPropertyDescriptor.getValue("scriptable").toString().equals("true")) {
-					elementText = document
-							.createTextNode("JS expression");
-				} else {
-					elementText = document
-							.createTextNode(databaseObjectPropertyDescriptor
-									.getPropertyType().getSimpleName());
+				String type = databaseObjectPropertyDescriptor.getPropertyType().getSimpleName();
+				if ("true".equals("" + databaseObjectPropertyDescriptor.getValue("scriptable"))) {
+					type = "JS expression";
 				}
-				elementSub.appendChild(elementText);
-				elementProperty.appendChild(elementSub);
-	
-				elementSub = document.createElement("category");
-				elementText = document.createTextNode(category);
-				elementSub.appendChild(elementText);
-				elementProperty.appendChild(elementSub);
-	
-				elementSub = document.createElement("name");
-				elementText = document
-						.createTextNode(databaseObjectPropertyDescriptor.getName());
-				elementSub.appendChild(elementText);
-				elementProperty.appendChild(elementSub);
-	
-				elementSub = document.createElement("display_name");
-				elementText = document
-						.createTextNode(databaseObjectPropertyDescriptor
-								.getDisplayName());
-				elementSub.appendChild(elementText);
-				elementProperty.appendChild(elementSub);
-	
-				elementSub = document.createElement("short_description");
-				elementText = document.createTextNode(shortDescpription);
-				elementSub.appendChild(elementText);
-				elementProperty.appendChild(elementSub);
-	
-				elementSub = document.createElement("long_description");
-				elementText = document.createTextNode(longDescpription);
-				elementSub.appendChild(elementText);
-				elementProperty.appendChild(elementSub);
+				
+				String propDisplayName = databaseObjectPropertyDescriptor.getDisplayName();
+				description = description.replace("|", "&#124;");
+				String line = propDisplayName + " | " +
+						type + " | " +
+						category + " | " +
+						description + "\n";
+				if (category.equals("standard")) {
+					category = "0";
+				}
+				properties.put(category + "_" + propDisplayName, line);
 			}
+			
+			if (!properties.isEmpty()) {
+				sb.append("\nProperty | Type | Category | Description\n--- | --- | --- | ---\n");
+				for (String line: properties.values()) {
+					sb.append(line);
+				}
+			}
+		} else {
+			sb.append("##### Not yet documented.\nFor more information, do not hesitate to contact us in the forum in our Developer Network website: http://www.convertigo.com/itcenter.html\n");
 		}
-		else {
-			elementSub = document.createElement("short_description");
-			elementText = document.createTextNode("Not yet documented.\nFor more information, do not hesitate to contact us in the forum in our Developer Network website: http://www.convertigo.com/itcenter.html");
-			elementSub.appendChild(elementText);
-			elementBean.appendChild(elementSub);
+		String toWrite = sb.toString();
+		if (!"\n".equals(System.lineSeparator())) {
+			toWrite = toWrite.replace("\n", System.lineSeparator());
 		}
+		FileUtils.write(new File(outputDirectory, path + ".md"), toWrite, "UTF-8");
 	}
 	
+	private void makeListingPages(File dir) throws IOException {
+		String path = dir.getAbsolutePath().substring(outputDirectory.getAbsolutePath().length()).replace("\\", "/");
+		String permalink = ("reference-manual/convertigo-objects/" + path + "/").replace("//", "/");
+		StringBuilder sb = new StringBuilder();
+		sb.append(
+			"---\n" +
+			"layout: page\n" +
+			"title: " + fullnames.get(dir.getName()) + "\n" +
+			"sidebar: c8o_sidebar\n" +
+			"permalink: " + permalink + "\n" +
+//			"ObjGroup: " + groupName + "\n" +
+//			"ObjCatName: " + normalizedBeansCategoryName + "\n" +
+//			"ObjName: " + displayName + "\n" +
+//			"ObjClass: " + databaseObjectClassName + "\n" +
+//			"ObjIcon: /images/beans/" + iconPath + "\n" +
+			"topnav: topnavobj" + "\n" +
+			"---\n"
+		);
+		String[] files = dir.list();
+		Arrays.sort(files);
+		for (String name: files) {
+			File f = new File(dir, name);
+			name = name.replace(".md", "");
+			sb.append("* [" + fullnames.get(name) + "](" + name + "/)\n");
+			if (f.isDirectory()) {
+				makeListingPages(f);
+			}
+		}
+		String toWrite = sb.toString();
+		if (!"\n".equals(System.lineSeparator())) {
+			toWrite = toWrite.replace("\n", System.lineSeparator());
+		}
+		FileUtils.write(new File(outputDirectory, path + "/index.md"), toWrite, "UTF-8");
+	}
+	
+	String normalize(String str) {
+		String normalized = str.toLowerCase().replaceAll("\\W", "-");
+		fullnames.put(normalized, str);
+		return normalized;
+	}
 }

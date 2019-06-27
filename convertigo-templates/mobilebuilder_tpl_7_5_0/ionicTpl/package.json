@@ -1,0 +1,61 @@
+{
+  "name": "Convertigo-template-app",
+  "author": "Convertigo & Ionic Framework",
+  "homepage": "http://www.convertigo.com/",
+  "private": true,
+  "scripts": {
+    "clean": "ionic-app-scripts clean",
+    "build": "ionic-app-scripts build --enableLint false --generateSourceMap false",
+    "ionic:build": "ionic-app-scripts build --enableLint false",
+    "ionic:build:prod": "ionic-app-scripts build --prod --enableLint false",
+    "ionic:serve:eval": "ionic-app-scripts serve --enableLint false --sourceMapType eval",
+    "ionic:serve:nosourcemap": "ionic-app-scripts serve --enableLint false --generateSourceMap false",
+    "ionic:serve": "ionic-app-scripts serve --enablelint false"
+  },
+  "dependencies": {
+    "@angular/common": "5.0.0",
+    "@angular/compiler": "5.0.0",
+    "@angular/compiler-cli": "5.0.0",
+    "@angular/core": "5.0.0",
+    "@angular/forms": "5.0.0",
+    "@angular/http": "5.0.0",
+    "@angular/platform-browser": "5.0.0",
+    "@angular/platform-browser-dynamic": "5.0.0",
+    "@ionic/storage": "2.1.3",
+    "ionic-angular": "3.9.2",
+    "rxjs": "5.5.2",
+    "zone.js": "0.8.18",
+    "@ionic-native/core": "4.3.3",
+    "@ionic-native/splash-screen": "4.3.3",
+    "@ionic-native/status-bar": "4.3.3",
+    "ionicons": "3.0.0",
+    "sw-toolbox": "3.6.0",
+    "ionic2-super-tabs": "4.0.1",
+    "@agm/core": "1.0.0-beta.2",
+    "ng2-charts":"1.6.0",
+    "@ngx-translate/core":"9.0.2",
+    "@ngx-translate/http-loader":"2.0.1",  
+    "c8osdkangular": "2.1.58",
+    "c8ocaf": "1.0.88"
+  },
+  "devDependencies": {
+    "@ionic/app-scripts": "3.1.6",
+    "typescript": "2.4.2"
+  },
+  "description": "MyApp: An Ionic project",
+  "cordovaPlugins": [
+    "cordova-plugin-device",
+    "cordova-plugin-console",
+    "cordova-plugin-whitelist",
+    "cordova-plugin-splashscreen",
+    "cordova-plugin-statusbar",
+    "ionic-plugin-keyboard"
+  ],
+  "config": {
+    "ionic_copy": "./config/copy.config.js",
+    "ionic_watch": "./config/watch.config.js",
+    "ionic_www_dir": "../DisplayObjects/mobile"
+  },
+  "cordovaPlatforms": []
+}
+

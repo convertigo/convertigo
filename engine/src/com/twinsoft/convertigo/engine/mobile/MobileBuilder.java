@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -46,6 +46,10 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.Contributor;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EventHelper;
@@ -53,156 +57,134 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 
 public class MobileBuilder {
-	class MbWorker extends Thread {
+	class MbWorker implements Runnable {
 		private BlockingQueue<Map<String, CharSequence>> wq;
+		List<Map<String, CharSequence>> list = new ArrayList<Map<String, CharSequence>>();
+		Map<String, CharSequence> map = new HashMap<String, CharSequence>();
 		protected boolean isRunning = true;
 		private boolean inProcess = false;
+		Thread thread;
 		
 		protected MbWorker(BlockingQueue<Map<String, CharSequence>> queue) {
 			this.wq = queue;
 		}
 		
-		@Override
-		public void run() {
-			List<Map<String, CharSequence>> list = new ArrayList<Map<String, CharSequence>>();
-			Map<String, CharSequence> map = new HashMap<String, CharSequence>();
-			
-			while (isRunning) {
-				try {
-					if (!inProcess) {
-						// retrieve all in queue
-						list.clear();
-						wq.drainTo(list);
-						
-						// process or not
-						if (list.size() == 0) {
-							try {
-								sleep(100L);
-							} catch (InterruptedException e) {}
-						} else {
-							inProcess = true;
-							map.clear();
-							for (Map<String, CharSequence> m: list) {
-								map.putAll(m);
+		public void start() {
+			if (thread == null) {
+				thread = new Thread(worker);
+				thread.setName("MbWorker-"+ project.getName());
+				thread.start();
+			}
+		}
+		
+		public void join() throws InterruptedException {
+			if (thread != null) {
+				thread.join();
+			}
+		}
+		
+		void process() {
+			if (!inProcess) {
+				// retrieve all in queue
+				list.clear();
+				wq.drainTo(list);
+				
+				// process or not
+				if (list.size() == 0) {
+					try {
+						Thread.sleep(100L);
+					} catch (InterruptedException e) {}
+				} else {
+					inProcess = true;
+					map.clear();
+					for (Map<String, CharSequence> m: list) {
+						map.putAll(m);
+					}
+					
+					boolean hasMovedAppOrServFiles = false;
+					boolean hasMovedPageFiles = false;
+					boolean hasMovedCfgFiles = false;
+					boolean hasMovedFiles = false;
+					
+					Engine.logEngine.debug("(MobileBuilder) Start to move " + map.size() + " files.");
+					
+					// FIRST: move all files
+					for (String path: map.keySet()) {
+						try {
+							FileUtils.write(new File(path), map.get(path), "UTF-8");
+							Engine.logEngine.debug("(MobileBuilder) Moved " + path);
+							hasMovedFiles = true;
+							
+							if (isAppFile(path) || isServiceFile(path)) {
+								hasMovedAppOrServFiles = true;
 							}
-							
-							boolean hasMovedCfgFiles = false;
-							boolean hasMovedAppFiles = false;
-							boolean hasMovedFiles = false;
-							Set<String> appFiles = new HashSet<>();
-							Set<String> cfgFiles = new HashSet<>();
-							
-							Engine.logEngine.debug("(MobileBuilder) Start to move " + map.size() + " files.");
-							for (String path: map.keySet()) {
-								try {
-									if (path.indexOf("\\src\\app\\") != -1) {
-										appFiles.add(path);
-									} else if (path.endsWith("package.json")) {
-										cfgFiles.add(path);
-									} else {
-										FileUtils.write(new File(path), map.get(path), "UTF-8");
-										hasMovedFiles = true;
-										Engine.logEngine.debug("(MobileBuilder) Moved " + path);
-									}
-								} catch (IOException e) {
-									Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
-								}
+							if (isPageFile(path)) {
+								hasMovedPageFiles = true;
 							}
-							
-							if (cfgFiles.size() > 0) {
-								for (String path: cfgFiles) {
-									try {
-										FileUtils.write(new File(path), map.get(path), "UTF-8");
-										hasMovedCfgFiles = true;
-										Engine.logEngine.debug("(MobileBuilder) Moved " + path);
-									} catch (IOException e) {
-										Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
-									}
-								}
-								cfgFiles.clear();
-								
-								if (hasMovedCfgFiles && getNeedPkgUpdate()) {
-									MobileBuilder.this.firePackageUpdated();
-								}
+							if (path.endsWith("package.json")) {
+								hasMovedCfgFiles = true;
 							}
-							
-							if (buildMutex != null) {
-								synchronized (buildMutex) {
-									try {
-										buildMutex.wait(hasMovedFiles ? 60000 : 10);
-									} catch (InterruptedException e) {}							
-								}
-							}
-							
-							String lastModulePath = null;
-							String lastComponentPath = null;
-							CharSequence lastModuleContent = null;
-							CharSequence lastComponentContent = null;
-							if (appFiles.size() > 0) {
-								for (String path: appFiles) {
-									try {
-										if (path.endsWith("app.module.ts")) {
-											lastModulePath = path;
-											lastModuleContent = map.get(lastModulePath);
-										}
-										if (path.endsWith("app.component.ts")) {
-											lastComponentPath = path;
-											lastComponentContent = map.get(lastComponentPath);
-										}
-										FileUtils.write(new File(path), map.get(path), "UTF-8");
-										hasMovedAppFiles = true;
-										Engine.logEngine.debug("(MobileBuilder) Moved " + path);
-									} catch (IOException e) {
-										Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
-									}
-								}
-								appFiles.clear();
-								
-								if (buildMutex != null) {
-									synchronized (buildMutex) {
-										try {
-											buildMutex.wait(hasMovedAppFiles ? 60000 : 10);
-										} catch (InterruptedException e) {}							
-									}
-								}
-							}
-							
-							if (hasMovedAppFiles) {
-								hasMovedAppFiles = false;
-								if (lastModuleContent != null && lastModulePath != null) {
-									try {
-										FileUtils.write(new File(lastModulePath), lastModuleContent, "UTF-8");
-										hasMovedAppFiles = true;
-										Engine.logEngine.debug("(MobileBuilder) Moved again " + lastModulePath);
-									} catch (IOException e) {
-										Engine.logEngine.warn("(MobileBuilder) Failed to copy the last content of " + lastModulePath, e);
-									}
-								}
-								
-								if (lastComponentContent != null && lastComponentPath != null) {
-									try {
-										FileUtils.write(new File(lastComponentPath), lastComponentContent, "UTF-8");
-										hasMovedAppFiles = true;
-										Engine.logEngine.debug("(MobileBuilder) Moved again " + lastComponentPath);
-									} catch (IOException e) {
-										Engine.logEngine.warn("(MobileBuilder) Failed to copy the last content of " + lastComponentPath, e);
-									}
-								}
-								
-								if (buildMutex != null) {
-									synchronized (buildMutex) {
-										try {
-											buildMutex.wait(hasMovedAppFiles ? 60000 : 10);
-										} catch (InterruptedException e) {}							
-									}
-								}
-								
-							}
-							
-							Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
-							inProcess = false;
+						} catch (IOException e) {
+							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
 						}
 					}
+					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
+					
+					// Need package installation
+					if (hasMovedCfgFiles && getNeedPkgUpdate()) {
+						hasMovedFiles = false;
+						MobileBuilder.this.firePackageUpdated();
+					}
+					
+					if (hasMovedFiles) {
+						if (buildMutex != null) {
+							synchronized (buildMutex) {
+								try {
+									buildMutex.wait(60000);
+								} catch (InterruptedException e) {}							
+							}
+							Engine.logEngine.debug("(MobileBuilder) build finished.");
+						}
+						
+						// THEN: move again app or service files 
+						if (hasMovedPageFiles && hasMovedAppOrServFiles) {
+							int count = 0;
+							for (String path: map.keySet()) {
+								if (isAppFile(path) || isServiceFile(path)) {
+									try {
+										FileUtils.write(new File(path), map.get(path), "UTF-8");
+										Engine.logEngine.debug("(MobileBuilder) Moved again " + path);
+										count++;
+									} catch (IOException e) {
+										Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
+									}
+								}
+							}
+							
+							if (count > 0) {
+								Engine.logEngine.debug("(MobileBuilder) End to move again " + count + " files.");
+								
+								if (buildMutex != null) {
+									synchronized (buildMutex) {
+										try {
+											buildMutex.wait(60000);
+										} catch (InterruptedException e) {}							
+									}
+									Engine.logEngine.debug("(MobileBuilder) build finished.");
+								}
+							}
+						}
+					}
+					inProcess = false;
+				}
+			}
+		}
+		
+		@Override
+		public void run() {
+			while (isRunning) {
+				try {
+					process();
 				} catch (Throwable t) {
 					Engine.logEngine.error("(MobileBuilder) Throwable catched", t);
 				} finally {
@@ -211,6 +193,9 @@ public class MobileBuilder {
 			}
 		}
 	}
+	
+	private static Pattern LsPattern = Pattern.compile("\\R");
+	private static Pattern CacheVersion = Pattern.compile("const\\sCACHE_VERSION\\s\\=\\s\\d+");
 	
 	private BlockingQueue<Map<String, CharSequence>> queue = null;
 	private Map<String, CharSequence> pushedFiles = null;
@@ -237,12 +222,29 @@ public class MobileBuilder {
 	String moduleTplNgComponents = null;
 	String tplVersion = null;
 	
+	boolean isPWA = false;
+	
 	Set<File> writtenFiles = new HashSet<File>();
 	
 	File projectDir, ionicTplDir, ionicWorkDir;
 	
+	static private boolean isAppFile(String path) {
+		String search = File.separator + "src" + File.separator + "app" + File.separator;
+		return path == null ? false : path.indexOf(search) != -1;
+	}
+	
+	static private boolean isPageFile(String path) {
+		String search = File.separator + "src" + File.separator + "pages" + File.separator;
+		return path == null ? false : path.indexOf(search) != -1;
+	}
+	
+	static private boolean isServiceFile(String path) {
+		String search = File.separator + "src" + File.separator + "services" + File.separator;
+		return path == null ? false : path.indexOf(search) != -1;
+	}
+		
 	static public void initBuilder(Project project) {
-		if (project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+		if ((Engine.isStudioMode() || Engine.isCliMode()) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
@@ -257,7 +259,7 @@ public class MobileBuilder {
 	}
 	
 	static public void releaseBuilder(Project project) {
-		if (project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+		if (Engine.isStudioMode() && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().release();
 			} catch (Exception e) {
@@ -294,9 +296,10 @@ public class MobileBuilder {
 			}
 		}
 	}
-	
+
 	public void setBuildMutex(Object mutex) {
 		buildMutex = mutex;
+		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
 	}
 	
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
@@ -312,6 +315,14 @@ public class MobileBuilder {
 		return nodeModulesDir.exists();
 	}
 		
+	public synchronized void appPwaChanged(final ApplicationComponent app) throws EngineException {
+		if (app != null && initDone) {
+			setAppWpaAble(app.isPWA());
+			moveFiles();
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
+		}
+	}
+	
 	public synchronized void appRootChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
@@ -321,7 +332,7 @@ public class MobileBuilder {
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appRootChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
 
@@ -334,7 +345,7 @@ public class MobileBuilder {
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appRouteChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appRouteChanged'");
 		}
 	}
 	
@@ -353,7 +364,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			addPage(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageEnabled'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageEnabled'");
 		}
 	}
 	
@@ -366,7 +377,7 @@ public class MobileBuilder {
 					writePageSourceFiles(page);
 					writeAppSourceFiles(application);
 					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageDisabled'");
+					Engine.logEngine.trace("(MobileBuilder) Handled 'pageDisabled'");
 				}
 			}
 		}
@@ -376,7 +387,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && page.bNew && initDone) {
 			addPage(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageAdded'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageAdded'");
 		}
 	}
 	
@@ -389,7 +400,7 @@ public class MobileBuilder {
 					writeAppSourceFiles(application);
 					deleteUselessDir(page.getName());
 					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRemoved'");
+					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRemoved'");
 				}
 			}
 		}
@@ -405,7 +416,7 @@ public class MobileBuilder {
 					writeAppSourceFiles(application);
 					deleteUselessDir(oldName);
 					moveFiles();
-					Engine.logEngine.debug("(MobileBuilder) Handled 'pageRenamed'");
+					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRenamed'");
 				}
 			}
 		}
@@ -415,7 +426,7 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageTemplate(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTemplateChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageTemplateChanged'");
 		}
 	}
 	
@@ -423,16 +434,10 @@ public class MobileBuilder {
 		if (page != null && page.isEnabled() && initDone) {
 			writePageStyle(page);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageStyleChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageStyleChanged'");
 		}
 	}
 
-	public synchronized void pageContributorsChanged(final PageComponent page) throws EngineException {
-		if (page != null && page.isEnabled() && initDone) {
-			appContributorsChanged(page.getApplication());
-		}
-	}
-	
 	public synchronized void appContributorsChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
 			writeAppPackageJson(app);
@@ -440,7 +445,7 @@ public class MobileBuilder {
 			writeAppServiceTs(app);
 			writeAppModuleTs(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appContributorsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
 		}
 	}
 	
@@ -456,7 +461,7 @@ public class MobileBuilder {
 				writePageTempTs(page);
 			}
 			
-			Engine.logEngine.debug("(MobileBuilder) Handled 'pageTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageTsChanged'");
 		}
 	}
 
@@ -470,7 +475,7 @@ public class MobileBuilder {
 				writeAppComponentTempTs(app);
 			}
 			
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appTsChanged'");
 		}
 	}
 
@@ -478,7 +483,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppStyle(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appStyleChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appStyleChanged'");
 		}
 	}
 
@@ -486,7 +491,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppTemplate(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appTemplateChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appTemplateChanged'");
 		}
 	}
 	
@@ -494,7 +499,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppTheme(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appThemeChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appThemeChanged'");
 		}
 	}
 	
@@ -502,7 +507,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appCompTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appCompTsChanged'");
 		}
 	}
 	
@@ -510,7 +515,7 @@ public class MobileBuilder {
 		if (app != null && initDone) {
 			writeAppModuleTs(app);
 			moveFiles();
-			Engine.logEngine.debug("(MobileBuilder) Handled 'appModuleTsChanged'");
+			Engine.logEngine.trace("(MobileBuilder) Handled 'appModuleTsChanged'");
 		}
 	}
 	
@@ -549,11 +554,14 @@ public class MobileBuilder {
 			// Tpl version
 			updateTplVersion();
 			
+			// PWA
+			setAppWpaAble(application.isPWA());
+			
 			// Write source files (based on bean components)
 			updateSourceFiles();
 
 			// Studio mode : start worker for build process
-			if (Engine.isStudioMode()) {
+			if (Engine.isStudioMode() || Engine.isCliMode()) {
 				if (pushedFiles == null) {
 					pushedFiles = new HashMap<String, CharSequence>();
 				}
@@ -564,8 +572,11 @@ public class MobileBuilder {
 				
 				if (worker == null) {
 					worker = new MbWorker(queue);
-					worker.setName("MbWorker-"+ project.getName());
-					worker.start();
+					if (Engine.isStudioMode()) {
+						worker.start();
+					} else {
+						worker.process();
+					}
 				}
 			}
 						
@@ -643,13 +654,13 @@ public class MobileBuilder {
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/src"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic/version.json"));
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
-		Engine.logEngine.debug("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
+		Engine.logEngine.trace("(MobileBuilder) Directories cleaned for ionic project '"+ project.getName() +"'");
 	}
 	
 	private void copyTemplateFiles() throws EngineException {
 		try {
 			FileUtils.copyDirectory(ionicTplDir, ionicWorkDir);
-			Engine.logEngine.debug("(MobileBuilder) Template files copied for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.trace("(MobileBuilder) Template files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to copy ionic template files for ionic project '"+ project.getName() +"'",e);
@@ -666,7 +677,7 @@ public class MobileBuilder {
 				content = content.replaceAll("../Flashupdate","../../Flashupdate");
 				writeFile(f, content, "UTF-8");
 			}
-			Engine.logEngine.debug("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
+			Engine.logEngine.trace("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to update configuration files for ionic project '"+ project.getName() +"'",e);
@@ -704,7 +715,7 @@ public class MobileBuilder {
 						writeAppSourceFiles(application);
 						removeUselessPages(application);
 						
-						Engine.logEngine.debug("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
+						Engine.logEngine.trace("(MobileBuilder) Application source files updated for ionic project '"+ project.getName() +"'");
 					} else {
 						cleanDirectories();
 						throw new EngineException("Template project minimum "+ appTplVersion +" is required for this project.\n" +
@@ -733,7 +744,7 @@ public class MobileBuilder {
 				writeFile(pageHtmlFile, computedTemplate, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -752,7 +763,7 @@ public class MobileBuilder {
 				writeFile(pageScssFile, computedScss, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -767,7 +778,7 @@ public class MobileBuilder {
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
-				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				return filePath;
 			}
 		}
@@ -777,34 +788,44 @@ public class MobileBuilder {
 		return null;
 	}
 	
-	public String getFunctionTempTsRelativePath(IScriptComponent main) {
+	public String getFunctionTempTsRelativePath(UIComponent uic) {
+		IScriptComponent main = uic.getMainScriptComponent();
 		if (main != null) {
 			if (main instanceof ApplicationComponent) {
-				File tempTsFile = new File(ionicWorkDir, "src/app/app.component.function.temp.ts");
-				return tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				UIActionStack stack = uic.getSharedAction();
+				File tempTsFile = stack == null ? new File(ionicWorkDir, "src/app/app.component.function.temp.ts") :
+													new File(ionicWorkDir, "src/services/actionbeans.service.function.temp.ts");
+				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 			}
 			if (main instanceof PageComponent) {
 				PageComponent page = (PageComponent)main;
 				String pageName = page.getName();
 				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
-				return tempTsFile.getPath().replace(projectDir.getPath(), "/");
+				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 			}
 		}
 		return null;
 	}
 	
-	public void writeFunctionTempTsFile(IScriptComponent main, String functionMarker) throws EngineException {
+	public void writeFunctionTempTsFile(UIComponent uic, String functionMarker) throws EngineException {
 		try {
+			IScriptComponent main = uic.getMainScriptComponent();
 			if (main != null) {
 				String tempTsFileName = null, tsContent = null;
 				File tempTsDir = null;
+				UIActionStack sharedAction = null;
+				UISharedComponent sharedComp = null;
 				
 				if (main instanceof ApplicationComponent) {
-					tempTsDir = new File(ionicWorkDir, "src/app");
-					tempTsFileName = "app.component.function.temp.ts";
+					sharedAction = uic.getSharedAction();
+					sharedComp = uic.getSharedComponent();
 					
-					File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
+					tempTsDir = sharedAction == null ? new File(ionicWorkDir, "src/app") : new File(ionicWorkDir, "src/services");
+					tempTsFileName = sharedAction == null ? "app.component.function.temp.ts" : "actionbeans.service.function.temp.ts";
+					
+					File appTsFile = sharedAction == null ? new File(ionicWorkDir, "src/app/app.component.ts") : 
+														new File(ionicWorkDir, "src/services/actionbeans.service.ts");
 					synchronized (writtenFiles) {
 						if (writtenFiles.contains(appTsFile)) {
 							File appTsFileTmp = toTmpFile(appTsFile);
@@ -840,6 +861,7 @@ public class MobileBuilder {
 				}
 				
 				// Replace all Begin_c8o_XXX, End_c8o_XXX except for functionMarker
+				boolean found = false;
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
 				Matcher matcher = pattern.matcher(tsContent);
 				while (matcher.find()) {
@@ -849,10 +871,46 @@ public class MobileBuilder {
 						String endMarker = "/*End_c8o_" + markerId + "*/";
 						tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
 						tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+					} else {
+						found = true;
+					}
+				}
+				
+				// Always be able to edit a CustomAction within a SharedAction or a SharedComponent
+				if (!found && uic instanceof UICustomAction && (sharedAction != null || sharedComp != null)) {
+					UICustomAction uica = (UICustomAction)uic;
+					Contributor contributor = uica.getActionContributor();
+					int index = -1;
+					
+					Map<String, String> mapi = contributor.getActionTsImports();
+					String imports = "";
+					for (String comp : mapi.keySet()) {
+						if (!getActionTplTsImports().containsKey(comp)) {
+							if (comp.indexOf(" as ") == -1)
+								imports += "import { "+comp+" } from '"+ mapi.get(comp) +"';"+ System.lineSeparator();
+							else
+								imports += "import "+comp+" from '"+ mapi.get(comp) +"';"+ System.lineSeparator();
+						}
+					}
+					index = tsContent.indexOf("@Injectable");
+					if (index != -1) {
+						tsContent = tsContent.substring(0, index -1) + System.lineSeparator() 
+							+ Matcher.quoteReplacement(imports) + System.lineSeparator()
+							+ tsContent.substring(index);
+					}
+					
+					Map<String, String> mapf = contributor.getActionTsFunctions();
+					String code = mapf.get(uica.getActionName());
+					index = tsContent.lastIndexOf("}");
+					if (index != -1) {
+						tsContent = tsContent.substring(0, index -1) + System.lineSeparator() 
+									+ code + System.lineSeparator()
+									+ tsContent.substring(index);
 					}
 				}
 				
 				// Write file (do not need delay)
+				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(tempTsDir, tempTsFileName);
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
@@ -905,6 +963,7 @@ public class MobileBuilder {
 				}
 				
 				// Write file (do not need delay)
+				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
 				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
@@ -923,7 +982,7 @@ public class MobileBuilder {
 				writeFile(pageTsFile, getPageTsContent(page), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
 				}
 			}
 		}
@@ -1157,7 +1216,7 @@ public class MobileBuilder {
 		try {
 			if (app != null) {
 				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
-				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), "/");
+				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				return filePath;
 			}
 		}
@@ -1221,7 +1280,7 @@ public class MobileBuilder {
 				writeFile(appPlgConfig, mandatoryPlugins, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) App plugins config file generated");
+					Engine.logEngine.trace("(MobileBuilder) App plugins config file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -1267,7 +1326,7 @@ public class MobileBuilder {
 				writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic package json file generated");
+					Engine.logEngine.trace("(MobileBuilder) Ionic package json file generated");
 				}
 			}
 		} catch (Exception e) {
@@ -1302,7 +1361,10 @@ public class MobileBuilder {
 				String c8o_ActionTsImports = "";
 				for (String comp : action_ts_imports.keySet()) {
 					if (!getActionTplTsImports().containsKey(comp)) {
-						c8o_ActionTsImports += "import { "+comp+" } from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						if (comp.indexOf(" as ") == -1)
+							c8o_ActionTsImports += "import { "+comp+" } from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						else
+							c8o_ActionTsImports += "import "+comp+" from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
 					}
 				}
 				
@@ -1313,13 +1375,13 @@ public class MobileBuilder {
 				
 				File appServiceTpl = new File(ionicTplDir, "src/services/actionbeans.service.ts");
 				String mContent = FileUtils.readFileToString(appServiceTpl, "UTF-8");
-				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsImports\\*/",c8o_ActionTsImports);
-				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsFunctions\\*/",c8o_ActionTsFunctions);
+				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsImports\\*/",Matcher.quoteReplacement(c8o_ActionTsImports));
+				mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsFunctions\\*/",Matcher.quoteReplacement(c8o_ActionTsFunctions));
 				File appServiceTsFile = new File(ionicWorkDir, "src/services/actionbeans.service.ts");
 				writeFile(appServiceTsFile, mContent, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic service ts file generated for 'app'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic service ts file generated for 'app'");
 				}
 			}
 		} catch (Exception e) {
@@ -1471,7 +1533,7 @@ public class MobileBuilder {
 				}
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic module ts file generated for 'app'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic module ts file generated for 'app'");
 				}
 			}
 		}
@@ -1554,7 +1616,7 @@ public class MobileBuilder {
 				writeFile(appComponentTsFile, getAppComponentTsContent(app), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic component ts file generated for 'app'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic component ts file generated for 'app'");
 				}
 			}
 		}
@@ -1596,7 +1658,7 @@ public class MobileBuilder {
 				writeFile(appHtmlFile, computedTemplate, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1614,7 +1676,7 @@ public class MobileBuilder {
 				writeFile(appScssFile, computedScss, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1632,7 +1694,7 @@ public class MobileBuilder {
 				writeFile(themeScssFile, tContent, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.debug("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic theme scss file generated for app '"+appName+"'");
 				}
 			}
 		}
@@ -1682,7 +1744,7 @@ public class MobileBuilder {
 				writeAppStyle(application);
 				writeAppTheme(application);
 
-				Engine.logEngine.debug("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
+				Engine.logEngine.trace("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
 			}
 		}
 		catch (Exception e) {
@@ -1703,7 +1765,7 @@ public class MobileBuilder {
 			writePageTemplate(page);
 			
 			if (initDone) {
-				Engine.logEngine.debug("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
+				Engine.logEngine.trace("(MobileBuilder) Ionic source files generated for page '"+pageName+"'");
 			}
 		}
 		catch (Exception e) {
@@ -1731,7 +1793,7 @@ public class MobileBuilder {
 		while (matcher.find()) {
 			String markerId = matcher.group(1);
 			String marker = getMarker(content, markerId);
-			if (!marker.isEmpty()) {
+			if (!marker.isEmpty() && markers.indexOf(markerId) == -1) {
 				markers += marker + System.lineSeparator();
 			}
 		}
@@ -1745,10 +1807,29 @@ public class MobileBuilder {
 		if (beginIndex != -1) {
 			int endIndex = s.indexOf(endMarker, beginIndex);
 			if (endIndex != -1) {
-				return s.substring(beginIndex, endIndex) + endMarker;
+				//return s.substring(beginIndex, endIndex) + endMarker;
+				String comment = "/*inner marker removed!*/";
+				String content = s.substring(beginIndex + beginMarker.length(), endIndex);
+				content = content.replaceAll("/\\*Begin_c8o_(.+)\\*/", comment).replaceAll("/\\*End_c8o_(.+)\\*/", comment);
+				return beginMarker + content + endMarker;
 			}
 		}
 		return "";
+	}
+	
+	public static String getFormatedContent(String marker, String markerId) {
+		String content = "";
+		if (!marker.isEmpty()) {
+			String line;
+			String[] lines = marker.split("\\R");
+			for (int i=0; i<lines.length; i++) {
+				line = lines[i];
+				if (line.indexOf("/*Begin_c8o_") == -1 && line.indexOf("/*End_c8o_") == -1) {
+					content += line + System.lineSeparator();
+				}
+			}
+		}
+		return content;
 	}
 	
 	private static File toTmpFile(File file) {
@@ -1788,7 +1869,63 @@ public class MobileBuilder {
 		}
 	}
 	
+	public boolean isAppWpaAble() {
+		return this.isPWA;
+	}
+	
+	private void setAppWpaAble(boolean isPWA) {
+		this.isPWA = isPWA;
+		
+		try {
+			File tpl_index = new File(ionicTplDir, "src/index.html");
+			String tpl_content = FileUtils.readFileToString(tpl_index, "UTF-8");
+			String content = tpl_content;
+			if (isPWA) {
+				String replacement = "";
+				replacement += "<script>\n"
+								+"\tif ('serviceWorker' in navigator) {\n"
+									+"\t\tnavigator.serviceWorker.register('service-worker.js')\n"
+										+"\t\t\t.then(() => console.log('service worker installed'))\n"
+										+"\t\t\t.catch(err => console.log('Error', err));\n"
+								+"\t}\n"
+								+"</script>\n";
+				content = tpl_content.replace("<!--c8o_PWA-->", replacement);
+			}
+			
+			File index = new File(ionicWorkDir, "src/index.html");
+			writeFile(index, content, "UTF-8");
+			if (!initDone || !isPWA) {
+				writeWorker(index, true);
+			}
+		} catch (Exception e) {
+			;
+		}
+	}
+	
+	private void writeWorker(File file) throws IOException {
+		writeWorker(file, false);
+	}
+	
+	private void writeWorker(File file, boolean bForce) throws IOException {
+		File jsworker = new File(ionicWorkDir, "src/service-worker.js");
+		if ((isAppWpaAble() || bForce) && jsworker.exists()) {
+			long time = System.currentTimeMillis();
+			String content = FileUtils.readFileToString(jsworker, "UTF-8");
+			content = CacheVersion.matcher(content).replaceFirst("const CACHE_VERSION = "+ time);
+			if (initDone && Engine.isStudioMode()) {
+				if (!file.getPath().equals(jsworker.getPath())) {
+					writeFile(jsworker, content, "UTF-8");
+				}
+			} else {
+				FileUtils.write(jsworker, content, "UTF-8");
+			}
+		}
+	}
+	
 	private void writeFile(File file, CharSequence content, String encoding) throws IOException {
+		// Replace eol characters with system line separators
+		content = LsPattern.matcher(content).replaceAll(System.lineSeparator());
+		
 		if (initDone && Engine.isStudioMode()) {
 			synchronized (writtenFiles) {
 				// Checks for content changes
@@ -1806,7 +1943,7 @@ public class MobileBuilder {
 					}
 					
 					if (content.equals(excontent)) {
-						Engine.logEngine.debug("(MobileBuilder) No change for " + file.getPath());
+						Engine.logEngine.trace("(MobileBuilder) No change for " + file.getPath());
 						return;
 					}
 				}
@@ -1836,13 +1973,19 @@ public class MobileBuilder {
 		} else {
 			FileUtils.write(file, content, encoding);
 		}
+		
+		writeWorker(file);
 	}
 	
 	private void moveFiles() {
 		if (autoBuild) {
 			StackTraceElement parentMethod = Thread.currentThread().getStackTrace()[3];
 			if (!parentMethod.getClassName().equals("com.twinsoft.convertigo.engine.mobile.MobileBuilder")) {
-				moveFilesForce();
+				moveFilesForce();// // written files in queue are pushed to build dir
+			} else {
+				if (buildMutex != null) {
+					Engine.logEngine.warn("(MobileBuilder) moveFilesForce not called", new Throwable("Invalid stack call"));
+				}
 			}
 		}
 	}
@@ -1863,161 +2006,4 @@ public class MobileBuilder {
 			}
 		}
 	}
-	
-//	private synchronized void moveFilesForce() {
-//		Engine.logEngine.debug("(MobileBuilder) >>> moveFilesForce");
-//		if (writtenFiles.size() > 0) {
-//			Engine.execute(() -> {
-//				boolean hasMovedCfgFiles = false;
-//				boolean hasMovedAppFiles = false;
-//				boolean hasMovedFiles = false;
-//				Set<File> appFiles = new HashSet<>();
-//				Set<File> cfgFiles = new HashSet<>();
-//				
-//				Engine.logEngine.debug("(MobileBuilder) Start to move " + writtenFiles.size() + " files.");
-//				for (File file: writtenFiles) {
-//					try {
-//						if (file.getPath().indexOf("\\src\\app\\") != -1) {
-//							appFiles.add(file);
-//						} else if (file.getName().equals("package.json")) {
-//							cfgFiles.add(file);
-//						} else {
-//							File nFile = toTmpFile(file);
-//							if (nFile.exists()) {
-//								FileUtils.copyFile(nFile, file);
-//								nFile.delete();
-//								hasMovedFiles = true;
-//								Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
-//							}
-//						}
-//					} catch (IOException e) {
-//						Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
-//					}
-//				}
-//				
-//				String lastModuleContent = null;
-//				File lastModuleFile = null;
-//				String lastComponentContent = null;
-//				File lastComponentFile = null;
-//				if (appFiles.size() > 0) {
-//					if (buildMutex != null) {
-//						synchronized (buildMutex) {
-//							try {
-//								buildMutex.wait(hasMovedFiles ? 60000 : 100);
-//							} catch (InterruptedException e) {}							
-//						}
-//					}
-//					
-//					for (File file: appFiles) {
-//						try {
-//							File nFile = toTmpFile(file);
-//							if (nFile.exists()) {
-//								if (nFile.getName().equals("app.module.ts")) {
-//									lastModuleContent = FileUtils.readFileToString(nFile, "UTF-8");
-//									lastModuleFile = file;
-//								}
-//								if (nFile.getName().equals("app.component.ts")) {
-//									lastComponentContent = FileUtils.readFileToString(nFile, "UTF-8");
-//									lastComponentFile = file;
-//								}
-//								FileUtils.copyFile(nFile, file);
-//								nFile.delete();
-//								hasMovedAppFiles = true;
-//								Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
-//							}
-//						} catch (IOException e) {
-//							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
-//						}
-//					}
-//					appFiles.clear();
-//				}
-//				
-//				/*if (hasMovedAppFiles) {
-//					if (buildMutex != null) {
-//						synchronized (buildMutex) {
-//							try {
-//								buildMutex.wait(hasMovedAppFiles ? 60000 : 100);
-//							} catch (InterruptedException e) {}							
-//						}
-//					}
-//					if (dirsToDelete.size() > 0) {
-//						Engine.logEngine.debug("(MobileBuilder) Start to delete " + dirsToDelete.size() + " directories.");
-//						for (File dir: dirsToDelete) {
-//							File nDir = toTmpFile(dir);
-//							if (!nDir.exists()) {
-//								try {
-//									FileUtils.deleteDirectory(dir);
-//									Engine.logEngine.debug("(MobileBuilder) Deleted dir " + dir.getPath());
-//								} catch (IOException e) {
-//									Engine.logEngine.warn("(MobileBuilder) Failed to delete directory named " + dir.getName(), e);
-//								}
-//							}
-//						}
-//						Engine.logEngine.debug("(MobileBuilder) End to delete " + dirsToDelete.size() + " directories.");
-//						dirsToDelete.clear();
-//					}
-//				}*/
-//				
-//				if (hasMovedAppFiles) {
-//					if (buildMutex != null) {
-//						synchronized (buildMutex) {
-//							try {
-//								buildMutex.wait(hasMovedAppFiles ? 60000 : 100);
-//							} catch (InterruptedException e) {}							
-//						}
-//						
-//						if (lastModuleContent != null && lastModuleFile != null) {
-//							try {
-//								FileUtils.write(lastModuleFile, lastModuleContent, "UTF-8");
-//								Engine.logEngine.debug("(MobileBuilder) Moved again " + lastModuleFile.getPath());
-//							} catch (IOException e) {
-//								Engine.logEngine.warn("(MobileBuilder) Failed to copy the last content of " + lastModuleFile.getName(), e);
-//							}
-//						}
-//						
-//						if (lastComponentContent != null && lastComponentFile != null) {
-//							try {
-//								FileUtils.write(lastComponentFile, lastComponentContent, "UTF-8");
-//								Engine.logEngine.debug("(MobileBuilder) Moved again " + lastModuleFile.getPath());
-//							} catch (IOException e) {
-//								Engine.logEngine.warn("(MobileBuilder) Failed to copy the last content of " + lastComponentFile.getName(), e);
-//							}
-//						}
-//					}
-//				}
-//				
-//				if (cfgFiles.size() > 0) {
-//					if (buildMutex != null) {
-//						synchronized (buildMutex) {
-//							try {
-//								buildMutex.wait(hasMovedFiles || hasMovedAppFiles ? 60000 : 100);
-//							} catch (InterruptedException e) {}							
-//						}
-//					}
-//					
-//					for (File file: cfgFiles) {
-//						try {
-//							File nFile = toTmpFile(file);
-//							if (nFile.exists()) {
-//								FileUtils.copyFile(nFile, file);
-//								nFile.delete();
-//								hasMovedCfgFiles = true;
-//								Engine.logEngine.debug("(MobileBuilder) Moved " + file.getPath());
-//							}
-//						} catch (IOException e) {
-//							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + file.getName(), e);
-//						}
-//					}
-//					cfgFiles.clear();
-//				}
-//				
-//				Engine.logEngine.debug("(MobileBuilder) End to move " + writtenFiles.size() + " files.");
-//				writtenFiles.clear();
-//				
-//				if (hasMovedCfgFiles && getNeedPkgUpdate()) {
-//					MobileBuilder.this.firePackageUpdated();
-//				}
-//			});
-//		}
-//	}
 }

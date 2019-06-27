@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -32,9 +32,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -46,10 +46,13 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAnimation;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
@@ -57,8 +60,12 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
@@ -66,19 +73,26 @@ import com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
+import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 
 public class ComponentManager {
 	private static ComponentManager instance = new ComponentManager();
 	
-	private SortedMap<String, IonProperty> pCache = new TreeMap<String, IonProperty>();
-	private SortedMap<String, IonBean> bCache = new TreeMap<String, IonBean>();
-	private SortedMap<String, IonTemplate> tCache = new TreeMap<String, IonTemplate>();
+	private SortedMap<String, IonProperty> pCache = new TreeMap<>();
+	private SortedMap<String, IonBean> bCache = new TreeMap<>();
+	private Map<String, String> aCache = new WeakValueHashMap<>();
+	
+	private List<String> groups;
+	private List<Component> orderedComponents;
+	private List<Component> components;
 	
 	private File compbeansDir;
 	
@@ -86,19 +100,17 @@ public class ComponentManager {
 		loadModels();
 	}
 	
-	private void loadModels() {
+	private synchronized void loadModels() {
 		clear();
-		InputStream inputstream = null;
-		try {
-			if (Engine.isStarted) {
-				Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
-			} else {
-				System.out.println("(ComponentManager) Start loading Ionic objects");
-			}
-			
-			inputstream = getClass().getResourceAsStream("ion_objects.json");
+		
+		if (Engine.isStarted) {
+			Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
+		} else {
+			System.out.println("(ComponentManager) Start loading Ionic objects");
+		}
+		
+		try (InputStream inputstream = getClass().getResourceAsStream("ion_objects.json")) {
 			String json = IOUtils.toString(inputstream, "UTF-8");
-			//System.out.println(json);
 			
 			JSONObject root = new JSONObject(json);
 			readPropertyModels(root);
@@ -118,16 +130,16 @@ public class ComponentManager {
 				e.printStackTrace();
 			}
 		}
-		finally {
-			if (inputstream != null)
-				IOUtils.closeQuietly(inputstream);
-		}
 	}
 	
 	private void clear() {
 		pCache.clear();
 		bCache.clear();
-		tCache.clear();
+		aCache.clear();
+		
+		groups = null;
+		orderedComponents = null;
+		components = null;
 	}
 	
 	@Override
@@ -185,12 +197,17 @@ public class ComponentManager {
 									}
 									else {
 										// This is model property (available for all beans)
-										IonProperty original = pCache.get(pkey);
+										final IonProperty original = pCache.get(pkey);
 										if (original != null) {
 											String jsonString = original.getJSONObject().toString();
 											IonProperty property = new IonProperty(new JSONObject(jsonString));
 											property.setValue(value);
 											bean.putProperty(property);
+										} else {
+											System.out.println("(ComponentManager) Ion property \""+pkey+"\" does not exist anymore in cache.");
+											if (Engine.isStarted) {
+												Engine.logEngine.warn("(ComponentManager) Ion property \""+pkey+"\" does not exist anymore in cache.");
+											}
 										}
 									}
 								}
@@ -214,7 +231,7 @@ public class ComponentManager {
 	public static IonBean loadBean(String jsonString) throws Exception {
 		JSONObject jsonBean = new JSONObject(jsonString);
 		String modelName = jsonBean.getString(IonBean.Key.name.name());
-		IonBean model = instance.bCache.get(modelName);
+		final IonBean model = instance.bCache.get(modelName);
 		// The model exists
 		if (model != null) {
 			boolean hasChanged = false;
@@ -232,7 +249,10 @@ public class ComponentManager {
 					}
 				}
 				else {
-					// new property
+					System.out.println("(ComponentManager) Ion property \""+propertyName+"\" not found for model \""+modelName+"\": ignore it.");
+					if (Engine.isStarted) {
+						Engine.logBeans.warn("(ComponentManager) Ion property \""+propertyName+"\" not found for model \""+modelName+"\": ignore it.");
+					}
 					hasChanged = true;
 				}
 			}
@@ -243,6 +263,10 @@ public class ComponentManager {
 		}
 		// The model doesn't exist (anymore)
 		else {
+			System.out.println("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache.");
+			if (Engine.isStarted) {
+				Engine.logBeans.warn("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache.");
+			}
 			return new IonBean(jsonString);
 		}
 	}
@@ -256,25 +280,51 @@ public class ComponentManager {
 	}
 	
 	public static List<String> getGroups() {
-		List<String> groups = new ArrayList<String>(10);
-		groups.add("Customs");
-		for (IonBean bean: instance.bCache.values()) {
+		return instance.makeGroups();
+	}
+	
+	private static String GROUP_SHARED_ACTIONS = "Shared Actions";
+	private static String GROUP_SHARED_COMPONENTS = "Shared Components";
+	private static String GROUP_CUSTOMS = "Customs";
+	private static String GROUP_CONTROLS = "Controls";
+	private static String GROUP_ACTIONS = "Actions";
+	
+	private synchronized List<String> makeGroups() {
+		if (groups != null) {
+			return groups;
+		}
+		groups = new ArrayList<String>(10);
+		groups.add(GROUP_CUSTOMS);
+		for (final IonBean bean: instance.bCache.values()) {
 			if (!groups.contains(bean.getGroup())) {
 				groups.add(bean.getGroup());
 			}
 		}
 		
-		groups.remove("Controls");
-		groups.add("Controls");
+		groups.remove(GROUP_SHARED_COMPONENTS);
+		groups.add(GROUP_SHARED_COMPONENTS);
 		
-		groups.remove("Actions");
-		groups.add("Actions");
+		groups.remove(GROUP_SHARED_ACTIONS);
+		groups.add(GROUP_SHARED_ACTIONS);
 		
-		return Collections.unmodifiableList(groups);
+		groups.remove(GROUP_CONTROLS);
+		groups.add(GROUP_CONTROLS);
+		
+		groups.remove(GROUP_ACTIONS);
+		groups.add(GROUP_ACTIONS);
+		
+		return groups = Collections.unmodifiableList(groups);
 	}
 	
 	public static List<Component> getComponentsByGroup() {
-		List<Component> orderedComponents = new ArrayList<Component>(10);
+		return instance.makeComponentsByGroup();
+	}
+	
+	private synchronized List<Component> makeComponentsByGroup() {
+		if (orderedComponents != null) {
+			return orderedComponents;
+		}
+		orderedComponents = new ArrayList<Component>(10);
 		List<Component> components = getComponents();
 		
 		for (String group : getGroups()) {
@@ -285,16 +335,23 @@ public class ComponentManager {
 			}
 		}
 		
-		return Collections.unmodifiableList(orderedComponents);
+		return orderedComponents = Collections.unmodifiableList(orderedComponents);
 	}
 	
 	public static List<Component> getComponents() {
-		List<Component> components = new ArrayList<Component>(10);
+		return instance.makeComponents();
+	}
+	
+	private synchronized List<Component> makeComponents() {
+		if (components != null) {
+			return components;
+		}
+		components = new ArrayList<Component>(10);
 		
 		try {
 			String group;
 			// Add Customs
-			group = "Customs";
+			group = GROUP_CUSTOMS;
 			components.add(getDboComponent(UIElement.class,group));
 			components.add(getDboComponent(UIAttribute.class,group));
 			components.add(getDboComponent(UIAnimation.class,group));
@@ -303,17 +360,30 @@ public class ComponentManager {
 			components.add(getDboComponent(UIStyle.class,group));
 			components.add(getDboComponent(UITheme.class,group));
 			
+			// Add shared components
+			group = GROUP_SHARED_COMPONENTS;
+			components.add(getDboComponent(UISharedComponent.class,group));
+			components.add(getDboComponent(UIUseShared.class,group));
+			
+			// Add shared actions
+			group = GROUP_SHARED_ACTIONS;
+			components.add(getDboComponent(UIActionStack.class,group));
+			components.add(getDboComponent(UIStackVariable.class,group));
+			
 			// Add Controls
-			group = "Controls";
+			group = GROUP_CONTROLS;
 			components.add(getDboComponent(UIControlEvent.class,group));
+			components.add(getDboComponent(UIAppEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
 			components.add(getDboComponent(UIEventSubscriber.class,group));
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
+			components.add(getDboComponent(UIActionLoopEvent.class,group));
+			components.add(getDboComponent(UIActionElseEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
-			group = "Actions";
+			group = GROUP_ACTIONS;
 			components.add(getDboComponent(UIControlVariable.class,group));
 			components.add(getDboComponent(UICustomAction.class,group));
 			
@@ -406,6 +476,34 @@ public class ComponentManager {
 							propertiesDescription += "</br>"+ ionProperty.getDescription() +"</li>";
 						}
 					}
+					
+					Class<?> dboClass;
+					try {
+						dboClass = Class.forName(bean.getClassName());
+						BeanInfo beanInfo = Introspector.getBeanInfo(dboClass);
+						PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+						
+						propertyDescriptors = propertyDescriptors.clone();
+						Arrays.sort(propertyDescriptors, (o1, o2) -> {
+							if(o1.isExpert() == o2.isExpert()) {
+								return o1.getDisplayName().compareTo(o2.getDisplayName());
+							} else if(o1.isExpert()) {
+								return 1;
+							} else { 
+								return -1;
+							}
+						});
+						
+						for (PropertyDescriptor dbopd : propertyDescriptors) {
+							if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue("disable"))) {
+								propertiesDescription += "<li><i>"+ dbopd.getDisplayName() +"</i>" ;
+								propertiesDescription += "</br>"+ dbopd.getShortDescription().replace("|", "") +"</li>";
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
 					return propertiesDescription.isEmpty() ? "": "<ul>"+propertiesDescription+"</ul>";
 				}
 				
@@ -425,7 +523,7 @@ public class ComponentManager {
 			}				
 		} );
 		
-		return Collections.unmodifiableList(components);
+		return components = Collections.unmodifiableList(components);
 	}
 	
 	public static boolean acceptDatabaseObjects(DatabaseObject parentDatabaseObject, DatabaseObject databaseObject) {
@@ -458,13 +556,25 @@ public class ComponentManager {
 		if (UIComponent.class.isAssignableFrom(dboClass)) {
 			if (dboParent instanceof ApplicationComponent) {
 				if (UIStyle.class.isAssignableFrom(dboClass) ||
-					UIDynamicMenu.class.isAssignableFrom(dboClass)) {
+					UIDynamicMenu.class.isAssignableFrom(dboClass) ||
+					UIActionStack.class.isAssignableFrom(dboClass) ||
+					UISharedComponent.class.isAssignableFrom(dboClass) ||
+					UIAppEvent.class.isAssignableFrom(dboClass)) {
 					return true;
+				}
+				if (UIEventSubscriber.class.isAssignableFrom(dboClass)) {
+					ApplicationComponent app = (ApplicationComponent)dboParent;
+					if (app.compareToTplVersion("7.6.0.1") >= 0) {
+						return true;
+					}
 				}
 			} else if (dboParent instanceof PageComponent) {
 				if (!UITheme.class.isAssignableFrom(dboClass) &&
 					!UIDynamicMenu.class.isAssignableFrom(dboClass) &&
 					!UIDynamicMenuItem.class.isAssignableFrom(dboClass) &&
+					!UIAppEvent.class.isAssignableFrom(dboClass) &&
+					!UIActionStack.class.isAssignableFrom(dboClass) &&
+					!UISharedComponent.class.isAssignableFrom(dboClass) &&
 					!UIFormValidator.class.isAssignableFrom(dboClass) &&
 					!UIAttribute.class.isAssignableFrom(dboClass) &&
 					!UIControlVariable.class.isAssignableFrom(dboClass) &&
@@ -483,9 +593,26 @@ public class ComponentManager {
 					}
 				}
 				
-				if (dboParent instanceof UIPageEvent || 
-					dboParent instanceof UIEventSubscriber || 
-					dboParent instanceof UIControlEvent) {
+				if (dboParent instanceof UIActionStack) {
+					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
+						UIStackVariable.class.isAssignableFrom(dboClass) ||
+						IAction.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
+				}
+				else if (dboParent instanceof UISharedComponent) {
+					if (UIText.class.isAssignableFrom(dboClass) ||
+						UICustom.class.isAssignableFrom(dboClass) ||
+						UIElement.class.isAssignableFrom(dboClass)) {
+						if (!IAction.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
+					}					
+				}
+				else if (dboParent instanceof UIAppEvent ||
+						dboParent instanceof UIPageEvent || 
+						dboParent instanceof UIControlEvent ||
+						dboParent instanceof UIEventSubscriber) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
@@ -502,6 +629,16 @@ public class ComponentManager {
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
+					if (dboParent instanceof UIDynamicIterate) {
+						if (UIActionLoopEvent.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
+					}
+					if (dboParent instanceof UIDynamicIf) {
+						if (UIActionElseEvent.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
+					}					
 				} else if (dboParent instanceof UIDynamicMenuItem) {
 					if (UIAttribute.class.isAssignableFrom(dboClass)) {
 						return true;
@@ -516,6 +653,8 @@ public class ComponentManager {
 					}
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
+						!UIStackVariable.class.isAssignableFrom(dboClass) &&
+						!UIAppEvent.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&
@@ -583,17 +722,17 @@ public class ComponentManager {
 				try {
 					beanInfo = Introspector.getBeanInfo(dboClass);
 					PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-					Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
-						@Override
-						public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
-							if(o1.isExpert() == o2.isExpert())
-								return o1.getDisplayName().compareTo(o2.getDisplayName());
-							else if(o1.isExpert())
-								return 1;
-							else 
-								return -1;
-						}				
-					} );
+					
+					propertyDescriptors = propertyDescriptors.clone();
+					Arrays.sort(propertyDescriptors, (o1, o2) -> {
+						if(o1.isExpert() == o2.isExpert()) {
+							return o1.getDisplayName().compareTo(o2.getDisplayName());
+						} else if(o1.isExpert()) {
+							return 1;
+						} else { 
+							return -1;
+						}
+					});
 					
 					String propertiesDescription = "";
 					for (PropertyDescriptor dbopd : propertyDescriptors) {
@@ -648,22 +787,21 @@ public class ComponentManager {
 	}
 	
 	public static String getActionTsCode(String name) {
-		InputStream inputstream = null;
-		try {
-			inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts");
-			return IOUtils.toString(inputstream, "UTF-8");
-		} catch (Exception e) {
-			if (Engine.isStarted) {
-				Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
-			} else {
-				System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
-			}
-		} finally {
-			if (inputstream != null) {
-				IOUtils.closeQuietly(inputstream);
+		String code = instance.aCache.get(name);
+		if (code == null) {
+			try (InputStream inputstream = instance.getClass().getResourceAsStream("actionbeans/"+ name +".ts")) {
+				code = IOUtils.toString(inputstream, "UTF-8");
+				instance.aCache.put(name, code);
+			} catch (Exception e) {
+				code = "";
+				if (Engine.isStarted) {
+					Engine.logBeans.warn("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+				} else {
+					System.out.println("(ComponentManager) Missing action typescript file for pseudo-bean '"+ name +"' !");
+				}
 			}
 		}
-		return "";
+		return code;
 	}
 	
 	public static File getCompBeanDir(String name) {
@@ -685,5 +823,9 @@ public class ComponentManager {
 			}
 		}
 		return null;
+	}
+	
+	public static Map<String, IonBean> getIonBeans() {
+		return Collections.unmodifiableMap(instance.bCache);
 	}
 }

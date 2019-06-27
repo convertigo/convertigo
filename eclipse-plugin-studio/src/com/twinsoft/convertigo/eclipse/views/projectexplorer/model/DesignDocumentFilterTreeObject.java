@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,11 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.FilterObject;
@@ -41,7 +39,7 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 	}
 	
 	@Override
-	public IDesignTreeObject getParentDesignTreeObject() {
+	public DesignDocumentTreeObject getParentDesignTreeObject() {
 		return (DesignDocumentTreeObject) getParent().getParent();
 	}
 	
@@ -49,28 +47,14 @@ public class DesignDocumentFilterTreeObject extends DesignDocumentFunctionTreeOb
 	public FilterObject getObject() {
 		return (FilterObject) super.getObject();
 	}
-
-	@Override
-	protected String getTempFileName(IProject project) {
-		TreeObject object = getTreeObjectOwner();
-		
-		Document document = (Document)object.getObject();
-		
-		String tempFileName = 	"_private/"+project.getName()+
-				"__"+getConnectorTreeObject().getName()+
-				"__"+document.getName()+
-				"__filters."+getName();
-		
-		return tempFileName;
-	}
 	
 	@Override
 	public boolean rename(String newName, Boolean bDialog) {
 		if (getName().equals(newName))
 			return true;
 		
-		IDesignTreeObject dto = getParentDesignTreeObject();
-		if (((DesignDocumentTreeObject)dto).hasFilter(newName)) {
+		DesignDocumentTreeObject dto = getParentDesignTreeObject();
+		if (dto.hasFilter(newName)) {
 			ConvertigoPlugin.logException(new ConvertigoException("The function named \"" + newName + "\" already exists."), "Unable to change the object name.", bDialog);
 			return false;
 		}

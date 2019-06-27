@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +36,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.FunctionObject;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -52,7 +56,10 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
+import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -175,7 +182,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	NodeList properties = projectNode.getElementsByTagName("property");
 		Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 		String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
-    	return Engine.PROJECTS_PATH + "/"+ projectName + "/backup-wsdl";
+    	return Engine.projectDir(projectName) + "/backup-wsdl";
     }
     
     protected void backupWsdlTypes(Element element) throws TransformerFactoryConfigurationError, Exception {
@@ -278,9 +285,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
             
             runningThread = new RequestableThread();
-            String currentThreadName = Thread.currentThread().getName();
-            runningThread.setName(currentThreadName + "/RequestableThread");
-            runningThread.setDaemon(true);
             runningThread.start();
             
             try {
@@ -385,6 +389,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             */
         } finally {
         	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_FINISHED);
+        	this.context = null;
+        	this.requester = null;
+        	this.runningThread = null;
+        	this.scope = null;
         }
         
         return context.outputDocument;
@@ -395,6 +403,47 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
      */
     protected void cleanup() {
     	// does nothing
+    }
+    
+    static public Object useInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+    	if (args.length < 1) {
+    		return null;
+    	}
+    	String key = (String) args[0];
+    	String mapkey = "__convertigo_use_" + key;
+    	SimpleMap map = (SimpleMap) ((NativeJavaObject) thisObj.get("project", thisObj)).unwrap();
+    	Object res = map.get(mapkey);
+    	if (res == null) {
+    		try {
+    			res = RhinoUtils.evalCachedJavascript(cx, thisObj, key, "use", 1, null);
+    			map.set(mapkey, res);
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
+    	return res;
+    }
+    
+    static public Object includeInScope(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+    	Object res = Scriptable.NOT_FOUND;
+    	if (args.length < 1) {
+    		return res;
+    	}
+    	String path = (String) args[0];
+    	Context context =(Context) ((NativeJavaObject) thisObj.get("context", thisObj)).unwrap();
+    	Project project = context.project;
+    	
+    	File js = new File(project.getDirPath(), path);
+    	if (js.exists()) {
+    		try {
+    			res = RhinoUtils.evalCachedJavascript(cx, thisObj, FileUtils.readFileToString(js, "UTF-8"), path, 1, null);
+			} catch (IOException e) {
+				Engine.logBeans.warn("Cannot include '" + js + "' because of a read failure!", e);
+			}
+    	} else {
+    		Engine.logBeans.warn("Cannot include '" + js + "' because it doesn't exist!");
+    	}
+    	return res;
     }
     
     protected void insertObjectsInScope() throws EngineException {
@@ -413,6 +462,18 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		// Insert the DOM into the scripting context
 		Scriptable jsDOM = org.mozilla.javascript.Context.toObject(context.outputDocument, scope);
 		scope.put("dom", scope, jsDOM);
+		
+		try {
+			scope.put("use", scope, new FunctionObject("use", getClass().getMethod("useInScope", org.mozilla.javascript.Context.class, Scriptable.class, Object[].class, Function.class), scope));
+		} catch (Exception e) {
+			Engine.logBeans.warn("Failed to declare 'use' in the JS scope", e);
+		}
+		
+		try {
+			scope.put("include", scope, new FunctionObject("include", getClass().getMethod("includeInScope", org.mozilla.javascript.Context.class, Scriptable.class, Object[].class, Function.class), scope));
+		} catch (Exception e) {
+			Engine.logBeans.warn("Failed to declare 'include' in the JS scope", e);
+		}
     }
     
     protected void removeObjectsFromScope() {
@@ -742,11 +803,15 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         
         public RequestableThread() {
         	super();
-            callingThread = Thread.currentThread();
-            engineId = Engine.startStopDate;
+        	callingThread = Thread.currentThread();
+        	setName(callingThread.getName() + "/RequestableThread");
+        	setDaemon(true);
+        	setContextClassLoader(context.project.getProjectClassLoader());
+
+        	engineId = Engine.startStopDate;
         }
-        
-        @Override
+
+		@Override
         public void run() {
         	context.statistics.stop(workerThreadCreationStatistic);
         	
@@ -758,6 +823,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             	// - the timeout is set before requestable execution in case of inner requestable calls
     			if (context.httpServletRequest != null) {
     				HttpServletRequest request = context.httpServletRequest;
+    				if (request.getAttribute("convertigo.charset") == null) {
+    					request.setAttribute("convertigo.charset", getEncodingCharSet());	
+    				}
     				int maxInactiveInterval = request.getSession().getMaxInactiveInterval();
     				try {
     					Engine.logContext.debug("(RequestableObject) Http session : is new " + request.getSession().isNew());

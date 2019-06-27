@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -58,7 +58,7 @@ public class FilePropertyManager implements AbstractManager {
 			filepath = ".//"+filepath;
 		}
 		if (filepath.startsWith(".//")) {
-			filepath = Engine.PROJECTS_PATH + "/" + projectName + filepath.substring(2);
+			filepath = Engine.resolveProjectPath(Engine.PROJECTS_PATH + "/" + projectName + filepath.substring(2));
 		} else if(filepath.startsWith("./")) {
 			filepath = Engine.USER_WORKSPACE_PATH + filepath.substring(1);
 		}

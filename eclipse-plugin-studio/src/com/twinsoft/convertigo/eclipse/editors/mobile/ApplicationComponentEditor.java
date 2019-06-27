@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -36,6 +36,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
@@ -92,6 +94,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
@@ -101,6 +104,7 @@ import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
@@ -108,6 +112,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.MobileEventListener;
@@ -256,9 +261,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "-version");
 			pb.redirectError(pb.redirectInput());
 			Process process = pb.start();
-			process.waitFor();
+			int code = process.waitFor();
 			String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
-			Engine.logStudio.info("npm -version: " + output);
+			Engine.logStudio.info("npm -version: [" + code + "] " + output);
 			int major = Integer.parseInt(output.replaceAll("^(\\d+)\\.[\\d\\D]*", "$1")); 
 			if (major < 5) {
 				throw new Exception();
@@ -392,9 +397,11 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 							
 							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
+							BatchOperationHelper.start();
 							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
-							
+							BatchOperationHelper.stop();
 						} catch (Exception e) {
+							BatchOperationHelper.cancel();
 							Engine.logStudio.debug("Failed to drop: " + e.getMessage());
 						} finally {
 							PaletteSourceTransfer.getInstance().setPaletteSource(null);
@@ -437,8 +444,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						JSObject window = browser.executeJavaScriptAndReturnValue("window").asObject();
 						window.setProperty("java", browserInterface);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
 					}
 				}
 				browser.setZoomLevel(zoomFactor.zoomLevel());
@@ -1154,10 +1160,15 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
 		final MobileBuilderBuildMode buildMode = this.buildMode;
 		final int buildCount = ++this.buildCount;
+		final boolean isDark = SwtUtils.isDark();
 		
 		Engine.execute(() -> {
 			try {
-				browser.loadHTML(IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8"));
+				String loader = IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8");
+				if (isDark) {
+					loader = loader.replace("lightblue", "rgb(47,47,47); color: white");
+				}
+				c8oBrowser.setText(loader);
 			} catch (Exception e1) {
 				throw new RuntimeException(e1);
 			}
@@ -1226,10 +1237,13 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			
 			Object mutex = new Object();
 			mb.setBuildMutex(mutex);
+			try {
+				ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
+			} catch (CoreException ce) {}
 			
 			try {
-				File displayObjectsMobile = new File(project.getDirPath() + "/DisplayObjects/mobile");
-				displayObjectsMobile.mkdirs();				
+				File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
+				displayObjectsMobile.mkdirs();
 				
 				appendOutput("removing previous build directory");
 				for (File f: displayObjectsMobile.listFiles()) {
@@ -1239,6 +1253,29 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				}
 				appendOutput("previous build directory removed");
 				this.applicationEditorInput.application.checkFolder();
+				
+				try {
+					File watchJS = new File(project.getDirPath(), "_private/ionic/node_modules/@ionic/app-scripts/dist/watch.js");
+					if (watchJS.exists()) {
+						int ms = ConvertigoPlugin.getMobileBuilderThreshold();
+						String txt = FileUtils.readFileToString(watchJS, "UTF-8");
+						String ntxt = txt.replaceAll("var BUILD_UPDATE_DEBOUNCE_MS = \\d+;", "var BUILD_UPDATE_DEBOUNCE_MS = " + ms + ";");
+						if (!txt.equals(ntxt)); {
+							FileUtils.writeStringToFile(watchJS, ntxt, "UTF-8");
+						}
+					}
+				} catch (Exception e) {
+					Engine.logStudio.warn("Failed to update DEBOUNCE", e);
+				}
+				
+				File assets = new File(displayObjectsMobile, "assets");
+				if (assets.exists() && assets.isDirectory()) {
+					appendOutput("Handle application assets");
+					Engine.logStudio.info("Handle application assets");
+					File privAssets = new File(ionicDir, "src/assets");
+					FileUtils.deleteDirectory(privAssets);
+					FileUtils.copyDirectory(assets, privAssets);
+				}
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
 				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
@@ -1264,7 +1301,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						appendOutput(line);
 						if (line.contains("build finished")) {
 							synchronized (mutex) {
-								mutex.notify();								
+								mutex.notify();
 							}
 						}
 						Matcher m = pIsServerRunning.matcher(line);
@@ -1298,6 +1335,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					mutex.notify();
 				}
 				mb.setBuildMutex(null);
+				try {
+					ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
+				} catch (CoreException ce) {}
 			}
 			
 		});
@@ -1400,7 +1440,10 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	public void highlightComponent(MobileComponent mobileComponent) {
 		C8oBrowser.run(() -> {
 			if (mobileComponent instanceof UIComponent) {
-				selectPage(((UIComponent) mobileComponent).getPage().getSegment());
+				PageComponent pageComponent = ((UIComponent) mobileComponent).getPage();
+				if (pageComponent != null) {
+					selectPage(pageComponent.getSegment());
+				}
 			}
 			DOMDocument doc = browser.getDocument();
 			MobileComponent mc = mobileComponent;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class ObjectExplorerWizardPage extends WizardPage {
 	private Class<DatabaseObject> beanClass = null;
@@ -204,7 +205,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 
 	@Override
 	public boolean isPageComplete() {
-		return (getCurrentSelectedBeanInfo() != null);
+		return true;
 	}
 	
 	@Override
@@ -229,4 +230,16 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		}
 	}
 
+	public void doCancel() {
+		if (newBean != null) {
+			DatabaseObject dbo = newBean.getParent();
+			if (dbo != null) {
+				try {
+					dbo.remove(newBean);
+				} catch (EngineException e) {}
+				dbo.hasChanged = false;
+			}
+		}
+		newBean = null;
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -65,21 +65,20 @@ public class SchedulerManager {
 		try {
 			sched = schedFact.getScheduler();
 			sched.start();
-			
-			XMLDecoder decoder = null;
-			try{
-				decoder = new XMLDecoder(new FileInputStream(getFileURL()));
-				schedulerXML = (SchedulerXML) decoder.readObject();
+			try {
+				load();
 			} catch (Exception e) {
 				schedulerXML = new SchedulerXML();
-			} finally {
-				if (decoder != null) {
-					decoder.close();
-				}
 			}
 		} catch (Exception e) {
 			schedulerOn = false;
 			Engine.logEngine.error("Unexpected exception", e);
+		}
+	}
+	
+	public void load() throws FileNotFoundException {
+		try (XMLDecoder decoder = new XMLDecoder(new FileInputStream(getFileURL()))) {
+			schedulerXML = (SchedulerXML) decoder.readObject();
 		}
 	}
 	
@@ -191,8 +190,17 @@ public class SchedulerManager {
 							}
 								
 							if (tg != null) {
-								sched.scheduleJob(jd, tg);
-								Engine.logEngine.trace("(Scheduler Manager) "+currentName+" scheduled");
+								try {
+									sched.scheduleJob(jd, tg);
+									Engine.logEngine.trace("(Scheduler Manager) " + currentName + " scheduled");
+								} catch (SchedulerException e) {
+									String message = "(Scheduler Manager) " + currentName + " failed to be scheduled: " + e.getMessage();
+									if (message != null && message.contains("trigger will never fire")) {
+										Engine.logEngine.debug(message);
+									} else {
+										Engine.logEngine.warn(message);
+									}
+								}
 							}
 						}
 					}
@@ -226,14 +234,18 @@ public class SchedulerManager {
 	}
 	
 	public void save() {
-		try {
+		try (XMLEncoder encoder = new XMLEncoder(new FileOutputStream(getFileURL()))) {
 			Engine.logEngine.debug("(Scheduler Manager) Start jobs saving ...");
-			XMLEncoder encoder = new XMLEncoder(new FileOutputStream(getFileURL()));
 			encoder.writeObject(schedulerXML);
-			encoder.close();
-			Engine.logEngine.debug("(Scheduler Manager) ... jobs saving finished !");
 		} catch (FileNotFoundException e) {
 			Engine.logEngine.error("(Scheduler Manager) ... jobs saving failed !", e);
+		}
+		
+		try {
+			load();
+			Engine.logEngine.debug("(Scheduler Manager) ... jobs saving finished !");
+		} catch (FileNotFoundException e) {
+			Engine.logEngine.error("(Scheduler Manager) ... jobs reloading failed !", e);
 		}
 	}
 	

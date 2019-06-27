@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -49,12 +49,16 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionBindingEvent;
+import javax.servlet.http.HttpSessionBindingListener;
 import javax.servlet.http.HttpSessionContext;
 import javax.servlet.http.Part;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @SuppressWarnings("deprecation")
@@ -540,6 +544,14 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 		}
 		return session;
 	}
+	
+	public HttpSession getSession(String id) {
+		if (session == null && id != null) {
+			session = new InternalSession();
+			((InternalSession) session).id = id;
+		}
+		return session;
+	}
 
 	@Override
 	public Principal getUserPrincipal() {
@@ -682,6 +694,7 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 		@Override
 		public void invalidate() {
+			setMaxInactiveInterval(1);
 		}
 
 		@Override
@@ -710,12 +723,23 @@ public class InternalHttpServletRequest implements HttpServletRequest {
 
 		@Override
 		public void setAttribute(String attribute, Object value) {
+			if (value != null && value instanceof HttpSessionBindingListener) {
+				((HttpSessionBindingListener) value).valueBound(new HttpSessionBindingEvent(this, this.getId()));
+			}
 			getAttributes().put(attribute, value);
 		}
 
 		@Override
 		public void setMaxInactiveInterval(int maxInactiveTime) {
 			this.maxInactiveTime = maxInactiveTime;
+			if (maxInactiveTime <= 1) {
+				Object listener = SessionAttribute.sessionListener.get(this);
+				if (listener != null && listener instanceof HttpSessionBindingListener) {
+					Engine.execute(() -> {
+						((HttpSessionBindingListener) listener).valueUnbound(new HttpSessionBindingEvent(this, this.getId()));
+					});
+				}
+			}
 		}
 		
 	}

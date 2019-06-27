@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -112,7 +113,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class MobilePickerComposite extends Composite {
 
 	Composite content, headerComposite;
-	private ToolItem btnSequence, btnDatabase, btnIteration, btnForm;
+	private ToolItem btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Label label;
@@ -243,6 +244,7 @@ public class MobilePickerComposite extends Composite {
 					btnDatabase.setSelection(false);
 					btnIteration.setSelection(false);
 					btnForm.setSelection(false);
+					btnGlobal.setSelection(false);
 					
 					ToolItem button = (ToolItem) e.widget;
 					button.setSelection(true);
@@ -255,6 +257,8 @@ public class MobilePickerComposite extends Composite {
 						contentProvider.setFilterBy(Filter.Iteration);
 					} else if (btnForm.getSelection()) {
 						contentProvider.setFilterBy(Filter.Form);
+					} else if (btnGlobal.getSelection()) {
+						contentProvider.setFilterBy(Filter.Global);
 					}
 					modelTreeViewer.setInput(null);
 					checkboxTreeViewer.getTree().removeAll();
@@ -318,6 +322,16 @@ public class MobilePickerComposite extends Composite {
 		btnForm.setToolTipText("Show Forms on current page Sources");
 		btnForm.addSelectionListener(listener);
 		
+		btnGlobal = new ToolItem(toolbar, btnStyle);
+		try {
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/dynamic/images/setglobalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+		} catch (Exception e) {
+			btnGlobal.setText("GS");
+		}
+		btnGlobal.setImage(image);
+		btnGlobal.setToolTipText("Show Global Shared objects");
+		btnGlobal.addSelectionListener(listener);
+
 		message = new Label(headerComposite, SWT.NONE);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -330,7 +344,7 @@ public class MobilePickerComposite extends Composite {
 			public void checkStateChanged(CheckStateChangedEvent event) {
 				Object element = event.getElement();
 				if (element instanceof TVObject) {
-					if (btnIteration.getSelection() || btnForm.getSelection()) {
+					if (btnIteration.getSelection() || btnForm.getSelection() || btnGlobal.getSelection()) {
 						checkboxTreeViewer.setChecked(element, !event.getChecked());
 						return;
 					}
@@ -435,6 +449,8 @@ public class MobilePickerComposite extends Composite {
 				filter = Filter.Iteration;
 			else if (btnForm.getSelection())
 				filter = Filter.Form;
+			else if (btnGlobal.getSelection())
+				filter = Filter.Global;
 			String projectName = currentMC.getProject().getName();
 			String input = text.getText();
 			MobileSmartSource cs = new MobileSmartSource(filter, projectName, input);
@@ -462,6 +478,7 @@ public class MobilePickerComposite extends Composite {
 			btnDatabase.setEnabled(enabled);
 			btnIteration.setEnabled(enabled);
 			btnForm.setEnabled(enabled);
+			btnGlobal.setEnabled(enabled);
 			checkboxTreeViewer.getTree().setEnabled(enabled);
 		} catch (Exception e) {
 			
@@ -477,7 +494,7 @@ public class MobilePickerComposite extends Composite {
 		for (Object ob: checkboxTreeViewer.getGrayedElements()) {
 			checkboxTreeViewer.setChecked(ob, true);
 			if (ob instanceof TVObject && !((TVObject)ob).getSourceData().isEmpty()) {
-				if (btnIteration.getSelection() || btnForm.getSelection()) {
+				if (btnIteration.getSelection() || btnForm.getSelection() || btnGlobal.getSelection()) {
 					checkboxTreeViewer.setGrayed(ob, !ob.equals(lastSelected));
 				} else {
 					checkboxTreeViewer.setGrayed(ob, false);
@@ -556,12 +573,14 @@ public class MobilePickerComposite extends Composite {
 	private void updateMessage(String msg) {
 		String msgTxt = "      ";
 		if (currentMC == null) {
-			msgTxt = msgTxt + "Please select a mobile Page or a Menu";
+			msgTxt = msgTxt + "Please select any Application sub component";
 		} else {
 			if (currentMC instanceof PageComponent)
 				msgTxt = msgTxt + "Page : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
 			else if (currentMC instanceof UIDynamicMenu)
 				msgTxt = msgTxt + "Menu : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
+			else if (currentMC instanceof ApplicationComponent)
+				msgTxt = msgTxt + "App : "+ currentMC.getName() + (msg != null ? " -> "+msg:"");
 		}
 		message.setText(msgTxt);
 	}
@@ -599,11 +618,12 @@ public class MobilePickerComposite extends Composite {
 	private void updateText() {
 		boolean isDirective = btnIteration.getSelection();
 		boolean isForm = btnForm.getSelection();
+		boolean isGlobal = btnGlobal.getSelection();
 		List<String> sourceData = getSourceData();
 		int size = sourceData.size();
 		
 		StringBuffer buf = new StringBuffer();
-		if ((isDirective || isForm) && size > 0) {
+		if ((isDirective || isForm || isGlobal) && size > 0) {
 			String data = sourceData.get(0);
 			if (!data.isEmpty()) {
 				buf.append(data);
@@ -624,7 +644,7 @@ public class MobilePickerComposite extends Composite {
 			path = path.substring(index + searchPath.length());
 		}
 		
-		String computedText = buf.length() > 0 ? (isDirective || isForm ? buf + path : "listen(["+ buf +"])" + path):"";
+		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
 		text.setText(computedText);
 	}
 	
@@ -666,12 +686,20 @@ public class MobilePickerComposite extends Composite {
 						
 						MobileSmartSourceType msst = directive.getSourceSmartType();
 						MobileSmartSource mss = msst.getSmartSource();
+						if (mss != null) {
 						dbo = mss.getDatabaseObject(dboName);
 						params.putAll(mss.getParameters());
 						searchPath = mss.getModelPath().replaceAll("\\?\\.", ".") + searchPath;
+						} else {
+							dbo = null;
+						}
 					} while (dbo != null && dbo instanceof UIControlDirective);
 				} else if (object instanceof UIForm) {
 					dbo = (UIForm)object;
+					searchPath = "";
+				} else if (object instanceof ApplicationComponent) {
+					dbo = (ApplicationComponent)object;
+					params.put("json", infos.toString());
 					searchPath = "";
 				}
 			} catch (Exception e) {
@@ -801,6 +829,20 @@ public class MobilePickerComposite extends Composite {
 								}
 							});
 						}
+						// case of ApplicationComponent
+						else if (dbo instanceof ApplicationComponent) {
+							String json = params.get("json");
+							JSONObject jsonModel = new JSONObject(json);
+							
+							Display.getDefault().asyncExec(new Runnable() {
+								public void run() {
+									modelTreeViewer.setInput(jsonModel);
+									initTreeSelection(modelTreeViewer, null);
+									setWidgetsEnabled(true);
+									updateMessage();
+								}
+							});
+						}
 						// should not happened
 						else {
 							throw new Exception("DatabaseObject "+ dbo.getClass().getName() +" not supported!");
@@ -923,7 +965,7 @@ public class MobilePickerComposite extends Composite {
 				currentMC = ((MobilePageComponentTreeObject) selected).getObject();
 			} else if (selected instanceof MobileUIComponentTreeObject) {
 				uic = ((MobileUIComponentTreeObject) selected).getObject();
-				currentMC = uic.getPage() == null ? uic.getMenu() : uic.getPage();
+				currentMC = uic.getPage() != null ? uic.getPage() : (uic.getMenu() != null ?  uic.getMenu() : uic.getApplication());
 			}
 			
 			if (currentMC == null) {
@@ -956,6 +998,9 @@ public class MobilePickerComposite extends Composite {
 					}
 					if (Filter.Form.equals(filter)) {
 						buttonToSelect = btnForm;
+					}
+					if (Filter.Global.equals(filter)) {
+						buttonToSelect = btnGlobal;
 					}
 					buttonToSelect.notifyListeners(SWT.Selection, null);
 				}

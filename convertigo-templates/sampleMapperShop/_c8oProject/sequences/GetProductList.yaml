@@ -1,0 +1,90 @@
+accessibility: Hidden
+comment: 'hidden: retrieve the list of all products'
+↓Products [steps.XMLComplexStep-1462261163567]: 
+  nodeName: products
+  ↓jElement [steps.ElementStep-1462367750531]: 
+    expression: (order == "ASC" || order == "DESC") ? order:"ASC"
+    nodeName: order_by
+  ↓Call_Transaction [steps.TransactionStep-1462261380955]: 
+    sourceTransaction: sampleMapperShop.hsqldb.All_Products
+    ↓order [variables.StepVariable-1462366377197]: 
+      description: order_by
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1462367750531
+            - java.lang.String: 
+              - ↑value: ./text()
+  ↓Iterator [steps.IteratorStep-1462264376362]: 
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1462261380955
+          - java.lang.String: 
+            - ↑value: ./document/sql_output/row
+    ↓Complex [steps.XMLComplexStep-1462261489019]: 
+      nodeName: product
+      ↓Element3 [steps.XMLElementStep-1462355287787]: 
+        nodeName: art_id
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462264376362
+              - java.lang.String: 
+                - ↑value: ./@ART_ID
+        ↓Attribute [steps.XMLAttributeStep-1462968288166]: 
+          nodeName: type
+          nodeText: integer
+      ↓Element4 [steps.XMLElementStep-1462355291870]: 
+        nodeName: cat_id
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462264376362
+              - java.lang.String: 
+                - ↑value: ./@CAT_ID
+        ↓Attribute [steps.XMLAttributeStep-1462968290670]: 
+          nodeName: type
+          nodeText: integer
+      ↓Element [steps.XMLElementStep-1462261186610]: 
+        nodeName: code
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462264376362
+              - java.lang.String: 
+                - ↑value: ./@CODE
+      ↓Element2 [steps.XMLElementStep-1462261186621]: 
+        nodeName: price
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462264376362
+              - java.lang.String: 
+                - ↑value: ./@PRICE
+      ↓Element1 [steps.XMLElementStep-1462261186630]: 
+        nodeName: description
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462264376362
+              - java.lang.String: 
+                - ↑value: ./@DESCRIPTION
+↓order [variables.RequestableVariable-1462365735872]: 
+  comment: the sorting order (ASC or DESC)
+  description: order_by
+  value: ASC

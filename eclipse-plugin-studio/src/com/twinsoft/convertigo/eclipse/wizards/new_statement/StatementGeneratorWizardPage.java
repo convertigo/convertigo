@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class StatementGeneratorWizardPage extends WizardPage {
@@ -364,5 +365,18 @@ public class StatementGeneratorWizardPage extends WizardPage {
 		generateSetSelectStatement(selectBy, selectType, select, evtGen);
 	}
 */
+	
+	public void doCancel() {
+		if (newBean != null) {
+			DatabaseObject dbo = newBean.getParent();
+			if (dbo != null) {
+				try {
+					dbo.remove(newBean);
+				} catch (EngineException e) {}
+				dbo.hasChanged = false;
+			}
+		}
+		newBean = null;
+	}
 	
 }

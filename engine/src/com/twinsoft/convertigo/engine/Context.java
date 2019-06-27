@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -80,6 +80,7 @@ import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
+import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.URLrewriter;
 import com.twinsoft.twinj.Javelin;
@@ -146,6 +147,8 @@ public class Context extends AbstractContext implements Cloneable {
 	
 	public IdToXpathManager idToXpathManager = null;
 	public URLrewriter urlRewriter = null;
+	
+	public SimpleMap server = Engine.theApp.getShareServerMap();
 	
 	private Map<String, Connector> used_connectors = new HashMap<String, Connector>();
 	private Set<Connector> opened_connectors = new HashSet<Connector>();
@@ -224,7 +227,7 @@ public class Context extends AbstractContext implements Cloneable {
 	public String getProjectDirectory() {
 		String dir = null;
 		if (projectName != null) {
-			dir = Engine.PROJECTS_PATH + "/" + projectName;
+			dir = Engine.projectDir(projectName);
 		}
 		return dir;
 	}
@@ -628,6 +631,7 @@ public class Context extends AbstractContext implements Cloneable {
 		httpSession = null;
 		requestHeaders = null;
 		parentContext = null;
+		requestedObject = null;
 	}
 	
 	public Scriptable getSharedScope() {

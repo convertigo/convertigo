@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -50,13 +50,13 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
-import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
+import org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory;
 
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
-public class MySSLSocketFactory implements SecureProtocolSocketFactory {
-	static Map<String, MySSLSocketFactory> cache = new HashMap<String, MySSLSocketFactory>();
+public class MySSLSocketFactory implements ProtocolSocketFactory {
+	static Map<String, ProtocolSocketFactory> cache = new HashMap<>();
 	static long checkExpires = System.currentTimeMillis() + 300000;
 
 	protected String keyStore;
@@ -72,33 +72,38 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 		String key = "" + keyStore + "|" + keyStorePassword + "|" + trustStore + "|" + trustStorePassword + "|" + trustAllServerCertificates;
 		
 		synchronized (cache) {
-			MySSLSocketFactory mySSLSocketFactory = cache.get(key);
-			if (mySSLSocketFactory == null) {
+			ProtocolSocketFactory socketFactory = cache.get(key);
+			if (socketFactory == null) {
 				Engine.logCertificateManager.debug("(MySSLSocketFactory) Create new SSLSocketFactory (" + key + ")");
-				mySSLSocketFactory = new MySSLSocketFactory(keyStore, keyStorePassword, trustStore, trustStorePassword, trustAllServerCertificates);
-				cache.put(key, mySSLSocketFactory);
+				socketFactory = "||||false".equals(key) ? new SSLProtocolSocketFactory() : new MySSLSocketFactory(keyStore, keyStorePassword, trustStore, trustStorePassword, trustAllServerCertificates);
+				cache.put(key, socketFactory);
 			} else {
 				Engine.logCertificateManager.debug("(MySSLSocketFactory) Retrieve SSLSocketFactory from cache (" + key + ")");
 			}
 			
 			long now = System.currentTimeMillis();
-			mySSLSocketFactory.expire = now + 3600000;
+			
+			if (socketFactory instanceof MySSLSocketFactory ) {
+				((MySSLSocketFactory) socketFactory).expire = now + 3600000;
+			}
 			
 			if (now >= checkExpires) {
 				int removed = 0;
 				
-				for (Iterator<MySSLSocketFactory> i = cache.values().iterator(); i.hasNext();) {
-					MySSLSocketFactory cachedSSLSocketFactory = i.next();
-					if (now >= cachedSSLSocketFactory.expire) {
-						removed++;
-						i.remove();
+				for (Iterator<ProtocolSocketFactory> i = cache.values().iterator(); i.hasNext();) {
+					ProtocolSocketFactory cachedSocketFactory = i.next();
+					if (cachedSocketFactory instanceof MySSLSocketFactory ) {
+						if (now >= ((MySSLSocketFactory) cachedSocketFactory).expire) {
+							removed++;
+							i.remove();
+						}
 					}
 				}
 				Engine.logCertificateManager.info("(MySSLSocketFactory) Clear " + removed + " cache entries, remains " + cache.size() + " entries");
 				checkExpires += 300000;
 			}
 			
-			return mySSLSocketFactory;
+			return socketFactory;
 		}
 	}
 	

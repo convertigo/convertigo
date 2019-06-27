@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
@@ -67,7 +66,7 @@ public class InternalRequester extends GenericRequester {
     }
     
     public Object processRequest() throws Exception {
-    	return processRequest(inputData);
+   		return processRequest(inputData);
     }
     
     public String getName() {
@@ -117,6 +116,9 @@ public class InternalRequester extends GenericRequester {
 		
 		context = Engine.theApp.contextManager.get(this, contextName, sessionID, poolName, projectName, connectorName, sequenceName);
 
+		if (context.remoteAddr == null) {
+			context.remoteAddr = httpServletRequest.getRemoteAddr();
+		}
 		return context;
 	}
 
@@ -170,7 +172,6 @@ public class InternalRequester extends GenericRequester {
 			if (context.project != null && context.project.getName().equals(context.projectName)) {
 				String defaultConnectorName = context.project.getDefaultConnector().getName();
 				if (!defaultConnectorName.equals(context.connectorName)) {
-					context.isNewSession = true;
 					context.connectorName = defaultConnectorName;
 				}
 			}

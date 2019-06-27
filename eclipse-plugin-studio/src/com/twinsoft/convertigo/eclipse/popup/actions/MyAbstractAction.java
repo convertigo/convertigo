@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -36,14 +36,16 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MyAbstractAction extends Action implements IObjectActionDelegate {
@@ -99,10 +101,13 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 					mb.setAutoBuild(false);
 				}
 			}
+			BatchOperationHelper.start();
 			
 			run();
 			
+			BatchOperationHelper.stop();
 		} finally {
+			BatchOperationHelper.cancel();
 			Engine.logStudio.info("---------------------- Action ended:   "+ action.getId() + "----------------------");
 			if (mb != null) {
 				if (autoBuild) {
@@ -191,18 +196,17 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 		if (activePage != null) {
 			if (transaction != null) {
 				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i=0;i<editorRefs.length;i++) {
+				for (int i = 0; i < editorRefs.length; i++) {
 					IEditorReference editorRef = (IEditorReference)editorRefs[i];
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof JscriptTransactionEditorInput)) {
-							if (((JscriptTransactionEditorInput)editorInput).transaction.equals(transaction)) {
+						if ((editorInput != null) && (editorInput instanceof JScriptEditorInput)) {
+							if (transaction.equals(((JScriptEditorInput) editorInput).getDatabaseObject())) {
 								editorPart = editorRef.getEditor(false);
 								break;
 							}
 						}
-					}
-					catch(PartInitException e) {
+					} catch(PartInitException e) {
 						//ConvertigoPlugin.logException(e, "Error while retrieving the jscript transaction editor '" + editorRef.getName() + "'");
 					}
 				}

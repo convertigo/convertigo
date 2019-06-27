@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,8 +25,6 @@ public interface ITicketManager {
 	public void addTicket(Ticket ticket) throws BillingException;
 
 	public void removeTicket(Ticket ticket) throws BillingException;
-
-	public Ticket peekTicket() throws BillingException;
 	
 	public Ticket newTicket() throws BillingException;
 	

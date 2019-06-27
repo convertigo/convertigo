@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,12 +39,12 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -59,13 +60,14 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
-	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	
+	transient private Runnable _markPageAsDirty;
 	
 	public PageComponent() {
 		super();
 		
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
@@ -74,12 +76,11 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	@Override
 	public PageComponent clone() throws CloneNotSupportedException {
 		PageComponent cloned = (PageComponent) super.clone();
-		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.pageImports = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
-		cloned.isRoot = false;
+		cloned.isRoot = isRoot;
 		return cloned;
 	}
 
@@ -88,8 +89,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	@Override
 	public Element toXml(Document document) throws EngineException {
 		Element element = super.toXml(document);
-        
-		element.setAttribute("newPriority", new Long(newPriority).toString());
 		
 		// Storing the page "isRoot" flag
 		element.setAttribute("isRoot", new Boolean(isRoot).toString());
@@ -106,7 +105,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			if (priority == 0L) {
 				priority = getNewOrderValue();
 				element.setAttribute("priority", ""+priority);
-				element.setAttribute("newPriority", ""+priority);
 			}
 			
 			NodeList properties = element.getElementsByTagName("property");
@@ -138,13 +136,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		super.configure(element);
 		
 		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		} catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
-		
-		try {
 			isRoot = new Boolean(element.getAttribute("isRoot")).booleanValue();
 		} catch(Exception e) {
 			throw new EngineException("Unable to configure the property 'isRoot' of the page \"" + getName() + "\".", e);
@@ -167,14 +158,14 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedComponent(Long value) {
@@ -184,7 +175,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     }
     
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -262,7 +253,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
 	
 	/**
@@ -274,7 +265,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		checkSubLoaded();
 		
 		boolean isNew = uiComponent.bNew;
-		boolean isCut = !isNew && uiComponent.getParent() == null;
+		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -476,9 +467,10 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 	
 	protected Map<String, Set<String>> getInfoMap() {
+		Set<UIComponent> done = new HashSet<>();
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addInfos(map);
+			uiComponent.addInfos(done, map);
 		}
 		return map;
 	}
@@ -492,11 +484,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return contributors;
 	}
 	
-	protected void doGetContributors() {
-		contributors = new ArrayList<Contributor>();
+	protected synchronized void doGetContributors() {
+		contributors = new ArrayList<>();
+		Set<UIComponent> done = new HashSet<>();
 		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder 
 			for (UIComponent uiComponent : getUIComponentList()) {
-				uiComponent.addContributors(contributors);
+				uiComponent.addContributors(done, contributors);
 			}
 		//}		
 	}
@@ -546,51 +539,57 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 	
 	public void markPageAsDirty() throws EngineException {
-		if (isImporting) {
-			return;
+		if (_markPageAsDirty == null) {
+			_markPageAsDirty = () -> {
+				if (isImporting) {
+					return;
+				}
+				try {
+					JSONObject oldComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					doComputeContents();
+					
+					JSONObject newComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getJSONObject("scripts").toString()
+								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+							getProject().getMobileBuilder().pageTsChanged(this, true);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("style")
+								.equals(oldComputedContent.getString("style")))) {
+							getProject().getMobileBuilder().pageStyleChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("template")
+								.equals(oldComputedContent.getString("template")))) {
+							getProject().getMobileBuilder().pageTemplateChanged(this);
+						}
+					}
+					
+					String oldContributors = contributors == null ? null: contributors.toString();
+					doGetContributors();
+					String newContributors = contributors == null ? null: contributors.toString();
+					if (oldContributors != null && newContributors != null) {
+						if (!(oldContributors.equals(newContributors))) {
+							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
+						}
+					}
+					
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			};
 		}
-		
-		try {
-			JSONObject oldComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			doComputeContents();
-			
-			JSONObject newComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getJSONObject("scripts").toString()
-						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-					getProject().getMobileBuilder().pageTsChanged(this, true);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("style")
-						.equals(oldComputedContent.getString("style")))) {
-					getProject().getMobileBuilder().pageStyleChanged(this);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("template")
-						.equals(oldComputedContent.getString("template")))) {
-					getProject().getMobileBuilder().pageTemplateChanged(this);
-				}
-			}
-			
-			String oldContributors = contributors == null ? null: contributors.toString();
-			doGetContributors();
-			String newContributors = contributors == null ? null: contributors.toString();
-			if (oldContributors != null && newContributors != null) {
-				if (!(oldContributors.equals(newContributors))) {
-					getProject().getMobileBuilder().pageContributorsChanged(this);
-				}
-			}
-			
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		checkBatchOperation(_markPageAsDirty);
 	}
 	
 	public void markPageTsAsDirty() throws EngineException {
@@ -640,6 +639,42 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return "";
 	}
 
+	private String computeEventConstructors(List<UIEventSubscriber> subscriberList) {
+		String computed = "";
+		if (!subscriberList.isEmpty()) {
+			String nbi = getName() +".nbInstance";
+			computed += ""+nbi+"++;"+System.lineSeparator();
+			computed += "\t\tif ("+nbi+" == 1) {"+System.lineSeparator();
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String constructor = subscriber.computeConstructor();
+				computed += constructor.isEmpty() ? "": "\t" + constructor;
+			}
+			computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\t";
+		}
+		return computed;
+	}
+	
+	private String computeNgDestroy(List<UIEventSubscriber> subscriberList) {
+		String computed = "";
+		if (!subscriberList.isEmpty()) {
+			String nbi = getName() +".nbInstance";
+			computed += "ngOnDestroy() {"+ System.lineSeparator();
+			computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
+			computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String desctructor = subscriber.computeDestructor();
+				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
+			}
+			computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
+			computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+			computed += "\t}"+ System.lineSeparator();
+			computed += "\t";
+		}
+		return computed;
+	}
+	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		// Page menu
@@ -666,10 +701,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				e1.printStackTrace();
 			}
 			
-			String nbi = getName() +".nbInstance";
 			try {
-				String subscribers = UIEventSubscriber.computeConstructors(nbi, subscriberList)
-									+ System.lineSeparator() + "\t\t";
+				String subscribers = computeEventConstructors(subscriberList);
+				subscribers += subscribers.isEmpty() ? "" : System.lineSeparator() + "\t\t";
 				String constructors = jsonScripts.getString("constructors") + subscribers;
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
@@ -677,8 +711,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			}
 			
 			try {
-				String function = UIEventSubscriber.computeNgDestroy(nbi, subscriberList) 
-								+ System.lineSeparator() + "\t";
+				String function = computeNgDestroy(subscriberList);
+				function += function.isEmpty() ? "" : System.lineSeparator() + "\t";
 				String functions = jsonScripts.getString("functions") + function;
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
@@ -799,10 +833,10 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.isEnabled = isEnabled;
 	}
 
-	public boolean updateSmartSource(String oldString, String newString) {
+	public boolean updateSmartSources(String oldString, String newString) {
 		boolean updated = false;
 		for (UIComponent uic : getUIComponentList()) {
-			if (uic.updateSmartSource(oldString, newString)) {
+			if (uic.updateSmartSources(oldString, newString)) {
 				updated = true;
 			}
 		}

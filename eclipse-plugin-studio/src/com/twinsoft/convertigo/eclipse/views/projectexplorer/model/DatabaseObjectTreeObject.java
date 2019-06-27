@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -252,13 +253,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     }
     
     protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
-    	/*List<PropertyDescriptor> l = new ArrayList<PropertyDescriptor>();
-    	if (this instanceof IDynamicPropertyProvider) {
-    		IDynamicPropertyProvider provider = (IDynamicPropertyProvider)this;
-           	l.addAll(provider.getDynamicPropertyDescriptorProvider().
-           								getDynamicPropertyDescriptors());
-    	}
-    	return l;*/
     	return new ArrayList<PropertyDescriptor>();
     }
     
@@ -700,12 +694,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		else if (propertyName.equals(P_PRIORITY))
 			return Long.toString(databaseObject.priority);
 		else if (propertyName.equals(P_DEPTH)) {
-	        if (databaseObject instanceof ScreenClass) return Integer.toString(((ScreenClass) databaseObject).getDepth());
-			else return "n/a";
+			if (databaseObject instanceof ScreenClass) return Integer.toString(((ScreenClass) databaseObject).getDepth());
+			else return org.apache.commons.lang3.StringUtils.countMatches(databaseObject.getQName(), '.');
 		}
 		else if (propertyName.equals(P_EXPORTED)) {
-			if (databaseObject instanceof Project) return ((Project)databaseObject).getInfoForProperty("exported");
-			else return "n/a";
+			return databaseObject.getProject().getInfoForProperty("exported");
 		}
 		else {
 			try {
@@ -1093,8 +1086,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				if (!siblingDatabaseObjectTreeObject.isInherited) {
 					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
 					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equals(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists.");
+					if (databaseObjectName.equalsIgnoreCase(newName)) {
+						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
 					}
 				}
 			}
@@ -1108,8 +1101,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
 
 					String databaseObjectName = databaseObjectTmp.getName();
-					if (databaseObjectName.equals(newName)) {
-						throw new ConvertigoException("Another object with the same name already exists.");
+					if (databaseObjectName.equalsIgnoreCase(newName)) {
+						throw new ConvertigoException("Another object with the same name already exists (case insensitive).");
 					}
 				}
 			}
@@ -1134,6 +1127,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				return true;
 			}
 
+			if (newName.equalsIgnoreCase(oldName)) {
+				throw new ConvertigoException("The rename operation is case insensitive.");
+			}
+			
 			rename_(newName, bDialog);
 		}
 		catch(ConvertigoException e) {
@@ -1221,13 +1218,22 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		return imageName;
 	}
 	
+	protected Set<Object> checkDone(TreeObjectEvent treeObjectEvent) {
+		if (treeObjectEvent.done == null) {
+			treeObjectEvent.done = new HashSet<Object>();
+		}
+		return treeObjectEvent.done;
+	}
+	
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		checkDone(treeObjectEvent);
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		if (!(treeObject.equals(this)))
 			getDescriptors();// refresh editors (e.g labels in combobox)
 	}
 
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		checkDone(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
 		if (!(treeObject.equals(this))) {
@@ -1262,6 +1268,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		checkDone(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
 		String propertyName = (String)treeObjectEvent.propertyName;

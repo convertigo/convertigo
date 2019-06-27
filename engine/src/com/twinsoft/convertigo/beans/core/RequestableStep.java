@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -84,7 +84,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 
 	public static final String SOURCE_SEPARATOR = ".";
 
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	transient private List<StepVariable> vVariables = new LinkedList<StepVariable>();
 	transient private List<StepVariable> vAllVariables = null;
@@ -275,7 +275,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     	NodeList properties = projectNode.getElementsByTagName("property");
 		Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 		String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
-    	return Engine.PROJECTS_PATH + "/"+ projectName + "/backup-wsdl";
+    	return Engine.projectDir(projectName) + "/backup-wsdl";
     }
     
     protected void backupWsdlTypes(Element element) throws TransformerFactoryConfigurationError, Exception {
@@ -416,14 +416,14 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, variable.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     public void removeVariable(StepVariable variable) {
@@ -440,7 +440,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     }
 
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -568,6 +568,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 					
 					StepVariable stepVariable = variable.isMultiValued() ? new StepMultiValuedVariable():new StepVariable();
 					stepVariable.setName(variableName);
+					stepVariable.setComment(variable.getComment());
 					stepVariable.setDescription(variable.getDescription());
 					stepVariable.setSourceDefinition(new XMLVector<String>());
 					stepVariable.setRequired(variable.isRequired());
@@ -592,7 +593,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				
 	    		RequestableVariable requestableVariable = stepVariable.isMultiValued() ? new RequestableMultiValuedVariable():new RequestableVariable();
 	    		requestableVariable.setName(variableName);
+	    		requestableVariable.setComment(stepVariable.getComment());
 	    		requestableVariable.setDescription(stepVariable.getDescription());
+	    		requestableVariable.setComment(stepVariable.getComment());
 	    		requestableVariable.setRequired(stepVariable.isRequired());
 	    		requestableVariable.setValueOrNull(stepVariable.getValueOrNull());
 	    		requestableVariable.setVisibility(stepVariable.getVisibility());
@@ -620,6 +623,13 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			try {
 				// Source value
 				Object variableValue = stepVariable.getSourceValue();
+				
+				if (variableValue instanceof NodeList && ((NodeList)variableValue).getLength() == 0) {
+					if (getProject().isStrictMode() && !stepVariable.isMultiValued()) {
+						variableValue = null;// override with null (fix #24)
+					}
+				}
+				
 				if (variableValue != null) {
 					Engine.logBeans.trace("(RequestableStep) found value from source: " + Visibility.Logs.printValue(variableVisibility,variableValue));
 				}

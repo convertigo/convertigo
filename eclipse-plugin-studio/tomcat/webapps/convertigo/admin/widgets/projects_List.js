@@ -1,24 +1,25 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2019 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
+
+function projects_List_date_format(text) {
+	return text.replace(/\d*\|/, "");
+}
 
 function projects_List_init() {
 	$("#projectsDeploy").button({
@@ -71,12 +72,14 @@ function projects_List_init() {
 				name : 'exported',
 				index : 'exported',
 				width : 50,
-				align : "left"
+				align : "left",
+				formatter : projects_List_date_format
 			}, {
 				name : 'deployDate',
 				index : 'deployDate',
 				width : 50,
-				align : "left"
+				align : "left",
+				formatter : projects_List_date_format
 			}, {
 				name : 'btnDelete',
 				index : 'btnDelete',
@@ -154,8 +157,8 @@ function updateProjectsList(xml) {
 													+ "',true)\" title=\"Click to edit '"+projectName+"'\ project\">&nbsp;<img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\">&nbsp;&nbsp;"+projectName+"</a>"),
 											comment : $(this).attr("comment"),
 											version : $(this).attr("version"),
-											exported : $(this).attr("exported"),
-											deployDate : $(this).attr("deployDate"),
+											exported : $(this).attr("exportedTs") + "|" + $(this).attr("exported"),
+											deployDate : $(this).attr("deployDateTs") + "|" + $(this).attr("deployDate"),
 											btnDelete : "<a href=\"javascript: deleteProject('"
 													+ projectName
 													+ "')\"><img border=\"0\" title=\"Delete the project\" src=\"images/convertigo-administration-picto-delete.png\"></a>",

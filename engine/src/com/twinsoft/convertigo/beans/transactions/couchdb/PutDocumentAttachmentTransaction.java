@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -57,11 +57,13 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		Map<String, String> query = getQueryVariableValues();
 		
 		attpath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attpath, getProject().getName());
-		String contentType;
+		String contentType = null;
 		
 		try {
 			contentType = context.httpServletRequest.getServletContext().getMimeType(attpath);
 		} catch (Exception e) {
+		}
+		if (contentType == null) {
 			Engine.logBeans.warn("(PutDocumentAttachmentTransaction) Failed to detect contentType");
 			contentType = MimeType.OctetStream.value();
 		}

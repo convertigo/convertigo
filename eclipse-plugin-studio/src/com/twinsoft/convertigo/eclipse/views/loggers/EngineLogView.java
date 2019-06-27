@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -116,16 +116,17 @@ public class EngineLogView extends ViewPart {
 	private EngineLogViewLabelProvider labelProvider;
 
 	private static final ColumnInfo[] DEFAULT_COLUMN_INFOS = { new ColumnInfo("Date", false, 80),
-			new ColumnInfo("Time", true, 90), new ColumnInfo("DeltaTime", true, 60),
-			new ColumnInfo("Message", true, 400), new ColumnInfo("Level", false, 50),
-			new ColumnInfo("Category", true, 80), new ColumnInfo("Thread", true, 180),
-			new ColumnInfo("Project", true, 70), new ColumnInfo("Connector", true, 70),
-			new ColumnInfo("Transaction", true, 70), new ColumnInfo("Sequence", true, 70),
-			new ColumnInfo("ContextID", true, 160), new ColumnInfo("UID", false, 50),
-			new ColumnInfo("User", false, 50), new ColumnInfo("ClientIP", false, 50),
-			new ColumnInfo("ClientHostName", false, 50), new ColumnInfo("UUID", false, 50) };
+			new ColumnInfo("Time", true, 100), new ColumnInfo("DeltaTime", true, 70),
+			new ColumnInfo("Message", true, 600), new ColumnInfo("Level", false, 60),
+			new ColumnInfo("Category", true, 110), new ColumnInfo("Thread", true, 190),
+			new ColumnInfo("Project", true, 100), new ColumnInfo("Connector", true, 100),
+			new ColumnInfo("Transaction", true, 100), new ColumnInfo("Sequence", true, 100),
+			new ColumnInfo("ContextID", true, 160), new ColumnInfo("UID", false, 60),
+			new ColumnInfo("User", false, 60), new ColumnInfo("ClientIP", false, 60),
+			new ColumnInfo("ClientHostName", false, 60), new ColumnInfo("UUID", false, 60),
+			new ColumnInfo("", true, 500)};
 
-	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
 
 	private static ColumnInfo[] clone(ColumnInfo[] array) {
 		ColumnInfo[] clonedArray = array.clone();
@@ -292,8 +293,6 @@ public class EngineLogView extends ViewPart {
 		createActions();
 		createToolbar();
 		createMenu();
-
-		createLogViewThread();
 	}
 
 	/*
@@ -553,65 +552,71 @@ public class EngineLogView extends ViewPart {
 		compositeTableViewer.setLayoutData(layoutData);
 
 		GridLayout layout = new GridLayout(1, false);
-		compositeTableViewer.setLayout(layout);
 		layout.marginWidth = 10;
+		compositeTableViewer.setLayout(layout);
+		parent.getDisplay().asyncExec(() -> {
+			tableViewer = new TableViewer(compositeTableViewer, SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL
+					| SWT.FULL_SELECTION | SWT.VERTICAL | SWT.FILL);
 
-		tableViewer = new TableViewer(compositeTableViewer, SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL
-				| SWT.FULL_SELECTION | SWT.BORDER | SWT.VERTICAL | SWT.FILL);
+			GridData layoutData2 = new GridData();
+			layoutData2.horizontalAlignment = SWT.FILL;
+			layoutData2.verticalAlignment = SWT.FILL;
+			layoutData2.grabExcessHorizontalSpace = true;
+			layoutData2.grabExcessVerticalSpace = true;
+			tableViewer.getTable().setLayoutData(layoutData2);
 
-		layoutData = new GridData();
-		layoutData.horizontalAlignment = SWT.FILL;
-		layoutData.verticalAlignment = SWT.FILL;
-		layoutData.grabExcessHorizontalSpace = true;
-		layoutData.grabExcessVerticalSpace = true;
-		tableViewer.getTable().setLayoutData(layoutData);
+			createColumns();
+			createContextualTableViewerMenu();
 
-		createColumns();
-		createContextualTableViewerMenu();
-
-		final Table table = tableViewer.getTable();
-		table.setHeaderVisible(true);
-		table.pack();
-		tableViewer.setLabelProvider(labelProvider);
-		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
-			public void doubleClick(DoubleClickEvent event) {
-				ISelection selection = event.getSelection();
-				if (selection instanceof IStructuredSelection) {
-					Object selectedObject = ((IStructuredSelection) selection).getFirstElement();
-					if (selectedObject instanceof LogLine) {
-						LogLine logLine = (LogLine) selectedObject;
-						EventDetailsDialog dialog = new EventDetailsDialog(Display.getCurrent()
-								.getActiveShell(), EventDetailsDialogComposite.class, "Event Details",
-								logLine);
-						dialog.open();
+			final Table table = tableViewer.getTable();
+			table.setLinesVisible(false);
+			table.setHeaderVisible(true);
+			table.pack();
+			tableViewer.setLabelProvider(labelProvider);
+			tableViewer.addDoubleClickListener(new IDoubleClickListener() {
+				public void doubleClick(DoubleClickEvent event) {
+					ISelection selection = event.getSelection();
+					if (selection instanceof IStructuredSelection) {
+						Object selectedObject = ((IStructuredSelection) selection).getFirstElement();
+						if (selectedObject instanceof LogLine) {
+							LogLine logLine = (LogLine) selectedObject;
+							EventDetailsDialog dialog = new EventDetailsDialog(Display.getCurrent()
+									.getActiveShell(), EventDetailsDialogComposite.class, "Event Details",
+									logLine);
+							dialog.open();
+						}
 					}
 				}
-			}
-		});
+			});
 
-		table.addMenuDetectListener(new MenuDetectListener() {
-			public void menuDetected(MenuDetectEvent event) {
-				Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y));
-				if (tableViewer.getCell(pt) != null) {
-					selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
-					addVariableItem.setEnabled(selectedColumnIndex > 4 && selectedColumnIndex < 14 ? true
-							: false);
+			table.addMenuDetectListener(new MenuDetectListener() {
+				public void menuDetected(MenuDetectEvent event) {
+					Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y));
+					if (tableViewer.getCell(pt) != null) {
+						selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
+						addVariableItem.setEnabled(selectedColumnIndex > 4 && selectedColumnIndex < 14 ? true
+								: false);
+					}
 				}
-			}
-		});
+			});
 
-		/*
-		 * IMPORTANT: Dispose the menus (only the current menu, set with
-		 * setMenu(), will be automatically disposed)
-		 */
-		table.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				tableMenu.dispose();
-			}
-		});
+			/*
+			 * IMPORTANT: Dispose the menus (only the current menu, set with
+			 * setMenu(), will be automatically disposed)
+			 */
+			table.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					tableMenu.dispose();
+				}
+			});
 
-		// Make the selection available to other views
-		getSite().setSelectionProvider(tableViewer);
+			// Make the selection available to other views
+			getSite().setSelectionProvider(tableViewer);
+
+			mainComposite.layout(true, true);
+			table.setVisible(false);
+			createLogViewThread();
+		});
 	}
 
 	private ColumnInfo getColumnInfo(String columnName) {
@@ -666,7 +671,7 @@ public class EngineLogView extends ViewPart {
 			}
 		};
 		limitLogCharsAction.setEnabled(true);
-		        
+		
 		settingsEngine = new Action("Configure Log level"){
 			public void run(){
 				EnginePreferenceDialog dialog = new EnginePreferenceDialog(Display.getDefault().getActiveShell());
@@ -720,6 +725,9 @@ public class EngineLogView extends ViewPart {
 				int i = 0;
 				for (ColumnInfo columnInfo : columnInfos) {
 					String columnName = columnInfo.getName();
+					if (columnName.isEmpty()) {
+						continue;
+					}
 					MenuItem item = new MenuItem(selectColumnsMenu, SWT.CHECK);
 					item.setText(columnName);
 					item.setSelection(columnInfo.isVisible());
@@ -774,6 +782,7 @@ public class EngineLogView extends ViewPart {
 		counter = 0;
 		charMeter = 0;
 		curLine = 0;
+		tableViewer.getTable().setVisible(false);
 	}
 
 	private void createToolbar() {
@@ -978,8 +987,8 @@ public class EngineLogView extends ViewPart {
 		final String columnName = columnInfo.getName();
 		column.setText(columnName);
 
-		column.setResizable(columnInfo.isVisible());
-		column.setMoveable(columnInfo.isVisible());
+		column.setResizable(columnInfo.isVisible() || !columnName.isEmpty());
+		column.setMoveable(columnInfo.isVisible() || !columnName.isEmpty());
 		column.setWidth(columnInfo.isVisible() ? columnInfo.getSize() : 0);
 
 		column.addControlListener(new ControlListener() {
@@ -1007,7 +1016,9 @@ public class EngineLogView extends ViewPart {
 	 */
 	@Override
 	public void setFocus() {
-		tableViewer.getControl().setFocus();
+		if (tableViewer != null) {
+			tableViewer.getControl().setFocus();
+		}
 	}
 
 	private void createLogViewThread() {
@@ -1054,36 +1065,34 @@ public class EngineLogView extends ViewPart {
 						curLine = logLines.size();
 						
 						// Refresh the list view
-						Display.getDefault().syncExec(new Runnable() {
-						
-							public void run() {
-								int topIndex = tableViewer.getTable().getTopIndex();
-								if (!tableViewer.getTable().isDisposed()) {
-									tableViewer.getTable().setVisible(false);
-									if (rmRow[0] > -1) {
-										topIndex -= rmRow[0] + 1;
-										tableViewer.getTable().remove(0, rmRow[0]);
-									}
+						Display.getDefault().syncExec(() -> {
+							int topIndex = tableViewer.getTable().getTopIndex();
+							if (!tableViewer.getTable().isDisposed()) {
+								tableViewer.getTable().setVisible(false);
+								if (rmRow[0] > -1) {
+									topIndex -= rmRow[0] + 1;
+									tableViewer.getTable().remove(0, rmRow[0]);
 								}
-								
-								if (!tableViewer.getTable().isDisposed()) {
-									tableViewer.add(buf[0]);
-									tableViewer.getTable().setVisible(true);
-								}
-								
-								if (!tableViewer.getTable().isDisposed()) {
-									tableViewer.getTable().setTopIndex(!scrollLock ? tableViewer.getTable().getItemCount() - 1 : Math.max(topIndex, 0));
-								}
-								
-								if (activateOnNewEvents) {
-									IWorkbenchWindow workbenchWindow = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
-									if (workbenchWindow != null) {
-										workbenchWindow.getActivePage().bringToTop(engineLogView);
-									}
-								}
+								tableViewer.add(buf[0]);
+								tableViewer.getTable().setVisible(true);
+								tableViewer.getTable().setTopIndex(!scrollLock ? tableViewer.getTable().getItemCount() - 1 : Math.max(topIndex, 0));
 							}
 							
+							if (activateOnNewEvents) {
+								IWorkbenchWindow workbenchWindow = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+								if (workbenchWindow != null) {
+									workbenchWindow.getActivePage().bringToTop(engineLogView);
+								}
+							}
 						});
+						
+						if (!scrollLock) {
+							Display.getDefault().syncExec(() -> {
+								if (!tableViewer.getTable().isDisposed()) {
+									tableViewer.getTable().setTopIndex(tableViewer.getTable().getItemCount() - 1);
+								}
+							});
+						}
 					}
 				} catch (InterruptedException e) {
 					ConvertigoPlugin.logException(e, "The engine log viewer thread has been interrupted");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -45,7 +45,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 
 	private static final long serialVersionUID = 5988583131428053374L;
 
-	private transient UIActionFailureEvent failureEvent = null;
+	protected transient UIActionFailureEvent failureEvent = null;
 	
 	public UIDynamicAction() {
 		super();
@@ -123,6 +123,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "ATS"+ this.priority;
 	}
 
+	@Override
+	public String getActionName() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			return ionBean.getName();
+		}
+		return getName();
+	}
+	
 	protected int numberOfActions() {
 		int num = 0;
 		Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -168,6 +177,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (uiControlEvent.isEnabled()) {
 					return uiControlEvent.getErrorEvent();
 				}
+			} else if (parent instanceof UIAppEvent) {
+				UIAppEvent uiAppEvent = (UIAppEvent)parent;
+				if (uiAppEvent.isEnabled()) {
+					return uiAppEvent.getErrorEvent();
+				}
 			} else if (parent instanceof UIPageEvent) {
 				UIPageEvent uiPageEvent = (UIPageEvent)parent;
 				if (uiPageEvent.isEnabled()) {
@@ -183,21 +197,37 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return null;
 	}
 	
+	protected boolean isBroken() {
+		return false;
+	}
+	
 	protected boolean isStacked() {
 		return handleError() || handleFailure() || numberOfActions() > 0 || 
-				getParent() instanceof UIPageEvent || getParent() instanceof UIEventSubscriber;
+				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent || 
+				getParent() instanceof UIEventSubscriber;
 	}
 	
 	protected String getScope() {
 		String scope = "";
 		
 		DatabaseObject parent = getParent();
-		while (parent != null && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
+		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
 					scope += !scope.isEmpty() ? ", ":"";
 					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+					
+					String item = uicd.getDirectiveItemName();
+					if (!item.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += item + ": "+ item;
+					}
+					String index = uicd.getDirectiveIndexName();
+					if (!index.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += index + ":" + index;
+					}
 				}
 			}
 			if (parent instanceof UIElement) {
@@ -234,15 +264,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			
 			//String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
 			
+			String scope = getScope();
+			String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 			if (isStacked()) {
-				String scope = getScope();
-				//String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
-				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
 			} else {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					String actionName = ionBean.getName();
+					String actionName = getActionName();
 					
 					String props = "{}", vars = "{}";
 					String inputs = computeActionInputs(true);
@@ -258,10 +287,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						vars = "merge("+formGroupName +".value, "+ vars +")";
 					}
 					
+					String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
+					props = "merge("+ props  +", "+ stack +")";
+					
 					if (compareToTplVersion("1.0.91") >= 0) {
-						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +"))";
+						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +", $event))";
 					} else {
-						return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +")";
+						return "actionBeans."+ actionName + "(this,"+ props + ","+ vars +", $event)";
 					}
 				}
 			}
@@ -289,6 +321,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						MobileSmartSourceType msst = property.getSmartType();
 						String smartValue = msst.getValue();
 						
+						// Case plain string
 						if (Mode.PLAIN.equals(msst.getMode())) {
 							if (property.getType().equalsIgnoreCase("string")) {
 								smartValue = forTemplate ?
@@ -297,21 +330,38 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 						
-						if (forTemplate) {
-							smartValue = ""+smartValue;
-						} else {
+						// Special case for ClearDataSourceAction
+						if ("ClearDataSourceAction".equals(getActionName())) {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
-								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-									smartValue = "scope."+ smartValue;
+								if (mss != null) {
+									smartValue = mss.getSources(msst.getValue()).toString();
 								}
-								else {
-									smartValue = "this."+ smartValue;
+							}
+						}
+						
+						// Case ts code in HTML template (single action)
+						if (forTemplate) {
+							smartValue = ""+smartValue;
+						}
+						// Case ts code in ActionBeans.service (stack of actions)
+						else {
+							if (Mode.SOURCE.equals(msst.getMode())) {
+								if (!"ClearDataSourceAction".equals(getActionName())) {
+									MobileSmartSource mss = msst.getSmartSource();
+									if (mss != null) {
+										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+											smartValue = "scope."+ smartValue;
+										}
+										else {
+											smartValue = "this."+ smartValue;
+										}
+									}
 								}
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-							smartValue = "get(`"+smartValue+"`)";
+							smartValue = "get('"+ p_name +"', `"+smartValue+"`)";
 						}
 						
 						sbProps.append(smartValue);
@@ -329,12 +379,17 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					if (component instanceof UIControlVariable) {
 						UIControlVariable uicv = (UIControlVariable)component;
 						if (uicv.isEnabled()) {
-							sbVars.append(sbVars.length() > 0 ? ", ":"");
-							sbVars.append(uicv.getVarName()).append(": ");
-							
+							// Case code generated in HTML
 							if (forTemplate) {
-								sbVars.append(uicv.getVarValue());
-							} else {
+								String varValue = uicv.getVarValue();
+								if (!varValue.isEmpty()) {
+									sbVars.append(sbVars.length() > 0 ? ", ":"");
+									sbVars.append(uicv.getVarName()).append(": ");
+									sbVars.append(varValue);
+								}
+							}
+							// Case code generated in TS
+							else {
 								MobileSmartSourceType msst = uicv.getVarSmartType();
 								
 								String smartValue = msst.getValue();
@@ -344,18 +399,24 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 								
 								if (Mode.SOURCE.equals(msst.getMode())) {
 									MobileSmartSource mss = msst.getSmartSource();
-									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-										smartValue = "scope."+ smartValue;
-									}
-									else {
-										smartValue = "this."+ smartValue;
+									if (mss != null) {
+										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+											smartValue = "scope."+ smartValue;
+										}
+										else {
+											smartValue = "this."+ smartValue;
+										}
 									}
 								}
+								
 								smartValue = smartValue.replaceAll("\\?\\.", ".");
 								smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-								smartValue = "get(`"+smartValue+"`)";
 								
-								sbVars.append(smartValue);
+								if (!smartValue.isEmpty()) {
+									sbVars.append(sbVars.length() > 0 ? ", ":"");
+									sbVars.append(uicv.getVarName()).append(": ");
+									sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`)");
+								}
 							}
 						}
 					}
@@ -368,9 +429,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		try {
-			IScriptComponent main = getMainScriptComponent();
-			
 			String imports = jsonScripts.getString("imports");
 			
 			if (main.addImport("* as ts", "typescript")) {
@@ -429,11 +493,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
-			computed += "\t\tlet self;" + System.lineSeparator();
+			//computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('(' + key + ')') );}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
+			computed += computeInnerGet("c8oPage",functionName);
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
@@ -464,7 +528,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
 				int numThen = numberOfActions();
-				String actionName = ionBean.getName();
+				String actionName = getActionName();
 				String inputs = computeActionInputs(false);
 				
 				StringBuilder sbCatch = new StringBuilder();
@@ -498,10 +562,32 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				
 				String tsCode = "";
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-				tsCode += "\t\tself = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 				
-				tsCode +="\t\treturn this.actionBeans."+actionName+"(this, self.in.props, "+ cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+				if ("InvokeAction".equals(ionBean.getName())) {
+					if (isBroken()) {
+						tsCode +="\t\treturn this.actionBeans."+actionName+
+								"(this, "+ cafMerge +"(self.in.props, {message: 'Invoke source is broken'}), "+
+									cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+					} else {
+						if (getSharedAction() != null) {
+							tsCode +="\t\treturn this.actionBeans."+actionName+
+									"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+												cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+
+													System.lineSeparator();
+						} else {
+							tsCode +="\t\treturn this.actionBeans."+actionName+
+									"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+												cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ 
+													System.lineSeparator();
+						}
+					}
+				} else {
+					tsCode +="\t\treturn this.actionBeans."+actionName+
+									"(this, self.in.props, "+ cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+				}
+				
 				tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
 				tsCode += "\t\tparent = self;"+ System.lineSeparator();
 				tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
@@ -527,7 +613,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				} else {
 					tsCode += "\t\treturn Promise.resolve(res);"+ System.lineSeparator();
 				}
-				tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+				
+				if ("IfAction".equals(ionBean.getName())) {
+					tsCode += "\t\t}, (error: any) => {if (\"c8oSkipError\" === error.message) {resolve(false);} else {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);}})"+ System.lineSeparator();
+				} else {
+					tsCode += "\t\t}, (error: any) => {this.c8o.log.debug(\"[MB] "+actionName+" : \", error.message);throw new Error(error);})"+ System.lineSeparator();
+				}
 				tsCode += "\t\t.then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})"+ System.lineSeparator();
 				tsCode += "\t\t})"+ System.lineSeparator();
 				return tsCode;
@@ -559,14 +650,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				Map<String, String> functions = new HashMap<String, String>();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					String actionName = ionBean.getName();
-					
+					String actionName = getActionName();
 					String actionCode = ComponentManager.getActionTsCode(actionName);
 					if (compareToTplVersion("7.5.2.0") < 0 ) {
 						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
 						actionCode = actionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
 					}
-					
 					functions.put(actionName, actionCode);
 				}
 				return functions;
@@ -633,7 +722,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 
 	@Override
-	protected void addInfos(Map<String, Set<String>> infoMap) {
+	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
+		super.addInfos(done, infoMap);
+		
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
 			String beanName = ionBean.getName(); 
@@ -650,6 +741,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						if (beanName.equals("FullSyncViewAction")) {
 							if (p_name.equals("fsview")) {
 								key = p_value.toString() + ".view";
+							}
+						} else if (beanName.equals("FullSyncGetAction")) {
+							if (p_name.equals("requestable")) {
+								key = p_value.toString() + ".get";
 							}
 						} else if (beanName.equals("CallSequenceAction")) {
 							if (p_name.equals("requestable")) {
@@ -691,7 +786,61 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 			}
 		}
-		
-		super.addInfos(infoMap);
 	}	
+
+	public boolean isFullSyncSyncAction() {
+		return "FullSyncSyncAction".equals(getActionName());
+	}
+	
+	public boolean isSetGlobalAction() {
+		return "SetGlobalAction".equals(getActionName());
+	}
+	
+	public String getSetGlobalActionKeyName() {
+		if (isSetGlobalAction()) {
+			IonProperty property = getIonBean().getProperty("Property");
+			if (property != null) {
+				Object value = property.getValue();
+				if (!value.equals(false)) {
+					return value.toString();
+				}
+			}
+		}
+		return null;
+	}
+	
+	public Object getSetGlobalActionKeyValue() {
+		if (isSetGlobalAction()) {
+			IonProperty property = getIonBean().getProperty("Value");
+			if (property != null) {
+				Object value = property.getValue();
+				if (!value.equals(false)) {
+					return value;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public Object getSetGlobalActionValueLabel() {
+		if (isSetGlobalAction()) {
+			IonProperty property = getIonBean().getProperty("Value");
+			if (property != null) {
+				return property.getSmartType().getLabel();
+			}
+		}
+		return null;
+	}
+	
+	@Override
+	public String toString() {
+		if (isSetGlobalAction()) {
+			String key = getSetGlobalActionKeyName();
+			if (key != null && !key.isEmpty()) {
+				Object val = getSetGlobalActionValueLabel();
+				return ""+ key + " = " + (val == null || val.toString().isEmpty() ? "?": val.toString());
+			}
+		}
+		return super.toString();
+	}
 }

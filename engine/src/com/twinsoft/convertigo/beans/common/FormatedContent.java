@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class FormatedContent implements XMLizable, Serializable, Cloneable {
@@ -66,7 +67,7 @@ public class FormatedContent implements XMLizable, Serializable, Cloneable {
 	@Override
 	public Node writeXml(Document document) throws Exception {
 		Element element = document.createElement(getClass().getName());
-        element.appendChild(document.createCDATASection(content));
+        element.appendChild(document.createCDATASection(FileUtils.CrlfToLf(content)));
 		return element;
 	}
 

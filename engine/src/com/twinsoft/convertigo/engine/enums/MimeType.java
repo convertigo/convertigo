@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -38,6 +38,7 @@ public enum MimeType {
 	TextJson ("text/json", new String[]{"json"}),
 	TextXml ("text/xml", new String[]{"xml"}),
 	Plain ("text/plain", new String[]{"txt","text","conf","def","list","log","in"}),
+	MultiPartRelated ("multipart/related", new String[]{}),
 	VOID ("", new String[]{""}),
 	
 	WwwForm ("application/x-www-form-urlencoded", null),

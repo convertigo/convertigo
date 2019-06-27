@@ -169,10 +169,12 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIText">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAttribute">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
@@ -184,6 +186,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIStyle">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
@@ -197,11 +200,13 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
@@ -209,6 +214,10 @@
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInfiniteScroll">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 				</bean>
 			</beans>
 			<beans groupname="Form Components">
@@ -216,6 +225,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIFormControlValidator">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
@@ -243,54 +253,144 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlDirective">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
+				</bean>
+			</beans>
+			<beans groupname="Shared Components">
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIUseShared">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
+				</bean>
+			</beans>
+			<beans groupname="Shared Actions">
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIStackVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
 				</bean>
 			</beans>
 			<beans groupname="Action Components">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
 				</bean>
 			</beans>
 		</category>
@@ -305,6 +405,11 @@
 			</beans>
 		</category>
 		<category name="REST API">
+			<beans groupname="Authentications">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.BasicAuthentication">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.UrlMapper"/>
+				</bean>
+			</beans>
 			<beans groupname="Mappings">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.rest.PathMapping">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.UrlMapper"/>
@@ -986,6 +1091,16 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.PdfFormStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
+                </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.PushNotificationStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
@@ -1165,7 +1280,10 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
             </beans>
-            <beans groupname="Other transactions">                
+            <beans groupname="Other transactions">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
@@ -1176,6 +1294,9 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
             </beans>
@@ -1263,6 +1384,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
@@ -1271,6 +1395,9 @@
                 </bean>
             </beans>
             <beans groupname="Other transactions">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>

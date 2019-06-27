@@ -1,0 +1,37 @@
+↑default: true
+databaseName: retaildb
+↓GetDocumentIdentifier [transactions.couchdb.GetDocumentTransaction]: 
+  accessibility: Private
+  ↓Test_Case [core.TestCase]: 
+    ↓_use_docid [variables.TestCaseVariable-1434123999829]: 
+      description: Document ID
+      value: product_42_3181232138659
+  ↓_use_docid [variables.RequestableVariable-1434113909720]: 
+    description: Document ID
+↓GetServerInfo [transactions.couchdb.GetServerInfoTransaction]: 
+  ↑default: true
+↓PostBulkDocuments [transactions.couchdb.PostBulkDocumentsTransaction]: 
+  accessibility: Private
+  fullSyncAclPolicy: fromKeyC8oAcl
+  ↓_id [variables.RequestableMultiValuedVariable-1433945902580]: 
+    description: Documents contents
+  ↓imageUrl [variables.RequestableMultiValuedVariable-1433945902596]: 
+  ↓leaf [variables.RequestableMultiValuedVariable-1433945902603]: 
+  ↓levelId [variables.RequestableMultiValuedVariable-1433945902613]: 
+  ↓levelIdFather [variables.RequestableMultiValuedVariable-1433945902624]: 
+  ↓name [variables.RequestableMultiValuedVariable-1433945902631]: 
+  ↓nameSource [variables.RequestableMultiValuedVariable-1433945902639]: 
+  ↓position [variables.RequestableMultiValuedVariable-1433945902645]: 
+  ↓shopCode [variables.RequestableMultiValuedVariable-1433945902652]: 
+  ↓sourceBreadcrumb [variables.RequestableMultiValuedVariable-1433945902659]: 
+  ↓packaging [variables.RequestableVariable-1433945902666]: 
+  ↓priceOfUnit [variables.RequestableMultiValuedVariable-1433945902673]: 
+  ↓unitPrice [variables.RequestableMultiValuedVariable-1433945902680]: 
+  ↓sku [variables.RequestableMultiValuedVariable-1433945902687]: 
+  ↓_c8oAcl [variables.RequestableVariable-1514274348200]: 
+    description: Set the owner of the document if the "Acl Policy"="From _c8oACL variable"
+↓ResetDatabase [transactions.couchdb.ResetDatabaseTransaction]: 
+  accessibility: Private
+↓design [couchdb.DesignDocument]: 
+  docdata: 
+    →: '{"filters":{},"updates":{"checkIfModified":"function (doc, req) {\r\n\r\n\t\/\/ Check recursively if the document in database and the new document are the same\r\n\tvar recursiveCheck = function (dbDoc, newDoc) {\r\n\t\t\/\/ Loop on the database document fields and check if they exist in the new document\r\n\t\tfor (var key in dbDoc) {\r\n\t\t    if (typeof newDoc[key] != typeof dbDoc[key]) {\r\n\t\t    \t\/\/ log(\"1 \" + key + \" \" + typeof newDoc[key] + \" \" + typeof dbDoc[key]);\r\n\t\t    \treturn false;\r\n\t\t    }\r\n\t\t}\r\n\t\t\r\n\t\t\/\/ Loop on the new document fields and check if they exist in the database document\r\n\t\tfor (var key in newDoc) {\r\n\t\t    if (typeof newDoc[key] != typeof dbDoc[key]) {\r\n\t\t    \t\/\/ log(\"2 \" + key + \" \" + typeof newDoc[key] + \" \" + typeof dbDoc[key]);\r\n\t\t    \treturn false;\r\n\t\t    } else if (typeof dbDoc[key] == \"object\") {\r\n\t\t    \tif (!recursiveCheck(dbDoc[key], newDoc[key])) {\r\n\t\t    \t\treturn false;\r\n\t\t    \t}\r\n\t\t    } else {\r\n\t\t    \tif (dbDoc[key] != newDoc[key]) {\r\n\t\t    \t\t\/\/ log(\"3 \" + key + \" \" + newDoc[key] + \" \" + typeof dbDoc[key]);\r\n\t\t    \t\treturn false;\r\n\t\t    \t}\r\n\t\t    }\r\n\t\t}\r\n\t\t\r\n\t\treturn true;\r\n\t}\r\n\r\n\tvar json = JSON.parse(req.body);\r\n\tjson._id = req.id;\r\n\t\r\n\tif (json.shopCode) {\r\n\t\tjson[''~c8oAcl''] = json.shopCode;\r\n\t}\r\n\t\r\n\t\/\/ Cast string to integer\r\n\tif (json.position) {\r\n\t\tjson.position = json.position * 1;\r\n\t}\r\n\t\r\n\tif (doc != null) {\r\n\t\tfor (var key in doc) {\r\n\t\t\tif (key.charAt(0) == \"_\") {\r\n\t\t\t\tjson[key] = doc[key];\r\n\t\t\t}\r\n\t\t}\r\n\t\t\r\n\t\tif (doc.levelIdFather && !json.levelIdFather) {\r\n\t\t\tjson.levelIdFather = doc.levelIdFather;\r\n\t\t}\r\n\t\tif (doc.imageUrl && !json.imageUrl) {\r\n\t\t\tjson.imageUrl = doc.imageUrl;\r\n\t\t}\r\n\t\tif (doc.position && !json.position) {\r\n\t\t\tjson.position = doc.position;\r\n\t\t}\r\n\t}\r\n\t\r\n\t\r\n\tif (doc != null && recursiveCheck(doc, json)) {\r\n\t\treturn [null, {json: {id: json._id}}];\r\n\t} else {\r\n\t\treturn [json, {json: {id: json._id}}];\r\n\t}\r\n}","updateCrossSellingSkusProductCategories":"function (doc, req) {\r\n\tvar json = JSON.parse(req.body);\r\n\t\r\n\tif (doc != null) {\r\n\t\tif (json.levelIdFather) {\r\n\t\t\tif (!doc.levelIdFather || JSON.stringify(doc.levelIdFather) != json.levelIdFather) {\r\n\t\t\t\tdoc.levelIdFather = JSON.parse(json.levelIdFather);\r\n\t\t\t\treturn [doc, {json: {id: json._id}}];\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n\t\r\n\treturn [null, {json: {id: json._id}}];\r\n\t\r\n\t\/*try {\r\n\t\tvar json = JSON.parse(req.body);\r\n\t\treturn [doc, json: {result: ''nothing done''}];\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}*\/\r\n}","update":"function (doc, req) {\r\n\ttry {\r\n\t\tvar json = JSON.parse(req.body);\r\n\t\tjson._id = req.id;\r\n\t\t\r\n\t\tjson[''~pouet''] = \"pouet\";\r\n\t\t\r\n\t\tif (doc != null) {\r\n\t\t\/\/ json._rev = doc._rev;\r\n\t\tfor (var key in doc) {\r\n\t\t\tif (key.charAt(0) == \"_\") {\r\n\t\t\t\tjson[key] = doc[key];\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n\t\t\r\n\t\treturn [json, {json: {id: json._id}}];\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}","updateCrossCategoriesLevelFatherId":"function (doc, req) {\r\n\tvar json = JSON.parse(req.body);\r\n\t\r\n\tif (doc != null) {\r\n\t\tif (json.levelIdFather) {\r\n\t\t\tif (!doc.levelIdFather || JSON.stringify(doc.levelIdFather) != json.levelIdFather) {\r\n\t\t\t\tdoc.levelIdFather = JSON.parse(json.levelIdFather);\r\n\t\t\t\treturn [doc, {json: {id: json._id}}];\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n\t\r\n\treturn [null, {json: {id: json._id}}];\r\n\t\r\n\t\/*try {\r\n\t\tvar json = JSON.parse(req.body);\r\n\t\treturn [doc, json: {result: ''nothing done''}];\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}*\/\r\n}"},"views":{"children_byFather":{"map":"function (doc) {\r\n\t\/\/ Get Products AND Categories by levelIdFather\r\n\tif (doc.shopCode && doc.levelIdFather) {\r\n\t\tif (doc.levelId) { \/\/ Category\r\n\t\t\t\/\/ Category root\r\n\t\t\tif (doc.position) {\r\n\t\t\t\tfor (var key in doc.levelIdFather) {\r\n\t\t\t        emit([doc.shopCode, doc.levelIdFather[key], doc.position], {name : doc.name, levelId : doc.levelId, leaf : doc.leaf, imageUrl : doc.imageUrl});\r\n\t\t\t\t}\r\n\t\t\t} else {\r\n\t\t\t\tfor (var key in doc.levelIdFather) {\r\n\t\t\t        emit([doc.shopCode, doc.levelIdFather[key]], {name : doc.name, levelId : doc.levelId, leaf : doc.leaf, imageUrl : doc.imageUrl});\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t} else if (doc.sku) { \/\/ Product\r\n\t\t\tfor (var key in doc.levelIdFather) {\r\n\t\t        emit([doc.shopCode, doc.levelIdFather[key]], {sku : doc.sku, name : doc.name, packaging : doc.packaging, priceOfUnit : doc.priceOfUnit, unitPrice : doc.unitPrice, imageUrl : doc.imageUrl });\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n}"}},"_id":"_design\/design"}'

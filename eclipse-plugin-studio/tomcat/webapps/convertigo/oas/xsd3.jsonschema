@@ -1,0 +1,672 @@
+{
+	"id" : "xsd.jsonschema#",
+	"definitions" : {
+		"anyType" : {
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/#key-urType"
+		},
+		"anySimpleType" : {
+			"anyOf" : [ {"type" : "string"}, {"type" : "number"}, {"type" : "integer"}, {"type" : "boolean"}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#dt-anySimpleType"
+		},
+		"string" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#string"
+		},
+		"normalizedString" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#normalizedString"
+		},
+		"token" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#normalizedString"
+		},
+		"language" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#language"
+		},
+		"Name" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#Name"
+		},
+		"NCName" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#NCName"
+		},
+		"ID" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#ID"
+		},
+		"IDREF" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#IDREF"
+		},
+		"IDREFS" : {
+			"allOf" : [ {
+				"type" : "array",
+				"items" : {
+					"type" : "string"
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#IDREFS"
+		},
+		"ENTITY" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#ENTITY"
+		},
+		"ENTITIES" : {
+			"allOf" : [ {
+				"type" : "array",
+				"items" : {
+					"type" : "string"
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#ENTITIES"
+		},
+		"NMTOKEN" : {
+			"type" : "string",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#NMTOKEN"
+		},
+		"NMTOKENS" : {
+			"allOf" : [ {
+				"type" : "array",
+				"items" : {
+					"type" : "string"
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#NMTOKENS"
+		},
+		"boolean" : {
+			"type" : "boolean",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#boolean"
+		},
+		"base64Binary" : {
+			"allOf" : [ {
+				"type" : "array",
+				"items" : {
+					"$ref" : "#/definitions/unsignedByte"
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#base64Binary"
+		},
+		"hexBinary" : {
+			"allOf" : [ {
+				"type" : "array",
+				"items" : {
+					"$ref" : "#/definitions/unsignedByte"
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#hexBinary"
+		},
+		"float" : {
+			"type" : "number",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#float"
+		},
+		"decimal" : {
+			"type" : "number",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#decimal"
+		},
+		"integer" : {
+			"type" : "integer",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#decimal"
+		},
+		"nonPositiveInteger" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"maximum" : 0,
+				"exclusiveMaximum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#nonPositiveInteger"
+		},
+		"negativeInteger" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"maximum" : 0,
+				"exclusiveMaximum" : true
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#negativeInteger"
+		},
+		"long" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"maximum" : 9223372036854775807,
+				"exclusiveMaximum" : false,
+				"minimum" : -9223372036854775808,
+				"exclusiveMinimum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#long"
+		},
+		"int" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"maximum" : 2147483647,
+				"exclusiveMaximum" : false,
+				"minimum" : -2147483648,
+				"exclusiveMinimum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#int"
+		},
+		"short" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"maximum" : 32767,
+				"exclusiveMaximum" : false,
+				"minimum" : -32768,
+				"exclusiveMinimum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#short"
+		},
+		"byte" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"maximum" : 127,
+				"exclusiveMaximum" : false,
+				"minimum" : -128,
+				"exclusiveMinimum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#byte"
+		},
+		"nonNegativeInteger" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"minimum" : 0,
+				"exclusiveMinimum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#nonNegativeInteger"
+		},
+		"unsignedLong" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"minimum" : 0,
+				"exclusiveMinimum" : false,
+				"maximum" : 18446744073709551615,
+				"exclusiveMaximum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedLong"
+		},
+		"unsignedInt" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"minimum" : 0,
+				"exclusiveMinimum" : false,
+				"maximum" : 4294967295,
+				"exclusiveMaximum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedInt"
+		},
+		"unsignedShort" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"minimum" : 0,
+				"exclusiveMinimum" : false,
+				"maximum" : 65535,
+				"exclusiveMaximum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedShort"
+		},
+		"unsignedByte" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"minimum" : 0,
+				"exclusiveMinimum" : false,
+				"maximum" : 255,
+				"exclusiveMaximum" : false
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#unsignedByte"
+		},
+		"positiveInteger" : {
+			"allOf" : [ {
+				"type" : "integer",
+				"minimum" : 0,
+				"exclusiveMinimum" : true
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#positiveInteger"
+		},
+		"double" : {
+			"type" : "number",
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#double"
+		},
+		"anyURI" : {
+			"allOf" : [ {
+				"type" : "string",
+				"format" : "uri"
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#anyURI"
+		},
+		"QName" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"namespaceURI" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/anyURI"
+						}]
+					},
+					"localPart" : {
+						"$ref" : "#/definitions/NCName"
+					},
+					"prefix" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/NCName"
+						}]
+					}
+				},
+				"required" : [ "localPart" ]
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#QName"
+		},
+		"NOTATION" : {
+			"allOf" : [ {
+				"$ref" : "#/definitions/QName"
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#NOTATION"
+		},
+		"duration" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"sign" : {
+						"type" : "integer",
+						"enum" : [ -1, 1 ]
+					},
+					"years" : {
+						"$ref" : "#/definitions/nonNegativeInteger"
+					},
+					"months" : {
+						"$ref" : "#/definitions/nonNegativeInteger"
+					},
+					"days" : {
+						"$ref" : "#/definitions/nonNegativeInteger"
+					},
+					"hours" : {
+						"$ref" : "#/definitions/nonNegativeInteger"
+					},
+					"minutes" : {
+						"$ref" : "#/definitions/nonNegativeInteger"
+					},
+					"seconds" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/decimal"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false
+						} ]
+					}
+				},
+				"minProperties" : 1
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#duration"
+		},
+		"dateTime" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"year" : {
+						"$ref" : "#/definitions/integer"
+					},
+					"month" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 12,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"day" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 31,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"hour" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 23,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"minute" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 59,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"second" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 59,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"fractionalSecond" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/decimal"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 1,
+							"exclusiveMaximum" : true
+						} ]
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#dateTime"
+		},
+		"date" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"year" : {
+						"$ref" : "#/definitions/integer"
+					},
+					"month" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 12,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"day" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 31,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#date"
+		},
+		"time" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"hour" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 23,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"minute" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 59,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"second" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 59,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"fractionalSecond" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/decimal"
+						}, {
+							"minimum" : 0,
+							"exclusiveMinimum" : false,
+							"maximum" : 1,
+							"exclusiveMaximum" : true
+						} ]
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#time"
+		},
+		"gYearMonth" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"year" : {
+						"$ref" : "#/definitions/integer"
+					},
+					"month" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 12,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#gYearMonth"
+		},
+		"gYear" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"year" : {
+						"$ref" : "#/definitions/integer"
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#gYear"
+		},
+		"gMonthDay" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"month" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 12,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"day" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 31,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#gMonthDay"
+		},
+		"gDay" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"day" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 31,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#gDay"
+		},
+		"gMonth" : {
+			"allOf" : [ {
+				"type" : "object",
+				"properties" : {
+					"month" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/unsignedByte"
+						}, {
+							"minimum" : 1,
+							"exclusiveMinimum" : false,
+							"maximum" : 12,
+							"exclusiveMaximum" : false
+						} ]
+					},
+					"timezone" : {
+						"allOf" : [ {
+							"$ref" : "#/definitions/integer"
+						}, {
+							"minimum" : -1440,
+							"exclusiveMinimum" : false,
+							"maximum" : 1440,
+							"exclusiveMaximum" : true
+						} ]
+					}
+				}
+			}],
+			"nullable" : true,
+			"description" : "http://www.w3.org/TR/xmlschema-2/#gMonth"
+		}
+	}
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,7 +24,7 @@ import java.util.TreeSet;
 
 public class JobGroupJob extends AbstractJob {
 	private SortedSet<AbstractJob> jobGroup = new TreeSet<AbstractJob>();
-	private boolean serial = false;
+	private int parallelJob = 1;
 
 	public SortedSet<AbstractJob> getJobGroup() {
 		return jobGroup;
@@ -34,12 +34,8 @@ public class JobGroupJob extends AbstractJob {
 		this.jobGroup = jobGroup;
 	}
 
-	public void setSerial(boolean serial) {
-		this.serial = serial;
-	}
-
 	public boolean isSerial() {
-		return serial;
+		return parallelJob == 1;
 	}
 	
 	public boolean containsJob(AbstractJob job){
@@ -65,5 +61,13 @@ public class JobGroupJob extends AbstractJob {
 				if(!((JobGroupJob)subjob).checkNoRecurse(job)) return false;
 		}
 		return true;
+	}
+
+	public int getParallelJob() {
+		return parallelJob;
+	}
+
+	public void setParallelJob(int parallelJob) {
+		this.parallelJob = parallelJob;
 	}
 }

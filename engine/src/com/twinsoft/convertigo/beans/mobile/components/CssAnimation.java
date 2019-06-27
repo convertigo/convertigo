@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -102,11 +102,35 @@ public enum CssAnimation {
 	slideOutDown,
 	slideOutLeft,
 	slideOutRight,
-	slideOutUp
+	slideOutUp,
+	delay_2s("delay-2s"),
+	delay_3s("delay-3s"),
+	delay_4s("delay-4s"),
+	delay_5s("delay-5s"),
+	slow,
+	slower,
+	fast,
+	faster
 	;
 	
+	CssAnimation() {
+		
+	}
+	
+	String name;
+	CssAnimation(String name) {
+		this.name = name;
+	}
+	
+	
+	@Override
+	public String toString() {
+		return this.name != null ? this.name : this.name();
+	}
+
+
 	public static String[] names() {
-		List<String> names = Arrays.asList(EnumUtils.toNames(CssAnimation.class));
+		List<String> names = Arrays.asList(EnumUtils.toStrings(CssAnimation.class));
 		Collections.sort(names, new Comparator<String>() {
 			@Override
 			public int compare(String s1, String s2) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 
 public class ClipboardAction extends MyAbstractAction {
@@ -130,7 +131,14 @@ public class ClipboardAction extends MyAbstractAction {
 	}
 
 	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
-		paste(source, shell, explorerView, selectedTreeObject, false);
+		try {
+			BatchOperationHelper.start();
+			paste(source, shell, explorerView, selectedTreeObject, false);
+			BatchOperationHelper.stop();
+		} catch (Throwable t) {
+			BatchOperationHelper.cancel();
+			throw t;
+		}
 	}
 	
 	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject, boolean isDND) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {

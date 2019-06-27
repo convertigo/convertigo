@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -86,6 +86,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 		this.monitor = monitor;
 		synchronized (unloadedProjectTreeObject) {
 			if (unloadedProjectTreeObject.getParent() == null) {
+				Display.getDefault().asyncExec(() -> viewer.refresh());
 				return Status.OK_STATUS;
 			}
 			try {
@@ -97,20 +98,30 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 					return status;
 				}
 	
-				monitor.subTask("Refreshing project ressources...");
-				ConvertigoPlugin.projectManager.getProjectExplorerView().createDir(projectName);
-				ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, monitor);
-	
-				Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
 				Project project;
 				
 				try {
+					monitor.subTask("Importing the project...");
 					Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
-					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+					if (project == null) {
+						unloadedProjectTreeObject.getParent().removeChild(unloadedProjectTreeObject);
+						Status status = new Status(Status.CANCEL, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " doesn't exists", null);
+						return status;
+					}
+
+					monitor.subTask("Refreshing project ressources...");
+					String projectDir = Engine.projectDir(projectName);
+					ConvertigoPlugin.projectManager.getProjectExplorerView().createDir(projectName);
+					ConvertigoPlugin.getDefault().createProjectPluginResource(projectName, projectDir, monitor);
+		
+					Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
+					
 					if (project.undefinedGlobalSymbols) {
 						synchronized (Engine.theApp.databaseObjectsManager) { // parallel projects opening with undefined symbols, check after the first wizard
-							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 							if (project.undefinedGlobalSymbols) {
+								final boolean[] created = {false};
 								new WalkHelper() {
 									boolean create = false;
 									boolean forAll = false;
@@ -128,6 +139,8 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 																undefinedSymbols, true);
 														create = response[0];
 														forAll = response[1];
+														
+														created[0] |= create;
 													}
 													if (create) {
 														Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(undefinedSymbols);
@@ -138,7 +151,9 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 										super.walk(databaseObject);
 									}
 								}.init(project);
-								project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+								if (created[0]) {
+									project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+								}
 							}
 						}
 					}
@@ -163,6 +178,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 				invisibleRoot.removeChild(unloadedProjectTreeObject);
 				invisibleRoot.addChild(projectTreeObject);
 				ConvertigoPlugin.projectManager.setCurrentProject((ProjectTreeObject)projectTreeObject);
+				ConvertigoPlugin.getDefault().getProjectPluginResource(projectName, monitor).refreshLocal(IResource.DEPTH_INFINITE, monitor);
 				
 				loadDatabaseObject(projectTreeObject, project);
 				

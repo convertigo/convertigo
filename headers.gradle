@@ -1,5 +1,5 @@
 def licenseText = '''\
-Copyright (c) 2001-2018 Convertigo SA.
+Copyright (c) 2001-2019 Convertigo SA.
 
 This program  is free software; you  can redistribute it and/or
 Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,8 @@ task updateJavaHeaders {
 	
 	def files = fileTree(dir: 'engine/src', include: '**/*.java')
 		.plus(fileTree(dir: 'eclipse-plugin-studio/src', include: '**/*.java'))
+		.plus(fileTree(dir: 'gradle-plugin/src', include: '**/*.java'))
+		.plus(fileTree(dir: 'placeholders/src', include: '**/*.java'))
 	
 	doFirst {
 		def javaHeader = licenseText.replaceAll('(.*)\r?\n', ' * $1' + System.lineSeparator());
@@ -78,6 +80,29 @@ task updateJavascriptHeaders {
 	}
 }
 
-task updateAllHeaders (dependsOn: [updateJavaHeaders, updatePropertiesHeaders, updateHtmlHeaders, updateJavascriptHeaders]) {
+task updateCssHeaders {
+	group 'convertigo'
+	
+	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: '**/*.css',
+	exclude: [
+		'**/axis*',
+		'**/custom.css',
+		'**/jquery*',
+		'**/knacss.css',
+		'**/prism*',
+		'**/roboto*',
+		'**/swagger*'
+	])
+	
+	doFirst {
+		def javascriptHeader = licenseText.replaceAll('(.*)\r?\n', ' * $1' + System.lineSeparator());
+		files.each {
+			println "replacing ${it}"
+			it.write(it.getText('UTF-8').replaceFirst('^(/\\*[\\d\\D]*?\\*/)?\\s*', "/*${System.lineSeparator()}${javascriptHeader} */${System.lineSeparator()}${System.lineSeparator()}"), 'UTF-8')
+		}
+	}
+}
+
+task updateAllHeaders (dependsOn: [updateJavaHeaders, updatePropertiesHeaders, updateHtmlHeaders, updateJavascriptHeaders, updateCssHeaders]) {
 	group 'convertigo'
 }

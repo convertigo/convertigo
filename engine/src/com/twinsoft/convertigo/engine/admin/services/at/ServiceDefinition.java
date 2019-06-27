@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -32,4 +32,5 @@ public @interface ServiceDefinition {
     String returnValue();
     boolean cloud_forbidden() default false;
     boolean allow_cors() default false;
+    boolean admin() default true;
 }

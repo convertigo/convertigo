@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -73,6 +73,7 @@ public abstract class NamedSourceSelector {
 							|| ((update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject(treeObject));
 					
 					if (shoudRename) {
+						refactorSmartSources(treeObject.getClass(), oldTokenPath, newTokenPath);
 						for (String _propertyName : getPropertyNamesForSource(treeObject.getClass())) {
 							handleSourceRenamed(_propertyName, oldTokenPath, newTokenPath);
 						}
@@ -110,6 +111,10 @@ public abstract class NamedSourceSelector {
 	}
 	
 	protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
+		
+	}
+	
+	protected void refactorSmartSources(Class<?> c, String oldName, String newName) {
 		
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -351,7 +351,9 @@ public class MobileApplication extends DatabaseObject {
 	@Override
 	public void setParent(DatabaseObject databaseObject) {
 		super.setParent(databaseObject);
-		checkFolder();
+		if (isOriginal()) {
+			checkFolder();
+		}
 	}
 	
 	@Override

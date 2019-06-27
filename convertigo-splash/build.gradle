@@ -1,0 +1,30 @@
+apply plugin: 'eclipse'
+apply plugin: 'java'
+apply plugin: 'application'
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+		resources {
+			srcDir 'src'
+		}
+	}
+}
+
+mainClassName = "com.convertigo.splash.MakeSplash"
+
+run.systemProperties(
+	'c8o_version': "V ${convertigoVersionFull}",
+	'c8o_codename': convertigoCodename,
+	'c8o_code': convertigoCode,
+	'c8o_copyright': "Copyright © 2001-${currentYear} - Convertigo",
+	'c8o_output': '../eclipse-plugin-product/splash.bmp'
+)
+
+run {
+	inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
+	inputs.properties run.systemProperties
+	outputs.file '../eclipse-plugin-product/splash.bmp'
+}

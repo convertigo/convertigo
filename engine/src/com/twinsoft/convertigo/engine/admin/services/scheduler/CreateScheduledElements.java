@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -92,111 +92,121 @@ public class CreateScheduledElements extends XmlService {
 
 		Element rootElement = document.getDocumentElement();
 		AbstractBase ab = null;
-		
-		if (edit || del) {
-			String exname = ServiceUtils.getRequiredParameter(request, "exname");
-			if (ScheduledJob.class.isAssignableFrom(type.c)) {
-				ab = schedulerXML.getScheduledJob(exname);
-			} else if (AbstractSchedule.class.isAssignableFrom(type.c)) {
-				ab = schedulerXML.getSchedule(exname);
-			} else if (AbstractJob.class.isAssignableFrom(type.c)) {
-				ab = schedulerXML.getJob(exname);
-			}
-			
-			if (del) {
-				schedulerXML.delAbstractBase(ab);
-				ab = null;
-			}
-		} else {
-			ab = type.c.newInstance();
-		}
-		
-		if (ab != null) {
-			ab.setName(ServiceUtils.getRequiredParameter(request, "name"));
-			ab.setDescription(ServiceUtils.getRequiredParameter(request, "description"));
-			ab.setEnable("true".equals(ServiceUtils.getRequiredParameter(request, "enabled")));
-			
-			if (ScheduledJob.class.isAssignableFrom(type.c)) {
-				ScheduledJob sj = (ScheduledJob) ab;
-				sj.setJob(schedulerXML.getJob(ServiceUtils.getRequiredParameter(request, "jobName")));
-				sj.setSchedule(schedulerXML.getSchedule(ServiceUtils.getRequiredParameter(request, "scheduleName")));
-			} else if (AbstractSchedule.class.isAssignableFrom(type.c)) {
-				AbstractSchedule as = (AbstractSchedule) ab;
-				if (ScheduleCron.class.isAssignableFrom(type.c)) {
-					ScheduleCron sc = (ScheduleCron) as;
-					sc.setCron(ServiceUtils.getRequiredParameter(request, "cron"));
+		Exception eProb = null;
+		try {
+			if (edit || del) {
+				String exname = ServiceUtils.getRequiredParameter(request, "exname");
+				if (ScheduledJob.class.isAssignableFrom(type.c)) {
+					ab = schedulerXML.getScheduledJob(exname);
+				} else if (AbstractSchedule.class.isAssignableFrom(type.c)) {
+					ab = schedulerXML.getSchedule(exname);
+				} else if (AbstractJob.class.isAssignableFrom(type.c)) {
+					ab = schedulerXML.getJob(exname);
 				}
-			} else if (AbstractJob.class.isAssignableFrom(type.c)) {
-				AbstractJob aj = (AbstractJob) ab;
-				if (JobGroupJob.class.isAssignableFrom(type.c)) {
-					JobGroupJob jgj = (JobGroupJob) aj;
-					jgj.setSerial("true".equals(ServiceUtils.getRequiredParameter(request, "serial")));
-					jgj.delAllJobs();
-					
-					for (String jobname : request.getParameterValues("jobsname")) {
-						AbstractJob jobToAdd = schedulerXML.getJob(jobname);
-						if (jgj.checkNoRecurse(jobToAdd)) {
-							jgj.addJob(jobToAdd);
-						}
-					}
-				} else if (AbstractConvertigoJob.class.isAssignableFrom(type.c)) {
-					AbstractConvertigoJob acj = (AbstractConvertigoJob) aj;
-					acj.setContextName(ServiceUtils.getRequiredParameter(request, "context"));
-					acj.setProjectName(ServiceUtils.getRequiredParameter(request, "project"));
-					acj.setWriteOutput("true".equals(ServiceUtils.getRequiredParameter(request, "writeOutput")));
-					
-					if (TransactionConvertigoJob.class.isAssignableFrom(type.c)) {
-						TransactionConvertigoJob tcj = (TransactionConvertigoJob) acj;
-						tcj.setConnectorName(ServiceUtils.getParameter(request, "connector", ""));
-						tcj.setTransactionName(ServiceUtils.getParameter(request, "transaction", ""));
-					} else if (SequenceConvertigoJob.class.isAssignableFrom(type.c)) {
-						SequenceConvertigoJob scj = (SequenceConvertigoJob) acj;
-						scj.setSequenceName(ServiceUtils.getParameter(request, "sequence", ""));
-					}
-					
-					Map<String, String[]> parameters = new HashMap<String, String[]>();					
-					Matcher prefix = prefixPattern.matcher("");
-					for (String pname : Collections.list(GenericUtils.<Enumeration<String>>cast(request.getParameterNames()))) {
-						prefix.reset(pname);
-						if (prefix.find()) {
-							String para_name = prefix.group(1);
-							String[] values = request.getParameterValues(pname);
-//							for (String value : values) {
-//								parameters.put(para_name, value);
-							parameters.put(para_name, values);
-//							}
-						}
-						
-						if (pname.equals("parameters")){
-							String value = request.getParameter(pname);
-							if (!value.equals("0")) {
-								parameters.put("__testcase", new String[]{ value });
-							}
-						}
-					}	
-					
-					acj.setParameters(parameters);
-				}
-			}
-			
-			List<String> problems = schedulerXML.checkProblems(ab);
-			
-			if (edit) {
-				problems.remove(SchedulerXML.prob_alreadyExist);
-			}
-			
-			if (problems.size() > 0) {
-				for (String problem : problems) {
-					rootElement.appendChild(document.createElement("problem")).appendChild(document.createTextNode(problem));
+				
+				if (del) {
+					schedulerXML.delAbstractBase(ab);
+					ab = null;
 				}
 			} else {
-				if (!edit) {
-					schedulerXML.addAbstractBase(ab);
+				ab = type.c.newInstance();
+			}
+			
+			if (ab != null) {
+				String exName = ab.getName();
+				String name = ServiceUtils.getRequiredParameter(request, "name");
+				ab.setName(name);
+				ab.setDescription(ServiceUtils.getRequiredParameter(request, "description"));
+				ab.setEnable("true".equals(ServiceUtils.getRequiredParameter(request, "enabled")));
+				
+				if (ScheduledJob.class.isAssignableFrom(type.c)) {
+					ScheduledJob sj = (ScheduledJob) ab;
+					sj.setJob(schedulerXML.getJob(ServiceUtils.getRequiredParameter(request, "jobName")));
+					sj.setSchedule(schedulerXML.getSchedule(ServiceUtils.getRequiredParameter(request, "scheduleName")));
+				} else if (AbstractSchedule.class.isAssignableFrom(type.c)) {
+					AbstractSchedule as = (AbstractSchedule) ab;
+					if (ScheduleCron.class.isAssignableFrom(type.c)) {
+						ScheduleCron sc = (ScheduleCron) as;
+						sc.setCron(ServiceUtils.getRequiredParameter(request, "cron"));
+					}
+				} else if (AbstractJob.class.isAssignableFrom(type.c)) {
+					AbstractJob aj = (AbstractJob) ab;
+					if (JobGroupJob.class.isAssignableFrom(type.c)) {
+						JobGroupJob jgj = (JobGroupJob) aj;
+						jgj.setParallelJob(Integer.parseInt(ServiceUtils.getRequiredParameter(request, "parallelJob")));
+						jgj.delAllJobs();
+						
+						for (String jobname : request.getParameterValues("jobsname")) {
+							AbstractJob jobToAdd = schedulerXML.getJob(jobname);
+							if (jobToAdd != null && jgj.checkNoRecurse(jobToAdd)) {
+								jgj.addJob(jobToAdd);
+							}
+						}
+					} else if (AbstractConvertigoJob.class.isAssignableFrom(type.c)) {
+						AbstractConvertigoJob acj = (AbstractConvertigoJob) aj;
+						acj.setContextName(ServiceUtils.getRequiredParameter(request, "context"));
+						acj.setProjectName(ServiceUtils.getRequiredParameter(request, "project"));
+						acj.setWriteOutput("true".equals(ServiceUtils.getRequiredParameter(request, "writeOutput")));
+						
+						if (TransactionConvertigoJob.class.isAssignableFrom(type.c)) {
+							TransactionConvertigoJob tcj = (TransactionConvertigoJob) acj;
+							tcj.setConnectorName(ServiceUtils.getParameter(request, "connector", ""));
+							tcj.setTransactionName(ServiceUtils.getParameter(request, "transaction", ""));
+						} else if (SequenceConvertigoJob.class.isAssignableFrom(type.c)) {
+							SequenceConvertigoJob scj = (SequenceConvertigoJob) acj;
+							scj.setSequenceName(ServiceUtils.getParameter(request, "sequence", ""));
+						}
+						
+						Map<String, String[]> parameters = new HashMap<String, String[]>();					
+						Matcher prefix = prefixPattern.matcher("");
+						for (String pname : Collections.list(GenericUtils.<Enumeration<String>>cast(request.getParameterNames()))) {
+							prefix.reset(pname);
+							if (prefix.find()) {
+								String para_name = prefix.group(1);
+								String[] values = request.getParameterValues(pname);
+	//							for (String value : values) {
+	//								parameters.put(para_name, value);
+								parameters.put(para_name, values);
+	//							}
+							}
+							
+							if (pname.equals("parameters")){
+								String value = request.getParameter(pname);
+								if (!value.equals("0")) {
+									parameters.put("__testcase", new String[]{ value });
+								}
+							}
+						}	
+						
+						acj.setParameters(parameters);
+					}
+				}
+				
+				List<String> problems = schedulerXML.checkProblems(ab);
+				
+				if (exName.equals(name) && edit) {
+					problems.remove(SchedulerXML.prob_alreadyExist);
+				}
+				
+				if (problems.size() > 0) {
+					for (String problem : problems) {
+						rootElement.appendChild(document.createElement("problem")).appendChild(document.createTextNode(problem));
+					}
+					throw (eProb = new Exception("problem!"));
+				} else {
+					if (!edit) {
+						schedulerXML.addAbstractBase(ab);
+					}
 				}
 			}
+			
+			schedulerManager.save();
+			schedulerManager.refreshJobs();
+		} catch (Exception e) {
+			schedulerManager.load();
+			if (e != eProb) {
+				throw e;
+			}
 		}
-		
-		schedulerManager.save();
-		schedulerManager.refreshJobs();
 	}
 }

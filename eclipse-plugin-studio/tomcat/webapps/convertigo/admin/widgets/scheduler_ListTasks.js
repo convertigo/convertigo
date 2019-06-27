@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2019 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 var xmlOfTheProjectLoaded;
@@ -32,12 +29,12 @@ var $empty_element_xml = $("<element/>")
 	.attr("description", "")
 	.attr("jobName", "")
 	.attr("scheduleName", "")
-	.attr("serial", "false")
+	.attr("parallelJob", "1")
 	.attr("writeOutput", "false")
 	.attr("cron", "0 0 0 * * ?")
 	.attr("context", "")
 	.attr("project", "");
-var setting_order = ["name", "enabled", "description", "jobName", "scheduleName", "serial", "writeOutput", "cron", "context", "project"];
+var setting_order = ["name", "enabled", "description", "jobName", "scheduleName", "parallelJob", "writeOutput", "cron", "context", "project"];
 
 function scheduler_ListTasks_init () {
 	
@@ -483,10 +480,22 @@ function scheduler_ListTasks_update () {
 			var category = $element.attr("category");
 			var name = $element.attr("name");
 			var enabled = ("true" === $element.attr("enabled"));
+			var mycpt = cpt++;
 			var row;
 			if (category === "schedules") {
 				var firstCron = "";
 				var allCrons = "";
+				
+				row = {
+					enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
+					name : htmlEncode(name),
+					description : $element.attr("description"),
+					info : $element.attr("info"),
+					next : firstCron,
+					edit : htmlCode($("#schedulerTemplate .schedulerElementEdit")),
+					remove : htmlCode($("#schedulerTemplate .schedulerElementDelete"))
+				}
+				
 				callService("scheduler.CronCalculator", function (xml) {
 					var iter = 0;
 					$(xml).find("crons > nextTime").each(function () {
@@ -496,19 +505,11 @@ function scheduler_ListTasks_update () {
 						allCrons += ((iter+1) < 10 ? "0"+(iter+1)+" :  " : (iter+1)+" :  ") + $(this).text() + "\n";
 						iter++;
 					});
-					
-					row = {
-						enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
-						name : htmlEncode(name),
-						description : $element.attr("description"),
-						info : $element.attr("info"),
-						next : firstCron,
-						edit : htmlCode($("#schedulerTemplate .schedulerElementEdit")),
-						remove : htmlCode($("#schedulerTemplate .schedulerElementDelete"))
-					}
-					$("#scheduled_" + category).jqGrid("addRowData", cpt, row);	
-					$("#scheduled_schedules tr[id='" + (cpt++) + "'] .nextCron[title='" + firstCron + "']").attr("title", allCrons);
+					row.next = firstCron;
+					$("#scheduled_" + category).jqGrid("setRowData", mycpt, row);
+					$("#scheduled_schedules tr[id='" + (mycpt) + "'] .nextCron[title='" + firstCron + "']").attr("title", allCrons);
 					$(".schedulerSelect_" + category).append($("<option/>").text(name));
+
 					
 					$(".scheduledTableDataCron .schedulerElementEdit").click(function () {
 						editAction(this);			
@@ -520,6 +521,7 @@ function scheduler_ListTasks_update () {
 					
 					manageNewScheduledJobStateBtn();
 				}, {name : $element.attr("name"), input : $element.attr("info"), iteration : "20" });
+				$("#scheduled_" + category).jqGrid("addRowData", mycpt, row);
 				
 			} else {
 				row = {
@@ -531,7 +533,7 @@ function scheduler_ListTasks_update () {
 					remove : htmlCode($("#schedulerTemplate .schedulerElementDelete"))
 				}
 				
-				$("#scheduled_" + category).jqGrid("addRowData", cpt++, row);			
+				$("#scheduled_" + category).jqGrid("addRowData", mycpt, row);			
 				$(".schedulerSelect_" + category).append($("<option/>").text(name));
 			}
 			
@@ -552,7 +554,10 @@ function scheduler_ListTasks_update () {
 	$select.empty().append($("#schedulerTemplate .schedulerEmptyOption").clone());
 	callService("projects.List", function (xml) {
 		$(xml).find("project").each(function () {
-			$select.append($("<option/>").text($(this).attr("name")));
+			var name = $(this).attr("name");
+			if (!name.startsWith("mobilebuilder_tpl_")) {
+				$select.append($("<option/>").text(name));
+			}
 		});
 	});
 }
@@ -668,7 +673,7 @@ function parseJSONarray(value) {
 }
 
 function getHelpUrl(help_sub_url) {
-	return "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/scheduler/" + help_sub_url;
+	return "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/scheduler/" + help_sub_url;
 }
 
 function editAction(xml){

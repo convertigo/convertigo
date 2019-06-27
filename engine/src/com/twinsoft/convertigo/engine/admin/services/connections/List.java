@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,23 +20,29 @@
 package com.twinsoft.convertigo.engine.admin.services.connections;
 
 import java.text.DateFormat;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.tas.KeyManager;
 
 @ServiceDefinition(
@@ -68,15 +74,19 @@ public class List extends XmlService{
 		if (hours != 0) s += hours + "h";
 		if (minutes != 0) s += minutes + "min";
 		if (seconds != 0) s += seconds + "s";
-		return s;
+		return s.isEmpty() ? "0" : s;
 	}
 	
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		HttpSession currentSession = request.getSession();
 		
 		Element rootElement = document.getDocumentElement();
         
         Element connectionsListElement = document.createElement("connections");
         rootElement.appendChild(connectionsListElement);
+        
+        Element sessionsListElement = document.createElement("sessions");
+        rootElement.appendChild(sessionsListElement);
         
         Element contextsInUseElement = document.createElement("contextsInUse");
         contextsInUseElement.setTextContent("" + Math.max(0, Engine.theApp.contextManager.getNumberOfContexts()));
@@ -87,7 +97,7 @@ public class List extends XmlService{
         rootElement.appendChild(contextsNumberElement);
         
         Element sessionsInUseElement = document.createElement("sessionsInUse");
-        sessionsInUseElement.setTextContent("" + Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE) - KeyManager.getCV(Session.EmulIDSE)));
+        sessionsInUseElement.setTextContent("" + HttpSessionListener.countSessions());
         rootElement.appendChild(sessionsInUseElement);
         
         Element sessionsIsOverflowElement = document.createElement("sessionsIsOverflow");
@@ -107,32 +117,26 @@ public class List extends XmlService{
         rootElement.appendChild(threadsNumberElement);
         
         Element httpTimeoutElement = document.createElement("httpTimeout");
-        httpTimeoutElement.setTextContent(formatTime(request.getSession().getMaxInactiveInterval()));
+        httpTimeoutElement.setTextContent(formatTime(currentSession.getMaxInactiveInterval()));
         rootElement.appendChild(httpTimeoutElement);
         
-        String order = request.getParameter("sortParam");
-        int orderInt=-1;
-        ArrayList<Element> list=null;
-        String[] attributes={"connected","contextName", "project","connector","requested","status","user","contextCreationDate","lastContextAccessDate"};
+        long now = System.currentTimeMillis();
         
-        if(order!=null){
-        	list=new ArrayList<Element>(); 
-        	for(int i=0;i<attributes.length;i++){
-        		if(attributes[i].equals(order))
-        			orderInt=i;    
-        	}
-        	if(orderInt==-1){
-        		order=null;
-        	}
+        Collection<Context> contexts = null;
+        
+        String sessionToFilter = request.getParameter("session");
+        
+        if (StringUtils.isNotBlank(sessionToFilter)) {
+            HttpSession session = HttpSessionListener.getHttpSession(sessionToFilter);
+            if (session != null) {
+            	contexts = Engine.theApp.contextManager.getContexts(session);
+            }
         }
-       
-      
+        if (contexts == null) {
+        	contexts = Engine.theApp.contextManager.getContexts();
+        }
         
-        
-        for(Context context : Engine.theApp.contextManager.getContexts()) {
-        	int i = context.contextID.indexOf('_');
-        	String sessionID = context.contextID.substring(0, i);
-        	String contextName = context.contextID.substring(i + 1);
+        for (Context context : contexts) {
         	String authenticatedUser = null;
         	try {
         		authenticatedUser = context.getAuthenticatedUser();
@@ -143,44 +147,43 @@ public class List extends XmlService{
         	com.twinsoft.api.Session apiSession = Engine.theApp.sessionManager.getSession(context.contextID);
     		boolean bConnected = ((apiSession != null) && apiSession.isConnected());
             Element connectionElement = document.createElement("connection");
-            connectionElement.setAttribute(attributes[0], Boolean.toString(bConnected));
-			connectionElement.setAttribute(attributes[1], sessionID + "_" + contextName);
-            connectionElement.setAttribute(attributes[2], context.projectName);
-            connectionElement.setAttribute(attributes[3], context.connectorName);
-            connectionElement.setAttribute(attributes[4], (context.requestedObject instanceof Transaction) ? context.transactionName:context.sequenceName);
-            connectionElement.setAttribute(attributes[5], (context.requestedObject == null || context.requestedObject.runningThread == null ? "finished" : (context.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "("+ context.waitingRequests+")");
-            connectionElement.setAttribute(attributes[6], authenticatedUser == null ? "" : authenticatedUser);
-            connectionElement.setAttribute(attributes[7], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
-            connectionElement.setAttribute(attributes[8], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
+            connectionElement.setAttribute("connected", Boolean.toString(bConnected));
+			connectionElement.setAttribute("contextName", context.contextID);
+            connectionElement.setAttribute("project", context.projectName);
+            connectionElement.setAttribute("connector", context.connectorName);
+            connectionElement.setAttribute("requested", (context.requestedObject instanceof Transaction) ? context.transactionName:context.sequenceName);
+            connectionElement.setAttribute("status", (context.requestedObject == null || context.requestedObject.runningThread == null ? "finished" : (context.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "("+ context.waitingRequests+")");
+            connectionElement.setAttribute("user", authenticatedUser == null ? "" : authenticatedUser);
+            connectionElement.setAttribute("contextCreationDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
+            connectionElement.setAttribute("lastContextAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
             try {
-				connectionElement.setAttribute("contextInactivityTime", formatTime((System.currentTimeMillis() - context.lastAccessTime) / 1000)+" / "+formatTime(Engine.theApp.databaseObjectsManager.getProjectByName(context.projectName).getContextTimeout()));
+				connectionElement.setAttribute("contextInactivityTime", formatTime((now - context.lastAccessTime) / 1000)+" / "+formatTime(Engine.theApp.databaseObjectsManager.getOriginalProjectByName(context.projectName).getContextTimeout()));
 			} catch (Exception e) {
 				// TODO: document = DOMUtils.handleError(e); << USELESS 
 			}
 			connectionElement.setAttribute("clientComputer", context.remoteHost + " (" + context.remoteAddr + "), " + context.userAgent);
-            if(order==null)
-            	connectionsListElement.appendChild(connectionElement);
-            else{
-            	int j=0;   
-            	//increment j until the good index
-            	for(;j<list.size()&&connectionElement.getAttribute(attributes[orderInt]).toLowerCase().compareTo(list.get(j).getAttribute(attributes[orderInt]).toLowerCase())>0;j++){           		
-            		
-            	}            	
-            	list.add(j,connectionElement);
-            }
-        }
-        if(order!=null){
-        	if(request.getParameter("desc")==null){
-		        for(int k=0;k<list.size();k++){
-		        	connectionsListElement.appendChild(list.get(k));
-		        }
-        	}
-        	else{
-        		for(int k=list.size()-1;k>=0;k--){
-		        	connectionsListElement.appendChild(list.get(k));
-		        }
-        	}
+            connectionsListElement.appendChild(connectionElement);            
         }
         
+        if (!"false".equals(request.getParameter("sessions"))) {
+	        for (HttpSession session: HttpSessionListener.getSessions()) {
+	        	Element sessionElement = document.createElement("session");
+	        	java.util.List<Context> ctxs = Engine.theApp.contextManager.getContexts(session);
+	        	sessionElement.setAttribute("sessionID", session.getId());
+	        	sessionElement.setAttribute("authenticatedUser", SessionAttribute.authenticatedUser.string(session));
+	        	sessionElement.setAttribute("contexts", Integer.toString(ctxs == null ? 0 : ctxs.size()));
+	        	sessionElement.setAttribute("clientIP", SessionAttribute.clientIP.string(session));
+	        	sessionElement.setAttribute("lastSessionAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(session.getLastAccessedTime())));
+	        	sessionElement.setAttribute("sessionInactivityTime", formatTime((now - session.getLastAccessedTime()) / 1000) + " / " + formatTime(session.getMaxInactiveInterval()));
+	        	Role[] r = (Role[]) session.getAttribute(SessionKey.ADMIN_ROLES.toString());
+	        	sessionElement.setAttribute("adminRoles", Integer.toString(r == null ? 0 : r.length));
+	        	if (session == currentSession) {
+	        		sessionElement.setAttribute("isCurrentSession", "true");
+	        	}
+	        	Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(session);
+	        	sessionElement.setAttribute("isFullSyncActive", Boolean.toString(set != null && !set.isEmpty()));
+	        	sessionsListElement.appendChild(sessionElement);
+	        }
+        }
 	}
 }

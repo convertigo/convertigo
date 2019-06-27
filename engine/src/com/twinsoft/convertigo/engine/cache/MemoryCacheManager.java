@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,12 +19,16 @@
 
 package com.twinsoft.convertigo.engine.cache;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 
 public abstract class MemoryCacheManager extends CacheManager {
@@ -33,21 +37,24 @@ public abstract class MemoryCacheManager extends CacheManager {
 	
 	public void init() throws EngineException {
 		super.init();
-
+		
 		// Default cache index
-		cacheIndex = Collections.synchronizedMap(new HashMap<String, CacheEntry>());
+		cacheIndex = new ConcurrentHashMap<>();
 		
 		// Trying to restore the previous cache index if any
 		restoreCacheIndex();
+
+		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
 	}
 	
 	public void destroy() throws EngineException {
 		super.destroy();
 
+		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
 		cacheIndex = null;
 	} 
 
-	public synchronized CacheEntry getCacheEntry(String requestString) throws EngineException {
+	public CacheEntry getCacheEntry(String requestString) throws EngineException {
 		CacheEntry cacheEntry = cacheIndex.get(requestString);
 		return cacheEntry;
 	}
@@ -56,7 +63,8 @@ public abstract class MemoryCacheManager extends CacheManager {
 		// Do nothing
 	}
 	
-	protected synchronized CacheEntry storeResponse(Document response, String requestString, long expiryDate) throws EngineException {
+	protected CacheEntry storeResponse(Document response, String requestString, long expiryDate) throws EngineException {
+		storeWeakResponse(response, requestString);
 		CacheEntry cacheEntry = storeResponseToRepository(response, requestString, expiryDate);
 		cacheIndex.put(requestString, cacheEntry);
 		return cacheEntry;
@@ -75,8 +83,12 @@ public abstract class MemoryCacheManager extends CacheManager {
 	 */
 	protected abstract CacheEntry storeResponseToRepository(Document response, String requestString, long expiryDate) throws EngineException;
 
-	protected synchronized Document getStoredResponse(Requester requester, CacheEntry cacheEntry) throws EngineException {
-		Document response = getStoredResponseFromRepository(requester, cacheEntry);
+	protected Document getStoredResponse(Requester requester, CacheEntry cacheEntry) throws EngineException {
+		Document response = getWeakResponse(cacheEntry);
+		if (response == null) {
+			response = getStoredResponseFromRepository(requester, cacheEntry);
+			storeWeakResponse(response, cacheEntry.requestString);
+		}
 		
 		// If the stored response has been invalidated by the cache implementation,
 		// remove it from the cache index.
@@ -110,6 +122,7 @@ public abstract class MemoryCacheManager extends CacheManager {
 	 */	
 	protected synchronized void removeStoredResponse(CacheEntry cacheEntry) throws EngineException {
 		cacheIndex.remove(cacheEntry.requestString);
+		removeWeakResponse(cacheEntry);
 		removeStoredResponseImpl(cacheEntry);
 	}
 

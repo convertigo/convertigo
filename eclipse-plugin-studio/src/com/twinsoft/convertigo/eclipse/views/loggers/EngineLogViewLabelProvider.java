@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -31,19 +31,35 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerColumn;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 
+import com.twinsoft.convertigo.eclipse.ColorEnum;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class EngineLogViewLabelProvider extends CellLabelProvider implements
 		ITableLabelProvider, ITableFontProvider, ITableColorProvider {
 
+	private Color error;
+	private Color error_bis;
+	private Color warn;
+	private Color warn_bis;
+	private Color info;
+	private Color info_bis;
+	private Color debug;
+	private Color debug_bis;
+	private Color trace;
+	private Color trace_bis;
+	
+	boolean isDark = false;
+	
 	public Color getForeground(Object element, int columnIndex) {
-		return null;
+		return isDark ? getColor(element) : Display.getCurrent().getSystemColor(SWT.COLOR_BLACK);
 	}
 	
 	private TableViewer tableViewer;
@@ -52,35 +68,46 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	protected void initialize(ColumnViewer viewer, ViewerColumn column) {
 		super.initialize(viewer, column);
 		tableViewer = (TableViewer) viewer;
+		isDark = SwtUtils.isDark();
+		Display d = viewer.getControl().getDisplay();
+		if (isDark) {
+			error = error_bis = new Color(d, 255, 0, 0);
+			warn = warn_bis = new Color(d, 255, 155, 0);
+			info = info_bis = new Color(d, 9, 255, 0);
+			debug = debug_bis = new Color(d, 0, 255, 249);
+			trace = trace_bis = new Color(d, 240, 255, 0);
+		} else {
+			error = new Color(d, 255, 158, 147);
+			error_bis = new Color(d, 255, 186, 178);
+			warn = new Color(d, 242, 196, 208);
+			warn_bis = new Color(d, 255, 204, 217);
+			info = new Color(d, 225, 242, 228);
+			info_bis = new Color(d, 237, 255, 241);
+			debug = new Color(d, 249, 249, 177);
+			debug_bis = new Color(d, 255, 255, 196);
+			trace = new Color(d, 252, 252, 223);
+			trace_bis = new Color(d, 252, 252, 232);
+		}
 	}
 	
 	public Color getBackground(Object element, int columnIndex) {
+		return isDark ? ColorEnum.BACKGROUND_DARK.get() : getColor(element);
+	}
+	
+	public Color getColor(Object element) {
 		LogLine line = (LogLine) element;
 		String level = line.getLevel();
-		if (level.equals(Level.ERROR.toString())) {
-			if (line.getCounter() % 2 == 0) {
-				return new Color(Display.getCurrent(), 255, 158, 147);
-			} else {
-				return new Color(Display.getCurrent(), 255, 186, 178);
-			}
-		} else if (level.equals(Level.INFO.toString())) {
-			if (line.getCounter() % 2 == 0) {
-				return new Color(Display.getCurrent(), 225, 242, 228);
-			} else {
-				return new Color(Display.getCurrent(), 237, 255, 241);
-			}
-		} else if (level.equals(Level.DEBUG.toString())) {
-			if (line.getCounter() % 2 == 0) {
-				return new Color(Display.getCurrent(), 249, 249, 177);
-			} else {
-				return new Color(Display.getCurrent(), 255, 255, 196);
-			}
+		boolean odd = line.getCounter() % 2 == 0;
+		if (level.equals(Level.ERROR.toString()) || level.equals(Level.FATAL.toString())) {
+			return odd ? error : error_bis;
 		} else if (level.equals(Level.WARN.toString())) {
-			if (line.getCounter() % 2 == 0) {
-				return new Color(Display.getCurrent(), 242, 196, 208);
-			} else {
-				return new Color(Display.getCurrent(), 255, 204, 217);
-			}
+			return odd ? warn : warn_bis;
+		} else if (level.equals(Level.INFO.toString())) {
+			return odd ? info : info_bis;
+		} else if (level.equals(Level.DEBUG.toString())) {
+			return odd ? debug : debug_bis;
+		} else if (level.equals(Level.TRACE.toString())) {
+			return odd ? trace : trace_bis;
 		}
 		return null;
 	}
@@ -96,7 +123,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	public String getColumnText(Object element, int columnIndex) {
 		LogLine line = (LogLine) element;
 		
-		Table table = tableViewer.getTable();		
+		Table table = tableViewer.getTable();
 		String columnName = table.getColumn(columnIndex).getText();
 		
 		Class<LogLine> logLineClass = GenericUtils.cast(line.getClass());
@@ -124,4 +151,21 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 
 	@Override
 	public void update(ViewerCell cell) {}
+
+	@Override
+	public void dispose(ColumnViewer viewer, ViewerColumn column) {
+		error.dispose();
+		error_bis.dispose();
+		warn.dispose();
+		warn_bis.dispose();
+		info.dispose();
+		info_bis.dispose();
+		debug.dispose();
+		debug_bis.dispose();
+		trace.dispose();
+		trace_bis.dispose();
+		super.dispose(viewer, column);
+	}
+	
+	
 }

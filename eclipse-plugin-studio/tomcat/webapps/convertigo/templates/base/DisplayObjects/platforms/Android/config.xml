@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="$(ApplicationID)$" version="$(ApplicationVersion)$" versionCode="1">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="$(ApplicationID)$" version="$(ApplicationVersion)$" versionCode="1" xmlns:android="http://schemas.android.com/apk/res/android">
 	<!-- Find configuration details for this file here : http://docs.build.phonegap.com/ -->
     
 	<!-- Available template variables, replaced before build by Convertigo -->	
@@ -20,26 +20,34 @@
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<engine name="$(CordovaPlatform)$" spec="6.2.3" />
+	<engine name="$(CordovaPlatform)$" spec="8.0.0" />
+
 	
 	<!--  Startup page is FlashUpdate  -->
 	<content src="index-fu.html" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           value="cli-7.0.1" />      <!-- all: current version of PhoneGap CLI -->
+    <preference name="phonegap-version"           value="cli-8.1.1" />      <!-- all: current version of PhoneGap CLI -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
     <preference name="SplashScreen"    			  value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
     <preference name="ShowSplashScreenSpinner"    value="false"/>           <!-- all: show the splash screen spinner -->
     <preference name="SplashScreenDelay"          value="60000" />          <!-- android: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
-    <preference name="android-minSdkVersion"      value="15" />             <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
+    <preference name="android-minSdkVersion"      value="19" />             <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
     <preference name="android-installLocation"    value="auto" />           <!-- android: app install location. 'auto' will choose. 'internalOnly' is device memory. 'preferExternal' is SDCard. -->
+    <preference name="android-build-tool" 		  value="gradle" /> 
     
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="AndroidPersistentFileLocation" value="Internal" />
 	
 	<platform name="android">
+		<edit-config
+			file="app/src/main/AndroidManifest.xml"
+			mode="merge"
+			target="/manifest/application">
+			<application android:largeHeap="true" />
+ 		</edit-config>
 		<icon density="ldpi" src="res/icons/android/drawable-ldpi-icon.png" />
 		<icon density="mdpi" src="res/icons/android/drawable-mdpi-icon.png" />
 		<icon density="hdpi" src="res/icons/android/drawable-hdpi-icon.png" />
@@ -67,13 +75,13 @@
 	<preference name="permissions" value="none"/>
 	
     <!-- Core plugins mandatory for FlashUpdate service -->
-    <plugin name="cordova-plugin-device" spec="~1.1.6"/>
-    <plugin name="cordova-plugin-file" spec="~4.3.3"/>
-    <plugin name="cordova-plugin-file-transfer" spec="~1.6.3"/>
-    <plugin name="cordova-plugin-splashscreen" spec="~4.0.3"/>
-    <plugin name="cordova-plugin-whitelist" spec="~1.3.2"/>
-    <plugin name="cordova-plugin-network-information" spec="~1.3.3" />
-    <plugin name="cordova-plugin-statusbar" spec="~2.2.3"/>
+    <plugin name="cordova-plugin-device" spec="~2.0.2" />
+    <plugin name="cordova-plugin-file" spec="~6.0.1" />
+    <plugin name="cordova-plugin-file-transfer" spec="~1.7.1" />
+    <plugin name="cordova-plugin-splashscreen" spec="~5.0.2" />
+    <plugin name="cordova-plugin-whitelist" spec="~1.3.3" />
+    <plugin name="cordova-plugin-network-information" spec="~2.0.1" />
+    <plugin name="cordova-plugin-statusbar" spec="~2.4.2" />
 
 	<!-- Expose access to all URIs, including the file and http protocols -->
     <access origin="*" />
@@ -84,9 +92,9 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     
-    <!-- fix issue -->
-	<plugin name="cordova-android-support-gradle-release" spec="~1.1.5">
-        <variable name="ANDROID_SUPPORT_VERSION" value="24.+" />
-    </plugin>
+	<!-- Android Support 27 + -->
+	<plugin name="cordova-android-support-gradle-release" spec="2.0.1">
+		<variable name="ANDROID_SUPPORT_VERSION" value="27.+" />
+	</plugin>
 	<!-- Application mandatory plugins -->
 </widget>

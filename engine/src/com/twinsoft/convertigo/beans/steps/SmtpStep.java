@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -535,24 +536,28 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	}
 	
     @Override
-	public void configure(Element element) throws Exception {
-    	super.configure(element);
+	public void preconfigure(Element element) throws Exception {
+    	super.preconfigure(element);
 
     	String version = element.getAttribute("version");
+    	TwsCachedXPathAPI xpath = getXPathAPI();
 
     	if (version != null && VersionUtils.compareMigrationVersion(version, ".m005") < 0) {
     		Engine.logBeans.warn("[SmtpStep] The object \"" + getName() + "\" (subject and recipients) has been updated to m005");
 
-    		smtpSubject = "\"" + smtpSubject + "\"";
-    		smtpRecipients = "\"" + smtpRecipients + "\"";
+    		Element prop = (Element) xpath.selectSingleNode(element, "property[@name='smtpSubject']/*");
+    		prop.setAttribute("value", "\"" + prop.getAttribute("value") + "\"");
+    		prop = (Element) xpath.selectSingleNode(element, "property[@name='smtpRecipients']/*");
+    		prop.setAttribute("value", "\"" + prop.getAttribute("value") + "\"");
     		
     		hasChanged = true;
     	}
 
     	if (version != null && VersionUtils.compareProductVersion(version, "7.5.0") < 0) {
     		Engine.logBeans.warn("[SmtpStep] The object \"" + getName() + "\" (sender) has been updated to 7.5.0");
-
-    		smtpSender = "\"" + smtpSender + "\"";
+    		
+    		Element prop = (Element) xpath.selectSingleNode(element, "property[@name='smtpSender']/*");
+    		prop.setAttribute("value", "\"" + prop.getAttribute("value") + "\"");
     		
     		hasChanged = true;
     	}

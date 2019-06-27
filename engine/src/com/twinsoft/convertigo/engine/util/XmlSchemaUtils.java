@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -271,24 +271,49 @@ public class XmlSchemaUtils {
 		
 		new XmlSchemaWalker() {
 			Node parent = root;
-			int maxDepth = getDomMaxDepth();
+			
+			int maxDepth = getDomMaxDepth();	// max depth from root
+			int maxCpt = getDomMaxDepth(); 		// max number of child per parent
+			
+			int depth = 0;
+			int cpt = 0;
 			
 			@Override
 			protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
-				Node myParent = parent;
+				Node _parent = parent;
+				int _depth = depth;
+				int _cpt = cpt;
+				
 				XmlSchemaElement element = (XmlSchemaElement) obj;
 				if (element.getRefName() == null) {
-					Element xElement = doc.createElement(element.getName());
-					if (references != null) {
-						references.put(xElement, element);
+					if (_cpt < maxCpt) {
+						// create new element
+						Element xElement = doc.createElement(element.getName());
+						if (references != null) {
+							references.put(xElement, element);
+						}
+						// add element to parent
+						_parent.appendChild(xElement);
+						
+						// walk element
+						parent = xElement; 	// set new parent
+						depth = depth + 1; 	// increase depth by one
+						cpt = 0;			// reset number of child
+						if (_depth < maxDepth) {
+							super.walkElement(xmlSchema, obj);
+						}
+						_cpt++; // increase parent number of child by one
 					}
-					myParent.appendChild(xElement);
-					parent = xElement;
+					cpt = _cpt; // set back number of child
+				} else {
+					if (_cpt < maxCpt) {
+						if (_depth < maxDepth) {
+							super.walkElement(xmlSchema, obj);
+						}
+					}
 				}
-				if (--maxDepth > 0) {
-					super.walkElement(xmlSchema, obj);
-				}
-				parent = myParent;
+				parent = _parent; 	// set back parent
+				depth = _depth;		// set back depth
 			}
 
 			@Override

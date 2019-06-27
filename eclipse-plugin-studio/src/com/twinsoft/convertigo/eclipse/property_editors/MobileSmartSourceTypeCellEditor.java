@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -99,6 +99,7 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		Color bg = parent.getBackground();
 		
 		control.setFont(font);
+		control.setForeground(control.getDisplay().getSystemColor(SWT.COLOR_BLACK));
 		control.setBackground(bg);
 		
 		GridLayout gl = new GridLayout(99, false);
@@ -210,7 +211,10 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 				Button button = (Button) e.widget; 
 				button.setSelection(true);
 				
-				comboBox.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+				comboBox.getDisplay().asyncExec(() -> {
+					comboBox.setForeground(button.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+					comboBox.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+				});
 				
 				Mode mode = (Mode) button.getData(DataKeys.SMART_TYPE.name());
 				msst.setMode(mode);
@@ -284,6 +288,7 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		return control;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public LayoutData getLayoutData() {
 		LayoutData layoutData = super.getLayoutData();
 		if ((comboBox == null) || comboBox.isDisposed()) {

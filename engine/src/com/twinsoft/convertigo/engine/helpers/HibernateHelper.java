@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -27,12 +27,9 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.exception.JDBCConnectionException;
 import org.hibernate.service.ServiceRegistry;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class HibernateHelper {
 	private SessionFactory sessionFactory;
@@ -45,57 +42,33 @@ public class HibernateHelper {
 		this.log = log;
 		this.retry = retry + 1;
 		
-		Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-		Element elt = doc.createElement("session-factory");
-		addProperty(elt, "hibernate.connection.driver_class", driver_class);
-		addProperty(elt, "hibernate.connection.url", url);
-		addProperty(elt, "hibernate.connection.username", username);
-		addProperty(elt, "hibernate.connection.password", password);
-		addProperty(elt, "hibernate.dialect", dialect);
-		addProperty(elt, "hibernate.hbm2ddl.auto", "update");
-		addProperty(elt, "hibernate.connection.autocommit", "true");
-		addProperty(elt, "hibernate.jdbc.batch_size", "1");
-		addProperty(elt, "hibernate.show_sql", "true");
-		doc.appendChild(doc.createElement("hibernate-configuration")).appendChild(elt);
-		
 		configuration = new Configuration();
+		configuration.setProperty("hibernate.connection.driver_class", driver_class);
+		configuration.setProperty("hibernate.connection.url", url);
+		configuration.setProperty("hibernate.connection.username", username);
+		configuration.setProperty("hibernate.connection.password", password);
+		configuration.setProperty("hibernate.dialect", dialect);
+		configuration.setProperty("hibernate.hbm2ddl.auto", "update");
+		configuration.setProperty("hibernate.connection.autocommit", "true");
+		configuration.setProperty("hibernate.jdbc.batch_size", "1");
+		configuration.setProperty("hibernate.show_sql", "false");
 		for (Class<?> annotatedClass: annotatedClasses) {
 			configuration.addAnnotatedClass(annotatedClass);
 		}
-		configuration.configure(doc);
-	}
-	
-	private void addProperty(Element element, String name, String value) {
-		Element property = element.getOwnerDocument().createElement("property");
-		property.setAttribute("name", name);
-		property.setTextContent(value);
-		element.appendChild(property);
 	}
 	
 	public void insert(final Object obj) {
-		retry(new Runnable() {
-			@Override
-			public void run() {
-				StatelessSession session = getSession();
-				try {
-					session.insert(obj);
-				} finally {
-					session.close();
-				}
+		retry(() -> {
+			try (StatelessSession session = getSession()) {
+				session.insert(obj);
 			}
 		});
 	}
 	
 	public void delete(final Object obj) {
-		retry(new Runnable() {
-			@Override
-			public void run() {
-				StatelessSession session = getSession();
-				try {
-					session.delete(obj);
-				} finally {
-					session.close();
-				}
+		retry(() -> {
+			try (StatelessSession session = getSession()) {
+				session.delete(obj);
 			}
 		});
 	}
@@ -103,15 +76,9 @@ public class HibernateHelper {
 	public int update(final String query) {
 		final int[] updated = {0};
 		
-		retry(new Runnable() {
-			@Override
-			public void run() {
-				StatelessSession session = getSession();
-				try {
-					updated[0] = session.createQuery(query).executeUpdate();
-				} finally {
-					session.close();
-				}
+		retry(() -> {
+			try (StatelessSession session = getSession()) {
+				updated[0] = session.createQuery(query).executeUpdate();
 			}
 		});
 		return updated[0];

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -115,6 +115,7 @@ public class CouchVariablesDialog extends Dialog {
 			}
 			
 			couchVariablesComposite = new CouchVariablesComposite(parent, SWT.V_SCROLL, dboVariables);
+			couchVariablesComposite.setBackground(parent.getBackground());
 			couchVariablesComposite.setPropertyDescriptor(couchDbTransaction, availablesParameters, couchDbTransaction.getParent());
 
 			GridData couchVarData = new GridData(GridData.FILL_BOTH);

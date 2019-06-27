@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -90,6 +90,7 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
 		control.setLayout(gl);
 		
 		text = new Text(control, SWT.NONE);
+		text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
         text.addKeyListener(new KeyAdapter() {
@@ -148,7 +149,10 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
 				Button button = (Button) e.widget; 
 				button.setSelection(true);
 				
-				text.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+				text.getDisplay().asyncExec(() -> {
+					text.setBackground((Color) button.getData(DataKeys.TEXT_COLOR.name()));
+					text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+				});
 				
 				Mode mode = (Mode) button.getData(DataKeys.SMART_TYPE.name());
 				value.setMode(mode);

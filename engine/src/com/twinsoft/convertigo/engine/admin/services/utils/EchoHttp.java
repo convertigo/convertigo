@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -35,7 +35,8 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		name = "EchoHttp",
 		roles = { Role.ANONYMOUS },
 		parameters = {},
-		returnValue = ""
+		returnValue = "",
+		admin = false
 		)
 public class EchoHttp extends XmlService {
 

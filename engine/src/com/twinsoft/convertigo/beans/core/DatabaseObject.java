@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
@@ -347,7 +348,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			parent.changed();
 		}
 		
-		changed();
+		//changed();
 	}
 	
 	/**
@@ -490,8 +491,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return name;
 	}
 
-	public transient long newPriority = 0;
-
 	public Element toXml(Document document) throws EngineException {
 		Element element = document.createElement(getDatabaseType().toLowerCase());
 
@@ -501,7 +500,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 
 		// Storing the database object priority
-		element.setAttribute("priority", new Long(priority).toString());
+		element.setAttribute("priority", Long.toString(priority));
 
 		int len;
 		PropertyDescriptor[] propertyDescriptors;
@@ -794,7 +793,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			EngineException ee = new EngineException(message, e);
 			throw ee;
 		}
-
+		
+		databaseObject.isImporting = true;
+		
 		try {
 			// Performs custom configuration before object de-serialization
 			databaseObject.preconfigure(element);
@@ -841,7 +842,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					Engine.logBeans.trace("  name = '" + propertyName + "'");
 					pd = findPropertyDescriptor(pds, propertyName);
 					if (pd == null) {
-						Engine.logBeans.warn("Unable to find the definition of property \"" + propertyName
+						Engine.logBeans.info("Unable to find the definition of property \"" + propertyName
 								+ "\"; skipping.");
 						continue;
 					}
@@ -1206,7 +1207,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	}
 	
 	public void changed() {
-		if (!isImporting && !hasChanged) {
+		if (!isImporting) {
 			hasChanged = true;
 		}
 	}
@@ -1323,5 +1324,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 		return false;
 	}
-
+	
+	protected void checkBatchOperation(Runnable runnable) {
+		BatchOperationHelper.check(runnable);
+	}
 }

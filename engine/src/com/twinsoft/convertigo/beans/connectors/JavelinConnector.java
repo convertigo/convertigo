@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.tas.Authentication;
 import com.twinsoft.tas.Key;
 import com.twinsoft.tas.KeyManager;
@@ -125,7 +126,9 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
-        emulatorID = findEmulatorId();
+		if (!Engine.isCliMode()) {
+			emulatorID = findEmulatorId();
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -529,8 +532,8 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 			// Insert the dataStableThreshold object in the script scope
 			Scriptable jsDataStableThreshold = org.mozilla.javascript.Context.toObject(new Integer(threshold), scope);
 			scope.put("threshold", scope, jsDataStableThreshold);
-
-			javascriptContext.evaluateString(scope, connectionSyncCode, getName() + " - Connection synchronization code", 1, null);
+			
+			RhinoUtils.evalCachedJavascript(javascriptContext, scope, connectionSyncCode, getName() + " - Connection synchronization code", 1, null);
 		}
 		catch(EcmaError e) {
 			EngineException ee = new EngineException(

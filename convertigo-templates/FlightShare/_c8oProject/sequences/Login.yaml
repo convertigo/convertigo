@@ -1,0 +1,44 @@
+↓Input_variables [steps.InputVariablesStep-1508935179844]: 
+↓Set_authenticated_user [steps.SetAuthenticatedUserStep-1508935191775]: 
+  userid: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+      - SmartType: 
+        - ↑mode: SOURCE
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935179844
+          - java.lang.String: 
+            - ↑value: ./email/text()
+↓Call_Sequence [steps.SequenceStep-1510425870447]: 
+  sourceSequence: lib_FullSyncGrp.SetUserInGroup
+  ↓user [variables.StepVariable-1510425870449]: 
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1508935179844
+          - java.lang.String: 
+            - ↑value: ./email/text()
+  ↓group [variables.StepVariable-1510425870451]: 
+    value: ATCF
+↓Call_Transaction [steps.TransactionStep-1513788597170]: 
+  sourceTransaction: FlightShare.flightshare_fullsync.GetDocument
+  ↓_use_docid [variables.StepVariable-1513788597172]: 
+    description: Document ID
+    value: Version
+↓Element [steps.XMLElementStep-1513788637774]: 
+  nodeName: DatabaseVersion
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1513788597170
+        - java.lang.String: 
+          - ↑value: ./document/couchdb_output/data/text()
+↓email [variables.RequestableVariable-1508935207866]: 
+↓OK [core.TestCase]: 
+  ↓email [variables.TestCaseVariable-1508936376578]: 
+    value: olivierp@convertigo.com

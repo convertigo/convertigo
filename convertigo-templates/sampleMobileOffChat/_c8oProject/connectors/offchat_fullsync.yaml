@@ -1,0 +1,99 @@
+↑default: true
+databaseName: offchat_fullsync
+↓GetDocumentAttachment [transactions.couchdb.GetDocumentAttachmentTransaction]: 
+  accessibility: Private
+  ↓_use_attpath [variables.RequestableVariable-1433424975372]: 
+    description: Attachment path | This path is either absolute or relative to Convertigo environment. Relative paths starting with:<br/><br/>• <span class="computer">./</span> are relative to Convertigo workspace,<br/>• <span class="computer">.//</span> are relative to current project folder. <br/><br/>
+  ↓_use_attname [variables.RequestableVariable-1433424975374]: 
+    description: Attachment name
+  ↓_use_docid [variables.RequestableVariable-1433424975376]: 
+    description: Document ID
+↓GetServerInfo [transactions.couchdb.GetServerInfoTransaction]: 
+  ↑default: true
+  accessibility: Private
+↓NewMessageTo [transactions.couchdb.PostDocumentTransaction]: 
+  accessibility: Private
+  fullSyncAclPolicy: fromKeyC8oAcl
+  policy: override
+  ↓_c8oAcl [variables.RequestableVariable-1517924398281]: 
+    description: Set the owner of the document if the "Acl Policy"="From _c8oACL variable"
+  ↓user [variables.RequestableVariable-1517924648972]: 
+    description: Document content
+  ↓num [variables.RequestableVariable-1517924648975]: 
+    xmlTypeAffectation: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XmlQName
+        - schemaDefinition: 
+          - ↑pLocalPart: integer
+          - ↑pNamespace: http://www.w3.org/2001/XMLSchema
+  ↓message [variables.RequestableVariable-1517924648978]: 
+  ↓type [variables.RequestableVariable-1517924681868]: 
+    value: message
+  ↓dir [variables.RequestableVariable-1517924727127]: 
+    value: from
+  ↓_id [variables.RequestableVariable-1518012553862]: 
+    description: Document id
+  ↓ts [variables.RequestableVariable-1518023652832]: 
+    xmlTypeAffectation: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XmlQName
+        - schemaDefinition: 
+          - ↑pLocalPart: long
+          - ↑pNamespace: http://www.w3.org/2001/XMLSchema
+↓PutDocumentAttachment [transactions.couchdb.PutDocumentAttachmentTransaction]: 
+  accessibility: Private
+  ↓_use_attname [variables.RequestableVariable-1433425006835]: 
+    description: Attachment name
+  ↓_use_attpath [variables.RequestableVariable-1433425006837]: 
+    description: Attachment path | This path is either absolute or relative to Convertigo environment. Relative paths starting with:<br/><br/>• <span class="computer">./</span> are relative to Convertigo workspace,<br/>• <span class="computer">.//</span> are relative to current project folder. <br/><br/>
+  ↓_use_docid [variables.RequestableVariable-1433425006839]: 
+    description: Document ID
+↓ResetDatabase [transactions.couchdb.ResetDatabaseTransaction]: 
+  accessibility: Private
+↓UserAdd [transactions.couchdb.PostDocumentTransaction]: 
+  accessibility: Private
+  fullSyncAclPolicy: fromKeyC8oAcl
+  policy: create
+  handlers: 
+    →: |
+      '
+      // Handles the transaction start event.
+      function onTransactionStarted() {
+          // TODO: add your code here
+      
+          // TODO: customize the returned value (if you omit returned value, the 
+          // algorithm will continue its process).
+          // Possible values are:
+          //    cancel - means the algorithm cancels the transaction core process.
+      
+          // return "cancel";
+      }
+      '
+  ↓username [variables.RequestableVariable-1426250069953]: 
+  ↓type [variables.RequestableVariable-1426254211433]: 
+    value: user
+  ↓token [variables.RequestableVariable-1426254353330]: 
+  ↓_c8oAcl [variables.RequestableVariable-1517924433993]: 
+    description: Set the owner of the document if the "Acl Policy"="From _c8oACL variable"
+    value: admin
+↓UserExists [transactions.couchdb.GetViewTransaction]: 
+  accessibility: Private
+  q_reduce: false
+  viewname: OffChat/checkUsername
+  ↓_use_key [variables.RequestableVariable-1426253269087]: 
+↓UserListSet [transactions.couchdb.PostDocumentTransaction]: 
+  accessibility: Private
+  fullSyncAclPolicy: anonymous
+  policy: override
+  useHash: true
+  ↓_id [variables.RequestableVariable-1433253851354]: 
+    description: Document id
+    value: userList
+  ↓users [variables.RequestableMultiValuedVariable-1433254090457]: 
+    description: Document content
+↓OffChat [couchdb.DesignDocument]: 
+  docdata: 
+    →: '{"views":{"checkUsername":{"map":"function (doc) {\r\n\tif (doc.type == \"user\") {\r\n\t\temit(doc.username, doc.token);\r\n\t}\r\n}"},"getChat":{"map":"function (doc) {\r\n\tif (doc.type == \"message\") {\r\n\t\tif (doc.ts) {\r\n\t\t\temit([doc.user, doc.ts], {user: doc.user, dir: doc.dir, message: doc.message, ts: doc.ts});\r\n\t\t} else {\r\n\t\t\temit([doc.user, doc.num], {user: doc.user, dir: doc.dir, message: doc.message, num: doc.num});\r\n\t\t}\r\n\t}\r\n}"},"typeMessage":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.type == \"message\") {\r\n\t\t\temit(doc._id, null);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}},"_id":"_design\/OffChat","filters":{},"updates":{}}'
+↓OnChat [couchdb.FullSyncListener]: 
+  targetSequence: sampleMobileOffChat.OnChat
+  targetView: sampleMobileOffChat.offchat_fullsync.OffChat.typeMessage

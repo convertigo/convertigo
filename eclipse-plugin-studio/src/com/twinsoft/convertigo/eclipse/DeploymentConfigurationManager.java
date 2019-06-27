@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -85,7 +85,7 @@ public class DeploymentConfigurationManager {
 		ConvertigoPlugin.logDebug("Projects deployment configurations migration starting...");
 
 		for (String projectName: projectsNames) {			
-			String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/_private/deploy.ser";			
+			String filePath = Engine.projectDir(projectName) + "/_private/deploy.ser";			
 			File deploySer = new File(filePath);
 			deploymentInformation = null;
 

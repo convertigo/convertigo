@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -51,6 +51,7 @@ public class AbstractRestResponseBeanInfo extends MySimpleBeanInfo {
             properties[2] = new PropertyDescriptor("modelReference", beanClass, "getModelReference", "setModelReference");
             properties[2].setDisplayName(getExternalizedString("property.modelReference.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.modelReference.short_description"));
+            properties[2].setPropertyEditorClass(getEditorClass("ModelObjectEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

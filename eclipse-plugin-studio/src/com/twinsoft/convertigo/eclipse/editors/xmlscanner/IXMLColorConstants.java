@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,10 +22,10 @@ package com.twinsoft.convertigo.eclipse.editors.xmlscanner;
 import org.eclipse.swt.graphics.RGB;
 
 public interface IXMLColorConstants {
-	RGB XML_COMMENT = new RGB(128, 0, 0);
-	RGB PROC_INSTR = new RGB(128, 128, 128);
-	RGB STRING = new RGB(0, 128, 0);
-	RGB DEFAULT = new RGB(0, 0, 0);
-	RGB TAG = new RGB(0, 0, 128);
-	RGB ATTRIBUTE = new RGB(0, 0, 180);
+	RGB XML_COMMENT = new RGB(128, 0, 0);//98,98,98
+	RGB PROC_INSTR = new RGB(128, 128, 128);//254,224,146
+	RGB STRING = new RGB(0, 128, 0);//23,198,163
+	RGB DEFAULT = new RGB(0, 0, 0);//255,255,225
+	RGB TAG = new RGB(0, 0, 128);//12,168,216
+	RGB ATTRIBUTE = new RGB(0, 0, 180);//135,236,32
 }

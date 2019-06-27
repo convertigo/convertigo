@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,38 +24,61 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.twinsoft.api.Session;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
+import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
+import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.convertigo.engine.util.OpenApiUtils;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 import com.twinsoft.tas.KeyManager;
+import com.twinsoft.tas.TASException;
 
 public class RestApiServlet extends GenericServlet {
 
 	private static final long serialVersionUID = 6926586430359873778L;
 
-	private String buildSwaggerDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+	public static String buildSwaggerDefinition(String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+		String requestUrl = Engine.WEBAPP_PATH + "/" + SwaggerUtils.servletMappingPath; // Oas2
+		return RestApiServlet.buildSwaggerDefinition(requestUrl, projectName, isYaml);
+	}
+	
+	public static String buildOpenApiDefinition(String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+		String requestUrl = Engine.WEBAPP_PATH + "/" + OpenApiUtils.servletMappingPath; // Oas3
+		return RestApiServlet.buildOpenApiDefinition(requestUrl, projectName, isYaml);
+	}
+	
+	private static String buildSwaggerDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
 		String definition = null;
 		
 		// Build a given project definition
@@ -73,6 +96,28 @@ public class RestApiServlet extends GenericServlet {
 		else {
 			Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
 			definition = isYaml ? SwaggerUtils.getYamlDefinition(requestUrl, collection): SwaggerUtils.getJsonDefinition(requestUrl, collection);
+		}
+		return definition;
+	}
+
+	private static String buildOpenApiDefinition(String requestUrl, String projectName, boolean isYaml) throws EngineException, JsonProcessingException {
+		String definition = null;
+		
+		// Build a given project definition
+		if (projectName != null) {
+			UrlMapper urlMapper = RestApiManager.getInstance().getUrlMapper(projectName);
+			if (urlMapper != null) {
+				definition = isYaml ? OpenApiUtils.getYamlDefinition(requestUrl, urlMapper): OpenApiUtils.getJsonDefinition(requestUrl, urlMapper);
+			}
+			else {
+				Engine.logEngine.warn("Project \""+projectName+"\" does not contain any UrlMapper.");
+				definition = isYaml ? OpenApiUtils.getYamlDefinition(requestUrl, projectName): OpenApiUtils.getJsonDefinition(requestUrl, projectName);
+			}
+		}
+		// Build all project definitions
+		else {
+			Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
+			definition = isYaml ? OpenApiUtils.getYamlDefinition(requestUrl, collection): OpenApiUtils.getJsonDefinition(requestUrl, collection);
 		}
 		return definition;
 	}
@@ -98,6 +143,12 @@ public class RestApiServlet extends GenericServlet {
     		}
 		}
 		
+		try {
+			HttpSessionListener.checkSession(request);
+		} catch (Throwable e) {
+			throw new ServletException(e.getMessage(), e);
+		}
+		
 		if (Engine.isEngineMode() && KeyManager.getCV(Session.EmulIDURLMAPPER) < 1) {
 			String msg;
 			if (KeyManager.has(Session.EmulIDURLMAPPER) && KeyManager.hasExpired(Session.EmulIDURLMAPPER)) {
@@ -110,6 +161,26 @@ public class RestApiServlet extends GenericServlet {
 		
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
 		request = wrapped_request;
+		
+		try {
+			HttpSessionListener.checkSession(request);
+		} catch (TASException e) {
+			HttpUtils.terminateSession(request.getSession());
+			throw new RuntimeException(e);
+		}
+		
+		HttpSession httpSession = request.getSession();
+		
+		LogParameters logParameters = GenericUtils.cast(httpSession.getAttribute(RestApiServlet.class.getCanonicalName()));
+		
+		if (logParameters == null) {
+			httpSession.setAttribute(RestApiServlet.class.getCanonicalName(), logParameters = new LogParameters());
+			logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
+		}
+
+		Log4jHelper.mdcSet(logParameters);
+		
+		logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
 		
 		String encoded = request.getParameter(Parameter.RsaEncoded.getName());
 		if (encoded != null) {
@@ -126,7 +197,8 @@ public class RestApiServlet extends GenericServlet {
 		boolean isYaml = request.getParameter("YAML") != null;
 		boolean isJson = request.getParameter("JSON") != null;
 		
-		if ("GET".equalsIgnoreCase(method) && uri.endsWith("/api") && (query == null || query.isEmpty())) {
+		if ("GET".equalsIgnoreCase(method) && (query == null || query.isEmpty()) && 
+			(uri.endsWith("/"+ SwaggerUtils.servletMappingPath) || uri.endsWith("/"+ OpenApiUtils.servletMappingPath))) {
 			isJson = true;
 		}
 		
@@ -134,7 +206,9 @@ public class RestApiServlet extends GenericServlet {
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
     			String requestUrl = HttpUtils.originalRequestURL(request);
-    			String output = buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml);
+    			String output = uri.indexOf("/"+ SwaggerUtils.servletMappingPath) != -1 ?
+    								buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml):
+    									buildOpenApiDefinition(requestUrl, request.getParameter("__project"), isYaml);
     			response.setCharacterEncoding("UTF-8");    			
     			response.setContentType((isYaml ? MimeType.Yaml : MimeType.Json).value());
                 Writer writer = response.getWriter();
@@ -148,6 +222,7 @@ public class RestApiServlet extends GenericServlet {
 		}
 		// Handle REST request
 		else {
+			long t0 = System.currentTimeMillis();
 			try {
 				Collection<UrlMapper> collection = RestApiManager.getInstance().getUrlMappers();
 				
@@ -176,9 +251,11 @@ public class RestApiServlet extends GenericServlet {
 					
 					// Found a matching operation
 					UrlMappingOperation urlMappingOperation = null;
+					List<UrlAuthentication> urlAuthentications = null;
 					for (UrlMapper urlMapper : collection) {
 						urlMappingOperation = urlMapper.getMatchingOperation(request);
 						if (urlMappingOperation != null) {
+							urlAuthentications = urlMapper.getAuthenticationList();
 							break;
 						}
 					}
@@ -203,8 +280,52 @@ public class RestApiServlet extends GenericServlet {
 													Collections.list(request.getParameterNames()));
 						}
 						
-						// Handle request
-		                String content = urlMappingOperation.handleRequest(request, response);
+						String content = null; // The response content
+						
+						// Check for authentication
+						if (urlMappingOperation.isTargetAuthenticationContextRequired()) {
+							// Case Authentications are defined for mapper
+							if (urlAuthentications != null) {
+								boolean authenticated = false;
+								
+								int len = urlAuthentications.size();
+								if (len > 0) {
+									for (UrlAuthentication urlAuthentication: urlAuthentications) {
+										// Handle Auth request
+										response.reset();
+										RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
+										RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
+										urlAuthentication.handleAuthRequest(request, response);
+										
+										// Check user has been authenticated
+							    		authenticated = SessionAttribute.authenticatedUser.string(request.getSession()) != null;
+							    		if (authenticated) {
+							    			break;
+							    		}
+									}
+									
+									// Handle User request
+									if (authenticated) {
+										response.reset();
+										RequestAttribute.responseHeader.set(request, new HashMap<String, String>());
+										RequestAttribute.responseStatus.set(request, new HashMap<Integer, String>());
+						                content = urlMappingOperation.handleRequest(request, response);
+									}
+								}
+								// HTTP authentication required
+								else {
+									response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+								}
+							}
+							// HTTP authentication required
+							else {
+								response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+							}
+						}
+						// Handle User request
+						else {
+			                content = urlMappingOperation.handleRequest(request, response);
+						}
 		                
 		                // Set response status
 		                ServletUtils.applyCustomStatus(request, response);
@@ -245,6 +366,9 @@ public class RestApiServlet extends GenericServlet {
 	                processRequestEnd(request, requester);
 	    			onFinally(request);
     			}
+    			
+    			long t1 = System.currentTimeMillis();
+    			Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
     		}
 		}
 	}

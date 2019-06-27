@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,24 +30,16 @@ public class RequestableStepBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/RequestableStep");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[2];
 			
             properties[0] = new PropertyDescriptor("contextName", beanClass, "getStepContextName", "setStepContextName");
 			properties[0].setDisplayName(getExternalizedString("property.contextName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.contextName.short_description"));
 			properties[0].setValue("scriptable", Boolean.TRUE);
-
-			properties[1] = new PropertyDescriptor("orderedVariables", beanClass, "getOrderedVariables", "setOrderedVariables");
-			properties[1].setDisplayName(getExternalizedString("property.orderedVariables.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.orderedVariables.short_description"));
-			//properties[1].setPropertyEditorClass(getEditorClass("TransactionStepVariablesEditor"));
-			//properties[1].setExpert(true);
-			properties[1].setHidden(true);
 			
-            properties[2] = new PropertyDescriptor("bInternalInvoke", beanClass, "isInternalInvoke", "setInternalInvoke");
-			properties[2].setDisplayName(getExternalizedString("property.bInternalInvoke.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.bInternalInvoke.short_description"));
-			
+            properties[1] = new PropertyDescriptor("bInternalInvoke", beanClass, "isInternalInvoke", "setInternalInvoke");
+			properties[1].setDisplayName(getExternalizedString("property.bInternalInvoke.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.bInternalInvoke.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

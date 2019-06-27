@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,6 +37,7 @@ import javax.xml.namespace.QName;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
+import org.apache.ws.commons.schema.XmlSchemaChoice;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -300,6 +301,7 @@ public class SchemaManager implements AbstractManager {
 								if (nsURI.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
 								addXmlSchemaImport(collection, schema, nsURI);
 							}
+							map.clear();
 							
 							// add the 'statistics' element
 							if (transaction.getAddStatistics()) {
@@ -323,47 +325,52 @@ public class SchemaManager implements AbstractManager {
 							
 							super.walk(databaseObject);
 							
+							// check for an 'error' element if needed
+							boolean errorFound = false;
+							XmlSchemaType errorType = schema.getTypeByName("ConvertigoError");
+							if (errorType != null) {
+								Set<DatabaseObject> dbos = SchemaMeta.getReferencedDatabaseObjects(errorType);
+								for (DatabaseObject dbo : dbos) {
+									if (dbo instanceof Step) {
+										Step errorStep = (Step)dbo;
+										if (errorStep.getSequence().equals(sequence) && (errorStep instanceof XMLCopyStep || errorStep.getStepNodeName().equals("error"))) {
+											errorFound = true;
+											break;
+										}
+									}
+								}
+							}
+							
+							// set particle : choice or sequence
 							XmlSchemaComplexType cType = (XmlSchemaComplexType) schema.getTypeByName(sequence.getComplexTypeAffectation().getLocalPart());
-							
-							XmlSchemaSequence xmlSeq = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaSequence());
-							cType.setParticle(xmlSeq);
-							
-							// add particles
+							XmlSchemaSequence xmlSeq = new XmlSchemaSequence();
+							XmlSchemaChoice xmlChoice = new XmlSchemaChoice();
+							cType.setParticle(errorFound ? xmlSeq : xmlChoice);
+							if (!errorFound) {
+								XmlSchemaElement eError = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaElement());
+								eError.setName("error");
+								eError.setMinOccurs(0);
+								eError.setMaxOccurs(1);
+								eError.setSchemaTypeName(errorType.getQName());
+								SchemaMeta.getReferencedDatabaseObjects(errorType).add(sequence);
+								
+								xmlChoice.getItems().add(xmlSeq);
+								xmlChoice.getItems().add(eError);
+							}
+														
+							// add child particles
 							if (!particleChildren.isEmpty()) {
 								for (XmlSchemaParticle child : particleChildren) {
 									xmlSeq.getItems().add(child);
 								}
 							}
+							particleChildren.clear();
 							
-							// add attributes
+							// add child attributes
 							for (XmlSchemaAttribute attribute : attributeChildren) {
 								cType.getAttributes().add(attribute);
 							}
-							
-							// add the 'error' element if needed
-							XmlSchemaType errorType = schema.getTypeByName("ConvertigoError");
-							if (errorType != null) {
-								boolean found = false;
-								Set<DatabaseObject> dbos = SchemaMeta.getReferencedDatabaseObjects(errorType);
-								for (DatabaseObject dbo : dbos) {
-									if (dbo instanceof Step) {
-										Step errorStep = (Step)dbo;
-										if (errorStep.getSequence().equals(sequence) && errorStep.getStepNodeName().equals("error")) {
-											found = true;
-											break;
-										}
-									}
-								}
-								if (!found) {
-									XmlSchemaElement eError = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaElement());
-									eError.setName("error");
-									eError.setMinOccurs(0);
-									eError.setMaxOccurs(1);
-									eError.setSchemaTypeName(errorType.getQName());
-									xmlSeq.getItems().add(eError);
-									SchemaMeta.getReferencedDatabaseObjects(errorType).add(sequence);
-								}
-							}
+							attributeChildren.clear();
 							
 							// add the 'statistics' element
 							if (sequence.getAddStatistics()) {
@@ -574,6 +581,20 @@ public class SchemaManager implements AbstractManager {
 											object = step.getXmlSchemaObject(collection, schema);
 											SchemaMeta.setXmlSchemaObject(schema, step, object);
 										}
+										
+										if (step instanceof XMLCopyStep) {
+											if (object instanceof XmlSchemaElement) {
+												XmlSchemaElement xmlSchemaElement = (XmlSchemaElement)object;
+												QName qname = xmlSchemaElement.getSchemaTypeName();
+												if (qname != null) {
+													XmlSchemaType xmlSchemaType = schema.getTypeByName(qname);
+													if (xmlSchemaType != null) {
+														SchemaMeta.getReferencedDatabaseObjects(xmlSchemaType).add(step);
+													}
+												}
+											}
+										}
+										
 										if (object instanceof XmlSchemaParticle) {
 											particleChildren.add((XmlSchemaParticle) object);
 										} else if (object instanceof XmlSchemaAttribute) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -78,7 +78,7 @@ public class PdfServletRequester extends ServletRequester {
     		try {
 	        	// Configure foUserAgent as desired
 	        	FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-	        	foUserAgent.setBaseURL(new File(Engine.PROJECTS_PATH + "/" + context.projectName).toURI().toASCIIString());
+	        	foUserAgent.setBaseURL(new File(context.getProjectDirectory()).toURI().toASCIIString());
 	        	foUserAgent.setAuthor("Convertigo EMS");
 	        	
 	        	// Setup output

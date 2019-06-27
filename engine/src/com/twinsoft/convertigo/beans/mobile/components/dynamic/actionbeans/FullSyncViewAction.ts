@@ -22,7 +22,7 @@
             for (let key in props) {
                 if (key != "marker" && key!= "fsview") {
                     if (props[key] != null) {
-                        if (props[key] == "true") { 
+                        if (props[key] == "true") {
                             options[key] = true;
                         } else if (props[key] == "false") { 
                             options[key] = false;
@@ -37,10 +37,10 @@
             options.view = view;
             
             C8oCafUtils.merge(options, vars);
-            
+            let md:boolean = props.noLoading;
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
-                    page.call("fs://" + rvm, options, null, 500)
+                    page.call("fs://" + rvm, options, null, 500, md)
                     .then((res:any) => {resolve(res)}).catch((error:any) => {
                         page.c8o.log.error("An error occured while executing view '" + ddoc + "/" + view +
                                 "'. One of the most common causes is that the view was not found in local database because data has not been synchronized.")

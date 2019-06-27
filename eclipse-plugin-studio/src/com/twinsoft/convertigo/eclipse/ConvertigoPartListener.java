@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -55,6 +56,24 @@ public class ConvertigoPartListener implements IPartListener {
 	 * @see org.eclipse.ui.IPartListener#partActivated(org.eclipse.ui.IWorkbenchPart)
 	 */
 	public void partActivated(IWorkbenchPart part) {
+		if (part instanceof PropertySheet) {
+			PropertySheet view = (PropertySheet)part;
+			if (view != null) {
+				if (view.getCurrentPage().getControl() instanceof Tree) {
+					Tree tree = (Tree) view.getCurrentPage().getControl();
+					if (tree != null) {
+						if (SwtUtils.isDark()) {
+							tree.setLinesVisible(false);
+						}
+						try {
+							tree.getColumn(1).setWidth(tree.getBounds().width);
+						} catch (Exception e) {
+							
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -138,6 +157,13 @@ public class ConvertigoPartListener implements IPartListener {
 				if (view.getCurrentPage().getControl() instanceof Tree) {
 					Tree tree = (Tree) view.getCurrentPage().getControl();
 					if (tree != null) {
+						if (SwtUtils.isDark()) {
+							tree.setLinesVisible(false);
+						}
+						try {
+							tree.getColumn(1).setWidth(tree.getBounds().width);
+						} catch (Exception e) {
+						}
 						tree.addKeyListener(new KeyAdapter() {
 							
 							@Override

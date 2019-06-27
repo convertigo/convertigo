@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -47,7 +47,8 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 	roles = { Role.ANONYMOUS },
 	parameters = {},
 	returnValue = "",
-	allow_cors = true
+	allow_cors = true,
+	admin = false
 )
 public class Add extends JSonService {
 

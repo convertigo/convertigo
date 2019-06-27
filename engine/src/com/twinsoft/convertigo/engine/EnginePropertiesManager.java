@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -310,7 +310,9 @@ public class EnginePropertiesManager {
     public enum PropertyName {
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
-		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:18080/convertigo", "Convertigo Server application URL", PropertyCategory.Main),
+		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:18080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
+		APPLICATION_SERVER_CONVERTIGO_ENDPOINT ("application_server.convertigo.endpoint", "", "Convertigo Server endpoint URL", PropertyCategory.Main),
 		@PropertyOptions(visibility = Visibility.HIDDEN)
 		APPLICATION_SERVER_MASHUP_URL ("application_server.mashup.url", "http://localhost:18080/convertigo", "Mashup composer server base URL", PropertyCategory.Main),
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximum number of worker threads", PropertyCategory.Main),
@@ -451,7 +453,7 @@ public class EnginePropertiesManager {
 		
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		NET_GZIP ("net.gzip", "false", "Enable GZip response for most text responses (need the header Accept-Encoding: gzip)", PropertyCategory.Network),
+		NET_GZIP ("net.gzip", "true", "Enable GZip response for most text responses (need the header Accept-Encoding: gzip)", PropertyCategory.Network),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
 		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size of a complete multipart request (in bytes). Value -1 indicates no limit.", PropertyCategory.Network),
@@ -545,6 +547,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		CACHE_MANAGER_FILECACHE_DIRECTORY ("cache_manager.filecache.directory", "${user.workspace}/cache", "File cache directory", PropertyCategory.Cache),
 		CACHE_MANAGER_SCAN_DELAY ("cache_manager.scan_delay", "60", "Cache scan delay (in seconds)", PropertyCategory.Cache),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		CACHE_MANAGER_USE_WEAK ("cache_manager.weak", "false", "Allow to cache responses in memory until the next GC", PropertyCategory.Cache),
 		@PropertyOptions(advance = false, propertyType = PropertyType.Boolean)
 		DISABLE_CACHE ("disable.cache", "false", "Disable Cache", PropertyCategory.Cache),
 		
@@ -708,7 +712,7 @@ public class EnginePropertiesManager {
      */
     public static String servletPath;
     
-    public static synchronized String getProperty(PropertyName property) {
+    public static String getProperty(PropertyName property) {
     	return getProperty(property, true);
     }
     
@@ -718,7 +722,7 @@ public class EnginePropertiesManager {
     	return current_value.equals(value);
     }
     
-    public static synchronized long getPropertyAsLong(PropertyName property) {
+    public static long getPropertyAsLong(PropertyName property) {
     	try {
     		return Long.parseLong(getProperty(property, true));
     	} catch (Exception e) {
@@ -726,15 +730,15 @@ public class EnginePropertiesManager {
     	}
     }
     
-    public static synchronized boolean getPropertyAsBoolean(PropertyName property) {
+    public static boolean getPropertyAsBoolean(PropertyName property) {
     	return "true".equals(getProperty(property, true));
     }
     
-    public static synchronized String getOriginalProperty(PropertyName property) {
+    public static String getOriginalProperty(PropertyName property) {
     	return getProperty(property, false);
     }
     
-    public static synchronized String getProperty(PropertyName property, boolean bSubstitute) {
+    public static String getProperty(PropertyName property, boolean bSubstitute) {
         if (property == null) {
         	throw new IllegalArgumentException("Null property key");
         }
@@ -765,11 +769,11 @@ public class EnginePropertiesManager {
         return result;
     }
     
-    public static synchronized String[] getOriginalPropertyAsStringArray(PropertyName property) {
+    public static String[] getOriginalPropertyAsStringArray(PropertyName property) {
     	return getPropertyAsStringArray(property, false);
     }
     
-    public static synchronized String[] getPropertyAsStringArray(PropertyName property) {
+    public static String[] getPropertyAsStringArray(PropertyName property) {
     	return getPropertyAsStringArray(property, true);
     }
     
@@ -992,6 +996,8 @@ public class EnginePropertiesManager {
     				propertyValue = Crypto2.encodeToHexString(propertyValue);
     			}
     			modifiedProperties.put(property.getKey(), propertyValue);
+    		} else {
+    			outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue()).getBytes("UTF-8"));
     		}
     	}
     	PropertiesUtils.store(modifiedProperties, outputStream, comments);

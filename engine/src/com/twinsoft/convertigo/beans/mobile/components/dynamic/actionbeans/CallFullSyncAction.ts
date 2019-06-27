@@ -11,7 +11,8 @@
             let v:string = props.verb;
             let m:string = props.marker;
             let rvm:string = r + '.' + v + (m != '' ? '#':'')+ m;
-            page.call("fs://" + rvm,C8oCafUtils.merge({},vars),null,500)
+            let md:boolean = props.noLoading;
+            page.call("fs://" + rvm,C8oCafUtils.merge({},vars),null,500, md)
             .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
         });
     }

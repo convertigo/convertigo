@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -54,7 +54,7 @@ public class AdministrationAction implements IWorkbenchWindowActionDelegate {
 	public void run(IAction action) {
 		try {
 			lastAuthToken = UUID.randomUUID().toString();
-			lastAuthTokenExpiration = System.currentTimeMillis() + 5000;
+			lastAuthTokenExpiration = System.currentTimeMillis() + 30000;
 			
 			Program.launch(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/admin/login.html#authToken=" + lastAuthToken);
 		} catch (Exception e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.security.InvalidParameterException;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
@@ -37,12 +38,14 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -56,6 +59,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class MobileApplicationComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject {
+	public static final String P_TPL_VERSION = "#tplVersion";
 	
 	public MobileApplicationComponentTreeObject(Viewer viewer, ApplicationComponent object) {
 		super(viewer, object);
@@ -81,6 +85,31 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 	}
 
 	@Override
+	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectAdded(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject dbo = doto.getObject();
+			
+			try {
+				// we add a page to this app
+				if (dbo instanceof PageComponent && getObject().equals(dbo.getParent())) {
+					PageComponent page = (PageComponent)dbo;
+					if (page.bNew) {
+						page.markPageAsDirty();
+					}
+				}
+			} catch (Exception e) {}
+		}
+	}
+	
+	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
 		
@@ -105,30 +134,39 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 				else if (getObject().equals(dbo.getParent().getParent())) {
 					markApplicationAsDirty();
 				}
-				// for any UI component inside a menu
+				// for any UI component inside a menu or a stack
 				else if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
+					
 					UIDynamicMenu menu = uic.getMenu();
-					if (menu != null && getObject().equals(menu.getParent())) {
-						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
-							if (!newValue.equals(oldValue)) {
-								try {
-									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
-									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-									String form = uic.getUIForm().getFormGroupName();
-									if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-										this.viewer.refresh();
-									}
-								} catch (Exception e) {}
+					if (menu != null) {
+						if (getObject().equals(menu.getParent())) {
+							if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
+								if (!newValue.equals(oldValue)) {
+									try {
+										String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+										String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+										if (uic.getUIForm() != null) {
+											String form = uic.getUIForm().getFormGroupName();
+											if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+												this.viewer.refresh();
+											}
+										}
+									} catch (Exception e) {}
+								}
 							}
+							
+							markApplicationAsDirty();
 						}
-						
-						markApplicationAsDirty();
 					}
 				}
 				// for this application
 				else if (this.equals(doto)) {
-					if (propertyName.equals("componentScriptContent")) {
+					if (propertyName.equals("isPWA")) {
+						if (!newValue.equals(oldValue)) {
+							markPwaAsDirty();
+						}
+					} else if (propertyName.equals("componentScriptContent")) {
 						if (!newValue.equals(oldValue)) {
 							markComponentTsAsDirty();
 							markApplicationAsDirty();
@@ -138,6 +176,10 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);
+						
+						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName());
+						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
+						
 						for (TreeObject to: this.getChildren()) {
 							if (to instanceof ObjectsFolderTreeObject) {
 								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
@@ -182,6 +224,15 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					"Error while writing the application source files for '" + ac.getName() + "'");	}
 	}
 	
+	protected void markPwaAsDirty() {
+		ApplicationComponent ac = getObject();
+		try {
+			ac.markPwaAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the application PWA state for '" + ac.getName() + "'");	}
+	}
+
 	public void editAppComponentTsFile() {
 		final ApplicationComponent application = getObject();
 		try {
@@ -329,4 +380,23 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		}
 		return editorPart;
 	}
+	
+	@Override
+	protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
+		List<PropertyDescriptor> l = super.getDynamicPropertyDescriptors();
+		PropertyDescriptor pd = new PropertyDescriptor(P_TPL_VERSION, "Template version");
+		pd.setDescription("The project's ionicTpl version.");
+		pd.setCategory("Information");
+		l.add(pd);
+		return l;
+	}
+
+	@Override
+	public Object getPropertyValue(Object id) {
+		if (P_TPL_VERSION.equals(id)) {
+			return getObject().getTplProjectVersion();
+		}
+		return super.getPropertyValue(id);
+	}	
+	
 }

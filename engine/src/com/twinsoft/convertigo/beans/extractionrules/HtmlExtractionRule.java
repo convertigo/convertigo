@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 
 /**
@@ -222,7 +223,7 @@ public abstract class HtmlExtractionRule extends ExtractionRule implements IXPat
 		String message = null;
 		evaluated = null;
 		try {
-			evaluated = javascriptContext.evaluateString(scope, source, sourceName, 1, null);
+			evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, source, sourceName, 1, null);
 		}
 		catch(EcmaError e) {
 			message = "Unable to evaluate statement expression code for '"+ sourceName +"' property or variable.\n" +

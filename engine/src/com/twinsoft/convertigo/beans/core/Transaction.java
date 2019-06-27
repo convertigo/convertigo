@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -75,7 +76,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 		getCategoryName = "Transaction",
 		getIconClassCSS = "convertigo-action-newTransaction"
 	)
-public abstract class Transaction extends RequestableObject implements ISchemaIncludeGenerator {
+public abstract class Transaction extends RequestableObject implements ISchemaIncludeGenerator, IJScriptContainer {
     
 	private static final long serialVersionUID = 8629312962446057509L;
 	
@@ -156,9 +157,13 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 
 	}
 	
+	protected void initializeConnector(Context context) throws EngineException {
+		((Connector) parent).prepareForTransaction(context);
+	}
+	
     public void prepareForRequestable(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
         
-    	((Connector) parent).prepareForTransaction(context);
+    	initializeConnector(context);
 
 		if ((handlers != null) && (handlers.length() > 0)) {
 			Engine.logBeans.trace("(Transaction) Loading handlers:\n" + handlers);
@@ -167,7 +172,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
         	insertObjectsInScope();
 			
         	try {
-				javascriptContext.evaluateString(scope, handlers, getName(), 1, null);
+        		RhinoUtils.evalCachedJavascript(javascriptContext, scope, handlers, getName(), 1, null);
 				Engine.logBeans.debug("(Transaction) Handlers main code executed");
         	}
 			catch(EcmaError e) {
@@ -649,7 +654,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		try {
 			return SchemaUtils.loadSchema(getSchemaFilePath());
 		} catch (Throwable t) {
-			Engine.logBeans.warn("An error ocurred while generating transaction \"\" schema from file", t);
+			Engine.logBeans.warn("An error ocurred while generating transaction \"" + getName() + "\" schema from file", t);
 		}
 		return null;
 	}
@@ -909,4 +914,16 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return super.testAttribute(name, value);
 	}
 
+	@Override
+	public String getExpression() {
+		return handlers;
+	}
+
+	@Override
+	public void setExpression(String expression) {
+		if (!handlers.equals(expression)) {
+			handlers = expression;
+			changed();
+		}
+	}
 }

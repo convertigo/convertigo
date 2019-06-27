@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -189,7 +189,7 @@ public abstract class GenericServlet extends HttpServlet {
 				if (getCacheControl(request).equals("false"))
 					HeaderName.CacheControl.addHeader(response,
 							"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
-
+				
 				/**
 				 * Disabled since #253 : Too much HTML Connector cookies in
 				 * response header make a tomcat exception
@@ -401,7 +401,7 @@ public abstract class GenericServlet extends HttpServlet {
 			try {
 				HttpSession httpSession = request.getSession();
 				boolean isAdminSession = Engine.authenticatedSessionManager.isAuthenticated(httpSession);
-				if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession.getId())) {
+				if (!isAdminSession && Engine.theApp.contextManager.isSessionEmtpy(httpSession)) {
 					Engine.logContext
 							.debug("[GenericServlet] The owner HTTP session is empty => invalidating HTTP session in "
 									+ interval + "s.");
@@ -565,13 +565,7 @@ public abstract class GenericServlet extends HttpServlet {
 		request.setAttribute("convertigo.context.contextID", context.contextID);
 		request.setAttribute("convertigo.isErrorDocument", new Boolean(context.isErrorDocument));
 		request.setAttribute("convertigo.context.removalRequired", new Boolean(context.removalRequired()));
-		
-		if (context.requestedObject != null) { // #397 : charset HTTP
-			// header missing
-			request.setAttribute("convertigo.charset", context.requestedObject.getEncodingCharSet());
-		}
-		else { // #3803
-			Engine.logEngine.warn("(GenericServlet) requestedObject is null. Set encoding to UTF-8 for processRequest.");
+		if (request.getAttribute("convertigo.charset") == null) {
 			request.setAttribute("convertigo.charset", "UTF-8");
 		}
 	}

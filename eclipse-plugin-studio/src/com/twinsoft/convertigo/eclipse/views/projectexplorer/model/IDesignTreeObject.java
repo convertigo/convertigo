@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -33,4 +33,11 @@ public interface IDesignTreeObject {
 	public TreeParent getParent();
 	public void hasBeenModified();
 	public boolean canPaste(Object object);
+	public default DesignDocumentTreeObject getDesignDocumentTreeObject() {
+		IDesignTreeObject dto = this;
+		while (!(dto instanceof DesignDocumentTreeObject)) {
+			dto = dto.getParentDesignTreeObject();
+		}
+		return (DesignDocumentTreeObject) dto;
+	}
 }

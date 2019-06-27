@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -91,8 +91,10 @@ public class ChangeToQueryParameterAction extends MyAbstractAction {
 	        				queryParameter.setComment(parameter.getComment());
 	        				queryParameter.setInputType(parameter.getInputType());
 	        				queryParameter.setArray(parameter.isArray());
+	        				queryParameter.setExposed(parameter.isExposed());
 	        				queryParameter.setMultiValued(parameter.isMultiValued());
 	        				queryParameter.setRequired(parameter.isRequired());
+	        				queryParameter.setValueOrNull(parameter.getValueOrNull());
 	        				queryParameter.setMappedVariableName(parameter.getMappedVariableName());
 	        				queryParameter.bNew = true;
 	        				queryParameter.hasChanged = true;

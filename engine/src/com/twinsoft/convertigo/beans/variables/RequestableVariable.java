@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.beans.variables;
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.constants.Constants;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
@@ -47,19 +46,6 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 	public RequestableVariable clone() throws CloneNotSupportedException {
 		RequestableVariable clonedObject = (RequestableVariable)super.clone();
 		return clonedObject;
-	}
-	
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
 	}
 	
 	public boolean isWsdl() {

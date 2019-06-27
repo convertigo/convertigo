@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -88,7 +88,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	private XMLVector<XMLVector<String>> headers = new XMLVector<XMLVector<String>>();
     
 	/** Holds value of property data. */
-	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 
 	/** Holds the value of property form. */
 	transient private String formName = "";
@@ -261,14 +261,14 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(size-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     public void removeVariable(HttpStatementVariable variable) {
@@ -289,7 +289,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     }
 
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
 
 	private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {

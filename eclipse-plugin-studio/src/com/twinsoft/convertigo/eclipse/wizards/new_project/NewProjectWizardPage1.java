@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -114,7 +114,7 @@ public class NewProjectWizardPage1 extends WizardPage {
 	}
 	
 	private boolean projectAlreadyExists(String projectName) {
-		File file = new File(Engine.PROJECTS_PATH + "/" + projectName); //$NON-NLS-1$
+		File file = new File(Engine.projectDir(projectName)); //$NON-NLS-1$
 		return file.exists();
 	}
 }

@@ -53,10 +53,10 @@
                 if(props.content == null){
                     reject("[MB] FullSyncPutAttchmentAction: Missing property: Content, " + props.content);
                 }
-               
+                let md:boolean = props.noLoading;
                 page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                     page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
-                        page.call("fs://" + rvm, params, null, 500)
+                        page.call("fs://" + rvm, params, null, 500, md)
                         .then((res:any) => {
                             resolve(res)
                             })

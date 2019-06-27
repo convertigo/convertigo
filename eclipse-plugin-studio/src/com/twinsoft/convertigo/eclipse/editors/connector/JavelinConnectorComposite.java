@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -120,7 +120,7 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 		String traceFilePath = null;
 		if (bRecord) {
 			Timestamp ts = new Timestamp(System.currentTimeMillis());
-			traceFilePath = Engine.PROJECTS_PATH + "/" + connector.getProject().getName() + "/Traces/"
+			traceFilePath = connector.getProject().getDirPath() + "/Traces/"
 					+ connector.getName() + "/";
 			traceFilePath += ts.toString().substring(0, 10) + "_trace.etr";
 			File file = new File(traceFilePath);

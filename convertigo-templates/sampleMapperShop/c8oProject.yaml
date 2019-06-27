@@ -1,0 +1,172 @@
+↑convertigo: 7.6.0.m006
+↓sampleMapperShop [core.Project]: 
+  comment: A project with an HSQLDB database to demonstrate how to expose as a REST service through the URLMapper.
+  corsOrigin: 
+  version: 7.6.0
+  ↓hsqldb [connectors.SqlConnector]: 🗏 connectors/hsqldb.yaml
+  ↓_FillDatabase [sequences.GenericSequence]: 🗏 sequences/_FillDatabase.yaml
+  ↓AddProductB [sequences.GenericSequence]: 🗏 sequences/AddProductB.yaml
+  ↓AddProductP [sequences.GenericSequence]: 🗏 sequences/AddProductP.yaml
+  ↓GetProduct [sequences.GenericSequence]: 🗏 sequences/GetProduct.yaml
+  ↓GetProductList [sequences.GenericSequence]: 🗏 sequences/GetProductList.yaml
+  ↓GetShopInfos [sequences.GenericSequence]: 🗏 sequences/GetShopInfos.yaml
+  ↓RemoveProduct [sequences.GenericSequence]: 🗏 sequences/RemoveProduct.yaml
+  ↓SetProduct [sequences.GenericSequence]: 🗏 sequences/SetProduct.yaml
+  ↓UrlMapper [core.UrlMapper]: 
+    comment: the URL mapper which define and expose the project's REST API
+    models: |
+      '{
+          "product": {
+            "type": "object",
+            "properties": {
+              "cat_id": {
+                "type": "integer"
+              },
+              "code": {
+                "type": "string"
+              },
+              "price": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "cat_id",
+              "code"
+            ]
+          }
+      }'
+    prefix: /shop/v1
+    ↓PathMapping2 [rest.PathMapping]: 
+      comment: the shop root mapping
+      ↓GetShopInfos [rest.HeadOperation]: 
+        comment: all about the shop
+        targetRequestable: sampleMapperShop.GetShopInfos
+      ↓ReadMe [rest.GetOperation]: 
+        comment: all about the shop
+        targetRequestable: sampleMapperShop.GetShopInfos
+    ↓PathMapping [rest.PathMapping]: 
+      comment: the mapping for shop products
+      path: /products
+      ↓AddProductUsingPost [rest.PostOperation]: 
+        comment: add a product using a POST operation
+        targetRequestable: sampleMapperShop.AddProductP
+        ↓cat_id [rest.FormParameter-1542983543905]: 
+          comment: the product category id (1 to 10)
+          inputType: Integer
+          mappedVariableName: cat_id
+        ↓code [rest.FormParameter-1542983543908]: 
+          comment: the product code
+          mappedVariableName: code
+        ↓description [rest.FormParameter-1542983543911]: 
+          comment: the product name or description
+          mappedVariableName: description
+        ↓price [rest.FormParameter-1542983543914]: 
+          comment: the product price
+          mappedVariableName: price
+        ↓OperationResponse [rest.OperationResponse]: 
+          comment: sucessfull
+          statusText: product added
+          xpath: .//product
+        ↓OperationResponse2 [rest.OperationResponse]: 
+          comment: invalid
+          statusCode: 400
+          statusText: error occured
+          xpath: .//error
+      ↓AddUserUsingPut [rest.PutOperation]: 
+        comment: add a product using a PUT operation
+        targetRequestable: sampleMapperShop.AddProductB
+        ↓product [rest.BodyParameter-1542983543920]: 
+          comment: the body payload data
+          mappedVariableName: data
+          modelReference: product
+        ↓OperationResponse [rest.OperationResponse]: 
+          comment: sucessfull
+          statusText: product added
+          xpath: .//product
+        ↓OperationResponse2 [rest.OperationResponse]: 
+          comment: invalid
+          statusCode: 400
+          statusText: error occured
+          xpath: .//error
+      ↓GetProducts [rest.GetOperation]: 
+        comment: get the products list
+        targetRequestable: sampleMapperShop.GetProductList
+        ↓order [rest.QueryParameter-1542983543926]: 
+          comment: the sorting order (ASC or DESC)
+          mappedVariableName: order
+        ↓OperationResponse [rest.OperationResponse]: 
+          comment: sucessfull
+          statusText: products list retrieved
+          xpath: .//products
+        ↓OperationResponse2 [rest.OperationResponse]: 
+          comment: invalid
+          statusCode: 400
+          statusText: error occured
+          xpath: .//error
+    ↓PathMapping1 [rest.PathMapping]: 
+      comment: the mapping for a given product
+      path: /products/{prod_id}
+      ↓DeleteProduct [rest.DeleteOperation]: 
+        comment: delete the product with prod_id
+        targetRequestable: sampleMapperShop.RemoveProduct
+        ↓prod_id [rest.PathParameter-1542983543933]: 
+          comment: the product identifier
+          inputType: Integer
+          mappedVariableName: art_id
+        ↓OperationResponse [rest.OperationResponse]: 
+          comment: sucessfull
+          statusText: product removed
+          xpath: .//ok
+        ↓OperationResponse1 [rest.OperationResponse]: 
+          comment: not found
+          statusCode: 404
+          statusText: product not found
+          xpath: .//ko
+      ↓GetProduct [rest.GetOperation]: 
+        comment: get the product with prod_id
+        targetRequestable: sampleMapperShop.GetProduct
+        ↓prod_id [rest.PathParameter-1542983543939]: 
+          comment: the product identifier
+          inputType: Integer
+          mappedVariableName: art_id
+        ↓OperationResponse [rest.OperationResponse]: 
+          comment: sucessfull
+          statusText: product retrieved
+          xpath: .//product/art_id[. != '']
+        ↓OperationResponse1 [rest.OperationResponse]: 
+          comment: not found
+          statusCode: 404
+          statusText: product not found
+          xpath: .//product/art_id[. = '']
+        ↓OperationResponse2 [rest.OperationResponse]: 
+          comment: invalid
+          statusCode: 400
+          statusText: error occured
+          xpath: .//error
+      ↓UpdateProduct [rest.PostOperation]: 
+        comment: update the product using POST
+        targetRequestable: sampleMapperShop.SetProduct
+        ↓code [rest.FormParameter-1542983543946]: 
+          comment: the product code
+          mappedVariableName: code
+        ↓description [rest.FormParameter-1542983543949]: 
+          comment: the product name or description
+          mappedVariableName: description
+        ↓price [rest.FormParameter-1542983543952]: 
+          comment: the product price
+          mappedVariableName: price
+        ↓prod_id [rest.PathParameter-1542983543955]: 
+          comment: the product identifier
+          mappedVariableName: art_id
+        ↓OperationResponse [rest.OperationResponse]: 
+          comment: sucessfull
+          statusText: product updated
+          xpath: .//ok
+        ↓OperationResponse1 [rest.OperationResponse]: 
+          comment: not found
+          statusCode: 404
+          statusText: product not found
+          xpath: .//ko

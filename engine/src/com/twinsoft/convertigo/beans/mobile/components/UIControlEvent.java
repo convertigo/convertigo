@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -63,6 +63,8 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 		ionPull("(ionPull)"),
 		ionRefresh("(ionRefresh)"),
 		ionStart("(ionStart)"),
+		ionClose("(ionClose)"),
+		ionOpen("(ionOpen)"),
 		;
 		
 		String event;
@@ -172,7 +174,12 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 
 	@Override
 	public String getAttrValue() {
-		return super.getAttrValue();
+		String attrValue = super.getAttrValue();
+		String attrName = getAttrName();
+		if ("(ionInfinite)".equals(attrName)) {
+			attrValue = "$event.waitFor("+ attrValue + ")";
+		}
+		return attrValue;
 	}
 
 	@Override

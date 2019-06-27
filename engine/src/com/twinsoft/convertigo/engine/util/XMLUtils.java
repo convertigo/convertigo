@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -437,89 +437,97 @@ public class XMLUtils {
 		String nodeName = node.getNodeName();
 		String nodeValue = ((Element) node).getAttribute("value");
 
-		if (nodeName.equals("java.lang.Boolean")) {
-			return new Boolean(nodeValue);
-		} else if (nodeName.equals("java.lang.Byte")) {
-			return new Byte(nodeValue);
-		} else if (nodeName.equals("java.lang.Character")) {
-			return new Character(nodeValue.charAt(0));
-		} else if (nodeName.equals("java.lang.Integer")) {
-			return new Integer(nodeValue);
-		} else if (nodeName.equals("java.lang.Double")) {
-			return new Double(nodeValue);
-		} else if (nodeName.equals("java.lang.Float")) {
-			return new Float(nodeValue);
-		} else if (nodeName.equals("java.lang.Long")) {
-			return new Long(nodeValue);
-		} else if (nodeName.equals("java.lang.Short")) {
-			return new Short(nodeValue);
-		} else if (nodeName.equals("java.lang.String")) {
-			return nodeValue;
-		} else if (nodeName.equals("array")) {
-			String className = node.getAttribute("classname");
-			String length = node.getAttribute("length");
-			int len = (new Integer(length)).intValue();
-
-			Object array;
-			if (className.equals("byte")) {
-				array = new byte[len];
-			} else if (className.equals("boolean")) {
-				array = new boolean[len];
-			} else if (className.equals("char")) {
-				array = new char[len];
-			} else if (className.equals("double")) {
-				array = new double[len];
-			} else if (className.equals("float")) {
-				array = new float[len];
-			} else if (className.equals("int")) {
-				array = new int[len];
-			} else if (className.equals("long")) {
-				array = new long[len];
-			} else if (className.equals("short")) {
-				array = new short[len];
-			} else {
-				array = Array.newInstance(Class.forName(className), len);
-			}
-
-			Node xmlNode = null;
-			NodeList nl = node.getChildNodes();
-			int len_nl = nl.getLength();
-			int i = 0;
-			for (int j = 0; j < len_nl; j++) {
-				xmlNode = nl.item(j);
-				if (xmlNode.getNodeType() == Node.ELEMENT_NODE) {
-					Object o = XMLUtils.readObjectFromXml((Element) xmlNode);
-					Array.set(array, i, o);
-					i++;
+		try {
+			if (nodeName.equals("java.lang.Boolean")) {
+				if (nodeValue.equalsIgnoreCase("true") || nodeValue.equalsIgnoreCase("false")) {
+					return new Boolean(nodeValue);
+				} else {
+					return nodeValue;
 				}
+			} else if (nodeName.equals("java.lang.Byte")) {
+				return new Byte(nodeValue);
+			} else if (nodeName.equals("java.lang.Character")) {
+				return new Character(nodeValue.charAt(0));
+			} else if (nodeName.equals("java.lang.Integer")) {
+				return new Integer(nodeValue);
+			} else if (nodeName.equals("java.lang.Double")) {
+				return new Double(nodeValue);
+			} else if (nodeName.equals("java.lang.Float")) {
+				return new Float(nodeValue);
+			} else if (nodeName.equals("java.lang.Long")) {
+				return new Long(nodeValue);
+			} else if (nodeName.equals("java.lang.Short")) {
+				return new Short(nodeValue);
+			} else if (nodeName.equals("java.lang.String")) {
+				return nodeValue;
+			} else if (nodeName.equals("array")) {
+				String className = node.getAttribute("classname");
+				String length = node.getAttribute("length");
+				int len = (new Integer(length)).intValue();
+	
+				Object array;
+				if (className.equals("byte")) {
+					array = new byte[len];
+				} else if (className.equals("boolean")) {
+					array = new boolean[len];
+				} else if (className.equals("char")) {
+					array = new char[len];
+				} else if (className.equals("double")) {
+					array = new double[len];
+				} else if (className.equals("float")) {
+					array = new float[len];
+				} else if (className.equals("int")) {
+					array = new int[len];
+				} else if (className.equals("long")) {
+					array = new long[len];
+				} else if (className.equals("short")) {
+					array = new short[len];
+				} else {
+					array = Array.newInstance(Class.forName(className), len);
+				}
+	
+				Node xmlNode = null;
+				NodeList nl = node.getChildNodes();
+				int len_nl = nl.getLength();
+				int i = 0;
+				for (int j = 0; j < len_nl; j++) {
+					xmlNode = nl.item(j);
+					if (xmlNode.getNodeType() == Node.ELEMENT_NODE) {
+						Object o = XMLUtils.readObjectFromXml((Element) xmlNode);
+						Array.set(array, i, o);
+						i++;
+					}
+				}
+	
+				return array;
 			}
-
-			return array;
-		}
-		// XMLization
-		else if (nodeName.equals("xmlizable")) {
-			String className = node.getAttribute("classname");
-
-			Node xmlNode = findChildNode(node, Node.ELEMENT_NODE);
-			Object xmlizable = Class.forName(className).newInstance();
-			((XMLizable) xmlizable).readXml(xmlNode);
-
-			return xmlizable;
-		}
-		// Serialization
-		else if (nodeName.equals("serializable")) {
-			Node cdata = findChildNode(node, Node.CDATA_SECTION_NODE);
-			String objectSerializationData = cdata.getNodeValue();
-			Engine.logEngine.debug("Object serialization data:\n" + objectSerializationData);
-			byte[] objectBytes = org.apache.commons.codec.binary.Base64.decodeBase64(objectSerializationData);
-
-			// We read the object to a bytes array
-			ByteArrayInputStream inputStream = new ByteArrayInputStream(objectBytes);
-			ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-			Object object = objectInputStream.readObject();
-			inputStream.close();
-
-			return object;
+			// XMLization
+			else if (nodeName.equals("xmlizable")) {
+				String className = node.getAttribute("classname");
+	
+				Node xmlNode = findChildNode(node, Node.ELEMENT_NODE);
+				Object xmlizable = Class.forName(className).newInstance();
+				((XMLizable) xmlizable).readXml(xmlNode);
+	
+				return xmlizable;
+			}
+			// Serialization
+			else if (nodeName.equals("serializable")) {
+				Node cdata = findChildNode(node, Node.CDATA_SECTION_NODE);
+				String objectSerializationData = cdata.getNodeValue();
+				Engine.logEngine.debug("Object serialization data:\n" + objectSerializationData);
+				byte[] objectBytes = org.apache.commons.codec.binary.Base64.decodeBase64(objectSerializationData);
+	
+				// We read the object to a bytes array
+				ByteArrayInputStream inputStream = new ByteArrayInputStream(objectBytes);
+				ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+				Object object = objectInputStream.readObject();
+				inputStream.close();
+	
+				return object;
+			}
+		} catch (NumberFormatException e) {
+			return nodeValue;
 		}
 
 		return null;
@@ -1401,7 +1409,7 @@ public class XMLUtils {
 
 			parentElement.appendChild(element);
 
-			if (JSONObject.NULL.equals(object)) {
+			if (JSONObject.NULL.equals(object) || JSONObject.EXPLICIT_NULL.equals(object)) {
 				object = null;
 			}
 			

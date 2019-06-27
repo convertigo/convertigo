@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,8 +19,11 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -133,37 +136,23 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		return "";
 	}
 
-	static public String computeConstructors(String nbi, List<UIEventSubscriber> subscriberList) {
-		String computed = ""+nbi+"++;"+System.lineSeparator();
-		computed += "\t\tif ("+nbi+" == 1) {"+System.lineSeparator();
-		for (UIEventSubscriber subscriber: subscriberList) {
-			if (subscriber.isEnabled() && !subscriber.getTopic().isEmpty()) {
-				computed += "\t\t\tthis.events.subscribe('"+subscriber.getTopic()+"', "
-							+ "(data) => {this."+subscriber.getFunctionName()+"(data)});"+ System.lineSeparator();
-			}
+	public String computeConstructor() {
+		String computed = "";
+		if (isEnabled() && !getTopic().isEmpty()) {
+			computed += "\t\tthis.events.subscribe('"+ getTopic() +"', "
+						+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
 		}
-		computed += "\t\t}"+ System.lineSeparator();
-		computed += "\t\t";
 		return computed;
 	}
-
-	static public String computeNgDestroy(String nbi, List<UIEventSubscriber> subscriberList) {
-		String computed = "ngOnDestroy() {"+ System.lineSeparator();
-		computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
-		computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
-		for (UIEventSubscriber subscriber: subscriberList) {
-			if (subscriber.isEnabled() && !subscriber.getTopic().isEmpty()) {
-				computed += "\t\t\tthis.events.unsubscribe('"+subscriber.getTopic()+"');"+ System.lineSeparator();
-			}
+	
+	public String computeDestructor() {
+		String computed = "";
+		if (isEnabled() && !getTopic().isEmpty()) {
+			computed += "\t\tthis.events.unsubscribe('"+ getTopic() +"');"+ System.lineSeparator();
 		}
-		computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
-		computed += "\t\t}"+ System.lineSeparator();
-		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
-		computed += "\t}"+ System.lineSeparator();
-		computed += "\t";
 		return computed;
 	}
-
+	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		if (isEnabled() && !topic.isEmpty()) {
@@ -214,6 +203,15 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 			computed += "\t}";
 		}
 		return computed;
+	}
+	
+	protected Map<String, Set<String>> getInfoMap() {
+		Set<UIComponent> done = new HashSet<>();
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			uiComponent.addInfos(done, map);
+		}
+		return map;
 	}
 	
 }

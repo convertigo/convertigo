@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -18,6 +18,11 @@
  */
 
 package com.twinsoft.convertigo.beans.mobile.components;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -56,4 +61,14 @@ public class UIDynamicMenu extends UIDynamicElement {
 			app.markApplicationAsDirty();
 		}
 	}
+	
+	protected Map<String, Set<String>> getInfoMap() {
+		Set<UIComponent> done = new HashSet<>();
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			uiComponent.addInfos(done, map);
+		}
+		return map;
+	}
+	
 }

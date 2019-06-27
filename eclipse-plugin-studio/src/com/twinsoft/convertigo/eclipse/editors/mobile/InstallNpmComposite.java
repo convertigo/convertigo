@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,6 +29,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Link;
 
+import com.twinsoft.convertigo.engine.Engine;
+
 public class InstallNpmComposite extends Composite {
 
 	public InstallNpmComposite(Composite parent, int style) {
@@ -41,11 +43,19 @@ public class InstallNpmComposite extends Composite {
 		
 		link.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
 		
-		link.setText(
-"NodeJS and NPM (≥ 5) are mandatory to use the Mobile Builder.\n" +
-"To get both, please use the LTS NodeJS installer from <a href=\"https://nodejs.org\">https://nodejs.org</a>.\n" +
-"Install, and then close and re-open this editor."
-				);
+		if (Engine.isWindows()) {
+			link.setText(
+				"NodeJS and NPM (≥ 5) are mandatory to use the Mobile Builder.\n" +
+				"To get both, please use the 8.15.0 NodeJS installer from <a href=\"https://nodejs.org/dist/latest-v8.x/node-v8.15.0-x64.msi\">https://nodejs.org/dist/latest-v8.x/node-v8.15.0-x64.msi</a>.\n" +
+				"Install, and then close and re-open this editor.");					
+		} else {
+			link.setText(
+				"NodeJS and NPM (≥ 5) are mandatory to use the Mobile Builder.\n" +
+				"To get both, please use the LTS NodeJS installer from <a href=\"https://nodejs.org\">https://nodejs.org</a>.\n" +
+				"Install, and then close and re-open this editor.");	
+		}
+		
+		
 		
 		link.addSelectionListener(new SelectionListener() {
 			

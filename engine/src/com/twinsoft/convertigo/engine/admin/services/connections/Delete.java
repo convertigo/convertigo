@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -23,10 +23,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 
 @ServiceDefinition(
 		name = "Delete",
@@ -37,14 +38,17 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 public class Delete extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		
-		
-		String contextName = request.getParameter("contextName");
-        if(contextName==null)
+		String contextName, sessionId;
+        if ((contextName = request.getParameter("contextName")) != null) {
+        	Engine.theApp.contextManager.remove(contextName);
+        } else if ((sessionId = request.getParameter("sessionId")) != null) {
+        	HttpSessionListener.terminateSession(sessionId);
+        } else if ("true".equals(request.getParameter("removeAll"))) {
+        	HttpSessionListener.removeAllSession();
+        	Engine.theApp.contextManager.removeAll();
+        } else {
         	throw new IllegalArgumentException();
-        System.out.println(contextName);
-        
-        Engine.theApp.contextManager.remove(contextName);
+        }
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -55,9 +55,9 @@ public class List extends XmlService{
         
     	for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
     		try {
-    			Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+    			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
     			String deployDate = "n/a";
-    			File file = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+    			File file = new File(Engine.projectDir(projectName) + ".car");
     			if (file.exists())
     				deployDate = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale()).format(new Date(file.lastModified()));
 
@@ -74,7 +74,9 @@ public class List extends XmlService{
     			projectElement.setAttribute("comment", comment);
     			projectElement.setAttribute("version", version);
     			projectElement.setAttribute("exported", exported);
+    			projectElement.setAttribute("exportedTs", "" + project.getExportTime());
     			projectElement.setAttribute("deployDate", deployDate);
+    			projectElement.setAttribute("deployDateTs", "" + file.lastModified());
     			
     			if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
     				projectElement.setAttribute("undefined_symbols", "true");

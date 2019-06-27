@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.graphics.Device;
@@ -42,13 +41,14 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNodeWithDatabaseObjectReference;
+import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 
 public class ViewImageProvider {
 
 	/**
 	 * The Hastable cache of loaded images
 	 */
-	private static Map<String, Image> imagesCache = new HashMap<String, Image>(1024);
+	private static Map<String, Image> imagesCache = new WeakValueHashMap<String, Image>(1024);
 	
 	/**
 	 * Retrieve an image name given an object

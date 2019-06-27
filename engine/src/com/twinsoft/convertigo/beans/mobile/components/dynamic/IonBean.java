@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -54,6 +54,8 @@ public class IonBean {
 	}
 	
 	private JSONObject jsonBean;
+	private String beanData;
+	private IonConfig ionConfig;
 	
 	public IonBean() {
 		try {
@@ -93,10 +95,13 @@ public class IonBean {
 		}
 	}
 	
-	public String toBeanData() {
-		String s = jsonBean.toString();
+	public synchronized String toBeanData() {
+		if (beanData != null) {
+			return beanData;
+		}
+		beanData = jsonBean.toString();
 		try {
-			JSONObject jsonOb = new JSONObject(toString());
+			JSONObject jsonOb = new JSONObject(beanData);
 			for (Key k: Key.values()) {
 				if (k.equals(Key.name))
 					continue;
@@ -127,12 +132,12 @@ public class IonBean {
 				}
 				jsonOb.remove(k.name());
 			}
-			s = jsonOb.toString();
+			beanData = jsonOb.toString(1);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		//System.out.println(s);
-		return s;
+		
+		return beanData;
 	}
 	
 	public String toString() {
@@ -242,8 +247,21 @@ public class IonBean {
 	}
 	public String getDescription() {
 		try {
-			return jsonBean.getString(Key.description.name());
-		} catch (JSONException e) {
+			Object desc = jsonBean.get(Key.description.name());
+			String description;
+			if (desc instanceof JSONArray) {
+				JSONArray descs = ((JSONArray) desc);
+				StringBuilder sb = new StringBuilder();
+				int len = descs.length();
+				for (int i = 0; i < len; i++) {
+					sb.append(descs.getString(i));
+				}
+				description = sb.toString();
+			} else {
+				description = desc.toString();
+			}
+			return description;
+		} catch (Exception e) {
 			e.printStackTrace();
 			return "description";
 		}
@@ -321,11 +339,13 @@ public class IonBean {
 		return properties;
 	}
 	
-	protected void putProperty(IonProperty property) {
+	protected synchronized void putProperty(IonProperty property) {
 		try {
 			JSONObject jsonProperties = jsonBean.getJSONObject(Key.properties.name());
 			if (jsonProperties != null) {
 				jsonProperties.put(property.getName(), property.getJSONObject());
+				beanData = null;
+				ionConfig = null;
 			}
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
@@ -361,14 +381,16 @@ public class IonBean {
 	}
 	
 	public IonConfig getConfig() {
-		try {
-			JSONObject jsonConfig = jsonBean.getJSONObject(Key.config.name());
-			IonConfig config = new IonConfig(jsonConfig);
-			return config;
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return new IonConfig();
+		if (ionConfig == null) {
+			try {
+				JSONObject jsonConfig = jsonBean.getJSONObject(Key.config.name());
+				ionConfig = IonConfig.get(jsonConfig);
+			} catch (JSONException e) {
+				e.printStackTrace();
+				ionConfig = IonConfig.get();
+			}
 		}
+		return ionConfig;
 	}
 	
 	protected DatabaseObject createBean() {

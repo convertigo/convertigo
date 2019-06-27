@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.PostOperation;
 import com.twinsoft.convertigo.beans.rest.PutOperation;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -86,6 +87,7 @@ public class OperationImportParametersFromVariablesAction extends MyAbstractActi
 	    					IVariableContainer variableContainer = (IVariableContainer)requestableObject;
 	    					for (Variable variable: variableContainer.getVariables()) {
 	    						String variableName = variable.getName();
+	    						Object variableValue = variable.getValueOrNull();
 	    						UrlMappingParameter parameter = null;
 	    						try {
 	    							parameter = operation.getParameterByName(variableName);
@@ -96,11 +98,14 @@ public class OperationImportParametersFromVariablesAction extends MyAbstractActi
 		    							parameter = new FormParameter();
 		    						else
 			    						parameter = new QueryParameter();
+		    						
 	    							parameter.setName(variableName);
 	    	        				parameter.setComment(variable.getComment());
 	    	        				parameter.setArray(false);
+	    	        				parameter.setExposed(((RequestableVariable)variable).isWsdl());
 	    	        				parameter.setMultiValued(variable.isMultiValued());
-	    	        				//parameter.setRequired(variable.isRequired());
+	    	        				parameter.setRequired(variable.isRequired());
+	    	        				parameter.setValueOrNull(!variable.isMultiValued() ? variableValue:null);
 	    	        				parameter.setMappedVariableName(variableName);
 	    	        				parameter.bNew = true;
 	    	        				parameter.hasChanged = true;

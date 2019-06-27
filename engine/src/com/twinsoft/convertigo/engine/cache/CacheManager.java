@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,8 +19,12 @@
 
 package com.twinsoft.convertigo.engine.cache;
 
+import java.lang.ref.WeakReference;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpSession;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
@@ -36,13 +40,76 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.events.BaseEventListener;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class CacheManager extends AbstractRunnableManager {
+public abstract class CacheManager extends AbstractRunnableManager implements BaseEventListener {
+	private WeakReference<Map<String, Document>> weakCache;
+	protected boolean useWeakCache = false;
+	
+	protected void storeWeakResponse(Document response, String requestString) {
+		if (useWeakCache && response != null) {
+			synchronized (this) {
+				Map<String, Document> wc = null;
+				if (weakCache != null) {
+					wc = weakCache.get();
+				}
+				if (wc == null) {
+					weakCache = new WeakReference<Map<String, Document>>(wc = new ConcurrentHashMap<>());
+				}
+				wc.put(requestString, response);
+			}
+		}
+	}
+	
+	protected Document getWeakResponse(CacheEntry cacheEntry) throws EngineException {
+		Document response = null;
+		if (useWeakCache && weakCache != null) {
+			Map<String, Document> wc = weakCache.get();
+			if (wc != null) {
+				Document cached = wc.get(cacheEntry.requestString);
+				if (cached != null) {
+					try {
+						response = XMLUtils.createDom();
+						response.appendChild(response.importNode(cached.getDocumentElement(), true));
+					} catch (Exception e) {
+						response = null;
+					}
+				}
+			}
+		}
+		return response;
+	}
+	
+	protected void removeWeakResponse(CacheEntry cacheEntry) {
+		Map<String, Document> wc;
+		if (weakCache != null && (wc = weakCache.get()) != null) {
+			wc.remove(cacheEntry.requestString);
+		}
+	}
+	
+	public void onEvent(PropertyChangeEvent event) {
+		PropertyName name = event.getKey();
+		if (name.equals(PropertyName.CACHE_MANAGER_USE_WEAK)) {
+			useWeakCache = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.CACHE_MANAGER_USE_WEAK);
+			if (!useWeakCache) {
+				weakCache = null;
+			}
+		}
+	}
 	
 	public void init() throws EngineException {
 		Engine.logCacheManager.debug("Initializing cache manager...");
+		useWeakCache = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.CACHE_MANAGER_USE_WEAK);
+		isRunning = true;
+		Thread vulture = new Thread(this);
+		executionThread = vulture;
+		vulture.setName("CacheManager");
+		vulture.setDaemon(true);
+		vulture.start();
 	}
 	
 	public void destroy() throws EngineException {
@@ -59,15 +126,13 @@ public abstract class CacheManager extends AbstractRunnableManager {
 		if (context.isStubRequested) {
 			String stubFileName = null;
 			if (context.requestedObject instanceof Transaction) {
-				stubFileName = Engine.PROJECTS_PATH + "/"
-						+ context.requestedObject.getProject().getName()
+				stubFileName = context.requestedObject.getProject().getDirPath()
 						+ "/stubs/"
 						+ context.requestedObject.getParent().getName() + "."
 						+ context.requestedObject.getName() + ".xml";
 
 			} else if (context.requestedObject instanceof Sequence) {
-				stubFileName = Engine.PROJECTS_PATH + "/"
-						+ context.requestedObject.getProject().getName()
+				stubFileName = context.requestedObject.getProject().getDirPath()
 						+ "/stubs/" + context.requestedObject.getName() + ".xml";
 			}
 			try {
@@ -113,7 +178,9 @@ public abstract class CacheManager extends AbstractRunnableManager {
 					Engine.logCacheManager.debug("Ignoring cache for request: " + requestString);
 					try {
 						cacheEntry = (CacheEntry) getCacheEntry(requestString);
-						if (cacheEntry != null) removeStoredResponse(cacheEntry);
+						if (cacheEntry != null) {
+							removeStoredResponse(cacheEntry);
+						}
 						cacheEntry = null;
 					}
 					catch(Exception e) {
@@ -237,6 +304,13 @@ public abstract class CacheManager extends AbstractRunnableManager {
 			}
 		}
 
+		if ("true".equals(response.getDocumentElement().getAttribute("fromcache")) && context.parentContext == null) {
+			HttpSession session = context.httpSession;
+			if (session != null && session.isNew()) {
+				HttpSessionListener.terminateSession(session);
+			}
+		}
+		
 		return response;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -42,7 +42,6 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -103,6 +102,8 @@ import org.eclipse.ui.views.properties.PropertySheet;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
+import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
@@ -119,7 +120,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
@@ -129,122 +130,126 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.ProcessUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.util.Log;
 
+import ts.eclipse.ide.core.TypeScriptCorePlugin;
+import ts.eclipse.ide.core.nodejs.IEmbeddedNodejs;
+
 /**
  * The main plugin class to be used in the desktop.
  */
-public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
-	
+public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, StudioProjects {
+
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
-	
+
 	public static final String PLUGIN_PERSPECTIVE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective"; //$NON-NLS-1$
 
 	public static ProjectManager projectManager = null;
-	
+
 	public static ClipboardManager clipboardManagerDND = null;
 	public static ClipboardManager clipboardManagerSystem = null;
-	
-	public static DeploymentConfigurationManager deploymentConfigurationManager = null;
-		
-    public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
-    
-    public static final String PREFERENCE_LOG_LEVEL = "log.level";
-    public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
-    public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
-    public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
-    public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
-    public static final String PREFERENCE_SHOW_ENGINE_INTO_CONSOLE = "engine.into.console";
-    public static final String PREFERENCE_ENGINE_LOAD_ALL_PROJECTS = "engine.load.all.projects";
-    public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
-    public static final String PREFERENCE_LOCAL_BUILD_FOLDER = "localBuild.folder";
-	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
 
-    
-    private static Display display = null;
-    public static synchronized Display getDisplay() {
-    	if (display == null) {
-    		display = Display.getCurrent();
-	        //may be null if outside the UI thread
-	        if (display == null) {
-	           display = Display.getDefault();
-	        }
-    	}
-        return display;		
-    }
-    
-    private static Shell mainShell = null;
-    public static synchronized Shell getMainShell() {
-    	if (mainShell == null || mainShell.isDisposed()) {
-    		mainShell = getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
-    	}
-    	return mainShell;
-    }
-    
-    public static class PscException extends Exception {
+	public static DeploymentConfigurationManager deploymentConfigurationManager = null;
+
+	public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
+
+	public static final String PREFERENCE_LOG_LEVEL = "log.level";
+	public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
+	public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
+	public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
+	public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
+	public static final String PREFERENCE_SHOW_ENGINE_INTO_CONSOLE = "engine.into.console";
+	public static final String PREFERENCE_ENGINE_LOAD_ALL_PROJECTS = "engine.load.all.projects";
+	public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
+	public static final String PREFERENCE_LOCAL_BUILD_FOLDER = "localBuild.folder";
+	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
+	public static final String PREFERENCE_MOBILE_BUILDER_THRESHOLD = "mobileBuilder.threshold";
+
+
+	private static Display display = null;
+	public static synchronized Display getDisplay() {
+		if (display == null) {
+			display = Display.getCurrent();
+			//may be null if outside the UI thread
+			if (display == null) {
+				display = Display.getDefault();
+			}
+		}
+		return display;		
+	}
+
+	private static Shell mainShell = null;
+	public static synchronized Shell getMainShell() {
+		if (mainShell == null || mainShell.isDisposed()) {
+			mainShell = getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+		}
+		return mainShell;
+	}
+
+	public static class PscException extends Exception {
 		private static final long serialVersionUID = -3828463232797723301L;
 
 		public PscException(String cause) {
-    		super(cause);
-    	}
-    }
-    
-    public static String getProperty(String key) {
-    	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-    	logDebug3("Looking for property : \"" + key + "\"");
+			super(cause);
+		}
+	}
 
-    	String result = preferenceStore.getString(key);
-    	
-        logDebug3("==> Getting property " + key + ": \"" + result + "\"");
-        
-        return result;
-    }
-    
-    public static void setProperty(String key, String value) {
-    	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-    	preferenceStore.setValue(key, value);
-    }
-    
+	public static String getProperty(String key) {
+		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+		logDebug3("Looking for property : \"" + key + "\"");
+
+		String result = preferenceStore.getString(key);
+
+		logDebug3("==> Getting property " + key + ": \"" + result + "\"");
+
+		return result;
+	}
+
+	public static void setProperty(String key, String value) {
+		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+		preferenceStore.setValue(key, value);
+	}
+
 	//The shared instance.
 	private static ConvertigoPlugin plugin;
-	
+
 	private HttpSession session;
-	
+
 	//Resource bundle.
 	private ResourceBundle resourceBundle;
 
 	private boolean shuttingDown = false;
-	
+
 	private List<Runnable> runAtStartup = new LinkedList<Runnable>();
-	
+
 	private static Log studioLog;
 
 	private static ILog log;
-	
-	//Get IProjects in memory 
-	private static Map<String, IProject> cacheIProject = new HashMap<String, IProject>();
-	
+
 	public static void logException(Throwable e, String message) {
 		logException(e, message, true);
 	}
-	
+
 	public static void logDeployException(Throwable e, String errorMessage, String stackTrace) {
 		log.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, errorMessage, e));
 		projectDeployErrorDialog(errorMessage, stackTrace);
 	}
-	
+
 	public static void logException(Throwable e, String message, boolean dialog) {
 		log.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
 		if (dialog) errorMessageBox(message + "\n" + e.getMessage());
@@ -262,11 +267,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static void logWarning(String message) {
 		logWarning(null, message, true);
 	}
-	
+
 	public static void logWarning(String message, boolean dialog) {
 		logWarning(null, message, dialog);
 	}
-	
+
 	public static void logWarning(Throwable e, String message) {
 		logWarning(e, message + ((e!=null)? "\n" + e.getMessage():""), true);
 	}
@@ -275,16 +280,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		log.log(new Status(Status.WARNING, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
 		if (dialog) warningMessageBox(message);
 	}
-	
+
 	public static void logInfo(String message) {
 		logInfo(message, false);
 	}
-	
+
 	public static void logInfo(String message, boolean dialog) {
 		log.log(new Status(Status.INFO, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, null));
 		if (dialog) infoMessageBox(message);
 	}
-	
+
 	public static void logDebug(String message) {
 		studioLog.debug(message);
 	}	
@@ -296,11 +301,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static void logDebug3(String message) {
 		studioLog.debug3(message);
 	}	
-	
+
 	public static void errorMessageBox(String message) {
 		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_ERROR);
 	}
-	
+
 	// Must be called in the display GUI thread
 	public static int questionMessageBox(Shell shell, String message){
 		return ConvertigoPlugin.messageBox(shell, message, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
@@ -309,38 +314,38 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static void warningMessageBox(String message) {
 		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_WARNING);
 	}
-		
+
 	public static boolean[] warningGlobalSymbols(final String projectName,
 			final String objectName, final String objectType,
 			final String propertyName, final String propertyValue,
 			final Set<String> undefinedSymboles, final boolean showCheckBox) {
 		final boolean[] result = {false,false};
-		
+
 		getDisplay().syncExec(
-			new Runnable() {
-				public void run() {
-					try {
-						int level = ModalContext.getModalLevel();
-						if (level > 0) {
-							// prevents double modal windows: dead lock on linux/gtk studio
-							getDisplay().syncExec(this);
-							return;
-						} 
-						
-						GlobalsSymbolsWarnDialog dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName,
-								objectName, objectType,
-								propertyName, propertyValue,
-								undefinedSymboles, showCheckBox);
-						dialogGlobalSymbols.open();
-						
-						result[0] = dialogGlobalSymbols.getCreateAction();
-						result[1] = dialogGlobalSymbols.getCheckButtonSelection();
-					} catch (Exception e){
-						ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
+				new Runnable() {
+					public void run() {
+						try {
+							int level = ModalContext.getModalLevel();
+							if (level > 0) {
+								// prevents double modal windows: dead lock on linux/gtk studio
+								getDisplay().syncExec(this);
+								return;
+							} 
+
+							GlobalsSymbolsWarnDialog dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName,
+									objectName, objectType,
+									propertyName, propertyValue,
+									undefinedSymboles, showCheckBox);
+							dialogGlobalSymbols.open();
+
+							result[0] = dialogGlobalSymbols.getCreateAction();
+							result[1] = dialogGlobalSymbols.getCheckButtonSelection();
+						} catch (Exception e){
+							ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
+						}
 					}
 				}
-			}
-		);
+				);
 		return result;
 	}
 
@@ -350,7 +355,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	private static void messageBoxWithoutReturnCode(final String message, int options) {
 		final Display display = getDisplay();
-		
+
 		Runnable runnable = new Runnable() {
 			public void run() {
 				try {
@@ -361,7 +366,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				}
 			};
 		};
-		
+
 		if (display.getThread() != Thread.currentThread()) {
 			display.asyncExec(runnable);		
 		} else {
@@ -374,54 +379,54 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			if (shell == null) {
 				shell = getMainShell();
 			}
-			
-	    	MessageBox messageBox = new MessageBox(shell, options);
-	    	messageBox.setText("Convertigo");
-	    	if (message == null) message = "(null message)";
+
+			MessageBox messageBox = new MessageBox(shell, options);
+			messageBox.setText("Convertigo");
+			if (message == null) message = "(null message)";
 			messageBox.setMessage(message);
-	    	int response = messageBox.open();
-	    	return response;
+			int response = messageBox.open();
+			return response;
 		}
 		catch (Exception e){
 			ConvertigoPlugin.logException(e, "Error while trying to open message box", false);
 			return -1;
 		}
 	}
-	
+
 	public static void projectDeployErrorDialog(String message, String stackTrace) {
 		final String errorMessage = message;
 		final String causeStackTrace = stackTrace;
 		final Display display = getDisplay();
-		
+
 		display.asyncExec(new Runnable() {
-			
+
 			public void run() {
 				try {
-		        	ProjectDeployErrorDialog projectDeployErrorDialog = new ProjectDeployErrorDialog(getMainShell(), errorMessage, causeStackTrace);
-		        	projectDeployErrorDialog.open();
-		    		if (projectDeployErrorDialog.getReturnCode() != Window.CANCEL) {
-		    		}
+					ProjectDeployErrorDialog projectDeployErrorDialog = new ProjectDeployErrorDialog(getMainShell(), errorMessage, causeStackTrace);
+					projectDeployErrorDialog.open();
+					if (projectDeployErrorDialog.getReturnCode() != Window.CANCEL) {
+					}
 				}
 				catch (Exception e){
 					ConvertigoPlugin.logException(e, "Error while trying to open project deploy dialog", false);
 				}
 			};
-			
+
 		});
 	}
-	
+
 	public static void configureDeployConfiguration() {
 		// The embedded Tomcat has been created, so all engine paths have been computed.
 		deploymentConfigurationManager = new DeploymentConfigurationManager();
-		
+
 		try {
 			deploymentConfigurationManager.load();
 		} catch (Exception e) {
 			logException(e, "Unable to load deployment configurations");
 		}
-		
+
 		try {
-			
+
 			Properties properties = decodePsc();
 			for (int i = 1; i < Integer.MAX_VALUE; i++) {
 				if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
@@ -435,14 +440,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 							Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
 							Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
 							Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
-					);
+							);
 				}
 			}
 		} catch (Exception e) {
 			logException(e, "Unable to load deployment configurations from PSC");
 		}
 	}
-	
+
 	/**
 	 * The constructor.
 	 */
@@ -451,20 +456,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	private EmbeddedTomcat embeddedTomcat = null;
-	
+
 	private Button checkBox, closeButton;
 
 	private void displayWaitScreen() {
 		final Display display = getDisplay();
-		
+
 		display.asyncExec(new Runnable() {
 			public void run() {
-				
+
 				try {
-					
+
 					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
 					final long[] timeout = {System.currentTimeMillis() + 10000};
-					
+
 					GridLayout gridLayout = new GridLayout();
 					gridLayout.numColumns = 1;
 					gridLayout.horizontalSpacing = 0;
@@ -472,21 +477,21 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					gridLayout.marginHeight = 0;
 					gridLayout.marginWidth = 0;
 					shell.setLayout(gridLayout);
-					
+
 					shell.setText("Convertigo Studio");
-					
+
 					Image image = getStudioIcon("icons/splash_wait_rss.png");
-					
+
 					Composite compositeHeader = new Composite(shell, SWT.NONE);
 					compositeHeader.setBackgroundImage(image);
 					compositeHeader.setLayout(new GridLayout());
-					
+
 					GridData gridData = new GridData ();
 					gridData.horizontalAlignment = GridData.FILL;
 					gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
 					gridData.heightHint = image.getBounds().height;
 					compositeHeader.setLayoutData(gridData);
-					
+
 					Composite compositeBar = new Composite(compositeHeader, SWT.NONE);
 					FillLayout fillLayout = new FillLayout();
 					fillLayout.marginHeight = 0;
@@ -498,112 +503,112 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					gridData.verticalIndent = 65;
 					gridData.widthHint = 300;
 					compositeBar.setLayoutData(gridData);
-						
+
 					ProgressBar progressBar = new ProgressBar(compositeBar, SWT.INDETERMINATE);
-					
+
 					//initialize browser
 					initializeBrowser(shell, new ProgressListener() {
-						
+
 						public void completed(ProgressEvent event) {
 							timeout[0] = 0;
 						}
-						
+
 						public void changed(ProgressEvent event) {
 						}
 					});
-				
+
 					Composite toolComposite = new Composite(shell, SWT.NONE);
 					gridLayout = new GridLayout();
 					gridLayout.numColumns = 2;
 					gridLayout.marginHeight = 3;
 					gridLayout.marginWidth = 10;
 					toolComposite.setLayout(gridLayout);
-					
+
 					gridData = new GridData();
 					gridData.horizontalAlignment = GridData.FILL;
 					gridData.grabExcessHorizontalSpace = true;
 					toolComposite.setLayoutData(gridData);
-					
+
 					checkBox = new Button(toolComposite, SWT.CHECK);
 					checkBox.setText("Dismiss automatically");		
 					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
 						checkBox.setSelection(true);
 					}
-					
+
 					image = getStudioIcon("icons/studio/unloadable_project.gif");
-					
+
 					closeButton = new Button(toolComposite, SWT.PUSH);
 					closeButton.setText("Wait...");
 					closeButton.setEnabled(false);
 					closeButton.setImage(image);
-					
+
 					gridData = new GridData();
 					gridData.grabExcessHorizontalSpace = true;
 					gridData.horizontalAlignment = GridData.END;
 					closeButton.setLayoutData(gridData);
-					
+
 
 					int w = 640;
 					int h = 480;
 					try {
 						// mod jmc 31/07/2013
-						
+
 						int x = 0;
 						int y = 0;
-						 
+
 						Point pt = display.getCursorLocation();
-					    Monitor [] monitors = display.getMonitors();
+						Monitor [] monitors = display.getMonitors();
 
-					    for (int i= 0; i<monitors.length; i++) {
-					          if (monitors[i].getBounds().contains(pt)) {
-					             Rectangle rect = monitors[i].getClientArea();
-					             
-					             if (rect.x < 0)
-					         		x = ((rect.width - w) / 2) + rect.x;
-					             else
-					         		x = (rect.width - w) / 2;
+						for (int i= 0; i<monitors.length; i++) {
+							if (monitors[i].getBounds().contains(pt)) {
+								Rectangle rect = monitors[i].getClientArea();
 
-					             if (rect.y < 0)
-					         		y = ((rect.height - h) / 2) + rect.y;
-					             else
-					         		y = (rect.height - h) / 2;
-					             
-					             break;
-					          }
-					    }
+								if (rect.x < 0)
+									x = ((rect.width - w) / 2) + rect.x;
+								else
+									x = (rect.width - w) / 2;
 
-					    shell.setBounds(x, y, w, h);						
-						
-						
+								if (rect.y < 0)
+									y = ((rect.height - h) / 2) + rect.y;
+								else
+									y = (rect.height - h) / 2;
+
+								break;
+							}
+						}
+
+						shell.setBounds(x, y, w, h);
+
+
 					}
 					catch (Exception e) {
 						shell.setBounds(100, 100, w, h);
 					}
 					shell.open();
-					
+
 					while (!shell.isDisposed() && !Engine.isStartFailed && !Engine.isStarted) {
 						if (!display.readAndDispatch()) {
 							Thread.sleep(100);
 						}
 					}
-					
+
 					progressBar.dispose();
 					compositeBar.dispose();
-					
+
 					image = getStudioIcon("icons/splash_ready_rss.png");
 					compositeHeader.setBackgroundImage(image);
-					
+
 					gridData = new GridData ();
 					gridData.horizontalAlignment = GridData.FILL;
 					gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
 					gridData.heightHint = 75;
 					compositeHeader.setLayoutData(gridData);
-					
+
 					closeButton.addSelectionListener(new SelectionListener() {
-						
+
 						public void widgetDefaultSelected(SelectionEvent e) {		
 						}
-						
+
 						public void widgetSelected(SelectionEvent e) {
 							if (checkBox.getSelection()) {
 								ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "true");
@@ -613,24 +618,24 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 							}
 							shell.close();
 						}
-						
+
 					});
-					
+
 					while (!shell.isDisposed() && System.currentTimeMillis() < timeout[0]) {
 						if (!display.readAndDispatch()) {
 							Thread.sleep(100);
 						}
 					}
-					
+
 					closeButton.setText("Close");
 					closeButton.setEnabled(true);
-					
+
 					shell.layout();
-					
+
 					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
 						shell.close();
 					}
-					
+
 					ProjectExplorerView pew = getProjectExplorerView();
 					pew.initialize();
 				}
@@ -642,44 +647,54 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	private void initializeBrowser(Composite parent, ProgressListener progressListener) throws IOException {
-		
-		final C8oBrowser browser;
-		try {
-			browser = new C8oBrowser(parent, SWT.NONE);
-		} catch (SWTError e) {
-			System.out.println("Could not instantiate Browser: " + e.getMessage());
-			return;
-		}
-		
+		final Composite filler = new Composite(parent, SWT.NONE); 
 		GridData gridData = new GridData();
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.grabExcessVerticalSpace = true;
-		browser.setLayoutData(gridData);
-		
-		String username = "n/a";
-		try {
-			Properties properties = decodePsc();
-			username = DeploymentKey.adminUser.value(properties, 1);
-		} catch (Exception e) {}
+		filler.setLayoutData(gridData);
+		filler.setLayout(new FillLayout());
 
-		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-		url += "&" + URLUtils.encodePart("user", username);
-		url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
-		
-		browser.addProgressListener(progressListener);
-		browser.setUrl(url);
+		parent.getDisplay().asyncExec(() -> {
+			final C8oBrowser browser;
+			try {
+				browser = new C8oBrowser(filler, SWT.NONE);
+			} catch (SWTError e) {
+				System.out.println("Could not instantiate Browser: " + e.getMessage());
+				return;
+			}
+
+
+
+			String username = "n/a";
+			try {
+				Properties properties = decodePsc();
+				username = DeploymentKey.adminUser.value(properties, 1);
+			} catch (Exception e) {}
+
+			String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
+			url += "&" + URLUtils.encodePart("user", username);
+			url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
+
+			browser.addProgressListener(progressListener);
+			browser.setUrl(url);
+			parent.layout(true, true);
+		});
 	}
-	
+
 	/**
 	 * This method is called upon plug-in activation
 	 */
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
-
+		
+		Engine.execute(() -> {
+			new Browser(BrowserContext.defaultContext()).dispose();
+		});
+		
 		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (activeWindow != null) {
 			IWorkbenchPage activePage = activeWindow.getActivePage();
@@ -693,44 +708,44 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				}
 			}
 		}
-		
+
 		// Version check
 		if (!com.twinsoft.convertigo.eclipse.Version.productVersion.equals(com.twinsoft.convertigo.beans.Version.productVersion)) {
 			throw new Exception("The product version numbers of Eclipse Plugin and Objects libraries are differents.");
 		} else if (!com.twinsoft.convertigo.eclipse.Version.productVersion.equals(com.twinsoft.convertigo.engine.Version.productVersion)) {
 			throw new Exception("The product version numbers of Eclipse Plugin and Engine libraries are differents.");
 		}
-		
+
 		Engine.setStudioMode();
-		
+
 		plugin = this;
 		try {
 			resourceBundle = ResourceBundle.getBundle("com.twinsoft.convertigo.eclipse.ConvertigoPluginResources");
 		} catch (MissingResourceException x) {
 			resourceBundle = null;
 		}
-		
+
 		log = getLog();
 		projectManager = new ProjectManager();
 		clipboardManagerSystem = new ClipboardManager();
 		clipboardManagerDND = new ClipboardManager();
 		//learnProxy = new LearnProxy();
-		
+
 		// Create consoles
-        createConsoles();
-		
-        // Redirect stdout and stderr
+		createConsoles();
+
+		// Redirect stdout and stderr
 		System.setOut(new StdoutStream());
 		System.setErr(new StderrStream());
-				
+
 		studioLog = new Log(ConvertigoPlugin.getDefault().stdoutConsoleStream);
-		
+
 		runAtStartup(() -> {
 			studioLog = new LogWrapper(Engine.logStudio);
 		});
-		
+
 		studioLog.logLevel = Log.LOGLEVEL_DEBUG;
-		
+
 		try {
 			studioLog.logLevel = new Integer(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_LOG_LEVEL)).intValue();
 		}
@@ -753,30 +768,27 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the auto open default connector option; using default (false).");
 		}
-		
+
+		try {
+			mobileBuilderThreshold = new Integer(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MOBILE_BUILDER_THRESHOLD)).intValue();
+		}
+		catch(NumberFormatException e) {
+			studioLog.warning("Unable to retrieve the mobile builder threshold option; using default (200).");
+		}
+
 		// In STUDIO, the Convertigo User Workspace is in the current Eclipse Workspace/.metadata/.plugins/com.twinsoft.convertigo.studio
 		Engine.USER_WORKSPACE_PATH = getDefault().getStateLocation().toFile().getCanonicalPath();
 
 		// In STUDIO, the Convertigo Projects directory is the current Eclipse Workspace
 		Engine.PROJECTS_PATH = ResourcesPlugin.getWorkspace().getRoot().getRawLocation().toFile().getCanonicalPath();
-		
-//		checkPre_6_2_0_Migration();
-		
+
+		//		checkPre_6_2_0_Migration();
+
 		// Adds listeners
 		addListeners();
-		
-		DatabaseObjectsManager.openableProject = new DatabaseObjectsManager.OpenableProject() {
-			
-			@Override
-			public boolean canOpen(String projectName) {
-				if ("true".equals(ConvertigoPlugin.getProperty(PREFERENCE_ENGINE_LOAD_ALL_PROJECTS))) {
-					return true;
-				}
-				return isProjectOpened(projectName);
-			}
-			
-		};
-		
+
+		DatabaseObjectsManager.studioProjects = this;
+
 		final Exception afterPscException[] = { null };
 		final Runnable afterPscOk = new Runnable() {
 
@@ -788,7 +800,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 					Path path = new Path("tomcat");
 					URL tomcatHomeUrl = FileLocator.find(context.getBundle(), path, null);
-					
+
 					String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 					if (xulrunner_url == null || xulrunner_url.equals("")) {
 						Bundle[] bundles = Platform.getFragments(context.getBundle());
@@ -815,14 +827,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					tomcatHome = tomcatHome.substring(index);
 
 					embeddedTomcat = new EmbeddedTomcat(tomcatHome);
-					
+
 					configureDeployConfiguration();
 
 					displayWaitScreen();
 
 					new Thread(embeddedTomcat, "Embedded Tomcat").start();
 					new Thread(new Runnable() {
-						
+
 						public void run() {
 							int nbRetry = 0;
 							while (!Engine.isStartFailed && !Engine.isStarted) {
@@ -841,7 +853,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 								logError("Unable to start engine; see console for more details");
 								return;
 							}
-							
+
 							// The console threads must be started AFTER the engine
 							consolePipes.startConsoleThreads();
 
@@ -850,24 +862,24 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 							} catch (Exception e) {
 								logException(e, "Unable to migrate deployment configurations");
 							}
-							
+
 							studioLog.message("Embedded Tomcat started");
-							
+
 							for (Runnable runnable : runAtStartup) {
 								Display.getDefault().asyncExec(runnable);
 							}
 							runAtStartup.clear();
 						}
-						
+
 					}, "Wait Embedded Tomcat started").start();
-					
+
 				} catch (Exception e) {
 					afterPscException[0] = e;
 				}
 			}
-			
+
 		};
-		
+
 		try {
 			decodePsc();
 			//Engine.isStartFailed = true;
@@ -880,7 +892,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			Engine.isStartFailed = true;
 			Display display = getDisplay();
 			display.asyncExec(new Runnable() {
-				
+
 				public void run() {
 					try {
 						boolean success = SetupAction.runSetup();
@@ -895,28 +907,35 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 						studioLog.exception(t, "Failure during the Convertigo setup wizard");
 					}
 				}
-				
+
 			});
 		}
-		
-		runAtStartup(() -> {
-			for (File tpl: new File(Engine.TEMPLATES_PATH + "/project").listFiles()) {
-				try {
-					String name = tpl.getName();
-					name = name.substring(0, name.length() - 4);
-					if (name.startsWith("mobilebuilder_tpl")) {
-						if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
-							Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
-						}
-						ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
-					}
 
-				} catch (Exception e) {
-					Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
+		runAtStartup(() -> {
+			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
+			if (templates != null) {
+				for (File tpl: templates) {
+					try {
+						String name = tpl.getName();
+						name = name.substring(0, name.length() - 4);
+						if (name.startsWith("mobilebuilder_tpl")) {
+							if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
+								Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
+							}
+							ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
+						}
+
+					} catch (Exception e) {
+						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
+					}
 				}
 			}
 		});
-
+		
+		for (IEmbeddedNodejs node :TypeScriptCorePlugin.getNodejsInstallManager().getNodejsInstalls()) {
+			ProcessUtils.setNpmFolder(node.getPath().getParentFile());
+		}
+		
 		studioLog.message("Convertigo studio started");
 	}
 
@@ -924,19 +943,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private ConvertigoWindowListener windowListener = null;
 	private ConvertigoPartListener partListener = null;
 	private ConvertigoPerspectiveListener perspectiveListener = null;
-	
+
 	public void addListeners() {
 		try {
 			IWorkbench workbench = PlatformUI.getWorkbench();
-			
+
 			// Add a WorkbenchListener
 			workbenchListener = new ConvertigoWorkbenchListener();
 			workbench.addWorkbenchListener(workbenchListener);
-			
+
 			// Add a WindowListener
 			windowListener = new ConvertigoWindowListener();
 			workbench.addWindowListener(windowListener);
-			
+
 			IWorkbenchWindow activeWorkbenchWindow = workbench.getActiveWorkbenchWindow(); 
 			if (activeWorkbenchWindow != null) {
 				// Add a PerspectiveListener
@@ -951,18 +970,18 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					partService.addPartListener(partListener);
 				}
 			} 
-			
+
 		}
 		catch (IllegalStateException e) {
 			studioLog.error("Could not add listeners to plugin."+ e.getMessage());
 		}
-		
+
 	}
-	
+
 	public void earlyStartup() {
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		workbench.getDisplay().asyncExec(new Runnable() { 
-			
+
 			public void run() {
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				if (window != null) {
@@ -988,32 +1007,32 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			} 
 		});
 	}
-	
+
 	static public int getTraceplayerPort() {
-        IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-        return preferenceStore.getInt(ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT);
+		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+		return preferenceStore.getInt(ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT);
 	}
-	
+
 	static public String getLocalBuildAdditionalPath() {
-        IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-        return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH);
+		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+		return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH);
 	}
-	
+
 	static public String getLocalBuildFolder() {
-        IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-        return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER);
+		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+		return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER);
 	}
-	
+
 	static public void setLogLevel(int logLevel) {
 		studioLog.logLevel = logLevel;
 	}
-	
+
 	static public int getLogLevel() {
 		return studioLog.logLevel;
 	}
-	
+
 	private static boolean 	highlightDetectedObject;
-	
+
 	public static void setHighlightDetectedObject(boolean highlight) {
 		highlightDetectedObject = highlight;
 	}
@@ -1023,7 +1042,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	private static boolean showEnginIntoConsole;
-	
+
 	public static void setShowEngineIntoConsole(boolean show) {
 		showEnginIntoConsole = show;
 	}
@@ -1031,15 +1050,25 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static boolean getShowEngineIntoConsole() {
 		return showEnginIntoConsole;
 	}
-	
+
 	private static boolean autoOpenDefaultConnector = false;
-	
+
 	public static boolean getAutoOpenDefaultConnector() {
 		return autoOpenDefaultConnector;
 	}
 
 	public static void setAutoOpenDefaultConnector(boolean autoOpen) {
 		autoOpenDefaultConnector = autoOpen;
+	}
+
+	private static int mobileBuilderThreshold = 200;
+
+	public static int getMobileBuilderThreshold() {
+		return mobileBuilderThreshold;
+	}
+
+	public static void setMobileBuilderThreshold(int threshold) {
+		mobileBuilderThreshold = threshold;
 	}
 
 	/**
@@ -1051,13 +1080,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private void clean(BundleContext context) throws Exception {
 		if (consolePipes != null)
 			consolePipes.stopConsoleThreads();
-		
+
 		stderrConsoleStreamColor.dispose();
-		
+
 		disposeImages();
-		
-		cacheIProject.clear();
-		
+
 		// Removes listeners
 		try {
 			IWorkbench workbench = PlatformUI.getWorkbench();
@@ -1065,7 +1092,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				workbench.removeWindowListener(windowListener);
 			if (workbenchListener != null)
 				workbench.removeWorkbenchListener(workbenchListener);
-			
+
 			IWorkbenchWindow activeWorkbenchWindow = workbench.getActiveWorkbenchWindow(); 
 			if (activeWorkbenchWindow != null) {
 				if (perspectiveListener != null)
@@ -1075,22 +1102,22 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			}			
 		}
 		catch (IllegalStateException e) {}
-		
+
 		if (embeddedTomcat != null)
 			embeddedTomcat.stop();
 	}
-	
+
 	/**
 	 * This method is called when the plug-in is stopped
 	 */
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		
+
 		try {
 			clean(context);
 		}
 		catch (Exception e) {}
-		
+
 		super.stop(context);
 	}
 
@@ -1114,131 +1141,131 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 	}
 
-    private Map<String, Image> icons = new HashMap<String, Image>();
+	private Map<String, Image> icons = new HashMap<String, Image>();
 
-    public synchronized Image getIconFromPath(String iconPath, int iconKind) throws IOException {
-    	Image image = icons.get(iconPath);
-    	if (image == null) {
+	public synchronized Image getIconFromPath(String iconPath, int iconKind) throws IOException {
+		Image image = icons.get(iconPath);
+		if (image == null) {
 			Device device = getDisplay();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconPath);
 			if (inputStream != null)
 				image = new Image(device, inputStream);
 			if (image == null)
 				image = getDefaultBeanIcon(null, iconKind);
-           	icons.put(iconPath, image);
-    	}
-    	return image;
-    }
-    
-    public synchronized Image getStudioIcon(String iconPath) throws IOException {
-    	Image image = icons.get(iconPath);
-    	if (image == null) {
-    		icons.put(iconPath, image = new Image(getDisplay(), FileLocator.find(getBundle(), new Path(iconPath), null).openStream()));
-    	}
-    	return image;
-    }
-    
-    public synchronized Image getBeanIcon(DatabaseObject bean, int iconKind) throws IntrospectionException {
-        Class<? extends DatabaseObject> beanClass = bean.getClass();
-        BeanInfo bi = CachedIntrospector.getBeanInfo(beanClass);
-        return getBeanIcon(bi, iconKind);
-    }
-    
-    public synchronized Image getBeanIcon(BeanInfo bi, int iconKind) throws IntrospectionException {
-        Class<?> beanClass = bi.getBeanDescriptor().getBeanClass();
-        String beanClassName = beanClass.getName();
-        
-        Image beanIcon = icons.get(beanClassName + iconKind);
-        
-        if (beanIcon == null) {
-        	ConvertigoPlugin.studioLog.debug("Getting icon:" + beanClassName + iconKind);
+			icons.put(iconPath, image);
+		}
+		return image;
+	}
 
-        	String iconName = MySimpleBeanInfo.getIconName(bi, iconKind);
-        	if (iconName == null) {
-        		iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.png";
-        	}
-        	
+	public synchronized Image getStudioIcon(String iconPath) throws IOException {
+		Image image = icons.get(iconPath);
+		if (image == null) {
+			icons.put(iconPath, image = new Image(getDisplay(), FileLocator.find(getBundle(), new Path(iconPath), null).openStream()));
+		}
+		return image;
+	}
+
+	public synchronized Image getBeanIcon(DatabaseObject bean, int iconKind) throws IntrospectionException {
+		Class<? extends DatabaseObject> beanClass = bean.getClass();
+		BeanInfo bi = CachedIntrospector.getBeanInfo(beanClass);
+		return getBeanIcon(bi, iconKind);
+	}
+
+	public synchronized Image getBeanIcon(BeanInfo bi, int iconKind) throws IntrospectionException {
+		Class<?> beanClass = bi.getBeanDescriptor().getBeanClass();
+		String beanClassName = beanClass.getName();
+
+		Image beanIcon = icons.get(beanClassName + iconKind);
+
+		if (beanIcon == null) {
+			ConvertigoPlugin.studioLog.debug("Getting icon:" + beanClassName + iconKind);
+
+			String iconName = MySimpleBeanInfo.getIconName(bi, iconKind);
+			if (iconName == null) {
+				iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.png";
+			}
+
 			Device device = getDisplay();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
 			if (inputStream != null)
 				beanIcon = new Image(device, inputStream);
-            if (beanIcon == null)
-                beanIcon = getDefaultBeanIcon(beanClass, iconKind);
-            icons.put(beanClassName + iconKind, beanIcon);
-        }
-        
-        return beanIcon;
-    }
+			if (beanIcon == null)
+				beanIcon = getDefaultBeanIcon(beanClass, iconKind);
+			icons.put(beanClassName + iconKind, beanIcon);
+		}
 
-    private Image getDefaultBeanIcon(Class<?> beanClass, int iconKind) {
-        String iconBaseName, iconType;
-        
-        iconBaseName = "default";
-        if (beanClass != null) {
-	        if (Criteria.class.isAssignableFrom(beanClass)) {
-	            iconBaseName = "criteria";
-	        }
-	        else if (ExtractionRule.class.isAssignableFrom(beanClass)) {
-	            iconBaseName = "extractionrule";
-	        }
-	        else if (Transaction.class.isAssignableFrom(beanClass)) {
-	            iconBaseName = "transaction";
-	        }
-	        else if (BlockFactory.class.isAssignableFrom(beanClass)) {
-	            iconBaseName = "blockfactory";
-	        }
-	        else if (Project.class.isAssignableFrom(beanClass)) {
-	            iconBaseName = "project";
-	        }
-	        else if (ScreenClass.class.isAssignableFrom(beanClass)) {
-	            iconBaseName = "screenclass";
-	        }
+		return beanIcon;
+	}
+
+	private Image getDefaultBeanIcon(Class<?> beanClass, int iconKind) {
+		String iconBaseName, iconType;
+
+		iconBaseName = "default";
+		if (beanClass != null) {
+			if (Criteria.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "criteria";
+			}
+			else if (ExtractionRule.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "extractionrule";
+			}
+			else if (Transaction.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "transaction";
+			}
+			else if (BlockFactory.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "blockfactory";
+			}
+			else if (Project.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "project";
+			}
+			else if (ScreenClass.class.isAssignableFrom(beanClass)) {
+				iconBaseName = "screenclass";
+			}
 			else if (Sheet.class.isAssignableFrom(beanClass)) {
 				iconBaseName = "sheet";
 			}
 			else if (Pool.class.isAssignableFrom(beanClass)) {
 				iconBaseName = "pool";
 			}
-        }
-        
-        switch (iconKind) {
-            case java.beans.BeanInfo.ICON_COLOR_16x16:
-                iconType = "_color_16x16.png";
-                break;
-            default:
-            case java.beans.BeanInfo.ICON_COLOR_32x32:
-                iconType = "_color_32x32.png";
-                break;
-            case java.beans.BeanInfo.ICON_MONO_16x16:
-                iconType = "_mono_16x16.png";
-                break;
-            case java.beans.BeanInfo.ICON_MONO_32x32:
-                iconType = "_mono_32x32.png";
-                break;
-        }
-        
-        Image beanIcon = (Image) icons.get(iconBaseName + iconType);
-        
-        if (beanIcon == null) {
-        	ConvertigoPlugin.studioLog.debug("Getting default icon: " + iconBaseName + iconType);
-        	String iconName = "/com/twinsoft/convertigo/beans/core/images/"+ iconBaseName + iconType;
+		}
+
+		switch (iconKind) {
+		case java.beans.BeanInfo.ICON_COLOR_16x16:
+			iconType = "_color_16x16.png";
+			break;
+		default:
+		case java.beans.BeanInfo.ICON_COLOR_32x32:
+			iconType = "_color_32x32.png";
+			break;
+		case java.beans.BeanInfo.ICON_MONO_16x16:
+			iconType = "_mono_16x16.png";
+			break;
+		case java.beans.BeanInfo.ICON_MONO_32x32:
+			iconType = "_mono_32x32.png";
+			break;
+		}
+
+		Image beanIcon = (Image) icons.get(iconBaseName + iconType);
+
+		if (beanIcon == null) {
+			ConvertigoPlugin.studioLog.debug("Getting default icon: " + iconBaseName + iconType);
+			String iconName = "/com/twinsoft/convertigo/beans/core/images/"+ iconBaseName + iconType;
 			Device device = getDisplay();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
 			beanIcon = new Image(device, inputStream);
-            icons.put(iconBaseName + iconType, beanIcon);
-        }
-        
-        return beanIcon;
-    }
-    
-    private void disposeImages() {
-    	for (Image beanIcon : icons.values()) {
-            if (beanIcon != null)
-            	beanIcon.dispose();
-        }
-    	icons.clear();
-    }
-    
+			icons.put(iconBaseName + iconType, beanIcon);
+		}
+
+		return beanIcon;
+	}
+
+	private void disposeImages() {
+		for (Image beanIcon : icons.values()) {
+			if (beanIcon != null)
+				beanIcon.dispose();
+		}
+		icons.clear();
+	}
+
 	/**
 	 * Returns the plugin's resource bundle,
 	 */
@@ -1247,39 +1274,39 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	public ConsolePipes consolePipes = null;
-	
+
 	public MessageConsole engineConsole;
 	public MessageConsole stdoutConsole;
-	
+
 	public MessageConsoleStream engineConsoleStream;
 	public MessageConsoleStream stdoutConsoleStream;
 	public MessageConsoleStream stderrConsoleStream;
 	public MessageConsoleStream debugConsoleStream;
-	
+
 	private Color stderrConsoleStreamColor = new Color(null, 200, 0, 0);
-	
+
 	private static int TAB_WIDTH = 5;
 	private void createConsoles() {
 		ConsolePlugin consolePlugin = ConsolePlugin.getDefault();
 		IConsoleManager consoleManager = consolePlugin.getConsoleManager();
-		
+
 		stdoutConsole = new MessageConsole("Stdout", ImageDescriptor.createFromFile(getClass(), "/consoles/stdout.gif"));
 		stdoutConsole.setTabWidth(TAB_WIDTH);
 		stdoutConsoleStream = stdoutConsole.newMessageStream();
 		stderrConsoleStream = stdoutConsole.newMessageStream();
 		stderrConsoleStream.setColor(stderrConsoleStreamColor);
-		
+
 		engineConsole = new MessageConsole("Engine", ImageDescriptor.createFromFile(getClass(), "/consoles/engine.gif"));
 		engineConsole.setTabWidth(TAB_WIDTH);
 		engineConsoleStream = engineConsole.newMessageStream();
 
 		consoleManager.addConsoles(new IConsole[] {
-			engineConsole,
-			stdoutConsole
+				engineConsole,
+				stdoutConsole
 		});
-		
+
 		consolePipes = new ConsolePipes();
-		
+
 		debugConsoleStream = new MessageConsoleStream(engineConsole) {
 
 			@Override
@@ -1289,15 +1316,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				}
 				Engine.logStudio.info("[debug] " + str);
 			}
-			
+
 		};
 	}
-	
+
 	private IWorkbenchPage getActivePage() {
-		return PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
+		IWorkbench wb = PlatformUI.getWorkbench();
+		if (wb != null) {
+			IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+			if (win != null) {
+				IWorkbenchPage page = win.getActivePage();
+				return page;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -1353,7 +1385,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 		return referencesView;
 	}
-	
+
 	/**
 	 * Gets the source picker view.
 	 * !!MUST BE CALLED IN A UI-THREAD!!
@@ -1369,7 +1401,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 		return sourcePickerView;
 	}
-	
+
 	/**
 	 * Gets the source picker view.
 	 * !!MUST BE CALLED IN A UI-THREAD!!
@@ -1409,8 +1441,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					IEditorReference editorRef = (IEditorReference)editorRefs[i];
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof JscriptTransactionEditorInput)) {
-							if (((JscriptTransactionEditorInput)editorInput).transaction.equals(transaction)) {
+						if ((editorInput != null) && (editorInput instanceof JScriptEditorInput)) {
+							if (transaction.equals(((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject())) {
 								editorPart = editorRef.getEditor(false);
 								break;
 							}
@@ -1424,7 +1456,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 		return editorPart;
 	}
-	
+
 	public IEditorPart getApplicationComponentEditor() {
 		IEditorPart editorPart = null;
 		IWorkbenchPage activePage = getActivePage();
@@ -1446,7 +1478,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 		return editorPart;
 	}
-	
+
 	/**
 	 * Gets the editor associated with given connector.
 	 * !!MUST BE CALLED IN A UI-THREAD!!
@@ -1455,9 +1487,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public ConnectorEditor getConnectorEditor(Connector connector) {
 		ConnectorEditor connectorEditor = null;
 		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
+				.getWorkbench()
+				.getActiveWorkbenchWindow()
+				.getActivePage();
 		if (activePage != null) {
 			if (connector != null) {
 				IEditorReference[] editorRefs = activePage.getEditorReferences();
@@ -1480,7 +1512,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 		return connectorEditor;
 	}
-	
+
 	/**
 	 * Gets the property descriptor of the selected property for this databaseObjectBeanInfo 
 	 * @param databaseObjectBeanInfo : BeanInfo of the selected databaseObject in the TreeExplorerView
@@ -1488,7 +1520,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	 */
 	public PropertyDescriptor getSelectedPropertyDescriptor(BeanInfo databaseObjectBeanInfo) {
 		PropertyDescriptor propertyDescriptor = null;
-		
+
 		// gets the properties editor
 		PropertySheet view = ConvertigoPlugin.getDefault().getPropertiesView();
 		Tree tree = (Tree) view.getCurrentPage().getControl();
@@ -1496,16 +1528,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		TreeItem[] items = tree.getSelection();
 		if (items.length > 0) {
 			TreeItem selectedItem = items[0];
-		
+
 			// gets the local name of the selected property
 			String text = selectedItem.getText();
-	        
-	        // gets the PropertyDescriptors of this databaseObject
-	        PropertyDescriptor[] descriptors = databaseObjectBeanInfo.getPropertyDescriptors();
-	        
-	        String displayName = null;
+
+			// gets the PropertyDescriptors of this databaseObject
+			PropertyDescriptor[] descriptors = databaseObjectBeanInfo.getPropertyDescriptors();
+
+			String displayName = null;
 			int i = 0;
-			
+
 			// gets the PropertyDescriptor of the selected property 
 			while (i < descriptors.length && propertyDescriptor == null) {
 				displayName = descriptors[i].getDisplayName();
@@ -1516,118 +1548,111 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}	
 		return propertyDescriptor;
 	}
-	
+
 	public IProject createProjectPluginResource(String projectName) throws CoreException {
-		return createProjectPluginResource(projectName, null);
+		return createProjectPluginResource(projectName, null, null);
 	}
-	
-	public boolean isProjectOpened(String projectName) {
-		boolean isOpen = false;
+
+	public IProject createProjectPluginResource(String projectName, String projectDir) throws CoreException {
+		return createProjectPluginResource(projectName, projectDir, null);
+	}
+
+	public IProject createProjectPluginResource(String projectName, String projectDir, IProgressMonitor monitor) throws CoreException {
+		IProject resourceProject;
+		StringBuilder sb = new StringBuilder();
 		try {
+			sb.append("createProjectPluginResource for projet '" + projectName + "'");
+			if (projectDir != null) {
+				sb.append(" from: " + projectDir);
+			}
+			
 			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-			IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-			if (resourceProject != null) {
-				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
-					resourceProject = createProjectPluginResource(projectName, null);
-				}
-				isOpen = resourceProject.isOpen();
-			}
-		} catch (Exception e) {
-			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
-		}
-		return isOpen;
-	}
+			resourceProject = myWorkspaceRoot.getProject(projectName);
 	
-	public IProject createProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
-		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
-		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-		
-		if (!resourceProject.exists()) {		
-			if(myWorkspaceRoot.getLocation().toFile().equals(new Path(Engine.PROJECTS_PATH).toFile())){
-				logDebug("createProjectPluginResource : project is in the workspace folder");
-				
-				resourceProject.create(monitor);
-			}else{
-				logDebug("createProjectPluginResource: project isn't in the workspace folder");
-		
-				IPath projectPath = new Path(Engine.PROJECTS_PATH + "/" + projectName).makeAbsolute();
-				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
-				description.setLocation(projectPath);
-				resourceProject.create(description, monitor);
+			if (!resourceProject.exists()) {
+				if (projectDir == null) {
+					sb.append(" in the workspace folder.");
+					resourceProject.create(monitor);
+				} else {
+					sb.append(" isn't in the workspace folder.");				
+					IPath projectPath = new Path(projectDir).makeAbsolute();
+					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
+					description.setLocation(projectPath);
+					resourceProject.create(description, monitor);
+					resourceProject.open(monitor);
+				}
+			} else {
+				sb = null;
+			}
+		} finally {
+			if (sb != null) {
+				logInfo(sb.toString());
 			}
 		}
-		
 		return resourceProject;
 	}
 
 	public IProject getProjectPluginResource(String projectName) throws CoreException {
 		return getProjectPluginResource(projectName, null);
 	}
-	
-	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
-		if (cacheIProject.containsKey(projectName)) return (IProject)cacheIProject.get(projectName);
-		
+
+	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {		
 		IProject resourceProject = createProjectPluginResource(projectName);
 		if (resourceProject.exists()) {
-			resourceProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);			
-			if (!resourceProject.isOpen())
+			if (!resourceProject.isOpen()) {
 				resourceProject.open(monitor);
+			}
 		}
-		cacheIProject.put(projectName, resourceProject);
-		
 		return resourceProject;
 	}
-	
+
 	public void moveProjectPluginResource(String projectName, String newName) throws CoreException {
-		cacheIProject.remove(projectName);
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-		
 		if (resourceProject.exists()) {
-			IPath newProjectPath = new Path(Engine.PROJECTS_PATH + "/" + newName).makeAbsolute();
-        	IProjectDescription description = myWorkspace.newProjectDescription(newName);
+			File dir = new File(resourceProject.getLocation().toOSString());
+			dir = new File(dir.getParentFile(), newName);
+			IPath newProjectPath = new Path(dir.getAbsolutePath()).makeAbsolute();
+			IProjectDescription description = myWorkspace.newProjectDescription(newName);
 			description.setLocation(newProjectPath);
-        	resourceProject.move(description, false, null);
+			resourceProject.move(description, false, null);
 		}
 	}
 
 	public void closeProjectPluginResource(String projectName) throws CoreException {
-		cacheIProject.remove(projectName);
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-		
+
 		if (resourceProject.exists()) {
-        	resourceProject.close(null);
+			resourceProject.close(null);
 		}
 	}
 
 	public void deleteProjectPluginResource(String projectName) throws CoreException {
 		deleteProjectPluginResource(true, projectName);
 	}
-	
+
 	public void deleteProjectPluginResource(boolean deleteContent, String projectName) throws CoreException {
-		cacheIProject.remove(projectName);
 		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 		IProject resourceProject = myWorkspaceRoot.getProject(projectName);
-		
+
 		if (resourceProject.exists()) {
-        	resourceProject.delete(deleteContent, false, null);
+			resourceProject.delete(deleteContent, false, null);
 		}
 	}
-	
+
 	public void setShuttingDown(boolean b) {
 		this.shuttingDown = b;
 	}
-	
+
 	public boolean isShuttingDown() {
 		return this.shuttingDown;
 	}
-	
+
 	public void runRequestable(final String projectName, final Map<String, String[]> parameters) {
 		if (!Engine.isStartFailed && Engine.isStarted) {
 			parameters.put(Parameter.Project.getName(), new String[] {projectName});
@@ -1637,33 +1662,35 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				public void run() {
 					try {
 						InternalHttpServletRequest request;
-						if (session == null) {
+						if (session == null || session.getMaxInactiveInterval() <= 1) {
 							request = new InternalHttpServletRequest();
-							session = request.getSession();
+							session = request.getSession("studio");
 						} else {
 							request = new InternalHttpServletRequest(session);
 						}
-						
-						new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request).processRequest();
+
+						InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);
+						HttpSessionListener.checkSession(requester.getHttpServletRequest());
+						requester.processRequest();
 					} catch (Exception e) {
 						logException(e, "Failed to run the requestable of project " + projectName);
 					}
 				}
-	        	
-	        }).start();
+
+			}).start();
 		} else {
 			logInfo("Cannot run the requestable of project " + projectName + ", the embedded tomcat is not correctly started.");
 		}
 	}
-	
+
 	public EmbeddedTomcat getEmbeddedTomcat() {
 		return embeddedTomcat;
 	}
-	
+
 	static private Properties decodePsc() throws PscException {
 		return decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
 	}
-	
+
 	static public Properties decodePscFromWorkspace(String convertigoWorkspace) throws PscException {
 		File pscFile = new File(convertigoWorkspace, "studio/psc.txt");
 		if (pscFile.exists()) {
@@ -1677,7 +1704,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			throw new PscException("Invalid PSC (the file '" + pscFile.getAbsolutePath() + "' doesn't exist)!");
 		}
 	}
-	
+
 	static public Properties decodePsc(String psc)  throws PscException {
 		if (psc.length() == 0) {
 			throw new PscException("Invalid PSC (empty)!");
@@ -1691,7 +1718,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				} else if (!decipheredPSC.startsWith("# PSC file")) {
 					throw new PscException("Invalid PSC (wrong format)!");
 				} else {
-					
+
 					try {
 						properties.load(new StringReader(decipheredPSC));
 					} catch (IOException e) {
@@ -1701,29 +1728,29 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			} catch (PscException e) {
 				try {
 					String decipheredPSC = SimpleCipher.decode(psc);
-					
+
 					properties.load(new StringReader(decipheredPSC));
-					
+
 					String server = properties.getProperty("server");
 					String user = properties.getProperty("admin.user");
 					String password = properties.getProperty("admin.password");
-					
+
 					if (server == null && user == null && password == null) {
 						throw e;
 					}
-					
+
 					if (server == null || user == null || password == null) {
 						throw new PscException("Invalid PSC (incomplet data)!");
 					}
-					
+
 					if (!user.equals(SimpleCipher.decode(password))) {
 						throw new PscException("Invalid PSC (altered data)");
 					}
-					
+
 					boolean bHttps = Boolean.parseBoolean(properties.getProperty("https"));
-					
+
 					properties.clear();
-					
+
 					DeploymentKey.adminUser.setValue(properties, 1, user);
 					DeploymentKey.adminPassword.setValue(properties, 1, password);
 					DeploymentKey.server.setValue(properties, 1, server);
@@ -1750,17 +1777,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					}
 				}
 			}
-			
+
 			return properties;
 		}
 	}
-	
+
 	static public String makeAnonymousPsc() throws IOException {
 		Properties properties = new Properties();
 		String anonEmail = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) +
 				Long.toString(Math.round(Math.random()) % Character.MAX_RADIX, Character.MAX_RADIX) +
 				"@anonym.ous";
-		
+
 		DeploymentKey.adminUser.setValue(properties, 1, anonEmail);
 		DeploymentKey.adminPassword.setValue(properties, 1, "");
 		DeploymentKey.server.setValue(properties, 1, "");
@@ -1771,13 +1798,95 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 		return psc;
 	}
-	
+
 	static public void runAtStartup(Runnable runnable) {
 		if (Engine.isStarted) {
 			runnable.run();
 		} else {
 			plugin.runAtStartup.add(runnable);
 		}
-		
+
+	}
+
+	private IProject getIProject(String projectName) {
+		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+		return myWorkspaceRoot.getProject(projectName);
+	}
+
+	private File getProjectFile(IProject iProject) {
+		File file = null;
+		if (iProject != null) {
+			String name = iProject.getName();
+			IPath iPath = iProject.getLocation();
+			if (iPath != null) {
+				String sPath = iPath.toOSString();
+				File folder = file = new File(sPath);
+				file = new File(folder, "c8oProject.yaml");
+				if (!file.exists()) {
+					file = new File(folder, name + ".xml");
+				}
+			}
+		}
+		return file;
+	}
+
+	@Override
+	public File getProject(String projectName) {
+		IProject iProject = getIProject(projectName);
+		return getProjectFile(iProject);
+	}
+
+	public boolean isProjectOpened(String projectName) {
+		boolean isOpen = false;
+		try {
+			IProject iProject = getIProject(projectName);
+			if (iProject != null) {
+				//				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+				//					resourceProject = createProjectPluginResource(projectName, null);
+				//				}
+				isOpen = iProject.isOpen();
+			}
+		} catch (Exception e) {
+			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
+		}
+		return isOpen;
+	}
+
+	@Override
+	public void declareProject(String projectName, File projectFile) {
+		if (projectFile != null && projectFile.exists()) {
+			try {
+				createProjectPluginResource(projectName, projectFile.getParentFile().getAbsolutePath());
+			} catch (CoreException e) {
+				ConvertigoPlugin.logException(e, "Failed to declare the project from " + projectFile.getAbsolutePath());
+			}
+		}
+	}
+
+	@Override
+	public boolean canOpen(String projectName) {
+		if ("true".equals(ConvertigoPlugin.getProperty(PREFERENCE_ENGINE_LOAD_ALL_PROJECTS))) {
+			return true;
+		}
+		return isProjectOpened(projectName);
+	}
+
+	@Override
+	public Map<String, File> getProjects(boolean checkOpenable) {
+		IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
+		IProject[] iProjects = myWorkspaceRoot.getProjects();
+		Map<String, File> projects = new HashMap<>(iProjects.length);
+		checkOpenable &= !"true".equals(ConvertigoPlugin.getProperty(PREFERENCE_ENGINE_LOAD_ALL_PROJECTS));
+		for (IProject iProject: iProjects) {
+			if (!checkOpenable || iProject.isOpen()) {
+				File file = getProjectFile(iProject);
+				if (file != null && file.exists()) {
+					projects.put(iProject.getName(), file);
+				}
+			}
+		}
+		return projects;
 	}
 }

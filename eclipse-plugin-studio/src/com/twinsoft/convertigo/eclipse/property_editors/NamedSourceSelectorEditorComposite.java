@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -54,8 +54,10 @@ import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
@@ -137,7 +139,8 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 				if (object instanceof DatabaseObject) {
 					DatabaseObject dbo = (DatabaseObject)object;
 					
-					TVObject tvObject = add(new TVObject(dbo.getName(), dbo.toString(), isSelectable(dbo)));
+					boolean isSelectable = isSelectable(dbo);
+					TVObject tvObject = add(new TVObject(dbo.getName(), dbo.toString(), isSelectable));
 					
 					if (object instanceof Project) {
 						MobileApplication mba = ((Project)object).getMobileApplication();
@@ -163,6 +166,12 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						}
 						for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
 							tvObject.addObject(page);
+						}
+						for (UIActionStack uisa: ((ApplicationComponent)object).getSharedActionList()) {
+							tvObject.addObject(uisa);
+						}
+						for (UISharedComponent uisc: ((ApplicationComponent)object).getSharedComponentList()) {
+							tvObject.addObject(uisc);
 						}
 					}
 					else if (object instanceof UIDynamicMenu) {
@@ -204,7 +213,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						if (object instanceof DesignDocument) {
 							JSONObject json = ((DesignDocument)object).getJSONObject();
 							DatabaseObject dboo = dboto.getObject();
-							if (dboo instanceof AbstractFullSyncViewListener || dboo instanceof UIDynamicAction) {
+							if (dboo instanceof AbstractFullSyncViewListener || dboo instanceof UIDynamicElement) {
 								JSONObject views = CouchKey.views.JSONObject(json);
 								if (views != null) {
 									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {

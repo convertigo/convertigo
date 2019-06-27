@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -64,6 +64,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.CustomController;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -71,6 +72,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
 import com.twinsoft.convertigo.engine.JobManager;
 import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -99,7 +101,14 @@ public abstract class GenericRequester extends Requester {
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
 		
-		if ( context.getAuthenticatedUser() != null ) {
+		if (context.httpSession != null) {
+			Object controller = context.httpSession.getAttribute("customController");
+			if (controller != null && controller instanceof CustomController) {
+				((CustomController)controller).checkAuthenticatedContext(context);
+			}
+		}
+		
+		if (context.getAuthenticatedUser() != null) {
 			Engine.logContext.debug("The context is authenticated via the HTTP session");
 		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
@@ -205,6 +214,7 @@ public abstract class GenericRequester extends Requester {
 
 		Object result = null;
 		boolean needRetry;
+		boolean addStatistics = false;
 
     	try {
     		do {
@@ -234,6 +244,7 @@ public abstract class GenericRequester extends Requester {
 					Log4jHelper.mdcPut(mdcKeys.UID, Long.toHexString(uniqueRequestID));
 					Log4jHelper.mdcPut(mdcKeys.ContextID, context.contextID);
 					Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
+					Log4jHelper.mdcPut(mdcKeys.ClientIP, context.remoteAddr);
 					
 					if (inputData instanceof HttpServletRequest) {
 						HttpServletRequest request = (HttpServletRequest) inputData;
@@ -279,6 +290,9 @@ public abstract class GenericRequester extends Requester {
 		    				Engine.logContext.trace("Bugfix #853, #2254");
 		    				Engine.logContext.trace("context=" + context);
 	    					Engine.logContext.trace("Removing request and session objects from the context");
+	    					if (context.requestedObject != null) {
+	    						addStatistics = context.requestedObject.getAddStatistics();
+	    					}
 	    					context.clearRequest();
 	    				}
 		            }
@@ -302,9 +316,13 @@ public abstract class GenericRequester extends Requester {
     				result = addStatisticsAsText(stats, result);
     			}
     			
-    			// Requestable data statistics
-    			addStatisticsAsData(result);
-    			
+    			if (addStatistics) {
+    				// Requestable data statistics
+    				addStatisticsAsData(result);
+    			}
+    			if (result instanceof Document) {
+    				Engine.theApp.fireDocumentGenerated(new RequestableEngineEvent((Document) result, context.projectName, context.sequenceName, context.connectorName));
+    			}
     			context.waitingRequests--;
         		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
     		}
@@ -351,10 +369,10 @@ public abstract class GenericRequester extends Requester {
 		if (context.httpSession != null) {
 			synchronized (context.httpSession) {
 				try {
-					ArrayList<Context> contextList = GenericUtils.cast(context.httpSession.getAttribute("contexts"));
+					ArrayList<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(context.httpSession));
 					if (contextList == null)
 						contextList = new ArrayList<Context>();
-						context.httpSession.setAttribute("contexts", contextList);
+						SessionAttribute.contexts.set(context.httpSession, contextList);
 					if (!contextList.contains(context)) {
 						contextList.add(context);
 						Engine.logContext.debug("(ServletRequester) context " + context.contextID + " has been added to http session's context list");
@@ -387,7 +405,7 @@ public abstract class GenericRequester extends Requester {
 		else if (parameterName.equals(Parameter.Sequence.getName())) {
 			if ((parameterValue != null) && (!parameterValue.equals(""))) {
 				if (!parameterValue.equals(context.sequenceName)) {
-					context.isNewSession = true;
+//					context.isNewSession = true;
 					context.sequenceName = parameterValue;
 					Engine.logContext.debug("The sequence is overridden to \"" + context.sequenceName + "\".");
 				}
@@ -646,13 +664,13 @@ public abstract class GenericRequester extends Requester {
 		            String localeExtension = "";
 		            if (Locale.getDefault().toString().startsWith("fr")) localeExtension = "_fr";
 		    		
-		        	errorXsl = Engine.PROJECTS_PATH + "/" + context.projectName + "/error" + localeExtension +".xsl";
+		        	errorXsl = context.getProjectDirectory() + "/error" + localeExtension +".xsl";
 		        	context.sheetUrl = "error" + localeExtension +".xsl";
 		        	
 		        	file = new File(errorXsl);
 		        	if (!file.exists()) {
 			        	Engine.logContext.debug("File " + errorXsl + " not found");
-		    	    	errorXsl = Engine.PROJECTS_PATH + "/" + context.projectName + "/error.xsl";
+		    	    	errorXsl = context.getProjectDirectory() + "/error.xsl";
 			        	context.sheetUrl = "error.xsl";
 		    	    	file = new File(errorXsl);
 		    	    	if (!file.exists()) {
@@ -780,13 +798,11 @@ public abstract class GenericRequester extends Requester {
 					Engine.logContext.debug("Storing found sheet into the execution context (__currentSheet)");
 					context.sheetUrl = sheet.getUrl();
 				}
-
-				String projectDirectoryName = context.project.getName();
-
+				
 				Engine.logContext.debug("Using XSL data from \"" + context.sheetUrl + "\"");
 
 				// Search relatively to the Convertigo servlet application base directory
-				context.absoluteSheetUrl = Engine.PROJECTS_PATH + "/" + projectDirectoryName + "/" + (context.subPath.length() > 0 ? context.subPath + "/" : "") + context.sheetUrl;
+				context.absoluteSheetUrl = context.getProjectDirectory() + "/" + (context.subPath.length() > 0 ? context.subPath + "/" : "") + context.sheetUrl;
 				Engine.logContext.debug("Url: " + context.absoluteSheetUrl);
 				File xslFile =  new File(context.absoluteSheetUrl);
 				if (!xslFile.exists()) {
@@ -909,7 +925,7 @@ public abstract class GenericRequester extends Requester {
 
                         //String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc/";
                         //transletOutput = new File(transletOutput).toURI().toASCIIString();
-                        String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc";
+                        String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : context.getProjectDirectory()) + "/_private/xsltc";
                         transletOutput = new File(transletOutput).getCanonicalPath();
                         tFactory.setAttribute("destination-directory", transletOutput);
                         Engine.logContext.debug("Translet output: " + transletOutput);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -44,11 +44,16 @@ public class MigrationJob extends Thread {
 		Engine.logEngine.trace("MigrationJob for project \"" + projectName + "\" started.");
 		try {
 			// Migrates project
-			File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
-			if (projectDir.exists())
-				Engine.theApp.databaseObjectsManager.updateProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
-			else
-				Engine.theApp.databaseObjectsManager.updateProject(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+			File projectDir = new File(Engine.projectDir(projectName));
+			if (projectDir.exists()) {
+				File toLoad = new File(projectDir, "c8oProject.yaml");
+				if (!toLoad.exists()) {
+					toLoad = new File(projectDir, projectName + ".xml");
+				}
+				Engine.theApp.databaseObjectsManager.updateProject(toLoad);
+			} else {
+				Engine.theApp.databaseObjectsManager.updateProject(new File(Engine.PROJECTS_PATH, projectName + ".car"));
+			}
 			
 			// Migration 3.0.0 specifics
 			Migration3_0_0.projectRenameFilesWithDollarSign(projectDir);

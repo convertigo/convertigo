@@ -1,0 +1,146 @@
+↑isRoot: true
+comment: My First Page as root page
+scriptContent: 
+  - xmlizable: 
+    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+      →: |
+        /*Begin_c8o_PageImport*/
+        /*End_c8o_PageImport*/
+        /*Begin_c8o_PageDeclaration*/
+        	/*End_c8o_PageDeclaration*/
+        /*Begin_c8o_PageConstructor*/
+        		/*End_c8o_PageConstructor*/
+        /*Begin_c8o_PageFunction*/
+        	/*End_c8o_PageFunction*/
+        
+segment: Page
+title: First page
+↓Header [mobile.components.UIDynamicElement-1491634212350]: 
+  beanData: '{"ionBean":"Header"}'
+  comment: Page header
+  tagName: ion-header
+  ↓NavBar [mobile.components.UIDynamicElement-1491634231108]: 
+    beanData: '{"ionBean":"NavBar"}'
+    tagName: ion-navbar
+    ↓BarTitle [mobile.components.UIDynamicElement-1491634265317]: 
+      beanData: '{"ionBean":"BarTitle"}'
+      tagName: ion-title
+      ↓Text [mobile.components.UIText-1491634275121]: 
+        textValue: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+            - MobileSmartSourceType: plain:Hello World
+    ↓Button [mobile.components.UIDynamicElement-1491634442029]: 
+      beanData: |
+        '{
+         "ionBean": "Button",
+         "ButtonFormType": "plain:false",
+         "MenuMode": "plain:menuToggle"
+        }'
+      comment: A button to toggle the menu
+      tagName: button
+      ↓Icon [mobile.components.UIDynamicElement-1491634475867]: 
+        beanData: '{"ionBean":"Icon","IconName":"plain:menu"}'
+        tagName: ion-icon
+    ↓ButtonSet [mobile.components.UIDynamicElement-1491634611427]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
+      tagName: ion-buttons
+      ↓Button [mobile.components.UIDynamicElement-1491634621907]: 
+        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        tagName: button
+        ↓Icon [mobile.components.UIDynamicElement-1491634637555]: 
+          beanData: '{"ionBean":"Icon","IconName":"plain:more"}'
+          tagName: ion-icon
+↓Content [mobile.components.UIDynamicElement-1489674805352]: 
+  beanData: '{"ionBean":"Content"}'
+  comment: Page content
+  tagName: ion-content
+  ↓H1 [mobile.components.UIDynamicElement-1514310804865]: 
+    beanData: '{"ionBean":"Heading1"}'
+    tagName: h1
+    ↓Text [mobile.components.UIText-1514310812815]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:CNN Demo
+  ↓Button [mobile.components.UIDynamicElement-1514310909287]: 
+    beanData: |
+      '{
+       "ionBean": "Button",
+       "ButtonFormType": "plain:false",
+       "IonShape": "plain:full"
+      }'
+    tagName: button
+    ↓Text [mobile.components.UIText-1514310920028]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Read feed data
+    ↓Event [mobile.components.UIControlEvent-1514310966235]: 
+      comment: Use onTap preferably to onClick
+      ↓CallSequence [mobile.components.UIDynamicAction-1514381726265]: 
+        beanData: '{"ionBean":"CallSequenceAction","requestable":"plain:sample_HelloWorld.GetCNNFeed"}'
+  ↓ListContainer [mobile.components.UIDynamicElement-1514381665124]: 
+    beanData: '{"ionBean":"List"}'
+    tagName: ion-list
+    ↓Directive1 [mobile.components.UIControlDirective-1514539687603]: 
+      directiveSource: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: source:{"filter":"Sequence","project":"sample_HelloWorld","input":"listen(['sample_HelloWorld.GetCNNFeed'])?.news"}
+      ↓GenericItem [mobile.components.UIDynamicElement-1514381673163]: 
+        beanData: '{"ionBean":"ListItem"}'
+        tagName: ion-item
+        ↓Image [mobile.components.UIDynamicElement-1514381931907]: 
+          beanData: '{"ionBean":"Image","url":"source:{\"filter\":\"Iteration\",\"project\":\"HelloWorld\",\"input\":\"item1514539687603?.imageUrl\"}"}'
+          selfClose: true
+          tagName: img
+        ↓TextFormat [mobile.components.UIDynamicElement-1514381884664]: 
+          beanData: '{"ionBean":"TextFormat","TextWrap":"plain:text-wrap"}'
+          tagName: div
+          ↓H1 [mobile.components.UIDynamicElement-1514381799636]: 
+            beanData: '{"ionBean":"Heading1"}'
+            tagName: h1
+            ↓Text [mobile.components.UIText-1514381805734]: 
+              textValue: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                  - MobileSmartSourceType: source:{"filter":"Iteration","project":"HelloWorld","input":"item1514539687603?.title"}
+          ↓Paragraph [mobile.components.UIDynamicElement-1514381816549]: 
+            beanData: '{"ionBean":"Paragraph"}'
+            tagName: p
+            ↓Text [mobile.components.UIText-1514381821650]: 
+              textValue: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                  - MobileSmartSourceType: source:{"filter":"Iteration","project":"HelloWorld","input":"item1514539687603?.description"}
+↓Footer [mobile.components.UIDynamicElement-1491634242460]: 
+  beanData: '{"ionBean":"Footer"}'
+  comment: Page footer
+  tagName: ion-footer
+  ↓ToolBar [mobile.components.UIDynamicElement-1491634317538]: 
+    beanData: '{"ionBean":"ToolBar"}'
+    tagName: ion-toolbar
+    ↓ButtonSet [mobile.components.UIDynamicElement-1491634325595]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:left"}'
+      tagName: ion-buttons
+      ↓Button [mobile.components.UIDynamicElement-1491634332730]: 
+        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        tagName: button
+        ↓Text [mobile.components.UIText-1491634340354]: 
+          textValue: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+              - MobileSmartSourceType: plain:Action 1
+    ↓ButtonSet1 [mobile.components.UIDynamicElement-1491634373539]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
+      tagName: ion-buttons
+      ↓Button [mobile.components.UIDynamicElement-1491634376874]: 
+        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        tagName: button
+        ↓Text [mobile.components.UIText-1491634383107]: 
+          textValue: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+              - MobileSmartSourceType: plain:Action 2

@@ -52,7 +52,7 @@
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName": "FingerprintAIO",
     "label": "Fingerprint AIO",
-    "description": "Defines a <i>Fingerprint AIO</i> action component. | Use simple fingerprint authentication.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/fingerprint-aio/'>Fingerprint AIO</a>",
+    "description": "Defines a <i>Fingerprint AIO</i> action component. | Use simple fingerprint authentication.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/v3/native/fingerprint-aio/'>Fingerprint AIO</a>",
     "group": "Native Actions",
       "icon16": "fingerprintaction_color_16x16.png",
       "icon32": "fingerprintaction_color_32x32.png",

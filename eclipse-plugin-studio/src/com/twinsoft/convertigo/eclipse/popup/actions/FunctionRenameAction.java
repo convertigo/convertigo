@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFilterTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentUpdateTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentValidateTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class FunctionRenameAction extends TreeObjectRenameAction {
@@ -38,8 +39,9 @@ public class FunctionRenameAction extends TreeObjectRenameAction {
 		super.selectionChanged(action, selection);
 		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-		action.setEnabled(treeObject instanceof DesignDocumentFilterTreeObject ||
-				treeObject instanceof DesignDocumentUpdateTreeObject);
+		action.setEnabled(!(treeObject instanceof DesignDocumentValidateTreeObject) && 
+				(treeObject instanceof DesignDocumentFilterTreeObject ||
+				treeObject instanceof DesignDocumentUpdateTreeObject));
 	}
 		
 }

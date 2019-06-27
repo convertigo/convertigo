@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,7 +37,6 @@ import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
-import com.twinsoft.tas.TASException;
 
 public abstract class ServletRequester extends GenericRequester {
 	
@@ -196,7 +195,6 @@ public abstract class ServletRequester extends GenericRequester {
 			if (context.project != null && context.project.getName().equals(context.projectName)) {
 				String defaultConnectorName = context.project.getDefaultConnector().getName();
 				if (!defaultConnectorName.equals(context.connectorName)) {
-					context.isNewSession = true;
 					context.connectorName = defaultConnectorName;
 				}
 			}
@@ -249,9 +247,8 @@ public abstract class ServletRequester extends GenericRequester {
 
 		try {
 			HttpSessionListener.checkSession(request);
-		} catch (TASException e) {
-			HttpUtils.terminateSession(request.getSession());
-			throw new RuntimeException(e);
+		} catch (Throwable e) {
+			throw new EngineException(e.getMessage(), e);
 		}
 	}
 }

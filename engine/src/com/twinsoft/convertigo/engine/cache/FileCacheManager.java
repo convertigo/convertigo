@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -31,21 +31,70 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class FileCacheManager extends MemoryCacheManager {
-	
+
 	public FileCacheManager() {
 		Engine.logCacheManager.debug("Using a file cache manager: " + Engine.CACHE_PATH);
 	}
-	
+
 	private static final String KEY_INDEX = "Convertigo.FileCacheManager: index";
-	
+
+	@Override
+	public void init() throws EngineException {
+		File cacheDir = new File(EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY));
+		try {
+			if (cacheDir.exists() && !cacheDir.isDirectory()) {
+				Engine.logEngine.error("(FileCacheManager) The 'file cache directory' must be a directory : " + cacheDir);
+			} else {
+				cacheDir.mkdirs();
+				File testWrite = new File(cacheDir, ".testWrite");
+				if (testWrite.createNewFile()) {
+					testWrite.delete();
+					Engine.CACHE_PATH = cacheDir.getCanonicalPath();
+				} else {
+					Engine.logEngine.error("(FileCacheManager) Failed to write to : " + testWrite);
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("(FileCacheManager) Failed to write to : " + cacheDir, e);
+		}
+		super.init();
+	}
+
+	@Override
+	public void destroy() throws EngineException {
+		super.destroy();
+	}
+
+	@Override
+	public void onEvent(PropertyChangeEvent event) {
+		super.onEvent(event);
+		PropertyName name = event.getKey();
+		String cacheDir = EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY);
+		if (!cacheDir.equals(Engine.CACHE_PATH) && name.equals(PropertyName.CACHE_MANAGER_FILECACHE_DIRECTORY)) {
+			try {
+				destroy();
+			} catch(EngineException e) {
+				Engine.logEngine.error("Error on FileCacheManager.destroy", e);
+			}
+			try {
+				init();
+			} catch(EngineException e) {
+				Engine.logEngine.error("Error on FileCacheManager.init", e);
+			}
+		}
+	}
+
 	protected long getNextIndex() {
 		long index = 1;
-		
+
 		try {
 			CacheEntry cacheEntryIndex = cacheIndex.get(FileCacheManager.KEY_INDEX);
 
@@ -61,7 +110,7 @@ public class FileCacheManager extends MemoryCacheManager {
 		cacheEntryNewIndex.requestString = FileCacheManager.KEY_INDEX;
 		cacheEntryNewIndex.expiryDate = -(index + 1);
 		cacheIndex.put(FileCacheManager.KEY_INDEX, cacheEntryNewIndex);
-			
+
 		return index;
 	}
 
@@ -71,17 +120,17 @@ public class FileCacheManager extends MemoryCacheManager {
 			dir.mkdirs();
 		}
 	}
-	
+
 	protected synchronized CacheEntry storeResponseToRepository(Document response, String requestString, long expiryDate) throws EngineException {
 		long index = getNextIndex();
-		
+
 		String fileName = Engine.CACHE_PATH + "/" + Long.toHexString(index) + ".xml";
 
 		try {
 			makeDirectory();
 
 			XMLUtils.saveXml(response, fileName, true);
-			
+
 			FileCacheEntry cacheEntry = new FileCacheEntry();
 			cacheEntry.requestString = requestString;
 			cacheEntry.fileName = fileName;
@@ -103,11 +152,11 @@ public class FileCacheManager extends MemoryCacheManager {
 
 		try {
 			File file = new File(fileCacheEntry.fileName);
-			
+
 			Document document = XMLUtils.parseDOM(file);
 
 			Engine.logCacheManager.debug("Response built from the cache");
-			
+
 			return document;
 		}
 		catch(FileNotFoundException e) {
@@ -121,10 +170,10 @@ public class FileCacheManager extends MemoryCacheManager {
 
 	protected synchronized void removeStoredResponseImpl(CacheEntry cacheEntry) throws EngineException {
 		FileCacheEntry fileCacheEntry = (FileCacheEntry) cacheEntry;
-		
+
 		// Cache entry for index? Then ignore
 		if (cacheEntry.requestString == null) return;
-		
+
 		File file = new File(fileCacheEntry.fileName);
 		if ((file.exists()) && (!file.delete())) {
 			throw new EngineException("Unable to remove the cache entry [" + cacheEntry.toString() + "] from the cache!");
@@ -144,12 +193,12 @@ public class FileCacheManager extends MemoryCacheManager {
 			if (file.exists()) {
 				indexFileName = Engine.CACHE_PATH + "/index.sav";
 			}
-			
-			ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(indexFileName));
+
+			try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(indexFileName))) {;
 			Object serializedCacheIndex = objectInputStream.readObject();
 			if (serializedCacheIndex != null) cacheIndex = GenericUtils.cast(serializedCacheIndex); 
-			objectInputStream.close();
-			
+			}
+
 			Engine.logCacheManager.debug("The cache index has been reloaded; index=" + cacheIndex.get("index"));
 		}
 		catch(Exception e) {
@@ -166,33 +215,33 @@ public class FileCacheManager extends MemoryCacheManager {
 			backupFile = new File(Engine.CACHE_PATH + "/index.sav");
 			if (backupFile.exists()) {
 				if (!backupFile.delete()) {
-					throw new EngineException("Unable to delete the backup cache index file.");
+					Engine.logCacheManager.warn("Unable to delete the backup cache index file: " + backupFile);
 				}
 			}
 			if (!file.renameTo(backupFile)) {
-				throw new EngineException("Unable to backup the cache index.");
+				Engine.logCacheManager.warn("Unable to backup the cache index: " + file + " to " + backupFile);
 			} 
 		}
-			
+
 		try {
 			makeDirectory();
 
-			ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(indexFileName));
-			objectOutputStream.writeObject(cacheIndex);
-			objectOutputStream.flush();
-			objectOutputStream.close();
+			try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(indexFileName))) {
+				objectOutputStream.writeObject(cacheIndex);
+				objectOutputStream.flush();
+			}
 		}
 		catch(Exception e) {
 			throw new EngineException("Unable to save the cache index.", e);
 		}
-		
+
 		if (backupFile != null) {
 			if (!backupFile.delete()) {
-				throw new EngineException("Unable to delete the backup cache index file.");
+				Engine.logCacheManager.warn("Unable to delete the backup cache index file.");
 			}
 		}
 	}
-	
+
 	public void garbageCollectCacheRepository() throws EngineException {
 		// Do nothing for the moment
 	}

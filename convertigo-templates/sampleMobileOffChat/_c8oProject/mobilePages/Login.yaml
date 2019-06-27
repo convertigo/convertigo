@@ -1,0 +1,309 @@
+↑isRoot: true
+scriptContent: 
+  - xmlizable: 
+    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+      →: |
+        '/*Begin_c8o_PageImport*/
+        /*End_c8o_PageImport*/
+        /*Begin_c8o_PageDeclaration*/
+        	public window: any;
+        	/*End_c8o_PageDeclaration*/
+        /*Begin_c8o_PageConstructor*/
+        		this.window = window;
+        		/*End_c8o_PageConstructor*/
+        /*Begin_c8o_PageFunction*/
+        	/*End_c8o_PageFunction*/
+        '
+segment: Login
+title: Title for Login
+↓Header [mobile.components.UIDynamicElement-1517567290269]: 
+  beanData: '{"ionBean":"Header"}'
+  tagName: ion-header
+  ↓NavBar [mobile.components.UIDynamicElement-1517590376644]: 
+    beanData: '{"ionBean":"NavBar","IonColor":"plain:primary"}'
+    tagName: ion-navbar
+    ↓BarTitle [mobile.components.UIDynamicElement-1517567324784]: 
+      beanData: '{"ionBean":"BarTitle"}'
+      tagName: ion-title
+      ↓Center [mobile.components.UIDynamicElement-1517567363505]: 
+        beanData: '{"ionBean":"TextFormat","TextCenter":"plain:text-center"}'
+        tagName: div
+        ↓Text [mobile.components.UIText-1517567331669]: 
+          textValue: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+              - MobileSmartSourceType: plain:OffChat Login
+    ↓ButtonSet [mobile.components.UIDynamicElement-1517591030309]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
+      tagName: ion-buttons
+      ↓Button [mobile.components.UIDynamicElement-1517591030322]: 
+        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        tagName: button
+        ↓Icon [mobile.components.UIDynamicElement-1517591030335]: 
+          beanData: '{"ionBean":"Icon","IconName":"plain:more"}'
+          tagName: ion-icon
+        ↓Event [mobile.components.UIControlEvent-1517825155947]: 
+          ↓CustomAction [mobile.components.UICustomAction-1517827010857]: 
+            actionValue: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                  →: |
+                    '		page.c8o.log.debug(event ? event.toString():''no event'');
+                    		
+                            let actionSheet = this.getInstance(ActionSheetController).create({
+                                title: ''Reset your Database ?'',
+                                buttons: [
+                                  {
+                                    text: ''Reset'',
+                                    role: ''destructive'',
+                                    icon: ''trash'',
+                                    handler: () => {
+                                      console.log(''Destructive clicked'');
+                                      resolve();
+                                    }
+                                  },{
+                                    text: ''Cancel'',
+                                    role: ''cancel'',
+                                    icon: ''close'',
+                                    handler: () => {
+                                      console.log(''Cancel clicked'');
+                                    }
+                                  }
+                                ]
+                              });
+                    	      actionSheet.present();
+                    		
+                    '
+            module_ts_imports: 
+              - xmlizable: 
+                - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                - com.twinsoft.convertigo.beans.common.XMLVector: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                    - com.twinsoft.convertigo.beans.common.XMLVector: 
+                      - java.lang.String: 
+                        - ↑value: ActionSheetController 
+                      - java.lang.String: 
+                        - ↑value: ionic-angular
+            ↓CallFullSync [mobile.components.UIDynamicAction-1517828045820]: 
+              beanData: |
+                '{
+                 "ionBean": "CallFullSyncAction",
+                 "requestable": "plain:sampleMobileOffChat.offchat_fullsync",
+                 "verb": "plain:reset"
+                }'
+              ↓Toast [mobile.components.UIDynamicAction-1517828126515]: 
+                beanData: '{"ionBean":"ToastAction","message":"plain:Reset done!"}'
+↓Content [mobile.components.UIDynamicElement-1517567294948]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓CardContainer [mobile.components.UIDynamicElement-1517590561097]: 
+    beanData: '{"ionBean":"Card"}'
+    tagName: ion-card
+    ↓CardContent [mobile.components.UIDynamicElement-1517590566688]: 
+      beanData: '{"ionBean":"CardContent"}'
+      tagName: ion-card-content
+      ↓Form [mobile.components.UIForm-1517569296572]: 
+        ↓Event [mobile.components.UIControlEvent-1517588818264]: 
+          attrName: (ngSubmit)
+          eventName: onSubmit
+          ↓CallLogin [mobile.components.UIDynamicAction-1517588861783]: 
+            beanData: '{"ionBean":"CallSequenceAction","requestable":"plain:sampleMobileOffChat.Login"}'
+            ↓FailureHandler [mobile.components.UIActionFailureEvent-1518086125645]: 
+              ↓Toast [mobile.components.UIDynamicAction-1518086718732]: 
+                beanData: |
+                  '{
+                   "ionBean": "ToastAction",
+                   "message": "plain:Network failure: Offline mode",
+                   "duration": "plain:2000",
+                   "position": "plain:top",
+                   "cssClass": "plain:toast-error"
+                  }'
+                ↓CustomActionOffline [mobile.components.UICustomAction-1518086141924]: 
+                  actionValue: 
+                    - xmlizable: 
+                      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                        →: |
+                          		if (props.stack["CallLogin"].in.vars.username != window.localStorage.username) {
+                          		    this.form1517569296572.controls["username"].setValue(window.localStorage.username);
+                          		    reject("User cannot change, should be '" + window.localStorage.username + "'");
+                          		}
+                                  if (props.stack["CallLogin"].in.vars.password != window.localStorage.password) {
+                                      reject("Wrong password!");
+                                  }
+                                  window.sessionStorage.username = window.localStorage.username;
+                                  window.sessionStorage.offline = true;
+                                  window.document.body.className = "offline";
+                          		resolve();
+                          
+                  ↓FailureHandler [mobile.components.UIActionFailureEvent-1518086795231]: 
+                    ↓Toast [mobile.components.UIDynamicAction-1518086807380]: 
+                      beanData: |
+                        '{
+                         "ionBean": "ToastAction",
+                         "message": "script:out",
+                         "duration": "plain:2000",
+                         "position": "plain:top",
+                         "cssClass": "plain:toast-error"
+                        }'
+                    ↓Error [mobile.components.UIDynamicAction-1518086813725]: 
+                      beanData: '{"ionBean":"ErrorAction"}'
+                  ↓RootPage [mobile.components.UIDynamicAction-1518086150793]: 
+                    beanData: '{"ionBean":"RootPageAction","page":"plain:sampleMobileOffChat.OffChat.OffChat.Lobby"}'
+              ↓Error [mobile.components.UIDynamicAction-1518086564258]: 
+                beanData: '{"ionBean":"ErrorAction","message":"plain:offline"}'
+            ↓If_ERROR [mobile.components.UIDynamicAction-1517840368874]: 
+              beanData: '{"ionBean":"IfAction","condition":"script:out.error"}'
+              ↓Toast [mobile.components.UIDynamicAction-1517828328158]: 
+                beanData: |
+                  '{
+                   "ionBean": "ToastAction",
+                   "message": "script:stack[\"CallLogin\"].out.error.message",
+                   "position": "plain:top",
+                   "cssClass": "plain:toast-error"
+                  }'
+            ↓If_OK [mobile.components.UIDynamicAction-1517840421888]: 
+              beanData: '{"ionBean":"IfAction","condition":"script:out.ok"}'
+              ↓CustomAction [mobile.components.UICustomAction-1517911129934]: 
+                actionValue: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                      →: |
+                        		let localTs = new Date().getTime();
+                        		let serverTs = props.stack["CallLogin"].out.ts * 1;
+                        		window.localStorage.decTs = serverTs - localTs;
+                                window.sessionStorage.offline = false;
+                                window.document.body.className = "";
+                        		
+                        		page.c8o.log.debug(event ? event.toString():'no event');
+                        		let user = window.sessionStorage.username = props.stack["CallLogin"].in.vars.username;
+                        		let exUser = window.localStorage.username;
+                        		if (user != exUser) {
+                        		    window.localStorage.username = user;
+                        		    window.localStorage.password = props.stack["CallLogin"].in.vars.password;
+                        		    this.call('fs://offchat_fullsync.reset').then(function () {
+                        		        resolve();
+                        		    }, function () {
+                        		        reject();
+                        		    });
+                        		} else {
+                        	        resolve();
+                        		}
+                        
+                ↓RootPage [mobile.components.UIDynamicAction-1517842566552]: 
+                  beanData: '{"ionBean":"RootPageAction","page":"plain:sampleMobileOffChat.OffChat.OffChat.Sync"}'
+        ↓ListContainer [mobile.components.UIDynamicElement-1517590290750]: 
+          beanData: '{"ionBean":"List"}'
+          tagName: ion-list
+          ↓Username [mobile.components.UIDynamicElement-1517583518722]: 
+            beanData: '{"ionBean":"ListItem"}'
+            tagName: ion-item
+            ↓LabelUsername [mobile.components.UIDynamicElement-1517567871069]: 
+              beanData: '{"ionBean":"Label","Floating":"plain:floating"}'
+              tagName: ion-label
+              ↓Text [mobile.components.UIText-1517567903626]: 
+                textValue: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                    - MobileSmartSourceType: plain:Username :
+            ↓Username [mobile.components.UIDynamicElement-1517567886976]: 
+              beanData: |
+                '{
+                 "ionBean": "Input",
+                 "FormControlName": "plain:username",
+                 "Type": "plain:text",
+                 "Value": "script:this.window.localStorage.username"
+                }'
+              tagName: ion-input
+              ↓ControlValidator [mobile.components.UIFormControlValidator-1517588945279]: 
+                minLength: 4
+                required: set
+            ↓Attr [mobile.components.UIAttribute-1517583820683]: 
+              attrName: 
+              attrValue: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                  - MobileSmartSourceType: plain:no-lines
+          ↓Password [mobile.components.UIDynamicElement-1517583521117]: 
+            beanData: '{"ionBean":"ListItem"}'
+            tagName: ion-item
+            ↓LabelPassword [mobile.components.UIDynamicElement-1517567880553]: 
+              beanData: '{"ionBean":"Label","Floating":"plain:floating"}'
+              tagName: ion-label
+              ↓Text [mobile.components.UIText-1517567907991]: 
+                textValue: 
+                  - xmlizable: 
+                    - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                    - MobileSmartSourceType: plain:Password :
+            ↓Password [mobile.components.UIDynamicElement-1517567889698]: 
+              beanData: |
+                '{
+                 "ionBean": "Input",
+                 "FormControlName": "plain:password",
+                 "Type": "plain:password"
+                }'
+              tagName: ion-input
+              ↓ControlValidator [mobile.components.UIFormControlValidator-1517588971917]: 
+                minLength: 4
+                required: set
+            ↓Attr [mobile.components.UIAttribute-1517583882602]: 
+              attrName: 
+              attrValue: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                  - MobileSmartSourceType: plain:no-lines
+          ↓SubmitButton [mobile.components.UIDynamicElement-1517570142145]: 
+            beanData: '{"ionBean":"SubmitButton","IonShape":"plain:full"}'
+            tagName: button
+            ↓Text [mobile.components.UIText-1517570175643]: 
+              textValue: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+                  - MobileSmartSourceType: plain:Login
+            ↓Style [mobile.components.UIStyle-1517580640478]: 
+              styleContent: 
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+                  - com.twinsoft.convertigo.beans.common.FormatedContent: 
+                    →: |
+                      '	margin-top: 20px;
+                      	margin-bottom: 20px;
+                      '
+          ↓Paragraph [mobile.components.UIDynamicElement-1517583021362]: 
+            beanData: '{"ionBean":"Paragraph"}'
+            tagName: p
+            ↓Fragment [mobile.components.UICustom-1517583057743]: 
+              htmlTemplate: '<b>Note</b>: Account creation is automatic if the <b>username</b> is unknown.'
+↓Footer [mobile.components.UIDynamicElement-1517567298829]: 
+  beanData: '{"ionBean":"Footer"}'
+  tagName: ion-footer
+  ↓ToolBar [mobile.components.UIDynamicElement-1517590656498]: 
+    beanData: '{"ionBean":"ToolBar","IonColor":"plain:primary"}'
+    tagName: ion-toolbar
+    ↓Style [mobile.components.UIStyle-1517599585343]: 
+      styleContent: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+          - com.twinsoft.convertigo.beans.common.FormatedContent: 
+            →: |
+              '	text-align: center;
+              	color: color($colors, secondary);
+              '
+    ↓Text [mobile.components.UIText-1517599652753]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:© Convertigo
+↓Style [mobile.components.UIStyle-1517585344021]: 
+  styleContent: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+        →: |
+          '.scroll-content {
+          	overflow: hidden;
+          }'

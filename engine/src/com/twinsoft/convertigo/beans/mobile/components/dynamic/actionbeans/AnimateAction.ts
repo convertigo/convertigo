@@ -19,60 +19,49 @@
             return nativeElement;
         };
         
-        return new Promise((resolve, reject)=> {
-            let animator : AnimationBuilder = page.getInstance(AnimationService).builder();
-            if (animator != null) {
+		var animate = function(nativeElement:any, props:any, resolve) {
+			nativeElement.style.WebkitAnimation = "none";
+			nativeElement.style.animation = "none";
+			setTimeout(() => {
+				//object.style.animation = "name duration timingFunction delay iterationCount direction fillMode playState"
+				let s = "";//s = "zoomOutUp 4s 2";
+				s += props.type;
+				s += props.duration == null ? 			" 0ms" 		:	" "+props.duration+ "ms";
+				s += props.timingFunction == null ? 	" ease" 	: 	" "+props.timingFunction;
+				s += props.delay == null ? 				" 0ms" 		: 	" "+props.delay+ "ms";
+				s += props.iterationCount == null ? 	" 1" 		: 	" "+props.iterationCount;
+				s += props.direction == null ? 			" normal" 	: 	" "+props.direction;
+				s += props.fillMode == null ? 			" none" 	: 	" "+props.fillMode;
+				s += props.playState == null ? 			" running" 	: 	" "+props.playState;
                 
-                let options = {reject: false};
+				page.router.c8o.log.debug("[MB] AnimateAction: animation is '"+ s + "'");
+				
+				nativeElement.style.WebkitAnimation = s;
+				nativeElement.style.animation = s;
+				page.tick();
+				
+                let delay = props.delay == null ? 0:Number(props.delay);
+                let count = props.iterationCount == null ? 1: (isNaN(Number(props.iterationCount)) ? null:Number(props.iterationCount));
+                let duration = props.duration == null ? 0:Number(props.duration);
                 
-                // booleans
-                if (props.useVisibility != null) {
-                    options['useVisibility'] = props.useVisibility === true ? true:false;
-                }
-                if (props.disabled != null) {
-                    options['disabled'] = props.disabled === true ? true:false;
-                }
-                if (props.fixed != null) {
-                    options['fixed'] = props.fixed === true ? true:false;
-                }
-                if (props.pin != null) {
-                    options['pin'] = props.pin === true ? true:false;
-                }
-                
-                // strings
-                if (props.type != null) {
-                    options['type'] = props.type;
-                }
-                if (props.timingFunction != null) {
-                    options['timingFunction'] = props.timingFunction;
-                }
-                if (props.playState != null) {
-                    options['playState'] = props.playState;
-                }
-                if (props.direction != null) {
-                    options['direction'] = props.direction;
-                }
-                if (props.fillMode != null) {
-                    options['fillMode'] = props.fillMode;
+                let timeout = count == null ? null: (delay + count*duration);
+				if (timeout != null) {
+                    setTimeout(() => {
+                       resolve(true);
+                    }, timeout);
+				}
+			}, 10);			
                 }
                 
-                // numbers
-                if (props.iterationCount != null) {
-                    options['iterationCount'] = props.iterationCount === '' ? 1 : props.iterationCount;
-                }
-                if (props.duration != null) {
-                    options['duration'] = props.duration === '' ? 1000 : props.duration;
-                }
-                if (props.delay != null) {
-                    options['delay'] = props.delay === '' ? 0 : props.delay;
-                }
-                
-                animator.setOptions(options);
-                
+		return new Promise((resolve, reject)=> {
                 let animatable = props.animatable;
                 let animatables = props.animatables;
                 let mode = props.mode == null ? "single":props.mode;
                 
+			let delay = props.delay === "" ? 0: props.delay;
+			let animation = props.type === "" ? null: props.type;
+			
+			if (animation) {
                 if (mode === "single") {
                     let nativeElement;
                     if (animatable != null) {
@@ -82,9 +71,7 @@
                     }
                     
                     if (nativeElement != undefined) {
-                        animator.animate(nativeElement).then(() => {
-                            resolve(true);
-                        });
+						animate(nativeElement, props, resolve);
                     } else {
                         page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
                         resolve(true);
@@ -97,9 +84,7 @@
                             x => {
                                 let nativeElement = getNativeElement(x);
                                 if (nativeElement != undefined) {
-                                    animator.animate(nativeElement).then(() => {
-                                        resolve(true);
-                                    });
+									animate(nativeElement, props, resolve);
                                 } else {
                                     page.router.c8o.log.warn("[MB] AnimateAction: Animatable is not defined");
                                     resolve(true);
@@ -112,7 +97,8 @@
                     }
                 }
             } else {
-                reject("Unable to instanciate the AnimationBuilder");
+				page.router.c8o.log.warn("[MB] AnimateAction: No animation specified");
+				resolve(true);
             }
         });
     }

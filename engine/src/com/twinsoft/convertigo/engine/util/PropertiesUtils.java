@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -64,8 +64,10 @@ public class PropertiesUtils {
 	}
 	
 	public static void load(Properties properties, InputStream inputStream) throws IOException {
-		try (Reader reader = new InputStreamReader(inputStream, "UTF-8")) {
-			load(properties, reader);
+		if (inputStream != null) {
+			try (Reader reader = new InputStreamReader(inputStream, "UTF-8")) {
+				load(properties, reader);
+			}
 		}
 	}
 	

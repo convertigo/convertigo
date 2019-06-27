@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,24 +30,12 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/Sequence");
 			
-			properties = new PropertyDescriptor[3];
-			
-			properties[0] = new PropertyDescriptor("orderedVariables", beanClass, "getOrderedVariables", "setOrderedVariables");
-			properties[0].setDisplayName(getExternalizedString("property.orderedVariables.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.orderedVariables.short_description"));
-			//properties[0].setPropertyEditorClass(getEditorClass("SequenceVariablesEditor"));
-			//properties[0].setExpert(true);
-			properties[0].setHidden(true);
-
-            properties[1] = new PropertyDescriptor("orderedSteps", beanClass, "getOrderedSteps", "setOrderedSteps");
-            properties[1].setDisplayName(getExternalizedString("property.orderedSteps.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.orderedSteps.short_description"));
-            properties[1].setHidden(true);
+			properties = new PropertyDescriptor[1];
             
-            properties[2] = new PropertyDescriptor("includeResponseElement", beanClass, "isIncludeResponseElement", "setIncludeResponseElement");
-            properties[2].setDisplayName(getExternalizedString("property.includeResponseElement.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.includeResponseElement.short_description"));
-            properties[2].setExpert(true);
+            properties[0] = new PropertyDescriptor("includeResponseElement", beanClass, "isIncludeResponseElement", "setIncludeResponseElement");
+            properties[0].setDisplayName(getExternalizedString("property.includeResponseElement.display_name"));
+            properties[0].setShortDescription(getExternalizedString("property.includeResponseElement.short_description"));
+            properties[0].setExpert(true);
            
             PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
 			property.setPropertyEditorClass(getEditorClass("SequenceSheetLocationEditor"));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -63,16 +63,13 @@ public class SqlRequester {
 	}
 
 	public String getProperty(String key) {
-		String result = properties.getProperty(key);
-
-		/*if (result == null) {
-			if (key.equals(CARIOCA_URL)) return "http://localhost/carioca";
-			else return "";
-		}*/
-
-		return result;
+		return properties.getProperty(key);
 	}
     
+	public String getProperty(String key, String defaultValue) {
+		return properties.getProperty(key, defaultValue);
+	}
+	
 	/**
 	 * Opens or reopens the connection to database.
 	 * 
@@ -109,31 +106,29 @@ public class SqlRequester {
 		Engine.logEngine.debug("[SqlRequester] " + text);
 	}
 	
-	/**
-	 * Determines if the connection is opened.
-	 * 
-	 * @return true if connection is opened, false otherwise.
-	 * 
-	 * @exception SQLException if unable connection is invalid.
-	 */
-	public synchronized boolean isClosed() throws SQLException {
-		if (connection != null) {
-			return connection.isClosed();
+	public synchronized void checkConnection() throws ClassNotFoundException, SQLException {
+		if (connection == null || connection.isClosed() || !connection.isValid(30)) {
+			open();
 		}
-		return true;	
 	}
 	
 	public synchronized void close() {
 		try {
 			if (connection != null) {
 				connection.close();
-				connection = null;
 				Engine.logEngine.debug("[SqlRequester] Database closed");
 			}
 		}
 		catch (Exception e) {
 			Engine.logEngine.error("[SqlRequester] Unable to close the database!", e);
 		}
+		connection = null;
+	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		close();
+		super.finalize();
 	}
 	
 }

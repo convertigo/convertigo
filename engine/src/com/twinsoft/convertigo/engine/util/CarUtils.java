@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.TestCase;
@@ -48,55 +49,55 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 public class CarUtils {
 
-	public static void makeArchive(String projectName) throws EngineException {
+	public static File makeArchive(String projectName) throws EngineException {
 		Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-		makeArchive(project);
+		return makeArchive(project);
 	}
 
-	public static void makeArchive(Project project) throws EngineException {
-		makeArchive(Engine.PROJECTS_PATH, project);
+	public static File makeArchive(Project project) throws EngineException {
+		return makeArchive(Engine.PROJECTS_PATH, project);
 	}
 	
-	public static void makeArchive(Project project, List<TestCase> listTestCasesSelected) throws EngineException {
-		makeArchive(Engine.PROJECTS_PATH, project, listTestCasesSelected);
+	public static File makeArchive(Project project, List<TestCase> listTestCasesSelected) throws EngineException {
+		return makeArchive(Engine.PROJECTS_PATH, project, listTestCasesSelected);
 	}
 
-	public static void makeArchive(String dir, Project project) throws EngineException {
-		makeArchive(dir, project, project.getName());
+	public static File makeArchive(String dir, Project project) throws EngineException {
+		return makeArchive(dir, project, project.getName());
 	}
 	
-	public static void makeArchive(String dir, Project project, List<TestCase> listTestCasesSelected) throws EngineException {
-		makeArchive(dir, project, project.getName(), listTestCasesSelected);
+	public static File makeArchive(String dir, Project project, List<TestCase> listTestCasesSelected) throws EngineException {
+		return makeArchive(dir, project, project.getName(), listTestCasesSelected);
 	}
 	
-	public static void makeArchive(String dir, Project project, String exportName) throws EngineException {
+	public static File makeArchive(String dir, Project project, String exportName) throws EngineException {
 		List<File> undeployedFiles=getUndeployedFiles(project.getName());	
 		String projectName = project.getName();
 		try {
 			// Export the project
-			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+			String exportedProjectFileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
 			exportProject(project, exportedProjectFileName);
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			ZipUtils.makeZip(projectArchiveFilename, Engine.PROJECTS_PATH + "/" + projectName, projectName, undeployedFiles);
+			return ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
 		}
 	}
 	
-	public static void makeArchive(String dir, Project project, String exportName, 
+	public static File makeArchive(String dir, Project project, String exportName, 
 			List<TestCase> listTestCasesSelected) throws EngineException {
 		List<File> undeployedFiles= getUndeployedFiles(project.getName());	
 		String projectName = project.getName();
 		try {
 			// Export the project
-			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+			String exportedProjectFileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
 			exportProject(project, exportedProjectFileName, listTestCasesSelected);
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			ZipUtils.makeZip(projectArchiveFilename, Engine.PROJECTS_PATH + "/" + projectName, projectName, undeployedFiles);
+			return ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
 		}
@@ -105,27 +106,30 @@ public class CarUtils {
 	private static List<File> getUndeployedFiles(String projectName){
 		final List<File> undeployedFiles = new LinkedList<File>();
 		
-		File projectDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
+		File projectDir = new File(Engine.projectDir(projectName));
 		
+		// Private - Data directories
 		File privateDir = new File(projectDir, "_private");
 		undeployedFiles.add(privateDir);
 		File dataDir = new File(projectDir, "_data");
 		undeployedFiles.add(dataDir);
 		File carFile = new File(projectDir, projectName + ".car");
 		undeployedFiles.add(carFile);
-		
-		for (File file : projectDir.listFiles()) {
-			if (file.getName().startsWith(".")) {
-				undeployedFiles.add(file);
-			}
-		}
+		File buildDir = new File(projectDir, "build");
+		undeployedFiles.add(buildDir);
+
+		// UrlMapper - JsonSchema directories
+		File oas2Dir = new File(projectDir, "oas2");
+		undeployedFiles.add(oas2Dir);
+		File oas3Dir = new File(projectDir, "oas3");
+		undeployedFiles.add(oas3Dir);
 		
 		new FileWalker(){
 
 			@Override
 			public void walk(File file) {
 				String filename = file.getName(); 
-				if (filename.equals(".svn") || filename.equals("CVS") || filename.equals("node_modules")) {
+				if (filename.equals(".svn") || filename.equals(".git") || filename.equals(".gradle") || filename.equals("CVS") || filename.equals("node_modules")) {
 					undeployedFiles.add(file);
 				} else {
 					super.walk(file);					
@@ -138,14 +142,32 @@ public class CarUtils {
 	}
 
 	public static void exportProject(Project project, String fileName) throws EngineException {
-		Document document = exportProject(project, new ArrayList<TestCase>());
-		exportXMLProject(fileName, document);
+		exportProject(project, fileName, new ArrayList<TestCase>());
 	}
 	
 	public static void exportProject(Project project, String fileName, 
 			List<TestCase> selectedTestCases) throws EngineException {
 		Document document = exportProject(project, selectedTestCases);
-		exportXMLProject(fileName, document);
+		try {
+			exportYAMLProject(fileName, document);
+		} catch (Exception e) {
+			Engine.logEngine.error("(CarUtils) Failed to export the project as YAML to '" + fileName + "', export XML instead.", e);
+			exportXMLProject(new File(new File(fileName).getParentFile(), project.getName() + ".xml").getAbsolutePath(), document);
+		}
+	}
+	
+	private static void exportYAMLProject(String fileName, Document document) throws EngineException {
+		try {			
+			Document shrink = BeansDefaultValues.shrinkProject(document);
+			File projectDir = new File(fileName).getParentFile();
+			YamlConverter.writeYaml(shrink, new File(projectDir, "c8oProject.yaml"), new File(projectDir, "_c8oProject"));
+			if (fileName.endsWith(".xml")) {
+				new File(fileName).delete();
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("(CarUtils) exportProject in YAML failed (" + e.getMessage() + ")");
+			throw new EngineException("(CarUtils) exportProject in YAML failed", e);
+		}
 	}
 	
 	private static void exportXMLProject(String fileName, Document document) throws EngineException {

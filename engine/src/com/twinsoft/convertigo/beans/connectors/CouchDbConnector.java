@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 
 public class CouchDbConnector extends Connector {
 
@@ -55,6 +56,7 @@ public class CouchDbConnector extends Connector {
 	private String couchUsername = "";
 	private String couchPassword = "";
 	private boolean jsonUseType = true;
+	private boolean secureDatabase = false;
 	
 	private transient CouchClient couchClient = null;
 	
@@ -252,7 +254,7 @@ public class CouchDbConnector extends Connector {
 				String _id = CouchKey._id.String(jsonDocument);
 				String docName = _id.replaceAll(CouchKey._design.key(), "");
 				
-				if (getDocumentByName(docName) == null) { // document does'nt exist locally
+				if (getDocumentByName(docName) == null && !"c8o".equals(docName)) { // document does'nt exist locally
 					DesignDocument ddoc = new DesignDocument();
 					ddoc.setName(docName);
 					ddoc.setJSONObject(jsonDocument);
@@ -347,5 +349,16 @@ public class CouchDbConnector extends Connector {
 
 	public void setJsonUseType(boolean jsonUseType) {
 		this.jsonUseType = jsonUseType;
+	}
+
+	public boolean isSecureDatabase() {
+		return secureDatabase;
+	}
+
+	public void setSecureDatabase(boolean secureDatabase) {
+		this.secureDatabase = secureDatabase;
+		if (!isImporting) {
+			CouchDbManager.syncSecurity(this);
+		}
 	}
 }

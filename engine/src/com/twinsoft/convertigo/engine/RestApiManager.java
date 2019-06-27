@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -55,18 +55,21 @@ public class RestApiManager implements AbstractManager {
 	}
 
 	public void putUrlMapper(Project project) {
-		if (project == null)
+		if (project == null) {
 			return;
-		
-		String projectName = project.getName();
+		}
+
 		UrlMapper urlMapper = project.getUrlMapper();
 		
+		if (urlMapper == null) {
+			return;
+		}
+		String projectName = project.getName();
+		
 		synchronized (urlMapperMap) {
-			if (urlMapper != null) {
 				urlMapperMap.put(projectName, urlMapper);
 			}
 		}
-	}
 	
 	public void removeUrlMapper(String projectName) {
 		if (projectName == null)

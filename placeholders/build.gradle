@@ -1,0 +1,65 @@
+plugins {
+	id 'eclipse'
+	id 'java'
+}
+
+configurations {
+	allPlaceholders
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+		resources {
+			srcDir 'src'
+		}
+	}
+}
+
+def myManifest = manifest {
+	attributes('Sealed': true) 
+}
+
+task db2jccJar(type: Jar) {
+	group 'convertigo'
+	
+	archiveFileName = 'db2jcc.jar'
+	manifest = myManifest
+	from(sourceSets.main.output) {
+		include 'readme.txt'
+		include 'com/ibm/db2/jcc/**'
+		include 'com/convertigo/jdbc/CommonDriver.class'
+		include 'com/convertigo/jdbc/FakeJarException.class'
+	}
+}
+
+task db2jccLicenceJar(type: Jar) {
+	group 'convertigo'
+	
+	archiveFileName = 'db2jcc-licence.jar'
+	manifest = myManifest
+	from(sourceSets.main.output) {
+		include 'readme.txt'
+	}
+}
+
+task mysqlJar(type: Jar) {
+	group 'convertigo'
+	
+	archiveFileName = 'mysql-connector.jar'
+	manifest = myManifest
+	from(sourceSets.main.output) {
+		include 'readme.txt'
+		include 'com/mysql/jdbc/**'
+		include 'com/convertigo/jdbc/CommonDriver.class'
+		include 'com/convertigo/jdbc/FakeJarException.class'
+	}
+}
+
+artifacts {
+	allPlaceholders db2jccJar
+	allPlaceholders db2jccLicenceJar
+	allPlaceholders mysqlJar
+}

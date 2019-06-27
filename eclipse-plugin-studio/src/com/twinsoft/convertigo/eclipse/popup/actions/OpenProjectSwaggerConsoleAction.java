@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 
@@ -54,8 +55,9 @@ public class OpenProjectSwaggerConsoleAction extends MyAbstractAction {
     			if ((databaseObject != null) && (databaseObject instanceof Project)) {
     				Project project = (Project)treeObject.getObject();
     				Program.launch(
-    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/ui/index.html?" + 
-    						URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/api?YAML&__project=" + project.getName()));
+    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/dist/index.html?"
+    						+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/api?YAML&__project=" + project.getName())
+    						+ (Engine.isStudioMode() ? "&showErrors" : ""));
     			}
     		}
         	

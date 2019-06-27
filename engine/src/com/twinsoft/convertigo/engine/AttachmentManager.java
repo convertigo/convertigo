@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -114,7 +114,7 @@ public class AttachmentManager {
 
 				String filepath = file.getAbsolutePath();
 				eAttachment.setAttribute("local-url", filepath);
-				String projectPath = Engine.PROJECTS_PATH + File.separator + projectName + File.separator;
+				String projectPath = Engine.projectDir(projectName) + File.separator;
 				if (filepath.startsWith(projectPath)) {
 					eAttachment.setAttribute("relative-url", filepath.substring(projectPath.length()).replaceAll("\\\\", "/"));
 				}

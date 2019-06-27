@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -133,13 +133,13 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 	
 	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
+		boolean updated = false;
 		String smartValue = attrValue.getSmartValue();
 		if (smartValue.indexOf(oldString) != -1|| Pattern.compile(oldString).matcher(smartValue).find()) {
 			attrValue.setSmartValue(smartValue.replaceAll(oldString, newString));
-			this.hasChanged = true;
+			updated = this.hasChanged = true;
 		}
-		boolean updated = super.updateSmartSource(oldString, newString);
-		return updated || this.hasChanged;
+		return updated;
 	}
 	
 }

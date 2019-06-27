@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -276,7 +276,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		if (path != null && !path.isEmpty()) {
 			try {
 				String canonicalPath = new File(path).getCanonicalPath();
-				String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
+				String projectPath = Engine.projectDir(getProjectName());
 				String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
 				boolean isLocal = canonicalPath.startsWith(projectPath) || canonicalPath.startsWith(workspacePath);
 				if (isLocal) {

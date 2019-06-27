@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.eclipse.swt;
 import java.awt.Frame;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
@@ -55,11 +57,12 @@ public class C8oBrowser extends Composite {
 	}
 	
 	private static Thread threadSwt = null;
+	private static Map<String, BrowserContext> browserContexts = new HashMap<>();
 
 	private BrowserView browserView;
 
 	private void init(Composite parent, BrowserContext browserContext) {
-	    browserView = new BrowserView(new Browser(browserContext));
+		browserView = new BrowserView(new Browser(browserContext));
 		Frame frame = SWT_AWT.new_Frame(this);
 		frame.add(browserView);
 		threadSwt = parent.getDisplay().getThread();
@@ -93,7 +96,11 @@ public class C8oBrowser extends Composite {
 			}
 			File browserWorks = new File(Engine.USER_WORKSPACE_PATH + "/browser-works");
 			browserWorks.mkdirs();
-			BrowserContext browserContext = new BrowserContext(new BrowserContextParams(Engine.USER_WORKSPACE_PATH + "/browser-works/" + browserId));
+			BrowserContext browserContext = browserContexts.get(browserId);
+			if (browserContext == null) {
+				browserContext = new BrowserContext(new BrowserContextParams(Engine.USER_WORKSPACE_PATH + "/browser-works/" + browserId));
+				browserContexts.put(browserId, browserContext);
+			}
 			try {
 				init(parent, browserContext);
 			} catch (BrowserException e) {
@@ -115,7 +122,7 @@ public class C8oBrowser extends Composite {
 	@Override
 	public void dispose() {
 		run(() -> {
-			getBrowser().dispose();			
+			getBrowser().dispose();
 		});
 		super.dispose();
 	}
@@ -129,12 +136,23 @@ public class C8oBrowser extends Composite {
 	}
 	
 	public void setText(String html) {
-		getBrowser().loadHTML(html);
+		if (html.contains("$background$")) {
+			org.eclipse.swt.graphics.Color bg = getBackground();
+			String background = "rgb(" + bg.getRed() + ", " + bg.getGreen() + ", " + bg.getBlue() + ")";
+			String foreground = bg.getRed() < 128 ? "white" : "black";
+			String link = bg.getRed() < 128 ? "cyan" : "blue";
+			html = html.replace("$background$", background).replace("$foreground$", foreground).replace("$link$", link);
+		}
+		if (html.contains("</html>")) {
+			getBrowser().loadHTML(html);
+		} else {
+			getBrowser().getDocument().getDocumentElement().setInnerHTML(html);
+		}
 	}
 	
 	public void reloadText() {
 		Browser browser = getBrowser();
-		browser.loadHTML(browser.getHTML());
+		setText(browser.getHTML());
 	}
 
 	public void setUrl(String url) {

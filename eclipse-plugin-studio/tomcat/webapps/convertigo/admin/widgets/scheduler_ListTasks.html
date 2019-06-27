@@ -1,26 +1,21 @@
 <!--
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+Copyright (c) 2001-2019 Convertigo SA.
+
+This program  is free software; you  can redistribute it and/or
+Modify  it  under the  terms of the  GNU  Affero General Public
+License  as published by  the Free Software Foundation;  either
+version  3  of  the  License,  or  (at your option)  any  later
+version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;  without even the implied warranty of
+MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public
+License along with this program;
+if not, see <http://www.gnu.org/licenses/>.
 -->
-
-
 <h4 class="IconHelpTitle">Jobs</h4>
 <a href="#" class="IconHelpLink" id="helpJobs" target="_blank"></a>
 <div class="clear"></div>
@@ -53,11 +48,11 @@
 	<table>
 		<tr>
 			<td><label for="schedulerDialogNameField">Name: </label></td>
-			<td><input name="name" type="text" id="schedulerDialogNameField"/></td>
+			<td><input name="name" type="text" id="schedulerDialogNameField" autocomplete="new-password"/></td>
 		</tr> 
 		<tr>
 			<td><label for="schedulerDialogDescriptionField">Description: </label></td>
-			<td><input name="description" type="text" id="schedulerDialogDescriptionField"/></td>
+			<td><input name="description" type="text" id="schedulerDialogDescriptionField" autocomplete="new-password"/></td>
 		</tr> 
 		<tr>
 			<td><label for="schedulerDialogEnabledField">Enabled: </label></td>
@@ -85,7 +80,7 @@
 		</tr>
 		<tr class="schedulerNewTransactionConvertigoJob schedulerNewSequenceConvertigoJob">
 			<td><label for="schedulerDialogContextField">Context: </label></td>
-			<td><input name="context" type="text" id="schedulerDialogContextField"/></td>
+			<td><input name="context" type="text" id="schedulerDialogContextField" autocomplete="new-password"/></td>
 		</tr>
 		<tr class="schedulerNewTransactionConvertigoJob schedulerNewSequenceConvertigoJob">
 			<td><label for="schedulerDialogWriteOutputField">Write output: </label></td>
@@ -122,12 +117,12 @@
 			<td><select  multiple="multiple" name="jobsname" class="schedulerSelect schedulerSelect_jobs" id="schedulerDialogGroupJobField"></select></td>
 		</tr>
 		<tr class="schedulerNewJobGroupJob">
-			<td><label for="schedulerDialogSerialField">Serial execution: </label></td>
-			<td><input name="serial" type="checkbox" id="schedulerDialogSerialField"/></td>
+			<td><label for="schedulerDialogParallelJobField">Parallel Job execution: </label></td>
+			<td><input name="parallelJob" type="number" min="1" max="99" id="schedulerDialogParallelJobField" value="1"/></td>
 		</tr>
 		<tr class="schedulerNewScheduleCron">
 			<td><label for="schedulerCron">Cron: </label></td>
-			<td><input name="cron" type="text" id="schedulerCron"/></td>
+			<td><input name="cron" type="text" id="schedulerCron" autocomplete="new-password"/></td>
 		</tr>
 		<tr class="schedulerNewScheduleCron">
 			<td><a class="schedulerLinks" href="http://www.quartz-scheduler.org/docs/tutorials/crontrigger.html" target="_blank">Documentation </a></td>
@@ -205,10 +200,10 @@
 		<tr class="schedulerRequestableParameterRow">
 			<td>
 				<div class="single_valued value_text">
-					<input type="text" alt="" class="champ variable_value" value="" />
+					<input type="text" alt="" class="champ variable_value" value="" autocomplete="new-password" />
 				</div>
 				<div class="single_valued value_password">
-					<input type="password" alt="" class="champ variable_value" />
+					<input type="password" alt="" class="champ variable_value" autocomplete="new-password" />
 				</div>
 				<div class="single_valued value_file">
 					<input type="file" alt="" class="champ variable_value" />
@@ -217,11 +212,11 @@
 					<a title="add value" class="link_value_add">+ add a new value</a>
 				</div>
 				<div class="new_multi_valued value_text">
-					<input type="text" alt="" class="champ variable_value" />
+					<input type="text" alt="" class="champ variable_value" autocomplete="new-password" />
 					<a title="remove value" class="link_value_remove">x</a>
 				</div>
 				<div class="new_multi_valued value_password">
-					<input type="password" alt="" class="champ variable_value" /> 
+					<input type="password" alt="" class="champ variable_value" autocomplete="new-password" /> 
 					<a title="remove value" class="link_value_remove">x</a>
 				</div>
 				<div class="new_multi_valued value_file">

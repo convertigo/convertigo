@@ -1,0 +1,61 @@
+accessibility: Hidden
+comment: 'hidden: add a product using a complex variable'
+↓Input_variables [steps.InputVariablesStep-1462356375721]: 
+↓Call_Sequence [steps.SequenceStep-1462356353254]: 
+  sourceSequence: sampleMapperShop.AddProductP
+  ↓code [variables.StepVariable-1462356353256]: 
+    description: code
+    required: true
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1462356375721
+          - java.lang.String: 
+            - ↑value: ./data/product/code/text()
+  ↓description [variables.StepVariable-1462356353258]: 
+    description: description
+    required: true
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1462356375721
+          - java.lang.String: 
+            - ↑value: ./data/product/description/text()
+  ↓price [variables.StepVariable-1462356353260]: 
+    description: price
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1462356375721
+          - java.lang.String: 
+            - ↑value: ./data/product/price/text()
+    value: 0,00
+  ↓cat_id [variables.StepVariable-1462356353262]: 
+    description: cat_id
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1462356375721
+          - java.lang.String: 
+            - ↑value: ./data/product/cat_id/text()
+    value: 1
+↓Copy [steps.XMLCopyStep-1462357164584]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1462356353254
+        - java.lang.String: 
+          - ↑value: ./document/*
+↓data [variables.RequestableVariable-1462356308903]: 
+  comment: the payload complex data
+  required: true

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIElement extends UIComponent implements ITagsProperty, IStyleGenerator {
@@ -103,7 +104,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
         	} else {
 	    		String formControlName = getFormControlName();
 	    		if (formControlName.isEmpty()) {
-	    			throw new EngineException("You cannot add validator to this component: Missing \"formControlName\" property or attribute.");
+	    			Engine.logBeans.warn("Validator is missing \"formControlName\" property or attribute for component "+ this.getQName());
 	    		}
 	    		super.addUIComponent(uiComponent, after);
         	}
@@ -250,10 +251,13 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		if (!identifier.isEmpty()) {
 			try {
-				IScriptComponent main = getMainScriptComponent();
-				
 				String imports = jsonScripts.getString("imports");
 				if (main.addImport("ViewChild", "@angular/forms")) {
 					imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();

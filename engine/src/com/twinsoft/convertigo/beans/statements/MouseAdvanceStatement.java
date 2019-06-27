@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.parsers.events.MouseEvent;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 
 public class MouseAdvanceStatement extends MouseStatement {
@@ -70,7 +71,7 @@ public class MouseAdvanceStatement extends MouseStatement {
 		short button = 0;
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.screenX, "screenX", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.screenX, "screenX", 0, null);
 			evaluated = Context.toNumber(evaluated);
 			screenX = (Integer) Context.jsToJava(evaluated, Integer.class);
 		} catch (Exception e) {
@@ -78,7 +79,7 @@ public class MouseAdvanceStatement extends MouseStatement {
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.screenY, "screenY", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.screenY, "screenY", 0, null);
 			evaluated = Context.toNumber(evaluated);
 			screenY = (Integer) Context.jsToJava(evaluated, Integer.class);
 		} catch (Exception e) {
@@ -86,7 +87,7 @@ public class MouseAdvanceStatement extends MouseStatement {
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.clientX, "clientX", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.clientX, "clientX", 0, null);
 			evaluated = Context.toNumber(evaluated);
 			clientX = (Integer) Context.jsToJava(evaluated, Integer.class);
 		} catch (Exception e) {
@@ -94,7 +95,7 @@ public class MouseAdvanceStatement extends MouseStatement {
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.clientY, "clientY", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.clientY, "clientY", 0, null);
 			evaluated = Context.toNumber(evaluated);
 			clientY = (Integer) Context.jsToJava(evaluated, Integer.class);
 		} catch (Exception e) {
@@ -102,35 +103,35 @@ public class MouseAdvanceStatement extends MouseStatement {
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.ctrlKey, "ctrlKey", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.ctrlKey, "ctrlKey", 0, null);
 			ctrlKey = Context.toBoolean(evaluated);
 		} catch (Exception e) {
 			Engine.logBeans.warn("(MouseAdvanceStatement) failed to evaluate 'ctrlKey' property. " + e.getClass().getCanonicalName());
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.altKey, "altKey", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.altKey, "altKey", 0, null);
 			altKey = Context.toBoolean(evaluated);
 		} catch (Exception e) {
 			Engine.logBeans.warn("(MouseAdvanceStatement) failed to evaluate 'altKey' property. " + e.getClass().getCanonicalName());
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.shiftKey, "shiftKey", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.shiftKey, "shiftKey", 0, null);
 			shiftKey = Context.toBoolean(evaluated);
 		} catch (Exception e) {
 			Engine.logBeans.warn("(MouseAdvanceStatement) failed to evaluate 'shiftKey' property. " + e.getClass().getCanonicalName());
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.metKey, "metKey", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.metKey, "metKey", 0, null);
 			metKey = Context.toBoolean(evaluated);
 		} catch (Exception e) {
 			Engine.logBeans.warn("(MouseAdvanceStatement) failed to evaluate 'metKey' property. " + e.getClass().getCanonicalName());
 		}
 		
 		try {
-			Object evaluated = javascriptContext.evaluateString(scope, this.button, "button", 0, null);
+			Object evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, this.button, "button", 0, null);
 			evaluated = Context.toNumber(evaluated);
 			button = (Short) Context.jsToJava(evaluated, Short.class);
 		} catch (Exception e) {

@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2019 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 var NEW_MAPPING_MESSAGE_TEXT="(choose a project)";
@@ -268,8 +265,8 @@ function certificates_List_update(){
 				certificateName, 				
 				{ certificateStore: certificateName, 
 				type: createTypeSelect($(this).attr("type")),
-				password: "<input type='password' value='"+$(this).attr("password")+"' />"+error,
-				group:"<input type='text' value='"+$(this).attr("group")+"' />",
+				password: "<input type='password' value='"+$(this).attr("password")+"' autocomplete=\"new-password\" />"+error,
+				group:"<input type='text' value='"+$(this).attr("group")+"' autocomplete=\"new-password\" />",
 				btnDelete: "<a href=\"javascript: deleteCertificate('" + certificateName + "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
 				btnValid: "<a href=\"javascript: updateCertificate('" + certificateName +"')\"><img border=\"0\" title=\"Update\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 				}
@@ -288,8 +285,8 @@ function certificates_List_update(){
 				"new",{				
 					certificateStore: candidateSelectObject, 
 					type: createTypeSelect(""),
-					password: "<input type='password'/>",
-					group: "<input type='text'/>",							
+					password: "<input type='password' autocomplete=\"new-password\" />",
+					group: "<input type='text' autocomplete=\"new-password\" />",							
 					btnValid: "<a href=\"javascript: updateCertificate()\"><img border=\"0\" title=\"Update\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 		);			
@@ -313,18 +310,15 @@ function certificates_List_update(){
 			var projectName,deleteParams;	
 			
 			//anonymous mappings
-			$(xml).find("anonymous > binding").each(function(){			
+			$(xml).find("anonymous > binding").each(function(){
 				certificateName = $(this).attr("certificateName");
-				projectName= $(this).attr("projectName");				
-				
-				deleteParams="('" + projectName + "','"+certificateName+"');";
-				
+				projectName = $(this).attr("projectName");
 				$("#certificatesAnonymousMappings").jqGrid("addRowData",
-					certificateName+"/"+projectName,{	
+					certificateName+"/"+projectName,{
 					projectName:projectName,
 					certificateStore: certificateName,
-					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-					btnValid: "<a href=\"javascript: deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesAnonymousMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+					btnDelete: "<a href=\"javascript: deleteMapping('" + projectName + "','" + certificateName + "') \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+					btnValid: "<a href=\"javascript: deleteMappingWithUpdate('" + projectName + "','" + certificateName + "','certificatesAnonymousMappings')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 				);
 				
@@ -340,17 +334,15 @@ function certificates_List_update(){
 				imputationGroup=$(this).attr("imputationGroup");
 				userName=$(this).attr("userName");
 				
-				deleteParams="('" + projectName + "','"+certificateName+"','tas','"+virtualServeur+"','"+imputationGroup+"','"+userName+"');";
-				
 				$("#certificatesUserMappings").jqGrid("addRowData",
 					certificateName+"/"+projectName,{	
 					projectName:projectName,
 					certificateStore: certificateName,
-					virtualServer:"<input type='text' value='"+virtualServeur+"' />",
-					authorizationGroup:"<input type='text' value='"+imputationGroup+"'/>",
-					user:"<input value='"+userName+"' />",
-					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-					btnValid: "<a href=\"javascript:  deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesUserMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+					virtualServer:"<input type='text' value='"+virtualServeur+"' autocomplete=\"new-password\" />",
+					authorizationGroup:"<input type='text' value='"+imputationGroup+"' autocomplete=\"new-password\" />",
+					user:"<input value='"+userName+"' autocomplete=\"new-password\" />",
+					btnDelete: "<a href=\"javascript: deleteMapping('" + projectName + "','"+certificateName+"','tas','"+virtualServeur+"','"+imputationGroup+"','"+userName+"') \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+					btnValid: "<a href=\"javascript:  deleteMappingWithUpdate('" + projectName + "','"+certificateName+"','certificatesUserMappings','tas','"+virtualServeur+"','"+imputationGroup+"','"+userName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 				);
 				
@@ -375,9 +367,9 @@ function certificates_List_update(){
 					"new",{ 
 				projectName: selectProjectName,
 				certificateStore:selectCertificateName,
-				virtualServer:"<input type='text'/>",
-				authorizationGroup:"<input type='text'/>",
-				user:"<input type='text'/>",				
+				virtualServer:"<input type='text' autocomplete=\"new-password\" />",
+				authorizationGroup:"<input type='text' autocomplete=\"new-password\" />",
+				user:"<input type='text' autocomplete=\"new-password\" />",				
 				btnValid: "<a href=\"javascript: configureMapping('certificatesUserMappings','"+NEW_MAPPING_MESSAGE_VALUE+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 				} 	
 			);
@@ -521,9 +513,11 @@ function deleteMapping(project,certificateName,tas,server,authgroup,user){
 	});
 }
 
-function deleteMappingWithoutUpdate(project,certificateName,tas,server,authgroup,user){
+function deleteMappingWithUpdate(project,certificateName,table, tas,server,authgroup,user){
 	var params=createDeleteMappingParams(project,certificateName,tas,server,authgroup,user);		
-	callService("certificates.mappings.Delete", function(){},params);
+	callService("certificates.mappings.Delete", function(){
+		configureMapping(table,project,certificateName);
+	},params);
 }
 
 function createDeleteMappingParams(project,certificateName,tas,server,authgroup,user){

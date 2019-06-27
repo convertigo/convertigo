@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -44,12 +44,10 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.ICouchParametersExtra;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
@@ -63,7 +61,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 	private List<CouchVariable> selectedVariable = null;
 		
 	public CouchVariablesComposite(Composite parent, int style, List<RequestableVariable> allVariables) {
-		this(parent, style);	
+		this(parent, style);
 		this.allVariables = allVariables;
 	}
 	
@@ -93,27 +91,18 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			}
 		}
 		
-		if (groupQueries.getChildren().length == 0) {
+		if (groupQueries.getChildren().length == 1) {
 			groupQueries.dispose();
 		}
 		
-		if (groupParameters.getChildren().length == 0) {
+		if (groupParameters.getChildren().length == 1) {
 			groupParameters.dispose();
 		}
 		
 		/* */
 		Collection<CouchExtraVariable> extraVariables = null;
-		if (couchDbTransaction instanceof PostBulkDocumentsTransaction){
-			extraVariables = ((PostBulkDocumentsTransaction) couchDbTransaction).getCouchParametersExtra();
-		}
-		if (couchDbTransaction instanceof PostDocumentTransaction) {
-			extraVariables = ((PostDocumentTransaction) couchDbTransaction).getCouchParametersExtra();
-		}
-		if (couchDbTransaction instanceof PostUpdateTransaction) {
-			extraVariables = ((PostUpdateTransaction) couchDbTransaction).getCouchParametersExtra();
-		}
-		if (couchDbTransaction instanceof PutUpdateTransaction) {
-			extraVariables = ((PutUpdateTransaction) couchDbTransaction).getCouchParametersExtra();
+		if (couchDbTransaction instanceof ICouchParametersExtra){
+			extraVariables = ((ICouchParametersExtra) couchDbTransaction).getCouchParametersExtra();
 		}
 		
 		if (extraVariables != null ){
@@ -122,7 +111,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			}
 		}
 		
-		if (groupData.getChildren().length == 0){
+		if (groupData.getChildren().length == 1) {
 			groupData.dispose();
 		}
 		
@@ -144,22 +133,30 @@ public class CouchVariablesComposite extends ScrolledComposite {
 	
 	private void cleanGroups(){	
 		final Composite container = this;
-				
-		globalComposite = new Composite(this, SWT.NONE);
-		globalComposite.setLayout(new GridLayout(1, true));
 		
-		GridLayout layout = new GridLayout(3, false);
+		globalComposite = new Composite(this, SWT.NONE);
+		GridLayout layout = new GridLayout(1, true);
+		layout.verticalSpacing = 0;
+		layout.marginBottom = 0;
+		globalComposite.setLayout(layout);
+		
+		layout = new GridLayout(3, false);
 		layout.horizontalSpacing = 30;	
 		
 		/* Parameters */		
 		if ((groupParameters != null) && (!groupParameters.isDisposed())) {
 			groupParameters.dispose();
 		}
+		
 		groupParameters = new Group(globalComposite, SWT.SHADOW_ETCHED_OUT | SWT.V_SCROLL);
 		groupParameters.setLayout(layout);
 		groupParameters.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
-		groupParameters.setText("Parameters");
-
+		Label label = new Label(groupParameters, SWT.NONE);
+		label.setText("Parameters");
+		GridData gdLabel = new GridData();
+		gdLabel.horizontalSpan = 3;
+		label.setLayoutData(gdLabel);
+		
 		layout = new GridLayout(3, false);
 		layout.horizontalSpacing = 30;	
 		
@@ -167,11 +164,15 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		if ((groupQueries != null) && (!groupQueries.isDisposed())) {
 			groupQueries.dispose();
 		}
+		
 		groupQueries = new Group(globalComposite, SWT.SHADOW_ETCHED_OUT | SWT.V_SCROLL);
 		groupQueries.setLayout(layout);
-		
 		groupQueries.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
-		groupQueries.setText("Queries");
+		label = new Label(groupQueries, SWT.NONE);
+		label.setText("Queries");
+		gdLabel = new GridData();
+		gdLabel.horizontalSpan = 3;
+		label.setLayoutData(gdLabel);
 		
 		layout = new GridLayout(3, false);
 		layout.horizontalSpacing = 30;	
@@ -180,28 +181,15 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		if ((groupData != null) && (!groupData.isDisposed())) {
 			groupData.dispose();
 		}
+		
 		groupData = new Group(globalComposite, SWT.SHADOW_ETCHED_OUT | SWT.V_SCROLL);
 		groupData.setLayout(layout);
 		groupData.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));
-		groupData.setText("Data");
-		
-		if (groupData != null) {
-			for (Control c : groupData.getChildren()){
-				c.dispose();
-			}
-		}
-		
-		if (groupParameters != null) {
-			for (Control c : groupParameters.getChildren()){
-				c.dispose();
-			}
-		}
-
-		if (groupQueries != null) {
-			for (Control c : groupQueries.getChildren()){
-				c.dispose();
-			}	
-		}
+		label = new Label(groupData, SWT.NONE);
+		label.setText("Data");
+		gdLabel = new GridData();
+		gdLabel.horizontalSpan = 3;
+		label.setLayoutData(gdLabel);
 		
 		addListener(SWT.Resize, new Listener() {
 			@Override
@@ -245,24 +233,28 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			}
 			if (isMultiValued) {
 				label += " [ ]";
-			}			
+			}
 			
 			labelName.setText(label);
-			
-			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP);
+			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP | SWT.BORDER);
+			if (SwtUtils.isDark()) {
+				browserDescription.setBackground(getParent().getBackground());
+			}
 			browserDescription.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
 			browserDescription.setText("<html>" +
 					"<head>" +
-					"<script type=\"text/javascript\">"+
-				        "document.oncontextmenu = new Function(\"return false\");"+
-				    "</script>"+
-							"<style type=\"text/css\">"+
-								  "body {"+
+					"<script type=\"text/javascript\">" +
+						"document.oncontextmenu = new Function(\"return false\");" +
+					"</script>" +
+							"<style type=\"text/css\">" +
+								  "body {" +
 								    "font-family: Tahoma new, sans-serif;" +
-								    "font-size: 0.7em;"+
+								    "font-size: 0.7em;" +
 								    "margin-top: 5px;" +
 								    "overflow-y: auto;" +
-								    "background-color: #ECEBEB }"+
+								    "color: $foreground$;" +
+								    "background-color: $background$ } \n" +
+								  "a { color: $link$; }" +
 							"</style></head><p>" + description + "</p></html>");
 
 			parametersCouch.add(name);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -52,9 +52,11 @@ public class Export extends DownloadService {
 		response.setContentType(MimeType.Zip.value());	   
 		
 		// if any, backup existing CAR file
-		File f = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+		File f = new File(Engine.projectDir(projectName) + ".car");
+		long lastDate = -1;
 		if (f.exists()) {
-			f.renameTo(new File(Engine.PROJECTS_PATH + "/" + projectName + ".car.old"));
+			lastDate = f.lastModified();
+			f.renameTo(new File(Engine.projectDir(projectName) + ".car.old"));
 		}
 
 		if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
@@ -65,9 +67,12 @@ public class Export extends DownloadService {
 		Engine.theApp.databaseObjectsManager.buildCar(projectName);
 	
 		// upload CAR file to admin
-		f = new File(Engine.PROJECTS_PATH + "/" + projectName + ".car");
+		f = new File(Engine.projectDir(projectName) + ".car");
 		HeaderName.ContentLength.setHeader(response, "" + f.length());
 		if (f.exists()) {
+			if (lastDate > 0) {
+				f.setLastModified(lastDate);
+			}
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
 			OutputStream outStream = response.getOutputStream();
 			

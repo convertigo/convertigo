@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -183,7 +183,7 @@ public class RemoteAdministration {
 			}).start();
 		}
 
-		String projectArchiveFileName = Engine.PROJECTS_PATH + "/" + projectName + ".car";
+		String projectArchiveFileName = Engine.projectDir(projectName) + ".car";
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(projectArchiveFileName);
@@ -214,7 +214,7 @@ public class RemoteAdministration {
 			throw new EngineException("Not authenticated!");
 		}
 
-		String projectArchiveFileName = Engine.PROJECTS_PATH + "/" + projectName + ".car";
+		String projectArchiveFileName = Engine.projectDir(projectName) + ".car";
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(projectArchiveFileName);

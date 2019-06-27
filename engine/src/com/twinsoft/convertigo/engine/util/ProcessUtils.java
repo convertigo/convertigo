@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -34,6 +34,14 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 
 public class ProcessUtils {
 	
+	public static void setNpmFolder(File npmFolder) {
+		if (new File(npmFolder, "npm").exists()) {
+			npmPath = npmFolder.getAbsolutePath();
+		}
+	}
+	
+	private static String npmPath = null;
+	
 	public static String searchFullPath(String paths, String command) throws IOException {
 		String shellFullpath = null;
 		// Checks if the command is already full path 
@@ -42,7 +50,7 @@ public class ProcessUtils {
 			for (String path: paths.split(Pattern.quote(File.pathSeparator))) {
 				File candidate = new File(path, command);
 				if (candidate.exists()) {
-					shellFullpath = candidate.getCanonicalPath();
+					shellFullpath = candidate.getAbsolutePath();
 					break;
 				}
 			}
@@ -79,7 +87,7 @@ public class ProcessUtils {
 		}
 		paths += File.pathSeparator + defaultPaths;
 		
-		return paths;		
+		return paths;
 	}
 	
 	public static ProcessBuilder getProcessBuilder(String paths, List<String> command) throws IOException {
@@ -90,9 +98,10 @@ public class ProcessUtils {
 		paths = getAllPaths(paths);
 		command.set(0, searchFullPath(paths, command.get(0)));
 		ProcessBuilder pb = new ProcessBuilder(command);
-		Map<String, String> pbEnv = pb.environment();		
-		// must set "Path" for Windows 8.1 64
+		Map<String, String> pbEnv = pb.environment();
+//		// must set "Path" for Windows 8.1 64
 		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
+		pbEnv.put("JAVA_HOME", System.getProperty("java.home"));
 		return pb; 
 	}
 	
@@ -109,14 +118,20 @@ public class ProcessUtils {
 			command.set(0, "npm.cmd");
 		}
 		
+		if (paths.isEmpty()) {
+			paths = npmPath;
+		} else {
+			paths = npmPath + File.pathSeparator + paths;
+		}
+		
 		ProcessBuilder pb = getProcessBuilder(paths, command);
-		Map<String, String> pbEnv = pb.environment();
 		
 		String proxyMode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE);
 		if (proxyMode.equals(ProxyMode.manual.getValue())) {
 			String proxyAuthMethod = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_METHOD);
 
 			if (proxyAuthMethod.equals(ProxyMethod.anonymous.getValue()) || proxyAuthMethod.equals(ProxyMethod.basic.getValue())) {
+				Map<String, String> pbEnv = pb.environment();
 				String proxyHost = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
 				String proxyPort = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT);
 				

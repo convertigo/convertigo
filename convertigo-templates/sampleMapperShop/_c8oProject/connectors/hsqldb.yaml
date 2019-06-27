@@ -1,0 +1,118 @@
+↑default: true
+comment: A connector on shop_db HSQLDB database
+jdbcDriverClassName: org.hsqldb.jdbcDriver
+jdbcURL: jdbc:hsqldb:file:shop_db
+jdbcUserName: sa
+↓_ClearCategories [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: delete all rows from categories table and reset index'
+  generateJsonTypes: false
+  sqlQuery: |
+    DELETE FROM CATEGORIES;
+    ALTER TABLE CATEGORIES ALTER COLUMN CAT_ID RESTART WITH 1;
+  xmlOutput: 0
+↓_ClearProducts [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: delete all rows from products table and reset index'
+  generateJsonTypes: false
+  sqlQuery: |
+    DELETE FROM PRODUCTS;
+    ALTER TABLE PRODUCTS ALTER COLUMN ART_ID RESTART WITH 1;
+  xmlOutput: 0
+↓_DeleteProduct [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: delete a row from products table giving art_id'
+  generateJsonTypes: false
+  sqlQuery: DELETE FROM PRODUCTS WHERE (ART_ID='{art_id}');
+  xmlOutput: 0
+  ↓art_id [variables.RequestableVariable-1462205007780]: 
+    description: art_id
+    value: 0
+↓_GetProductByCode [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: select a row from products table giving code'
+  generateJsonTypes: false
+  sqlQuery: SELECT * FROM PRODUCTS WHERE (CODE='{code}')
+  xmlOutput: 0
+  ↓Test_OK_HHT10CDJ0OO [core.TestCase]: 
+    ↓code [variables.TestCaseVariable-1462288405922]: 
+      description: code
+      required: true
+      value: HHT10CDJ0OO
+  ↓Test_OK_string [core.TestCase]: 
+    ↓code [variables.TestCaseVariable-1462361837908]: 
+      description: code
+      required: true
+      value: string
+  ↓code [variables.RequestableVariable-1462288207649]: 
+    description: code
+    required: true
+    value: 1
+↓_GetProductById [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: select a row from products table giving art_id'
+  generateJsonTypes: false
+  sqlQuery: SELECT * FROM PRODUCTS WHERE (ART_ID='{art_id}')
+  xmlOutput: 0
+  ↓Test_OK_6 [core.TestCase]: 
+    ↓art_id [variables.TestCaseVariable-1462288472801]: 
+      description: art_id
+      required: true
+      value: 6
+  ↓art_id [variables.RequestableVariable-1462203644189]: 
+    description: art_id
+    required: true
+    value: 1
+↓_InsertCategory [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: insert a row into categories table'
+  generateJsonTypes: false
+  sqlQuery: INSERT INTO categories (name) VALUES ('{name}')
+  xmlOutput: 0
+  ↓name [variables.RequestableVariable-1462200460705]: 
+    description: name
+    value: category xx
+↓_InsertProduct [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: insert a row into products table'
+  generateJsonTypes: false
+  sqlQuery: INSERT INTO products (description,code,price,cat_id) VALUES ('{description}','{code}','{price}',{cat_id})
+  xmlOutput: 0
+  ↓description [variables.RequestableVariable-1462193713698]: 
+    description: description
+  ↓code [variables.RequestableVariable-1462193713700]: 
+    description: code
+  ↓price [variables.RequestableVariable-1462193713702]: 
+    description: price
+  ↓cat_id [variables.RequestableVariable-1462193713704]: 
+    description: cat_id
+    value: 1
+↓_UpdateProduct [transactions.SqlTransaction]: 
+  accessibility: Private
+  comment: 'private: update a row into products table'
+  generateJsonTypes: false
+  sqlQuery: UPDATE PRODUCTS SET CODE='{code}', PRICE='{price}', DESCRIPTION='{description}' WHERE (ART_ID='{art_id}')
+  xmlOutput: 0
+  ↓art_id [variables.RequestableVariable-1462203683372]: 
+    description: art_id
+    value: 1
+  ↓code [variables.RequestableVariable-1462203811427]: 
+    description: code
+  ↓description [variables.RequestableVariable-1462203811429]: 
+    description: description
+  ↓price [variables.RequestableVariable-1462203851246]: 
+    description: price
+↓All_Categories [transactions.SqlTransaction]: 
+  comment: 'public: select all rows of categories table'
+  generateJsonTypes: false
+  sqlQuery: SELECT * FROM categories
+  xmlOutput: 0
+↓All_Products [transactions.SqlTransaction]: 
+  ↑default: true
+  comment: 'public: select all rows of products table'
+  generateJsonTypes: false
+  sqlQuery: SELECT * FROM products ORDER BY ART_ID {{order}}
+  xmlOutput: 0
+  ↓order [variables.RequestableVariable-1462365470313]: 
+    description: order
+    value: ASC

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,19 +30,12 @@ public class TransactionWithVariablesBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/TransactionWithVariables");
 
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("orderedVariables", TransactionWithVariables.class, "getOrderedVariables", "setOrderedVariables");
-			properties[0].setDisplayName(getExternalizedString("property.orderedVariables.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.orderedVariables.short_description"));
-			//properties[0].setPropertyEditorClass(getEditorClass("TransactionVariablesEditor"));
-			//properties[0].setExpert(true);
-			properties[0].setHidden(true);
-			
-			properties[1] = new PropertyDescriptor("bIncludeCertificateGroup", TransactionWithVariables.class, "includeCertificateGroup", "setIncludeCertificateGroup");
-			properties[1].setExpert(true);
-			properties[1].setDisplayName(getExternalizedString("property.bIncludeCertificateGroup.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.bIncludeCertificateGroup.short_description"));
+			properties[0] = new PropertyDescriptor("bIncludeCertificateGroup", TransactionWithVariables.class, "includeCertificateGroup", "setIncludeCertificateGroup");
+			properties[0].setExpert(true);
+			properties[0].setDisplayName(getExternalizedString("property.bIncludeCertificateGroup.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.bIncludeCertificateGroup.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

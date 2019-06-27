@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -53,8 +53,8 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
@@ -269,8 +269,8 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	}
 	
 	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
-		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
-		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
+		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		
@@ -304,8 +304,8 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	            		
 	    				// Updating the opened handlers editor if any
 	    				IEditorPart jspart = ConvertigoPlugin.getDefault().getJscriptTransactionEditor(transaction);
-	    				if ((jspart != null) && (jspart instanceof JscriptTransactionEditor)) {
-	    					JscriptTransactionEditor jscriptTransactionEditor = (JscriptTransactionEditor)jspart;
+	    				if ((jspart != null) && (jspart instanceof JScriptEditor)) {
+	    					JScriptEditor jscriptTransactionEditor = (JScriptEditor) jspart;
 	    					jscriptTransactionEditor.reload();
 	    				}
 	    				
@@ -411,13 +411,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	}
 
 	public void openJscriptTransactionEditor(IProject project) {
-		Transaction transaction = (Transaction)this.getObject();
-		
-		String tempFileName = 	"_private/"+project.getName()+
-								"__"+transaction.getConnector().getName()+
-								"__"+transaction.getName();
-		
-		IFile file = project.getFile(tempFileName);
+		Transaction transaction = (Transaction) this.getObject();
 
 		IWorkbenchPage activePage = PlatformUI
 										.getWorkbench()
@@ -425,8 +419,8 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 										.getActivePage();
 		if (activePage != null) {
 			try {
-				activePage.openEditor(new JscriptTransactionEditorInput(file,transaction),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor");
+				activePage.openEditor(new JScriptEditorInput(transaction, project),
+										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
 			} catch(PartInitException e) {
 				ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + transaction.getName() + "'");
 			} 
@@ -517,5 +511,10 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 		}
 		
 		return listVariablesNames;
+	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
 	}
 }

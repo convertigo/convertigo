@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication.AuthenticationType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -46,6 +47,7 @@ public class UrlMapper extends DatabaseObject {
 	@Override
 	public UrlMapper clone() throws CloneNotSupportedException {
 		UrlMapper clonedObject = (UrlMapper)super.clone();
+		clonedObject.authentications = new LinkedList<UrlAuthentication>();
 		clonedObject.mappings = new LinkedList<UrlMapping>();
 		return clonedObject;
 	}
@@ -73,13 +75,16 @@ public class UrlMapper extends DatabaseObject {
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
+		rep.addAll(getAuthenticationList());
 		rep.addAll(getMappingList());
 		return rep;
 	}
 
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof UrlMapping) {
+		if (databaseObject instanceof UrlAuthentication) {
+			addAuthentication((UrlAuthentication)databaseObject);
+		} else if (databaseObject instanceof UrlMapping) {
 			addMapping((UrlMapping) databaseObject);
 		} else {
 			throw new EngineException("You cannot add to an URL mapper a database object of type " + databaseObject.getClass().getName());
@@ -88,13 +93,51 @@ public class UrlMapper extends DatabaseObject {
 
     @Override
     public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof UrlMapping) {
+		if (databaseObject instanceof UrlAuthentication) {
+			removeAuthentication((UrlAuthentication)databaseObject);
+		} else if (databaseObject instanceof UrlMapping) {
 			removeMapping((UrlMapping) databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from an URL mapper a database object of type " + databaseObject.getClass().getName());
 		}
 		super.remove(databaseObject);
     }
+	
+	/**
+	 * The list of available authentications for this mapper.
+	 */
+	transient private List<UrlAuthentication> authentications = new LinkedList<UrlAuthentication>();
+		
+	protected void addAuthentication(UrlAuthentication authentication) throws EngineException {
+		boolean hasAuthenticationType = getAuthenticationByType(authentication.getType()) != null;
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(authentications, authentication.getName(), authentication.bNew);
+		authentication.setName(newDatabaseObjectName);
+		authentications.add(authentication);
+		super.add(authentication);
+		if (hasAuthenticationType) {
+			Engine.logBeans.warn("The mapper already contains an authentication with given type \""+authentication.getType()+"\". Only the first one will be taken into account.");
+		}
+	}
+
+	public void removeAuthentication(UrlAuthentication authentication) throws EngineException {
+		checkSubLoaded();
+		authentications.remove(authentication);
+	}
+	
+	public List<UrlAuthentication> getAuthenticationList() {
+		checkSubLoaded();
+		return sort(authentications);
+	}
+    
+	private Object getAuthenticationByType(AuthenticationType authType) {
+		for (UrlAuthentication authentication : getAuthenticationList()) {
+			if (authentication.getType().equals(authType)) {
+				return authentication;
+			}
+		}
+		return null;
+	}
 	
 	/**
 	 * The list of available mappings for this mapper.

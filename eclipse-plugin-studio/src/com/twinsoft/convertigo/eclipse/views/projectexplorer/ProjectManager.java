@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -27,56 +27,60 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 
 public class ProjectManager {
-    
+
 	/**
-     * The current project.
-     */
-    public ProjectTreeObject currentProjectTreeObject = null;
-    public Project currentProject = null;
-    
-    public String currentProjectName = null;
-    public String previousProjectName = null;
+	 * The current project.
+	 */
+	public ProjectTreeObject currentProjectTreeObject = null;
+	public Project currentProject = null;
 
-    /**
-     * Indicates if the current project has been modified.
-     */
-    protected boolean bModified = false;
-    
-    public void setCurrentProject(ProjectTreeObject projectTreeObject) {
-    	DatabaseObject databaseObject = (DatabaseObject)projectTreeObject.getObject();
-    	if ((databaseObject != null) && (databaseObject instanceof Project)) {
-    		if (currentProject != null)
-    			previousProjectName = currentProjectName;
-    		
-    		currentProject = (Project)databaseObject;
-    		currentProjectName = currentProject.getName();
-    		currentProjectTreeObject = projectTreeObject;
-    	}
-    }
+	public String currentProjectName = null;
+	public String previousProjectName = null;
 
-    private ProjectExplorerView projectExplorerView = null;
-    
+	/**
+	 * Indicates if the current project has been modified.
+	 */
+	protected boolean bModified = false;
+
+	public void setCurrentProject(ProjectTreeObject projectTreeObject) {
+		DatabaseObject databaseObject = (DatabaseObject)projectTreeObject.getObject();
+		if ((databaseObject != null) && (databaseObject instanceof Project)) {
+			if (currentProject != null)
+				previousProjectName = currentProjectName;
+
+			currentProject = (Project)databaseObject;
+			currentProjectName = currentProject.getName();
+			currentProjectTreeObject = projectTreeObject;
+		}
+	}
+
+	private ProjectExplorerView projectExplorerView = null;
+
 	public ProjectExplorerView getProjectExplorerView() {
 		if (projectExplorerView == null) {
 			try {
 				IViewPart viewPart =  PlatformUI
-											.getWorkbench()
-											.getActiveWorkbenchWindow()
-											.getActivePage()
-											.findView("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView");
+						.getWorkbench()
+						.getActiveWorkbenchWindow()
+						.getActivePage()
+						.findView("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView");
 				if (viewPart != null)
 					projectExplorerView = (ProjectExplorerView)viewPart;
 			}
 			catch (Exception e) {;}
 		}
-		
+
 		return projectExplorerView;
+	}
+	
+	public boolean hasProjectExplorerView() {
+		return projectExplorerView != null;
 	}
 
 	public void setProjectExplorerView(ProjectExplorerView projectExplorerView) {
 		this.projectExplorerView = projectExplorerView;
 	}
-	    
+
 	public int getNumberOfObjects(String projectName) {
 		return 100;
 	}

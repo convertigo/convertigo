@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,11 +29,14 @@ import com.twinsoft.convertigo.engine.Engine;
 public class UnloadedProjectTreeObject extends TreeObject implements IActionFilter {
 	public boolean isLoadable = true;
 	
-	public UnloadedProjectTreeObject(Viewer viewer, String object) {
-		super(viewer, object);
-        String fileName = Engine.PROJECTS_PATH + "/" + object + "/" + object + ".xml";
-		File file = new File(fileName);
-		isLoadable = file.exists();
+	public UnloadedProjectTreeObject(Viewer viewer, String projectName) {
+		super(viewer, projectName);
+		String projectDir = Engine.projectDir(projectName);
+		File toLoad = new File(projectDir + "/c8oProject.yaml");
+		if (!toLoad.exists()) {
+			toLoad = new File(projectDir + "/" + projectName + ".xml");
+		}
+		isLoadable = toLoad.exists();
 	}
 
 	@Override

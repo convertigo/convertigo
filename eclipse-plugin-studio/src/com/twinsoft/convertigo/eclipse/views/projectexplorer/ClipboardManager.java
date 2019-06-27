@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.parsers.DocumentBuilder;
+
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -43,6 +47,7 @@ import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
+import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
@@ -60,15 +65,21 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -245,21 +256,36 @@ public class ClipboardManager {
 	private void appendDndData(Element element, DatabaseObject databaseObject) {
 		Element dnd = clipboardDocument.createElement("dnd");
 		Element e;
-		if (databaseObject instanceof Sequence) {
-			Sequence sequence = (Sequence)databaseObject;
-			e = clipboardDocument.createElement("project");
-			e.setAttribute("name", sequence.getProject().getName());
-			dnd.appendChild(e);
-		} else if (databaseObject instanceof Transaction) {
-			Transaction transaction = (Transaction)databaseObject;
-			e = clipboardDocument.createElement("project");
-			e.setAttribute("name", transaction.getProject().getName());
-			dnd.appendChild(e);
-			
-			e = clipboardDocument.createElement("connector");
-			e.setAttribute("name", transaction.getConnector().getName());
-			dnd.appendChild(e);
-		}
+		try {
+			if (databaseObject instanceof Sequence) {
+				Sequence sequence = (Sequence)databaseObject;
+				e = clipboardDocument.createElement("project");
+				e.setAttribute("name", sequence.getProject().getName());
+				dnd.appendChild(e);
+			} else if (databaseObject instanceof Transaction) {
+				Transaction transaction = (Transaction)databaseObject;
+				e = clipboardDocument.createElement("project");
+				e.setAttribute("name", transaction.getProject().getName());
+				dnd.appendChild(e);
+				
+				e = clipboardDocument.createElement("connector");
+				e.setAttribute("name", transaction.getConnector().getName());
+				dnd.appendChild(e);
+			} else if (databaseObject instanceof UIComponent) {
+				UIComponent uic = (UIComponent)databaseObject;
+				e = clipboardDocument.createElement("project");
+				e.setAttribute("name", uic.getProject().getName());
+				dnd.appendChild(e);
+	
+				e = clipboardDocument.createElement("mobileapplication");
+				e.setAttribute("name", uic.getApplication().getParent().getName());
+				dnd.appendChild(e);
+	
+				e = clipboardDocument.createElement("application");
+				e.setAttribute("name", uic.getApplication().getName());
+				dnd.appendChild(e);
+			}
+		} catch (Exception ex) {}
 		element.appendChild(dnd);
 	}
 
@@ -270,7 +296,10 @@ public class ClipboardManager {
 	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
 		if (xmlData != null) {
-			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
+			DocumentBuilder builder = XMLUtils.getDefaultDocumentBuilder();
+			builder.setErrorHandler(null); // avoid 'content not allowed in prolog' to be printed out
+			
+			Document document = builder.parse(new InputSource(new StringReader(xmlData)));
 			
 			Element rootElement = document.getDocumentElement();
 			NodeList nodeList = rootElement.getChildNodes();
@@ -327,11 +356,20 @@ public class ClipboardManager {
 		}
 		
 		for (Object ob : pastedObjects) {
-			if (ob instanceof UIComponent) {
+			if (ob instanceof PageComponent) {
+				PageComponent page = (PageComponent)ob;
+				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
+					if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+						page.markPageAsDirty();
+					}
+				}
+			}
+			else if (ob instanceof UIComponent) {
 				UIComponent uic = (UIComponent)ob;
 				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
-					uic.updateSmartSource(entry.getKey(), String.valueOf(entry.getValue().priority));
-					uic.markAsDirty();
+					if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+						uic.markAsDirty();
+					}
 				}
 			}
 		}
@@ -391,6 +429,12 @@ public class ClipboardManager {
 		return null;
 	}
 	
+	private XMLVector<XMLVector<Long>> getNewOrdered() {
+		XMLVector<XMLVector<Long>> ordered = new XMLVector<XMLVector<Long>>();
+		ordered.add(new XMLVector<Long>());
+		return ordered;
+	}
+	
 	public Object paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
 		Object object = read(node);
 		if (object instanceof DatabaseObject) {
@@ -446,6 +490,7 @@ public class ClipboardManager {
 			int index = 0;
 			long oldPriority = databaseObject.priority;
 			
+	        // Verify if a child object with same name exist and change name
 			while (bContinue) {
 				if (bChangeName) {
 					if (index == 0) name = dboName;
@@ -456,197 +501,266 @@ public class ClipboardManager {
 				databaseObject.hasChanged = true;
 				databaseObject.bNew = true;
 				
-				try {
-					if (parentDatabaseObject instanceof ScreenClass) {
-						if (parentDatabaseObject instanceof JavelinScreenClass) {
-							JavelinScreenClass screenClass = (JavelinScreenClass) parentDatabaseObject;
-							if (databaseObject instanceof BlockFactory) {
-								screenClass.add(databaseObject);
-								screenClass.setBlockFactory((BlockFactory)databaseObject);
-							}
+		        try {
+		        	new WalkHelper() {
+		        		boolean root = true;
+		        		boolean find = false;
+						
+						@Override
+						protected boolean before(DatabaseObject dbo, Class<? extends DatabaseObject> dboClass) {
+							boolean isInstance = dboClass.isInstance(databaseObject);
+							find |= isInstance;
+							return isInstance;
 						}
 						
-						ScreenClass screenClass = (ScreenClass) parentDatabaseObject;
-						if (databaseObject instanceof Criteria) {
-							if ((!screenClass.bNew) && (screenClass.equals(((IScreenClassContainer<?>) screenClass.getConnector()).getDefaultScreenClass()))) {
-								throw new EngineException("You cannot paste a new criterion to the default screen class");								
-							}
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							screenClass.add(databaseObject);
-						} else if (databaseObject instanceof ExtractionRule) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							screenClass.add(databaseObject);
-						} else if (databaseObject instanceof Sheet) {
-							screenClass.add(databaseObject);
-						} else if (databaseObject instanceof ScreenClass) {
-							databaseObject.priority = screenClass.priority + 1;
-							XMLVector<XMLVector<Long>> orderedCriterias = new XMLVector<XMLVector<Long>>();
-							orderedCriterias.add(new XMLVector<Long>());
-							((ScreenClass) databaseObject).setOrderedCriterias(orderedCriterias);
-							XMLVector<XMLVector<Long>> orderedExtractionRules = new XMLVector<XMLVector<Long>>();
-							orderedExtractionRules.add(new XMLVector<Long>());
-							((ScreenClass) databaseObject).setOrderedExtractionRules(orderedExtractionRules);
-							screenClass.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof HtmlTransaction) {
-						HtmlTransaction transaction = (HtmlTransaction) parentDatabaseObject;
-						if (databaseObject instanceof Sheet) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof TestCase) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof FunctionStatement) {
-							if (databaseObject instanceof StatementWithExpressions) {
-								databaseObject.priority = 0;
-								databaseObject.newPriority = databaseObject.priority;
-							}
-							transaction.add(databaseObject);
-						} else {
-							throw new EngineException("You cannot paste to an HtmlTransaction a database object of type " + databaseObject.getClass().getName());
-						}
-					} else if (parentDatabaseObject instanceof TransactionWithVariables) {
-						TransactionWithVariables transaction = (TransactionWithVariables) parentDatabaseObject;
-						if (databaseObject instanceof Sheet) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof TestCase) {
-							transaction.add(databaseObject);
-						} else if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							transaction.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof Sequence) {
-						Sequence sequence = (Sequence) parentDatabaseObject;
-						if (databaseObject instanceof Sheet) {
-							sequence.add(databaseObject);
-						} else if (databaseObject instanceof TestCase) {
-							sequence.add(databaseObject);
-						} else if (databaseObject instanceof Step) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							sequence.add(databaseObject);
-						} else if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							sequence.add(databaseObject);
-						} else {
-							throw new EngineException("You cannot paste to a Sequence a database object of type " + databaseObject.getClass().getName());
-						}
-					} else if (parentDatabaseObject instanceof StatementWithExpressions) {
-						StatementWithExpressions statement = (StatementWithExpressions) parentDatabaseObject;
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
-						statement.add(databaseObject);
-					} else if (parentDatabaseObject instanceof HTTPStatement) {
-						HTTPStatement statement = (HTTPStatement) parentDatabaseObject;
-						if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							statement.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof StepWithExpressions) {
-						StepWithExpressions step = (StepWithExpressions) parentDatabaseObject;
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
-						step.add(databaseObject);
-					} else if (parentDatabaseObject instanceof RequestableStep) {
-						RequestableStep step = (RequestableStep) parentDatabaseObject;
-						if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							step.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof TestCase) {
-						TestCase testCase = (TestCase) parentDatabaseObject;
-						if (databaseObject instanceof Variable) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							testCase.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof ApplicationComponent) {
-						ApplicationComponent app = (ApplicationComponent) parentDatabaseObject;
-						if (databaseObject instanceof PageComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-						else if (databaseObject instanceof RouteComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-						else if (databaseObject instanceof UIDynamicMenu) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-						else if (databaseObject instanceof UIComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							app.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof RouteComponent) {
-						RouteComponent route = (RouteComponent)parentDatabaseObject;
-						if (databaseObject instanceof RouteActionComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							RouteActionComponent rac = (RouteActionComponent)databaseObject;
-							int i = rac.getPage().lastIndexOf(".");
-							if (i != -1) {
-								String pageName = rac.getPage().substring(i);
-								String pageQName = route.getParent().getQName() + pageName;
-								rac.setPage(pageQName);
-							}
-							route.add(rac);
-						}
-						else if (databaseObject instanceof RouteEventComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							route.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof PageComponent) {
-						PageComponent page = (PageComponent) parentDatabaseObject;
-						if (databaseObject instanceof UIComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							page.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof UIDynamicMenu) {
-						UIDynamicMenu menu = (UIDynamicMenu) parentDatabaseObject;
-						if (databaseObject instanceof UIComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							databaseObject.newPriority = databaseObject.priority;
-							menu.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof UIComponent) {
-						UIComponent component = (UIComponent) parentDatabaseObject;
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						databaseObject.newPriority = databaseObject.priority;
-						component.add(databaseObject);
-					} else if (parentDatabaseObject == null) {
-						if (databaseObject instanceof Project) {
-							if (Engine.theApp.databaseObjectsManager.existsProject(databaseObject.getName())) {
-								throw new ObjectWithSameNameException("Project already exist!");
+						@Override
+						protected void walk(DatabaseObject dbo) throws Exception {
+							if (root) {
+								root = false;
+								super.walk(dbo);
+								if (!find) {
+									// ignore: we must accept special paste: e.g. transaction over sequence
+								}
+							} else {
+								if (databaseObject.getName().equalsIgnoreCase(dbo.getName())) {
+									throw new ObjectWithSameNameException("Unable to paste the object because an object with the same name already exists in target.");
+								}
 							}
 						}
-					} else {
-						parentDatabaseObject.add(databaseObject);
-					}
-					bContinue = false;
-				} catch(ObjectWithSameNameException owsne) {
+
+		        	}.init(parentDatabaseObject);
+		        	bContinue = false;
+		        } catch (ObjectWithSameNameException owsne) {
 					if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement)) {
 						throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
 					}
-					if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step)) {
-						throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
-					}
+		        	
 					// Silently ignore
 					index++;
+		        } catch (EngineException ee) {
+		        	throw ee;
+				} catch (Exception e) {
+					throw new EngineException("Exception in paste", e);
+				}
+			}
+			
+			// reset ordered properties
+			if (databaseObject instanceof IContainerOrdered) {
+				// Mobile beans
+				if (databaseObject instanceof ApplicationComponent) {
+					((ApplicationComponent)databaseObject).setOrderedRoutes(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedMenus(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedPages(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedComponents(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedSharedActions(getNewOrdered());
+					((ApplicationComponent)databaseObject).setOrderedSharedComponents(getNewOrdered());
+				}
+				if (databaseObject instanceof RouteComponent) {
+					((RouteComponent)databaseObject).setOrderedActions(getNewOrdered());
+					((RouteComponent)databaseObject).setOrderedEvents(getNewOrdered());
+				}
+				if (databaseObject instanceof PageComponent) {
+					((PageComponent)databaseObject).setOrderedComponents(getNewOrdered());
+				}
+				if (databaseObject instanceof UIComponent) {
+					((UIComponent)databaseObject).setOrderedComponents(getNewOrdered());
+				}
+				
+				// Sequence beans
+				if (databaseObject instanceof Sequence) {
+					((Sequence)databaseObject).setOrderedSteps(getNewOrdered());
+					((Sequence)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				if (databaseObject instanceof StepWithExpressions) {
+					((StepWithExpressions)databaseObject).setOrderedSteps(getNewOrdered());
+				}
+				if (databaseObject instanceof RequestableStep) {
+					((RequestableStep)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				
+				// Transaction beans
+				if (databaseObject instanceof TransactionWithVariables) {
+					((TransactionWithVariables)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				if (databaseObject instanceof StatementWithExpressions) {
+					((StatementWithExpressions)databaseObject).setOrderedStatements(getNewOrdered());
+				}
+				if (databaseObject instanceof HTTPStatement) {
+					((HTTPStatement)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				if (databaseObject instanceof ScreenClass) {
+					((ScreenClass)databaseObject).setOrderedCriterias(getNewOrdered());
+					((ScreenClass)databaseObject).setOrderedExtractionRules(getNewOrdered());
+				}
+				
+				// TestCase bean
+				if (databaseObject instanceof TestCase) {
+					((TestCase)databaseObject).setOrderedVariables(getNewOrdered());
+				}
+				
+			}
+			
+			// Now add dbo to target
+			try {
+				if (parentDatabaseObject instanceof ScreenClass) {
+					if (parentDatabaseObject instanceof JavelinScreenClass) {
+						JavelinScreenClass screenClass = (JavelinScreenClass) parentDatabaseObject;
+						if (databaseObject instanceof BlockFactory) {
+							screenClass.add(databaseObject);
+							screenClass.setBlockFactory((BlockFactory)databaseObject);
+						}
+					}
+					
+					ScreenClass screenClass = (ScreenClass) parentDatabaseObject;
+					if (databaseObject instanceof Criteria) {
+						if ((!screenClass.bNew) && (screenClass.equals(((IScreenClassContainer<?>) screenClass.getConnector()).getDefaultScreenClass()))) {
+							throw new EngineException("You cannot paste a new criterion to the default screen class");								
+						}
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						screenClass.add(databaseObject);
+					} else if (databaseObject instanceof ExtractionRule) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						screenClass.add(databaseObject);
+					} else if (databaseObject instanceof Sheet) {
+						screenClass.add(databaseObject);
+					} else if (databaseObject instanceof ScreenClass) {
+						databaseObject.priority = screenClass.priority + 1;
+						screenClass.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof HtmlTransaction) {
+					HtmlTransaction transaction = (HtmlTransaction) parentDatabaseObject;
+					if (databaseObject instanceof Sheet) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof TestCase) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof FunctionStatement) {
+						if (databaseObject instanceof StatementWithExpressions) {
+							databaseObject.priority = 0;
+						}
+						transaction.add(databaseObject);
+					} else {
+						throw new EngineException("You cannot paste to an HtmlTransaction a database object of type " + databaseObject.getClass().getName());
+					}
+				} else if (parentDatabaseObject instanceof TransactionWithVariables) {
+					TransactionWithVariables transaction = (TransactionWithVariables) parentDatabaseObject;
+					if (databaseObject instanceof Sheet) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof TestCase) {
+						transaction.add(databaseObject);
+					} else if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						transaction.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof Sequence) {
+					Sequence sequence = (Sequence) parentDatabaseObject;
+					if (databaseObject instanceof Sheet) {
+						sequence.add(databaseObject);
+					} else if (databaseObject instanceof TestCase) {
+						sequence.add(databaseObject);
+					} else if (databaseObject instanceof Step) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						sequence.add(databaseObject);
+					} else if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						sequence.add(databaseObject);
+					} else {
+						throw new EngineException("You cannot paste to a Sequence a database object of type " + databaseObject.getClass().getName());
+					}
+				} else if (parentDatabaseObject instanceof StatementWithExpressions) {
+					StatementWithExpressions statement = (StatementWithExpressions) parentDatabaseObject;
+					databaseObject.priority = databaseObject.getNewOrderValue();
+					statement.add(databaseObject);
+				} else if (parentDatabaseObject instanceof HTTPStatement) {
+					HTTPStatement statement = (HTTPStatement) parentDatabaseObject;
+					if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						statement.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof StepWithExpressions) {
+					StepWithExpressions step = (StepWithExpressions) parentDatabaseObject;
+					databaseObject.priority = databaseObject.getNewOrderValue();
+					step.add(databaseObject);
+				} else if (parentDatabaseObject instanceof RequestableStep) {
+					RequestableStep step = (RequestableStep) parentDatabaseObject;
+					if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						step.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof TestCase) {
+					TestCase testCase = (TestCase) parentDatabaseObject;
+					if (databaseObject instanceof Variable) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						testCase.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof ApplicationComponent) {
+					ApplicationComponent app = (ApplicationComponent) parentDatabaseObject;
+					if (databaseObject instanceof PageComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						app.add(databaseObject);
+					}
+					else if (databaseObject instanceof RouteComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						app.add(databaseObject);
+					}
+					else if (databaseObject instanceof UIDynamicMenu) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						app.add(databaseObject);
+					}
+					else if (databaseObject instanceof UIComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						app.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof RouteComponent) {
+					RouteComponent route = (RouteComponent)parentDatabaseObject;
+					if (databaseObject instanceof RouteActionComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						RouteActionComponent rac = (RouteActionComponent)databaseObject;
+						int i = rac.getPage().lastIndexOf(".");
+						if (i != -1) {
+							String pageName = rac.getPage().substring(i);
+							String pageQName = route.getParent().getQName() + pageName;
+							rac.setPage(pageQName);
+						}
+						route.add(rac);
+					}
+					else if (databaseObject instanceof RouteEventComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						route.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof PageComponent) {
+					PageComponent page = (PageComponent) parentDatabaseObject;
+					if (databaseObject instanceof UIComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						page.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof UIDynamicMenu) {
+					UIDynamicMenu menu = (UIDynamicMenu) parentDatabaseObject;
+					if (databaseObject instanceof UIComponent) {
+						databaseObject.priority = databaseObject.getNewOrderValue();
+						menu.add(databaseObject);
+					}
+				} else if (parentDatabaseObject instanceof UIComponent) {
+					UIComponent component = (UIComponent) parentDatabaseObject;
+					databaseObject.priority = databaseObject.getNewOrderValue();
+					component.add(databaseObject);
+				} else if (parentDatabaseObject == null) {
+					if (databaseObject instanceof Project) {
+						if (Engine.theApp.databaseObjectsManager.existsProject(databaseObject.getName())) {
+							throw new ObjectWithSameNameException("Project already exist!");
+						}
+					}
+				} else {
+					parentDatabaseObject.add(databaseObject);
+				}
+			} catch(ObjectWithSameNameException owsne) {
+				if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement)) {
+					throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
+				}
+				if ((parentDatabaseObject instanceof Sequence) && (databaseObject instanceof Step)) {
+					throw new EngineException("Sequence already contains a step named \""+ name +"\".", owsne);
 				}
 			}
 			
@@ -680,8 +794,33 @@ public class ClipboardManager {
 				pastedComponents.put(String.valueOf(oldPriority), (UIComponent)databaseObject);
 			}
 			
+			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
+		} else if (object instanceof JsonData && (parentDatabaseObject instanceof UIPageEvent || parentDatabaseObject instanceof UIAppEvent || 
+													parentDatabaseObject instanceof UIDynamicAction || parentDatabaseObject instanceof UIActionStack)) {
+			JsonData jsonData = (JsonData) object;
+			JSONObject json = jsonData.getData();
+			if (json.has("qname")) {
+				try {
+					UIComponent uiComponent = (UIComponent) parentDatabaseObject;
+						
+					DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("FullSyncViewAction"));
+					if (call != null && call instanceof UIDynamicAction) {
+						IonBean ionBean = ((UIDynamicAction)call).getIonBean();
+						if (ionBean != null && ionBean.hasProperty("fsview")) {
+							call.bNew = true;
+							call.hasChanged = true;
+							ionBean.setPropertyValue("fsview", new MobileSmartSourceType(json.getString("qname")));
+							uiComponent.add(call);
+							uiComponent.hasChanged = true;
+						}
+						return call;
+					}
+				} catch (JSONException e) {
+					Engine.logStudio.warn("Failed to create a FullSyncViewAction", e);
+				}
+			}
 		}
 		return null;
 	}
@@ -830,7 +969,7 @@ public class ClipboardManager {
 							throw new EngineException("You cannot cut and paste to a " + databaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
 						}
 					} else {
-						if (object.getName().equals(databaseObject.getName())) {
+						if (object.getName().equalsIgnoreCase(databaseObject.getName())) {
 							throw new ObjectWithSameNameException("Unable to cut the object because an object with the same name already exists in target.");
 						}
 					}
@@ -851,43 +990,8 @@ public class ClipboardManager {
 	public synchronized void move(DatabaseObject object, DatabaseObject target) throws ConvertigoException {
 		// First, delete the object from its parent
 		object.delete();
-		//ConvertigoPlugin.projectManager.save(parent, false);
 
-		long oldPriority = object.priority;
-
-		// Sets new priority so object will be paste at end
-		if ((object instanceof Criteria) || (object instanceof ExtractionRule) || (object instanceof Statement) || (object instanceof Step)) {
-			object.priority = object.getNewOrderValue();
-			object.newPriority = object.priority;
-			object.hasChanged = true;
-		}
-		if ((object instanceof FunctionStatement) && (target instanceof HtmlTransaction)) {
-			object.priority = 0;
-			object.newPriority = object.priority;
-			object.hasChanged = true;
-		}
-		if (object instanceof ScreenClass) {
-			object.priority = target.priority + 1;
-			object.hasChanged = true;
-		}
-
-		// Restriction due to migration to 4.0.1
-		if (((target instanceof ScreenClass) && (!((ScreenClass) target).handlePriorities)) ||
-				((target instanceof HtmlTransaction) && (!((HtmlTransaction) target).handlePriorities)) ||
-				((target instanceof StatementWithExpressions) && (!((StatementWithExpressions) target).handlePriorities))) {
-			object.bNew = true;
-		}
-
-		// Second, add the source to the target and
+		// Second, add the source to the target
 		target.add(object);
-		//ConvertigoPlugin.projectManager.save(target, false);
-
-		// Update sources that reference this step
-		if (object instanceof Step) {
-			((Step) object).getSequence().fireStepMoved(new StepEvent(object,String.valueOf(oldPriority)));
-		}
-
-		// save the object and all its children
-		//ConvertigoPlugin.projectManager.save(object, true);
 	}
 }

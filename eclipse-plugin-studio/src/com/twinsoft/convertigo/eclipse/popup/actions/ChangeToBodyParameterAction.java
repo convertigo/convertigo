@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -90,6 +90,7 @@ public class ChangeToBodyParameterAction extends MyAbstractAction {
 	        			if (DatabaseObjectsManager.acceptDatabaseObjects(parameter.getParent(), bodyParameter) ) {
 	        				bodyParameter.setComment(parameter.getComment());
 	        				bodyParameter.setArray(false);
+	        				bodyParameter.setExposed(parameter.isExposed());
 	        				bodyParameter.setMultiValued(false);
 	        				bodyParameter.setRequired(parameter.isRequired());
 	        				bodyParameter.setMappedVariableName(parameter.getMappedVariableName());

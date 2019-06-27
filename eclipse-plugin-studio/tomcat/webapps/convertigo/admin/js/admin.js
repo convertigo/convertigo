@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2019 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 //use for the interactiio between logs_Show and Configuration_List
@@ -55,7 +52,7 @@ $(window).ready(function() {
 		}
 	});
 	
-	$("#swaggerLink").attr("href", "../swagger/ui/index.html?url="+getEncodedYamlUri());
+	$("#swaggerLink").attr("href", "../swagger/dist/index.html?url="+getEncodedYamlUri());
 	
 	$("#logOut div").click(function() {
 		$.ajax( {
@@ -306,7 +303,7 @@ function loadWidget(widgetId, widgetOptions) {
 				$tmp.find(".widget_content_center").first().append(xml);
 				//Condition added by alexandret
 				//Get Url for each widgets to go to help informations
-				var urlHelp = "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/";
+				var urlHelp = "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/";
 				switch (widgetId)
 				{
 					//home page
@@ -395,6 +392,7 @@ function loadLayout(layoutName, callBack) {
 	loadHTML(
 		"layouts/" + layoutName + ".html",
 		function(xml) {
+			xml = xml.replace(new RegExp("<!--[\\d\\D]*-->\\s*"), "");
 			$modif = $(xml);
 			$modif.first().attr("id", layoutName + "_layout");
 			$("#body").append($modif);

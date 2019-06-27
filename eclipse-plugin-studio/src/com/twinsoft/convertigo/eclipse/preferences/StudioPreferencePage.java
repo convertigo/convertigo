@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -35,6 +35,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class StudioPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
@@ -47,6 +48,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
 	private StringFieldEditor localBuildFolder = null;
+	private StringFieldEditor mobileBuilderThreshold = null;
 	
 	public StudioPreferencePage() {
 		super();
@@ -149,6 +151,17 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		localBuildFolder.setPreferenceStore(getPreferenceStore());
 		localBuildFolder.load();
 		
+		mobileBuilderThreshold = new StringFieldEditor(
+				ConvertigoPlugin.PREFERENCE_MOBILE_BUILDER_THRESHOLD,
+				"Mobile Builder Threshold (in ms, delay before compilation starts when an application is modified)", groupLocalBuild);
+		mobileBuilderThreshold.setPage(this);
+		mobileBuilderThreshold.setPreferenceStore(getPreferenceStore());
+		mobileBuilderThreshold.load();
+		if (mobileBuilderThreshold.getStringValue().isEmpty()) {
+			mobileBuilderThreshold.setStringValue(Integer.toString(ConvertigoPlugin.getMobileBuilderThreshold()));
+		}
+		mobileBuilderThreshold.setEmptyStringAllowed(false);
+		
 		BooleanFieldEditor btest = new BooleanFieldEditor("", "", groupLocalBuild);
 		btest.getDescriptionControl(groupLocalBuild).setVisible(false);
 		
@@ -169,6 +182,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoOpenDefaultConnector.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
+		mobileBuilderThreshold.loadDefault();
 		
 		super.performDefaults();
 	}
@@ -182,6 +196,14 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		ConvertigoPlugin.setHighlightDetectedObject(cbHighlight.getBooleanValue());
 		ConvertigoPlugin.setAutoOpenDefaultConnector(cbAutoOpenDefaultConnector.getBooleanValue());
 		ConvertigoPlugin.setShowEngineIntoConsole(cbShowEngineOnConsole.getBooleanValue());
+		try {
+			int ms = new Integer(mobileBuilderThreshold.getStringValue()).intValue();
+			ConvertigoPlugin.setMobileBuilderThreshold(ms);
+			mobileBuilderThreshold.store();
+		} catch(NumberFormatException e) {
+			mobileBuilderThreshold.setStringValue(Integer.toString(ConvertigoPlugin.getMobileBuilderThreshold()));
+			Engine.logStudio.warn("Unable to retrieve the mobile builder threshold option; using default (200).");
+		}
 		
 		comboLevel.store();
 		cbHighlight.store();

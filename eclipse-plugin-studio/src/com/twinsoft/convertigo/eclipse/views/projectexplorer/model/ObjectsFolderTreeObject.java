@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -58,7 +58,9 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 	public static final int FOLDER_TYPE_ATTRIBUTES = 29;
 	public static final int FOLDER_TYPE_VALIDATORS = 30;
 	public static final int FOLDER_TYPE_MENUS = 31;
-	
+	public static final int FOLDER_TYPE_AUTHENTICATIONS = 32;
+	public static final int FOLDER_TYPE_SHARED_ACTIONS = 33;
+	public static final int FOLDER_TYPE_SHARED_COMPONENTS = 34;
 	
 	public int folderType;
 	
@@ -164,6 +166,15 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 				break;
 			case FOLDER_TYPE_MENUS:
 				folderName = "Menus";
+				break;
+			case FOLDER_TYPE_AUTHENTICATIONS:
+				folderName = "Authentications";
+				break;
+			case FOLDER_TYPE_SHARED_ACTIONS:
+				folderName = "Shared actions";
+				break;
+			case FOLDER_TYPE_SHARED_COMPONENTS:
+				folderName = "Shared components";
 				break;
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -56,13 +56,16 @@ public class List extends XmlService {
         
         File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
         Properties storesProperties = new Properties();
-		try {
-			PropertiesUtils.load(storesProperties, file);
-		} catch (Exception e) {
-			String message = "Unexpected exception";
-			Engine.logAdmin.error(message, e);
-			throw new ServiceException(message,e);
-		}
+        
+        synchronized (Engine.CERTIFICATES_PATH) {
+        	try {
+        		PropertiesUtils.load(storesProperties, file);
+        	} catch (Exception e) {
+        		String message = "Unexpected exception";
+        		Engine.logAdmin.error(message, e);
+        		throw new ServiceException(message,e);
+        	}
+        }
         
         
         java.util.List<String> certifVector = new ArrayList<String>();

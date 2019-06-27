@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -241,21 +241,25 @@ public class HttpConnector extends Connector {
 	}
 
 	public void setBaseUrl(String httpUrl) {
-		if ((httpUrl != null) && (!httpUrl.equals(""))) {
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(httpUrl)) {
 			sUrl = httpUrl;
-		} else
+		} else {
 			setBaseUrl();
+	}
 	}
 
 	public void setBaseUrl() {
 		sUrl = "http";
 
-		if (https)
+		if (https) {
 			sUrl += "s";
+		}
 
 		sUrl += "://" + server;
-		if ((https && (port != 443)) || (!https && (port != 80)))
+		
+		if ((https && (port != 443)) || (!https && (port != 80))) {
 			sUrl += ":" + port;
+		}
 		sUrl += baseDir;
 	}
 
@@ -395,7 +399,7 @@ public class HttpConnector extends Connector {
 			String requestTemplateUrl = httpTransaction.getRequestTemplate();
 			if (!requestTemplateUrl.equals("")) {
 				String projectDirectoryName = context.project.getName();
-				String absoluteRequestTemplateUrl = Engine.PROJECTS_PATH + "/" + projectDirectoryName + "/"
+				String absoluteRequestTemplateUrl = Engine.projectDir(projectDirectoryName) + "/"
 						+ (context.subPath.length() > 0 ? context.subPath + "/" : "") + requestTemplateUrl;
 				Engine.logBeans.debug("(HttpConnector) Request template Url: " + absoluteRequestTemplateUrl);
 				requestTemplateFile = new File(absoluteRequestTemplateUrl);
@@ -428,9 +432,9 @@ public class HttpConnector extends Connector {
 
 		// Sets or overwrites server url
 		String httpUrl = httpTransaction.getParameterStringValue(Parameter.ConnectorConnectionString.getName());
-		if (httpUrl != null)
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(httpUrl)) {
 			setBaseUrl(httpUrl);
-		else
+		} else {
 			setBaseUrl();
 
 		String transactionBaseDir = httpTransaction.getCurrentSubDir();
@@ -439,8 +443,10 @@ public class HttpConnector extends Connector {
 			/*
 			 * if (transactionBaseDir.startsWith("https")) setHttps(true);
 			 */
-		} else
+			} else {
 			sUrl += transactionBaseDir;
+			}
+		}
 
 		// Setup the SSL properties if needed
 		if (https) {
@@ -1570,15 +1576,26 @@ public class HttpConnector extends Connector {
 				}
 				// givenUrl is relative to method uri ones
 				else {
+					String methodProtocol;
+					String methodHost;
+					int methodPort;
+					
 					URI uri = method.getURI();
-					String methodProtocol = uri.getScheme();
-					String methodHost = uri.getHost();
 
+					if (hostConfiguration.getProtocol().isSecure()) {
+						methodProtocol = hostConfiguration.getProtocol().getScheme();
+						methodHost = hostConfiguration.getHost();
+						methodPort = hostConfiguration.getPort();
+					} else {
+						methodProtocol = uri.getScheme();
+						methodHost = uri.getHost();
+						methodPort = uri.getPort();						
+					}
+/*
 					if (hostConfiguration.getProtocol().isSecure()) {
 						return givenUrl.startsWith("/") ? givenUrl : ('/' + givenUrl);
 					}
-
-					int methodPort = uri.getPort();
+*/
 					String path = uri.getCurrentHierPath();
 					path = ((path.equals("/") ? "" : path));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -143,10 +143,11 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 	private void initialize() {
 		this.setLayout(new GridLayout(1, false));
 		this.setLayoutData(new GridData(GridData.FILL_BOTH));
-
+		Label title = new Label(this, SWT.NONE);
+		title.setText("Response lifetime");
+		title.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		/* GROUP Response Lifetime */
 		groupResponseLifetime = new Group(this, SWT.NONE);
-		groupResponseLifetime.setText("Response lifetime");
 		groupResponseLifetime.setLayout(new GridLayout(2, false));
 		groupResponseLifetime.setLayoutData(new GridData(GridData.FILL_BOTH));
 

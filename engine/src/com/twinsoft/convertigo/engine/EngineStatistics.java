@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -418,11 +418,9 @@ public class EngineStatistics extends Statistics {
 	}
 
 	public static Object addStatisticsAsXML(Context context, Object result) {
-		if (result != null && context.requestedObject != null && context.requestedObject.getAddStatistics()) {
-			if (result instanceof Document) {
-				Document document = (Document) result;
-				context.statistics.printStatisticsXML(document);
-			}
+		if (result != null && result instanceof Document) {
+			Document document = (Document) result;
+			context.statistics.printStatisticsXML(document);
 		}
 		return result;
 	}

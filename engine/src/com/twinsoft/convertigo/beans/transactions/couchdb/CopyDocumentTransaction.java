@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -51,7 +51,7 @@ public class CopyDocumentTransaction extends AbstractDocumentTransaction {
 		String db = getTargetDatabase();
 		String docid = getParameterStringValue(CouchParam.docid);
 		String destination = getParameterStringValue(CouchParam.destination);
-		String destination_rev = getParameterStringValue(CouchParam.destination);
+		String destination_rev = getParameterStringValue(CouchParam.destination_rev);
 		Map<String, String> query = getQueryVariableValues();
 		
 		JSONObject response = getCouchClient().copyDocument(db, docid, destination, destination_rev, query);

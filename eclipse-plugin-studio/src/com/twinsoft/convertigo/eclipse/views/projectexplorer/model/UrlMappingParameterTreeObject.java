@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,7 +24,7 @@ import org.eclipse.jface.viewers.Viewer;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 
-public class UrlMappingParameterTreeObject extends DatabaseObjectTreeObject {
+public class UrlMappingParameterTreeObject extends DatabaseObjectTreeObject implements IOrderableTreeObject {
 
 	public UrlMappingParameterTreeObject(Viewer viewer, DatabaseObject object) {
 		this(viewer, object, false);

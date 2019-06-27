@@ -1,0 +1,107 @@
+↓Input_variables [steps.InputVariablesStep-1509632285413]: 
+↓Call_Transaction1 [steps.TransactionStep-1509632285420]: 
+  comment: Get OriginalFlight from request
+  sourceTransaction: FlightShare.flightshare_fullsync.GetDocument
+  ↓_use_docid [variables.StepVariable-1509632285425]: 
+    description: Document ID
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1509632285413
+          - java.lang.String: 
+            - ↑value: .//register/text()
+  ↓_use_conflicts [variables.StepVariable-1509632285431]: 
+    description: (boolean) – Includes information about conflicts in document. Default is false
+↓IfExist [steps.IfExistStep-1509632285436]: 
+  comment: Is this a Flight ?
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1509632285420
+        - java.lang.String: 
+          - ↑value: .//PublishedFlight
+  ↓Call_Transaction [steps.TransactionStep-1509632285440]: 
+    comment: Ok so remove the request
+    sourceTransaction: FlightShare.flightshare_fullsync.DeleteDocument
+    ↓_use_docid [variables.StepVariable-1509632285445]: 
+      description: Document ID
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1509632285413
+            - java.lang.String: 
+              - ↑value: ./doc/item/_id/text()
+  ↓Get_authenticated_user [steps.GetAuthenticatedUserStep-1509633716814]: 
+    comment: Who are we ?
+  ↓jSimpleSource [steps.SimpleSourceStep-1509633745576]: 
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1509633716814
+          - java.lang.String: 
+            - ↑value: .
+    variableName: jCurrentUser
+  ↓jSimpleSource1 [steps.SimpleSourceStep-1509633773952]: 
+    comment: Get The owner of the flight in the original Flight
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1509632285420
+          - java.lang.String: 
+            - ↑value: ./document/couchdb_output/PublishedFlight/by/text()
+    variableName: jFlightOwner
+  ↓Call_Transaction1 [steps.TransactionStep-1511804109453]: 
+    comment: Get some more info about the plane
+    sourceTransaction: FlightShare.flightshare_fullsync.GetDocument
+    ↓_use_docid [variables.StepVariable-1511804109455]: 
+      description: Document ID
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1509632285420
+            - java.lang.String: 
+              - ↑value: ./document/couchdb_output//plane/text()
+  ↓Element [steps.XMLElementStep-1511805106127]: 
+    comment: Return the RegisterId for the notification email
+    nodeName: RegisterId
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1509632285420
+          - java.lang.String: 
+            - ↑value: ./document/couchdb_output/_id/text()
+  ↓jElement1 [steps.ElementStep-1511805822248]: 
+    comment: return the registrant for the notification email. These two will be used to build the register url
+    expression: jCurrentUser
+    nodeName: Registrant
+  ↓Element1 [steps.XMLElementStep-1512492403854]: 
+    comment: We use a global symbol here so that the Convertigo Server address is automatically configured to a valid production server when deployed
+    nodeName: c8o-server
+    nodeText: ${flightshare.c8o-server=localhost:18080/convertigo}
+  ↓SMTP_send [steps.SmtpStep-1511797289638]: 
+    comment: Send a notification mail to flight owner
+    output: true
+    smtpAuthType: startTls
+    smtpPassword: xe7e845af8af652dd4f8a092fbf79c24c8e3d32f35f22851b5e3a3badd407e995
+    smtpPort: 587
+    smtpRecipients: jFlightOwner
+    smtpSender: '"${flightshare.sender-email-addr=contact-web@convertigo.com}"'
+    smtpServer: smtp-relay.gmail.com
+    smtpSubject: '"Demande de partage de vol par Flight Share..."'
+    smtpUsername: ${flightshare.sender-email-addr=contact-web@convertigo.com}
+    xslFilepath: '".//email.xsl"'
+↓doc [variables.RequestableVariable-1509632285479]: 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -42,7 +42,7 @@ public class LogStep extends Step implements ITagsProperty {
 	 */
 	private static final long serialVersionUID = -700241502764617513L;
 	private String level = Level.INFO.toString();
-	private String logger = Engine.logContext.getName();;
+	private String logger = "cems.Context"; //Engine.logContext.getName();
 	private String expression = "//todo";
 	
 	public LogStep() {

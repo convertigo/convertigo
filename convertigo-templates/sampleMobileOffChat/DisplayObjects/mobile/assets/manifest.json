@@ -1,0 +1,13 @@
+{
+  "name": "OffChat",
+  "short_name": "OffChat",
+  "start_url": "../index.html",
+  "display": "standalone",
+  "icons": [{
+    "src": "icon_512x512.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }],
+  "background_color": "#c8f7ff",
+  "theme_color": "#c8f7ff"
+}

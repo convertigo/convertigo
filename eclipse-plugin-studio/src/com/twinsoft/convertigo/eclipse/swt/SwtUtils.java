@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.swt;
 
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.ui.PlatformUI;
 
 public class SwtUtils {
 	static public GridLayout newGridLayout(int numColumns, boolean makeColumnsEqualWidth, int horizontalSpacing, int verticalSpacing, int marginWidth, int marginHeight) {
@@ -28,7 +29,7 @@ public class SwtUtils {
 		gridLayout.makeColumnsEqualWidth = makeColumnsEqualWidth;
 		gridLayout.horizontalSpacing = horizontalSpacing;
 		gridLayout.verticalSpacing = verticalSpacing;
-		gridLayout.marginWidth = marginWidth;;
+		gridLayout.marginWidth = marginWidth;
 		gridLayout.marginHeight = marginHeight;
 		return gridLayout;
 	}
@@ -41,5 +42,14 @@ public class SwtUtils {
 		gridLayout.marginRight = marginRight;
 		gridLayout.marginTop = marginTop;
 		return gridLayout;
+	}
+
+	private static boolean lastDark = false;
+	public static boolean isDark() {
+		try {
+			return lastDark = PlatformUI.getWorkbench().getWorkbenchWindows()[0].getShell().getBackground().getRed() < 128;
+		} catch (Exception e) {
+			return lastDark;
+		}
 	}
 }

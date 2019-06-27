@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -91,8 +91,10 @@ public class ChangeToHeaderParameterAction extends MyAbstractAction {
 	        				headerParameter.setComment(parameter.getComment());
 	        				headerParameter.setInputType(parameter.getInputType());
 	        				headerParameter.setArray(parameter.isArray());
+	        				headerParameter.setExposed(parameter.isExposed());
 	        				headerParameter.setMultiValued(parameter.isMultiValued());
 	        				headerParameter.setRequired(parameter.isRequired());
+	        				headerParameter.setValueOrNull(parameter.getValueOrNull());
 	        				headerParameter.setMappedVariableName(parameter.getMappedVariableName());
 	        				headerParameter.bNew = true;
 	        				headerParameter.hasChanged = true;

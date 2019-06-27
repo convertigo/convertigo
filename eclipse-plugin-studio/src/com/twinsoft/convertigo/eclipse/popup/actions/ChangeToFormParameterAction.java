@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -92,8 +92,10 @@ public class ChangeToFormParameterAction extends MyAbstractAction {
 	        				formParameter.setComment(parameter.getComment());
 	        				formParameter.setInputType(parameter.getInputType());
 	        				formParameter.setArray(parameter.isArray());
+	        				formParameter.setExposed(parameter.isExposed());
 	        				formParameter.setMultiValued(parameter.isMultiValued());
 	        				formParameter.setRequired(parameter.isRequired());
+	        				formParameter.setValueOrNull(parameter.getValueOrNull());
 	        				formParameter.setMappedVariableName(parameter.getMappedVariableName());
 	        				formParameter.bNew = true;
 	        				formParameter.hasChanged = true;

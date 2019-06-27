@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -58,11 +58,11 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	@Override
 	public UIDynamicElement clone() throws CloneNotSupportedException {
 		UIDynamicElement cloned = (UIDynamicElement) super.clone();
-		cloned.ionBean = null;
+		cloned.ionBean = ionBean; // needed by UISharedComponent for UIUseShared !
 		return cloned;
 	}
 
-	private String beanData = null;
+	private String beanData = "";
 	
 	public String getBeanData() {
 		return beanData;
@@ -246,16 +246,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	
 	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
+		boolean updated = false;
 		if (beanData != null) {
 			if (beanData.indexOf(oldString) != -1 || Pattern.compile(oldString).matcher(beanData).find()) {
 				beanData = beanData.replaceAll(oldString, newString);
 				ionBean = null;
-				this.hasChanged = true;
+				updated = this.hasChanged = true;
 			}
-			
 		}
-		boolean updated = super.updateSmartSource(oldString, newString);
-		return updated || this.hasChanged;
+		return updated;
 	}
 	
 	protected String getEventAttr(String eventName) {

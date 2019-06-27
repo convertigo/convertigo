@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2019 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
-// * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/tomcat/webapps/convertigo/admin/widgets/globalSymbols_List.js $
- * $Author: rahmanf $
- * $Revision: 28390 $
- * $Date: 2012-06-22 16:52:53 +0200 (Wed, 22 Jun 2012) $
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 function globalSymbols_List_init() {
@@ -232,7 +229,7 @@ function updateGlobalSymbolsList(xml) {
 			});
 	});
 	if($("#symbolsList tr:gt(0)").length) {
-		$("#symbolsList_name .ui-jqgrid-sortable").click().click();
+		$("#symbolsList").jqGrid().setGridParam({sortname: 'name', sortorder: 'asc'}).trigger("reloadGrid");
 		if ($("#exportSymbolsButtonAction").css("display") == "none"){
 			$("#symbolsListButtonDeleteAll").button("enable");
 		}
@@ -385,15 +382,23 @@ function exportSymbolButtonsToggle() {
 }
 
 function exportSymbolFile(){
-	var symbolstoExport = "";
+	var symbols = [];
 
-	$(".selected-symbols:checked").each(function(index) {
-		if (symbolstoExport.length != 0) {
-			symbolstoExport += ",";	
-		} 
-		symbolstoExport += "{ 'name' : "+$(this).prop('value')+" }";
+	$(".selected-symbols:checked").each(function() {
+		symbols.push({name: $(this).prop('value')});
 	});
-
-	window.open("services/global_symbols.Export?symbols=" + 
-			symbolstoExport  );
+	
+	ajaxCall("POST", "services/global_symbols.Export", "text", {symbols: JSON.stringify(symbols)}, function (data) {
+		var blob = new Blob([data], {type: "text/plain"});
+		if (window.navigator.msSaveOrOpenBlob) {
+			window.navigator.msSaveOrOpenBlob(blob, "global_symbols.properties");
+		} else {
+			var a = document.createElement("a");
+	        var url = window.URL.createObjectURL(blob);
+	        a.href = url;
+	        a.download = "global_symbols.properties";
+	        a.click();
+	        window.URL.revokeObjectURL(url);
+		}
+	});
 }

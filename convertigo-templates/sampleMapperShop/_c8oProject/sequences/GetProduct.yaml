@@ -1,0 +1,106 @@
+accessibility: Hidden
+comment: 'hidden: retrieve a product giving its id'
+↓jIfThenElse [steps.IfThenElseStep-1462278482844]: 
+  comment: check wether art_id is valid or not
+  condition: isNaN(art_id)
+  ↓jThen [steps.ThenStep-1462278482846]: 
+    comment: 'art_id is invalid : generate an error'
+    ↓Error_structure [steps.XMLErrorStep-1462279197226]: 
+      code: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: 10
+      details: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: identifier must be an integer
+      message: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: invalid product identifier
+  ↓jElse [steps.ElseStep-1462278482848]: 
+    comment: 'art_id is valid : request database'
+    ↓Call_Transaction [steps.TransactionStep-1462279297932]: 
+      sourceTransaction: sampleMapperShop.hsqldb._GetProductById
+      ↓art_id [variables.StepVariable-1462203893867]: 
+        description: art_id
+    ↓Complex [steps.XMLComplexStep-1462279298377]: 
+      nodeName: product
+      ↓Element3 [steps.XMLElementStep-1462355236002]: 
+        nodeName: art_id
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462279297932
+              - java.lang.String: 
+                - ↑value: ./document/sql_output/row/@ART_ID
+        ↓Attribute [steps.XMLAttributeStep-1462968264841]: 
+          nodeName: type
+          nodeText: integer
+      ↓Element4 [steps.XMLElementStep-1462355240067]: 
+        nodeName: cat_id
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462279297932
+              - java.lang.String: 
+                - ↑value: ./document/sql_output/row/@CAT_ID
+        ↓Attribute [steps.XMLAttributeStep-1462968272203]: 
+          nodeName: type
+          nodeText: integer
+      ↓Element [steps.XMLElementStep-1462204141921]: 
+        nodeName: code
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462279297932
+              - java.lang.String: 
+                - ↑value: ./document/sql_output/row/@CODE
+      ↓Element2 [steps.XMLElementStep-1462204190892]: 
+        nodeName: price
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462279297932
+              - java.lang.String: 
+                - ↑value: ./document/sql_output/row/@PRICE
+      ↓Element1 [steps.XMLElementStep-1462204181313]: 
+        nodeName: description
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1462279297932
+              - java.lang.String: 
+                - ↑value: ./document/sql_output/row/@DESCRIPTION
+↓art_id [variables.RequestableVariable-1462203916275]: 
+  comment: the product identifier
+  description: art_id
+  required: true
+↓Test_KO_Invalid [core.TestCase]: 
+  ↓art_id [variables.TestCaseVariable-1462204800063]: 
+    description: art_id
+    value: abcd
+↓Test_OK_NotFound [core.TestCase]: 
+  ↓art_id [variables.TestCaseVariable-1462279320116]: 
+    description: art_id
+    value: '-5'
+↓Test_OK_Valid [core.TestCase]: 
+  ↓art_id [variables.TestCaseVariable-1462204741538]: 
+    description: art_id
+    value: 1

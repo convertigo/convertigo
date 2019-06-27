@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MobileComponent extends MobileObject {
@@ -58,7 +59,27 @@ public abstract class MobileComponent extends MobileObject {
 	}
 	
 	public String getTplVersion() {
-		return getProject().getMobileBuilder().getTplVersion();
+		Project p = getProject();
+		MobileBuilder mb = p == null ? null : p.getMobileBuilder();
+		String version = mb == null ? null : mb.getTplVersion();
+		
+		if (p == null) {
+			String message = "(MobileComponent.getTplVersion()) project is null for component " + getName() + 
+								(Engine.isStudioMode() ? " (probably removed component)": "");
+			if (Engine.isStudioMode()) {
+				Engine.logBeans.trace(message);
+			} else {
+				Engine.logBeans.warn(message);
+			}
+		} else {
+			if (mb == null) {
+				Engine.logBeans.warn("(MobileComponent.getTplVersion()) MB is null for component " + getQName());
+			} else if (version == null) {
+				Engine.logBeans.warn("(MobileComponent.getTplVersion()) Tpl version is null for component " + getQName() +
+						" (MB probably not intialized)");
+			}
+		}
+		return version;
 	}
 	
 	public int compareToTplVersion(String version) {

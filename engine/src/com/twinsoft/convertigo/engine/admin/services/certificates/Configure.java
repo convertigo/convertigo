@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -72,58 +72,60 @@ public class Configure extends XmlService {
 	
 			
 		File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
-		Properties storesProperties = PropertiesUtils.load(file);
 
-		// Creation of the vector containing the certificates and the one containing the links
-		//Vector<String> certifVector = new ArrayList<String>();
-		java.util.List<String> linksVector = new ArrayList<String>();
-		String tmp = "";
-		Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
-		while(storesKeysEnum.hasMoreElements()) {
-			tmp = (String)storesKeysEnum.nextElement();
-			if ( tmp.indexOf("projects.")!=0 && tmp.indexOf("tas.")!=0 ) {
-//				if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") ){
-//					certifVector.add(tmp);
-//				}
-			} else
-				linksVector.add(tmp);
-		}
-		Collections.sort(linksVector);
-		
-		File certifDirectory = new File(Engine.CERTIFICATES_PATH);
-    	File certifList[] = certifDirectory.listFiles();
-    	ArrayList<String> possibleCertificates=new ArrayList<String>();
-    	for(int i=0;i<certifList.length;i++){
-    		possibleCertificates.add(certifList[i].getName());
-    	}
-    	
-		String certifName = "";
-		String certifPwd = "";
-		String group;
-		//Properties newStoresProperties = new Properties();
-		int i = 0;
-		while ( ((certifName=(String)request.getParameter("name_"+i)) != null)
-			  &&((certifPwd =(String)request.getParameter("pwd_"+i))  != null) ) {
-			if (possibleCertificates.contains(certifName)) {
-				storesProperties.setProperty(certifName, Crypto2.encodeToHexString(certifPwd));
-				storesProperties.setProperty(certifName+".type", (String) request.getParameter("type_"+i));
+		synchronized (Engine.CERTIFICATES_PATH) {
+			Properties storesProperties = PropertiesUtils.load(file);
 
-				group = (String) request.getParameter("group_"+i);
-				if (group != null) {
-					storesProperties.setProperty(certifName+".group", group);
-				}
-			}else{
-				throw new ServiceException("You tried to configure an uninstalled certificate!");
+			// Creation of the vector containing the certificates and the one containing the links
+			java.util.List<String> linksVector = new ArrayList<String>();
+			String tmp = "";
+			Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
+			while(storesKeysEnum.hasMoreElements()) {
+				tmp = (String)storesKeysEnum.nextElement();
+				if ( tmp.indexOf("projects.")!=0 && tmp.indexOf("tas.")!=0 ) {
+					//				if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") ){
+					//					certifVector.add(tmp);
+					//				}
+				} else
+					linksVector.add(tmp);
 			}
-			i++;
+			Collections.sort(linksVector);
+
+			File certifDirectory = new File(Engine.CERTIFICATES_PATH);
+			File certifList[] = certifDirectory.listFiles();
+			ArrayList<String> possibleCertificates=new ArrayList<String>();
+			for(int i=0;i<certifList.length;i++){
+				possibleCertificates.add(certifList[i].getName());
+			}
+
+			String certifName = "";
+			String certifPwd = "";
+			String group;
+			//Properties newStoresProperties = new Properties();
+			int i = 0;
+			while ( ((certifName=(String)request.getParameter("name_"+i)) != null)
+					&&((certifPwd =(String)request.getParameter("pwd_"+i))  != null) ) {
+				if (possibleCertificates.contains(certifName)) {
+					storesProperties.setProperty(certifName, Crypto2.encodeToHexString(certifPwd));
+					storesProperties.setProperty(certifName+".type", (String) request.getParameter("type_"+i));
+
+					group = (String) request.getParameter("group_"+i);
+					if (group != null) {
+						storesProperties.setProperty(certifName+".group", group);
+					}
+				}else{
+					throw new ServiceException("You tried to configure an uninstalled certificate!");
+				}
+				i++;
+			}
+
+			storesKeysEnum = Collections.enumeration(linksVector);
+			while (storesKeysEnum.hasMoreElements()) {
+				certifName = (String) storesKeysEnum.nextElement();
+				storesProperties.setProperty(certifName, storesProperties.getProperty(certifName));
+			}
+			PropertiesUtils.store(storesProperties, file);
 		}
-		
-		storesKeysEnum = Collections.enumeration(linksVector);
-		while (storesKeysEnum.hasMoreElements()) {
-			certifName = (String) storesKeysEnum.nextElement();
-			storesProperties.setProperty(certifName, storesProperties.getProperty(certifName));
-		}
-		PropertiesUtils.store(storesProperties, file);
 		ServiceUtils.addMessage(document,rootElement,"The certificates have successfully been updated.","message");
 	}
 }	

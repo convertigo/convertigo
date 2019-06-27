@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,11 +19,15 @@
 
 package com.twinsoft.convertigo.engine.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.quartz.Job;
 import org.quartz.JobDetail;
@@ -36,6 +40,7 @@ import com.twinsoft.convertigo.beans.scheduler.AbstractJob;
 import com.twinsoft.convertigo.beans.scheduler.JobGroupJob;
 import com.twinsoft.convertigo.beans.scheduler.ScheduledJob;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -64,13 +69,14 @@ public class SchedulerJob implements Job {
 			long start = System.currentTimeMillis();
 			if (job instanceof AbstractConvertigoJob) {
 				AbstractConvertigoJob convertigoJob = (AbstractConvertigoJob) job;
-				
+				HttpServletRequest request = null;
 				try {
 					Engine.logScheduler.info("Prepare job " + jdName + " for " + convertigoJob.getProjectName());
 					
 					Map<String, String[]> parameters = convertigoJob.getConvertigoParameters();
-					Object response = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters)).processRequest();
-					
+					InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters));
+					HttpSessionListener.checkSession(request = requester.getHttpServletRequest());
+					Object response = requester.processRequest();
 					String message = "Completed job " + jdName + " with success";
 					if (convertigoJob.isWriteOutput()) {
 						if (response instanceof Document) {
@@ -81,6 +87,10 @@ public class SchedulerJob implements Job {
 					Engine.logScheduler.info(message);
 				} catch (Exception e) {
 					Engine.logScheduler.error("Failed job " + jdName, e);
+				} finally {
+					if (request != null) {
+						request.getSession(true).invalidate();
+					}
 				}
 			} else if (job instanceof JobGroupJob) {
 				JobGroupJob jobGroupJob = (JobGroupJob) job;
@@ -88,24 +98,42 @@ public class SchedulerJob implements Job {
 				SortedSet<AbstractJob> jobs = jobGroupJob.getJobGroup();
 
 				Engine.logScheduler.info("Prepare job " + jdName + " for " + jobs.size() + " jobs. Serial ? " + jobGroupJob.isSerial());
-
-				if (jobGroupJob.isSerial()) {
+				int parallelJob = jobGroupJob.getParallelJob();
+				if (parallelJob <= 1) {
 					for (AbstractJob abstractJob : jobs) {
 						executeJob(abstractJob, jdName + "[" + abstractJob.getName() + "]");
 					}
 				} else {
-					Set<Thread> threads = new HashSet<Thread>();
-					for (final AbstractJob abstractJob : jobs) {
-						final String subname = jdName + "[" + abstractJob.getName() + "]";
-						Thread thread = new Thread(new Runnable() {
-							public void run() {
-								executeJob(abstractJob, subname);
+					int[] jobCount = {0};
+					Set<Thread> threads = new HashSet<>();
+					List<AbstractJob> list = new ArrayList<>(jobs);
+					while (!list.isEmpty()) {
+						synchronized (jobCount) {
+							if (jobCount[0] == parallelJob) {
+								try {
+									jobCount.wait();
+								} catch (InterruptedException e) {
+								}
 							}
-						});
-						threads.add(thread);
-						thread.setDaemon(true);
-						thread.start();
+							jobCount[0]++;
+							AbstractJob abstractJob = list.remove(0);
+							final String subname = jdName + "[" + abstractJob.getName() + "]";
+							Thread thread = new Thread(() -> {
+								try {
+									executeJob(abstractJob, subname);
+								} finally {
+									synchronized (jobCount) {
+										jobCount[0]--;
+										jobCount.notify();
+									}
+								}
+							});
+							threads.add(thread);
+							thread.setDaemon(true);
+							thread.start();
+						}
 					}
+					
 					for (Thread thread : threads) {
 						try {
 							thread.join();

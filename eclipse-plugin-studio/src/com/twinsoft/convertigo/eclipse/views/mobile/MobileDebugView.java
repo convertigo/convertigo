@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -51,7 +51,8 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
 		browser = c8oBrowser.getBrowser();
 		browser.setZoomEnabled(false);
-		browser.loadHTML("<body>please select a mobile application editor</body>");
+		c8oBrowser.setText("<head><style>color: $foreground$; background-color: $background$;</style></head>"
+				+ "<body>please select a mobile application editor</body>");
 		
 		onActivated(getSite().getPage().getActiveEditor());
 		getSite().getPage().addPartListener(this);

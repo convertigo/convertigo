@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -39,7 +39,7 @@ public class UIDynamicTagBeanInfo extends MySimpleBeanInfo {
 			
 			getPropertyDescriptor("tagName").setValue("category", "@Component");
 			getPropertyDescriptor("tagName").setValue("disable", Boolean.FALSE);
-			getPropertyDescriptor("tagName").setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			getPropertyDescriptor("tagName").setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 			
 		}
 		catch(Exception e) {

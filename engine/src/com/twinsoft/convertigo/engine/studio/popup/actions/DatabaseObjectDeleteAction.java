@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -271,7 +271,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 
 	private void deleteResourcesFolder(String projectName, String resourcesFolder, String dboName) throws IOException {
 		// Delete soap templates for this connector
-		String dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/" + resourcesFolder + "/" + dboName;
+		String dirPath = Engine.projectDir(projectName) + "/" + resourcesFolder + "/" + dboName;
 		File dir = new File(dirPath);
 		if (dir.exists()) {
 			String[] buttons = { "Yes", "No" };

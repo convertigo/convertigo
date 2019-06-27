@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -27,15 +27,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
@@ -48,7 +46,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	
 	private static final long serialVersionUID = -1872010547443624681L;
 
-	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	private boolean isEnabled = true;
 	
@@ -56,7 +54,6 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		super();
 		
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
@@ -65,11 +62,17 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	@Override
 	public UIComponent clone() throws CloneNotSupportedException {
 		UIComponent cloned = (UIComponent) super.clone();
-		cloned.newPriority = newPriority;
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		return cloned;
 	}
 
+	// Used by UISharedComponent for UIUseShared !
+	protected UIComponent cloneSetParent(MobileComponent newParent) throws CloneNotSupportedException {
+		UIComponent cloned = clone();
+		cloned.parent = newParent;
+		return cloned;
+	}
+	
 	public XMLVector<XMLVector<Long>> getOrderedComponents() {
 		return orderedComponents;
 	}
@@ -86,14 +89,14 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedComponent(Long value) {
@@ -103,12 +106,12 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     }
     
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = databaseObject.priority;
     	
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
@@ -169,7 +172,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
      */
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
 	
     /**
@@ -211,7 +214,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		checkSubLoaded();
 		
 		boolean isNew = uiComponent.bNew;
-		boolean isCut = !isNew && uiComponent.getParent() == null;
+		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -292,28 +295,6 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		}
 		super.remove(databaseObject);
     }
-	
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
-	}
-    
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
-	}
 
 	public IScriptComponent getMainScriptComponent() {
 		DatabaseObject databaseObject = this;
@@ -337,6 +318,30 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 			return null;
 		else
 			return (UIDynamicMenu) databaseObject;
+	}
+	
+	public UIActionStack getSharedAction() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof UIActionStack) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (UIActionStack) databaseObject;
+	}
+	
+	public UISharedComponent getSharedComponent() {
+		DatabaseObject databaseObject = this;
+		while (!(databaseObject instanceof UISharedComponent) && databaseObject != null) { 
+			databaseObject = databaseObject.getParent();
+		}
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (UISharedComponent) databaseObject;
 	}
 	
 	public PageComponent getPage() {
@@ -373,18 +378,44 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return super.testAttribute(name, value);
 	}
 
-	public boolean updateSmartSource(String oldString, String newString) {
-		boolean updated = false;
+	public boolean updateSmartSources(String oldString, String newString) {
+		boolean updated = updateSmartSource(oldString, newString);
 		for (UIComponent uic : getUIComponentList()) {
-			if (uic.updateSmartSource(oldString, newString)) {
+			if (uic.updateSmartSources(oldString, newString)) {
 				updated = true;
 			}
 		}
 		return updated;
 	}
 	
+	public boolean updateSmartSource(String oldString, String newString) {
+		return false;
+	}
+	
+	protected String computeInnerGet(String pageKey, String functionName) {
+		String computed = "";
+		computed += "\t\tlet get = function(keyName, keyVal) {"+ System.lineSeparator();
+		computed += "\t\t\tlet val=undefined;"+ System.lineSeparator();
+		computed += "\t\t\ttry {"+ System.lineSeparator();
+		computed += "\t\t\t\tval= keyVal === '' ? keyVal : eval(ts.transpile('('+ keyVal + ')'));"+ System.lineSeparator();
+		
+		computed += "\t\t\t\tif (val == undefined) {"+ System.lineSeparator();
+		computed += "\t\t\t\t\t"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=undefined\");"+ System.lineSeparator();
+		computed += "\t\t\t\t} else {"+ System.lineSeparator();
+		computed += "\t\t\t\t\t"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=\"+ val);"+ System.lineSeparator();
+		computed += "\t\t\t\t}"+ System.lineSeparator();
+		
+		computed += "\t\t\t} catch(e) {"+ System.lineSeparator();
+		computed += "\t\t\t\tlet sKeyVal = keyVal == null ? \"null\" : (keyVal == undefined ? \"undefined\" : keyVal);"+ System.lineSeparator();
+		computed += "\t\t\t\t"+pageKey+".c8o.log.warn(\"[MB] "+functionName+": For \"+ keyName +\":\"+ sKeyVal + \", \"+ e.message);"+ System.lineSeparator();
+		computed += "\t\t\t}"+ System.lineSeparator();
+		computed += "\t\t\treturn val;"+ System.lineSeparator();
+		computed += "\t\t}" + System.lineSeparator();
+		return computed;
+	}
+	
 	@Override
-	public void computeScripts(JSONObject jsonScripts) {
+	public void computeScripts(JSONObject jsonScripts) {		
 		if (isEnabled()) {
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
@@ -398,10 +429,16 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	PageComponent page = getPage();
     	if (page != null) {
     		page.markPageAsDirty();
-    	}
-    	UIDynamicMenu menu = getMenu();
-    	if (menu != null) {
-    		menu.markMenuAsDirty();
+    	} else {
+	    	UIDynamicMenu menu = getMenu();
+	    	if (menu != null) {
+	    		menu.markMenuAsDirty();
+	    	} else {
+	    		ApplicationComponent app = getApplication();
+	    		if (app != null) {
+	    			app.markApplicationAsDirty();
+	    		}
+	    	}
     	}
 	}
 
@@ -409,8 +446,11 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return null;
 	}
 	
-	protected void addContributors(List<Contributor> contributors) {
+	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
 		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder
+			if (!done.add(this)) {
+				return;
+			}
 			Contributor contributor = getContributor();
 			if (contributor != null) {
 				if (!contributors.contains(contributor)) {
@@ -418,14 +458,17 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 				}
 			}
 			for (UIComponent uiComponent : getUIComponentList()) {
-				uiComponent.addContributors(contributors);
+				uiComponent.addContributors(done, contributors);
 			}
 		//}
 	}
 	
-	protected void addInfos(Map<String, Set<String>> infoMap) {
+	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
+		if (!done.add(this)) {
+			return;
+		}
 		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addInfos(infoMap);
+			uiComponent.addInfos(done, infoMap);
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.engine.billing;
 
 import org.apache.log4j.Logger;
-import org.hibernate.StatelessSession;
 
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -58,25 +57,6 @@ public class HibernateTicketManager implements ITicketManager {
 			log.debug("(HibernateTicketManager) addTicket " + ticket);
 		}
 		hibernateHelper.insert(ticket);
-	}
-
-	public synchronized Ticket peekTicket() throws BillingException {
-		final Ticket[] ticket = {null}; 
-		hibernateHelper.retry(new Runnable() {
-			@Override
-			public void run() {
-				StatelessSession session = hibernateHelper.getSession();
-				try {
-					ticket[0] = (Ticket) session.createCriteria(Ticket.class).setMaxResults(1).uniqueResult();;
-					if (log.isDebugEnabled()) {
-						log.debug("(HibernateTicketManager) peekTicket " + ticket[0]);
-					}
-				} finally {
-					session.close();
-				}
-			}
-		});
-		return ticket[0];
 	}
 
 	public synchronized void removeTicket(Ticket ticket) throws BillingException {

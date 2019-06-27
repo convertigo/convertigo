@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpSession;
 
@@ -42,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
@@ -78,7 +80,7 @@ public class ContextManager extends AbstractRunnableManager {
 		Engine.logContextManager.info("ContextManager initialization...");
 
 		try {
-			contexts = new HashMap<String, Context>();
+			contexts = new ConcurrentHashMap<String, Context>();
 			currentContextNum = 0;
 			
 			devicePools = new HashMap<String, DevicePool>();
@@ -116,13 +118,12 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 	
 	public void add(Context context) {
-		synchronized(contexts) {
 			contexts.put(context.contextID, context);
+		int size = contexts.size();
 			Engine.logContextManager.debug("Context " + context.contextID + " has been added");
 			Engine.logContext.debug("[" + context.contextID + "] Context created, project: " + context.projectName);
-            Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
-            Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + contexts.size());
-		}
+		Engine.logContextManager.info("Current in-use contexts: " + size);
+		Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + size);
 	}
 
 	private void addDevicePool(String poolID, DevicePool devicePool) {
@@ -229,7 +230,6 @@ public class ContextManager extends AbstractRunnableManager {
 				// for HTTP call through test platform, ...
 				// for Call steps
 			}
-			synchronized(contexts) {
 				long numberOfContext = contexts.size();
 				long maxNumberOfContext = EnginePropertiesManager.getPropertyAsLong(PropertyName.CONVERTIGO_MAX_CONTEXTS);
 				if (numberOfContext >= maxNumberOfContext) {
@@ -251,7 +251,6 @@ public class ContextManager extends AbstractRunnableManager {
 				context.lastAccessTime = creationTime;
 				context.projectName = projectName;
 				add(context);
-			}
 		} else {
 			Engine.logContextManager.debug("Context \"" + contextName + "\" found.");
 		}
@@ -268,10 +267,8 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 	
     public Context get(String contextID) {
-        synchronized(contexts) {
             return contexts.get(contextID);
         }
-    }
 
     private DevicePool getDevicePool(String poolID) {
         synchronized(devicePools) {
@@ -289,36 +286,21 @@ public class ContextManager extends AbstractRunnableManager {
     	return devicePool;
     }
     
-    public boolean isSessionEmtpy(String sessionID) {
-//		Engine.logContextManager.debug("Finding all contexts from the session " + sessionID + "...");
-//		try {
-//			for(String contextID : contexts.keySet()) {
-//				Engine.logContextManager.debug("Analyzing contextID " + contextID);
-//				if (contextID.startsWith(sessionID)) {
-//					return false;
-//				}
-//			}
-//		}
-//		catch(NullPointerException e) {
-//			// Nothing to do: the Engine object has yet been deleted
-//		}
-//		return true;
-    	
-		/* Fix: #1754 - Slower transaction execution with many session */
-		// HTTP session maintain its own context list in order to
-		// improve context removal on session unbound process
+    public List<Context> getContexts(HttpSession httpSession) {
 		try {
-			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
 			synchronized (httpSession) {
-				List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
-				int size = contextList.size();
-				Engine.logContextManager.debug("(ContextManager) Contexts from the session " + sessionID + ": "+ size);
-				return size > 0 ? false:true;
+				return GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
 			}
 		}
 		catch (Exception e) {
 		}
-		return true;
+		return Collections.emptyList();
+    }
+    
+    public boolean isSessionEmtpy(HttpSession httpSession) {
+		int size = getContexts(httpSession).size();
+		Engine.logContextManager.debug("(ContextManager) Contexts from the session " + httpSession.getId() + ": "+ size);
+		return size <= 0;
 	}
     
     @Deprecated
@@ -331,10 +313,7 @@ public class ContextManager extends AbstractRunnableManager {
     }
     
     public Collection<Context> getContexts() {
-    	Collection<Context> res;
-    	synchronized (contexts) {
-			res = new ArrayList<Context>(contexts.values());
-		}
+		Collection<Context> res = new ArrayList<Context>(contexts.values());
     	return res;
     }
     
@@ -343,13 +322,10 @@ public class ContextManager extends AbstractRunnableManager {
     }
 
     public void abort(String contextID) {
-        synchronized(contexts) {
         	abort(get(contextID));
         }
-    }
     
     public void abort(Context context) {
-    	synchronized(contexts) {
 			if (context == null) {
 				// Silently ignore
 				Engine.logContextManager.warn("Requestable thread cannot be stopped because context does not exist any more!");
@@ -362,14 +338,11 @@ public class ContextManager extends AbstractRunnableManager {
 				context.abortRequestable();
 			}
     	}
-    }
     
     public void remove(String contextID) {
 		Engine.logContextManager.info("Removing context '" + contextID + "'");
 		Context context;
-        synchronized(contexts) {
         	context = contexts.remove(contextID);
-        }
         if (context != null) {
         	remove(context);
         }
@@ -391,9 +364,7 @@ public class ContextManager extends AbstractRunnableManager {
 			String contextID = context.contextID;
 			Engine.logContextManager.info("Removing context " + contextID);
 			
-	        synchronized(contexts) {
 	        	contexts.remove(contextID);
-	        }
 	
 			if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
 				Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);
@@ -468,12 +439,11 @@ public class ContextManager extends AbstractRunnableManager {
 			if (httpSession != null) {
 				synchronized (httpSession) {
 					try {
-						List<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+						List<Context> contextList = GenericUtils.cast(SessionAttribute.contexts.get(httpSession));
 						if ((contextList != null) && contextList.contains(context)) {
 							contextList.remove(context);
 							Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
 						}
-						httpSession.setAttribute("contexts", contextList);
 					}
 					catch (Exception e) {
 						// Ignore: HTTP session may have already been invalidated
@@ -490,10 +460,23 @@ public class ContextManager extends AbstractRunnableManager {
 		}
     }
 
-	public void removeAll(String sessionID) {
+    public void removeAll(String sessionID) {
+    	HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
+    	if (httpSession != null) {
+    		removeAll(httpSession);
+    	}
+    }
+
+	public void removeAll(HttpSession httpSession) {
+		String sessionID = httpSession.getId();
+		Engine.logContextManager.debug("Removing all contexts for " + sessionID + "...");
 		try {
-			HttpSession httpSession = HttpSessionListener.getHttpSession(sessionID);
-			List<Context> contextList = GenericUtils.clone(GenericUtils.cast(httpSession.getAttribute("contexts")));
+			Object o = SessionAttribute.contexts.get(httpSession);
+			if (o == null) {
+				return;
+			}
+
+			List<Context> contextList = GenericUtils.clone(GenericUtils.cast(o));
 			
 			for (Context context: contextList) {
 				remove(context);
@@ -501,7 +484,7 @@ public class ContextManager extends AbstractRunnableManager {
 		} catch (Exception e) {
 			if (e instanceof IllegalStateException || e instanceof NullPointerException) {
 				try {
-					for (String contextID: GenericUtils.clone(contexts).keySet()) {
+					for (String contextID: contexts.keySet()) {
 						if (contextID.startsWith(sessionID)) {
 							remove(contextID);
 						}
@@ -517,7 +500,7 @@ public class ContextManager extends AbstractRunnableManager {
 	public void removeAll() {
 		Engine.logContextManager.debug("Removing all contexts...");
 		try {
-			for (String contextID : GenericUtils.clone(contexts).keySet()) {
+			for (String contextID : contexts.keySet()) {
 				remove(contextID);
 			}
 		} catch(NullPointerException e) {
@@ -587,7 +570,7 @@ public class ContextManager extends AbstractRunnableManager {
 	private void removeExpiredContexts() {
         Engine.logContextManager.debug("Executing vulture thread for context expiration");
         
-        for (Map.Entry<String, Context> entry : GenericUtils.clone(contexts).entrySet()) {
+		for (Map.Entry<String, Context> entry : contexts.entrySet()) {
             if (!isRunning) return;
             String contextID = entry.getKey();
             long expirationTime;
@@ -660,7 +643,7 @@ public class ContextManager extends AbstractRunnableManager {
 				Engine.logContextManager.trace("Analyzing project " + projectName);
 				Project project = null;
 				try {
-					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+					project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 				} catch (Exception e) {
 					Engine.logContextManager.warn("Unable to load project '" + projectName
 							+ "'; avorting pool research for this project", e);
@@ -694,7 +677,7 @@ public class ContextManager extends AbstractRunnableManager {
 						if (pooledContexts > 0) {
 							for (int i = 1 ; i <= pool.getNumberOfContexts() ; i++) {
 								if (!isRunning) return;
-					            Project localProject = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+					            Project localProject = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 								Connector localConnector = localProject.getConnectorByName(connector.getName());
 								Pool localPool = localConnector.getPoolByName(pool.getName());
 								String servCode = localPool.getServiceCode();
@@ -838,7 +821,6 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 	
 	private Context findPoolContext(String contextName, String projectName, String connectorName, String poolName) throws EngineException {
-		synchronized(contexts) {
 			Engine.logContextManager.debug("Trying to find a pooled context");
 			Engine.logContextManager.debug("   contextName=" + contextName);
 			Engine.logContextManager.debug("   projectName=" + projectName);
@@ -891,7 +873,6 @@ public class ContextManager extends AbstractRunnableManager {
 				throw new EngineException("No more available context on the pool " + poolName + "; please try again later.");
 			}
 		}
-	}
 
 	private boolean verifyPoolContext(Context context) {
 		JavelinConnector javelinConnector = (JavelinConnector) context.getConnector();

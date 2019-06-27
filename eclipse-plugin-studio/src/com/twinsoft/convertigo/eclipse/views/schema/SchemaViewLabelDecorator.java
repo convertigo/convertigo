@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -203,6 +203,7 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 		/* (non-Javadoc)
 		 * @see org.eclipse.jface.resource.CompositeImageDescriptor#drawCompositeImage(int, int)
 		 */
+		@SuppressWarnings("deprecation")
 		protected void drawCompositeImage(int width, int height) {
 
 			drawImage(mBase.getImageData(), 0, 0);

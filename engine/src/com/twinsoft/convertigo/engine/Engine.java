@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -28,16 +28,20 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.swing.event.EventListenerList;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
@@ -46,6 +50,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.api.SessionManager;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -54,6 +59,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
@@ -63,11 +69,13 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.LogCleaner;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.ApplicationException;
 import com.twinsoft.tas.Authentication;
@@ -139,6 +147,8 @@ public class Engine {
 	 * Defines if that Convertigo is a Studio.
 	 */
 	private static boolean bStudioMode = false;
+	
+	static boolean bCliMode = false;
 
 	private static boolean bXulRunner = false;
 	
@@ -187,6 +197,11 @@ public class Engine {
 	 */
 	public UsageMonitor usageMonitor;
 
+	/**
+	 * The biller token manager
+	 */
+	public BillerTokenManager billerTokenManager;
+	
 	/**
 	 * The billing manager
 	 */
@@ -267,6 +282,8 @@ public class Engine {
 	 * The engine start/stop date.
 	 */
 	public static long startStopDate;
+	
+	private static ClassLoader engineClassLoader;
 
 	/**
 	 * The scheduler for running jobs.
@@ -283,7 +300,10 @@ public class Engine {
 	public CloseableHttpClient httpClient4;
 	
 	public RsaManager rsaManager;
-
+	
+	private SimpleMap sharedServerMap = new SimpleMap();
+	private Map<String, SimpleMap> sharedProjectMap = new HashMap<>();
+	
 	static {
 		try {
 			Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
@@ -327,6 +347,9 @@ public class Engine {
 		Engine.XSL_PATH = new File(Engine.WEBAPP_PATH + "/xsl").getCanonicalPath();
 		Engine.DTD_PATH = new File(Engine.WEBAPP_PATH + "/dtd").getCanonicalPath();
 		Engine.TEMPLATES_PATH = new File(Engine.WEBAPP_PATH + "/templates").getCanonicalPath();
+		
+		new File(Engine.USER_WORKSPACE_PATH + "/libs/classes").mkdirs();
+		engineClassLoader = new DirClassLoader(new File(Engine.USER_WORKSPACE_PATH + "/libs"), Engine.class.getClassLoader());
 		
 		bInitPathsDone = true;
 	}
@@ -464,6 +487,13 @@ public class Engine {
 					Engine.logEngine.error("Unable to launch the proxy manager.", e);
 				}
 
+				try {
+					Engine.theApp.billerTokenManager = new BillerTokenManager();
+					Engine.theApp.billerTokenManager.init();
+				} catch (Exception e) {
+					Engine.logEngine.error("Unable to launch the biller token manager.", e);
+				}
+				
 				try {
 					Engine.theApp.billingManager = new BillingManager();
 					Engine.theApp.billingManager.init();
@@ -606,12 +636,6 @@ public class Engine {
 					Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName)
 							.newInstance();
 					Engine.theApp.cacheManager.init();
-
-					Thread vulture = new Thread(Engine.theApp.cacheManager);
-					Engine.theApp.cacheManager.executionThread = vulture;
-					vulture.setName("CacheManager");
-					vulture.setDaemon(true);
-					vulture.start();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the cache manager.", e);
 				}
@@ -756,6 +780,28 @@ public class Engine {
 				isStarted = true;
 
 				Engine.logEngine.info("Convertigo engine started");
+				
+				if (Engine.isEngineMode()) {
+					theApp.addMigrationListener(new MigrationListener() {
+						
+						@Override
+						public void projectMigrated(EngineEvent engineEvent) {
+						}
+						
+						@Override
+						public void migrationFinished(EngineEvent engineEvent) {
+							List<String> names = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+							Engine.logEngine.info("Convertigo engine will load: " + names);
+							for (String name: names) {
+								try {
+									Engine.theApp.databaseObjectsManager.getProjectByName(name);
+								} catch (Exception e) {
+									Engine.logEngine.error("Failed to load " + name, e);
+								}
+							}
+						}
+					});
+				}
 			} catch (Throwable e) {
 				isStartFailed = true;
 				Engine.logEngine.error("Unable to successfully start the engine.", e);
@@ -953,11 +999,21 @@ public class Engine {
 	public boolean isMonitored() {
 		return bMonitored;
 	}
+	
+	private DboExplorerManager dboExplorerManager = null;
+	
+	public synchronized DboExplorerManager getDboExplorerManager() throws SAXException, IOException, ParserConfigurationException {
+		if (dboExplorerManager == null) {
+			dboExplorerManager = new DboExplorerManager(); 
+		}
+		return dboExplorerManager;
+	};
 
 	/**
 	 * Constructs a new Engine object.
 	 */
 	public Engine() {
+		engineClassLoader = getClass().getClassLoader();
 		Engine.logEngine.info("===========================================================");
 		Engine.logEngine.info(" Convertigo Enterprise Mobility Server "
 				+ com.twinsoft.convertigo.engine.Version.fullProductVersion);
@@ -966,7 +1022,7 @@ public class Engine {
 		Engine.logEngine.info("===========================================================");
 
 		Engine.logEngine.info("Start date: " + (new Date(startStopDate)).toString());
-		Engine.logEngine.info("Class loader: " + getClass().getClassLoader());
+		Engine.logEngine.info("Class loader: " + engineClassLoader);
 		Engine.logEngine.info("Java Runtime " + System.getProperty("java.version") + " (classes: "
 				+ System.getProperty("java.class.version") + ", vendor: " + System.getProperty("java.vendor")
 				+ ")");
@@ -1250,10 +1306,12 @@ public class Engine {
 				} else {
 					outputDom = cacheManager.getDocument(requester, context);
 				}
-			}finally {
+			} finally {
 				if (oldResponseExpiryDate!=null) {
 					requestedObject.setResponseExpiryDate(oldResponseExpiryDate);
 				}
+				
+				onDocumentRetrieved(context, outputDom);
 			}
 			
 			Element documentElement = outputDom.getDocumentElement();
@@ -1276,8 +1334,6 @@ public class Engine {
 			if (context.userReference != null) {
 				documentElement.setAttribute("userReference", context.userReference);
 			}
-
-			fireDocumentGenerated(new RequestableEngineEvent(outputDom, context.projectName, context.sequenceName, context.connectorName));
 		} catch (EngineException e) {
 			String message = "[Engine.getDocument()] Context ID#" + context.contextID
 					+ " - Unable to build the XML document.";
@@ -1346,6 +1402,15 @@ public class Engine {
 		XMLUtils.logXml(outputDom, Engine.logContext, "Generated XML");
 
 		return outputDom;
+	}
+
+	private void onDocumentRetrieved(Context context, Document outputDom) {
+		if (context.httpSession != null && outputDom != null) {
+			Object controller = context.httpSession.getAttribute("customController");
+			if (controller != null && controller instanceof CustomController) {
+				((CustomController)controller).modifyDocument(context, outputDom);
+			}
+		}
 	}
 
 	public String checkCariocaSessionKey(Context context, String sKey, String sServiceCode, long idUser,
@@ -1595,7 +1660,21 @@ public class Engine {
 			}
 		}
 	}
-
+	
+	public SimpleMap getShareServerMap() {
+		return sharedServerMap;
+	}
+	
+	public SimpleMap getShareProjectMap(Project project) {
+		synchronized (sharedProjectMap) {
+			SimpleMap map = sharedProjectMap.get(project.getName());
+			if (map == null) {
+				sharedProjectMap.put(project.getName(), map = new SimpleMap());
+			}
+			return map;
+		}
+	}
+	
 	public static boolean isCloudMode() {
 		return cloud_customer_name != null;
 	}
@@ -1606,6 +1685,10 @@ public class Engine {
 
 	public static boolean isStudioMode() {
 		return bStudioMode;
+	}
+
+	public static boolean isCliMode() {
+		return bCliMode;
 	}
 
 	public static void setStudioMode() {
@@ -1642,5 +1725,74 @@ public class Engine {
 				}
 			}
 		});
+	}
+	
+	public static File projectFile(String projectName) {
+		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		if (file == null) {
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+		}
+		return file;
+	}
+	
+	public static File projectYamlFile(String projectName) {
+		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		if (file == null) {
+			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/c8oProject.yaml");
+		}
+		return file;
+	}
+	
+	public static String projectDir(String projectName) {
+		File file = projectFile(projectName).getParentFile();
+		try {
+			return file.getCanonicalPath();
+		} catch (IOException e) {
+			return file.getAbsolutePath();
+		}
+	}
+	
+	public static String resolveProjectPath(String path) {
+		if (Engine.isStudioMode()) {
+			File file = new File(path);
+			file = resolveProjectPath(file);
+			try {
+				path = file.getCanonicalPath();
+			} catch (IOException e) {
+				path = file.getAbsolutePath();
+			}
+		}
+		return path;
+	}
+	
+	public static File resolveProjectPath(File file) {
+		if (Engine.isStudioMode()) {
+			String path;
+			try {
+				path = file.getCanonicalPath();
+			} catch (IOException e) {
+				path = file.getAbsolutePath();
+			}
+			String projectPath = Engine.PROJECTS_PATH + File.separator;
+			if (path.startsWith(projectPath)) {
+				path = path.substring(projectPath.length());
+				Pattern reProject = Pattern.compile("(.*?)(" + Pattern.quote(File.separator) + ".*|$)");
+				Matcher mProject = reProject.matcher(path);
+				if (mProject.matches()) {
+					String projectName = mProject.group(1);
+					path = Engine.projectDir(projectName) + mProject.group(2);
+					file = new File(path);
+				}
+			}
+		}
+		return file;
+	}
+
+	public static boolean isProjectFile(String filePath) {
+		return filePath.endsWith(".xml") || new File(filePath).getName().equals("c8oProject.yaml");
+	}
+	
+	public static ClassLoader getEngineClassLoader() {
+		return engineClassLoader;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -38,43 +38,26 @@ public class ApplicationComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[7];
-			
-			properties[0] = new PropertyDescriptor("orderedPages", beanClass, "getOrderedPages", "setOrderedPages");
-			properties[0].setDisplayName(getExternalizedString("property.orderedPages.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.orderedPages.short_description"));
+			properties = new PropertyDescriptor[4];
+
+			properties[0] = new PropertyDescriptor("componentScriptContent", beanClass, "getComponentScriptContent", "setComponentScriptContent");
+			properties[0].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.componentScriptContent.short_description"));
 			properties[0].setHidden(true);
 
-			properties[1] = new PropertyDescriptor("orderedRoutes", beanClass, "getOrderedRoutes", "setOrderedRoutes");
-			properties[1].setDisplayName(getExternalizedString("property.orderedRoutes.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.orderedRoutes.short_description"));
-			properties[1].setHidden(true);
+			properties[1] = new PropertyDescriptor("tplProjectName", beanClass, "getTplProjectName", "setTplProjectName");
+			properties[1].setDisplayName(getExternalizedString("property.tplProjectName.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.tplProjectName.short_description"));
+			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 			
-			properties[2] = new PropertyDescriptor("orderedComponents", beanClass, "getOrderedComponents", "setOrderedComponents");
-			properties[2].setDisplayName(getExternalizedString("property.orderedComponents.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.orderedComponents.short_description"));
-			properties[2].setHidden(true);
+			properties[2] = new PropertyDescriptor("splitPaneLayout", beanClass, "getSplitPaneLayout", "setSplitPaneLayout");
+			properties[2].setDisplayName(getExternalizedString("property.splitPaneLayout.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.splitPaneLayout.short_description"));
+			properties[2].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 			
-			properties[3] = new PropertyDescriptor("orderedMenus", beanClass, "getOrderedMenus", "setOrderedMenus");
-			properties[3].setDisplayName(getExternalizedString("property.orderedMenus.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.orderedMenus.short_description"));
-			properties[3].setHidden(true);
-
-			properties[4] = new PropertyDescriptor("componentScriptContent", beanClass, "getComponentScriptContent", "setComponentScriptContent");
-			properties[4].setDisplayName(getExternalizedString("property.componentScriptContent.display_name"));
-			properties[4].setShortDescription(getExternalizedString("property.componentScriptContent.short_description"));
-			properties[4].setHidden(true);
-
-			properties[5] = new PropertyDescriptor("tplProjectName", beanClass, "getTplProjectName", "setTplProjectName");
-			properties[5].setDisplayName(getExternalizedString("property.tplProjectName.display_name"));
-			properties[5].setShortDescription(getExternalizedString("property.tplProjectName.short_description"));
-			properties[5].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
-
-			properties[6] = new PropertyDescriptor("tplProjectVersion", beanClass, "getTplProjectVersion", "setTplProjectVersion");
-			properties[6].setDisplayName(getExternalizedString("property.tplProjectVersion.display_name"));
-			properties[6].setShortDescription(getExternalizedString("property.tplProjectVersion.short_description"));
-			properties[6].setValue("disable", Boolean.TRUE);
-			
+			properties[3] = new PropertyDescriptor("isPWA", beanClass, "isPWA", "setPWA");
+			properties[3].setDisplayName(getExternalizedString("property.isPWA.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.isPWA.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

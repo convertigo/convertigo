@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,8 +20,9 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+import java.io.FileInputStream;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -63,6 +64,10 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	private transient String sourceFilePath = "";
 	
 	private String nodeName = "hash";
+	
+	private String offset = "0";
+	
+	private transient long currentOffset = 0;
 
 		
 	public GenerateHashCodeStep() {
@@ -103,25 +108,31 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 				if (!sourceFile.isFile()) {
 					throw new EngineException("Source file is not a file: " + sourceFilePath);
 				}
-
-				byte[] path = null;
-				path = FileUtils.readFileToByteArray(sourceFile);
 				
-				String hash = null;
-				if (hashAlgorithm == HashAlgorithm.MD5) {
-					hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(path);
-				} else if (hashAlgorithm == HashAlgorithm.SHA1) {
-					hash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(path);
+				if (currentOffset > sourceFile.length()) {
+					throw new EngineException("The currentOffset of " + currentOffset + "(/" + sourceFile.length() + ") for the file: " + sourceFilePath);
 				}
-				Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
 				
-//				Node hashNode = doc.createElement("hash");
-//				hashNode.appendChild(doc.createTextNode(hash));
-//				stepNode.appendChild(hashNode);
-				
-				Node text = doc.createTextNode(hash);
-				stepNode.appendChild(text);
-				
+				try (FileInputStream fis = new FileInputStream(sourceFile)) {
+					String hash = null;
+
+					if (currentOffset > 0) {
+						Engine.logBeans.debug("Skipping " + currentOffset + " bytes of the file \"" + sourceFilePath	+ "\" before hash.");
+						fis.skip(currentOffset);
+					}
+					
+					switch (hashAlgorithm) {
+					case MD5:
+						hash = DigestUtils.md5Hex(fis); break;
+					case SHA1:
+						hash = DigestUtils.sha1Hex(fis); break;
+					}
+					
+					Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
+
+					Node text = doc.createTextNode(hash);
+					stepNode.appendChild(text);
+				}
 			} catch (Exception e) {
 				setErrorStatus(true);
 				throw new EngineException("Unable to compute hash code", e);
@@ -137,7 +148,7 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 
 				Engine.logBeans.info("Hashing file \"" + sourceFilePath + "\"");
 
-				File sourceFile = new File(sourceFilePath);
+				File sourceFile = new File(sourceFilePath); 
 				if (!sourceFile.exists()) {
 					throw new EngineException("Source file does not exist: " + sourceFilePath);
 				}
@@ -146,10 +157,13 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 					throw new EngineException("Source file is not a file: " + sourceFilePath);
 				}
 				
+				currentOffset = Math.max(evaluateToLong(javascriptContext, scope, offset, "offset", false), 0);
+				
 				if (super.stepExecute(javascriptContext, scope)) {
 					return true;
 				}
-				
+			} catch (EngineException e) {
+				throw e;
 			} catch (Exception e) {
 				setErrorStatus(true);
 				throw new EngineException("Unable to compute hash code", e);
@@ -198,6 +212,14 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 	@Override
 	public String getStepNodeName() {
 		return getNodeName();
+	}
+	
+	public String getOffset() {
+		return offset;
+	}
+	
+	public void setOffset(String offset) {
+		this.offset = offset;
 	}
 	
 	@Override

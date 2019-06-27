@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class CommentColumnLabelProvider extends ColumnLabelProvider {
@@ -51,6 +52,6 @@ public class CommentColumnLabelProvider extends ColumnLabelProvider {
 
 	@Override
 	public Color getForeground(Object element) {
-		return Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN);
+		return Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_GREEN : SWT.COLOR_DARK_GREEN);
 	}
 }

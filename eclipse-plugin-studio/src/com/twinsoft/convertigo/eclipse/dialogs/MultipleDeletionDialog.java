@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,6 +21,9 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.MessageDialogWithToggle;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
 public class MultipleDeletionDialog {
@@ -33,6 +36,9 @@ public class MultipleDeletionDialog {
 	private String title;
 	private boolean hasMultiple;
 	private Shell shell;
+	private String toggleMessage = null;
+	private boolean toggleState = false;
+	private boolean toggleStateDefault = false;
 	
 	public MultipleDeletionDialog(Shell shell, String title, boolean hasMultiple) {
 		this.title = title;
@@ -51,7 +57,20 @@ public class MultipleDeletionDialog {
 					IDialogConstants.NO_LABEL, 
 					IDialogConstants.CANCEL_LABEL 
 			};
-		}	 
+		}
+	}
+	
+	public void setToggle(String message, boolean stateDefault) {
+		toggleMessage = message;
+		toggleStateDefault = stateDefault;
+	}
+	
+	public void removeToggle() {
+		toggleMessage = null;
+	}
+	
+	public boolean getToggleState() {
+		return toggleState;
 	}
 	
 	public boolean shouldBeDeleted(String message) {
@@ -78,17 +97,31 @@ public class MultipleDeletionDialog {
 
 	private boolean confirmOverwrite(String msg) {
 		if (shell == null) return false;
-		final MessageDialog dialog = 
-			new MessageDialog(shell, title, null, msg, MessageDialog.QUESTION, buttons, 0);
+		final MessageDialog dialog = toggleMessage == null ? 
+				new MessageDialog(shell, title, null, msg, MessageDialog.QUESTION, buttons, 0) :
+					new MessageDialogWithToggle(shell, title, null, msg, MessageDialog.QUESTION, buttons, 0, toggleMessage, toggleStateDefault) {
+					@Override
+					protected void createButtonsForButtonBar(Composite parent) {
+						Button[] bs = new Button[buttons.length];;
+						for (int i = 0; i < buttons.length; i++) {
+							String label = buttons[i];
+							Button button = createButton(parent, i, label, 0 == i);
+							bs[i] = button;
+						}
+						setButtons(bs);
+					}
+				};
 	
-		shell.getDisplay().syncExec(
-			new Runnable() {
-				public void run() {
-					dialog.open();
-				}
-			});
+		shell.getDisplay().syncExec(() -> dialog.open());
+		
+		int returnCode = dialog.getReturnCode();
+		
+		if (dialog instanceof MessageDialogWithToggle) {
+			toggleState = ((MessageDialogWithToggle) dialog).getToggleState();
+		}
+		
 		if (hasMultiple) {
-			switch (dialog.getReturnCode()) {
+			switch (returnCode) {
 				case 0:
 					return true;
 				case 1:
@@ -102,7 +135,7 @@ public class MultipleDeletionDialog {
 					return false;
 			}
 		} else {
-			switch (dialog.getReturnCode()) {
+			switch (returnCode) {
 			case 0:
 				return true;
 			case 1:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
-	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/_private(?:$|(?!/mobile/flashupdate_).*)))$");
+	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/(?:c8oProject\\.yaml|_c8oProject/.*|libs/.*|\\.git/.*))|(?:(?:.*?)/_private(?:$|(?!/mobile/flashupdate_).*)))$");
 	
     public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
     	boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
@@ -84,6 +84,7 @@ public class ProjectsDataFilter implements Filter {
     	String pathInfo = (m_projects.find()) ? m_projects.group(1) : "";
 
     	String requestedObject = Engine.PROJECTS_PATH + pathInfo;
+    	requestedObject = Engine.resolveProjectPath(requestedObject);
     	Engine.logContext.debug("requestedObject=" + requestedObject);
     	
     	Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
@@ -108,7 +109,7 @@ public class ProjectsDataFilter implements Filter {
     	File file = new File(requestedObject);
     	
     	String s = file.getCanonicalPath();
-    	if (!s.startsWith(Engine.PROJECTS_PATH)) {
+    	if (!Engine.isStudioMode() && !s.startsWith(Engine.PROJECTS_PATH)) {
     		if (hide_error == false) {
     			Engine.logContext.error(requestURI + ": access to directories outside the projects repository is not allowed!");
     			response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": access to directories outside the projects repository is not allowed!");

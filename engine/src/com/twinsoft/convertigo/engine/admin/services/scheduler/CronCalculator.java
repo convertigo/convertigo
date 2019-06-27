@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -65,12 +65,19 @@ public class CronCalculator extends XmlService {
 					try {
 						CronExpression exp = new CronExpression(cronExpression);
 						nextTime = exp.getNextValidTimeAfter(new Date(start));
-						start = nextTime.getTime() + 1;
-						nDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(start));
-	
-						addNextTimeToCronsElement(document, cronsElement, nDate);
+						if (nextTime != null) {
+							start = nextTime.getTime() + 1;
+							nDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(start));
+		
+							addNextTimeToCronsElement(document, cronsElement, nDate);
+						} else {
+							if (cronsElement.getChildNodes().getLength() == 0) {
+								addNextTimeToCronsElement(document, cronsElement, "no future trigger");
+							}
+							bContinue = false;
+						}
 					} catch (Exception e) {
-						addElementToCronsElement(document, cronsElement, "error", e.getMessage());
+						addElementToCronsElement(document, cronsElement, "error", e.getClass() + ": " + e.getMessage());
 
 						nDate = "";
 						bContinue = false;

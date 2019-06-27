@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -36,16 +36,17 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DboExplorerManager {
 
-	Document documentBeansXmlDatabase;
+	private Document documentBeansXmlDatabase;
 
-	List<DboGroup> groups;
+	private List<DboGroup> groups;
 
 	public DboExplorerManager() throws SAXException, IOException,
 			ParserConfigurationException {
 		
-		InputStream dbInputstream = getClass().getResourceAsStream(
-				"/com/twinsoft/convertigo/beans/database_objects.xml");
-		documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
+		try (InputStream dbInputstream = getClass().getResourceAsStream(
+				"/com/twinsoft/convertigo/beans/database_objects.xml")) {
+			documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
+		}
 
 		NodeList nodeListGroups = documentBeansXmlDatabase.getDocumentElement()
 				.getElementsByTagName("group");

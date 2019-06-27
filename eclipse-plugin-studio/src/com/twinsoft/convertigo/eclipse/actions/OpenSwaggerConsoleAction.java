@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -26,6 +26,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 
@@ -40,8 +41,9 @@ public class OpenSwaggerConsoleAction implements IWorkbenchWindowActionDelegate 
 	public void run(IAction action) {
 		try {
 			Program.launch(
-					EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/ui/index.html?" + 
-					URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/api?YAML"));
+					EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/dist/index.html?" 
+					+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/api?YAML")
+					+ (Engine.isStudioMode() ? "&showErrors" : ""));
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while opening the Swagger console");
 		}

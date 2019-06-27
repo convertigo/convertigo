@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,11 +21,12 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IActionFilter;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -33,16 +34,18 @@ import org.w3c.dom.CDATASection;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.twinsoft.convertigo.beans.core.Document;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IJScriptContainer;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTreeFunctionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.JsonData;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.FunctionObject;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class DesignDocumentFunctionTreeObject extends TreeParent implements IEditableTreeObject, IFunctionTreeObject, IDesignTreeObject, IActionFilter  {
+public class DesignDocumentFunctionTreeObject extends TreeParent implements IEditableTreeObject, IJScriptContainer, IDesignTreeObject, IActionFilter  {
 
 	public DesignDocumentFunctionTreeObject(Viewer viewer, Object object) {
 		super(viewer, object);
@@ -55,7 +58,7 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	
 	@Override
 	public IDesignTreeObject getParentDesignTreeObject() {
-		return (DesignDocumentViewTreeObject) getParent();
+		return (IDesignTreeObject) getParent();
 	}
 	
 	@Override
@@ -63,6 +66,24 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		return (FunctionObject)super.getObject();
 	}
 
+	@Override
+	public DatabaseObject getDatabaseObject() {
+		TreeObject treeObj = this;
+		while (treeObj != null && !(treeObj instanceof DesignDocumentTreeObject)) {
+			treeObj = treeObj.getParent();
+		}
+		if (treeObj != null && treeObj instanceof DesignDocumentTreeObject) {
+			return (DatabaseObject) treeObj.getObject();
+		}
+		return null;
+	}
+	
+	@Override
+	public String getFullName() {
+		DatabaseObject dbo = getDatabaseObject();
+		return dbo != null ? (dbo.getQName() + "." + getParent().getName() + "." + getName()) : getName();
+	}
+	
 	@Override
 	public void hasBeenModified() {
 		IDesignTreeObject ddvto = getParentDesignTreeObject();
@@ -72,13 +93,13 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	}
 	
 	@Override
-	public String getFunction() {
+	public String getExpression() {
 		String function = new String(getObject().getStringObject());
 		return function;
 	}
 
 	@Override
-	public void setFunction(String function) {
+	public void setExpression(String function) {
 		getObject().setStringObject(function);
 		hasBeenModified();
 	}
@@ -101,25 +122,30 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
 		}
 	}
-
-	protected String getTempFileName(IProject project) {
-		TreeObject object = getTreeObjectOwner();
+	
+	public void closeAllEditors(boolean save) {
+		DesignDocument ddoc = getDesignDocumentTreeObject().getObject();
 		
-		Document document = (Document)object.getObject();
-		
-		String tempFileName = 	"_private/"+project.getName()+
-				"__"+getConnectorTreeObject().getName()+
-				"__"+document.getName()+
-				"__views."+getParent().getName()+"."+getName();
-		
-		return tempFileName;
+		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		if (activePage != null) {
+			IEditorReference[] editorRefs = activePage.getEditorReferences();
+			for (int i = 0; i < editorRefs.length; i++) {
+				IEditorReference editorRef = (IEditorReference) editorRefs[i];
+				try {
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if (editorInput != null && editorInput instanceof JScriptEditorInput) {
+						if (((JScriptEditorInput)editorInput).is(ddoc)) {
+							activePage.closeEditor(editorRef.getEditor(false), save);
+						}
+					}
+				} catch(Exception e) {
+					
+				}
+			}
+		}
 	}
 	
-	public void openJscriptHandlerEditor(IProject project) {
-		String tempFileName = getTempFileName(project);
-		
-		IFile file = project.getFile(tempFileName);
-		
+	public void openJscriptHandlerEditor(IProject project) {		
 		IWorkbenchPage activePage = PlatformUI
 								.getWorkbench()
 								.getActiveWorkbenchWindow()
@@ -127,10 +153,10 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		
 		if (activePage != null) {
 			try {
-				activePage.openEditor(new JscriptTreeFunctionEditorInput(file,this),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTreeFunctionEditor");
+				activePage.openEditor(new JScriptEditorInput(this, project),
+										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
 			} catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the document editor '" + tempFileName + "'");
+				ConvertigoPlugin.logException(e, "Error while loading the document editor '" + getName() + "'");
 			} 
 		}
 	}
@@ -168,6 +194,8 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 			return DesignDocumentFilterTreeObject.class;
 		else if (classname.equals(DesignDocumentUpdateTreeObject.class.getName()))
 			return DesignDocumentUpdateTreeObject.class;
+		else if (classname.equals(DesignDocumentValidateTreeObject.class.getName()))
+			return DesignDocumentValidateTreeObject.class;
 		return DesignDocumentFunctionTreeObject.class;
 	}
 	
@@ -231,4 +259,14 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 		return false;
 	}
 
+	@Override
+	public String getEditorName() {
+		String name = parent.getName() + " " + getName(); 
+		if (parent instanceof DesignDocumentViewTreeObject) {
+			return parent.parent.getName() + " " + name;
+		}
+		return name;
+	}
+
+	
 }

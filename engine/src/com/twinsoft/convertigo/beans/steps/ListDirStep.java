@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,7 +20,11 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+import java.util.Arrays;
 
+import org.apache.commons.io.comparator.LastModifiedFileComparator;
+import org.apache.commons.io.comparator.NameFileComparator;
+import org.apache.commons.io.comparator.SizeFileComparator;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -38,6 +42,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FileSortByPolicy;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ListDirStep extends Step {
@@ -47,6 +52,8 @@ public class ListDirStep extends Step {
 	/** Holds the value for the  source directory */
 	private String sourceDirectory = "";
 
+	private FileSortByPolicy fileSortByPolicy = FileSortByPolicy.fileName;
+	
 	public ListDirStep() {
 		super();
 		setOutput(false);
@@ -72,7 +79,15 @@ public class ListDirStep extends Step {
 	public void setSourceDirectory(String sourceDirectory) {
 		this.sourceDirectory = sourceDirectory;
 	}
-
+	
+	public FileSortByPolicy getFileSortByPolicy() {
+		return fileSortByPolicy;
+	}
+	
+	public void setFileSortByPolicy(FileSortByPolicy fileSortByPolicy) {
+		this.fileSortByPolicy = fileSortByPolicy;
+	}
+	
 	@Override
 	public String toJsString() {
 		return "";
@@ -100,6 +115,14 @@ public class ListDirStep extends Step {
 	        File[] files = fDir.listFiles();
 	        if (files == null)
 	        	throw new EngineException("Source path \""+path+"\" isn't a directory.");
+	        
+	        if (fileSortByPolicy.equals(FileSortByPolicy.fileLastModified)) {
+	        	Arrays.sort(files, LastModifiedFileComparator.LASTMODIFIED_COMPARATOR);
+	        } else if (fileSortByPolicy.equals(FileSortByPolicy.fileSize)) {
+	        	Arrays.sort(files, SizeFileComparator.SIZE_COMPARATOR);
+	        } else {
+	        	Arrays.sort(files, NameFileComparator.NAME_SYSTEM_COMPARATOR);
+	        }
 	        
 	        String fileName, fileLastModified, fileSize;
 	        Element element;

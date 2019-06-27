@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -42,7 +42,11 @@ public class UIFormCustomValidator extends UIFormValidator {
 	/*
 	 * The validator value (function contents)
 	 */
-	private FormatedContent validatorValue = new FormatedContent("\t\t\treturn null;//means valid"+ System.lineSeparator());
+	private FormatedContent validatorValue = new FormatedContent(
+			"\t\t\t/* return {'valid':false, 'password':wrong};\t// any json if invalid */\n" +
+			"\t\t\t/* return null;\t\t\t\t\t\t\t\t\t// null if valid */\n" +
+			"\t\t\treturn null;\n"
+			);
 	
 	public FormatedContent getValidatorValue() {
 		return validatorValue;
@@ -89,9 +93,9 @@ public class UIFormCustomValidator extends UIFormValidator {
 			String computed = "";
 			computed += System.lineSeparator();
 			computed += cartridge;
-			computed += "\t\tfunction "+ validatorName +"("+parameter+") {"+ System.lineSeparator();
+			computed += "\t\tlet "+ validatorName +" = ("+parameter+") => {"+ System.lineSeparator();
 			computed += computeValidatorContent();
-			computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\t};"+ System.lineSeparator();
 			return computed;
 		}
 		return "";

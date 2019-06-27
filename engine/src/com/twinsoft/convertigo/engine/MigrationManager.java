@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -54,8 +54,8 @@ public class MigrationManager {
 					String targetProjectArchive = "";
 					
 					for (String projectName: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
-						MigrationJob job = new MigrationJob(projectName);
 						if (!jobs.containsKey(projectName)) {
+							MigrationJob job = new MigrationJob(projectName);
 							jobs.put(projectName, job);
 							job.start();
 						} 
@@ -111,7 +111,7 @@ public class MigrationManager {
 					long t1 = Calendar.getInstance().getTime().getTime();
 					Engine.logEngine.trace("Migration took (" + (t1 - t0) + "ms).");
 					Engine.logEngine.info("Migration finished");
-					if (Engine.isStarted && Engine.isStudioMode())
+					if (Engine.isStarted)
 						Engine.theApp.fireMigrationFinished(new EngineEvent(""));
 				}
 			}

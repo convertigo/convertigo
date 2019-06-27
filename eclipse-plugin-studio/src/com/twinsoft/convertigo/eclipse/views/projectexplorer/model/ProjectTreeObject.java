@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -67,9 +67,7 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
@@ -238,7 +236,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						hasBeenModified(false);
 						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
 						
-						getIProject().refreshLocal(IResource.DEPTH_ONE, null);
+						IProject iProject = getIProject();
+						iProject.refreshLocal(IResource.DEPTH_ONE, null);
+						iProject.getFolder("_c8oProject").refreshLocal(IResource.DEPTH_INFINITE, null);
 					}
 				}
 			} catch (Exception e) {
@@ -319,6 +319,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					CouchDbManager.syncDocument(couchDbConnector);
 				}
 			}
+			
+			if (treeObject.getProjectTreeObject() == this) {
+				Engine.theApp.schemaManager.clearCache(getName());
+			}
 		}
 	}
 	
@@ -349,8 +353,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								
 								// refresh folder
 								parentFolder.refreshLocal(IResource.DEPTH_ONE, null);
-								
-								Engine.theApp.schemaManager.clearCache(getName());
 							} catch (Exception e) {
 								ConvertigoPlugin.logWarning(e, "Could not delete folder \""+ folderPath +"\"!");
 							}
@@ -375,8 +377,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								
 								// refresh folder
 								parentFolder.refreshLocal(IResource.DEPTH_ONE, null);
-								
-								Engine.theApp.schemaManager.clearCache(getName());
 							} catch (Exception e) {
 								ConvertigoPlugin.logWarning(e, "Could not delete file \""+ filePath +"\"!");
 							}
@@ -385,6 +385,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				}
 				else if (databaseObject instanceof ProjectSchemaReference) {
 					checkMissingProjects();
+				}
+				
+				// Clear schema cache
+				if (treeObject.getProjectTreeObject() == this) {
+					Engine.theApp.schemaManager.clearCache(getName());
 				}
 			}
 		}
@@ -431,6 +436,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					|| (databaseObject instanceof ProjectSchemaReference && propertyName.equals("projectName"))) {
 				checkMissingProjects();
 			}
+			
+			// Clear schema cache
+			if (treeObject.getProjectTreeObject() == this) {
+				Engine.theApp.schemaManager.clearCache(getName());
+			}			
 		}
 	}
 	
@@ -657,18 +667,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							}
 						}
 						// close js editors
-						else if (editorInput instanceof JscriptTransactionEditorInput) {
-							if (((JscriptTransactionEditorInput)editorInput).getTransaction().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
-							}
-						}
-						else if (editorInput instanceof JscriptStatementEditorInput) {
-							if (((JscriptStatementEditorInput)editorInput).getStatement().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
-							}
-						}
-						else if (editorInput instanceof JscriptStepEditorInput) {
-							if (((JscriptStepEditorInput)editorInput).getStep().getProject().equals(project)) {
+						else if (editorInput instanceof JScriptEditorInput) {
+							DatabaseObject dbo = ((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject();
+							if (dbo != null && project.equals(dbo.getProject())) {
 								closeEditor(activePage, editorRef);
 							}
 						}
@@ -891,5 +892,24 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 			});
 		}
+	}
+
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllEditors();
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Object getAdapter(Class adapter) {
+		Object obj = super.getAdapter(adapter);
+		
+		if (obj == null) {
+			obj = getIProject();
+			if (obj != null && !adapter.isAssignableFrom(IProject.class)) {
+				obj = ((IProject) obj).getAdapter(adapter);
+			}
+		}
+		
+		return obj;
 	}
 }

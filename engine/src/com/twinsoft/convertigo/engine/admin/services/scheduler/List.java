@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -126,32 +126,32 @@ public class List extends XmlService{
 					element.setAttribute("project", acj.getProjectName());
 					element.setAttribute("context", acj.getContextName());
 					element.setAttribute("info", "URL : " + acj.getConvertigoURL());
-		            for (Map.Entry<String, String[]> entry : acj.getParameters().entrySet()){
-		            	Element parameter = document.createElement("parameter");
-		            	parameter.setAttribute("name", entry.getKey());
-		            	
-		            	for (String value : entry.getValue()) {
-		            		if (!value.isEmpty()){
-			            		Element parameter_value = document.createElement("value");
-			            		parameter_value.setTextContent(value);
-			            		parameter.appendChild(parameter_value);	            	
-			            	}
-		            	}
-		            	
-		            	element.appendChild(parameter);	              
-		            }
-		            if (acj instanceof SequenceConvertigoJob) {
-		            	SequenceConvertigoJob scj = (SequenceConvertigoJob) acj;
-		            	element.setAttribute("sequence", scj.getSequenceName());
-		            } else if (acj instanceof TransactionConvertigoJob) {
-		            	TransactionConvertigoJob tcj = (TransactionConvertigoJob) acj;
-		            	element.setAttribute("connector", ((TransactionConvertigoJob) acj).getConnectorName());
-		            	element.setAttribute("transaction", tcj.getTransactionName());
-		            }
+					for (Map.Entry<String, String[]> entry : acj.getParameters().entrySet()){
+						Element parameter = document.createElement("parameter");
+						parameter.setAttribute("name", entry.getKey());
+
+						for (String value : entry.getValue()) {
+							if (!value.isEmpty()){
+								Element parameter_value = document.createElement("value");
+								parameter_value.setTextContent(value);
+								parameter.appendChild(parameter_value);
+							}
+						}
+
+						element.appendChild(parameter);
+					}
+					if (acj instanceof SequenceConvertigoJob) {
+						SequenceConvertigoJob scj = (SequenceConvertigoJob) acj;
+						element.setAttribute("sequence", scj.getSequenceName());
+					} else if (acj instanceof TransactionConvertigoJob) {
+						TransactionConvertigoJob tcj = (TransactionConvertigoJob) acj;
+						element.setAttribute("connector", ((TransactionConvertigoJob) acj).getConnectorName());
+						element.setAttribute("transaction", tcj.getTransactionName());
+					}
 				} else if (aj instanceof JobGroupJob) {
 					JobGroupJob jgj = (JobGroupJob) aj;
-					element.setAttribute("serial", Boolean.toString(jgj.isSerial()));
-					
+					element.setAttribute("parallelJob", Integer.toString(jgj.getParallelJob()));
+
 					for (AbstractJob sub : jgj.getJobGroup()) {
 						Element job = document.createElement("job_group_member");
 						job.appendChild(document.createTextNode(sub.getName()));

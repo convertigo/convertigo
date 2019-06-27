@@ -6,6 +6,18 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     PopoverAction(page: C8oPageBase, props, vars) : Promise<any> {
+        function toString(data) {
+            if (data) {
+                try {
+                    return JSON.stringify(data);
+                } catch(e) {
+                    return data.toString();
+                }
+            } else {
+               return "no data"; 
+            }
+        }
+        
         return new Promise((resolve, reject) => {
             let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
@@ -19,12 +31,12 @@
             })
             
             pop.onDidDismiss((data) => {
-                page.c8o.log.debug("[MB] Popover Dismissed: " + JSON.stringify(data));
+                page.c8o.log.debug("[MB] Popover '"+p+"' dismissed: " + toString(data));
                 resolve(data)
             })
             
             pop.present({ev: props.event}).then((data) => {
-                page.c8o.log.debug("[MB] Popover Page displayed: " + JSON.stringify(data));
+                page.c8o.log.debug("[MB] Popover Page '"+p+"' displayed: " + toString(data));
             })
         });
     }

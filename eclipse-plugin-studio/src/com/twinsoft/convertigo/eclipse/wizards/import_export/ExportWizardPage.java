@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -64,8 +64,8 @@ public class ExportWizardPage extends WizardPage {
 		fileSelectionArea.setLayout(fileSelectionLayout);
 		
 		String projectName = getSelectedProject();
-		projectName = (projectName == null) ? "":Engine.PROJECTS_PATH + "/" + projectName + ".car";
-		editor = new ProjectFileFieldEditor("fileSelect","Select File: ",fileSelectionArea);
+		projectName = (projectName == null) ? "" : Engine.projectDir(projectName) + ".car";
+		editor = new ProjectFileFieldEditor("fileSelect","Select File: ", fileSelectionArea);
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				IPath path = new Path(ExportWizardPage.this.editor.getStringValue());

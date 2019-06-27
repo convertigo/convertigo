@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -86,6 +86,7 @@ public class AdminServlet extends HttpServlet {
 				
 		try {
 			String serviceName = "";
+			String isAdmin = "";
 			try {
 				response.addHeader("Expires", "-1");
     			response.addHeader("Pragma", "no-cache");
@@ -94,6 +95,7 @@ public class AdminServlet extends HttpServlet {
     			
 				String requestURL = request.getRequestURL().toString();
 				int i = requestURL.lastIndexOf('/');
+				isAdmin = requestURL.substring(0, i).endsWith("/admin/services") ? "admin " : "";
 				serviceName = requestURL.substring(i + 1); 
 				if (serviceName != null && !serviceName.equals("logs.Get")) {
 					Engine.logAdmin.info("Service name: " + serviceName);
@@ -116,6 +118,10 @@ public class AdminServlet extends HttpServlet {
 					}
 				}
 				
+				if (isAdmin.isEmpty() && serviceDefinition.admin()) {
+					throw new ClassNotFoundException();
+				}
+				
 				String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 				if (corsOrigin != null) {
 					Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
@@ -131,14 +137,14 @@ public class AdminServlet extends HttpServlet {
 				service.run(serviceName, request, response);
 			}
 			catch (ClassNotFoundException e) {
-				String message = "Unknown admin service '" + serviceName + "'";
+				String message = "Unknown " + isAdmin + "service '" + serviceName + "'";
 				Engine.logAdmin.error(message);
 				if (show_error) {
 					ServiceUtils.handleError(message, response);
 				}
 			}
 			catch (NoClassDefFoundError e) {
-				String message = "Unknown admin service '" + serviceName + "'";
+				String message = "Unknown " + isAdmin + "service '" + serviceName + "'";
 				Engine.logAdmin.error(message);
 				if (show_error) {
 					ServiceUtils.handleError(message, response);

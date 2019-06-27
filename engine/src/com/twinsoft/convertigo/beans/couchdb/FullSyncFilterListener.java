@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -70,7 +70,7 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 					i += doc_ids.length();
 	
 					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter for _id keys " + doc_ids);
-					JSONObject json = getCouchClient().postChange(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), doc_ids));
+					JSONObject json = getCouchClient().postChanges(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), doc_ids));
 					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : post filter returned following documents :\n" + json.toString());
 	
 					if (json != null) {

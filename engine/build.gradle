@@ -1,0 +1,413 @@
+group 'com.convertigo'
+
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'maven-publish'
+
+publishing {
+	publications {
+		engineJar(MavenPublication) {
+			version version.replace('beta', 'SNAPSHOT')
+			from components.java
+		}
+	}
+	
+	repositories {
+		maven {
+			url project.properties['c8o.m2.url']
+			credentials(AwsCredentials) {
+				accessKey project.properties['c8o.m2.ak']
+				secretKey project.properties['c8o.m2.sk']
+			}
+		}
+	}
+}
+
+webAppDirName = 'convertigo'
+
+eclipse {
+	project {
+		natures 'org.eclipse.buildship.core.gradleprojectnature'
+		buildCommand 'org.eclipse.buildship.core.gradleprojectbuilder'
+		linkedResource name: 'convertigo', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/eclipse-plugin-studio/tomcat/webapps/convertigo'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
+	}
+
+	wtp {
+		component {
+			contextPath = 'convertigo'
+			deployName = 'convertigo'
+			//resource sourcePath: 'convertigo', deployPath: '/'
+			file {
+				withXml {
+					def node = it.asNode()
+					if (node.'wb-module'.'wb-resource'.find { it['@deploy-path'] == '/' } == null) {
+						node = node['wb-module'][0].appendNode('wb-resource')
+						node['@source-path'] = 'convertigo'
+						node['@deploy-path'] = '/'
+					}
+				}
+			}
+		}
+	}
+}
+
+configurations {
+	swtLinux32
+}
+
+jar {
+	baseName 'convertigo-engine'
+	
+	include 'com/twinsoft/**'
+}
+
+war {
+	baseName 'convertigo'
+	
+	classpath = files(configurations.runtime, jar)
+	
+	doFirst {
+		project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
+		file('build/tmp/build.txt').text = """\
+build.version=${convertigoRevision}
+build.date=${new Date().toString()}
+build.filename=${war.archiveName}"""
+	}
+	
+	from 'build/tmp/build.txt', {
+		into 'WEB-INF'
+	}
+	
+	exclude '**/keys.txt'
+	exclude '**/*.car'
+	rename 'keys_server.txt', 'keys.txt'
+	
+	dependsOn 'unzipSwaggerUI'
+}
+
+sourceSets {
+	main {
+		java {
+			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude '.placeholder'
+			srcDir 'src'
+			srcDir 'patch'
+		}
+		resources {
+			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			exclude '.placeholder'
+			srcDir 'src'
+			srcDir 'patch'
+		}
+	}
+}
+
+task patchJar(type: Jar, dependsOn: classes) {
+	baseName 'aa-convertigo-patch'
+	from compileJava.destinationDir
+	exclude 'com/twinsoft/**'
+}
+
+dependencies {
+	compile 'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
+	compile 'com.convertigo.lib:ctgclient:2010.06.14'
+	compile 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
+	compile 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
+	compile 'com.convertigo.lib:ojdbc7:12.1.0.2'
+	runtime 'com.convertigo.lib:qrcode:2011.05.19'
+	compile 'com.convertigo.lib:sapjco:3'
+	compile 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
+	compile 'com.convertigo.lib:soapui:3.5.1'
+	compile 'com.convertigo.provider:convertigo-provider-couchdb:7.6.0-SNAPSHOT'
+	compile 'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
+	compile 'com.convertigo.provider:convertigo-provider-sap:7.6.0-SNAPSHOT'
+	compile 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
+	compile 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
+	compile 'com.convertigo.twinsoft.lib:comm:1998.11.15'
+	compile 'com.convertigo.twinsoft.lib:ms:2002.01.03'
+	compile 'com.convertigo.twinsoft.lib:netscape:2002.01.04'
+	compile 'com.convertigo.twinsoft.lib:phaos:1998.11.15'
+	compile 'com.convertigo.twinsoft:api:2017.12.29'
+	compile 'com.convertigo.twinsoft:ibm:2017.03.10'
+	compile 'com.convertigo.twinsoft:tas:2017.12.29'
+	compile 'com.convertigo.twinsoft:twinj:2016.05.09'
+	compile 'com.convertigo.twinsoft:ui:2009.06.15'
+	compile 'com.convertigo.twinsoft:util:2017.12.29'
+	compile 'com.fasterxml.jackson.core:jackson-core:[2.8,2.9['
+	compile 'com.github.fernandospr:javapns-jdk16:[2.2,2.3['
+	compile 'com.google.gcm:gcm-server:1.0.0'
+	compile 'com.opencsv:opencsv:4.1'
+	compile 'com.sun.xml.bind:jaxb-xjc:[2.2,2.3['
+	compile 'commons-collections:commons-collections:[3.2,3.3['
+	compile 'commons-cli:commons-cli:1.4'
+	compile 'commons-fileupload:commons-fileupload:[1.3,1.4['
+	compile 'commons-httpclient:commons-httpclient:3.1'
+	compile 'commons-io:commons-io:[2.5,)'
+	compile 'commons-jxpath:commons-jxpath:1.3'
+	compile 'commons-lang:commons-lang:[2.6,)'
+	compile 'io.swagger:swagger-models:1.5.22'
+	compile 'io.swagger:swagger-parser:1.0.42'
+	compile 'io.swagger.core.v3:swagger-annotations:2.0.5'
+	compile 'io.swagger.core.v3:swagger-models:2.0.5'
+	compile 'io.swagger.core.v3:swagger-core:2.0.5'
+	compile 'io.swagger.parser.v3:swagger-parser-core:2.0.5'
+	compile 'io.swagger.parser.v3:swagger-parser-v3:2.0.5'
+	compile 'javax.mail:mail:1.4'
+	compile 'log4j:log4j:[1.2,1.3['
+	runtime 'net.sf.jt400:jt400:[9,)'
+	runtime 'net.sourceforge.jtds:jtds:[1.3,)'
+	compile 'oauth.signpost:signpost-core:[1.2.1,1.2.2['
+	compile 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
+	compile 'org.apache.commons:commons-lang3:[3.4,)'
+	compile 'org.apache.httpcomponents:httpclient:[4.5,)'
+	runtime 'org.apache.odftoolkit:simple-odf:0.8.2-incubating'
+	compile 'org.apache.pdfbox:pdfbox:2.0.11'
+	compile 'org.apache.ws.commons.axiom:axiom-api:1.2.13'
+	compile 'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
+	compile 'org.apache.ws.commons.axiom:axiom-impl:1.2.13'
+	compile 'org.apache.ws.commons.schema:XmlSchema:[1.4,1.5['
+	compile 'org.apache.xmlbeans:xmlbeans:[2.6,2.7['
+	compile 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
+	compile 'org.codehaus.jettison:jettison:[1.3,)'
+	compile 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
+	compile 'org.hibernate:hibernate-core:5.2.10.Final'
+	runtime 'org.hsqldb:hsqldb:1.8.0.10'
+	runtime 'org.mariadb.jdbc:mariadb-java-client:2.4.0'
+	compile 'org.mozilla:rhino:1.7.10'
+	runtime 'org.postgresql:postgresql:[42,43['
+	compile 'org.quartz-scheduler:quartz:[1.7,1.8['
+	compile 'regexp:regexp:1.3'
+	compile 'ro.isdc.wro4j:wro4j-core:[1.6,1.7['
+	compile 'ro.isdc.wro4j:wro4j-extensions:[1.8,1.9['
+	compile 'wsdl4j:wsdl4j:[1.6,1.7['
+	compile 'xalan:xalan:2.7.2'
+	compile 'xerces:xercesImpl:[2.12,)'
+	compile 'xml-resolver:xml-resolver:1.2'
+	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
+	compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
+	compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
+	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
+	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
+	runtime files(patchJar.archivePath)
+}
+
+task downloadXulrunnerLinux32(type: Copy) {
+	group 'convertigo'
+	
+	def xul = file 'xulrunner.tgz'
+	ext.dir = file '../resources/xulrunner-linux32'
+	
+	onlyIf {
+		!ext.dir.exists()
+	}
+	
+	doFirst {
+		new URL('https://m2.convertigo.com/com/convertigo/packages/xulrunner-linux32/1.9.0.17-patched3/xulrunner-linux32-1.9.0.17-patched3.tgz')
+			.withInputStream{ i -> xul.withOutputStream{ it << i }}
+		from tarTree(resources.gzip(xul))
+		exclude 'com/**'
+	}
+	
+	from 'src'
+	into ext.dir
+	
+	doLast {
+		xul.delete()
+	}
+}
+
+task downloadXvncLinux32(type: Copy) {
+	group 'convertigo'
+	
+	def vnc = file 'xvnc.tgz'
+	ext.dir = file '../resources/xvnc-linux32'
+	
+	onlyIf {
+		!ext.dir.exists()
+	}
+	
+	doFirst {
+		new URL('https://m2.convertigo.com/com/convertigo/packages/xvnc-linux32/1.3.9/xvnc-linux32-1.3.9.tgz')
+			.withInputStream{ i -> vnc.withOutputStream{ it << i }}
+		from tarTree(resources.gzip(vnc))
+		exclude 'com/**'
+	}
+	
+	from 'src'
+	into ext.dir
+	
+	doLast {
+		vnc.delete()
+	}
+}
+
+task warLinux32(type: Zip, dependsOn: [war, downloadXulrunnerLinux32, downloadXvncLinux32]) {
+	group 'convertigo'
+	
+	archiveName war.archiveName.replace(war.baseName, war.baseName + '-linux32')
+	destinationDir war.destinationDir
+	
+	doFirst {
+		file('build/tmp/build.txt').text = """\
+build.version=${convertigoRevision}
+build.date=${new Date().toString()}
+build.filename=${archiveName}"""
+	}
+	
+	from zipTree(war.archivePath), {
+		exclude 'WEB-INF/build.txt'
+	}
+	
+	from 'build/tmp/build.txt', {
+		into 'WEB-INF'
+	}
+	
+	from downloadXulrunnerLinux32.ext.dir, {
+		into 'WEB-INF/xulrunner'
+	}
+	
+	from downloadXvncLinux32.ext.dir, {
+		into 'WEB-INF/xvnc'
+	}
+	
+	from configurations.swtLinux32[0], {
+		into 'WEB-INF/lib'
+		rename 'swt-(.*)', 'swt_$1'
+	}
+}
+
+task updateProductVersion {
+	group 'convertigo'
+	
+	inputs.property("convertigoVersion", convertigoVersion)
+	inputs.property("convertigoTag", convertigoTag)
+	inputs.property("convertigoRevision", convertigoRevision)
+	
+	outputs.file 'src/com/twinsoft/convertigo/engine/ProductVersion.java'
+	
+	doLast {
+		def vers = convertigoVersion.split('\\.')
+		def file = file 'src/com/twinsoft/convertigo/engine/ProductVersion.java'
+		file.text = file.text
+			.replaceFirst('(majorProductVersion = ).*;', "\$1\"${vers[0]}\";")
+			.replaceFirst('(minorProductVersion = ).*;', "\$1\"${vers[1]}\";")
+			.replaceFirst('(servicePack = ).*;', "\$1\"${vers[2]}\";")
+			.replaceFirst('(tag = ).*;', '$1' + (convertigoTag.isEmpty() ? 'null;' : "\"${convertigoTag}\";"))
+			.replaceFirst('(revision = ).*;', '$1' + (convertigoRevision.isEmpty() ? 'null;': "\"${convertigoRevision}\";"))
+	}
+}
+
+task engineApiJar(type: Jar) {
+	group 'build'
+	
+	baseName 'convertigo-engine-api'
+	from 'bin/main'
+	include '**/*.class'
+	exclude 'com/twinsoft/convertigo/engine/parsers/**'
+	exclude 'com/twinsoft/convertigo/engine/plugins/**'
+	exclude 'com/twinsoft/convertigo/engine/providers/**'
+}
+
+task unzipSwaggerUI {
+	group 'convertigo'
+	
+	def zip = file "build/tmp/swagger-v${swaggerUiVersion}.zip"
+	
+	inputs.properties(
+		'swaggerUiVersion': swaggerUiVersion
+	)
+	
+	def patch = file '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/patch'
+	def dist = file '../eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist'
+	outputs.dir dist
+	
+	doLast {
+		file('build/tmp').mkdirs()
+		new URL("https://github.com/swagger-api/swagger-ui/archive/v${swaggerUiVersion}.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}
+		dist.delete()
+		copy {
+			from zipTree(zip)
+			include '**/dist/*.png', '**/dist/*.html', '**/dist/*.css', '**/dist/*.js'
+			includeEmptyDirs = false
+			into dist
+			eachFile { f ->
+				f.path = f.path.replaceFirst('.*/', '')
+			}
+		}
+		zip.delete()
+		
+		copy {
+			from patch
+			into dist
+		}
+	}
+}
+
+task copyLicense(type: Copy) {
+	group 'convertigo'
+	
+	from '../license.txt'
+	into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
+}
+
+task engineDependenciesClasspathJar(type: Jar) {
+	group 'convertigo'
+	
+	appendix = 'updateBeansDefaultValues'
+	manifest {
+		attributes 'Class-Path': files(sourceSets.main.compileClasspath, sourceSets.main.runtimeClasspath)
+			.filter { it.name.endsWith '.jar' }
+			.collect {it.toURI().toString().substring(5)}
+			.join(' ')
+	}
+}
+
+task updateBeansDefaultValues(type: JavaExec, dependsOn: engineDependenciesClasspathJar) {
+	group 'convertigo'
+	
+	inputs.files fileTree('src/com/twinsoft/convertigo/beans')
+	outputs.file 'src/com/twinsoft/convertigo/beans/database_objects_default.xml'
+	outputs.file 'src/com/twinsoft/convertigo/beans/mobile/components/dynamic/ion_objects_default.json'
+	
+	classpath sourceSets.main.output
+	classpath engineDependenciesClasspathJar.archivePath
+	
+	main = 'com.twinsoft.convertigo.beans.BeansDefaultValues'
+	
+	args 'src', sourceSets.main.output.resourcesDir
+}
+
+task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClasspathJar) {
+	group 'convertigo'
+	
+	onlyIf {
+		project.hasProperty('documentationPath')
+	}
+	if (project.hasProperty('documentationPath')) {
+		def docPath = file(project.property('documentationPath'))
+		def docMax = project.hasProperty('documentationMax') ? project.property('documentationMax') : -1
+		println docPath
+		inputs.files fileTree('src/com/twinsoft/convertigo/beans')
+		outputs.dir docPath
+		
+		classpath sourceSets.main.output
+		classpath engineDependenciesClasspathJar.archivePath
+		
+		main = 'com.twinsoft.convertigo.beans.BeansDoc'
+		
+		args docPath.absolutePath, docMax
+	}
+}
+
+compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
+jar.dependsOn(['patchJar', 'updateBeansDefaultValues'])

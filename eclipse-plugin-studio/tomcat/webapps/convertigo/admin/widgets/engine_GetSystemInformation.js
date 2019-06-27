@@ -1,27 +1,24 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2019 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 function engine_GetSystemInformation_init(){
-	$("#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables").button({ icons: { primary: "ui-icon-script" } });
+	$("#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables, #performGC").button({ icons: { primary: "ui-icon-script" } });
 
 	initSystemInformationDialogs();
 	engine_GetSystemInformation_update();
@@ -71,9 +68,21 @@ function initSystemInformationDialogs() {
 
 		return false;
 	});
+
+	$("#performGC").click(function() {	
+		$.get("services/engine.PerformGC", { }, 
+			function(xml) {
+				window.setTimeout(function () {
+					engine_GetSystemInformation_update();
+				}, 500);
+			}
+		);
+
+		return false;
+	});
 	
 	$("<div id=\"sysinfoDialogEnvironmentVariables\"></div>")
-		.html("<table id=\"environmentVariablesList2\"/>") // Have to use a different ID that table in environùentVariables_List.html
+		.html("<table id=\"environmentVariablesList2\"/>") // Have to use a different ID that table in environmentVariables_List.html
 		.dialog({
 			autoOpen: false,
 			title: "Environment variables",

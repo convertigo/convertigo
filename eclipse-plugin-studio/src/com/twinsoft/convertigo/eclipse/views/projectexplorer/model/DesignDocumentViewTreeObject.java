@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,6 +29,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.JsonData;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -39,7 +40,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class DesignDocumentViewTreeObject extends TreeParent implements IDesignTreeObject, IActionFilter {
+public class DesignDocumentViewTreeObject extends TreeParent implements IClosableTreeObject, IDesignTreeObject, IActionFilter {
 
 	public DesignDocumentViewTreeObject(Viewer viewer, Object object) {
 		super(viewer, object);
@@ -220,15 +221,19 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 	
 	@Override
 	public Element toXml(Document document) {
+		DesignDocument ddoc = getParentDesignTreeObject().getObject();
+		ViewObject view = getObject();
+		String qname = ddoc.getQName() + "." + view.getName();
 		Element element = document.createElement("view");
 		element.setAttribute("classname", getClass().getName());
 		JSONObject jsondata = new JSONObject();
 		try {
-			jsondata.put("name", getObject().getName());
-			jsondata.put("value", getObject().getJSONObject());
+			jsondata.put("name", view.getName());
+			jsondata.put("value", view.getJSONObject());
+			jsondata.put("qname", qname);
 		} catch (JSONException e) {}
-        CDATASection cDATASection = document.createCDATASection(jsondata.toString());
-        element.appendChild(cDATASection);
+		CDATASection cDATASection = document.createCDATASection(jsondata.toString());
+		element.appendChild(cDATASection);
 		return element;
 	}
 
@@ -255,4 +260,8 @@ public class DesignDocumentViewTreeObject extends TreeParent implements IDesignT
 		return false;
 	}
 
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getDesignDocumentTreeObject().getObject(), save);
+	}
 }

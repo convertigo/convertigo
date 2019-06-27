@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -38,8 +38,8 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.core.IMappingRefModel;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
@@ -252,6 +252,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 				}
 				else {
 					map.put(Parameter.Sequence.getName(), new String[] { sequenceName });
+					map.put(Parameter.RemoveContext.getName(), new String[] { "" });
+					map.put(Parameter.RemoveSession.getName(), new String[] { "" });
 				}
 				
 				// Add path variables parameters
@@ -299,23 +301,44 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			        		// Transform input data
 			        		try {
 				        		if (dataInput.equals(DataContent.toJson)) {
-				        			String modelName = param instanceof IMappingRefModel ? ((IMappingRefModel)param).getModelReference() : "";
-				        			String objectName = modelName.isEmpty() ? paramName : modelName;
-				        			Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
+				        			//String modelName = param instanceof IMappingRefModel ? ((IMappingRefModel)param).getModelReference() : "";
+				        			//String objectName = modelName.isEmpty() ? paramName : modelName;
+				        			//Document doc = XMLUtils.parseDOMFromString("<"+objectName+"/>");
+				        			Document doc = XMLUtils.parseDOMFromString("<"+paramName+"/>");
 				        			Element root = doc.getDocumentElement();
 				        			JSONObject json = new JSONObject((String) paramValue);
 				        			XMLUtils.jsonToXml(json, root);
 				        			paramValue = root.getChildNodes();
 				        		}
 				        		else if (dataInput.equals(DataContent.toXml)) {
-				        			Document doc = XMLUtils.parseDOMFromString((String)paramValue);
-				        			paramValue = doc.getDocumentElement();
+				        			//Document doc = XMLUtils.parseDOMFromString((String)paramValue);
+				        			//paramValue = doc.getDocumentElement();
+				        			Document xml = XMLUtils.parseDOMFromString((String)paramValue);
+				        			if (xml.getDocumentElement().getTagName().equals(paramName)) {
+				        				paramValue = xml.getDocumentElement();
+				        			} else {
+					        			NodeList nl = xml.getDocumentElement().getChildNodes();
+					        			Document doc = XMLUtils.parseDOMFromString("<"+paramName+"/>");
+					        			Element root = doc.getDocumentElement();
+					        			for (int i = 0 ; i < nl.getLength() ; i++) {
+					        				Node node = nl.item(i);
+					        				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					        					root.appendChild(doc.adoptNode(node));
+					        				}
+					        			}
+					        			paramValue = doc.getDocumentElement();
+				        			}
 				        		}
 			        		}
 			        		catch (Exception e) {
 			        			Engine.logBeans.error("(AbstractRestOperation) \""+ getName() +"\" : unable to decode body", e);
 			        		}
 						}
+					}
+					
+					// retrieve default value if necessary
+					if (paramValue == null) {
+						paramValue = param.getValueOrNull();
 					}
 					
 					if (paramValue != null) {
@@ -436,6 +459,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		}
 		catch (Throwable t) {
 			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
+		} finally {
+			request.setAttribute("convertigo.requireEndOfContext", true);
 		}
 	}
 }

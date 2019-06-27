@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,12 +19,7 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 
 /**
  * This class defines the base class for extraction rules.
@@ -64,7 +59,6 @@ public abstract class ExtractionRule extends DatabaseObject implements IEnableAb
         
 		// Set priority to creation time since version 4.0.1
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
     }
     
     /**
@@ -72,7 +66,7 @@ public abstract class ExtractionRule extends DatabaseObject implements IEnableAb
      */
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
     
     public static final int INITIALIZING = 0;
@@ -94,57 +88,7 @@ public abstract class ExtractionRule extends DatabaseObject implements IEnableAb
     @Override
 	public ExtractionRule clone() throws CloneNotSupportedException {
 		ExtractionRule clonedObject = (ExtractionRule) super.clone();
-		clonedObject.newPriority = newPriority;
 		return clonedObject;
-	}
-    
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
-	 */
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority)
-				hasChanged = true;
-        }
-        catch(Exception e) {
-        	newPriority = getNewOrderValue();
-        	Engine.logBeans.warn("The "+getClass().getName() +" object \"" + getName() + "\" has been updated to version \"4.0.1\"");
-        	hasChanged = true;
-        }
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#write(java.lang.String)
-	 */
-	@Override
-	public void write(String databaseObjectQName) throws EngineException {
-		long l = priority;
-		if (hasChanged && !isImporting)
-			priority = newPriority;
-		try {
-			super.write(databaseObjectQName);
-		}
-		catch (EngineException e) {
-			priority = l;
-			throw e;
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the object "newPriority" value
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
 	}
 
 	@Override

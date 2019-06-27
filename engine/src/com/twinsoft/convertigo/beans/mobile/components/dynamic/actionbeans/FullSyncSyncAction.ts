@@ -54,8 +54,15 @@
                         // Replication is completed , so mark it as it is.
                         page.c8o.callJsonObject("fs://" + r + ".post", {
                             _id: "_local/c8o",
-                            status: "completed"
+                            status: "completed",
+                            "_use_policy":"override"
                         })
+                        .then((resp)=>{
+                            return null;
+                        })
+                        .fail((err)=>{
+                            page.c8o.log.error("Failed to override _local/c8o", err); 
+                        });
                         resolve(response)
                         return null
                     })

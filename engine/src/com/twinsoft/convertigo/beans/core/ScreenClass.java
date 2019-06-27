@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,9 +22,6 @@ package com.twinsoft.convertigo.beans.core;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
@@ -77,8 +74,6 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
      * The array of Sheet objects which can be applied on the ScreenClass.
      */
     transient private List<Sheet> vSheets = new LinkedList<Sheet>();
-
-    transient public boolean handlePriorities = true;
     
 	/**
      * Constructs a new ScreenClass object.
@@ -157,13 +152,8 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
         vCriterias.add(criteria);
         
         super.add(criteria);
-
-        if (!criteria.bNew && !handlePriorities) {
-        	initializeOrderedCriterias();
-        }
-        else {
-        	insertOrderedCriteria(criteria, after);
-        }
+        
+        insertOrderedCriteria(criteria, after);
     }
     
     public void addCriteria(Criteria criteria) throws EngineException {
@@ -174,14 +164,14 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     	List<Long> ordered = orderedCriterias.get(0);
     	int size = ordered.size();
     	
-    	long value = handlePriorities ? criteria.priority:criteria.newPriority;
+    	long value = criteria.priority;
     	
     	if (ordered.contains(value))
     		return;
     	
     	if (after == null) {
     		after = (long)0;
-    		if (size>0)
+    		if (size > 0)
     			if (criteria.parent.equals(this))
     				after = ordered.get(ordered.size()-1);
     	}
@@ -227,25 +217,6 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     	return sort(getUnsortedCriterias());
     }
     
-    private void initializeOrderedCriterias() {
-    	XMLVector<XMLVector<Long>> criterias = new XMLVector<XMLVector<Long>>();
-    	XMLVector<Long> ordered = new XMLVector<Long>();
-
-    	String s = "Sorted Criterias [";
-		for (Criteria criteria : sort(getUnsortedCriterias(), false)) {
-			if (criteria.parent.equals(this)) criteria.hasChanged = true;
-			s += "("+criteria.getName()+":"+criteria.priority+" -> "+criteria.newPriority+")";
-			ordered.add(criteria.newPriority);
-		}
-    	s += "]";
-    	Engine.logBeans.debug("["+ getName() +"] " + s);
-
-    	criterias.add(ordered);
-		setOrderedCriterias(criterias);
-		debugCriterias();
-		hasChanged = true;
-    }
-    
     /**
      * Get representation of order for quick sort of a given database object.
      */
@@ -253,13 +224,13 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     public Object getOrder(Object object) throws EngineException	{
         if (object instanceof Criteria) {
         	List<Long> ordered = orderedCriterias.get(0);
-        	long time = handlePriorities ? ((Criteria)object).priority : ((Criteria)object).newPriority;
+        	long time = ((Criteria)object).priority;
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted criterias for screenclass \""+ getName() +"\". Criteria \""+ ((Criteria)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         } else if (object instanceof ExtractionRule) {
         	List<Long> ordered = orderedExtractionRules.get(0);
-        	long time = handlePriorities ? ((ExtractionRule)object).priority : ((ExtractionRule)object).newPriority;
+        	long time = ((ExtractionRule)object).priority;
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted extraction rules for screenclass \""+ getName() +"\". Extraction rule \""+ ((ExtractionRule)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
@@ -269,7 +240,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     public void removeCriteria(Criteria criteria) {
     	checkSubLoaded();
         vCriterias.remove(criteria);
-        long value = handlePriorities ? criteria.priority:criteria.newPriority;
+        long value = criteria.priority;
         removeOrderedCriteria(value);
     }
 
@@ -292,12 +263,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 		extractionRule.setName(newDatabaseObjectName);
         vExtractionRules.add(extractionRule);
         super.add(extractionRule);
-        if (!extractionRule.bNew && !handlePriorities) {
-        	initializeOrderedExtractionRules();
-        }
-        else {
-        	insertOrderedExtractionRule(extractionRule, after);
-        }
+        insertOrderedExtractionRule(extractionRule, after);
     }
     
     public void addExtractionRule(ExtractionRule extractionRule) throws EngineException {
@@ -308,14 +274,14 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     	List<Long> ordered = orderedExtractionRules.get(0);
     	int size = ordered.size();
     	
-    	long value = handlePriorities ? extractionrule.priority : extractionrule.newPriority;
+    	long value = extractionrule.priority;
     	
     	if (ordered.contains(value))
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			if (extractionrule.parent.equals(this))
     				after = ordered.get(ordered.size()-1);
     	}
@@ -360,28 +326,11 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
         debugExtractionRules();
     	return sort(getUnsortedExtractionRules());
     }
-
-    private void initializeOrderedExtractionRules() {
-    	XMLVector<XMLVector<Long>> extractionrules = new XMLVector<XMLVector<Long>>();
-    	XMLVector<Long> ordered = new XMLVector<Long>();
-    	String s = "Sorted ExtractionRules [";
-		for(ExtractionRule extractionRule : sort(getUnsortedExtractionRules(), false)) {
-			if (extractionRule.parent.equals(this)) extractionRule.hasChanged = true;
-			s += "("+extractionRule.getName()+":"+extractionRule.priority+" -> "+extractionRule.newPriority+")";
-			ordered.add(extractionRule.newPriority);
-		}
-    	s += "]";
-    	Engine.logBeans.debug("["+ getName() +"] " + s);
-		extractionrules.add(ordered);
-		setOrderedExtractionRules(extractionrules);
-		debugExtractionRules();
-		hasChanged = true;
-    }
     
     public void removeExtractionRule(ExtractionRule extractionrule) {
     	checkSubLoaded();
         vExtractionRules.remove(extractionrule);
-        long value = handlePriorities ? extractionrule.priority : extractionrule.newPriority;
+        long value = extractionrule.priority;
         removeOrderedExtractionRule(value);
     }
     
@@ -488,19 +437,16 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 		screenClass.setName(newDatabaseObjectName);
         vInheritedScreenClasses.add(screenClass);
         super.add(screenClass);
-        if (!screenClass.bNew && !handlePriorities) {
-        } else {
-        	Long  after = null;
-        	for (Criteria criteria : getCriterias()) {
-        		screenClass.insertOrderedCriteria(criteria,after);
-        		after = handlePriorities ? criteria.priority:criteria.newPriority;
-        	}
-        	after = null;
-        	for (ExtractionRule extractionrule : getExtractionRules()) {
-        		screenClass.insertOrderedExtractionRule(extractionrule,after);
-        		after = handlePriorities ? extractionrule.priority:extractionrule.newPriority;
-        	}
-        }
+    	Long  after = null;
+    	for (Criteria criteria : getCriterias()) {
+    		screenClass.insertOrderedCriteria(criteria,after);
+    		after = criteria.priority;
+    	}
+    	after = null;
+    	for (ExtractionRule extractionrule : getExtractionRules()) {
+    		screenClass.insertOrderedExtractionRule(extractionrule,after);
+    		after = extractionrule.priority;
+    	}
     }
     
     public List<ScreenClass> getInheritedScreenClasses() {
@@ -512,11 +458,11 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     	checkSubLoaded();
         vInheritedScreenClasses.remove(screenClass);    	
     	for (Criteria criteria : getCriterias()) {
-    		long value = handlePriorities ? criteria.priority:criteria.newPriority;
+    		long value = criteria.priority;
     		screenClass.removeOrderedCriteria(value);
     	}
     	for (ExtractionRule extractionrule : getExtractionRules()) {
-    		long value = handlePriorities ? extractionrule.priority : extractionrule.newPriority;
+    		long value = extractionrule.priority;
     		screenClass.removeOrderedExtractionRule(value);
     	}
     }
@@ -524,7 +470,6 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     @Override
     public ScreenClass clone() throws CloneNotSupportedException {
         ScreenClass clonedObject = (ScreenClass) super.clone();
-        clonedObject.handlePriorities = handlePriorities;
         clonedObject.vCriterias = new LinkedList<Criteria>();
         clonedObject.vAllCriterias = null;
         clonedObject.vExtractionRules = new LinkedList<ExtractionRule>();
@@ -598,7 +543,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 	
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	long value = handlePriorities ? databaseObject.priority : databaseObject.newPriority;
+    	long value = databaseObject.priority;
     	
     	if (databaseObject instanceof Criteria)
     		ordered = orderedCriterias.get(0);
@@ -625,7 +570,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(handlePriorities ? databaseObject.priority : databaseObject.newPriority);
+    	Long value = databaseObject.priority;
     	
     	if (databaseObject instanceof Criteria)
     		ordered = orderedCriterias.get(0);
@@ -651,61 +596,18 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     		screenClass.decreaseOrder(databaseObject, after);
     }
 
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
-	 */
-    @Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			String attribute = element.getAttribute("handlePriorities");
-			if (attribute.equals("")) throw new Exception("Missing \"handlePriorities\" attribute.");
-			handlePriorities = new Boolean(attribute).booleanValue();
-			if (!handlePriorities)
-				hasChanged = true;
-        }
-        catch(Exception e) {
-        	handlePriorities = false;
-        	Engine.logBeans.warn("The "+getClass().getName() +" object \"" + getName() + "\" has been updated to version \"4.0.1\"");
-        	hasChanged = true;
-        }
-	}
-
 	
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#write(java.lang.String)
 	 */
     @Override
-	public void write(String databaseObjectQName) throws EngineException {
-		boolean b = handlePriorities;
-		
+	public void write(String databaseObjectQName) throws EngineException {		
 		if (hasChanged && !isImporting) {
-			handlePriorities = true;
 			getCriterias();
 			getExtractionRules();
 		}
 		
-		try {
-			super.write(databaseObjectQName);
-		}
-		catch (EngineException e) {
-			handlePriorities = b;
-			throw e;
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-    @Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the transaction "handlePriorities" flag
-        element.setAttribute("handlePriorities", new Boolean(handlePriorities).toString());
-		
-		return element;
+		super.write(databaseObjectQName);
 	}
     
 	@Override

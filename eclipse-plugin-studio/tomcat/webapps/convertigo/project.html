@@ -1,25 +1,21 @@
 <!--
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
--->
+Copyright (c) 2001-2019 Convertigo SA.
 
+This program  is free software; you  can redistribute it and/or
+Modify  it  under the  terms of the  GNU  Affero General Public
+License  as published by  the Free Software Foundation;  either
+version  3  of  the  License,  or  (at your option)  any  later
+version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;  without even the implied warranty of
+MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public
+License along with this program;
+if not, see <http://www.gnu.org/licenses/>.
+-->
 <!DOCTYPE html>
 <html>
 	<head>
@@ -115,7 +111,7 @@
                                                 </a>
                                             </li>                                            
                                             <li>
-                                            	<a id="swaggerLink" href="./swagger/ui/index.html" target="_blank">
+                                            	<a id="swaggerLink" href="./swagger/dist/index.html" target="_blank">
                                             		<img title="Swagger Console" alt="Swagger Console" src="admin/images/navigationImages/100x100_picto_swagger.png">
                                                 </a>
                                             </li>
@@ -188,7 +184,7 @@
 																		<!-- Added BUILD panel here, before mobile platforms -->
                                                                             	<ul class="acc requestables">
 	                                                                            	<li style="margin:0px;" class="requestable">
-																	                    <h6 class="build">Web App</h6>
+																	                    <h6 class="build">PWA / Web App</h6>
 																	                    <!--
 																	                    Built application endpoint: <input type="text" id="build_endpoint" size="60"/><br/>
 		                                                                                Application ID: <input type="text" id="build_application_id" size="60"/>
@@ -251,8 +247,8 @@
 																			<div>
 																				<br/>
 																				<div class="radio_mode">
-																					<input type="radio" id="radio_html" name="form_execution_mode" value="html" checked="checked" /><label for="radio_html">C8O lib</label>
-																					<input type="radio" id="radio_xml" name="form_execution_mode" value="xml"/><label for="radio_xml">XML</label>
+																					<input type="radio" id="radio_html" name="form_execution_mode" value="html"/><label for="radio_html">C8O lib</label>
+																					<input type="radio" id="radio_xml" name="form_execution_mode" value="xml" checked="checked" /><label for="radio_xml">XML</label>
 																					<input type="radio" id="radio_json" name="form_execution_mode" value="json"/><label for="radio_json">Json</label>
 																				</div>
 																				<div class="check_mode">
@@ -327,7 +323,7 @@
                 </table>
                 <!-- Footer -->    
                 <div class="footer">
-                    <div class="hr"></div>Copyright &copy; 2001-2016 Convertigo SA. All rights reserved.
+                    <div class="hr"></div>Copyright &copy; 2001-2019 Convertigo SA. All rights reserved.
                     <br/>
                     <a href="licenses/index.html">EULA and third party components</a>
                 </div>
@@ -437,10 +433,10 @@
 				<input type="hidden" name="__connector" alt="" class="connector_value champ variable_value" value="…"/>
 			</div>
 			<div class="single_valued value_text">
-				<input type="text" alt="" class="champ variable_value" value="…"/>
+				<input type="text" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
 			</div>
 			<div class="single_valued value_password">
-				<input type="password" alt="" class="champ variable_value" value="…"/>
+				<input type="password" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
 			</div>
 			<div class="single_valued value_file">
 				<input type="file" alt="" class="champ variable_value" value="…"/>
@@ -449,11 +445,11 @@
 				<a title="add value" class="link_value_add">+ add a new value</a>
 			</div>
 			<div class="new_multi_valued value_text">
-				<input type="text" alt="" class="champ variable_value" value="…"/>
+				<input type="text" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
 				<a title="remove value" class="link_value_remove">×</a>
 			</div>
 			<div class="new_multi_valued value_password">
-				<input type="password" alt="" class="champ variable_value" value="…"/>
+				<input type="password" alt="" class="champ variable_value" value="…" autocomplete="new-password" />
 				<a title="remove value" class="link_value_remove">×</a>
 			</div>
 			<div class="new_multi_valued value_file">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,15 +24,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
 
 @DboCategoryInfo(
@@ -48,7 +45,6 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		super();
 		
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 		
 		orderedActions = new XMLVector<XMLVector<Long>>();
 		orderedActions.add(new XMLVector<Long>());
@@ -60,37 +56,14 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 	@Override
 	public RouteComponent clone() throws CloneNotSupportedException {
 		RouteComponent cloned = (RouteComponent)super.clone();
-		cloned.newPriority = newPriority;
 		cloned.vRouteEventComponents = new LinkedList<RouteEventComponent>();
 		cloned.vRouteActionComponents = new LinkedList<RouteActionComponent>();
 		return cloned;
 	}
-
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
-	}
-	
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
-	}
 	
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
     
 	@Override
@@ -110,8 +83,8 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		this.isEnabled = isEnabled;
 	}
 	
-	private XMLVector<XMLVector<Long>> orderedActions = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedEvents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedActions = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedEvents = new XMLVector<XMLVector<Long>>();
 	
 	public XMLVector<XMLVector<Long>> getOrderedActions() {
 		return orderedActions;
@@ -129,14 +102,14 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedAction(Long value) {
@@ -161,14 +134,14 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedEvent(Long value) {
@@ -178,7 +151,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     }
 	
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {

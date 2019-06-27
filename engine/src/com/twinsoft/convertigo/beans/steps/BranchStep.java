@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -33,7 +33,7 @@ public abstract class BranchStep extends StepWithExpressions {
 	private boolean synchronous = true;
 	
 	private String maxNumberOfThreads = "";
-	protected transient Integer maxNumberOfThreadsInteger = -1;
+	protected transient long maxNumberOfThreadsLong = -1;
 
 	public BranchStep() {
 		super();
@@ -47,7 +47,7 @@ public abstract class BranchStep extends StepWithExpressions {
     @Override
     public BranchStep clone() throws CloneNotSupportedException {
     	BranchStep clonedObject = (BranchStep) super.clone();
-    	clonedObject.maxNumberOfThreadsInteger = -1;
+    	clonedObject.maxNumberOfThreadsLong = -1;
         return clonedObject;
     }
 
@@ -80,7 +80,7 @@ public abstract class BranchStep extends StepWithExpressions {
 	}
 	
 	private void evaluateMaxNumberOfThreads(Context javascriptContext, Scriptable scope) throws EngineException {
-		maxNumberOfThreadsInteger = evaluateToInteger(javascriptContext, scope, maxNumberOfThreads, "maxNumberOfThreads", true);
+		maxNumberOfThreadsLong = evaluateToLong(javascriptContext, scope, maxNumberOfThreads, "maxNumberOfThreads", true);
 	}
 
     @Override
@@ -98,7 +98,7 @@ public abstract class BranchStep extends StepWithExpressions {
 		        		// Case of ParallelStep currently executing
 		        		else {
 		        			evaluateMaxNumberOfThreads(javascriptContext, scope);
-		        			if ((maxNumberOfThreadsInteger == -1) || (maxNumberOfThreadsInteger > 0)) {
+		        			if ((maxNumberOfThreadsLong == -1) || (maxNumberOfThreadsLong > 0)) {
 		        				invokeNextStep(step, javascriptContext, scope);
 		        			}
 		        		}

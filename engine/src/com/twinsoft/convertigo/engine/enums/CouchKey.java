@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -34,6 +34,7 @@ public enum CouchKey {
 	id,
 	items,
 	cancel,
+	changes,
 	continuous,
 	create_target,
 	data,
@@ -44,11 +45,13 @@ public enum CouchKey {
 	error,
 	filters,
 	keys,
+	last_seq,
 	map,
 	name,
 	ok,
 	password,
 	proxy,
+	purged,
 	reason,
 	reduce,
 	results,
@@ -57,12 +60,15 @@ public enum CouchKey {
 	seq,
 	source,
 	target,
+	total_purged,
 	total_rows,
 	updates,
 	value,
 	views,
+	validate_doc_update,
 	c8oAcl("~c8oAcl"),
 	c8oGrp,
+	c8oDbVersion("~c8oDbVersion"),
 	c8oHash("~c8oHash");
 	
 	String key;

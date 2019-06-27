@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -31,6 +31,7 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.http.Header;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
+import org.apache.http.client.methods.HttpRequestBase;
 
 public enum HeaderName {
 	Accept("Accept"),
@@ -39,8 +40,11 @@ public enum HeaderName {
 	AccessControlAllowHeaders("Access-Control-Allow-Headers"),
 	AccessControlAllowMethods("Access-Control-Allow-Methods"),
 	AccessControlAllowOrigin("Access-Control-Allow-Origin"),
+	AccessControlExposeHeaders("Access-Control-Expose-Headers"),
 	AccessControlRequestHeaders("Access-Control-Request-Headers"),
 	AccessControlRequestMethod("Access-Control-Request-Method"),
+	Authenticate("WWW-Authenticate"),
+	Authorization("Authorization"),
 	CacheControl("Cache-Control"),
 	Connection("Connection"),
 	ContentDisposition("Content-Disposition"),
@@ -72,12 +76,13 @@ public enum HeaderName {
 	SetCookie("Set-Cookie"),
 	TransferEncoding("Transfer-Encoding"),
 	UserAgent("User-Agent"),
-	XConvertigoFrontal("x-convertigo-frontal"),
-	XConvertigoHttpsState("x-convertigo-https-state"),
-	XConvertigoRequestURI("x-convertigo-request-uri"),
-	XConvertigoRequestHost("x-convertigo-request-host"),
-	XConvertigoSDK("x-convertigo-sdk"),
-	XConvertigoMB("x-convertigo-mb"),
+	XConvertigoAuthenticated("X-Convertigo-Authenticated"),
+	XConvertigoFrontal("X-Convertigo-Frontal"),
+	XConvertigoHttpsState("X-Convertigo-Https-State"),
+	XConvertigoRequestURI("X-Convertigo-Request-URI"),
+	XConvertigoRequestHost("X-Convertigo-Request-Host"),
+	XConvertigoSDK("X-Convertigo-SDK"),
+	XConvertigoMB("X-Convertigo-MB"),
 	VOID("");
 	
 	String value;
@@ -134,6 +139,11 @@ public enum HeaderName {
 	
 	public void setHeader(HttpServletResponse response, String headerValue) {
 		response.setHeader(value, headerValue);
+	}
+	
+	public boolean has(HttpRequestBase request) {
+		Header[] headers = request.getHeaders(value);
+		return headers != null && headers.length > 0;
 	}
 	
 	private static Map<String, HeaderName> cache = new HashMap<String, HeaderName>();

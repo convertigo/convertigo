@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,12 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import java.util.Set;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -33,15 +30,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditorInput;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
 
 public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 
@@ -51,97 +43,11 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 	
 	public SequenceTreeObject(Viewer viewer, Sequence object, boolean inherited) {
 		super(viewer, object, inherited);
-		
-		updateLoadedProjects();
 	}
 
 	@Override
 	public Sequence getObject(){
 		return (Sequence) super.getObject();
-	}
-	
-	@Override
-	protected void remove() {
-		super.remove();
-		synchronized (getObject().loadedProjects) {
-			getObject().loadedProjects.clear();
-		}
-	}
-	
-	@Override
-	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectAdded(treeObjectEvent);
-		
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
-			DatabaseObject databaseObject = (DatabaseObject)databaseObjectTreeObject.getObject();
-			if (!databaseObject.equals(getObject())) {
-				try {
-					if ((databaseObject instanceof Project) || (!databaseObject.getProject().getName().equals(getObject().getProject().getName()))) {
-						updateLoadedProjects();
-					}
-				} catch (Exception e) {}
-			}
-		}
-	}
-	
-	@Override
-	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectRemoved(treeObjectEvent);
-		
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		if (!getParents().contains(treeObject)) {
-			if (treeObject instanceof ProjectTreeObject) {
-				updateLoadedProjects();
-			}
-			else if (treeObject instanceof UnloadedProjectTreeObject) {
-				updateLoadedProjects();
-			}
-		}
-	}
-	
-	@Override
-	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
-		super.treeObjectPropertyChanged(treeObjectEvent);
-
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-			String propertyName = (String)treeObjectEvent.propertyName;
-			propertyName = ((propertyName == null) ? "":propertyName);
-			
-			if (!databaseObject.equals(getObject())) {
-				if ((databaseObject instanceof Project) || (databaseObject.getParent() != null)) {
-					updateLoadedProjects();
-				}
-			}
-		}
-	}
-	
-	private void updateLoadedProjects() {
-		TreeParent invisibleRoot = ((ViewContentProvider)((TreeViewer)viewer).getContentProvider()).getTreeRoot();
-		Sequence sequence = getObject();
-		
-		Set<String> loadedProject = sequence.getLoadedProjectNames();
-		
-		for (TreeObject treeObject : invisibleRoot.getChildren()) {
-			if (treeObject instanceof ProjectTreeObject) {
-				Project project = ((ProjectTreeObject)treeObject).getObject();
-				sequence.setLoadedProject(project);
-			}
-			else if (treeObject instanceof UnloadedProjectTreeObject) {
-				sequence.removeLoaded(((UnloadedProjectTreeObject)treeObject).getName());
-			}
-			
-			if (loadedProject.contains(treeObject.getName())) {
-				loadedProject.remove(treeObject.getName());
-			}
-		}
-		
-		for (String projectName: loadedProject) {
-			sequence.removeLoaded(projectName);
-		}
 	}
 	
 	public void launchEditor() {
@@ -243,5 +149,10 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 			}
 		}
 		return editorPart;
+	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		closeAllJsEditors(getObject(), save);
 	}
 }

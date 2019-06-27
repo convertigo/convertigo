@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -45,9 +45,20 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 
 public class TwsCachedXPathAPI implements EventListener {
+	private static TwsCachedXPathAPI instance;
+	
 	protected DocumentImpl lastDocument = null;
 	protected CachedXPathAPI xpathApi = null;
 	protected XPathEngine xpathEngine = XPathEngine.JXPath;
+	
+	public static TwsCachedXPathAPI getInstance() {
+		synchronized (TwsCachedXPathAPI.class) {
+			if (instance == null) {
+				instance = new TwsCachedXPathAPI();
+			}
+			return instance;
+		}
+	}
 	
 	public TwsCachedXPathAPI() {
 	}

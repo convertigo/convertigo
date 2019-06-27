@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -98,9 +98,7 @@ public class XMLSplitStep extends XMLElementStep {
 				try {
 					tag =(tags.get(index)).get(0);
 				} catch (Exception e) {
-					if (size == 1) {
-						tag = (tags.get(0)).get(0);
-					}
+					tag = (tags.get(size-1)).get(0);
 				}
 			}
 			return tag.equals("") ? "split":tag;

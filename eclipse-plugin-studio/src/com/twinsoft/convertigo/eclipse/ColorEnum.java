@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -58,7 +58,9 @@ public enum ColorEnum {
 	GRAY (0xC0,0xC0,0xC0),
 	DARK_GRAY (0x80,0x80,0x80),
 		
-	JAVASCRIPTABLE (0xA2, 0xC2, 0xFF);
+	JAVASCRIPTABLE (0xA2, 0xC2, 0xFF),
+	
+	BACKGROUND_DARK (0x2F, 0x2F, 0x2F);
 	
 	int r;
 	int g;

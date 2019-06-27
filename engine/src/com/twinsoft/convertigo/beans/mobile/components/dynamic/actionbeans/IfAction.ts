@@ -14,7 +14,7 @@
             if (ok) {
                 resolve(true);
             } else {
-                return false;
+                throw new Error('c8oSkipError');
             }
         })
     }

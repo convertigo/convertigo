@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,8 +37,6 @@ import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
@@ -55,7 +53,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	/**
      * The vector of ordered step objects which can be applied on the StepWithExpressions.
      */
-    private XMLVector<XMLVector<Long>> orderedSteps = null;
+    transient private XMLVector<XMLVector<Long>> orderedSteps = null;
 	
     transient private List<Step> vSteps = new ArrayList<Step>();
     
@@ -72,8 +70,6 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     transient protected int currentChildStep;
 
     transient public boolean bContinue = true;
-    
-    transient public boolean handlePriorities = true;
     
     transient public long[] asyncCounters = null;
     
@@ -94,8 +90,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
         clonedObject.vSteps = new ArrayList<Step>();
         clonedObject.vAllSteps = null;
         clonedObject.bContinue = true;
-        clonedObject.handlePriorities = handlePriorities;
-        clonedObject.transactionSessionId= null;
+        clonedObject.transactionSessionId = null;
         clonedObject.asyncCounters = null;
         return clonedObject;
     }
@@ -259,14 +254,14 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = (Long)ordered.lastElement();
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, value);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
 	
     public void removeStep(Step step) {
@@ -363,7 +358,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 	
 	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+		increaseOrder(databaseObject, priority);
 	}
 	
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -735,19 +730,6 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 				notify();
 			}
 		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the transaction "handlePriorities" flag
-        element.setAttribute("handlePriorities", new Boolean(handlePriorities).toString());
-		
-		return element;
 	}
 	
 	@Override

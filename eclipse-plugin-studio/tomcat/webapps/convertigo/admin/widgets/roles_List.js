@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
+ * Copyright (c) 2001-2019 Convertigo SA.
+ * 
+ * This program  is free software; you  can redistribute it and/or
+ * Modify  it  under the  terms of the  GNU  Affero General Public
+ * License  as published by  the Free Software Foundation;  either
+ * version  3  of  the  License,  or  (at your option)  any  later
+ * version.
+ * 
  * This program is distributed in the hope that it will be useful,
-// * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * but WITHOUT ANY WARRANTY;  without even the implied warranty of
+ * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/tomcat/webapps/convertigo/admin/widgets/globalSymbols_List.js $
- * $Author: rahmanf $
- * $Revision: 28390 $
- * $Date: 2012-06-22 16:52:53 +0200 (Wed, 22 Jun 2012) $
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program;
+ * if not, see <http://www.gnu.org/licenses/>.
  */
 
 var $last_roles_list_xml;
@@ -284,7 +281,7 @@ function updateUsersList(xml) {
 			});
 	});
 	if ($("#usersList tr:gt(0)").length) {
-		$("#usersList_name .ui-jqgrid-sortable").click().click();
+		$("#usersList").jqGrid().setGridParam({sortname: 'name', sortorder: 'asc'}).trigger("reloadGrid");
 		if ($("#exportUsersButtonAction").css("display") == "none"){
 			$("#usersListButtonDeleteAll").button("enable");
 		}

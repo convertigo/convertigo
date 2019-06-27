@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -44,12 +44,14 @@ public class MobileSmartSource {
 	public static Pattern directivePattern = Pattern.compile("(item\\d+)(.+)?");
 	public static Pattern formPattern = Pattern.compile("(form\\d+)(.+)?");
 	public static Pattern cafPattern = Pattern.compile("'([^,]+)(,.+)?'");
+	public static Pattern globalPattern = Pattern.compile("(router\\.sharedObject)(.+)?");
 	
 	public enum Filter {
 		Sequence,
 		Database,
 		Iteration,
-		Form;
+		Form,
+		Global;
 	}
 	
 	public enum Key {
@@ -94,6 +96,14 @@ public class MobileSmartSource {
 			//e.printStackTrace();
 		}
 		return "";
+	}
+
+	public void setProjectName(String newName) {
+		try {
+			jsonObject.put(Key.project.name(), newName);
+		} catch (JSONException e) {
+			//e.printStackTrace();
+		}
 	}
 
 	public String getInput() {
@@ -148,9 +158,13 @@ public class MobileSmartSource {
 	}
 	
 	public List<String> getSources() {
+		return getSources(getInput());
+	}
+	
+	public List<String> getSources(String input) {
 		List<String> sources = new ArrayList<String>();
 		if (Filter.Iteration.equals(getFilter())) {
-			Matcher m = directivePattern.matcher(getInput());
+			Matcher m = directivePattern.matcher(input);
 			if (m.find()) {
 				String directive = m.group(1);
 				if (directive != null) {
@@ -158,15 +172,23 @@ public class MobileSmartSource {
 				}
 			}
 		} else if (Filter.Form.equals(getFilter())) {
-			Matcher m = formPattern.matcher(getInput());
+			Matcher m = formPattern.matcher(input);
 			if (m.find()) {
 				String form = m.group(1);
 				if (form != null) {
 					sources.add(form);
 				}
 			}
+		} else if (Filter.Global.equals(getFilter())) {
+			Matcher m = globalPattern.matcher(input);
+			if (m.find()) {
+				String gbl = m.group(1);
+				if (gbl != null) {
+					sources.add(gbl);
+				}
+			}
 		} else {
-			Matcher m = listenPattern.matcher(getInput());
+			Matcher m = listenPattern.matcher(input);
 			if (m.find()) {
 				String array = m.group(1);
 				if (array != null) {
@@ -189,6 +211,11 @@ public class MobileSmartSource {
 			}
 		} else if (Filter.Form.equals(getFilter())) {
 			Matcher m = formPattern.matcher(getInput());
+			if (m.find()) {
+				modelPath = m.group(2);
+			}
+		} else if (Filter.Global.equals(getFilter())) {
+			Matcher m = globalPattern.matcher(getInput());
 			if (m.find()) {
 				modelPath = m.group(2);
 			}
@@ -288,6 +315,20 @@ public class MobileSmartSource {
 						e.printStackTrace();
 					}
 				}
+			} else if (Filter.Global.equals(getFilter())) {
+				Matcher m = formPattern.matcher(cafInput);
+				if (m.find()) {
+					try {
+						String projectName = getProjectName();
+						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						
+						DatabaseObject dbo = project.getMobileApplication().getApplicationComponent();
+						return dbo;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
 			} else if (Filter.Database.equals(getFilter())) {
 				Matcher m = cafPattern.matcher(cafInput);
 				if (m.find()) {
@@ -349,6 +390,8 @@ public class MobileSmartSource {
 			if (Filter.Iteration.equals(getFilter())) {
 				;
 			} else if (Filter.Form.equals(getFilter())) {
+				;
+			} else if (Filter.Global.equals(getFilter())) {
 				;
 			} else {
 				Matcher m = cafPattern.matcher(cafInput);

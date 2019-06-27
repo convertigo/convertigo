@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.steps;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.beans.core.IJScriptContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -29,7 +30,7 @@ import com.twinsoft.convertigo.engine.EngineException;
  * 
  * @author nathalieh
  *
- */public class SimpleStep extends Step {
+ */public class SimpleStep extends Step implements IJScriptContainer {
 
 	private static final long serialVersionUID = -3775791876054667383L;
 
@@ -66,7 +67,10 @@ import com.twinsoft.convertigo.engine.EngineException;
 	}
 
 	public void setExpression(String expression) {
-		this.expression = expression;
+		if (!this.expression.equals(expression)) {
+			this.expression = expression;
+			changed();
+		}
 	}
 	
 	@Override

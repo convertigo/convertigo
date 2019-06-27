@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,14 +19,10 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @DboCategoryInfo(
@@ -48,41 +44,17 @@ public abstract class RouteActionComponent extends MobileComponent implements IR
 		super();
 		
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 	}
 	
 	@Override
 	public RouteActionComponent clone() throws CloneNotSupportedException {
 		RouteActionComponent cloned = (RouteActionComponent)super.clone();
-		cloned.newPriority = newPriority;
 		return cloned;
-	}
-
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
-		}
-	}
-	
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
 	}
 	
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }
 	
 	@Override

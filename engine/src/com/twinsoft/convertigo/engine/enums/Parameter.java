@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -52,6 +52,7 @@ public enum Parameter {
 	Supervision("__supervision"),
 	Testcase("__testcase"),
 	Transaction("__transaction"),
+	VoidTransaction("_void__transaction"),
 	MotherSequenceContext("__motherContext"),
 	UserReference("__user_reference"),
 	UIid("__uid"),

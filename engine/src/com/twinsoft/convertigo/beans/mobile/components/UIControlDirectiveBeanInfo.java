@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -38,7 +38,7 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[5];
 			
 			properties[0] = new PropertyDescriptor("directiveName", beanClass, "getDirectiveName", "setDirectiveName");
 			properties[0].setDisplayName(getExternalizedString("property.directiveName.display_name"));
@@ -57,7 +57,17 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
             properties[2].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
             properties[2].setExpert(true);
 			
-			getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
+            properties[3] = new PropertyDescriptor("directiveItemName", beanClass, "getDirectiveItemName", "setDirectiveItemName");
+            properties[3].setDisplayName(getExternalizedString("property.directiveItemName.display_name"));
+            properties[3].setShortDescription(getExternalizedString("property.directiveItemName.short_description"));
+            properties[3].setExpert(true);
+
+            properties[4] = new PropertyDescriptor("directiveIndexName", beanClass, "getDirectiveIndexName", "setDirectiveIndexName");
+            properties[4].setDisplayName(getExternalizedString("property.directiveIndexName.display_name"));
+            properties[4].setShortDescription(getExternalizedString("property.directiveIndexName.short_description"));
+            properties[4].setExpert(true);
+            
+            getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
 			getPropertyDescriptor("selfClose").setHidden(true);
 			getPropertyDescriptor("identifier").setHidden(true);
 		}

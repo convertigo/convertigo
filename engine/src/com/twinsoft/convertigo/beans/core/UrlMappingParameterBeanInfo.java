@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -38,7 +38,7 @@ public class UrlMappingParameterBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[8];
             properties[0] = new PropertyDescriptor("required", beanClass, "isRequired", "setRequired");
             properties[0].setDisplayName(getExternalizedString("property.required.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.required.short_description"));
@@ -66,6 +66,14 @@ public class UrlMappingParameterBeanInfo extends MySimpleBeanInfo {
             properties[5].setDisplayName(getExternalizedString("property.array.display_name"));
             properties[5].setShortDescription(getExternalizedString("property.array.short_description"));
 			
+            properties[6] = new PropertyDescriptor("exposed", beanClass, "isExposed", "setExposed");
+            properties[6].setDisplayName(getExternalizedString("property.exposed.display_name"));
+            properties[6].setShortDescription(getExternalizedString("property.exposed.short_description"));
+
+            properties[7] = new PropertyDescriptor("value", beanClass, "getDefaultValue", "setDefaultValue");
+			properties[7].setDisplayName(getExternalizedString("property.value.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.value.short_description"));
+			properties[7].setValue("nillable", Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -137,7 +137,7 @@ public class Migration7_0_0 {
 				}
 				
 				String projectName = "" + XMLUtils.findPropertyValue(projectNode, "name");
-				File mobileFolder = new File(Engine.PROJECTS_PATH + "/" + projectName + "/DisplayObjects/mobile");
+				File mobileFolder = new File(Engine.projectDir(projectName) + "/DisplayObjects/mobile");
 				if (mobileFolder.exists()) {
 					FileUtils.write(
 						new File(mobileFolder, "mobile_project_migrated.txt"),
@@ -183,7 +183,7 @@ public class Migration7_0_0 {
 						if (schemaLocation.startsWith("../") && schemaLocation.endsWith(".xsd")) {
 							try {
 								String targetProjectName = schemaLocation.substring(3, schemaLocation.indexOf("/",3));
-								File pDir = new File(Engine.PROJECTS_PATH + "/" + targetProjectName);
+								File pDir = new File(Engine.projectDir(targetProjectName));
 								if (pDir.exists()) {
 									File pFile = new File(Engine.PROJECTS_PATH + schemaLocation.substring(2));
 									// Case c8o project is already migrated
@@ -416,7 +416,7 @@ public class Migration7_0_0 {
 	}
 	
 	private static void copyXsdOfProject(String projectName, File destDir) throws IOException {
-		File srcDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
+		File srcDir = new File(Engine.projectDir(projectName));
 		if (srcDir.exists()) {
 			Collection<File> xsdFiles = GenericUtils.cast(FileUtils.listFiles(srcDir, new String[] { "xsd" }, false));
 			for (File file: xsdFiles) {

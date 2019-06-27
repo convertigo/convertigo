@@ -33,7 +33,7 @@
     "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
     "displayName": "SMS",
     "label": "SMS",
-    "description": "Defines an <i>SMS</i> action component. | The SMS Action allows you to send sms.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/native/sms/'>SMS</a>",
+    "description": "Defines an <i>SMS</i> action component. | The SMS Action allows you to send sms.<br/><u>Supported platorm(s):</u> <ul><li>Android</li><li>iOS</li><li>Windows Phone 8</li></ul><br/>For more information : <a target='_blank' href='https://ionicframework.com/docs/v3/native/sms/'>SMS</a>",
     "group": "Native Actions",
       "icon16": "smsaction_color_16x16.png",
       "icon32": "smsaction_color_32x32.png",

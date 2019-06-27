@@ -1,0 +1,104 @@
+sourceSets {
+	main {
+		java {
+			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			srcDir 'patch'
+		}
+		resources {
+			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InfogreffeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
+			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
+			srcDir 'patch'
+		}
+	}
+}
+
+eclipse {
+	project {
+		linkedResource name: 'patch/com', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/patch/com'
+		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/patch/org'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
+		linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/plugins', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-plugins/src/com/twinsoft/convertigo/engine/plugins'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/couchdb', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-couchdb/src/com/twinsoft/convertigo/engine/providers/couchdb'
+		linkedResource name: 'src/com/twinsoft/convertigo/engine/providers/sapjco', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-sap/src/com/twinsoft/convertigo/engine/providers/sapjco'
+	}
+	
+	classpath.file.withXml {
+		def node = it.asNode()
+		def rp = null
+		if ((rp = node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' }) == null) {
+			rp = node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
+		}
+		rp.appendNode('accessrules').appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/egit/ui/**'])
+	}
+}
+
+dependencies {
+	runtime project(':engine')
+	runtime 'com.convertigo.lib:jxbrowser-license:2019.04.02'
+	runtime 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
+	runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
+	runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:7.0.82'
+	runtime 'org.apache.tomcat:tomcat-dbcp:7.0.82'
+	runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
+}
+
+task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {
+	group 'convertigo'
+	
+	doLast {
+		def manifest = file 'META-INF/MANIFEST.MF'
+		project.manifest {
+			from sharedManifest
+			attributes(
+				'Automatic-Module-Name': 'com.twinsoft.convertigo.studio',
+				'Bundle-Name': 'C-EMS studio plugin',
+				'Bundle-SymbolicName': 'com.twinsoft.convertigo.studio; singleton:=true',
+				'Eclipse-BundleShape': 'dir',
+				'Bundle-Activator': 'com.twinsoft.convertigo.eclipse.ConvertigoPlugin',
+				'Bundle-ActivationPolicy': 'lazy',
+				'Bundle-ClassPath': 'bin/,icons/,tomcat/webapps/convertigo/WEB-INF/classes,lib/convertigo-eclipse.jar,' +
+					fileTree(dir: 'lib')
+					.collect { 'lib/' + it.name }
+					.toSorted {a, b -> a.startsWith('lib/convertigo') ? -1 : b.startsWith('lib/convertigo') ? 1 : a <=> b }
+					.join(','),
+				'Require-Bundle': ['org.eclipse.core.expressions',
+					'org.eclipse.core.resources',
+					'org.eclipse.core.runtime',
+					'org.eclipse.egit.ui',
+					'org.eclipse.jface.text',
+					'org.eclipse.swt',
+					'org.eclipse.ui',
+					'org.eclipse.ui.console',
+					'org.eclipse.ui.ide',
+					'org.eclipse.ui.views',
+					'org.eclipse.wst.jsdt.ui',
+					'org.eclipse.wst.jsdt.core',
+					'org.eclipse.wst.sse.core',
+					'org.eclipse.wst.sse.ui',
+					'org.eclipse.wst.xml.ui',
+					'ts.eclipse.ide.core'].join(',')
+			)
+		}.writeTo(manifest)
+		manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
+	}
+}
+
+task copyLicense(type: Copy) {
+	group 'convertigo'
+	
+	from '../license.txt'
+	into 'src/com/twinsoft/convertigo/eclipse/wizards/setup'
+}
+
+project(':engine').afterEvaluate {
+	syncLib {
+		inputs.property('engine-dependency', '' + project(':engine').configurations.runtime.getAllDependencies())
+	}
+}

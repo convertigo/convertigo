@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,11 +24,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -61,13 +63,20 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 
-	private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
-	private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedSharedActions = new XMLVector<XMLVector<Long>>();
+	transient private XMLVector<XMLVector<Long>> orderedSharedComponents = new XMLVector<XMLVector<Long>>();
+	
+	transient private String tplProjectVersion = "";
 	
 	private String tplProjectName = "";
-	private String tplProjectVersion = "";
+	private String splitPaneLayout = "not set";
+	private boolean isPWA = false;
+	
+	transient private Runnable _markApplicationAsDirty;
 	
 	public ApplicationComponent() {
 		super();
@@ -83,6 +92,12 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
+		
+		orderedSharedActions = new XMLVector<XMLVector<Long>>();
+		orderedSharedActions.add(new XMLVector<Long>());
+		
+		orderedSharedComponents = new XMLVector<XMLVector<Long>>();
+		orderedSharedComponents.add(new XMLVector<Long>());
 	}
 
 	@Override
@@ -91,6 +106,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
+		cloned.vSharedActions = new LinkedList<UIActionStack>();
+		cloned.vSharedComponents = new LinkedList<UISharedComponent>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.appImports = new HashMap<String, String>();
 		cloned.computedContents = null;
@@ -176,14 +193,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedMenu(Long value) {
@@ -208,14 +225,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedPage(Long value) {
@@ -240,14 +257,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedRoute(Long value) {
@@ -272,14 +289,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		return;
     	
     	if (after == null) {
-    		after = new Long(0);
-    		if (size>0)
+    		after = 0L;
+    		if (size > 0)
     			after = ordered.get(ordered.size()-1);
     	}
     	
    		int order = ordered.indexOf(after);
     	ordered.add(order+1, component.priority);
-    	hasChanged = true;
+    	hasChanged = !isImporting;
     }
     
     private void removeOrderedComponent(Long value) {
@@ -288,8 +305,72 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
         hasChanged = true;
     }
     
-	public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
-		increaseOrder(databaseObject, new Long(priority));
+	public XMLVector<XMLVector<Long>> getOrderedSharedActions() {
+		return orderedSharedActions;
+	}
+    
+	public void setOrderedSharedActions(XMLVector<XMLVector<Long>> orderedStacks) {
+		this.orderedSharedActions = orderedStacks;
+	}
+	
+    private void insertOrderedSharedAction(UIActionStack component, Long after) {
+    	List<Long> ordered = orderedSharedActions.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = 0L;
+    		if (size > 0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = !isImporting;
+    }
+    
+    private void removeOrderedSharedAction(Long value) {
+        Collection<Long> ordered = orderedSharedActions.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
+	public XMLVector<XMLVector<Long>> getOrderedSharedComponents() {
+		return orderedSharedComponents;
+	}
+    
+	public void setOrderedSharedComponents(XMLVector<XMLVector<Long>> orderedComponents) {
+		this.orderedSharedComponents = orderedComponents;
+	}
+	
+    private void insertOrderedSharedComponent(UISharedComponent component, Long after) {
+    	List<Long> ordered = orderedSharedComponents.get(0);
+    	int size = ordered.size();
+    	
+    	if (ordered.contains(component.priority))
+    		return;
+    	
+    	if (after == null) {
+    		after = 0L;
+    		if (size > 0)
+    			after = ordered.get(ordered.size()-1);
+    	}
+    	
+   		int order = ordered.indexOf(after);
+    	ordered.add(order+1, component.priority);
+    	hasChanged = !isImporting;
+    }
+    
+    private void removeOrderedSharedComponent(Long value) {
+        Collection<Long> ordered = orderedSharedComponents.get(0);
+        ordered.remove(value);
+        hasChanged = true;
+    }
+    
+    public void insertAtOrder(DatabaseObject databaseObject, long priority) throws EngineException {
+		increaseOrder(databaseObject, priority);
 	}
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
@@ -302,6 +383,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		ordered = orderedRoutes.get(0);
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
+    	else if (databaseObject instanceof UIActionStack)
+    		ordered = orderedSharedActions.get(0);
+    	else if (databaseObject instanceof UISharedComponent)
+    		ordered = orderedSharedComponents.get(0);
     	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
@@ -332,6 +417,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     		ordered = orderedRoutes.get(0);
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
+    	else if (databaseObject instanceof UIActionStack)
+    		ordered = orderedSharedActions.get(0);
+    	else if (databaseObject instanceof UISharedComponent)
+    		ordered = orderedSharedComponents.get(0);
     	else if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
     	
@@ -395,6 +484,20 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted menu for application \""+ getName() +"\". MenuComponent \""+ ((UIDynamicMenu)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else if (object instanceof UIActionStack) {
+        	List<Long> ordered = orderedSharedActions.get(0);
+        	long time = ((UIActionStack)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". SharedAction \""+ ((UIActionStack)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
+        }
+        else if (object instanceof UISharedComponent) {
+        	List<Long> ordered = orderedSharedComponents.get(0);
+        	long time = ((UISharedComponent)object).priority;
+        	if (ordered.contains(time))
+        		return (long)ordered.indexOf(time);
+        	else throw new EngineException("Corrupted stack for application \""+ getName() +"\". SharedComponent \""+ ((UISharedComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIComponent) {
         	List<Long> ordered = orderedComponents.get(0);
@@ -657,7 +760,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     	}
 		
 		boolean isNew = uiComponent.bNew;
-		boolean isCut = !isNew && uiComponent.getParent() == null;
+		boolean isCut = !isNew && uiComponent.getParent() == null && uiComponent.isSubLoaded;
 		
 		String newDatabaseObjectName = getChildBeanName(vUIComponents, uiComponent.getName(), uiComponent.bNew);
 		uiComponent.setName(newDatabaseObjectName);
@@ -702,6 +805,100 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		throw new EngineException("There is no UI component named \"" + uiName + "\" found into this page.");
 	}
 	
+	public List<UIAppEvent> getUIAppEventList() {
+		List<UIAppEvent> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIAppEvent) {
+				eventList.add((UIAppEvent) uiComponent);
+			}
+		}
+		return eventList;
+	}
+	
+	public List<UIEventSubscriber> getUIEventSubscriberList() {
+		List<UIEventSubscriber> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIEventSubscriber) {
+				eventList.add((UIEventSubscriber) uiComponent);
+			}
+		}
+		return eventList;
+	}
+	
+	/**
+	 * The list of available stack of shared actions for this application.
+	 */
+	transient private List<UIActionStack> vSharedActions = new LinkedList<UIActionStack>();
+	
+	protected void addSharedAction(UIActionStack stackComponent) throws EngineException {
+		addSharedAction(stackComponent, null);
+	}
+	
+	protected void addSharedAction(UIActionStack stackComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vSharedActions, stackComponent.getName(), stackComponent.bNew);
+		stackComponent.setName(newDatabaseObjectName);
+		vSharedActions.add(stackComponent);
+		super.add(stackComponent);
+		
+		insertOrderedSharedAction(stackComponent, after);
+		
+		if (stackComponent.bNew) {
+			markApplicationAsDirty();
+		}
+	}
+
+	protected void removeSharedAction(UIActionStack stackComponent) throws EngineException {
+		checkSubLoaded();
+		vSharedActions.remove(stackComponent);
+		
+		removeOrderedSharedAction(stackComponent.priority);
+		
+		markApplicationAsDirty();
+	}
+
+	public List<UIActionStack> getSharedActionList() {
+		checkSubLoaded();
+		return sort(vSharedActions);
+	}
+	
+	/**
+	 * The list of available stack of shared components for this application.
+	 */
+	transient private List<UISharedComponent> vSharedComponents = new LinkedList<UISharedComponent>();
+	
+	protected void addSharedComponent(UISharedComponent stackComponent) throws EngineException {
+		addSharedComponent(stackComponent, null);
+	}
+	
+	protected void addSharedComponent(UISharedComponent stackComponent, Long after) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vSharedComponents, stackComponent.getName(), stackComponent.bNew);
+		stackComponent.setName(newDatabaseObjectName);
+		vSharedComponents.add(stackComponent);
+		super.add(stackComponent);
+		
+		insertOrderedSharedComponent(stackComponent, after);
+		
+		if (stackComponent.bNew) {
+			markApplicationAsDirty();
+		}
+	}
+
+	protected void removeSharedComponent(UISharedComponent stackComponent) throws EngineException {
+		checkSubLoaded();
+		vSharedComponents.remove(stackComponent);
+		
+		removeOrderedSharedComponent(stackComponent.priority);
+		
+		markApplicationAsDirty();
+	}
+
+	public List<UISharedComponent> getSharedComponentList() {
+		checkSubLoaded();
+		return sort(vSharedComponents);
+	}
+	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
@@ -709,6 +906,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		rep.addAll(getRouteComponentList());
 		rep.addAll(getMenuComponentList());
 		rep.addAll(getPageComponentList());
+		rep.addAll(getSharedActionList());
+		rep.addAll(getSharedComponentList());
 		rep.addAll(getUIComponentList());
 		return rep;
 	}
@@ -721,6 +920,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			addPageComponent((PageComponent) databaseObject);
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			addMenuComponent((UIDynamicMenu) databaseObject);
+		} else if (databaseObject instanceof UIActionStack) {
+			addSharedAction((UIActionStack) databaseObject);
+		} else if (databaseObject instanceof UISharedComponent) {
+			addSharedComponent((UISharedComponent) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			addUIComponent((UIComponent) databaseObject, after);
 		} else {
@@ -741,6 +944,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			removePageComponent((PageComponent) databaseObject);
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			removeMenuComponent((UIDynamicMenu) databaseObject);
+		} else if (databaseObject instanceof UIActionStack) {
+			removeSharedAction((UIActionStack) databaseObject);
+		} else if (databaseObject instanceof UISharedComponent) {
+			removeSharedComponent((UISharedComponent) databaseObject);
 		} else if (databaseObject instanceof UIComponent) {
 			removeUIComponent((UIComponent) databaseObject);
 		} else {
@@ -794,10 +1001,17 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return contributors;
 	}
 	
-	protected void doGetContributors() {
-		contributors = new ArrayList<Contributor>();
+	protected synchronized void doGetContributors() {
+		contributors = new ArrayList<>();
+		Set<UIComponent> done = new HashSet<>();
 		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
-			uiMenu.addContributors(contributors);
+			uiMenu.addContributors(done, contributors);
+		}
+		for (UIEventSubscriber suscriber : getUIEventSubscriberList()) {
+			suscriber.addContributors(done, contributors);
+		}
+		for (UIAppEvent appEvent : getUIAppEventList()) {
+			appEvent.addContributors(done, contributors);
 		}
 	}
     
@@ -850,62 +1064,68 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 	
     public void markApplicationAsDirty() throws EngineException {
-		if (isImporting) {
-			return;
-		}
-    	
-		try {
-			JSONObject oldComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			doComputeContents();
-			
-			JSONObject newComputedContent = computedContents == null ? 
-					null :new JSONObject(computedContents.toString());
-			
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getJSONObject("scripts").toString()
-						.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
-					getProject().getMobileBuilder().appTsChanged(this, true);
+    	if (_markApplicationAsDirty == null) {
+    		_markApplicationAsDirty = () -> {
+				if (isImporting) {
+					return;
 				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("style")
-						.equals(oldComputedContent.getString("style")))) {
-					getProject().getMobileBuilder().appStyleChanged(this);
+				try {
+					JSONObject oldComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					doComputeContents();
+					
+					JSONObject newComputedContent = computedContents == null ? 
+							null :new JSONObject(computedContents.toString());
+					
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getJSONObject("scripts").toString()
+								.equals(oldComputedContent.getJSONObject("scripts").toString()))) {
+							getProject().getMobileBuilder().appTsChanged(this, true);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("style")
+								.equals(oldComputedContent.getString("style")))) {
+							getProject().getMobileBuilder().appStyleChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("theme")
+								.equals(oldComputedContent.getString("theme")))) {
+							getProject().getMobileBuilder().appThemeChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("route")
+								.equals(oldComputedContent.getString("route")))) {
+							getProject().getMobileBuilder().appRouteChanged(this);
+						}
+					}
+					if (oldComputedContent != null && newComputedContent != null) {
+						if (!(newComputedContent.getString("template")
+								.equals(oldComputedContent.getString("template")))) {
+							getProject().getMobileBuilder().appTemplateChanged(this);
+						}
+					}
+					
+					String oldContributors = contributors == null ? null: contributors.toString();
+					doGetContributors();
+					String newContributors = contributors == null ? null: contributors.toString();
+					if (oldContributors != null && newContributors != null) {
+						if (!(oldContributors.equals(newContributors))) {
+							getProject().getMobileBuilder().appContributorsChanged(this);
+						}
+					}
+					
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("theme")
-						.equals(oldComputedContent.getString("theme")))) {
-					getProject().getMobileBuilder().appThemeChanged(this);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("route")
-						.equals(oldComputedContent.getString("route")))) {
-					getProject().getMobileBuilder().appRouteChanged(this);
-				}
-			}
-			if (oldComputedContent != null && newComputedContent != null) {
-				if (!(newComputedContent.getString("template")
-						.equals(oldComputedContent.getString("template")))) {
-					getProject().getMobileBuilder().appTemplateChanged(this);
-				}
-			}
-			
-			String oldContributors = contributors == null ? null: contributors.toString();
-			doGetContributors();
-			String newContributors = contributors == null ? null: contributors.toString();
-			if (oldContributors != null && newContributors != null) {
-				if (!(oldContributors.equals(newContributors))) {
-					getProject().getMobileBuilder().appContributorsChanged(this);
-				}
-			}
-			
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+    		};
+    	}
+    	checkBatchOperation(_markApplicationAsDirty);
     }
     
 	public void markRootAsDirty() throws EngineException {
@@ -918,6 +1138,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 
 	public void markModuleTsAsDirty() throws EngineException {
 		getProject().getMobileBuilder().appModuleTsChanged(this);
+	}
+	
+	public void markPwaAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appPwaChanged(this);
 	}
 	
     /*
@@ -936,6 +1160,15 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	public String computeTemplate() {
 		StringBuilder sb = new StringBuilder();
 		
+		String layout = getSplitPaneLayout();
+		boolean hasSplitPane = !layout.equals("not set");
+		if (hasSplitPane) {
+			if (layout.isEmpty())
+				sb.append("<ion-split-pane>").append(System.lineSeparator());
+			else
+				sb.append("<ion-split-pane when=\""+ layout +"\">").append(System.lineSeparator());
+		}
+		
 		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
 		while (it.hasNext()) {
 			UIDynamicMenu menu = it.next();
@@ -945,18 +1178,85 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			}
 		}
 		
-		sb.append("<ion-nav [root]=\"rootPage\" #content swipeBackEnabled=\"false\"></ion-nav>");
+		sb.append("<ion-nav [root]=\"rootPage\" main #content swipeBackEnabled=\"false\"></ion-nav>");
 		sb.append(System.lineSeparator());
 		
+		if (hasSplitPane) {
+			sb.append("</ion-split-pane>").append(System.lineSeparator());
+		}
 		return sb.toString();
 	}
 
+	private String computeEventConstructors() {
+		String computed = "";
+		for (UIEventSubscriber subscriber: getUIEventSubscriberList()) {
+			if (subscriber.isEnabled()) {
+				computed += subscriber.computeConstructor();
+			}
+		}
+		for (UIAppEvent event: getUIAppEventList()) {
+			if (event.isEnabled() && event.isAvailable()) {
+				computed += event.getAppEvent().computeConstructor(event.getFunctionName());
+			}
+		}
+		return computed;
+	}
+	
+	private String computeNgDestroy() {
+		String computed = "";
+		computed += "ngOnDestroy() {"+ System.lineSeparator();
+		for (UIEventSubscriber subscriber: getUIEventSubscriberList()) {
+			if (subscriber.isEnabled()) {
+				computed += subscriber.computeDestructor();
+			}
+		}
+		for (UIAppEvent event: getUIAppEventList()) {
+			if (event.isEnabled() && event.isAvailable()) {
+				computed += event.getAppEvent().computeDestructor();
+			}
+		}
+		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+		computed += "\t}"+ System.lineSeparator();
+		computed += "\t";
+		return computed;
+	}
+	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		// App menus
 		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
 		while (it.hasNext()) {
 			UIDynamicMenu menu = (UIDynamicMenu)it.next();
 			menu.computeScripts(jsonScripts);
+		}
+		
+		// App events
+		if (compareToTplVersion("7.6.0.1") >= 0) {
+			try {
+				String subscribers = computeEventConstructors();
+				String constructors = jsonScripts.getString("constructors") + subscribers;
+				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				String function = computeNgDestroy(); 
+				String functions = jsonScripts.getString("functions") + function;
+				jsonScripts.put("functions", functions);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			// Component typescripts
+			for (UIEventSubscriber subscriber: getUIEventSubscriberList()) {
+				subscriber.computeScripts(jsonScripts);
+			}
+			for (UIAppEvent event: getUIAppEventList()) {
+				if (event.isEnabled() && event.isAvailable()) {
+					event.computeScripts(jsonScripts);
+				}
+			}
 		}
 	}
 	
@@ -1082,7 +1382,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		if (StringUtils.isBlank(tplProjectName)) {
 			tplProjectName = getProject().getName();
 		}
-		return new File(Engine.PROJECTS_PATH + "/" + tplProjectName + "/ionicTpl");
+		return new File(Engine.projectDir(tplProjectName) + "/ionicTpl");
 	}
 	
 	public String getTplProjectName() {
@@ -1094,16 +1394,39 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 
 	public String getTplProjectVersion() {
-		this.tplProjectVersion = getTplVersion();
-		return this.tplProjectVersion;
+		try {
+			String tplVersion = getTplVersion();
+			if (tplVersion != null) {
+				tplProjectVersion = tplVersion;
+			}
+		} catch (NullPointerException e) {
+			// ignore error for BeansDefaultValues
+		}
+		return tplProjectVersion;
 	}
 
 	public void setTplProjectVersion(String tplProjectVersion) {
 		// does nothing
 	}
 	
+	public String getSplitPaneLayout() {
+		return splitPaneLayout;
+	}
+
+	public void setSplitPaneLayout(String splitPaneLayout) {
+		this.splitPaneLayout = splitPaneLayout;
+	}
+
+	public boolean isPWA() {
+		return isPWA;
+	}
+	
+	public void setPWA(boolean isPWA) {
+		this.isPWA = isPWA;
+	}
+	
 	private boolean isCompatibleTemplate(String project) {
-		File tplDir = new File(Engine.PROJECTS_PATH + "/" + project + "/ionicTpl");
+		File tplDir = new File(Engine.projectDir(project) + "/ionicTpl");
 		if (tplDir.exists()) {
 			if (new File(tplDir,"src/services/actionbeans.service.ts").exists()) {
 				return true;
@@ -1114,8 +1437,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
-			List<String> projects = new LinkedList<>();
-			//projects.add("");
+			TreeSet<String> projects = new TreeSet<String>();
+			projects.add(this.tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 				if (isCompatibleTemplate(project)) {
@@ -1123,16 +1446,43 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				};
 			}
 			
-			return projects.toArray(new String[projects.size()]);
+			return projects.descendingSet().toArray(new String[projects.size()]);
 		}
-		return null;
+		if (propertyName.equals("splitPaneLayout")) {
+			return new String[] {"not set","xs","sm","md","lg","xl"};
+		}
+		return new String[0];
+	}
+	
+	private void putAllInfos(Map<String, Set<String>> toMap, Map<String, Set<String>> fromMap) {
+		if (toMap != null && fromMap != null) {
+			for (String key: fromMap.keySet()) {
+				Set<String> infos = toMap.get(key);
+				if (infos == null) {
+					infos = new HashSet<String>();
+				}
+				
+				infos.addAll(fromMap.get(key));
+				toMap.put(key, infos);
+			}
+		}
 	}
 	
 	public Map<String, Set<String>> getInfoMap() {
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
-		for (PageComponent page : getPageComponentList()) {
-			map.putAll(page.getInfoMap());
+		for (UIDynamicMenu menu: getMenuComponentList()) {
+			putAllInfos(map, menu.getInfoMap());
 		}
+		for (UIEventSubscriber suscriber : getUIEventSubscriberList()) {
+			putAllInfos(map, suscriber.getInfoMap());
+		}
+		for (UIAppEvent appEvent: getUIAppEventList()) {
+			putAllInfos(map, appEvent.getInfoMap());
+		}
+		for (PageComponent page : getPageComponentList()) {
+			putAllInfos(map, page.getInfoMap());
+		}
+		// do not add from shared : will be done by invoke shared action or use shared component
 		return map;
 	}
 	
@@ -1177,6 +1527,31 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			String menuTplVersion = menu.requiredTplVersion();
 			if (MobileBuilder.compareVersions(tplVersion, menuTplVersion) <= 0) {
 				tplVersion = menuTplVersion;
+			}
+		}
+		
+		for (UIActionStack sa : getSharedActionList()) {
+			String saTplVersion = sa.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, saTplVersion) <= 0) {
+				tplVersion = saTplVersion;
+			}
+		}
+		
+		for (UISharedComponent sc : getSharedComponentList()) {
+			String scTplVersion = sc.requiredTplVersion();
+			if (MobileBuilder.compareVersions(tplVersion, scTplVersion) <= 0) {
+				tplVersion = scTplVersion;
+			}
+		}
+		
+		for (UIComponent uic : getUIComponentList()) {
+			String uicTplVersion = uic.requiredTplVersion();
+			if (uic instanceof UIEventSubscriber) {
+				uicTplVersion = "7.6.0.1";
+			}
+			
+			if (MobileBuilder.compareVersions(tplVersion, uicTplVersion) <= 0) {
+				tplVersion = uicTplVersion;
 			}
 		}
 		

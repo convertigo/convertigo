@@ -1,26 +1,23 @@
 <!--
- * Copyright (c) 2001-2014 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+Copyright (c) 2001-2019 Convertigo SA.
+
+This program  is free software; you  can redistribute it and/or
+Modify  it  under the  terms of the  GNU  Affero General Public
+License  as published by  the Free Software Foundation;  either
+version  3  of  the  License,  or  (at your option)  any  later
+version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY;  without even the implied warranty of
+MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public
+License along with this program;
+if not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="bgButtonAction">
-	<button id="connectionsListButtonDeleteAll">Delete all</button>
+	<button id="connectionsListButtonDeleteAll">Delete all sessions and contexts</button>
 </div>
 <br/>
 <table>
@@ -40,7 +37,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td>Max HTTP session inactivity:</td>
+		<td>Max HTTP session inactivity (your current session):</td>
 		<td><strong><span id="connectionsHttpTimeout"></span></strong></td>
 	</tr>
 </table>
@@ -56,15 +53,28 @@
 	
     <span>
 	    <img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>
-	    Creation date of the context  
+	    Creation date of the context
     </span>
+    <span>
         <img src="images/convertigo-administration-picto-last-date.png" alt="Last access date"/>
-        Last access date to the context    
+        Last access date to the context
+    </span>
     <span>
         <img src="images/convertigo-administration-picto-activity.png" alt="Context inactivity"/>
         Inactivity duration                                                       
     </span>
+    <span>
+    	<img src="images/edit.gif" alt="Show logs"/>
+        Click to filter logs                                                       
+    </span>
 </div>
-
+<br/>
+<h6>Sessions</h6>
+<div><a href="javascript: toggleSessions()">Show / hide</a> sessions. Click a session to filter its contexts.</div>
+<br/>
+<table id="sessionsList"></table>
+<br/>
+<h6>Connections</h6>
+<div class="main-display-none">View contexts of <span id="selectedSession" />. Click <a href="javascript: clearSelectedSession()">here to view all contexts</a>.</div>
+<br/>
 <table id="connectionsList"></table>
-

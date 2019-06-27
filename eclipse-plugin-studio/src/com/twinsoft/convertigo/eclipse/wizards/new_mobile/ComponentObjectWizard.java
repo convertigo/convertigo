@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,6 +37,8 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -145,6 +147,15 @@ public class ComponentObjectWizard extends Wizard {
 		return true;
 	}
 	
+	@Override
+	public boolean performCancel() {
+		if (objectExplorerPage != null) {
+			objectExplorerPage.doCancel();
+		}
+		newBean = null;
+		return super.performCancel();
+	}
+	
 	private void doFinish(IProgressMonitor monitor) throws CoreException {
 		String dboName, name;
 		boolean bContinue = true;
@@ -160,6 +171,7 @@ public class ComponentObjectWizard extends Wizard {
 				if (!StringUtils.isNormalized(dboName))
 					throw new EngineException("Bean name is not normalized : \""+dboName+"\".");
             	
+		        // Verify if a child object with same name exist and change name
 				while (bContinue) {
 					if (index == 0) name = dboName;
 					else name = dboName + index;
@@ -167,23 +179,62 @@ public class ComponentObjectWizard extends Wizard {
 					newBean.hasChanged = true;
 					newBean.bNew = true;
 					
-					try {
-						parentObject.add(newBean);
-		    			monitor.setTaskName("Object added");
-		    			monitor.worked(1);
-						
-						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
-		    			monitor.setTaskName("Object setted up");
-		    			monitor.worked(1);
+			        try {
+			        	new WalkHelper() {
+			        		boolean root = true;
+			        		boolean find = false;
+							
+							@Override
+							protected boolean before(DatabaseObject dbo, Class<? extends DatabaseObject> dboClass) {
+								boolean isInstance = dboClass.isInstance(newBean);
+								find |= isInstance;
+								return isInstance;
+							}
+							
+							@Override
+							protected void walk(DatabaseObject dbo) throws Exception {
+								if (root) {
+									root = false;
+									super.walk(dbo);
+									if (!find) {
+										throw new EngineException("You cannot add to a " + newBean.getClass().getSimpleName() + " a database object of type " + parentObject.getClass().getSimpleName());
+									}
+								} else {
+									if (newBean.getName().equalsIgnoreCase(dbo.getName())) {
+										throw new ObjectWithSameNameException("Unable to add the object because an object with the same name already exists in target.");
+									}
+								}
+							}
 
-						bContinue = false;
-					}
-					catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
-						if (newBean instanceof HandlerStatement) {
-							throw owsne;
-						}
+			        	}.init(parentObject);
+			        	bContinue = false;
+			        } catch (ObjectWithSameNameException owsne) {
+						// Silently ignore
 						index++;
+			        } catch (EngineException ee) {
+			        	throw ee;
+					} catch (Exception e) {
+						throw new EngineException("Exception in create", e);
 					}
+				}
+				
+				// Now add bean to target
+				try {
+					parentObject.add(newBean);
+	    			monitor.setTaskName("Object added");
+	    			monitor.worked(1);
+					
+					ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
+	    			monitor.setTaskName("Object setted up");
+	    			monitor.worked(1);
+
+					bContinue = false;
+				}
+				catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
+					if (newBean instanceof HandlerStatement) {
+						throw owsne;
+					}
+					index++;
 				}
             }
             else {
@@ -193,7 +244,10 @@ public class ComponentObjectWizard extends Wizard {
 		catch (Exception e) {
             String message = "Unable to create a new object from class '"+ this.className +"'.";
             ConvertigoPlugin.logException(e, message);
-            newBean = null;
+    		if (objectExplorerPage != null) {
+    			objectExplorerPage.doCancel();
+    		}
+    		newBean = null;
 		}
 	}
 

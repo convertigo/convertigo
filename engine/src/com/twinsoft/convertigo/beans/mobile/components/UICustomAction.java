@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -248,6 +248,11 @@ public class UICustomAction extends UIComponent implements IAction {
 				if (uiControlEvent.isEnabled()) {
 					return uiControlEvent.getErrorEvent();
 				}
+			} else if (parent instanceof UIAppEvent) {
+				UIAppEvent uiAppEvent = (UIAppEvent)parent;
+				if (uiAppEvent.isEnabled()) {
+					return uiAppEvent.getErrorEvent();
+				}
 			} else if (parent instanceof UIPageEvent) {
 				UIPageEvent uiPageEvent = (UIPageEvent)parent;
 				if (uiPageEvent.isEnabled()) {
@@ -265,18 +270,30 @@ public class UICustomAction extends UIComponent implements IAction {
 
 	protected boolean isStacked() {
 		return handleError() || handleFailure() || numberOfActions() > 0 || 
-				getParent() instanceof UIPageEvent || getParent() instanceof UIEventSubscriber;
+				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent ||
+				getParent() instanceof UIEventSubscriber;
 	}
 	
 	protected String getScope() {
 		String scope = "";
 		DatabaseObject parent = getParent();
-		while (parent != null && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
+		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent)&& !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
 					scope += !scope.isEmpty() ? ", ":"";
 					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+					
+					String item = uicd.getDirectiveItemName();
+					if (!item.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += item + ": "+ item;
+					}
+					String index = uicd.getDirectiveIndexName();
+					if (!index.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += index + ":" + index;
+					}
 				}
 			}
 			if (parent instanceof UIElement) {
@@ -310,12 +327,9 @@ public class UICustomAction extends UIComponent implements IAction {
 				}
 			}
 			
-			//String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
-			
+			String scope = getScope();
+			String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 			if (isStacked()) {
-				String scope = getScope();
-				//String in = formGroupName == null ? "{}": cafMerge + "("+formGroupName +".value, {})";
-				String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
 			} else {
 				String props = "{}", vars = "{}";
@@ -331,6 +345,9 @@ public class UICustomAction extends UIComponent implements IAction {
 					//vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
 					vars = "merge("+formGroupName +".value, "+ vars +")";
 				}
+				
+				String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
+				props = "merge("+ props  +", "+ stack +")";
 				
 				String actionName = getActionName();
 				return ""+ actionName + "(this,"+ props + ","+ vars +", $event)";
@@ -350,12 +367,17 @@ public class UICustomAction extends UIComponent implements IAction {
 				if (component instanceof UIControlVariable) {
 					UIControlVariable uicv = (UIControlVariable)component;
 					if (uicv.isEnabled()) {
-						sbVars.append(sbVars.length() > 0 ? ", ":"");
-						sbVars.append(uicv.getVarName()).append(": ");
-						
+						// Case code generated in HTML
 						if (forTemplate) {
-							sbVars.append(uicv.getVarValue());
-						} else {
+							String varValue = uicv.getVarValue();
+							if (!varValue.isEmpty()) {
+								sbVars.append(sbVars.length() > 0 ? ", ":"");
+								sbVars.append(uicv.getVarName()).append(": ");
+								sbVars.append(varValue);
+							}
+						}
+						// Case code generated in TS
+						else {
 							MobileSmartSourceType msst = uicv.getVarSmartType();
 							
 							String smartValue = msst.getValue();
@@ -365,18 +387,23 @@ public class UICustomAction extends UIComponent implements IAction {
 							
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
-								if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-									smartValue = "scope."+ smartValue;
-								}
-								else {
-									smartValue = "this."+ smartValue;
+								if (mss != null) {
+									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
+										smartValue = "scope."+ smartValue;
+									}
+									else {
+										smartValue = "this."+ smartValue;
+									}
 								}
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-							smartValue = "get(`"+smartValue+"`)";
 							
-							sbVars.append(smartValue);
+							if (!smartValue.isEmpty()) {
+								sbVars.append(sbVars.length() > 0 ? ", ":"");
+								sbVars.append(uicv.getVarName()).append(": ");
+								sbVars.append("get('"+ uicv.getVarName() +"', `"+smartValue+"`)");
+							}
 						}
 					}
 				}
@@ -389,9 +416,12 @@ public class UICustomAction extends UIComponent implements IAction {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		try {
-			IScriptComponent main = getMainScriptComponent();
-			
 			String imports = jsonScripts.getString("imports");
 			for (XMLVector<String> v : page_ts_imports) {
 				String name = v.get(0).trim();
@@ -469,11 +499,11 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
 			computed += "\t\tlet parent;" + System.lineSeparator();
 			computed += "\t\tlet scope;" + System.lineSeparator();
-			computed += "\t\tlet self;" + System.lineSeparator();
+			//computed += "\t\tlet self;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tlet get = function(key) {let val=undefined;try {val=eval(ts.transpile('('+ key  + ')'));}catch(e){c8oPage.c8o.log.warn(\"[MB] "+functionName+": \"+e.message)}return val;}" + System.lineSeparator();
+			computed += computeInnerGet("c8oPage",functionName);
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
 			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
@@ -537,11 +567,21 @@ public class UICustomAction extends UIComponent implements IAction {
 			
 			String tsCode = "";
 			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-			tsCode += "\t\tself = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
+			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
-			tsCode +="\t\treturn this."+actionName+"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
-														cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ System.lineSeparator();
+			if (getSharedAction() != null) {
+				tsCode +="\t\treturn this.actionBeans."+ actionName +
+							"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+										cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+ 
+											System.lineSeparator();
+			} else {
+				tsCode +="\t\treturn this."+ actionName+ 
+							"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
+										cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ 
+											System.lineSeparator();
+			}
+			
 			tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();
 			tsCode += "\t\tparent = self;"+ System.lineSeparator();
 			tsCode += "\t\tparent.out = error;"+ System.lineSeparator();
@@ -611,16 +651,36 @@ public class UICustomAction extends UIComponent implements IAction {
 		return computed;
 	}
 	
+	public Contributor getActionContributor() {
+		return getContributor();
+	}
+	
 	protected Contributor getContributor() {
 		return new Contributor() {
 			@Override
 			public Map<String, String> getActionTsFunctions() {
-				return new HashMap<String, String>();
+				Map<String, String> functions = new HashMap<String, String>();
+				if (getSharedAction() != null || getSharedComponent() != null) {
+					String actionName = getActionName();
+					String actionCode = computeActionMain();
+					if (compareToTplVersion("7.5.2.0") < 0 ) {
+						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
+						actionCode = actionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
+					}
+					functions.put(actionName, actionCode);
+				}
+				return functions;
 			}
 
 			@Override
 			public Map<String, String> getActionTsImports() {
-				return new HashMap<String, String>();
+				Map<String, String> imports = new HashMap<String, String>();
+				if (getSharedAction() != null  || getSharedComponent() != null) {
+					for (XMLVector<String> v : page_ts_imports) {
+						imports.put(v.get(0).trim(), v.get(1).trim());
+					}
+				}
+				return imports;
 			}
 
 			@Override

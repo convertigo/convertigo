@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -96,7 +96,7 @@ public class UIForm extends UIElement {
 			}
 			
 			StringBuilder cartridge = new StringBuilder();
-			cartridge.append("/**").append(System.lineSeparator())
+			cartridge.append("\t\t/**").append(System.lineSeparator())
 						.append("\t\t * "+ getName()).append(System.lineSeparator());
 			for (String commentLine : getComment().split(System.lineSeparator())) {
 				cartridge.append("\t\t *   ").append(commentLine).append(System.lineSeparator());
@@ -135,10 +135,13 @@ public class UIForm extends UIElement {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		IScriptComponent main = getMainScriptComponent();
+		if (main == null) {
+			return;
+		}
+		
 		if (isEnabled()) {
 			try {
-				IScriptComponent main = getMainScriptComponent();
-				
 				String imports = jsonScripts.getString("imports");
 				if (main.addImport("FormGroup", "@angular/forms")) {
 					imports += "import { FormGroup } from '@angular/forms';" + System.lineSeparator();
@@ -163,17 +166,17 @@ public class UIForm extends UIElement {
 				e.printStackTrace();
 			}
 			
-			String constructor = computeConstructor() + System.lineSeparator();
+			String function = computeFunction() + System.lineSeparator();
 			try {
-				String constructors = jsonScripts.getString("constructors") + constructor;
+				String constructors = jsonScripts.getString("constructors") + function;
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
-			String function = computeFunction() + System.lineSeparator();
+			String constructor = computeConstructor() + System.lineSeparator();
 			try {
-				String constructors = jsonScripts.getString("constructors") + function;
+				String constructors = jsonScripts.getString("constructors") + constructor;
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();

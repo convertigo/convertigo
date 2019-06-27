@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -79,7 +79,6 @@ import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -348,32 +347,6 @@ public class WebServiceServlet extends GenericServlet {
 				if (xmlSchema.getTargetNamespace().equals(SchemaUtils.URI_SOAP_ENC)) continue;
 				
 				String tns = xmlSchema.getTargetNamespace();
-				
-				if (!targetNamespace.equals(tns)) {
-					new XmlSchemaWalker.XmlSchemaWalkerWatcher() {
-						
-						@Override
-						protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
-							try {
-								// Fixed issue for soap-enc arrayType attribute (rpc mode)
-								Attr[] attrs = obj.getUnhandledAttributes();
-								List<Attr> list = new ArrayList<Attr>();
-								if (attrs != null) {
-									for (Attr attribute : attrs) {
-										if (attribute.getNodeName().startsWith("xmlns") && attribute.getNodeValue().equals(""))
-											;// remove empty namespace
-										else
-											list.add(attribute);
-									}
-									obj.setUnhandledAttributes(list.toArray(new Attr[list.size()]));
-								}
-								super.walkAttribute(xmlSchema, obj);
-							}
-							catch (Exception e) {}
-						}
-		
-					}.init(xmlSchema);
-				}
 				
 				// Reduce schema to needed objects
 				reduceSchema(xmlSchema, map.keySet());

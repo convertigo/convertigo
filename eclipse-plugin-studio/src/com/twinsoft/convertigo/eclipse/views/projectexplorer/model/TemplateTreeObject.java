@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -62,5 +62,10 @@ public class TemplateTreeObject extends TreeObject implements IEditableTreeObjec
 		} catch (Exception pei) {
         	ConvertigoPlugin.logException(pei, "Unexpceted exception");
 		}
+	}
+	
+	@Override
+	public void closeAllEditors(boolean save) {
+		//TODO: closeAllJsEditors(getObject(), save);
 	}
 }

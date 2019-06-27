@@ -1,0 +1,53 @@
+plugins {
+	id 'eclipse'
+	id 'java'
+	id 'java-gradle-plugin'
+	id 'maven-publish'
+}
+
+group = 'com.convertigo'
+version = version.replace('beta', 'SNAPSHOT')
+/*
+publishing {
+	repositories {
+		maven {
+			url project.properties['c8o.m2.url']
+			credentials(AwsCredentials) {
+				accessKey project.properties['c8o.m2.ak']
+				secretKey project.properties['c8o.m2.sk']
+			}
+		}
+	}
+}
+*/
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+		resources {
+			srcDir 'src'
+		}
+	}
+}
+
+dependencies {
+	compile project(':engine'), {
+		exclude group: 'convertigo', module: 'placeholders'
+	}
+	runtime 'javax.servlet:servlet-api:2.5'
+}
+
+gradlePlugin {
+	plugins {
+		convertigoPlugin {
+			id = 'convertigo'
+			implementationClass = 'com.convertigo.gradle.ConvertigoPlugin'
+			displayName = 'Convertigo Plugin'
+			description = 'Enable tasks to build and deploy Convertigo projects'
+		}
+	}
+}
+
+tasks['publishToMavenLocal'].dependsOn(tasks.getByPath(':engine:publishToMavenLocal'))

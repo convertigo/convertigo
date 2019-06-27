@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -381,6 +381,7 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 					resourceBundle = cache.get(key);
 					if (resourceBundle == null) {
 						String virtualFilePath = Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher);
+						virtualFilePath = Engine.resolveProjectPath(virtualFilePath);
 						resourceBundle = new ResourceBundle(ResourceType.get(requestMatcher), new File(virtualFilePath), key);
 						cache.put(key, resourceBundle);
 						Engine.logEngine.debug("(MinificationManager) Create resourceBundle '" + key + "'");
@@ -441,6 +442,7 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 						}
 						
 						File relativeFile = new File(Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher)).getParentFile();
+						relativeFile = Engine.resolveProjectPath(relativeFile);
 						Engine.logEngine.trace("(MinificationManager) Solve relative resource from '" + relativeFile.toString() + "'");
 						
 						int optionsLength = files.length();

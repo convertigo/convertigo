@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -392,7 +392,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		if (currentAnchor != null) {
 			int start = nodeXpath.indexOf(currentAnchor);
 			if (start >= 0) {
-				xpath.setStyleRange(new StyleRange(start, currentAnchor.length(), xpath.getForeground(), highlightColor));
+				xpath.setStyleRange(new StyleRange(start, currentAnchor.length(), Display.getCurrent().getSystemColor(SWT.COLOR_BLACK), highlightColor));
 			}
 		}
 	}
@@ -410,7 +410,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		isAnchorDisabled = disabled;
 		if (currentAnchor == null) {
 			currentAnchor = xpath.getText();
-			xpath.setStyleRange(new StyleRange(0,currentAnchor.length(),xpath.getForeground(),highlightColor));
+			xpath.setStyleRange(new StyleRange(0, currentAnchor.length(), Display.getCurrent().getSystemColor(SWT.COLOR_BLACK), highlightColor));
 			//TODO:anchor.setBackground(highlightColor);
 		} else if (!isAnchorDisabled) {
 			currentAnchor = null;

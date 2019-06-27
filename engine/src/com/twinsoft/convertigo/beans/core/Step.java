@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -126,7 +127,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		
 		// Set priority to creation time since version 4.0.1
 		this.priority = getNewOrderValue();
-		this.newPriority = priority;
 	}
     
 	/* (non-Javadoc)
@@ -145,7 +145,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		clonedObject.stepDone = false;
 		clonedObject.sequence = null;
 		clonedObject.vSheets = new LinkedList<Sheet>();
-		clonedObject.newPriority = newPriority;
 		return clonedObject;
 	}
     
@@ -173,22 +172,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			}
 			
 			Engine.logBeans.warn("[Step] The object \"" + getName() + "\" has been updated to version 7.5.0 (property \"isEnable\" changed to \"isEnabled\")");
-		}
-	}
-
-	/* (non-Javadoc)
-	* @see com.twinsoft.convertigo.beans.core.DatabaseObject#configure(org.w3c.dom.Element)
-	*/
-	@Override
-	public void configure(Element element) throws Exception {
-		super.configure(element);
-		
-		try {
-			newPriority = new Long(element.getAttribute("newPriority")).longValue();
-			if (newPriority != priority) newPriority = priority;
-		}
-		catch(Exception e) {
-			throw new Exception("Missing \"newPriority\" attribute");
 		}
 	}
 	
@@ -248,7 +231,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
      */
     @Override
     public Object getOrderedValue() {
-    	return new Long(priority);
+    	return priority;
     }    
 
 	public Sequence getParentSequence() {
@@ -643,7 +626,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			if (Engine.logBeans.isDebugEnabled())
 				Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
 			
-			Long key = new Long(priority);
+			Long key = priority;
 			
 			// We fire engine events only in studio mode.
             if (Engine.isStudioMode()) {
@@ -716,30 +699,30 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected transient Object evaluated = null;
 	
-	public static Integer getValueOfInteger(String source) {
+	public static Long stringToLong(String source) {
 		try {
 			if (source.isEmpty()) {
-				return -1;
+				return -1L;
 			}
 			else {
-				return Integer.valueOf(String.valueOf(source), 10);
+				return Long.valueOf(String.valueOf(source), 10);
 			}
 		}
 		catch (NumberFormatException nfe) {}
 		return null;
 	}
 	
-	protected Integer evaluateToInteger(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {
-		Integer value = getValueOfInteger(source);
+	protected long evaluateToLong(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {
+		Long value = stringToLong(source);
 		if (value == null) {
 			evaluate(javascriptContext, scope, source, sourceName, true);
 			if (evaluated instanceof Undefined || evaluated.equals(""))
-				value = -1;
+				value = -1L;
 			else if (evaluated instanceof Number) {
-				value = Integer.valueOf(((Number)evaluated).intValue());
+				value = ((Number)evaluated).longValue();
 			}
 			else {
-				try {value = Integer.valueOf(String.valueOf(evaluated), 10);}
+				try {value = Long.valueOf(String.valueOf(evaluated), 10);}
 				catch (NumberFormatException nfe) {}
 			}
 			if (value == null) {
@@ -793,7 +776,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		String message = null;
 		evaluated = null;
 		try {
-			evaluated = javascriptContext.evaluateString(scope, source, sourceName, 1, null);
+			evaluated = RhinoUtils.evalCachedJavascript(javascriptContext, scope, source, sourceName, 1, null);
 			if (evaluated != null && evaluated instanceof NativeJavaObject) {
 				evaluated = ((NativeJavaObject) evaluated).unwrap();
 			}
@@ -916,19 +899,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	public boolean isGenerateSchema() {
 		return isOutput();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
-	 */
-	@Override
-	public Element toXml(Document document) throws EngineException {
-		Element element =  super.toXml(document);
-		
-        // Storing the object "newPriority" value
-        element.setAttribute("newPriority", new Long(newPriority).toString());
-		
-		return element;
 	}
 
 	public String getSchemaDataType() {

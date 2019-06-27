@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -152,11 +152,6 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 				log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient, I/O error", e);
 			}
 		}
-	}
-
-	public synchronized Ticket peekTicket() throws BillingException {
-		log.warn("(GoogleAnalyticsTicketManager) peekTicket not implemenented");
-		return null;
 	}
 
 	public synchronized void removeTicket(Ticket ticket) throws BillingException {

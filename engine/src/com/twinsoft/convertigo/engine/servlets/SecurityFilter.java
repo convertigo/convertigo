@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -87,7 +87,7 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
     	for (Rule rule: rules) {
     		if (first && Level.INFO.isGreaterOrEqual(level)) {
     			String uri = request.getRequestURI().substring(contextLength);
-    			if (uri.equals("/admin/services/logs.Get")) {
+    			if (uri.endsWith("/services/logs.Get")) {
     				level = Level.OFF;
     			} else {
 	    			sb.append("ip[").append(request.getRemoteAddr()).append("] ");

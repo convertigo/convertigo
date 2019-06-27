@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2018 Convertigo SA.
+ * Copyright (c) 2001-2019 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
@@ -56,6 +57,8 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -138,6 +141,18 @@ public class WalkHelper {
 				}
 			}
 			
+			if (before(databaseObject, UIActionStack.class)) {
+				for (UIActionStack uisa : applicationComponent.getSharedActionList()) {
+					walk(uisa);
+				}
+			}
+			
+			if (before(databaseObject, UISharedComponent.class)) {
+				for (UISharedComponent uisc : applicationComponent.getSharedComponentList()) {
+					walk(uisc);
+				}
+			}
+			
 			if (before(databaseObject, PageComponent.class)) {
 				for (PageComponent page : applicationComponent.getPageComponentList()) {
 					walk(page);
@@ -172,6 +187,22 @@ public class WalkHelper {
 					walk(ui);
 				}
 			}
+		} else if (databaseObject instanceof UIActionStack) {
+			UIActionStack uisa = (UIActionStack)databaseObject;
+			
+			if (before(databaseObject, UIComponent.class)) {
+				for (UIComponent ui : uisa.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof UISharedComponent) {
+			UISharedComponent uisc = (UISharedComponent)databaseObject;
+			
+			if (before(databaseObject, UIComponent.class)) {
+				for (UIComponent ui : uisc.getUIComponentList()) {
+					walk(ui);
+				}
+			}
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			UIDynamicMenu uiMenu = (UIDynamicMenu) databaseObject;
 			
@@ -191,6 +222,12 @@ public class WalkHelper {
 		} else if (databaseObject instanceof UrlMapper) {
 			UrlMapper urlMapper = (UrlMapper) databaseObject;
 
+			if (before(databaseObject, UrlAuthentication.class)) {
+				for (UrlAuthentication authentication : urlMapper.getAuthenticationList()) {
+					walk(authentication);
+				}
+			}
+			
 			if (before(databaseObject, UrlMapping.class)) {
 				for (UrlMapping mapping : urlMapper.getMappingList()) {
 					walk(mapping);

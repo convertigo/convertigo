@@ -12,7 +12,7 @@
             let m:string = props.marker;
             let rvm:string = r + '.' + v + ((m != '' && m!= null) ? '#' + m : '');
             let data = {};
-            
+            let md:boolean = props.noLoading;
             data['docid'] = props['_id'];
             if (props['__live']) {
                 data['__live'] = props['__live']; 
@@ -22,7 +22,7 @@
             
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
-                    page.call("fs://" + rvm, data, null, 500)
+                    page.call("fs://" + rvm, data, null, 500, md)
                     .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
                 })
             });

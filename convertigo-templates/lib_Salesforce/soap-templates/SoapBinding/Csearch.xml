@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:partner.soap.sforce.com">
+   <soapenv:Header>
+      <urn:PackageVersionHeader>
+         <!--Zero or more repetitions:-->
+         <urn:packageVersions>
+            <!--type: {http://www.w3.org/2001/XMLSchema}int-->
+            <urn:majorNumber>$(HEADER_PACKAGEVERSIONHEADER_PACKAGEVERSIONS_MAJORNUMBER)</urn:majorNumber>
+            <!--type: {http://www.w3.org/2001/XMLSchema}int-->
+            <urn:minorNumber>$(HEADER_PACKAGEVERSIONHEADER_PACKAGEVERSIONS_MINORNUMBER)</urn:minorNumber>
+            <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+            <urn:namespace>$(HEADER_PACKAGEVERSIONHEADER_PACKAGEVERSIONS_NAMESPACE)</urn:namespace>
+         </urn:packageVersions>
+      </urn:PackageVersionHeader>
+      <urn:CallOptions>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:client>$(HEADER_CALLOPTIONS_CLIENT)</urn:client>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:defaultNamespace>$(HEADER_CALLOPTIONS_DEFAULTNAMESPACE)</urn:defaultNamespace>
+      </urn:CallOptions>
+      <urn:SessionHeader>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:sessionId>$(HEADER_SESSIONHEADER_SESSIONID)</urn:sessionId>
+      </urn:SessionHeader>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:search>
+         <!--type: {http://www.w3.org/2001/XMLSchema}string-->
+         <urn:searchString>$(BODY_SEARCH_SEARCHSTRING)</urn:searchString>
+      </urn:search>
+   </soapenv:Body>
+</soapenv:Envelope>
