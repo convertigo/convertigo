@@ -193,7 +193,7 @@ h3 {
 }
 
 .bgHeader {
-	background-color: #757575;
+	background-color: #252526;
 	padding: 24px 0 0 98px;
 	width: 209px;
 	height: 60px;
@@ -201,7 +201,7 @@ h3 {
 }
 
 .connectivity {
-	background: #757575 url(bg_header_connectivity.png) no-repeat left top;
+	background: #252526 url(bg_header_connectivity.png) no-repeat left top;
 }
 
 /* .fix {top:1290px!important;position:absolute;} */
@@ -209,20 +209,20 @@ h3 {
 /* .fix2 {top:1290px!important;position:absolute;right:647px!important} */
 
 .fullsync {
-	background: #757575 url(bg_header_sync.png) no-repeat left top;
+	background: #252526 url(bg_header_sync.png) no-repeat left top;
 }
 
 
 .businessLogic {
-	background: #757575 url(bg_header_businessLogic.png) no-repeat left top;
+	background: #252526 url(bg_header_businessLogic.png) no-repeat left top;
 }
 
 .mobileFrontend {
-	background: #757575 url(bg_header_mobileFrontend.png) no-repeat left top;
+	background: #252526 url(bg_header_mobileFrontend.png) no-repeat left top;
 }
 
 .bgContent {
-	background: #757575;
+	background: #252526;
 	padding: 0px 25px 5px 25px;
 	width: 257px;
 	border-radius: 0px 0px 4px 4px;
@@ -337,14 +337,14 @@ table.maxwidth {
 }
 
 .info {
-	background-color: #d6effc;
+	background-color: #252526;
 	padding: 10px;
 	text-align: left;
 	margin: 0 15px;
 	border-radius: 15px;
 	font-size: 16px;
 	line-height: 30px;
-	color: #04baee;
+	color: #5dd3f1;
 }
 
 .info2 {
