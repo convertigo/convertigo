@@ -17,8 +17,8 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.6.0'
-ext.convertigoTag = ''
+ext.convertigoVersion = '7.6.1'
+ext.convertigoTag = 'beta'
 ext.convertigoCodename = 'osmium'
 ext.convertigoCode = 'Os'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
@@ -277,36 +277,18 @@ task updateEclipseProduct(type: Copy) {
 	}
 	
 	from 'eclipse-repository/Convertigo.product.tpl'
-	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText) }
+	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText).replace('@convertigoVersion@', convertigoVersion) }
 	into 'eclipse-repository'
 	rename '.*', 'Convertigo.product'
 }
 
-task updateEclipseVersion(type: Exec, dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
+task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
 	group 'convertigo'
-	
-	def pom = file('pom-commons.xml')
-	def pom32 = file('pom-32.xml')
-	
-	onlyIf { !pom.text.contains("${convertigoVersion}-SNAPSHOT") }
-	
 	doFirst {
-		file('pom.xml').bytes = pom.bytes
+		fileTree(dir: '.', include: '*/pom.xml').files.plus([file('pom-32.xml'), file('pom-commons.xml')]).each {
+			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
+		}
 	}
-	
-	doLast {
-		pom.text = pom.text.replaceFirst('(<!-- SET-VERSION -->		<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
-		pom32.text = pom32.text.replaceFirst('(<!-- SET-VERSION -->		<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
-		file('pom.xml').delete()
-	}
-	
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine 'cmd', '/c', 'mvn'
-	} else {
-		commandLine 'mvn'
-	}
-	
-	args "-DnewVersion=${convertigoVersion}-SNAPSHOT", 'org.eclipse.tycho:tycho-versions-plugin:1.0.0:set-version'
 }
 
 task buildStudioClean(type: Delete) {

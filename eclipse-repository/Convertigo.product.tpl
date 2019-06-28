@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Convertigo Studio" uid="com.convertigo.studio" id="com.twinsoft.convertigo.studio.product.ConvertigoProduct" application="org.eclipse.ui.ide.workbench" version="7.6.0.qualifier" useFeatures="true" includeLaunchers="true">
+<product name="Convertigo Studio" uid="com.convertigo.studio" id="com.twinsoft.convertigo.studio.product.ConvertigoProduct" application="org.eclipse.ui.ide.workbench" version="@convertigoVersion@.qualifier" useFeatures="true" includeLaunchers="true">
 
    <aboutInfo>
       <image path="images/about.png"/>
@@ -53,7 +53,7 @@
    </plugins>
 
    <features>
-      <feature id="com.twinsoft.convertigo.studio.feature" version="7.6.0.qualifier"/>
+      <feature id="com.twinsoft.convertigo.studio.feature" version="@convertigoVersion@.qualifier"/>
       <feature id="org.eclipse.e4.rcp"/>
       <feature id="org.eclipse.ecf.core.feature"/>
       <feature id="org.eclipse.ecf.core.ssl.feature"/>

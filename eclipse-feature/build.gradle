@@ -19,7 +19,7 @@ task updateFeature(type: Copy) {
 	}
 	
 	from 'feature.xml.tpl'
-	filter { it.replace('@CURRENT_YEAR@', currentYear).replace('@licenseText@', licenseText) }
+	filter { it.replace('@CURRENT_YEAR@', currentYear).replace('@licenseText@', licenseText).replace('@convertigoVersion@', convertigoVersion) }
 	into '.'
 	rename '.*', 'feature.xml'
 }
