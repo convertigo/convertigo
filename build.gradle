@@ -250,7 +250,7 @@ task buildStudio(type: Exec, dependsOn: ['buildStudio32']) {
 	args 'install'
 }
 
-task updateEclipseProduct(type: Copy) {
+task updateEclipseProduct(type: Copy, dependsOn: ['updateEclipseCategory']) {
 	group 'convertigo'
 	
 	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')
@@ -280,6 +280,19 @@ task updateEclipseProduct(type: Copy) {
 	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText).replace('@convertigoVersion@', convertigoVersion) }
 	into 'eclipse-repository'
 	rename '.*', 'Convertigo.product'
+}
+
+task updateEclipseCategory(type: Copy) {
+	group 'convertigo'
+	
+	inputs.properties(
+		'convertigoVersion': convertigoVersion
+	)
+	
+	from 'eclipse-repository/category.xml.tpl'
+	filter { it.replace('@convertigoVersion@', convertigoVersion) }
+	into 'eclipse-repository'
+	rename '.*', 'category.xml'
 }
 
 task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
