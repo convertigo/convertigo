@@ -603,7 +603,8 @@ public class ComponentManager {
 				else if (dboParent instanceof UISharedComponent) {
 					if (UIText.class.isAssignableFrom(dboClass) ||
 						UICustom.class.isAssignableFrom(dboClass) ||
-						UIElement.class.isAssignableFrom(dboClass)) {
+						UIElement.class.isAssignableFrom(dboClass) ||
+						UIPageEvent.class.isAssignableFrom(dboClass)) {
 						if (!IAction.class.isAssignableFrom(dboClass)) {
 							return true;
 						}

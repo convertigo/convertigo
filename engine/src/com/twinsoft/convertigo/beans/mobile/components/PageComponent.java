@@ -301,10 +301,13 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 
 	public List<UIPageEvent> getUIPageEventList() {
+		Set<UIComponent> done = new HashSet<>();
 		List<UIPageEvent> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
 			if (uiComponent instanceof UIPageEvent) {
 				eventList.add((UIPageEvent) uiComponent);
+			} else {
+				uiComponent.addPageEvent(done, eventList);
 			}
 		}
 		return eventList;

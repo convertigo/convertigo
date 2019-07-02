@@ -244,6 +244,14 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	markAsDirty();
 	}
 
+	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIUseShared) {
+				uiComponent.addPageEvent(done, eventList);
+			}
+		}
+	}
+	
 	public List<UIComponent> getUIComponentList() {
 		checkSubLoaded();
 		return sort(vUIComponents);
