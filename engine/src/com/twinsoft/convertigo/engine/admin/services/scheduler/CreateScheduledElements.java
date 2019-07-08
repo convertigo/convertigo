@@ -138,7 +138,7 @@ public class CreateScheduledElements extends XmlService {
 						
 						for (String jobname : request.getParameterValues("jobsname")) {
 							AbstractJob jobToAdd = schedulerXML.getJob(jobname);
-							if (jobToAdd != null && jgj.checkNoRecurse(jobToAdd)) {
+							if (jobToAdd != null) {
 								jgj.addJob(jobToAdd);
 							}
 						}

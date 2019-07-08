@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.beans.scheduler;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -54,13 +57,24 @@ public class JobGroupJob extends AbstractJob {
 		jobGroup.clear();
 	}
 	
-	public boolean checkNoRecurse(AbstractJob job){
-		if(this.compareTo(job)==0)return false;
-		for(AbstractJob subjob : jobGroup){
-			if(subjob instanceof JobGroupJob)
-				if(!((JobGroupJob)subjob).checkNoRecurse(job)) return false;
+	public void checkProblems(List<String> problems) {
+		super.checkProblems(problems);
+		Set<JobGroupJob> all = new HashSet<>();
+		if (checkNoRecurse(all)) {
+			problems.add("jobGroup recursion detected");
 		}
-		return true;
+	}
+	
+	public boolean checkNoRecurse(Set<JobGroupJob> all) {
+		boolean recurse = !all.add(this);
+		if (!recurse) {
+			for (AbstractJob job : jobGroup) {
+				if (job instanceof JobGroupJob && !recurse) {
+					recurse = ((JobGroupJob) job).checkNoRecurse(all);
+				}
+			}
+		}
+		return recurse;
 	}
 
 	public int getParallelJob() {
