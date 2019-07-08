@@ -22,7 +22,7 @@ ext.convertigoTag = 'beta'
 ext.convertigoCodename = 'iridium'
 ext.convertigoCode = 'Ir'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-ext.jxBrowserVersion = '6.23.1'
+ext.jxBrowserVersion = '7.0'
 ext.swaggerUiVersion = '3.19.3'
 
 ext.convertigoEngineAPI = '7.6.0-SNAPSHOT'

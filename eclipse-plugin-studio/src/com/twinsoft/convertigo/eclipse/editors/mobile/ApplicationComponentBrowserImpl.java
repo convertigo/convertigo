@@ -19,23 +19,20 @@
 
 package com.twinsoft.convertigo.eclipse.editors.mobile;
 
-import com.teamdev.jxbrowser.chromium.JSObject;
+import com.teamdev.jxbrowser.js.JsAccessible;
+import com.teamdev.jxbrowser.js.JsObject;
 
-public class ApplicationComponentBrowserImpl implements ApplicationComponentBrowserInterface {
-	ApplicationComponentBrowserInterface i;
+public class ApplicationComponentBrowserImpl {
 
-	public ApplicationComponentBrowserImpl(ApplicationComponentBrowserInterface i) {
-		this.i = i;
+	public ApplicationComponentBrowserImpl() {
 	}
 	
-	@Override
-	public void onDragOver(JSObject o) {
-		i.onDragOver(o);
+	@JsAccessible
+	public void onDragOver(JsObject o) {
 	}
 
-	@Override
-	public void onDrop(JSObject o) {
-		i.onDrop(o);
+	@JsAccessible
+	public void onDrop(JsObject o) {
 	}
 
 }

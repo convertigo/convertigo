@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -77,19 +76,17 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
-import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
-import com.teamdev.jxbrowser.chromium.ContextMenuParams;
-import com.teamdev.jxbrowser.chromium.JSFunction;
-import com.teamdev.jxbrowser.chromium.JSObject;
-import com.teamdev.jxbrowser.chromium.JSValue;
-import com.teamdev.jxbrowser.chromium.dom.By;
-import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
-import com.teamdev.jxbrowser.chromium.dom.DOMElement;
-import com.teamdev.jxbrowser.chromium.dom.DOMNode;
-import com.teamdev.jxbrowser.chromium.dom.DOMNodeAtPoint;
-import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
-import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
+import com.teamdev.jxbrowser.browser.Browser;
+import com.teamdev.jxbrowser.browser.callback.InjectJsCallback;
+import com.teamdev.jxbrowser.browser.callback.InjectJsCallback.Response;
+import com.teamdev.jxbrowser.browser.callback.ShowContextMenuCallback;
+import com.teamdev.jxbrowser.dom.Document;
+import com.teamdev.jxbrowser.dom.Element;
+import com.teamdev.jxbrowser.dom.Node;
+import com.teamdev.jxbrowser.frame.Frame;
+import com.teamdev.jxbrowser.js.JsAccessible;
+import com.teamdev.jxbrowser.js.JsObject;
+import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -350,20 +347,25 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		c8oBrowser.setLayoutData(browserGD);
 
 		browser = c8oBrowser.getBrowser();
-		debugUrl = browser.getRemoteDebuggingURL();
+		debugUrl = c8oBrowser.getDebugUrl();
 		
-		final ApplicationComponentBrowserImpl browserInterface = new ApplicationComponentBrowserImpl(
-				new ApplicationComponentBrowserInterface() {
-			
+		final ApplicationComponentBrowserImpl browserInterface = new ApplicationComponentBrowserImpl() {
+
 			@Override
-			public void onDragOver(JSObject o) {
-				int x = o.getProperty("screenX").asNumber().getInteger();
-				int y = o.getProperty("screenY").asNumber().getInteger();
-				highlightPoint(x, y);
+			@JsAccessible
+			public void onDragOver(JsObject o) {
+				try {
+					double x = (Double) o.property("screenX").get();
+					double y = (Double) o.property("screenY").get();
+					highlightPoint((int) x, (int) y);
+				} catch (Exception e) {
+					onDrop(o);
+				}
 			}
 
 			@Override
-			public void onDrop(JSObject o) {
+			@JsAccessible
+			public void onDrop(JsObject o) {
 				try {
 					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 					DatabaseObject target = exHighlightMobileComponent;
@@ -380,7 +382,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					c8oBrowser.getDisplay().asyncExec(() -> {
 						boolean autoBuild = false;
 						MobileBuilder mb = null;
-						
+
 						Engine.logStudio.info("---------------------- Drop started ----------------------");
 						try {
 							IEditorPart editorPart = ApplicationComponentEditor.this;
@@ -394,7 +396,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 									mb.setAutoBuild(false);
 								}
 							}
-							
+
 							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
 							TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
 							BatchOperationHelper.start();
@@ -405,7 +407,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 							Engine.logStudio.debug("Failed to drop: " + e.getMessage());
 						} finally {
 							PaletteSourceTransfer.getInstance().setPaletteSource(null);
-							
+
 							Engine.logStudio.info("---------------------- Drop ended   ----------------------");
 							if (mb != null) {
 								if (autoBuild) {
@@ -417,49 +419,44 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				} catch (Exception e) {
 				}
 			}
-		});
+		};
 		
-		
-		browser.addScriptContextListener(new ScriptContextAdapter() {
-
-			@Override
-			public void onScriptContextCreated(ScriptContextEvent event) {
-				String url = browser.getURL();
-				if (baseUrl != null && url.startsWith(baseUrl)) {
-					try {
-						JSObject sessionStorage = browser.executeJavaScriptAndReturnValue("sessionStorage").asObject();
-						JSFunction setItem = sessionStorage.getProperty("setItem").asFunction();
-						browser.executeJavaScript(
-							""//"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
-							+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
-							+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
-						);
-						setItem.invoke(sessionStorage, "_c8ocafsession_storage_mode", "session");
-						if (!dataset.equals("none")) {
-							String json = FileUtils.readFileToString(new File(datasetDir, dataset + ".json"), "UTF-8");
-							setItem.invoke(sessionStorage, "_c8ocafsession_storage_data", json);
-						} else {
-							setItem.invoke(sessionStorage, "_c8ocafsession_storage_data", null);
-						}
-						JSObject window = browser.executeJavaScriptAndReturnValue("window").asObject();
-						window.setProperty("java", browserInterface);
-					} catch (IOException e) {
-						Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
+		browser.set(InjectJsCallback.class, params -> {
+		    String url = params.frame().browser().url();
+			if (baseUrl != null && url.startsWith(baseUrl)) {
+				try {
+					Frame frame = params.frame();
+					JsObject sessionStorage = frame.executeJavaScript("sessionStorage");
+					frame.executeJavaScript(
+						""//"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
+						+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
+						+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
+					);
+					sessionStorage.call("setItem", "_c8ocafsession_storage_mode", "session");
+					if (!dataset.equals("none")) {
+						String json = FileUtils.readFileToString(new File(datasetDir, dataset + ".json"), "UTF-8");
+						sessionStorage.call("setItem", "_c8ocafsession_storage_data", json);
+					} else {
+						sessionStorage.call("setItem", "_c8ocafsession_storage_data", null);
 					}
+					JsObject window = frame.executeJavaScript("window");
+					window.putProperty("java", browserInterface);
+				} catch (Exception e) {
+					Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
 				}
-				browser.setZoomLevel(zoomFactor.zoomLevel());
-				super.onScriptContextCreated(event);
 			}
-			
+//			browser.setZoomLevel(zoomFactor.zoomLevel());
+		    return Response.proceed();
 		});
 		
-		browser.setContextMenuHandler(new ContextMenuHandler() {
-			
-			@Override
-			public void showContextMenu(ContextMenuParams ctx) {
-				java.awt.Point location = ctx.getLocation();
-				highlightPoint(location.x, location.y);
-			}
+		browser.set(ShowContextMenuCallback.class, (params, tell) -> {
+			com.teamdev.jxbrowser.ui.Point location = params.location();
+			highlightPoint(location.x(), location.y());
+			tell.close();
+		});
+		
+		browser.engine().permissions().set(RequestPermissionCallback.class, (params, tell) -> {
+			tell.grant();
 		});
 	}
 	
@@ -758,9 +755,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				C8oBrowser.run(() -> {
-					int index = browser.getCurrentNavigationEntryIndex();
+					int index = browser.navigation().currentEntryIndex();
 					if (index > 2) {
-						browser.goBack();
+						browser.navigation().goBack();
 					}
 				});
 			}
@@ -778,7 +775,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			public void widgetSelected(SelectionEvent e) {
 				exHighlightElement = null;
 				exHighlightMobileComponent = null;
-				C8oBrowser.run(() -> browser.executeJavaScript("_c8o_remove_all_overlay()"));
+				C8oBrowser.run(() -> browser.mainFrame().get().executeJavaScript("_c8o_remove_all_overlay()"));
 			}
 			
 		});
@@ -805,7 +802,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				C8oBrowser.run(() -> {
-					String url = browser.getURL();
+					String url = browser.url();
 					if (url.startsWith("http")) {
 						org.eclipse.swt.program.Program.launch(url);
 					}
@@ -993,9 +990,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				} while (!extra.isEmpty());
 				
 				C8oBrowser.run(() -> {
-					JSValue value = browser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
+					String value = browser.mainFrame().get().executeJavaScript("sessionStorage._c8ocafsession_storage_data");
 					try {
-						FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value.asString().getValue()).toString(2), "UTF-8");
+						FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value).toString(2), "UTF-8");
 						toast("Dataset '" + name[0] + "' saved !");
 						dataset = name[0];
 					} catch (Exception e1) {
@@ -1122,8 +1119,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		c8oBrowser.getParent().layout();
 		
 		C8oBrowser.run(() -> {
-			browser.executeJavaScript("try {_c8o_remove_all_overlay()} catch(e){}");
-			browser.setZoomLevel(zoomFactor.zoomLevel());
+			browser.mainFrame().get().executeJavaScript("try {_c8o_remove_all_overlay()} catch(e){}");
+			browser.zoom().level(zoomFactor.zoomLevel());			
 		});
 	}
 	
@@ -1134,10 +1131,11 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	
 	private void appendOutput(String... msg) {
 		C8oBrowser.run(() -> {
-			if (browser.getURL().equals("about:blank")) {
+			if (browser.url().equals("about:blank")) {
 				try {
 					for (String m: msg) {
-						browser.executeJavaScriptAndReturnValue("loader_log").asFunction().invokeAsync(null, m);
+						Object o = ((JsObject) browser.mainFrame().get().executeJavaScript("window")).call("loader_log", m);
+						if (o != null) o.toString();
 					}
 				} catch (Exception e) {
 					// silently ignore
@@ -1149,7 +1147,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	private void toast(String msg) {
 		Engine.logStudio.info("[Toast] " + msg);
 		C8oBrowser.run(() -> {
-			browser.executeJavaScriptAndReturnValue("_c8o_toast").asFunction().invokeAsync(null, msg);
+			((JsObject) browser.mainFrame().get().executeJavaScript("window")).call("_c8o_toast", msg);
 		});
 	}
 	
@@ -1372,8 +1370,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				if (pagePath != null) {
 					url += "#/" + pagePath;
 				}
-				if (!browser.getURL().equals(url)) {
-					browser.loadURL(url);
+				if (!browser.url().equals(url)) {
+					browser.navigation().loadUrl(url);
 				}
 			});
 		}
@@ -1388,22 +1386,23 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		doLoad();
 	}
 	
-	private DOMElement exHighlightElement = null;
+	private Element exHighlightElement = null;
 	private MobileComponent exHighlightMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint((int) Math.round(x * dpiFactorX), (int) Math.round(y * dpiFactorY));
-		DOMNode node = nodeAP.getNode();
-		while (!(node == null || node instanceof DOMElement)) {
-			node = node.getParent();
+		Node node = browser.mainFrame().get().inspect((int) Math.round(x * dpiFactorX), (int) Math.round(y * dpiFactorY)).node().get();
+//		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint((int) Math.round(x * dpiFactorX), (int) Math.round(y * dpiFactorY));
+//		DOMNode node = nodeAP.getNode();
+		while (!(node == null || node instanceof Element)) {
+			node = node.parent().get();
 		}
 		while (node != null) {
-			DOMElement element = (DOMElement) node;
+			Element element = (Element) node;
 			if (element.equals(exHighlightElement)) {
 				return;
 			}
 			exHighlightElement = element;
-			String classes = element.getAttribute("class");
+			String classes = element.attributeValue("class");
 			Matcher mPriority = pPriority.matcher(classes);
 			if (mPriority.find()) {
 				try {
@@ -1432,7 +1431,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					e.printStackTrace();							
 				}
 			} else {
-				node = node.getParent();
+				node = node.parent().get();
 			}
 		}
 	}
@@ -1445,9 +1444,9 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					selectPage(pageComponent.getSegment());
 				}
 			}
-			DOMDocument doc = browser.getDocument();
+			Document doc = browser.mainFrame().get().document().get();
 			MobileComponent mc = mobileComponent;
-			while (doc.findElements(By.className("class" + mc.priority)).isEmpty()) {
+			while (doc.findElementsByClassName("class" + mc.priority).isEmpty()) {
 				DatabaseObject parent = mc.getParent();
 				if (parent instanceof MobileComponent) {
 					mc = (MobileComponent) parent;
@@ -1455,14 +1454,14 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					return;
 				}
 			}
-			browser.executeJavaScript("_c8o_highlight_class('class" + mc.priority + "');");
+			browser.mainFrame().get().executeJavaScript("_c8o_highlight_class('class" + mc.priority + "');");
 		});
 	}
 	
 	private void doReload() {
 		C8oBrowser.run(() -> {
-			if (!browser.getURL().equals("about:blank")) {
-				browser.reload();
+			if (!browser.url().equals("about:blank")) {
+				browser.navigation().reload();
 			}
 		});
 	}
