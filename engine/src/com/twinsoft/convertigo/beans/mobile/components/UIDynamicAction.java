@@ -302,7 +302,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 
 	protected StringBuilder initProps(boolean forTemplate) {
-		return new StringBuilder();
+		String tplVersion = getTplVersion();
+		tplVersion = tplVersion == null ? "" : tplVersion;
+		
+		StringBuilder sbProps = new StringBuilder();
+		sbProps.append("tplVersion").append(": ").append("'"+ tplVersion +"'");
+		return sbProps;
 	}
 	
 	protected String computeActionInputs(boolean forTemplate) {

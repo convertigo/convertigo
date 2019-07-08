@@ -19,10 +19,19 @@
             }
             
             C8oCafUtils.merge(data, vars);
+           
+            let args = [];
+            let version:string = props.tplVersion ? props.tplVersion : '';
+            if (version.localeCompare("7.6.0.0") >= 0) {
+                args.push("fs://" + rvm, data, null, 500, md)
+            } else {
+                args.push("fs://" + rvm, data, null, 500)
+            }
             
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
-                    page.call("fs://" + rvm, data, null, 500, md)
+                    //page.call("fs://" + rvm, data, null, 500, md)
+                    page['call'].apply(page, args)
                     .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
                 })
             });

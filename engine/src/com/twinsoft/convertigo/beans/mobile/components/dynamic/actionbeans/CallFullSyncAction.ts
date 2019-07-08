@@ -12,7 +12,16 @@
             let m:string = props.marker;
             let rvm:string = r + '.' + v + (m != '' ? '#':'')+ m;
             let md:boolean = props.noLoading;
-            page.call("fs://" + rvm,C8oCafUtils.merge({},vars),null,500, md)
+        
+            let args = [];
+            let version:string = props.tplVersion ? props.tplVersion : '';
+            if (version.localeCompare("7.6.0.0") >= 0) {
+                args.push("fs://" + rvm,C8oCafUtils.merge({},vars),null,500, md)
+            } else {
+                args.push("fs://" + rvm,C8oCafUtils.merge({},vars),null,500)
+            }
+            //page.call("fs://" + rvm,C8oCafUtils.merge({},vars),null,500, md)
+            page['call'].apply(page, args)
             .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
         });
     }
