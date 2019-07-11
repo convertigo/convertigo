@@ -83,6 +83,7 @@ import com.teamdev.jxbrowser.chromium.ContextMenuParams;
 import com.teamdev.jxbrowser.chromium.JSFunction;
 import com.teamdev.jxbrowser.chromium.JSObject;
 import com.teamdev.jxbrowser.chromium.JSValue;
+import com.teamdev.jxbrowser.chromium.PermissionStatus;
 import com.teamdev.jxbrowser.chromium.dom.By;
 import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
 import com.teamdev.jxbrowser.chromium.dom.DOMElement;
@@ -460,6 +461,10 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				java.awt.Point location = ctx.getLocation();
 				highlightPoint(location.x, location.y);
 			}
+		});
+		
+		browser.setPermissionHandler((request) -> {
+			return PermissionStatus.GRANTED;
 		});
 	}
 	
