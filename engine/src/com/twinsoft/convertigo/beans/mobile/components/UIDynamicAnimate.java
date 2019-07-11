@@ -100,7 +100,7 @@ public class UIDynamicAnimate extends UIDynamicAction {
 	
 	@Override
 	protected StringBuilder initProps(boolean forTemplate) {
-		StringBuilder sbProps = new StringBuilder();
+		StringBuilder sbProps = super.initProps(forTemplate); //new StringBuilder();
 		
 		String animatableId = getAnimatableId();
 		

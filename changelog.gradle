@@ -33,6 +33,7 @@ task makeChangelog {
 		def redo = true
 		def changelog = ''
 		def addAtTheEnd = ''
+		def good_version = false
 		
 		def handleCategory = { line, inc, key, name ->
 			inc *= 5
@@ -55,8 +56,10 @@ task makeChangelog {
 					changelog += "#### ${name}:\n\n"
 					state += 2
 					redo = true
-				} else {
+				} else if (good_version) {
 					state += 3
+				} else {
+					state += 5
 				}
 			} else if (state == 4 + inc) { // filter new feature
 				if (line.isEmpty()) {
@@ -90,11 +93,12 @@ task makeChangelog {
 		changelog_file.eachLine {
 			redo = true
 			while (redo) {
-				redo = false
 				if (state == 0) { // search version
+					redo = false
 					def m = (it =~ /## (.*)/)
 					if (m.matches()) {
 						if (m[0][1] == convertigoVersion) {
+							good_version = true
 							state += 1
 						} else {
 							changelog += "## $convertigoVersion\n\n"
@@ -115,6 +119,7 @@ task makeChangelog {
 					redo = true
 				} else {
 					changelog += "${it}\n"
+					redo = false
 				}
 			}
 		}

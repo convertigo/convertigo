@@ -38,9 +38,19 @@
             
             C8oCafUtils.merge(options, vars);
             let md:boolean = props.noLoading;
+            
+            let args = [];
+            let version:string = props.tplVersion ? props.tplVersion : '';
+            if (version.localeCompare("7.6.0.0") >= 0) {
+                args.push("fs://" + rvm, options, null, 500, md)
+            } else {
+                args.push("fs://" + rvm, options, null, 500)
+            }
+            
             page.getInstance(Platform).ready().then(() => {     // We may need the CBL plugin so wait for platform ready.
                 page.c8o.finalizeInit().then(()=>{              // To be sure that FullSync initialized properly on CBL
-                    page.call("fs://" + rvm, options, null, 500, md)
+                    //page.call("fs://" + rvm, options, null, 500, md)
+                    page['call'].apply(page, args)
                     .then((res:any) => {resolve(res)}).catch((error:any) => {
                         page.c8o.log.error("An error occured while executing view '" + ddoc + "/" + view +
                                 "'. One of the most common causes is that the view was not found in local database because data has not been synchronized.")

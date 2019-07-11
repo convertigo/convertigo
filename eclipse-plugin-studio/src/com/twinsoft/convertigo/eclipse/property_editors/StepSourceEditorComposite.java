@@ -58,6 +58,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 
 	private static boolean stepFound;
 	private static TreeItem stepItem = null;
+	private static String noPreviousLabelText = "no previous step is available for source selection";
 	
 	private Step sourceStep = null;
 	private String sourceXpath = null;
@@ -75,6 +76,16 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 			
 			@Override
 			protected String onDisplayXhtml(String xpath) {
+
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						enableOK(true);
+						noPreviousLabel.setText(noPreviousLabelText);
+						noPreviousLabel.setVisible(false);
+					}
+				});
+				
 				if (lastSelectedItem == null) {
 					sourceStep = step;
 					sourceXpath = xpath;
@@ -86,10 +97,22 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 					if (sourceXpath == null)
 						sourceXpath = xpath;
 				}
-
+				
 				xpath = ((!sourceChanged || (step.priority == sourceStep.priority)) ? sourceXpath:".");
-				enableOK(true);
 				return xpath;
+			}
+
+			@Override
+			public void displayTargetWsdlDom(DatabaseObject dbo) {
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						enableOK(false);
+						noPreviousLabel.setText("        WAITING FOR SCHEMAS GENERATION.........");
+						noPreviousLabel.setVisible(true);
+					}
+				});
+				super.displayTargetWsdlDom(dbo);
 			}
 		};
 		
@@ -169,7 +192,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 		
 		noPreviousLabel = new Label(this, SWT.NONE);
 		noPreviousLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
-		noPreviousLabel.setText("no previous step is available for source selection");
+		noPreviousLabel.setText(noPreviousLabelText);
 		
 		GridData gd = new GridData ();
 		gd.horizontalSpan = 6;

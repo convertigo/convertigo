@@ -1482,7 +1482,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	}
 	
 	private void terminateNode() {
-		String projectName = applicationEditorInput.application.getProject().getName();
+		String projectName = new File(applicationEditorInput.application.getProject().getDirPath()).getName();
 		int retry = 10;
 		try {
 			while (retry-- > 0) {

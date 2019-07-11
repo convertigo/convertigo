@@ -35,11 +35,16 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -80,47 +85,83 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		return xpath;
 	}
 	
-	public void displayTargetWsdlDom(DatabaseObject dbo) {
+	public void displayTargetWsdlDom(final DatabaseObject dbo) {
 		try {
-			if (dbo instanceof Step) {
-				Step step = (Step)dbo;
-				String xpath = getSourceXPath();
-				String anchor = step.getAnchor();
-				Document stepDoc = null;
-				
-				Step targetStep = step;
-				while (targetStep instanceof IteratorStep) {
-					targetStep = getTargetStep(targetStep);
+			Display.getDefault().asyncExec(new Runnable() {
+				public void run() {
+					Display display = Display.getDefault();
+					Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+					
+					Shell shell = getParentShell();
+					shell.setCursor(waitCursor);
+					
+					boolean needToClean = true;
+					try {
+						if (dbo instanceof Step) {
+							Step step = (Step)dbo;
+							String xpath = getSourceXPath();
+							String anchor = step.getAnchor();
+							Document stepDoc = null;
+							
+							Step targetStep = step;
+							while (targetStep instanceof IteratorStep) {
+								targetStep = getTargetStep(targetStep);
+							}
+							
+							if (targetStep != null) {
+								Project project = step.getProject();
+								String projectName = project.getName();
+								Engine.theApp.schemaManager.getSchemasForProject(projectName);// force schemas generation for project
+								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, Option.fullSchema);
+								XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
+								if (xso != null) {
+									stepDoc = XmlSchemaUtils.getDomInstance(xso);	
+								}
+							}
+							
+							if (stepDoc != null/* && !(targetStep instanceof IteratorStep)*/) { // stepDoc can be null for non "xml" step : e.g jIf
+								Document doc = step.getSequence().createDOM();
+								Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
+								doc.replaceChild(root, doc.getDocumentElement());
+								removeUserDefinedNodes(doc.getDocumentElement());
+								boolean shouldDisplayDom = (!(!step.isXml() && (step instanceof StepWithExpressions) && !(step instanceof IteratorStep)));
+								if ((doc != null) && (shouldDisplayDom)) {
+									needToClean = false;
+									xpath = onDisplayXhtml(xpath);
+									displayXhtml(doc);
+									xpathEvaluator.removeAnchor();
+									xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, xpath);
+								}
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						needToClean = true;
+					} finally {
+						if (needToClean) {
+							clean();
+						}
+						shell.setCursor(null);
+						waitCursor.dispose();
+			        }
 				}
-				
-				if (targetStep != null) {
-					Project project = step.getProject();
-					XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), Option.fullSchema);
-					XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
-					if (xso != null) {
-						stepDoc = XmlSchemaUtils.getDomInstance(xso);	
-					}
-				}
-				
-				if (stepDoc != null/* && !(targetStep instanceof IteratorStep)*/) { // stepDoc can be null for non "xml" step : e.g jIf
-					Document doc = step.getSequence().createDOM();
-					Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
-					doc.replaceChild(root, doc.getDocumentElement());
-					removeUserDefinedNodes(doc.getDocumentElement());
-					boolean shouldDisplayDom = (!(!step.isXml() && (step instanceof StepWithExpressions) && !(step instanceof IteratorStep)));
-					if ((doc != null) && (shouldDisplayDom)) {
-						xpath = onDisplayXhtml(xpath);
-						displayXhtml(doc);
-						xpathEvaluator.removeAnchor();
-						xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, xpath);
-						return;
-					}
-				}
-			}
+			});
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, StringUtils.readStackTraceCauses(e));
+			clean();
 		}
-		clean();
+	}
+	
+	private Shell getParentShell() {
+		IWorkbenchPage activePage = PlatformUI
+										.getWorkbench()
+										.getActiveWorkbenchWindow()
+										.getActivePage();
+		if (activePage != null) {
+			return activePage.getActivePart().getSite().getShell();
+		} else {
+			return ConvertigoPlugin.getMainShell();
+		}
 	}
 	
 	private void removeUserDefinedNodes(Element parent) {
