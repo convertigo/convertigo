@@ -233,7 +233,7 @@ public class ProxyManager {
 	
 	public void setAnonymAuth(HttpState httpState) {
 		// Setting anonym authentication for proxy
-		if ((!this.proxyServer.equals("")) && (!this.proxyUser.equals(""))) {
+		if ((!this.proxyServer.equals("")) && (this.proxyUser.equals(""))) {
 				httpState.setProxyCredentials(
 						new AuthScope(AuthScope.ANY),
 						new Credentials() {

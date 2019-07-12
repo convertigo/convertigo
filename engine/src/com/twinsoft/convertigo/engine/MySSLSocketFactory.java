@@ -51,11 +51,12 @@ import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory;
+import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 
-public class MySSLSocketFactory implements ProtocolSocketFactory {
+public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 	static Map<String, ProtocolSocketFactory> cache = new HashMap<>();
 	static long checkExpires = System.currentTimeMillis() + 300000;
 
