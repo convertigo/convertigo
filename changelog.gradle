@@ -37,14 +37,22 @@ task makeChangelog {
 		
 		def handleCategory = { line, inc, key, name ->
 			inc *= 5
+			redo = false
+			//println "inc $inc ; state $state ; key $key ; name $name ; line $line"
 			if (state == 1 + inc) { // search new feature
 				def m = (line =~ /#### (.*)/)
-				if (m.matches() && m[0][1] == "${name}:") {
-					state += 1
+				if (m.matches()) {
+					if (m[0][1] == "${name}:") {
+						state += 1
+					} else {
+						state += 5
+						return false
+					}
 				} else if (!line.isEmpty()) {
 					state += 2
 					redo = true
 				}
+				
 				if (!redo) {
 					changelog += "${line}\n"
 				}
@@ -110,9 +118,9 @@ task makeChangelog {
 					if (!redo) {
 						changelog += "${it}\n"
 					}
-				} else if (handleCategory(it, 0, 'new feature', 'New Features')) {
-				} else if (handleCategory(it, 1, 'improvement', 'Improvements')) {
-				} else if (handleCategory(it, 2, 'bug', 'Bug Fixes')) {
+				} else if (state <= 5 && handleCategory(it, 0, 'new feature', 'New Features')) {
+				} else if (state <= 10 && handleCategory(it, 1, 'improvement', 'Improvements')) {
+				} else if (state <= 15 && handleCategory(it, 2, 'bug', 'Bug Fixes')) {
 				} else if (state == 16) { // add separator
 					changelog += addAtTheEnd
 					state += 1
