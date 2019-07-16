@@ -6,6 +6,7 @@
 #### Bug Fixes:
 
 - [#17](https://github.com/convertigo/convertigo/issues/17) Fixed, MobileBuilder Treeview component now compile
+- [#138](https://github.com/convertigo/convertigo/issues/138) Fixed, no more pop-up alert after closing a JS Editor in the Studio
 - [#144](https://github.com/convertigo/convertigo/issues/144) Fixed, MobileBuilder can use older MB template projects without compilation failure
 - [#145](https://github.com/convertigo/convertigo/issues/145) Fixed, MobileBuilder Camera action works in the App Viewer
 - [#148](https://github.com/convertigo/convertigo/issues/148) Fixed, no more collapse treeview when add / remove a component to a project
