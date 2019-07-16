@@ -477,8 +477,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
     
     protected void removeObjectsFromScope() {
-    	for(Object id : scope.getIds())
-    		scope.delete((String)id);
+    	if (scope != null) {
+	    	for(Object id : scope.getIds()) {
+	    		scope.delete((String)id);
+	    	}
+    	}
     }
     
     public Requester getRequester() {
@@ -908,6 +911,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				Engine.logContext.debug("(RequestableObject) End of requested object thread");
 
                 synchronized(this) {
+                	if (runningThread == null) {
+                		return;
+                	}
 	            	if (runningThread.bContinue) {
 	    				Engine.logContext.debug("(RequestableObject) Notifying the calling thread '" + callingThread.getName() + "' because of normal request termination");
 	    				runningThread.bContinue = false;

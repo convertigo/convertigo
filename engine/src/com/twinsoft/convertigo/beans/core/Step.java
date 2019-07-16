@@ -598,7 +598,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	final public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		String ts = sequence.context.statistics.start(EngineStatistics.EXECUTE_SEQUENCE_STEPS);
+		EngineStatistics stat = sequence.context.statistics;
+		String ts = stat.start(EngineStatistics.EXECUTE_SEQUENCE_STEPS);
 
 		try {
 			stepInit();
@@ -612,7 +613,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		finally {
 			stepDone();
 			
-			sequence.context.statistics.stop(ts, sequence.getCurrentChildStep() != 0);
+			stat.stop(ts, sequence.getCurrentChildStep() != 0);
 		}
 	}
 
