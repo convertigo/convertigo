@@ -604,7 +604,8 @@ public class ComponentManager {
 					if (UIText.class.isAssignableFrom(dboClass) ||
 						UICustom.class.isAssignableFrom(dboClass) ||
 						UIElement.class.isAssignableFrom(dboClass) ||
-						UIPageEvent.class.isAssignableFrom(dboClass)) {
+						UIPageEvent.class.isAssignableFrom(dboClass) ||
+						UIEventSubscriber.class.isAssignableFrom(dboClass)) {
 						if (!IAction.class.isAssignableFrom(dboClass)) {
 							return true;
 						}

@@ -141,13 +141,26 @@ public class UISharedComponent extends UIComponent implements IShared {
 		}
 		for (UIComponent uic : getUIComponentList()) {
 			try {
-				//uic.cloneSetParent(uiUse).addPageEventList(done, eventList);
 				if (uic instanceof UIPageEvent) {
 					eventList.add((UIPageEvent)uic);
 				}
-			//} catch (CloneNotSupportedException e) {
 			} catch (Exception e) {
-				Engine.logBeans.warn("(UISharedComponent) addPageEvent: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				Engine.logBeans.warn("(UISharedComponent) addPageEvent: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+			}
+		}		
+	}
+
+	public void addEventSubscriber(UIUseShared uiUse, Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
+		for (UIComponent uic : getUIComponentList()) {
+			try {
+				if (uic instanceof UIEventSubscriber) {
+					eventList.add((UIEventSubscriber)uic);
+				}
+			} catch (Exception e) {
+				Engine.logBeans.warn("(UISharedComponent) addEventSubscriber: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
 			}
 		}		
 	}

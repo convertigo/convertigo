@@ -106,6 +106,18 @@ public class UIUseShared extends UIElement {
 		}
 	}
 
+	
+	@Override
+	public void addEventSubscriber(Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		UISharedComponent uisc = getTargetSharedComponent();
+		if (uisc != null) {
+			if (!done.add(this)) {
+				return;
+			}
+			uisc.addEventSubscriber(this, done, eventList);
+		}
+	}
+
 	@Override
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
 		UISharedComponent uisc = getTargetSharedComponent();

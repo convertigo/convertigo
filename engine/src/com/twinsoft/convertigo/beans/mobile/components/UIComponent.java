@@ -252,6 +252,14 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		}
 	}
 	
+	public void addEventSubscriber(Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIUseShared) {
+				uiComponent.addEventSubscriber(done, eventList);
+			}
+		}
+	}
+	
 	public List<UIComponent> getUIComponentList() {
 		checkSubLoaded();
 		return sort(vUIComponents);
