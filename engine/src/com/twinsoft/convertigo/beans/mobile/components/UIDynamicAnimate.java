@@ -103,6 +103,7 @@ public class UIDynamicAnimate extends UIDynamicAction {
 		StringBuilder sbProps = super.initProps(forTemplate); //new StringBuilder();
 		
 		String animatableId = getAnimatableId();
+		boolean isEmpty = animatableId.isEmpty();
 		
 		// animatable property (viewChild identifier)
 		sbProps.append(sbProps.length() > 0 ? ", ":"");
@@ -113,18 +114,18 @@ public class UIDynamicAnimate extends UIDynamicAction {
 		sbProps.append(sbProps.length() > 0 ? ", ":"");
 		sbProps.append("animatable").append(": ");
 		if (forTemplate) {
-			sbProps.append(animatableId.isEmpty() ? "null": animatableId);
+			sbProps.append(isEmpty ? "null": animatableId);
 		} else {
-			sbProps.append(animatableId.isEmpty() ? "null": "scope."+animatableId);
+			sbProps.append(isEmpty ? "null": "scope."+ animatableId + " ? scope."+ animatableId + " : get('animatable',`c8oPage."+ animatableId+"`)");
 		}
 		
 		// animatables property (viewChildren identifier)
 		sbProps.append(sbProps.length() > 0 ? ", ":"");
 		sbProps.append("animatables").append(": ");
 		if (forTemplate) {
-			sbProps.append(animatableId.isEmpty() ? "null": "this.all_"+animatableId);
+			sbProps.append(isEmpty ? "null": "all_"+animatableId);
 		} else {
-			sbProps.append(animatableId.isEmpty() ? "null": "get(`c8oPage.all_"+animatableId+"`)");
+			sbProps.append(isEmpty ? "null": "get('animatables', `c8oPage.all_"+animatableId+"`)");
 		}
 		
 		return sbProps;
