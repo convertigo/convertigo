@@ -23,12 +23,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.part.EditorPart;
+import org.eclipse.wst.jsdt.internal.ui.javaeditor.CompilationUnitEditor;
+import org.eclipse.wst.jsdt.ui.text.JavaScriptTextTools;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IJScriptContainer;
@@ -36,12 +38,12 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
 @SuppressWarnings("restriction")
-public class JScriptEditor extends EditorPart implements IPropertyListener {
+public class JScriptEditor extends CompilationUnitEditor implements IPropertyListener {
 	private IEditorSite eSite;
 	private JScriptEditorInput eInput;
 	private ListenerList<IPropertyListener> listenerList;
 	private IJScriptContainer jsContainer;
-	private MyJScriptEditor jsEditor;
+	private JavaScriptTextTools jstt;
 	
 	public JScriptEditor() {
 		super();
@@ -49,9 +51,9 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 
 	@Override
 	public void dispose() {
-		if (jsEditor != null) {
-			jsEditor.removePropertyListener(this);
-			jsEditor.dispose();
+		removePropertyListener(this);
+		if (jstt != null) {
+			jstt.dispose();
 		}
 		try {
 			eInput.getFile().delete(true, null);
@@ -66,11 +68,11 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 	 * @see org.eclipse.ui.part.EditorPart#doSave(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	public void doSave(IProgressMonitor monitor) {
-		jsEditor.doSave(monitor);
+		super.doSave(monitor);
 		
 		try {
 			// Get the jsEditor content and transfer it to the step object
-			jsContainer.setExpression(jsEditor.getDocumentProvider().getDocument(jsEditor.getEditorInput()).get());
+			jsContainer.setExpression(getDocumentProvider().getDocument(super.getEditorInput()).get());
 		} catch (Exception e) {
 			ConvertigoPlugin.logWarning("Error writing step jscript code '" + eInput.getName() + "' : "+e.getMessage());
 		}
@@ -88,7 +90,7 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 	 * @see org.eclipse.ui.part.EditorPart#doSaveAs()
 	 */
 	public void doSaveAs() {
-		jsEditor.doSaveAs();
+		super.doSaveAs();
 	}
 
 	/*
@@ -97,7 +99,7 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 	 * @see org.eclipse.ui.part.EditorPart#isDirty()
 	 */
 	public boolean isDirty() {
-		return jsEditor.isDirty();
+		return super.isDirty();
 	}
 
 	/*
@@ -113,17 +115,18 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 	 * (non-Javadoc)
 	 */
 	public void createPartControl(Composite parent) {
-		jsEditor = new MyJScriptEditor();
-		jsEditor.setSourceViewerConfiguration();
-		jsEditor.addPropertyListener(this);
+		JavaScriptTextTools jstt = new JavaScriptTextTools(getPreferenceStore());
+		SourceViewerConfiguration configuration = new MyJSEditorSourceViewerConfiguration(jstt.getColorManager(), getPreferenceStore(), this, null);
+		setSourceViewerConfiguration(configuration);
+		addPropertyListener(this);
 		try {
-			jsEditor.init(eSite, eInput);
+			super.init(eSite, eInput);
 		} catch (PartInitException e) {
 			ConvertigoPlugin.logException(e, "Error inialiazing  Javascript editor'" + eInput.getName() + "'");
 		}
-		jsEditor.createPartControl(parent);
+		super.createPartControl(parent);
 		reload();
-		jsEditor.doSave(null);
+		doSave(null);
 	}
 
 	/*
@@ -132,7 +135,7 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
 	 */
 	public void setFocus() {
-		jsEditor.setFocus();
+		super.setFocus();
 	}
 	
 	/*
@@ -142,7 +145,7 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 	 *      org.eclipse.ui.IEditorInput)
 	 */
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {		
-		try {			
+		try {
 			setSite(site);
 			setInput(input);
 			eSite = site;
@@ -183,12 +186,8 @@ public class JScriptEditor extends EditorPart implements IPropertyListener {
 	}
 	
 	public void reload(String toAppend) {
-		IDocument doc = jsEditor.getDocumentProvider().getDocument(getEditorInput());
+		IDocument doc = getDocumentProvider().getDocument(getEditorInput());
 		doc.set(jsContainer.getExpression() + toAppend);
-	}
-
-	public MyJScriptEditor getEditor() {
-		return jsEditor;
 	}
 	
 	public DatabaseObject getDatabaseObject() {
