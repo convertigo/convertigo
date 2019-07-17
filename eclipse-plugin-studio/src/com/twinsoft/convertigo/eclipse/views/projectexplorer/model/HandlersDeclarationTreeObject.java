@@ -33,7 +33,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.jscript.MyJScriptEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
 public class HandlersDeclarationTreeObject extends TreeObject implements IEditableTreeObject {
@@ -110,12 +109,11 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
 		
 		if (editor instanceof JScriptEditor) {
 			JScriptEditor myEditor = (JScriptEditor) editor;
-			MyJScriptEditor jsEditor = myEditor.getEditor();
-			IDocumentProvider provider = jsEditor.getDocumentProvider();
+			IDocumentProvider provider = myEditor.getDocumentProvider();
 			IDocument document = provider.getDocument(editor.getEditorInput());
 			String content = document.get();
 			int index = content.indexOf(handlerName);
-			jsEditor.selectAndReveal(index, handlerName.length());
+			myEditor.selectAndReveal(index, handlerName.length());
 		}
 	}
 

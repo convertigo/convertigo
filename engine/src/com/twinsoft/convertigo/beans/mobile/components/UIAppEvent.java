@@ -84,6 +84,9 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 				return "\t\tplatform."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
 			}
 			if (type.equals(AppEventType.c8oObservable)) {
+				if (this.equals(onSessionLost)) {
+					return "\t\tthis.c8o."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
+				}				
 				if (this.equals(onNetworkReachable)) {
 					return "\t\tthis.c8o."+ event +".subscribe((data) => {if (data == C8oNetworkStatus.Reachable) {this."+ functionName +"(data)}});"+ System.lineSeparator();
 				}

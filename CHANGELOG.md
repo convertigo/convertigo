@@ -2,15 +2,21 @@
 
 ## 7.6.1
 
+
 #### Bug Fixes:
 
-- [#144](https://github.com/convertigo/convertigo/issues/144) Fixed, no more Mobile Builder compilation error for project < 7.6.0
+- [#17](https://github.com/convertigo/convertigo/issues/17) Fixed, MobileBuilder Treeview component now compile
+- [#138](https://github.com/convertigo/convertigo/issues/138) Fixed, no more pop-up alert after closing a JS Editor in the Studio
+- [#144](https://github.com/convertigo/convertigo/issues/144) Fixed, MobileBuilder can use older MB template projects without compilation failure
+- [#145](https://github.com/convertigo/convertigo/issues/145) Fixed, MobileBuilder Camera action works in the App Viewer
 - [#148](https://github.com/convertigo/convertigo/issues/148) Fixed, no more collapse treeview when add / remove a component to a project
 - [#149](https://github.com/convertigo/convertigo/issues/149) Fixed, no more freeze when using the SourcePicker
 - [#152](https://github.com/convertigo/convertigo/issues/152) Fixed, administration of Scheduler can perform rename of elements again
 - [#156](https://github.com/convertigo/convertigo/issues/156) Fixed, prevents infinite loop of Scheduler execution, Jobs Group dependencies cannot be circular 
 - [#157](https://github.com/convertigo/convertigo/issues/157) Fixed, Mobile Builder demos builds out-of-the-box
 - [#159](https://github.com/convertigo/convertigo/issues/159) Fixed, MobileBuilder build can fail if project folder name is different of the projet name
+- [#160](https://github.com/convertigo/convertigo/issues/160) Fixed, the onSessionLost event subscription is now generated in app.component.ts
+- [#161](https://github.com/convertigo/convertigo/issues/161) Fixed, HttpTransaction using SSL for an untrusted certificate will work over a Squid proxy
 
 ---
 
