@@ -33,7 +33,6 @@ public class JScriptEditorInput extends FileEditorInput {
 	
 	static private IFile makeFile(IJScriptContainer jsContainer, IProject project) {
 		String fullname = jsContainer.getFullName();
-		System.out.println("fullname : " + fullname);
 		IFile file = project.getFile("_private/editor." + fullname + ".js");
 		try {
 			if (!file.exists()) {

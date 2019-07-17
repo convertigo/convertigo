@@ -21,13 +21,11 @@ package com.twinsoft.convertigo.eclipse.editors.jscript;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.wst.jsdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.wst.jsdt.ui.text.JavaScriptTextTools;
@@ -38,10 +36,9 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
 @SuppressWarnings("restriction")
-public class JScriptEditor extends CompilationUnitEditor implements IPropertyListener {
+public class JScriptEditor extends CompilationUnitEditor {
 	private IEditorSite eSite;
 	private JScriptEditorInput eInput;
-	private ListenerList<IPropertyListener> listenerList;
 	private IJScriptContainer jsContainer;
 	private JavaScriptTextTools jstt;
 	
@@ -51,7 +48,6 @@ public class JScriptEditor extends CompilationUnitEditor implements IPropertyLis
 
 	@Override
 	public void dispose() {
-		removePropertyListener(this);
 		if (jstt != null) {
 			jstt.dispose();
 		}
@@ -118,7 +114,6 @@ public class JScriptEditor extends CompilationUnitEditor implements IPropertyLis
 		JavaScriptTextTools jstt = new JavaScriptTextTools(getPreferenceStore());
 		SourceViewerConfiguration configuration = new MyJSEditorSourceViewerConfiguration(jstt.getColorManager(), getPreferenceStore(), this, null);
 		setSourceViewerConfiguration(configuration);
-		addPropertyListener(this);
 		try {
 			super.init(eSite, eInput);
 		} catch (PartInitException e) {
@@ -154,30 +149,6 @@ public class JScriptEditor extends CompilationUnitEditor implements IPropertyLis
 			setPartName(jsContainer.getEditorName());
 		} catch (Exception e) {
 			throw new PartInitException("Unable to create JS editor", e);
-		}
-	}
-
-	@Override
-	public void addPropertyListener(IPropertyListener l) {
-		if (listenerList == null) {
-			listenerList = new ListenerList<IPropertyListener>();
-		}
-		listenerList.add(l);
-	}
-
-	@Override
-	public void removePropertyListener(IPropertyListener l) {
-		if (listenerList != null) {
-			listenerList.remove(l);
-		}
-	}
-
-	public void propertyChanged(Object source, int propId) {
-		// When a property from the jsEditor Changes, walk the list all the listeners and notify them.
-		Object listeners[] = listenerList.getListeners();
-		for (int i = 0; i < listeners.length; i++) {
-			IPropertyListener listener = (IPropertyListener) listeners[i];
-			listener.propertyChanged(this, propId);
 		}
 	}
 	

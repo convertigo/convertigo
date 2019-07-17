@@ -94,12 +94,14 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	
 	@Override
 	public String getExpression() {
-		String function = new String(getObject().getStringObject());
+		FunctionObject fun = getObject();
+		String function = fun.getStringObject().replaceFirst("function", "function " + fun.getName());
 		return function;
 	}
 
 	@Override
 	public void setExpression(String function) {
+		function = function.replaceFirst("function [\\S]*? ", "function ");
 		getObject().setStringObject(function);
 		hasBeenModified();
 	}
