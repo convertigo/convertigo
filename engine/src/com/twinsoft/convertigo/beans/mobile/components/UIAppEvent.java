@@ -19,13 +19,12 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -55,7 +54,8 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		onSessionLost("handleSessionLost()", AppEventType.c8oObservable, "7.6.0.2"),
 		onNetworkReachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
 		onNetworkUnreachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
-		onNetworkOffline("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3")
+		onNetworkOffline("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
+		onAutoLogin("handleAutoLoginResponse()", AppEventType.c8oObservable, "7.7.0.1")
 		;
 		
 		String event;
@@ -68,15 +68,15 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		}
 		
 		static String[] getTagsForProperty(String tplVersion) {
-			List<String> tagList = new ArrayList<String>();
+			TreeSet<String> eventSet = new TreeSet<String>();
 			if (tplVersion != null) {
 				for (AppEvent appEvent: AppEvent.values()) {
 					if (MobileBuilder.compareVersions(tplVersion, appEvent.tplVersion) >= 0) {
-						tagList.add(appEvent.name());
+						eventSet.add(appEvent.name());
 					}
 				}
 			}
-			return tagList.toArray(new String[tagList.size()]);
+			return eventSet.toArray(new String[eventSet.size()]);
 		}
 		
 		String computeConstructor(String functionName) {
@@ -96,6 +96,9 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 				if (this.equals(onNetworkOffline)) {
 					return "\t\tthis.c8o."+ event +".subscribe((data) => {if (data == C8oNetworkStatus.Offline) {this."+ functionName +"(data)}});"+ System.lineSeparator();
 				}
+				if (this.equals(onAutoLogin)) {
+					return "\t\tthis.c8o."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
+				}				
 			}
 			if (type.equals(AppEventType.ionicPromise)) {
 				//TODO
