@@ -1403,34 +1403,33 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			finally {
 				// Updating the tree viewer
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						if (parentTreeObject != null) {
+				if (parentTreeObject != null) {
+					Display.getDefault().syncExec(() -> {
 
-							// Reload is complete, notify now for newly added objects
-							Set<Object> done = new HashSet<Object>();
-							for (TreeObject ob: addedTreeObjects) {
-								fireTreeObjectAdded(new TreeObjectEvent(ob, null, null, null, 0, done));
-							}
-							addedTreeObjects.clear();
-							done.clear();
-
-							refreshTreeObject(parentTreeObject);
-
-							// Restore the previously expanded tree objects
-							if (expendedPaths != null) {
-								for (int i=0; i<expendedPaths.length; i++) {
-									String previousPath = expendedPaths[i];
-									TreeObject treeObject = findTreeObjectByPath(parentTreeObject, previousPath);
-									if (treeObject != null)
-										objects[i] = treeObject;
-								}
-
-								viewer.setExpandedElements(objects);
-							}
+						// Reload is complete, notify now for newly added objects
+						Set<Object> done = new HashSet<Object>();
+						for (TreeObject ob: addedTreeObjects) {
+							fireTreeObjectAdded(new TreeObjectEvent(ob, null, null, null, 0, done));
 						}
+						addedTreeObjects.clear();
+						done.clear();
+
+						refreshTreeObject(parentTreeObject);
+					});
+
+					if (expendedPaths != null) {
+						Display.getDefault().asyncExec(() -> {
+							for (int i=0; i<expendedPaths.length; i++) {
+								String previousPath = expendedPaths[i];
+								TreeObject treeObject = findTreeObjectByPath(parentTreeObject, previousPath);
+								if (treeObject != null)
+									objects[i] = treeObject;
+							}
+
+							viewer.setExpandedElements(objects);
+						});
 					}
-				});
+				}
 			}
 		}
 

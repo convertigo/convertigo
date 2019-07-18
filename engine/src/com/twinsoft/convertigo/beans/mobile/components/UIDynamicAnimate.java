@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 public class UIDynamicAnimate extends UIDynamicAction {
@@ -70,28 +72,35 @@ public class UIDynamicAnimate extends UIDynamicAction {
 
 	private String getAnimatableId() {
 		if (!identifiable.isEmpty()) {
-			PageComponent page = getPage();
-			UIDynamicMenu menu = getMenu();
-			
-			DatabaseObject dbo = page != null ? page: (menu != null ? menu : null);
-			if (dbo != null) {
-				Map<String, DatabaseObject> map = new HashMap<String, DatabaseObject>();
+			String p_name = identifiable.substring(0, identifiable.indexOf('.'));
+			Project project = this.getProject();
+			if (project != null) {
+				Project p = null;
 				try {
-					new WalkHelper() {
-						@Override
-						protected void walk(DatabaseObject databaseObject) throws Exception {
-							map.put(databaseObject.getQName(), databaseObject);
-							super.walk(databaseObject);
-						}
-						
-					}.init(dbo);
+					p = p_name.equals(project.getName()) ? project: Engine.theApp.databaseObjectsManager.getOriginalProjectByName(p_name);
 				} catch (Exception e) {
-					e.printStackTrace();
+					Engine.logBeans.warn("(UIDynamicAnimate) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 				}
 				
-				DatabaseObject animatable = map.get(identifiable);
-				if (animatable != null && animatable instanceof UIElement) {
-					return ((UIElement)animatable).getIdentifier();
+				if (p != null) {
+					Map<String, DatabaseObject> map = new HashMap<String, DatabaseObject>();
+					try {
+						new WalkHelper() {
+							@Override
+							protected void walk(DatabaseObject databaseObject) throws Exception {
+								map.put(databaseObject.getQName(), databaseObject);
+								super.walk(databaseObject);
+							}
+							
+						}.init(p);
+						
+						DatabaseObject animatable = map.get(identifiable);
+						if (animatable != null && animatable instanceof UIElement) {
+							return ((UIElement)animatable).getIdentifier();
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -100,9 +109,10 @@ public class UIDynamicAnimate extends UIDynamicAction {
 	
 	@Override
 	protected StringBuilder initProps(boolean forTemplate) {
-		StringBuilder sbProps = new StringBuilder();
+		StringBuilder sbProps = super.initProps(forTemplate); //new StringBuilder();
 		
 		String animatableId = getAnimatableId();
+		boolean isEmpty = animatableId.isEmpty();
 		
 		// animatable property (viewChild identifier)
 		sbProps.append(sbProps.length() > 0 ? ", ":"");
@@ -113,18 +123,18 @@ public class UIDynamicAnimate extends UIDynamicAction {
 		sbProps.append(sbProps.length() > 0 ? ", ":"");
 		sbProps.append("animatable").append(": ");
 		if (forTemplate) {
-			sbProps.append(animatableId.isEmpty() ? "null": animatableId);
+			sbProps.append(isEmpty ? "null": animatableId);
 		} else {
-			sbProps.append(animatableId.isEmpty() ? "null": "scope."+animatableId);
+			sbProps.append(isEmpty ? "null": "scope."+ animatableId + " ? scope."+ animatableId + " : get('animatable',`c8oPage."+ animatableId+"`)");
 		}
 		
 		// animatables property (viewChildren identifier)
 		sbProps.append(sbProps.length() > 0 ? ", ":"");
 		sbProps.append("animatables").append(": ");
 		if (forTemplate) {
-			sbProps.append(animatableId.isEmpty() ? "null": "this.all_"+animatableId);
+			sbProps.append(isEmpty ? "null": "all_"+animatableId);
 		} else {
-			sbProps.append(animatableId.isEmpty() ? "null": "get(`c8oPage.all_"+animatableId+"`)");
+			sbProps.append(isEmpty ? "null": "get('animatables', `c8oPage.all_"+animatableId+"`)");
 		}
 		
 		return sbProps;

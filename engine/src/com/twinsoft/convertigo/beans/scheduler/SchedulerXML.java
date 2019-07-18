@@ -128,13 +128,30 @@ public class SchedulerXML {
 	}
 	
 	public List<String> checkProblems(AbstractBase base) {
-		AbstractBase exist = null;
 		List<String> problems = new LinkedList<String>();
 		base.checkProblems(problems);
-		exist = (base instanceof AbstractJob) ? (AbstractBase) getJob(base.getName()) :
-			(base instanceof AbstractSchedule) ? (AbstractBase) getSchedule(base.getName()) :
-			(base instanceof ScheduledJob) ? (AbstractBase) getScheduledJob(base.getName()) : null;
-		if (exist != null) {
+		String name = base.getName();
+		boolean exists = false;
+		if (base instanceof AbstractJob) {
+			for (AbstractBase it : jobs) {
+				if (!exists) {
+					exists = it != base && it.getName().equals(name);
+				}
+			}
+		} else if (base instanceof AbstractSchedule) {
+			for (AbstractBase it : schedules) {
+				if (!exists) {
+					exists = it != base && it.getName().equals(name);
+				}
+			}
+		} else if (base instanceof ScheduledJob) {
+			for (AbstractBase it : scheduledjobs) {
+				if (!exists) {
+					exists = it != base && it.getName().equals(name);
+				}
+			}
+		}
+		if (exists) {
 			problems.add(prob_alreadyExist);
 		}
 		return problems;

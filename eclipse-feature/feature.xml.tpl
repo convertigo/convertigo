@@ -2,7 +2,7 @@
 <feature
       id="com.twinsoft.convertigo.studio.feature"
       label="Convertigo Studio"
-      version="7.6.0.qualifier"
+      version="@convertigoVersion@.qualifier"
       provider-name="Convertigo"
       plugin="com.twinsoft.convertigo.studio.product">
 
@@ -63,14 +63,14 @@ to create mobile enterprise applications
          id="com.twinsoft.convertigo.studio.product"
          download-size="0"
          install-size="0"
-         version="7.6.0.qualifier"
+         version="@convertigoVersion@.qualifier"
          unpack="false"/>
 
    <plugin
          id="com.twinsoft.convertigo.studio"
          download-size="0"
          install-size="0"
-         version="7.6.0.qualifier"/>
+         version="@convertigoVersion@.qualifier"/>
 
    <plugin
          id="com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86"
@@ -79,7 +79,7 @@ to create mobile enterprise applications
          arch="x86"
          download-size="0"
          install-size="0"
-         version="7.6.0.qualifier"
+         version="@convertigoVersion@.qualifier"
          fragment="true"/>
 
    <plugin
@@ -89,7 +89,7 @@ to create mobile enterprise applications
          arch="x86"
          download-size="0"
          install-size="0"
-         version="7.6.0.qualifier"
+         version="@convertigoVersion@.qualifier"
          fragment="true"/>
 <!--no win32-->
    <plugin
@@ -99,7 +99,7 @@ to create mobile enterprise applications
          arch="x86_64"
          download-size="0"
          install-size="0"
-         version="7.6.0.qualifier"
+         version="@convertigoVersion@.qualifier"
          fragment="true"/>
          
    <plugin
@@ -109,7 +109,7 @@ to create mobile enterprise applications
          arch="x86_64"
          download-size="0"
          install-size="0"
-         version="7.6.0.qualifier"
+         version="@convertigoVersion@.qualifier"
          fragment="true"/>
 
    <plugin
@@ -119,7 +119,7 @@ to create mobile enterprise applications
          arch="x86_64"
          download-size="0"
          install-size="0"
-         version="7.6.0.qualifier"
+         version="@convertigoVersion@.qualifier"
          fragment="true"/>
 <!--/no win32-->
 </feature>

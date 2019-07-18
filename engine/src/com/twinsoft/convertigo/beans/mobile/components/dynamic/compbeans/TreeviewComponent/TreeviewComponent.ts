@@ -107,6 +107,9 @@ export class TreeviewComponent {
   @Output() private onFocus = new EventEmitter<any>();
   @Output() private onBlur = new EventEmitter<any>();
   
+  @ViewChild(TreeComponent)
+  private tree: TreeComponent;
+  
   public focused: boolean = true;
   public propagateChange: Function = null;
 
@@ -158,5 +161,9 @@ export class TreeviewComponent {
   }
 
   public ngAfterViewInit(): void {
+      // hotfix 7.6.1 : issue #17 (for angular-tree-component v7.0.0)
+      if (this.options.isExpandedField == 'expanded') {
+          setTimeout(() => this.tree.treeModel.expandAll(), 500)
+      }
   }
 }

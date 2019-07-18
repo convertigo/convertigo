@@ -587,6 +587,13 @@ function fillDialog ($element_xml) {
 			}
 		}
 	}
+
+	var name = $element_xml.attr("name");
+	$("#schedulerDialogGroupJobField>option").show().each(function () {
+		if (name == $(this).text()) {
+			$(this).hide()
+		}
+	});
 	
 	var jobs_group = $element_xml.find("job_group_member").map(function () {
 		return $(this).text();

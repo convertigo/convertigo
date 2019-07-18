@@ -16,7 +16,16 @@
             let rm:string = r + (m != '' ? '#':'')+ m;
             let td:number = props.threshold || 500;
             let md:boolean = props.noLoading;
-            page.call(rm,C8oCafUtils.merge({__localCache_priority: props.cachePolicy, __localCache_ttl: props.cacheTtl},vars),null,td, md)
+            
+            let args = [];
+            let version:string = props.tplVersion ? props.tplVersion : '';
+            if (version.localeCompare("7.6.0.0") >= 0) {
+                args.push(rm,C8oCafUtils.merge({__localCache_priority: props.cachePolicy, __localCache_ttl: props.cacheTtl},vars),null,td, md)
+            } else {
+                args.push(rm,C8oCafUtils.merge({__localCache_priority: props.cachePolicy, __localCache_ttl: props.cacheTtl},vars),null,td)
+            }
+            //page.call(rm,C8oCafUtils.merge({__localCache_priority: props.cachePolicy, __localCache_ttl: props.cacheTtl},vars),null,td, md)
+            page['call'].apply(page, args)
             .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
-        });
+         });
     }

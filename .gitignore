@@ -34,6 +34,7 @@ META-INF
 /eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist
 /eclipse-plugin-studio/tomcat/work
 /eclipse-plugin-xulrunner-win32/xulrunner
+/eclipse-repository/category.xml
 /eclipse-repository/Convertigo.product
 /resources
 /workspace

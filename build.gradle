@@ -17,7 +17,7 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.6.0'
+ext.convertigoVersion = '7.6.1'
 ext.convertigoTag = ''
 ext.convertigoCodename = 'osmium'
 ext.convertigoCode = 'Os'
@@ -250,7 +250,7 @@ task buildStudio(type: Exec, dependsOn: ['buildStudio32']) {
 	args 'install'
 }
 
-task updateEclipseProduct(type: Copy) {
+task updateEclipseProduct(type: Copy, dependsOn: ['updateEclipseCategory']) {
 	group 'convertigo'
 	
 	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')
@@ -277,36 +277,31 @@ task updateEclipseProduct(type: Copy) {
 	}
 	
 	from 'eclipse-repository/Convertigo.product.tpl'
-	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText) }
+	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText).replace('@convertigoVersion@', convertigoVersion) }
 	into 'eclipse-repository'
 	rename '.*', 'Convertigo.product'
 }
 
-task updateEclipseVersion(type: Exec, dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
+task updateEclipseCategory(type: Copy) {
 	group 'convertigo'
 	
-	def pom = file('pom-commons.xml')
-	def pom32 = file('pom-32.xml')
+	inputs.properties(
+		'convertigoVersion': convertigoVersion
+	)
 	
-	onlyIf { !pom.text.contains("${convertigoVersion}-SNAPSHOT") }
-	
+	from 'eclipse-repository/category.xml.tpl'
+	filter { it.replace('@convertigoVersion@', convertigoVersion) }
+	into 'eclipse-repository'
+	rename '.*', 'category.xml'
+}
+
+task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
+	group 'convertigo'
 	doFirst {
-		file('pom.xml').bytes = pom.bytes
+		fileTree(dir: '.', include: '*/pom.xml').files.plus([file('pom-32.xml'), file('pom-commons.xml')]).each {
+			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
+		}
 	}
-	
-	doLast {
-		pom.text = pom.text.replaceFirst('(<!-- SET-VERSION -->		<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
-		pom32.text = pom32.text.replaceFirst('(<!-- SET-VERSION -->		<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
-		file('pom.xml').delete()
-	}
-	
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine 'cmd', '/c', 'mvn'
-	} else {
-		commandLine 'mvn'
-	}
-	
-	args "-DnewVersion=${convertigoVersion}-SNAPSHOT", 'org.eclipse.tycho:tycho-versions-plugin:1.0.0:set-version'
 }
 
 task buildStudioClean(type: Delete) {

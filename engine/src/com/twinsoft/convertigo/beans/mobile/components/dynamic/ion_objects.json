@@ -6128,7 +6128,7 @@
       "tag": "c8o-treeview",
       "displayName": "Treeview",
       "label": "Treeview",
-      "description": "c8o-treeview. | Displays data in a Tree View. This component is based on the <a href='https://www.npmjs.com/package/angular-tree-component' target='_blank' >angular-tree-component</a> component. <br /><br />JSON data can be sourced from a Sequence or from the local FullSync database. JSON data format is described in the <b>treenodes</b> property",
+      "description": "c8o-treeview. | Displays data in a Tree View. This component is based on the <a href='https://www.npmjs.com/package/angular-tree-component' target='_blank' >angular-tree-component</a> component. <br /><br />JSON data can be sourced from a Sequence or from the local FullSync database. JSON data format is described in the <b>Tree data</b> property",
       "group": "Lists",
       "icon16": "treeviewcomponent_color_16x16.png",
       "icon32": "treeviewcomponent_color_32x32.png",
@@ -6286,7 +6286,7 @@
           "TreeviewComponent"
         ],
         "package_dependencies": [
-            {"package":"angular-tree-component", "version":"8.0.2"}
+            {"package":"angular-tree-component", "version":"7.0.0"}
         ]
       }	        
     },

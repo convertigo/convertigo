@@ -13,6 +13,10 @@ if (!rootProject.name.equals(name)) {
 			copyTemplatesCommons.dependsOn task("copyCommonsFor${it.name.capitalize()}", type: Copy) {
 				from 'common'
 				
+				inputs.properties(
+					'version': version
+				)
+				
 				filter { it.replace('((CURRENT_VERSION))', version.replace('beta', 'SNAPSHOT')) }
 				into pdir
 			}
