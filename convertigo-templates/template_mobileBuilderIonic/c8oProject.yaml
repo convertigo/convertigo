@@ -37,7 +37,7 @@
               /*Begin_c8o_AppFunction*/
               	/*End_c8o_AppFunction*/
               
-      tplProjectName: mobilebuilder_tpl_7_6_0
+      tplProjectName: mobilebuilder_tpl_7_7_0
       ↓Menu [mobile.components.UIDynamicMenu-1500890597895]: 
         beanData: '{"ionBean":"Menu"}'
         comment: A menu with all pages added automatically
