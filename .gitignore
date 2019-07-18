@@ -25,6 +25,7 @@ META-INF
 !/convertigo-templates/common/.gitattributes
 /convertigo-templates/*/build
 /eclipse-feature/feature.xml
+/eclipse-feature/feature-commons.xml
 /eclipse-plugin-product/about.ini
 /eclipse-plugin-product/plugin.xml
 /eclipse-plugin-product/splash.bmp
