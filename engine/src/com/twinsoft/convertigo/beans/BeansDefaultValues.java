@@ -163,6 +163,14 @@ public class BeansDefaultValues {
 					nCopy.setAttribute("yaml_file", "sequences/" + pName + ".yaml");
 				} else if (cls.equals("mobile.components.PageComponent")) {
 					nCopy.setAttribute("yaml_file", "mobilePages/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.UIActionStack")) {
+					nCopy.setAttribute("yaml_file", "mobileSharedActions/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.UISharedComponent")) {
+					nCopy.setAttribute("yaml_file", "mobileSharedComponents/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.UIDynamicMenu")) {
+					nCopy.setAttribute("yaml_file", "mobileMenus/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.ApplicationComponent")) {
+					nCopy.setAttribute("yaml_file", "mobile" + pName + ".yaml");
 				}
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
