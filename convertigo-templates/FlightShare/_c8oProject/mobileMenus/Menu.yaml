@@ -1,0 +1,60 @@
+beanData: '{"ionBean":"Menu"}'
+comment: A menu with all pages added automatically
+tagName: ion-menu
+↓Content [mobile.components.UIDynamicElement-1500890742326]: 
+  beanData: '{"ionBean":"Content","IonPadding":"plain:false"}'
+  tagName: ion-content
+  ↓Image [mobile.components.UIDynamicElement-1511687507383]: 
+    beanData: |
+      '{
+       "ionBean": "Image",
+       "url": "script:''assets\/images\/clouds.jpg''",
+       "width": "plain:100%"
+      }'
+    selfClose: true
+    tagName: img
+  ↓Avatar [mobile.components.UIDynamicElement-1511687793258]: 
+    beanData: '{"ionBean":"Avatar"}'
+    tagName: ion-avatar
+    ↓Image [mobile.components.UIDynamicElement-1511687808670]: 
+      beanData: |
+        '{
+         "ionBean": "Image",
+         "url": "script:router.sharedObject.currentUser?.imageUrl",
+         "height": "plain:70px",
+         "alt": "script:router.sharedObject.currentUser?.userinfo?.imageUrl"
+        }'
+      selfClose: true
+      tagName: img
+    ↓Attr [mobile.components.UIAttribute-1511688753099]: 
+      attrName: style
+      attrValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: 'plain:position: absolute; top: 20px; left:20px'
+  ↓Heading2 [mobile.components.UIDynamicElement-1511688929698]: 
+    beanData: '{"ionBean":"Heading2"}'
+    tagName: h2
+    ↓Text [mobile.components.UIText-1511688938984]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: script:router.sharedObject.currentUser?.displayName
+    ↓Attr [mobile.components.UIAttribute-1511688954965]: 
+      attrName: style
+      attrValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: 'plain:position: absolute; top: 85px; left:20px; color: white'
+  ↓List [mobile.components.UIDynamicElement-1501343197007]: 
+    beanData: |
+      '{
+       "ionBean": "List",
+       "Nolines": "plain:no-lines",
+       "Inset": "plain:inset"
+      }'
+    tagName: ion-list
+    ↓MenuAutoItems [mobile.components.UIDynamicMenuItems-1500890605250]: 
+      beanData: '{"ionBean":"MenuAutoItems"}'
+      itemtitle: 
+      tagName: button
