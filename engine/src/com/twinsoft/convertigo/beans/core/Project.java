@@ -82,7 +82,9 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public static final String XSD_INTERNAL_FOLDER_NAME = "internal";
 	public static final String WSDL_FOLDER_NAME = "wsdl";
 	
-	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
+	public static final String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
+	
+	protected final Object mutexClassLoader = new Object();
 	
     /**
      * The Context timeout in seconds.
@@ -465,16 +467,18 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	/**
 	 * Sets the default connector.
 	 */
-	public synchronized void setDefaultConnector(Connector connector) throws EngineException {
-		if (connector == null)
-			throw new IllegalArgumentException("The value of argument 'transaction' is null");
-		checkSubLoaded();
-		if (vConnectors.contains(connector)) {
-			if (defaultConnector == null) getDefaultConnector();
-			if (defaultConnector != null) defaultConnector.isDefault = false;
-			connector.isDefault = true;
-			defaultConnector = connector;
-		} else throw new IllegalArgumentException("The value of argument 'connector' is invalid: the connector does not belong to the project");
+	public void setDefaultConnector(Connector connector) throws EngineException {
+		synchronized (mutex) {
+			if (connector == null)
+				throw new IllegalArgumentException("The value of argument 'transaction' is null");
+			checkSubLoaded();
+			if (vConnectors.contains(connector)) {
+				if (defaultConnector == null) getDefaultConnector();
+				if (defaultConnector != null) defaultConnector.isDefault = false;
+				connector.isDefault = true;
+				defaultConnector = connector;
+			} else throw new IllegalArgumentException("The value of argument 'connector' is invalid: the connector does not belong to the project");
+		}
 	}
 	
 	@Override
@@ -838,7 +842,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		if (original != this) {
 			return ((Project) original).getProjectClassLoader();
 		}
-		synchronized (this) {
+		synchronized (mutexClassLoader) {
+			loader = null;
 			if (loader == null) {
 				List<File> dirs = addClassPathDirs(new LinkedList<>());
 				loader = new DirClassLoader(dirs, Engine.getEngineClassLoader());
