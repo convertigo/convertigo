@@ -81,6 +81,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  */
 public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
+	protected final Object mutex = new Object();
 
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface DboCategoryInfo {
@@ -465,7 +466,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return name.toLowerCase();
 	}
 
-	synchronized public long getNewOrderValue() {
+	public long getNewOrderValue() {
 		long now = System.currentTimeMillis();
 		if (lastTime < now) {
 			lastTime = now;
@@ -1134,17 +1135,19 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		this.comment = comment;
 	}
 
-	synchronized public void checkSubLoaded() {
-		if (original != null && !isSubLoaded) {
-			isSubLoaded = true;
-			try {
-				subLoader.get().init(this);
-			} catch (EngineException e) {
-				Engine.logBeans.error("(DatabaseObject) getSubDatabaseObjects failed with EngineException!", e);
-			} catch (DatabaseObjectNotFoundException e) {
-				Engine.logBeans.error("Database object not found: " + e.getMessage());
-			} catch (Exception e) {
-				Engine.logBeans.error("Another Exception: " + e.getMessage(), e);
+	public void checkSubLoaded() {
+		synchronized (mutex) {
+			if (original != null && !isSubLoaded) {
+				isSubLoaded = true;
+				try {
+					subLoader.get().init(this);
+				} catch (EngineException e) {
+					Engine.logBeans.error("(DatabaseObject) getSubDatabaseObjects failed with EngineException!", e);
+				} catch (DatabaseObjectNotFoundException e) {
+					Engine.logBeans.error("Database object not found: " + e.getMessage());
+				} catch (Exception e) {
+					Engine.logBeans.error("Another Exception: " + e.getMessage(), e);
+				}
 			}
 		}
 	}
@@ -1220,17 +1223,21 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 	}
 	
-	private synchronized void removeSymbolError(String propertyName) {
-		if (symbolsErrors != null) {
-			symbolsErrors.remove(propertyName);
-			if (symbolsErrors.isEmpty()) {
-				symbolsErrors = null;
+	private void removeSymbolError(String propertyName) {
+		synchronized (mutex) {
+			if (symbolsErrors != null) {
+				symbolsErrors.remove(propertyName);
+				if (symbolsErrors.isEmpty()) {
+					symbolsErrors = null;
+				}
 			}
 		}
 	}
 	
-	public synchronized boolean isSymbolError() {
-		return symbolsErrors != null;		
+	public boolean isSymbolError() {
+		synchronized (mutex) {
+			return symbolsErrors != null;
+		}
 	}
 	
 	public boolean checkBlackListParentClass(PropertyDescriptor propertyDescriptor) {
@@ -1238,12 +1245,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				.equals(propertyDescriptor.getValue(MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS));
 	}
 	
-	public synchronized Map<String, Set<String>> getSymbolsErrors() {
-		return new HashMap<String, Set<String>>(symbolsErrors);
+	public Map<String, Set<String>> getSymbolsErrors() {
+		synchronized (mutex) {
+			return new HashMap<String, Set<String>>(symbolsErrors);
+		}
 	}
 	
-	public synchronized Set<String> getSymbolsErrors(String parameterName) {
-		return symbolsErrors == null ? null : symbolsErrors.get(parameterName);
+	public Set<String> getSymbolsErrors(String parameterName) {
+		synchronized (mutex) {
+			return symbolsErrors == null ? null : symbolsErrors.get(parameterName);
+		}
 	}
 	
 	public void updateSymbols() throws Exception {
