@@ -25,8 +25,7 @@ META-INF
 !/convertigo-templates/common/.gitattributes
 /convertigo-templates/*/build
 /eclipse-feature/feature.xml
-/eclipse-feature/feature-commons.xml
-/eclipse-plugin-product/about.ini
+/eclipse-feature/feature.xml.tmp
 /eclipse-plugin-product/plugin.xml
 /eclipse-plugin-product/splash.bmp
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
@@ -37,5 +36,6 @@ META-INF
 /eclipse-plugin-xulrunner-win32/xulrunner
 /eclipse-repository/category.xml
 /eclipse-repository/Convertigo.product
+/eclipse-repository/Convertigo.product.tmp
 /resources
 /workspace
