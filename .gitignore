@@ -26,6 +26,7 @@ META-INF
 /convertigo-templates/*/build
 /eclipse-feature/feature.xml
 /eclipse-feature/feature.xml.tmp
+/eclipse-plugin-product/about.ini
 /eclipse-plugin-product/plugin.xml
 /eclipse-plugin-product/splash.bmp
 /eclipse-plugin-studio/src/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt
