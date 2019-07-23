@@ -59,7 +59,6 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
-import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -411,12 +410,13 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	}
     	String key = (String) args[0];
     	String mapkey = "__convertigo_use_" + key;
-    	SimpleMap map = (SimpleMap) ((NativeJavaObject) thisObj.get("project", thisObj)).unwrap();
-    	Object res = map.get(mapkey);
+    	Scriptable ctx = (Scriptable) thisObj.get("context", thisObj);
+    	Project project = (Project) ((NativeJavaObject) ctx.get("project", ctx)).unwrap();
+    	Object res = project.get(mapkey);
     	if (res == null) {
     		try {
     			res = RhinoUtils.evalCachedJavascript(cx, thisObj, key, "use", 1, null);
-    			map.set(mapkey, res);
+    			project.set(mapkey, res);
     		} catch (Exception e) {
     			e.printStackTrace();
     		}
