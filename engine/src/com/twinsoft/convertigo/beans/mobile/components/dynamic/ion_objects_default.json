@@ -2503,14 +2503,41 @@
    }
   }
  }},
- "RootPageAction": {"   7   6   0": {
-  "name": "RootPageAction",
-  "properties": {"page": {
-   "name": "page",
-   "mode": "plain",
-   "value": ""
-  }}
- }},
+ "RootPageAction": {
+  "   7   6   0": {
+   "name": "RootPageAction",
+   "properties": {"page": {
+    "name": "page",
+    "mode": "plain",
+    "value": ""
+   }}
+  },
+  "   7   6   2": {
+   "name": "RootPageAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "animate": {
+     "name": "animate",
+     "mode": "plain",
+     "value": "true"
+    },
+    "animate_duration": {
+     "name": "animate_duration",
+     "mode": "script",
+     "value": "250"
+    }
+   }
+  }
+ },
  "Scroll": {"   7   6   0": {
   "name": "Scroll",
   "properties": {
