@@ -24,6 +24,7 @@ ext.convertigoCode = 'Ir'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserVersion = '7.0'
 ext.swaggerUiVersion = '3.19.3'
+ext.tomcatVersion = '9.0.22'
 
 ext.convertigoEngineAPI = '7.6.0-SNAPSHOT'
 

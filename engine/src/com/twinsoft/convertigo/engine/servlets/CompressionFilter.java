@@ -33,6 +33,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -243,6 +244,18 @@ public class CompressionFilter implements Filter {
 		@Override
 		public void write(int b) throws IOException {
 			gzipOutputStream.write(b);
+		}
+
+		@Override
+		public boolean isReady() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void setWriteListener(WriteListener listener) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 }

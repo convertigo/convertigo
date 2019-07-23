@@ -193,8 +193,8 @@ dependencies {
 	compile 'xalan:xalan:2.7.2'
 	compile 'xerces:xercesImpl:[2.12,)'
 	compile 'xml-resolver:xml-resolver:1.2'
-	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:[7.0,7.1['
-	compileOnly 'org.apache.tomcat:tomcat-dbcp:[7.0,7.1['
+	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	compileOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')

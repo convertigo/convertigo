@@ -502,6 +502,9 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
 
 				@Override
 				public void addCookie(Cookie arg0) {}
+
+				@Override
+				public void setContentLengthLong(long length) {}
 			}, new FilterChain() {
 
 				@Override

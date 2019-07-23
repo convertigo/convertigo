@@ -36,7 +36,7 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
-import org.apache.tomcat.dbcp.dbcp.BasicDataSource;
+import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 
@@ -104,7 +104,7 @@ public class JdbcConnectionManager implements AbstractManager {
 
 		int maxConnections = connector.getJdbcMaxConnection();
 		Engine.logEngine.debug("(JdbcConnectionManager) maxConnections: " + maxConnections);
-		pool.setMaxActive(maxConnections);
+		pool.setMaxOpenPreparedStatements(maxConnections);
 
 		/* Database query to list tables
 			*JDBC Drivers
@@ -215,12 +215,12 @@ public class JdbcConnectionManager implements AbstractManager {
 
 				BasicDataSource pool = getDatabasePool(connector);
 				Engine.logEngine.debug("(JdbcConnectionManager) pool = " + pool);
-				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
+				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxOpenPreparedStatements());
 				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
 
 				connection = pool.getConnection();
 				Engine.logEngine.debug("(JdbcConnectionManager) pooled connection = " + connection);
-				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
+				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxOpenPreparedStatements());
 				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
 			} else {
 
@@ -253,7 +253,7 @@ public class JdbcConnectionManager implements AbstractManager {
 		synchronized (driversLoaded) {
 			if (!driversLoaded.contains(jdbcDriverClassName)) {
 				ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-				Driver d = (Driver) classLoader.loadClass(jdbcDriverClassName).newInstance();
+				Driver d = (Driver) classLoader.loadClass(jdbcDriverClassName).getDeclaredConstructor().newInstance();
 				DriverManager.registerDriver(new DriverShim(d));
 				driversLoaded.add(jdbcDriverClassName);
 			}

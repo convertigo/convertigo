@@ -25,6 +25,7 @@ import java.io.IOException;
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -61,7 +62,10 @@ public class EmbeddedTomcat implements Runnable {
 	        
 			// Create an embedded server
 			System.out.println("(EmbeddedTomcat) Creating a new instance of EmbeddedTomcat");
+			TomcatURLStreamHandlerFactory.disable();
 			embedded = new Tomcat();
+			embedded.setAddDefaultWebXmlToWebapp(false);
+			embedded.setBaseDir(tomcatHome);
 			embedded.enableNaming();
 			
 			// Assemble and install a default HTTP connector
@@ -82,10 +86,16 @@ public class EmbeddedTomcat implements Runnable {
 
 			embedded.setPort(httpPort = httpConnectorPort);
 			
+			Connector connector = new Connector();
+			connector.setPort(httpConnectorPort);
+			connector.setSecure(false);
+			connector.setScheme("http");
+			embedded.getService().addConnector(connector);
+			
 			int httpsConnectorPort = httpConnectorPort + 1;
 			System.out.println("(EmbeddedTomcat) Installing the embedded HTTPS connector listening on port " + httpsConnectorPort);
 			
-			Connector connector = new Connector();
+			connector = new Connector();
 			connector.setPort(httpsConnectorPort);
 			connector.setSecure(true);
 			connector.setScheme("https");

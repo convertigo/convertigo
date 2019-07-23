@@ -105,6 +105,7 @@ public class C8oBrowser extends Composite {
 				browserContext = Engine.newInstance(EngineOptions.newBuilder(RenderingMode.HARDWARE_ACCELERATED)
 						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
 						.licenseKey(key)
+						.addSwitch("--illegal-access=warn")
 						.remoteDebuggingPort(debugPort).build());
 				browserContexts.put(browserId, browserContext);
 			}
