@@ -71,29 +71,30 @@ public class JdbcConnectionManager implements AbstractManager {
 		try {
 			try {
 				dataSourceCls = Class.forName("org.apache.tomcat.dbcp.dbcp2.BasicDataSource");
-				dataSourceSetMaxActive = dataSourceCls.getMethod("setMaxOpenPreparedStatements", Integer.class);
+				dataSourceSetMaxActive = dataSourceCls.getMethod("setMaxOpenPreparedStatements", int.class);
 				dataSourceGetMaxActive = dataSourceCls.getMethod("getMaxOpenPreparedStatements");
 			} catch (ClassNotFoundException e) {
 				dataSourceCls = Class.forName("org.apache.tomcat.dbcp.dbcp.BasicDataSource");
-				dataSourceSetMaxActive = dataSourceCls.getMethod("setMaxActive", Integer.class);
+				dataSourceSetMaxActive = dataSourceCls.getMethod("setMaxActive", int.class);
 				dataSourceGetMaxActive = dataSourceCls.getMethod("getMaxActive");
 			}
 			dataSourceClose = dataSourceCls.getMethod("close");
-			dataSourceSetDriverClassName = dataSourceCls.getMethod("setDriverClassName");
+			dataSourceSetDriverClassName = dataSourceCls.getMethod("setDriverClassName", String.class);
 			dataSourceSetUrl = dataSourceCls.getMethod("setUrl", String.class);
 			dataSourceSetUsername = dataSourceCls.getMethod("setUsername", String.class);
 			dataSourceSetPassword = dataSourceCls.getMethod("setPassword", String.class);
 			dataSourceSetValidationQuery = dataSourceCls.getMethod("setValidationQuery", String.class);
-			dataSourceSetTestOnBorrow = dataSourceCls.getMethod("setTestOnBorrow", Boolean.class);
-			dataSourceSetTestOnReturn = dataSourceCls.getMethod("setTestOnReturn", Boolean.class);
-			dataSourceSetTestWhileIdle = dataSourceCls.getMethod("setTestWhileIdle", Boolean.class);
-			dataSourceSetTimeBetweenEvictionRunsMillis = dataSourceCls.getMethod("setTimeBetweenEvictionRunsMillis", Long.class);
-			dataSourceSetNumTestsPerEvictionRun = dataSourceCls.getMethod("setNumTestsPerEvictionRun", Integer.class);
+			dataSourceSetTestOnBorrow = dataSourceCls.getMethod("setTestOnBorrow", boolean.class);
+			dataSourceSetTestOnReturn = dataSourceCls.getMethod("setTestOnReturn", boolean.class);
+			dataSourceSetTestWhileIdle = dataSourceCls.getMethod("setTestWhileIdle", boolean.class);
+			dataSourceSetTimeBetweenEvictionRunsMillis = dataSourceCls.getMethod("setTimeBetweenEvictionRunsMillis", long.class);
+			dataSourceSetNumTestsPerEvictionRun = dataSourceCls.getMethod("setNumTestsPerEvictionRun", int.class);
 			
 			dataSourceGetConnection = dataSourceCls.getMethod("getConnection");
 			dataSourceGetNumActive = dataSourceCls.getMethod("getNumActive");
 			dataSourceGetNumIdle = dataSourceCls.getMethod("getNumIdle");
 			dataSourceGetMaxIdle = dataSourceCls.getMethod("getMaxIdle");
+			Engine.logEngine.info("(JdbcConnectionManager) Init done"); 
 		} catch (Exception e) {
 			Engine.logEngine.error("(JdbcConnectionManager) Init failed", e); 
 		}
