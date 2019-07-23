@@ -56,7 +56,7 @@ public class LearnProxy {
 	@Override
 	protected void finalize() throws Throwable {
 		if (proxyThread != null)
-			proxyThread.destroy();
+			proxyThread.stop();
 		super.finalize();
 	}
 
