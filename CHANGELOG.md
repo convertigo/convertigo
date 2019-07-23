@@ -1,7 +1,16 @@
 # Changelog
 
-## 7.6.1
+## 7.6.2
 
+#### Bug Fixes:
+
+- [#167](https://github.com/convertigo/convertigo/issues/167) Fixed, prevents deadlock on call for interdependent projects
+- [#170](https://github.com/convertigo/convertigo/issues/170) Fixed, MobileBuilder RootPage action can pass data to rooted page
+- [#171](https://github.com/convertigo/convertigo/issues/171) Fixed, the javascript "use" function works instead of throwing a "ClassCastException"
+
+---
+
+## 7.6.1
 
 #### Bug Fixes:
 
