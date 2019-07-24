@@ -104,13 +104,6 @@ build.filename=${war.archiveName}"""
 	dependsOn 'unzipSwaggerUI'
 }
 
-task debugWar {
-	group 'adebug'
-	doFirst {
-		war.classpath.each { println it }
-	}
-}
-
 sourceSets {
 	main {
 		java {
