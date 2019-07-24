@@ -65,10 +65,25 @@ jar {
 	include 'com/twinsoft/**'
 }
 
+task patchCopy(type: Copy, dependsOn: classes) {
+	group 'convertigo'
+	
+	into 'build/patchClasses'
+	from compileJava.destinationDir
+	exclude 'com/twinsoft/**'
+}
+
+task patchJar(type: Jar, dependsOn: patchCopy) {
+	group 'convertigo'
+	
+	baseName 'aa-convertigo-patch'
+	from patchCopy.destinationDir
+}
+
 war {
 	baseName 'convertigo'
 	
-	classpath = files(configurations.runtime, jar)
+	classpath = files(configurations.runtime, jar, patchCopy.destinationDir).filter { it != patchJar.archivePath }
 	
 	doFirst {
 		project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
@@ -87,6 +102,13 @@ build.filename=${war.archiveName}"""
 	rename 'keys_server.txt', 'keys.txt'
 	
 	dependsOn 'unzipSwaggerUI'
+}
+
+task debugWar {
+	group 'adebug'
+	doFirst {
+		war.classpath.each { println it }
+	}
 }
 
 sourceSets {
@@ -110,12 +132,6 @@ sourceSets {
 			srcDir 'patch'
 		}
 	}
-}
-
-task patchJar(type: Jar, dependsOn: classes) {
-	baseName 'aa-convertigo-patch'
-	from compileJava.destinationDir
-	exclude 'com/twinsoft/**'
 }
 
 dependencies {
