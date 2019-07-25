@@ -7,7 +7,7 @@ if [ "$1" = "convertigo" ]; then
     ## function used to cipher passwords
     
     toHash() {
-        echo "System.out.println(new String(\"$1\").hashCode())" | jshell -
+        jrunscript -e "java.lang.System.out.println(\"$1\".hashCode())"
     }
     
     ## if needed, force the admin and testplatform accounts

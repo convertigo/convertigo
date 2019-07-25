@@ -7,10 +7,9 @@ if [ "$1" = "convertigo" ]; then
     ## function used to cipher passwords
     
     toHash() {
-        jexec $WEB_INF/lib/rhino-*.jar -e "print(new java.lang.String('$1').hashCode())"
+        jrunscript -e "java.lang.System.out.println(\"$1\".hashCode())"
     }
-     
-        
+    
     ## if needed, force the admin and testplatform accounts
     
     if [ "$CONVERTIGO_ADMIN_USER" != "" ]; then
