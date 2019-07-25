@@ -2,11 +2,16 @@
 
 ## 7.6.2
 
+#### Improvements:
+
+- [#112](https://github.com/convertigo/convertigo/issues/112) In Studio, GIT actions that modify the project source propose to reload it
+
 #### Bug Fixes:
 
 - [#167](https://github.com/convertigo/convertigo/issues/167) Fixed, prevents deadlock on call for interdependent projects
 - [#170](https://github.com/convertigo/convertigo/issues/170) Fixed, MobileBuilder RootPage action can pass data to rooted page
 - [#171](https://github.com/convertigo/convertigo/issues/171) Fixed, the javascript "use" function works instead of throwing a "ClassCastException"
+- [#173](https://github.com/convertigo/convertigo/issues/173) Fixed, init admin password with Docker variable works again 
 
 ---
 
@@ -86,7 +91,6 @@
 - [#133](https://github.com/convertigo/convertigo/issues/133) Improve MB ForEach bean, now item and index elements be customized so they can be inserted in nested loops.
 - [#134](https://github.com/convertigo/convertigo/issues/134) Handle TenantID in OAuth action for Azure
 - [#140](https://github.com/convertigo/convertigo/issues/140) Enable GZip compression for text response by default
-
 
 #### Bug Fixes:
 
