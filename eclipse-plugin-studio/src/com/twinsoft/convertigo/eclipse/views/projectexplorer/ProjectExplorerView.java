@@ -2760,6 +2760,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public TreeObject getProjectRootObject(String projectName) throws EngineException {
 		return ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(projectName);
 	}
+	
+	public Collection<ProjectTreeObject> getOpenedProjects() {
+		return ((ViewContentProvider) viewer.getContentProvider()).getOpenedProjects();
+	}
 
 	/**
 	 * Gets the BeanInfo corresponding to the first selected dababase Object
