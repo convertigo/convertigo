@@ -28,7 +28,9 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +59,7 @@ import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.ProgressEvent;
@@ -116,6 +119,8 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.actions.SetupAction;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
+import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
@@ -127,6 +132,7 @@ import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
@@ -969,8 +975,60 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					IPartService partService = activeWorkbenchWindow.getPartService(); 
 					partService.addPartListener(partListener);
 				}
-			} 
+			}
 
+			Repository.getGlobalListenerList().addWorkingTreeModifiedListener(event -> {
+				Engine.logStudio.debug("(Git Event) onWorkingTreeModified " + event);
+				File workDir = event.getRepository().getWorkTree();
+				Collection<String> files = event.getModified();
+				files.addAll(event.getDeleted());
+				Set<File> affectedProjects = new HashSet<>();
+				for (String f : files) {
+					Engine.logStudio.trace("(Git Event) change for " + f);
+					if (f.endsWith(".yaml")) {
+						File file = new File(workDir, f);
+						if (file.getName().equals("c8oProject.yaml")) {
+							affectedProjects.add(file.getParentFile());
+						} else {
+							File parent = file.getParentFile();
+							while (parent != null && !parent.getName().equals("_c8oProject")) {
+								parent = parent.getParentFile();
+							}
+							if (parent != null) {
+								parent = parent.getParentFile();
+								if (new File(parent, "c8oProject.yaml").exists()) {
+									affectedProjects.add(parent);
+								}
+							}
+						}
+					}
+				}
+				Engine.logStudio.debug("(Git Event) affected projects: " + affectedProjects);
+				ConvertigoPlugin.getDisplay().asyncExec(() -> {
+					ProjectExplorerView pew = ConvertigoPlugin.this.getProjectExplorerView();
+					for (ProjectTreeObject treeProject: pew.getOpenedProjects()) {
+						if (affectedProjects.contains(new File(treeProject.getObject().getDirPath()))) {
+							String name = "'" + treeProject.getName() + "'";
+							CustomDialog customDialog = new CustomDialog(
+								getMainShell(),
+								"Git modified project description of " + name,
+								"Reload " + name + " with incoming changes ?\n" +
+								"Save " + name + " and ignore incoming changes ?\n" +
+								"Do nothing (reload or save by your own) ?",
+								500, 180,
+								new ButtonSpec("Reload", true),
+								new ButtonSpec("Save", false),
+								new ButtonSpec("Do nothing", false));
+							int response = customDialog.open();
+							switch (response) {
+							case 0: pew.reloadProject(treeProject); break;
+							case 1: treeProject.save(false); break;
+							default: treeProject.markAsChanged(true); break;
+							}
+						}
+					}
+				});
+			});
 		}
 		catch (IllegalStateException e) {
 			studioLog.error("Could not add listeners to plugin."+ e.getMessage());
