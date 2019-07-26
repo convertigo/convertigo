@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
+import java.util.regex.Pattern;
+
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IContributionManagerOverrides;
@@ -74,11 +76,11 @@ class ConvertigoContributionManager implements IContributionManagerOverrides {
 		}
 		
 		String cn = item.getClass().getSimpleName();
-		if (cn.equals("DynamicMenuContributionItem") || cn.equals("HandledContributionItem")) {
-			return id.startsWith("org.eclipse.egit.ui");
+		if (Pattern.matches("DynamicMenuContributionItem|HandledContributionItem", cn)) {
+			return id.startsWith("org.eclipse.egit.");
 		}
 		if (cn.equals("MenuManager")) {
-			return id.startsWith("egit.") || id.startsWith("team.");
+			return Pattern.matches("2330|egit\\..*|team\\..*|compareWithMenu|replaceWithMenu", id);
 		}
 		if (cn.equals("PluginActionContributionItem")) {
 			return id.contains("org.eclipse.team");

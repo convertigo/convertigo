@@ -5,6 +5,7 @@
 #### Improvements:
 
 - [#112](https://github.com/convertigo/convertigo/issues/112) In Studio, GIT actions that modify the project source propose to reload it
+- [#174](https://github.com/convertigo/convertigo/issues/174) In Studio, Project menu have now 'GitFlow', 'Compare' and 'Replace' entries
 
 #### Bug Fixes:
 
