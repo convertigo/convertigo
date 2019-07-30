@@ -10,6 +10,13 @@ publishing {
 			version version.replace('beta', 'SNAPSHOT')
 			from components.java
 		}
+		dependenciesJar(MavenPublication) {
+			version version.replace('beta', 'SNAPSHOT')
+			artifactId 'dependencies'
+			afterEvaluate {
+				artifact tasks['dependenciesJar'].archivePath
+			}
+		}
 	}
 	
 	repositories {
@@ -245,6 +252,7 @@ dependencies {
 	compileOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
 	compile files(dependenciesJar.archivePath)
+	//compile publishing.publications.dependenciesJar
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
 	runtime files(patchJar.archivePath)
