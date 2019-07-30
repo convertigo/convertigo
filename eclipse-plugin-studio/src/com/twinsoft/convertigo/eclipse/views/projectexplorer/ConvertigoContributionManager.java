@@ -80,7 +80,7 @@ class ConvertigoContributionManager implements IContributionManagerOverrides {
 			return id.startsWith("org.eclipse.egit.");
 		}
 		if (cn.equals("MenuManager")) {
-			return Pattern.matches("2330|egit\\..*|team\\..*|compareWithMenu|replaceWithMenu", id);
+			return Pattern.matches("2326|2330|egit\\..*|team\\..*|compareWithMenu|replaceWithMenu", id);
 		}
 		if (cn.equals("PluginActionContributionItem")) {
 			return id.contains("org.eclipse.team");
