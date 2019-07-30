@@ -1663,7 +1663,8 @@
           "SuperTabsModule.forRoot()"
         ],
         "package_dependencies": [
-            {"package":"ionic2-super-tabs", "version":"4.0.1"}
+            {"package":"ionic2-super-tabs", "version":"5.2.0"},
+            {"package":"rxjs-compat", "version":"6.2.0"}
         ]
       }
   },
