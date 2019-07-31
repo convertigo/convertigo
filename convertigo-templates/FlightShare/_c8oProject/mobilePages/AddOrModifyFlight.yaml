@@ -61,6 +61,7 @@ title: Title for AddFlight
             }'
           tagName: ion-input
           ↓Event [mobile.components.UIControlEvent-1509004888034]: 
+            attrName: (tap)
             ↓PushPage [mobile.components.UIDynamicAction-1509004893968]: 
               beanData: |
                 '{
@@ -84,6 +85,7 @@ title: Title for AddFlight
             }'
           tagName: ion-input
           ↓Event [mobile.components.UIControlEvent-1509074358925]: 
+            attrName: (tap)
             ↓PushPage [mobile.components.UIDynamicAction-1509074358936]: 
               beanData: |
                 '{
@@ -115,6 +117,7 @@ title: Title for AddFlight
             }'
           tagName: ion-input
           ↓Event [mobile.components.UIControlEvent-1509079272485]: 
+            attrName: (tap)
             ↓PushPage [mobile.components.UIDynamicAction-1509079272496]: 
               beanData: '{"ionBean":"PushPageAction","page":"plain:FlightShare.MobileApplication.Application.SelectPlane"}'
           ↓ControlValidator [mobile.components.UIFormControlValidator-1509566273010]: 

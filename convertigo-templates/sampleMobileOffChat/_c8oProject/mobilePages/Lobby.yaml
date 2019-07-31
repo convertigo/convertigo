@@ -43,6 +43,7 @@ title: Title for Lobby
           beanData: '{"ionBean":"Icon","IconName":"plain:more"}'
           tagName: ion-icon
         ↓Event [mobile.components.UIControlEvent-1518088441443]: 
+          attrName: (tap)
           ↓CustomAction [mobile.components.UICustomAction-1518088441460]: 
             actionValue: 
               - xmlizable: 
@@ -144,6 +145,7 @@ title: Title for Lobby
                   }'
                 tagName: ion-icon
               ↓Event [mobile.components.UIControlEvent-1517848722634]: 
+                attrName: (tap)
                 ↓CustomAction [mobile.components.UICustomAction-1517918128977]: 
                   actionValue: 
                     - xmlizable: 
