@@ -117,6 +117,8 @@ task dependenciesJar(type: Jar) {
 	exclude 'META-INF/mailcap*', 'META-INF/MANIFEST.MF', 'META-INF/BCKEY*'
 }
 
+tasks['publishToMavenLocal'].dependsOn(dependenciesJar)
+
 compileJava.dependsOn dependenciesJar
 
 war {
