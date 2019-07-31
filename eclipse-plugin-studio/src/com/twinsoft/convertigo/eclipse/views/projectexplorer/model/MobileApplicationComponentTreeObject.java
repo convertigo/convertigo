@@ -171,6 +171,20 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 							markComponentTsAsDirty();
 							markApplicationAsDirty();
 						}
+					} else if (propertyName.equals("useClickForTap")) {
+						for (TreeObject to: this.getChildren()) {
+							if (to instanceof ObjectsFolderTreeObject) {
+								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
+								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
+									for (TreeObject cto: ofto.getChildren()) {
+										if (cto instanceof MobilePageComponentTreeObject) {
+											((MobilePageComponentTreeObject)cto).markPageAsDirty();
+										}
+									}
+								}
+							}
+						}
+						markApplicationAsDirty();
 					} else if (propertyName.equals("tplProjectName")) {
 						Project project = getObject().getProject();
 						closeAllEditors(false);

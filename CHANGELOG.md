@@ -1,7 +1,25 @@
 # Changelog
 
-## 7.6.1
+## 7.6.2
 
+#### Improvements:
+
+- [#112](https://github.com/convertigo/convertigo/issues/112) In Studio, GIT actions that modify the project source asks user for refresh project
+- [#174](https://github.com/convertigo/convertigo/issues/174) In Studio, Project menu have now 'GitFlow', 'Compare' and 'Replace' entries
+- [#175](https://github.com/convertigo/convertigo/issues/175) In Studio, startup time divided by 4
+- [#176](https://github.com/convertigo/convertigo/issues/176) MobileBuilder, improve application performances
+
+#### Bug Fixes:
+ 
+- [#164](https://github.com/convertigo/convertigo/issues/164) Fixed, MobileBuilder Sliding Tabs compile and can by used
+- [#167](https://github.com/convertigo/convertigo/issues/167) Fixed, prevents deadlocks on calls for interdependent projects
+- [#170](https://github.com/convertigo/convertigo/issues/170) Fixed, MobileBuilder RootPage action can now pass data to rooted page
+- [#171](https://github.com/convertigo/convertigo/issues/171) Fixed, the javascript "use" function is now available instead of throwing a "ClassCastException"
+- [#173](https://github.com/convertigo/convertigo/issues/173) Fixed, init admin password with Docker variable supported again
+
+---
+
+## 7.6.1
 
 #### Bug Fixes:
 
@@ -77,7 +95,6 @@
 - [#133](https://github.com/convertigo/convertigo/issues/133) Improve MB ForEach bean, now item and index elements be customized so they can be inserted in nested loops.
 - [#134](https://github.com/convertigo/convertigo/issues/134) Handle TenantID in OAuth action for Azure
 - [#140](https://github.com/convertigo/convertigo/issues/140) Enable GZip compression for text response by default
-
 
 #### Bug Fixes:
 

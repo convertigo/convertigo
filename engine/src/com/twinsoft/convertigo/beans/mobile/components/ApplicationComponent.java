@@ -75,6 +75,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	private String tplProjectName = "";
 	private String splitPaneLayout = "not set";
 	private boolean isPWA = false;
+	private boolean useClickForTap = false;
 	
 	transient private Runnable _markApplicationAsDirty;
 	
@@ -1425,6 +1426,14 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		this.isPWA = isPWA;
 	}
 	
+	public boolean getUseClickForTap() {
+		return useClickForTap;
+	}
+	
+	public void setUseClickForTap(boolean useClickForTap) {
+		this.useClickForTap = useClickForTap;
+	}
+	
 	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.projectDir(project) + "/ionicTpl");
 		if (tplDir.exists()) {
@@ -1434,6 +1443,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		}
 		return false;
 	}
+	
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {

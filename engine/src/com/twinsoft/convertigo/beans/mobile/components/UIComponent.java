@@ -397,7 +397,8 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		computed += "\t\tlet get = function(keyName, keyVal) {"+ System.lineSeparator();
 		computed += "\t\t\tlet val=undefined;"+ System.lineSeparator();
 		computed += "\t\t\ttry {"+ System.lineSeparator();
-		computed += "\t\t\t\tval= keyVal === '' ? keyVal : eval(ts.transpile('('+ keyVal + ')'));"+ System.lineSeparator();
+		//computed += "\t\t\t\tval= keyVal === '' ? keyVal : eval(ts.transpile('('+ keyVal + ')'));"+ System.lineSeparator();
+		computed += "\t\t\t\tval= keyVal === '' ? keyVal : eval('('+ keyVal + ')');"+ System.lineSeparator();
 		
 		computed += "\t\t\t\tif (val == undefined) {"+ System.lineSeparator();
 		computed += "\t\t\t\t\t"+pageKey+".c8o.log.trace(\"[MB] "+functionName+": key=\"+ keyName +\" value=undefined\");"+ System.lineSeparator();

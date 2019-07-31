@@ -1663,7 +1663,8 @@
           "SuperTabsModule.forRoot()"
         ],
         "package_dependencies": [
-            {"package":"ionic2-super-tabs", "version":"4.0.1"}
+            {"package":"ionic2-super-tabs", "version":"5.2.0"},
+            {"package":"rxjs-compat", "version":"6.2.0"}
         ]
       }
   },
@@ -6997,8 +6998,34 @@
           "value": "",
           "values": [
             false,
-			      true
+			true
           ]
+        },
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data object passed to the rooted page. You can access this data in the pushed page by using a (TS) expression <code>this.navParams.data</code>.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        },
+        "animate": {
+          "label": "Animate",
+          "description": "If true, page will be animated in.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "true",
+          "values": [
+            "true",
+			      "false"
+          ]
+        },
+        "animate_duration": {
+          "mode": "script",
+          "label": "Animation duration",
+          "description": "The time in ms for the page animation.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "250"
         }
 	  }
 	},

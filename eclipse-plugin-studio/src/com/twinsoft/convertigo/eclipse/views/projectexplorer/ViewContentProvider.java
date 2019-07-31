@@ -20,7 +20,9 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -251,4 +253,14 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 		}
 	}
 	
+	public Collection<ProjectTreeObject> getOpenedProjects() {
+		List<? extends TreeObject> children = invisibleRoot.getChildren();
+		Collection<ProjectTreeObject> opened = new ArrayList<ProjectTreeObject>(children.size());
+		for (TreeObject treeObject : children) {
+			if (treeObject instanceof ProjectTreeObject) {
+				opened.add((ProjectTreeObject) treeObject);
+			}
+		}
+		return opened;
+	}
 }

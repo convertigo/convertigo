@@ -17,7 +17,7 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.6.1'
+ext.convertigoVersion = '7.6.2'
 ext.convertigoTag = ''
 ext.convertigoCodename = 'osmium'
 ext.convertigoCode = 'Os'

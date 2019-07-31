@@ -36,6 +36,11 @@ eclipse {
 			rp = node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
 		}
 		rp.appendNode('accessrules').appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/egit/ui/**'])
+		
+		def depJar
+		if ((depJar = node.classpathentry.find { it.@path.contains('libs/dependencies') }) != null) {
+			depJar.@sourcepath = depJar.@sourcepath = depJar.@path.replace('libs/dependencies', 'libs/dependencies-sources')
+		}
 	}
 }
 
@@ -73,6 +78,7 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.core.runtime',
 					'org.eclipse.egit.ui',
 					'org.eclipse.jface.text',
+					'org.eclipse.jgit',
 					'org.eclipse.swt',
 					'org.eclipse.ui',
 					'org.eclipse.ui.console',
