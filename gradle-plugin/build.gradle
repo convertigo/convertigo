@@ -7,19 +7,6 @@ plugins {
 
 group = 'com.convertigo'
 version = version.replace('beta', 'SNAPSHOT')
-/*
-publishing {
-	repositories {
-		maven {
-			url project.properties['c8o.m2.url']
-			credentials(AwsCredentials) {
-				accessKey project.properties['c8o.m2.ak']
-				secretKey project.properties['c8o.m2.sk']
-			}
-		}
-	}
-}
-*/
 
 sourceSets {
 	main {
@@ -36,6 +23,7 @@ dependencies {
 	compile project(':engine'), {
 		exclude group: 'convertigo', module: 'placeholders'
 	}
+	runtime "com.convertigo:dependencies:$version"
 	runtime 'javax.servlet:servlet-api:2.5'
 }
 
