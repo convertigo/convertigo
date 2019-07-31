@@ -4,9 +4,9 @@
 
 #### Improvements:
 
-- [#112](https://github.com/convertigo/convertigo/issues/112) In Studio, GIT actions that modify the project source acks user for refresh project
+- [#112](https://github.com/convertigo/convertigo/issues/112) In Studio, GIT actions that modify the project source asks user for refresh project
 - [#174](https://github.com/convertigo/convertigo/issues/174) In Studio, Project menu have now 'GitFlow', 'Compare' and 'Replace' entries
-- [#175](https://github.com/convertigo/convertigo/issues/175) In Studio, startup time devided by 4
+- [#175](https://github.com/convertigo/convertigo/issues/175) In Studio, startup time divided by 4
 - [#176](https://github.com/convertigo/convertigo/issues/176) MobileBuilder, improve application performances
 
 #### Bug Fixes:
