@@ -1,4 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   6   2">
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onTap"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Event"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="   7   6   2">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="componentScriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="isPWA">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Application"/>
+        </property>
+        <property name="splitPaneLayout">
+            <java.lang.String value="not set"/>
+        </property>
+        <property name="tplProjectName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="useClickForTap">
+            <java.lang.Boolean value="false"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf" priority="0" version="   7   6   0">
         <property name="beanData">
             <java.lang.String value=""/>
