@@ -60,6 +60,7 @@ title: Title for Store
             - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
             - MobileSmartSourceType: source:{"filter":"Iteration","project":"sampleMobileRetailStore","input":"item1513954909887.name"}
       ↓Event [mobile.components.UIControlEvent-1513956789370]: 
+        attrName: (tap)
         ↓CustomAction [mobile.components.UICustomAction-1513956804737]: 
           actionValue: 
             - xmlizable: 
@@ -112,6 +113,7 @@ title: Title for Store
             beanData: '{"ionBean":"Card"}'
             tagName: ion-card
             ↓Event [mobile.components.UIControlEvent-1513871977888]: 
+              attrName: (tap)
               ↓If_article [mobile.components.UIDynamicAction-1513874758648]: 
                 beanData: '{"ionBean":"IfAction","condition":"source:{\"filter\":\"Iteration\",\"project\":\"sampleMobileRetailStore\",\"input\":\"item1513949910675?.value?.sku\"}"}'
                 ↓PushPage [mobile.components.UIDynamicAction-1513875152349]: 
