@@ -1,5 +1,6 @@
 ↑isRoot: true
 comment: My First Page as root page
+preloadPriority: high
 scriptContent: 
   - xmlizable: 
     - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
