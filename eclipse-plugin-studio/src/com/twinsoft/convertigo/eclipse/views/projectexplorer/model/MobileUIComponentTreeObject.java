@@ -935,7 +935,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
 			try {
-				if (deletedTreeObject.getParentDatabaseObjectTreeObject().equals(this)) {
+				if (this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
 					UIComponent currentDbo = getObject();
 					
 					UIActionStack uisa = currentDbo.getSharedAction();
