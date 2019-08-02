@@ -49,7 +49,7 @@ export function createTranslateLoader(http: HttpClient) {
           deps: [HttpClient]
         }
 	}),
-    IonicModule.forRoot(MyApp, {}, deepLinkConfig)
+    IonicModule.forRoot(MyApp, {preloadModules: true})
   /*End_c8o_NgModules*/],
   bootstrap: [IonicApp],
   entryComponents: [/*Begin_c8o_NgComponents*/

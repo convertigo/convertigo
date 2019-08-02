@@ -44,8 +44,8 @@ import { ActionBeans }                                      from '../services/ac
 })
 export class MyApp extends C8oPageBase {
     @ViewChild(Nav) nav: Nav;
-    rootPage = /*=c8o_RootPage*/;
-    pages : Array<{title: string, icon: string, iconPos: string, component: any, includedInAutoMenu?: boolean}>;
+    rootPage : any = /*=c8o_RootPage*/;
+    pages : Array<{title: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>;
     pagesKeyValue: any;
     public actionBeans: ActionBeans;
     public events : Events;
@@ -154,7 +154,7 @@ export class MyApp extends C8oPageBase {
     openPage(page) {
 		let rootNav = this.getRootNav();
 		if (rootNav) {
-			rootNav.setRoot(page.component);
+			rootNav.setRoot(page.name);
 		}
     }
 	

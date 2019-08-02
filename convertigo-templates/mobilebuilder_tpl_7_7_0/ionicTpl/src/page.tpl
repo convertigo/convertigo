@@ -1,6 +1,7 @@
 import { Component }																from '@angular/core';
 import { DomSanitizer }                 											from '@angular/platform-browser';
-import { NavParams,
+import { IonicPage,
+		 NavParams,
 		 LoadingController,
 		 MenuController,
 		 Platform,
@@ -36,6 +37,10 @@ import { ActionBeans } 																from '../../services/actionbeans.service'
 /*Begin_c8o_PageImport*/
 /*End_c8o_PageImport*/
 
+@IonicPage({
+  segment: /*=c8o_PageSegment*/,
+  priority: /*=c8o_PagePriority*/
+})
 @Component({
   selector: /*=c8o_PageSelector*/,
   templateUrl: /*=c8o_PageTplUrl*/,
