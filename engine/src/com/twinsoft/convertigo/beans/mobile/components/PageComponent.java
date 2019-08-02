@@ -873,7 +873,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			return new String[] {"item-left","item-end","item-right","item-start"};
 		}
 		if (propertyName.equals("preloadPriority")) {
-			return new String[] {"off","low","high"};
+			return new String[] {"high","low","off"};
 		}
 		return new String[0];
 	}
