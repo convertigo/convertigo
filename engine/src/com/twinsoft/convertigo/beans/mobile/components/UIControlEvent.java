@@ -170,7 +170,8 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 			}
 		}
 		String attrName = AttrEvent.getEvent(eventName);
-		if ("(tap)".equals(attrName) && getApplication().getUseClickForTap()) {
+		ApplicationComponent app = getApplication();
+		if ("(tap)".equals(attrName) && app != null && app.getUseClickForTap()) {
 			attrName = "(click)";
 		}
 		return attrName;
