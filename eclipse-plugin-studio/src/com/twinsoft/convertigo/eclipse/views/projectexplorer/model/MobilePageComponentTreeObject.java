@@ -195,6 +195,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 							markPageAsDirty();
 						}
 					}
+				} else if (propertyName.equals("preloadPriority")) {
+					if (!newValue.equals(oldValue)) {
+						if (getObject().compareToTplVersion("7.7.0.2") < 0) {
+							markAppModuleTsAsDirty();
+						} else {
+							markPageTsAsDirty();
+							markPageAsDirty();
+						}
+					}
 				} else if (propertyName.equals("title") || 
 							propertyName.equals("icon") ||
 							propertyName.equals("iconPosition") || 
