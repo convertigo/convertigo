@@ -21,10 +21,12 @@
         return new Promise((resolve, reject) => {
             let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
+            let version:string = props.tplVersion ? props.tplVersion : '';
+            let v:any = version.localeCompare("7.7.0.2") >= 0 ? p : page.getPageByName(p);
             let data = props.data ? props.data: {} 
         
             let PopoverCtrl = page.getInstance(PopoverController)
-            let pop = PopoverCtrl.create(page.getPageByName(p), data, {
+            let pop = PopoverCtrl.create(v, data, {
                 showBackdrop            : props.showBackdrop,
                 enableBackdropDismiss   : props.enableBackdropDismiss,
                 cssClass                : props.cssClass
