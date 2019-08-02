@@ -433,6 +433,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		}
 		return menuId;
 	}
+	
 	protected FormatedContent scriptContent = new FormatedContent("");
 
 	public FormatedContent getScriptContent() {
@@ -443,6 +444,16 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.scriptContent = scriptContent;
 	}
 	
+	private String preloadPriority = "low";
+	
+	public String getPreloadPriority() {
+		return preloadPriority;
+	}
+
+	public void setPreloadPriority(String preloadPriority) {
+		this.preloadPriority = preloadPriority;
+	}
+
 	private transient Map<String, String> pageImports = new HashMap<String, String>();
 	
 	private boolean hasImport(String name) {
@@ -600,6 +611,10 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	
 	public void markPageTsAsDirty() throws EngineException {
 		getProject().getMobileBuilder().pageTsChanged(this, false);
+	}
+	
+	public void markPageModuleTsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().pageModuleTsChanged(this);
 	}
 	
 	public void markPageEnabledAsDirty() throws EngineException {
@@ -856,6 +871,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		}
 		if (propertyName.equals("iconPosition")) {
 			return new String[] {"item-left","item-end","item-right","item-start"};
+		}
+		if (propertyName.equals("preloadPriority")) {
+			return new String[] {"off","low","high"};
 		}
 		return new String[0];
 	}

@@ -38,7 +38,7 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[8];
+			properties = new PropertyDescriptor[9];
 
 			properties[0] = new PropertyDescriptor("iconPosition", beanClass, "getIconPosition", "setIconPosition");
 			properties[0].setDisplayName(getExternalizedString("property.iconPosition.display_name"));
@@ -76,6 +76,11 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[7].setDisplayName(getExternalizedString("property.icon.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.icon.short_description"));
 			properties[7].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			
+			properties[8] = new PropertyDescriptor("preloadPriority", beanClass, "getPreloadPriority", "setPreloadPriority");
+			properties[8].setDisplayName(getExternalizedString("property.preloadPriority.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.preloadPriority.short_description"));
+			properties[8].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -188,7 +188,12 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					}
 				} else if (propertyName.equals("segment")) {
 					if (!newValue.equals(oldValue)) {
-						markAppModuleTsAsDirty();
+						if (getObject().compareToTplVersion("7.7.0.2") < 0) {
+							markAppModuleTsAsDirty();
+						} else {
+							markPageModuleTsAsDirty();
+							markPageAsDirty();
+						}
 					}
 				} else if (propertyName.equals("title") || 
 							propertyName.equals("icon") ||
@@ -256,6 +261,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					"Error while writing the page.ts file for page '" + page.getName() + "'");	}
 	}
 
+	protected void markPageModuleTsAsDirty() {
+		PageComponent page = getObject();
+		try {
+			page.markPageModuleTsAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the page.module.ts file for page '" + page.getName() + "'");	}
+	}
+	
 	@Override
 	public NamedSourceSelector getNamedSourceSelector() {
 		return new NamedSourceSelector() {

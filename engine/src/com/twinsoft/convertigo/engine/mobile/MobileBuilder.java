@@ -465,6 +465,14 @@ public class MobileBuilder {
 		}
 	}
 
+	public synchronized void pageModuleTsChanged(final PageComponent page) throws EngineException {
+		if (page != null && page.isEnabled() && initDone) {
+			writePageModuleTs(page);
+			moveFiles();
+			Engine.logEngine.trace("(MobileBuilder) Handled 'pageModuleTsChanged'");
+		}
+	}
+	
 	public synchronized void appTsChanged(final ApplicationComponent app, boolean forceTemp) throws EngineException {
 		if (app != null && initDone) {
 			writeAppComponentTs(app);
@@ -991,6 +999,26 @@ public class MobileBuilder {
 		}
 	}
 	
+	private void writePageModuleTs(PageComponent page) throws EngineException {
+		try {
+			if (page != null && page.isEnabled()) {
+				if (page.compareToTplVersion("7.7.0.2") >= 0) {
+					String pageName = page.getName();
+					File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+					File pageModuleTsFile = new File(pageDir, pageName.toLowerCase() + ".module.ts");
+					writeFile(pageModuleTsFile, getPageModuleTsContent(page), "UTF-8");
+					
+					if (initDone) {
+						Engine.logEngine.trace("(MobileBuilder) Ionic module file generated for page '"+pageName+"'");
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page module file",e);
+		}
+	}
+	
 	private void updateTplVersion() {
 		if (tplVersion == null) {
 			File versionJson = new File(ionicWorkDir, "version.json"); // since 7.5.2
@@ -1178,6 +1206,9 @@ public class MobileBuilder {
 	private String getPageTsContent(PageComponent page) throws IOException {
 		String pageName = page.getName();
 		String c8o_PageName = pageName;
+		//String c8o_PageIonicName = pageName;
+		String c8o_PagePriority = page.getPreloadPriority();
+		String c8o_PageSegment = page.getSegment();
 		String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
 		String c8o_PageSelector = "page-"+pageName.toLowerCase();
 		String c8o_PageImports = page.getComputedImports();
@@ -1188,6 +1219,10 @@ public class MobileBuilder {
 		
 		File pageTplTs = new File(ionicTplDir, "src/page.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
+		//tsContent = tsContent.replaceAll("/\\*\\=c8o_PageIonicName\\*/","'"+c8o_PageIonicName+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PagePriority\\*/","'"+c8o_PagePriority+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSegment\\*/","'"+c8o_PageSegment+"'");
+		
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
@@ -1208,6 +1243,21 @@ public class MobileBuilder {
 		
 		//tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/",c8o_PageFunctions);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageFunctions\\*/", Matcher.quoteReplacement(c8o_PageFunctions));
+		
+		return tsContent;
+	}
+	
+	private String getPageModuleTsContent(PageComponent page) throws IOException {
+		String pageName = page.getName();
+		String c8o_PageName = pageName;
+		String c8o_PageModuleName = pageName + "Module";
+		String c8o_PageImport = "import { "+pageName+" } from \"./"+pageName.toLowerCase()+"\";" + System.lineSeparator();
+		
+		File pageTplTs = new File(ionicTplDir, "src/page.module.tpl");
+		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageModuleName\\*/",c8o_PageModuleName);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImport\\*/",c8o_PageImport);
 		
 		return tsContent;
 	}
@@ -1421,10 +1471,13 @@ public class MobileBuilder {
 					String pageName = page.getName();
 					String pageSegment = page.getSegment();
 					boolean isLastPage = i == pages.size();
-					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
-					c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
-					c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
-
+					
+					if (app.compareToTplVersion("7.7.0.2") < 0) {
+						c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
+						c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
+						c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
+					}
+					
 					List<Contributor> contributors = page.getContributors();
 					for (Contributor contributor : contributors) {
 						comp_beans_dirs.putAll(contributor.getCompBeanDir());
@@ -1565,14 +1618,32 @@ public class MobileBuilder {
 			boolean isRootPage = page.isRoot;
 			boolean isMenuPage = page.isInAutoMenu();
 			boolean isLastPage = i == pages.size();
-			if (isRootPage) c8o_RootPage = pageName;
-			c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
-			if (app.compareToTplVersion("7.5.2.1") < 0) {
-				c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-			} else {
-				c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+			
+			if (isRootPage) {
+				c8o_RootPage = pageName;
 			}
-			c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
+			
+			if (app.compareToTplVersion("7.7.0.2") < 0) {
+				c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
+				if (app.compareToTplVersion("7.5.2.1") < 0) {
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+				} else {
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+				}
+				c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
+			} else {
+				if (isRootPage) {
+					c8o_RootPage = "'"+ c8o_RootPage + "'";
+					
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
+				} else {
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "null" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
+				}
+			}
+			
+			
 			i++;
 		}
 		
@@ -1761,6 +1832,7 @@ public class MobileBuilder {
 			FileUtils.deleteQuietly(new File(pageDir, pageName.toLowerCase() + ".temp.ts"));
 			
 			writePageTs(page);
+			writePageModuleTs(page);
 			writePageStyle(page);
 			writePageTemplate(page);
 			
