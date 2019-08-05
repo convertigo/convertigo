@@ -113,7 +113,7 @@ public class CLI {
 	
 	public File exportToCar(Project project, File dest) throws Exception {
 		dest.mkdirs();
-		return CarUtils.makeArchive(dest.getAbsolutePath(), project, project.getName());
+		return CarUtils.makeArchive(dest.getAbsolutePath(), project);
 	}
 	
 	public static void main(String[] args) throws Exception {

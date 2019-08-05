@@ -165,9 +165,9 @@ function updateProjectsList(xml) {
 											btnReload : "<a href=\"javascript: reloadProject('"
 													+ projectName
 													+ "')\"><img border=\"0\" title=\"Reload the project\" src=\"images/convertigo-administration-picto-reload.png\"></a>",
-											btnExport : "<a href=\"services/projects.Export?projectName="
+											btnExport : "<a href=\"javascript: exportProject('"
 												+ projectName
-												+ "\"><img border=\"0\" title=\"Make CAR archive from the project\" src=\"images/convertigo-administration-picto-save.png\"></a>",
+												+ "')\"><img border=\"0\" title=\"Make CAR archive from the project\" src=\"images/convertigo-administration-picto-save.png\"></a>",
 											btnTest : "<a target=\"_blank\" href=\"../project.html#" + projectName
 												+ "\"><img border=\"0\" title=\"Test the project\" src=\"images/convertigo-administration-picto-test-platform.png\"></a>"
 										});
@@ -310,4 +310,47 @@ function editProject(projectName, alertUndefinedSymbol) {
 		$("#projectEditUndefinedSymbolsInfo").hide();
 	}
 	loadProject(projectName);
+}
+
+function exportProject(projectName) {
+	//see projectEdit.js
+	//
+	callService("projects.ExportOptions", function(xml) {
+		var $div = $("<div/>");
+		$div.css({"text-align": "left"});
+		$(xml).find("option").each(function(x) {
+			var id = "exportOption_" + this.getAttribute("name"); 
+			$("<input/>").attr({
+				checked: "checked",
+				type: "checkbox",
+				name: this.getAttribute("name"),
+				id: id
+			}).appendTo($div);
+			$("<label/>").text(this.getAttribute("display")).attr("for", id).appendTo($div);
+			$div.append("<br/>");
+		});
+		$div.dialog({
+			autoOpen : true,
+			title: "Export the project '" + projectName + "' with:",
+			modal: true,
+			buttons : {
+				Export: function () {
+					var options = {};
+					$div.find("input").each(function () {
+						options[this.getAttribute("name")] = this.checked;
+					});
+					location = "services/projects.Export?projectName=" + encodeURIComponent(projectName) + "&exportOptions=" + encodeURIComponent(JSON.stringify(options));
+					$div.dialog("close");
+				},
+				Cancel: function() {
+					$div.dialog("close");
+				}
+			},
+			close : function () {
+				$div.remove();
+			}
+		});
+	}, {
+		projectName : projectName
+	});
 }

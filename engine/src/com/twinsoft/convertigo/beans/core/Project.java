@@ -641,6 +641,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return Engine.projectDir(getName());
 	}
 	
+	public File getDirFile() {
+		return Engine.projectFile(getName()).getParentFile();
+	}
+	
 	public String getXsdDirPath() {
 		return getDirPath() + "/" + XSD_FOLDER_NAME;
 	}

@@ -480,14 +480,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public void buildCar(String projectName) {
-		try {
-			CarUtils.makeArchive(projectName);
-		} catch (EngineException e) {
-			Engine.logDatabaseObjectManager.error("Build car failed!", e);
-		}
-	}
-
 	public boolean existsProject(String projectName) {
 		File file = studioProjects.getProject(projectName);
 		if (file == null) {
@@ -649,10 +641,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 	
 				// Creating backup
-				ZipUtils.makeZip(projectArchiveFilename, projectDir.getPath(), projectName, Arrays.asList(
+				ZipUtils.makeZip(projectArchiveFilename, projectDir.getPath(), projectName, new HashSet<File>(Arrays.asList(
 						new File(projectDir, "_private"),
 						new File(projectDir, ".git"),
-						new File(projectDir, ".svn")
+						new File(projectDir, ".svn"))
 				));
 			} else {
 				Engine.logDatabaseObjectManager.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
@@ -982,7 +974,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	static public String getProjectName(File projectFile) throws EngineException {
 		String projectName = null;
 		if (projectFile.exists()) {
-			if (projectFile.getName().equals("c8oProject.yaml")) {
+			String filename = projectFile.getName();
+			if (filename.equals("c8oProject.yaml")) {
 				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
 					String line = br.readLine();
 					Matcher m = pYamlProjectName.matcher("");
@@ -998,14 +991,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 				} catch (Exception e) {
 					throw new EngineException("Unable to parse the yaml: " + projectFile.getAbsolutePath(), e);
 				}
-			} else if (projectFile.getName().endsWith(".car")) {
+			} else if (filename.endsWith(".car") || filename.endsWith(".zip")) {
 				try {
 					projectName = ZipUtils.getProjectName(projectFile.getAbsolutePath());
 				} catch (IOException e) {
 				}
 			}
 			if (projectName == null) {
-				Matcher m = pProjectName.matcher(projectFile.getName());
+				Matcher m = pProjectName.matcher(filename);
 				if (m.matches()) {
 					projectName = m.group(1);
 				}

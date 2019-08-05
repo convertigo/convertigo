@@ -134,7 +134,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		closeAllEditors();
 		
 		// save project and copy temporary files to project files
-		boolean bRet = save(true);
+		boolean bRet = !getObject().hasChanged || save(true);
 		if (bRet) {
 			ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 
@@ -207,7 +207,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	 * @return <code>false</code> if the save process has been canceled by user.
 	 */
 	public boolean save(boolean bDialog) {
-		boolean ret = true;
+		boolean ret = false;
 		
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -239,6 +239,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						IProject iProject = getIProject();
 						iProject.refreshLocal(IResource.DEPTH_ONE, null);
 						iProject.getFolder("_c8oProject").refreshLocal(IResource.DEPTH_INFINITE, null);
+						ret = true;
 					}
 				}
 			} catch (Exception e) {

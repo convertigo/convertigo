@@ -76,7 +76,7 @@ public class ExportWizard extends Wizard implements IExportWizard {
 								Engine.theApp.databaseObjectsManager.exportProject(project);
 								return true;
 							}
-							else if (exportFileName.endsWith(".car")) {								
+							else if (exportFileName.endsWith(".car")) {
 								CarUtils.makeArchive(exportDirectoryPath, project);
 								return true;
 							}

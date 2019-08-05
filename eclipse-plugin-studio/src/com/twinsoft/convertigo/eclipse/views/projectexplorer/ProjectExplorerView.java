@@ -2990,7 +2990,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (Engine.isProjectFile(filePath)) {
 			ConvertigoPlugin.getDefault().createProjectPluginResource(targetProjectName, new File(filePath).getParent());
 			importedProject = Engine.theApp.databaseObjectsManager.importProject(filePath);
-		} else if (filePath.endsWith(".car") && (targetProjectName != null)) {
+		} else if ((filePath.endsWith(".car") || filePath.endsWith(".zip")) && (targetProjectName != null)) {
 			importedProject = Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
 		}
 

@@ -78,7 +78,7 @@ public class ImportWizardPage extends WizardPage {
 		String message = null;
 		if (filePath.equals("")) {
 			message = "Please select a file";
-		} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car")) {
+		} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car") && !filePath.endsWith(".zip")) {
 			message = "Please select a compatible file extension";
 		} else if (!new File(filePath).exists()) {
 			message = "Please select an existing compatible file";
