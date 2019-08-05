@@ -1,5 +1,13 @@
 # Changelog
 
+## 7.6.3
+
+#### Improvements:
+
+- * [#178](https://github.com/convertigo/convertigo/issues/178) Allow app "useClickForTap" to handle differently "(tap)" and "onTap" events
+
+---
+
 ## 7.6.2
 
 #### Improvements:
