@@ -1,5 +1,6 @@
 import { Component, ViewChild}                              from '@angular/core';
 import { ChangeDetectorRef, Injector}                       from '@angular/core';
+import { enableProdMode}                                    from '@angular/core';
 
 import { Platform, Nav, App, Events, LoadingController}     from 'ionic-angular';
 import { StatusBar }                                        from '@ionic-native/status-bar';
@@ -32,12 +33,7 @@ import { ActionBeans }                                      from '../services/ac
 /*=c8o_PagesImport*/ 
 
 
-/**
- * Disable comments to run in prod mode
- */
-/*import {enableProdMode} from '@angular/core';
- enableProdMode();*/
-
+/*=c8o_AppProdMode*/
 
 @Component({
     templateUrl: 'app.html'

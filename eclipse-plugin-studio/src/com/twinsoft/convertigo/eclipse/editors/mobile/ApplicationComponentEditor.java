@@ -1235,6 +1235,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			
 			Object mutex = new Object();
 			mb.setBuildMutex(mutex);
+			mb.setAppBuildMode(buildMode);
 			try {
 				ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 			} catch (CoreException ce) {}

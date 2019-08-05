@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -207,6 +208,8 @@ public class MobileBuilder {
 	boolean autoBuild = true;
 	Object buildMutex = null;
 	
+	MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
+	
 	// Until we can delete page folder again, we need to retrieve contributors of
 	// all pages for action.beans.service, otherwise we get compilation errors in
 	// page.ts files for (deleted/disabled) pages containing pseudo-actions
@@ -300,6 +303,18 @@ public class MobileBuilder {
 	public void setBuildMutex(Object mutex) {
 		buildMutex = mutex;
 		FileUtils.deleteQuietly(new File(projectDir,"_private/ionic_tmp"));
+	}
+	
+	public void setAppBuildMode(MobileBuilderBuildMode buildMode) {
+		this.buildMode = buildMode;
+		
+		if (project != null) {
+			try {
+				project.getMobileApplication().getApplicationComponent().markComponentTsAsDirty();
+			} catch (Exception e) {
+				Engine.logEngine.warn("(MobileBuilder) enabled to change build mode");
+			}
+		}
 	}
 	
 	public void setNeedPkgUpdate(boolean needPkgUpdate) {
@@ -1596,6 +1611,7 @@ public class MobileBuilder {
 	}
 	
 	private String getAppComponentTsContent(ApplicationComponent app) throws IOException {
+		String c8o_AppProdMode = "";
 		String c8o_PagesImport = "";
 		String c8o_PagesVariables = "";
 		String c8o_PagesVariablesKeyValue = "";
@@ -1607,7 +1623,6 @@ public class MobileBuilder {
 		String c8o_AppConstructors = app.getComputedConstructors();
 		String c8o_AppFunctions = app.getComputedFunctions();
 		int i=1;
-		
 		
 		List<PageComponent> pages = getEnabledPages(app);
 		for (PageComponent page : pages) {
@@ -1651,6 +1666,10 @@ public class MobileBuilder {
 		File appComponentTpl = new File(ionicTplDir, "src/app/app.component.ts");
 		String cContent = FileUtils.readFileToString(appComponentTpl, "UTF-8");
 		
+		if (app.compareToTplVersion("7.7.0.2") >= 0) {
+			c8o_AppProdMode = MobileBuilderBuildMode.production.equals(buildMode) ? "enableProdMode();":"";			
+		}
+		
 		cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 		cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
 		cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
@@ -1659,6 +1678,7 @@ public class MobileBuilder {
 		cContent = cContent.replaceAll("/\\*\\=c8o_AppImports\\*/",c8o_AppImports);
 		cContent = cContent.replaceAll("/\\*\\=c8o_AppDeclarations\\*/",c8o_AppDeclarations);
 		cContent = cContent.replaceAll("/\\*\\=c8o_AppConstructors\\*/",c8o_AppConstructors);
+		cContent = cContent.replaceAll("/\\*\\=c8o_AppProdMode\\*/",c8o_AppProdMode);
 		
 		String c8oInit = "settings.addHeader(\"x-convertigo-mb\", \""+c8o_Version+"\");\n\t\tthis.c8o.init(";
 		cContent = cContent.replaceFirst("this\\.c8o\\.init\\(", c8oInit);
