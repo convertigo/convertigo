@@ -142,7 +142,7 @@ public class UIUseShared extends UIElement {
 	
 	transient private UISharedComponent target = null;
 	
-	private UISharedComponent getTargetSharedComponent() {
+	public UISharedComponent getTargetSharedComponent() {
 		String qname =  getSharedComponentQName();
 		if (target == null || !target.getQName().equals(qname)) {
 			target = null;

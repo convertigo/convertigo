@@ -96,6 +96,8 @@ import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -1413,6 +1415,13 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 
 						@Override
 						protected void walk(DatabaseObject databaseObject) throws Exception {
+							if (databaseObject instanceof UIUseShared) {
+								UISharedComponent uisc = ((UIUseShared)databaseObject).getTargetSharedComponent();
+								if (uisc != null) {
+									databaseObject = uisc;
+								}
+							}
+							
 							if (databaseObject.priority == priority) {
 								throw new DatabaseObjectFoundException(databaseObject);
 							}
@@ -1445,8 +1454,17 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					selectPage(pageComponent.getSegment());
 				}
 			}
+			
 			Document doc = browser.mainFrame().get().document().get();
 			MobileComponent mc = mobileComponent;
+			if (mc instanceof UIUseShared) {
+				UISharedComponent uisc = ((UIUseShared)mc).getTargetSharedComponent();
+				if (uisc != null) {
+					try {
+						mc = uisc.getUIComponentList().get(0);
+					} catch (IndexOutOfBoundsException ioobe) {}
+				}
+			}
 			while (doc.findElementsByClassName("class" + mc.priority).isEmpty()) {
 				DatabaseObject parent = mc.getParent();
 				if (parent instanceof MobileComponent) {
