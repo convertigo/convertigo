@@ -65,7 +65,11 @@ public class UIDynamicTab extends UIDynamicElement {
 		String pageName = getPageName();
 		if (!pageName.isEmpty()) {
 			try {
-				attributes.append(" [root]").append("=").append("\"router.pagesKeyValue['"+ pageName +"']\"");
+				if (compareToTplVersion("7.7.0.2") < 0) {
+					attributes.append(" [root]").append("=").append("\"router.pagesKeyValue['"+ pageName +"']\"");
+				} else {
+					attributes.append(" [root]").append("=").append("\"'"+ pageName +"'\"");
+				}
 			} catch (Exception e) {}
 		}
 		return attributes;
