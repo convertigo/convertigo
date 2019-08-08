@@ -78,7 +78,6 @@ title: Title for SelectPlane
                         '	width: 100%
                         '
               ↓Event [mobile.components.UIControlEvent-1509079380381]: 
-                attrName: (tap)
                 ↓CustomAction1 [mobile.components.UICustomAction-1511795526547]: 
                   actionValue: 
                     - xmlizable: 

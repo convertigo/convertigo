@@ -120,7 +120,6 @@ title: Title for Chat
                 beanData: '{"ionBean":"Icon","IconName":"plain:trash"}'
                 tagName: ion-icon
               ↓Event [mobile.components.UIControlEvent-1518001691979]: 
-                attrName: (tap)
                 ↓ClearForm [mobile.components.UIDynamicAction-1518001706502]: 
                   beanData: '{"ionBean":"IfAction","condition":"script:this.clearForm()"}'
             ↓ButtonGallery [mobile.components.UIDynamicElement-1518702232589]: 
@@ -130,7 +129,6 @@ title: Title for Chat
                 beanData: '{"ionBean":"Icon","IconName":"plain:images"}'
                 tagName: ion-icon
               ↓Event [mobile.components.UIControlEvent-1518702232697]: 
-                attrName: (tap)
                 ↓Camera [mobile.components.UIDynamicAction-1518702232732]: 
                   beanData: |
                     '{
@@ -158,7 +156,6 @@ title: Title for Chat
                 beanData: '{"ionBean":"Icon","IconName":"plain:camera"}'
                 tagName: ion-icon
               ↓Event [mobile.components.UIControlEvent-1517995956259]: 
-                attrName: (tap)
                 ↓Camera [mobile.components.UIDynamicAction-1518528294291]: 
                   beanData: |
                     '{

@@ -44,7 +44,6 @@ title: Title for Login
           beanData: '{"ionBean":"Icon","IconName":"plain:more"}'
           tagName: ion-icon
         ↓Event [mobile.components.UIControlEvent-1517825155947]: 
-          attrName: (tap)
           ↓CustomAction [mobile.components.UICustomAction-1517827010857]: 
             actionValue: 
               - xmlizable: 

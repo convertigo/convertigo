@@ -1,0 +1,63 @@
+comment: the mapping for a given product
+path: /products/{prod_id}
+↓DeleteProduct [rest.DeleteOperation]: 
+  comment: delete the product with prod_id
+  targetRequestable: sampleMapperShop.RemoveProduct
+  ↓prod_id [rest.PathParameter-1542983543933]: 
+    comment: the product identifier
+    inputType: Integer
+    mappedVariableName: art_id
+  ↓OperationResponse [rest.OperationResponse]: 
+    comment: sucessfull
+    statusText: product removed
+    xpath: .//ok
+  ↓OperationResponse1 [rest.OperationResponse]: 
+    comment: not found
+    statusCode: 404
+    statusText: product not found
+    xpath: .//ko
+↓GetProduct [rest.GetOperation]: 
+  comment: get the product with prod_id
+  targetRequestable: sampleMapperShop.GetProduct
+  ↓prod_id [rest.PathParameter-1542983543939]: 
+    comment: the product identifier
+    inputType: Integer
+    mappedVariableName: art_id
+  ↓OperationResponse [rest.OperationResponse]: 
+    comment: sucessfull
+    statusText: product retrieved
+    xpath: .//product/art_id[. != '']
+  ↓OperationResponse1 [rest.OperationResponse]: 
+    comment: not found
+    statusCode: 404
+    statusText: product not found
+    xpath: .//product/art_id[. = '']
+  ↓OperationResponse2 [rest.OperationResponse]: 
+    comment: invalid
+    statusCode: 400
+    statusText: error occured
+    xpath: .//error
+↓UpdateProduct [rest.PostOperation]: 
+  comment: update the product using POST
+  targetRequestable: sampleMapperShop.SetProduct
+  ↓code [rest.FormParameter-1542983543946]: 
+    comment: the product code
+    mappedVariableName: code
+  ↓description [rest.FormParameter-1542983543949]: 
+    comment: the product name or description
+    mappedVariableName: description
+  ↓price [rest.FormParameter-1542983543952]: 
+    comment: the product price
+    mappedVariableName: price
+  ↓prod_id [rest.PathParameter-1542983543955]: 
+    comment: the product identifier
+    mappedVariableName: art_id
+  ↓OperationResponse [rest.OperationResponse]: 
+    comment: sucessfull
+    statusText: product updated
+    xpath: .//ok
+  ↓OperationResponse1 [rest.OperationResponse]: 
+    comment: not found
+    statusCode: 404
+    statusText: product not found
+    xpath: .//ko
