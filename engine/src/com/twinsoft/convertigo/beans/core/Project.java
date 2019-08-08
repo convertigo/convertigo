@@ -596,7 +596,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	private transient UrlMapper urlMapper = null;
 	
     public UrlMapper getUrlMapper() {
-		return urlMapper;
+		return ((Project) getOriginal()).urlMapper;
 	}
 
     public void addUrlMapper(UrlMapper urlMapper) throws EngineException {
