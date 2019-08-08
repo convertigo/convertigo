@@ -5,6 +5,11 @@
 #### Improvements:
 
 - * [#178](https://github.com/convertigo/convertigo/issues/178) Allow app "useClickForTap" to handle differently "(tap)" and "onTap" events
+- * [#165](https://github.com/convertigo/convertigo/issues/165) Right-clicking a "SharedComponent" component from another project does not focus element in treeview
+
+#### Bug Fixes:
+
+- [#179](https://github.com/convertigo/convertigo/issues/179) Fixed, UrlMapper is well exported with the project from the Server Administration console
 
 ---
 
