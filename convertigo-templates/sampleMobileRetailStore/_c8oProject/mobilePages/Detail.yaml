@@ -89,7 +89,6 @@ title: Title for Detail
             - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
             - MobileSmartSourceType: plain:rayons
     ↓Event [mobile.components.UIControlEvent-1513958098737]: 
-      attrName: (tap)
       ↓PopPage [mobile.components.UIDynamicAction-1513958470064]: 
         beanData: '{"ionBean":"PopPageAction"}'
   ↓CardContainer [mobile.components.UIDynamicElement-1513935428638]: 
@@ -206,7 +205,6 @@ title: Title for Detail
                 - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
                 - MobileSmartSourceType: plain:ajouter au panier
           ↓Event [mobile.components.UIControlEvent-1513961280962]: 
-            attrName: (tap)
             ↓Toast [mobile.components.UIDynamicAction-1513961288556]: 
               beanData: '{"ionBean":"ToastAction","message":"plain:Demo sans panier"}'
       ↓Style [mobile.components.UIStyle-1513961720035]: 

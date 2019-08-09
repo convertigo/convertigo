@@ -1,0 +1,58 @@
+comment: the mapping for shop products
+path: /products
+↓AddProductUsingPost [rest.PostOperation]: 
+  comment: add a product using a POST operation
+  targetRequestable: sampleMapperShop.AddProductP
+  ↓cat_id [rest.FormParameter-1542983543905]: 
+    comment: the product category id (1 to 10)
+    inputType: Integer
+    mappedVariableName: cat_id
+  ↓code [rest.FormParameter-1542983543908]: 
+    comment: the product code
+    mappedVariableName: code
+  ↓description [rest.FormParameter-1542983543911]: 
+    comment: the product name or description
+    mappedVariableName: description
+  ↓price [rest.FormParameter-1542983543914]: 
+    comment: the product price
+    mappedVariableName: price
+  ↓OperationResponse [rest.OperationResponse]: 
+    comment: sucessfull
+    statusText: product added
+    xpath: .//product
+  ↓OperationResponse2 [rest.OperationResponse]: 
+    comment: invalid
+    statusCode: 400
+    statusText: error occured
+    xpath: .//error
+↓AddUserUsingPut [rest.PutOperation]: 
+  comment: add a product using a PUT operation
+  targetRequestable: sampleMapperShop.AddProductB
+  ↓product [rest.BodyParameter-1542983543920]: 
+    comment: the body payload data
+    mappedVariableName: data
+    modelReference: product
+  ↓OperationResponse [rest.OperationResponse]: 
+    comment: sucessfull
+    statusText: product added
+    xpath: .//product
+  ↓OperationResponse2 [rest.OperationResponse]: 
+    comment: invalid
+    statusCode: 400
+    statusText: error occured
+    xpath: .//error
+↓GetProducts [rest.GetOperation]: 
+  comment: get the products list
+  targetRequestable: sampleMapperShop.GetProductList
+  ↓order [rest.QueryParameter-1542983543926]: 
+    comment: the sorting order (ASC or DESC)
+    mappedVariableName: order
+  ↓OperationResponse [rest.OperationResponse]: 
+    comment: sucessfull
+    statusText: products list retrieved
+    xpath: .//products
+  ↓OperationResponse2 [rest.OperationResponse]: 
+    comment: invalid
+    statusCode: 400
+    statusText: error occured
+    xpath: .//error

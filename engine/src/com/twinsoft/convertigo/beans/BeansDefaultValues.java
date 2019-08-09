@@ -171,6 +171,10 @@ public class BeansDefaultValues {
 					nCopy.setAttribute("yaml_file", "mobileMenus/" + pName + ".yaml");
 				} else if (cls.equals("mobile.components.ApplicationComponent")) {
 					nCopy.setAttribute("yaml_file", "mobile" + pName + ".yaml");
+				} else if (cls.equals("core.UrlMapper")) {
+					nCopy.setAttribute("yaml_file", "urlMapper.yaml");
+				} else if (cls.equals("rest.PathMapping")) {
+					nCopy.setAttribute("yaml_file", "urlMapper/" + pName + ".yaml");
 				}
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);

@@ -317,7 +317,6 @@
             }'
           tagName: ion-icon
           ↓Event [mobile.components.UIControlEvent-1562052281482]: 
-            attrName: (tap)
             ↓SetGlobal [mobile.components.UIDynamicAction-1562052281485]: 
               beanData: |
                 '{
