@@ -10,6 +10,7 @@
 #### Bug Fixes:
 
 - [#179](https://github.com/convertigo/convertigo/issues/179) Fixed, UrlMapper is well exported with the project from the Server Administration console
+- [#180](https://github.com/convertigo/convertigo/issues/180) Fixed, retry FullSync insertion when an IllegalStateException occurs, use a new HttpClient
 
 ---
 

@@ -50,7 +50,6 @@ import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpState;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -79,6 +78,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -162,7 +162,7 @@ public class Context extends AbstractContext implements Cloneable {
 	private XulRecorder xulRecorder = null;
 	
 	private HttpClient httpClient3 = null;
-	private CloseableHttpClient httpClient4 = null;
+	private HttpClientInterface httpClient = null;
 	
 	public Context(String contextID) {
 		this.contextID = contextID;
@@ -713,19 +713,19 @@ public class Context extends AbstractContext implements Cloneable {
 		return null;
 	}
 
-	public CloseableHttpClient getHttpClient4(HttpPool httpPool) {
+	public HttpClientInterface getHttpClient(HttpPool httpPool) {
 		switch (httpPool) {
 			case no:
-				return HttpUtils.makeHttpClient4(false);
+				return HttpUtils.makeHttpClient(false);
 			case context:
-				if (httpClient4 == null) {
-					httpClient4 = HttpUtils.makeHttpClient4(true);
-				}
-				return httpClient4;
-			case session:
-				CloseableHttpClient httpClient = SessionAttribute.httpClient4.get(httpSession);
 				if (httpClient == null) {
-					httpClient = HttpUtils.makeHttpClient4(true);
+					httpClient = HttpUtils.makeHttpClient(true);
+				}
+				return httpClient;
+			case session:
+				HttpClientInterface httpClient = SessionAttribute.httpClient4.get(httpSession);
+				if (httpClient == null) {
+					httpClient = HttpUtils.makeHttpClient(true);
 					SessionAttribute.httpClient4.set(httpSession, httpClient);
 				}
 				return httpClient;
