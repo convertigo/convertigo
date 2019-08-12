@@ -25,7 +25,7 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserVersion = '6.23.1'
 ext.swaggerUiVersion = '3.19.3'
 
-ext.convertigoEngineAPI = '7.6.0-SNAPSHOT'
+ext.convertigoEngineAPI = '7.6.3-SNAPSHOT'
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
