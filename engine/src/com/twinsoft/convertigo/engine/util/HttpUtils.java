@@ -46,6 +46,7 @@ import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -203,44 +204,74 @@ public class HttpUtils {
 		return httpClient;
 	}
 	
-	@SuppressWarnings("deprecation")
-	public static CloseableHttpClient makeHttpClient4(boolean usePool) {
-		HttpClientBuilder httpClientBuilder = HttpClients.custom();
-		httpClientBuilder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build());
+	public static interface HttpClientInterface {
+
+		CloseableHttpResponse execute(HttpUriRequest request) throws ClientProtocolException, IOException;
 		
-		if (usePool) {
-			PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+	}
 	
-			int maxTotalConnections = 100;
-			try {
-				maxTotalConnections = new Integer(
-						EnginePropertiesManager
-								.getProperty(PropertyName.HTTP_CLIENT_MAX_TOTAL_CONNECTIONS))
-						.intValue();
-			} catch (NumberFormatException e) {
-				Engine.logEngine
-						.warn("Unable to retrieve the max number of connections; defaults to 100.");
-			}
-	
-			int maxConnectionsPerHost = 50;
-			try {
-				maxConnectionsPerHost = new Integer(
-						EnginePropertiesManager
-								.getProperty(PropertyName.HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST))
-						.intValue();
-			} catch (NumberFormatException e) {
-				Engine.logEngine
-						.warn("Unable to retrieve the max number of connections per host; defaults to 100.");
+	public static HttpClientInterface makeHttpClient(boolean usePool) {
+		
+		return new HttpClientInterface() {
+			private CloseableHttpClient httpClient = null;
+			
+			private synchronized CloseableHttpClient getHttpClient4() {
+				if (httpClient == null) {
+					HttpClientBuilder httpClientBuilder = HttpClients.custom();
+					
+					@SuppressWarnings("deprecation")
+					String spec = CookieSpecs.BROWSER_COMPATIBILITY;
+					httpClientBuilder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(spec).build());
+					
+					if (usePool) {
+						PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+						
+						int maxTotalConnections = 100;
+						try {
+							maxTotalConnections = new Integer(
+									EnginePropertiesManager
+											.getProperty(PropertyName.HTTP_CLIENT_MAX_TOTAL_CONNECTIONS))
+									.intValue();
+						} catch (NumberFormatException e) {
+							Engine.logEngine
+									.warn("Unable to retrieve the max number of connections; defaults to 100.");
+						}
+						
+						int maxConnectionsPerHost = 50;
+						try {
+							maxConnectionsPerHost = new Integer(
+									EnginePropertiesManager
+											.getProperty(PropertyName.HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST))
+									.intValue();
+						} catch (NumberFormatException e) {
+							Engine.logEngine
+									.warn("Unable to retrieve the max number of connections per host; defaults to 100.");
+						}
+						
+						connManager.setDefaultMaxPerRoute(maxConnectionsPerHost);
+						connManager.setMaxTotal(maxTotalConnections);
+						
+						httpClientBuilder.setConnectionManager(connManager);
+					}
+					
+					
+					httpClient = httpClientBuilder.build();
+				}
+				return httpClient;
 			}
 			
-			connManager.setDefaultMaxPerRoute(maxConnectionsPerHost);
-			connManager.setMaxTotal(maxTotalConnections);
+			@Override
+			public CloseableHttpResponse execute(HttpUriRequest request) throws ClientProtocolException, IOException {
+				try {
+					return getHttpClient4().execute(request);
+				} catch (IllegalStateException e) {
+					Engine.logEngine.warn("(HttpUtils) HttpClient4 retry execute because of IllegalStateException: " + e.getMessage());
+					httpClient = null;
+					return getHttpClient4().execute(request);
+				}
+			}
 			
-			httpClientBuilder.setConnectionManager(connManager);
-		}
-		
-		
-		return httpClientBuilder.build();
+		};
 	}
 	
 	public static void terminateSession(HttpSession httpSession) {
