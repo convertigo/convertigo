@@ -4,8 +4,8 @@
 
 #### Improvements:
 
-- * [#178](https://github.com/convertigo/convertigo/issues/178) New 'Application' property "Use click for tap" to differently handle "(tap)" and "onTap" events
-- * [#165](https://github.com/convertigo/convertigo/issues/165) Right-clicking a "SharedComponent" component from another project in Mobile App Viewer now focus element in treeview
+- [#178](https://github.com/convertigo/convertigo/issues/178) New 'Application' property "Use click for tap" to differently handle "(tap)" and "onTap" events
+- [#165](https://github.com/convertigo/convertigo/issues/165) Right-clicking a "SharedComponent" component from another project in Mobile App Viewer now focus element in treeview
 
 #### Bug Fixes:
 
