@@ -1,0 +1,29 @@
+comment: the URL mapper which define and expose the project's REST API
+models: |
+  '{
+      "product": {
+        "type": "object",
+        "properties": {
+          "cat_id": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "price": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cat_id",
+          "code"
+        ]
+      }
+  }'
+prefix: /shop/v1
+↓PathMapping2 [rest.PathMapping]: 🗏 urlMapper/PathMapping2.yaml
+↓PathMapping [rest.PathMapping]: 🗏 urlMapper/PathMapping.yaml
+↓PathMapping1 [rest.PathMapping]: 🗏 urlMapper/PathMapping1.yaml

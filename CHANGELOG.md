@@ -1,5 +1,19 @@
 # Changelog
 
+## 7.6.3
+
+#### Improvements:
+
+- [#178](https://github.com/convertigo/convertigo/issues/178) New 'Application' property "Use click for tap" to differently handle "(tap)" and "onTap" events
+- [#165](https://github.com/convertigo/convertigo/issues/165) Right-clicking a "SharedComponent" component from another project in Mobile App Viewer now focus element in treeview
+
+#### Bug Fixes:
+
+- [#179](https://github.com/convertigo/convertigo/issues/179) Fixed, UrlMapper is correctly exported with the project from the Server Administration console
+- [#180](https://github.com/convertigo/convertigo/issues/180) Fixed, retry FullSync insertion when an IllegalStateException occurs, using a new HttpClient
+
+---
+
 ## 7.6.2
 
 #### Improvements:

@@ -17,7 +17,7 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.6.2'
+ext.convertigoVersion = '7.6.3'
 ext.convertigoTag = ''
 ext.convertigoCodename = 'osmium'
 ext.convertigoCode = 'Os'
@@ -25,7 +25,7 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserVersion = '6.23.1'
 ext.swaggerUiVersion = '3.19.3'
 
-ext.convertigoEngineAPI = '7.6.0-SNAPSHOT'
+ext.convertigoEngineAPI = '7.6.3-SNAPSHOT'
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)

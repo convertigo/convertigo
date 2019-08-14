@@ -68,7 +68,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -93,6 +92,7 @@ import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.StreamUtils;
@@ -102,10 +102,10 @@ public class FullSyncServlet extends HttpServlet {
 	
 	private static final Pattern replace2F = Pattern.compile("(/_design)%2[fF]");
 	
-	transient private final static ThreadLocal<CloseableHttpClient> httpClient = new ThreadLocal<CloseableHttpClient>() {
+	transient private final static ThreadLocal<HttpClientInterface> httpClient = new ThreadLocal<HttpClientInterface>() {
 		@Override
-		protected CloseableHttpClient initialValue() {
-			return HttpUtils.makeHttpClient4(false);
+		protected HttpClientInterface initialValue() {
+			return HttpUtils.makeHttpClient(false);
 		}
 	};
 

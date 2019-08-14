@@ -46,7 +46,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -73,6 +72,7 @@ import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.LogCleaner;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.SimpleMap;
@@ -297,7 +297,7 @@ public class Engine {
 
 	public HttpClient httpClient;
 	
-	public CloseableHttpClient httpClient4;
+	public HttpClientInterface httpClient4;
 	
 	public RsaManager rsaManager;
 	
@@ -680,7 +680,7 @@ public class Engine {
 
 					HttpMethodParams.getDefaultParams().setParameter(HttpMethodParams.CREDENTIAL_CHARSET, "UTF-8");
 					Engine.theApp.httpClient = HttpUtils.makeHttpClient3(true);
-					Engine.theApp.httpClient4 = HttpUtils.makeHttpClient4(true);
+					Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
 
 					Engine.logEngine.debug("HttpClient initialized!");
 				} catch (Exception e) {

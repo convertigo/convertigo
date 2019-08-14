@@ -78,7 +78,6 @@ title: First page
           - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
           - MobileSmartSourceType: plain:Read feed data
     ↓Event [mobile.components.UIControlEvent-1514310966235]: 
-      attrName: (tap)
       comment: Use onTap preferably to onClick
       ↓CallSequence [mobile.components.UIDynamicAction-1514381726265]: 
         beanData: '{"ionBean":"CallSequenceAction","requestable":"plain:sample_HelloWorld.GetCNNFeed"}'

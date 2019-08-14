@@ -1,0 +1,7 @@
+comment: the shop root mapping
+↓GetShopInfos [rest.HeadOperation]: 
+  comment: all about the shop
+  targetRequestable: sampleMapperShop.GetShopInfos
+↓ReadMe [rest.GetOperation]: 
+  comment: all about the shop
+  targetRequestable: sampleMapperShop.GetShopInfos
