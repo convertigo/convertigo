@@ -218,7 +218,8 @@
       "values": [
         false,
         "large",
-        "small"
+        "small",
+        "mini"
       ]
     },
     "IconPosition": {
