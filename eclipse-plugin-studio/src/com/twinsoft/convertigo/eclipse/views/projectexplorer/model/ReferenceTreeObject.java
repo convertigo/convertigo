@@ -75,7 +75,7 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 				// Case of project rename
 				if (databaseObject instanceof Project) {
 					isLocalProject = reference.getProject().equals(databaseObject);
-					isSameValue = reference.getProjectName().equals(oldValue);
+					isSameValue = reference.getParser().getProjectName().equals(oldValue);
 					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
 					if (isSameValue && shouldUpdate) {
 						reference.setProjectName((String)newValue);
@@ -107,7 +107,7 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 				// If a referenced project has changed, clear current project schema
 				if (getObject() instanceof ProjectSchemaReference) {
 					ProjectSchemaReference reference = (ProjectSchemaReference)getObject();
-					if (databaseObject.getProject().getName().equals(reference.getProjectName())) {
+					if (databaseObject.getProject().getName().equals(reference.getParser().getProjectName())) {
 						Engine.theApp.schemaManager.clearCache(reference.getProject().getName());
 					}
 				}

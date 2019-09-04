@@ -17,18 +17,17 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.engine.enums;
+package com.twinsoft.convertigo.eclipse.property_editors;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.swt.widgets.Composite;
 
-public enum DeleteProjectOption {
-	createBackup,
-	dataOnly,
-	preserveEclipse,
-	preserveVCS,
-	unloadOnly;
-	
-	public boolean as(DeleteProjectOption... options) {
-		return ArrayUtils.contains(options, this);
-	}
+public class ProjectReferenceEditor extends AbstractDialogCellEditor {
+
+    public ProjectReferenceEditor(Composite parent) {
+        super(parent);
+
+        dialogTitle = "";
+        dialogCompositeClass = ProjectReferenceDialogComposite.class;
+    }
+
 }

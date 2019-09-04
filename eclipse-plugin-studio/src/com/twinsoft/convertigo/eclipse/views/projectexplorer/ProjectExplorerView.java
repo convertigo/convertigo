@@ -2956,6 +2956,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			public void run() {
 				try {
 					ConvertigoPlugin.logDebug("[ProjectExplorerView] event 'migrationFinished' received");
+					Engine.theApp.referencedProjectManager.check();
 					refreshProjects();
 					refreshTree();
 				}

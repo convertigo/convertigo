@@ -21,13 +21,13 @@ package com.twinsoft.convertigo.eclipse.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.program.Program;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.Engine;
 
-public class OpenConvertigoDocumentationAction implements IWorkbenchWindowActionDelegate {
+public class CheckRemoteDependenciesAction implements IWorkbenchWindowActionDelegate {
 
 	public void dispose() {
 	}
@@ -37,7 +37,7 @@ public class OpenConvertigoDocumentationAction implements IWorkbenchWindowAction
 
 	public void run(IAction action) {
 		try {
-			Program.launch("https://www.convertigo.com/technical-documentation/");
+			Engine.execute(() -> Engine.theApp.referencedProjectManager.check());
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while opening the Convertigo administration page");
 		}

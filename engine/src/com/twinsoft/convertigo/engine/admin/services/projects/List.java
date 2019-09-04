@@ -29,6 +29,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -45,7 +47,7 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		parameters = {},
 		returnValue = "the projects list"
 	)
-public class List extends XmlService{
+public class List extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
@@ -80,7 +82,17 @@ public class List extends XmlService{
     			
     			if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
     				projectElement.setAttribute("undefined_symbols", "true");
-    			} 
+    			}
+
+    			for (Reference ref: project.getReferenceList()) {
+					if (ref instanceof ProjectSchemaReference) {
+						ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
+						if (prjRef.getParser().isValid() && Engine.theApp.databaseObjectsManager.getOriginalProjectByName(prjRef.getParser().getProjectName(), true) == null) {
+							projectElement.setAttribute("missingDependencies", "true");
+							break;
+						}
+					}
+				}
     			
     			projectsListElement.appendChild(projectElement);
     		}

@@ -402,7 +402,7 @@ public class ProjectUtils {
 			return true;
 		for (Reference reference : project.getReferenceList()) {
 			if (reference instanceof ProjectSchemaReference) {
-				if (((ProjectSchemaReference)reference).getProjectName().equals(projectName))
+				if (((ProjectSchemaReference)reference).getParser().getProjectName().equals(projectName))
 					return true;
 			}
 		}

@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <reference classname="com.twinsoft.convertigo.beans.references.ProjectSchemaReference" priority="0" version="   7   7   0">
+        <property name="authPassword">
+            <java.lang.String value=""/>
+        </property>
+        <property name="authUser">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="filepath">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Project_reference"/>
+        </property>
+        <property name="needAuthentication">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="projectName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="urlpath">
+            <java.lang.String value=""/>
+        </property>
+    </reference>
+    
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   7   0">
         <property name="attrName">
             <java.lang.String value="(tap)"/>

@@ -30,7 +30,6 @@ function projects_List_init() {
 		projectsDeploy();
 	});
 
-
 	$("#projectsListButtonDeleteAll").button({				
 		icons : {
 			primary : "ui-icon-closethick"
@@ -46,6 +45,18 @@ function projects_List_init() {
 				projects_List_init();
 				endWait();
 			}, 1000);
+		});					
+	});
+
+	$("#projectsCheckRemoteDependencies").button({				
+		icons : {
+			primary : "ui-icon-arrowthickstop-1-s"
+		}
+	}).hide().click(function() {
+		showConfirm("Are you sure you want to load dependencies projects from git?", function() {
+			callService("projects.CheckDependencies", function(xml) {
+				projects_List_update();
+			});
 		});					
 	});
 
@@ -174,6 +185,11 @@ function updateProjectsList(xml) {
 					});
 	if( $(".iconAlertGlobalSymbols").length > 0 ){
 		$(".iconAlertGlobalSymbols").parent("a").parent("td").parent("tr").addClass("alertGlobalSymbols");
+	}
+	if ($(xml).find("project[missingDependencies=true]").length > 0) {
+		$("#projectsCheckRemoteDependencies").show();
+	} else {
+		$("#projectsCheckRemoteDependencies").hide();
 	}
 }
 

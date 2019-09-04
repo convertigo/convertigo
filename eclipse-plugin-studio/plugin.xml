@@ -120,6 +120,13 @@
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.actions.CheckRemoteDependenciesAction"
+               icon="icons/studio/remote_dependencies.gif"
+               id="com.twinsoft.convertigo.CheckRemoteDependenvies"
+               label="&amp;Check remote dependencies"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
                icon="icons/setupwizard_16x16.gif"
                id="com.twinsoft.convertigo.Setup"
@@ -3568,7 +3575,7 @@
       <wizard
             category="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
             class="com.twinsoft.convertigo.eclipse.wizards.import_export.ImportWizard"
-            icon="icons/sample.gif"
+            icon="icons/convertigo_16x16.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.ImportWizard"
             name="Convertigo project">
          <description>

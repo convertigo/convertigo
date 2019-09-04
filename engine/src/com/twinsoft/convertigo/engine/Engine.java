@@ -238,6 +238,8 @@ public class Engine {
 	 */
 	public RestApiManager restApiManager;
 	
+	public ReferencedProjectManager referencedProjectManager;
+	
 	/**
 	 * Loggers
 	 */
@@ -698,6 +700,8 @@ public class Engine {
 				Engine.theApp.schemaManager = new SchemaManager();
 				Engine.theApp.schemaManager.init();
 				
+				Engine.theApp.referencedProjectManager = new ReferencedProjectManager();
+				
 				// XUL initialization
 				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 				if (xulrunner_url == null || xulrunner_url.equals("")) {
@@ -799,6 +803,7 @@ public class Engine {
 									Engine.logEngine.error("Failed to load " + name, e);
 								}
 							}
+							Engine.theApp.referencedProjectManager.check();
 						}
 					});
 				}
@@ -1730,6 +1735,16 @@ public class Engine {
 	public static File projectFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
 		if (file == null) {
+			File f = new File(Engine.PROJECTS_PATH,  projectName);
+			if (f.exists() && f.isFile()) {
+				try {
+					f = new File(FileUtils.readFileToString(f, "UTF-8"));
+					file = new File(f, projectName + ".xml");
+				} catch (IOException e) {
+				}
+			}
+		}
+		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 		}
 		return file;
@@ -1737,6 +1752,16 @@ public class Engine {
 	
 	public static File projectYamlFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		if (file == null) {
+			File f = new File(Engine.PROJECTS_PATH,  projectName);
+			if (f.exists() && f.isFile()) {
+				try {
+					f = new File(FileUtils.readFileToString(f, "UTF-8"));
+					file = new File(f, "c8oProject.yaml");
+				} catch (IOException e) {
+				}
+			}
+		}
 		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/c8oProject.yaml");
 		}

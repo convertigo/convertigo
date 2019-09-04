@@ -756,7 +756,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			}
 		}
 		else if (dbo instanceof ProjectSchemaReference) {
-			String targetProjectName = ((ProjectSchemaReference) dbo).getProjectName();
+			String targetProjectName = ((ProjectSchemaReference) dbo).getParser().getProjectName();
 			neededProjects.put(targetProjectName, true);
 		}
 		else if (dbo instanceof Sequence) {

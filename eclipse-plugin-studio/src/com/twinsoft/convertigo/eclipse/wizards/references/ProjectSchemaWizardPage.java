@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectExplorerWizardPage;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class ProjectSchemaWizardPage extends WizardPage {
 	private Object parentObject = null;
@@ -97,12 +98,11 @@ public class ProjectSchemaWizardPage extends WizardPage {
 			List<Reference> references = project.getReferenceList();
 			for (Reference reference: references) {
 				if (reference instanceof ProjectSchemaReference) {
-					projectList.add(((ProjectSchemaReference)reference).getProjectName());
+					projectList.add(((ProjectSchemaReference)reference).getParser().getProjectName());
 				}
 			}
 			
-			String[] projects = Engine.theApp.databaseObjectsManager.getAllProjectNamesArray();
-			for (String name: projects) {
+			for (String name: Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 				if (!projectList.contains(name)) {
 					TreeItem branch = new TreeItem(tree, SWT.NONE);
 					branch.setText(name);
@@ -121,10 +121,11 @@ public class ProjectSchemaWizardPage extends WizardPage {
 		}
 
 		try {
-			DatabaseObject dbo = ((ObjectExplorerWizardPage)getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
+			DatabaseObject dbo = ((ObjectExplorerWizardPage) getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
 			if (dbo != null) {
 				if (dbo instanceof ProjectSchemaReference) {
-					((ProjectSchemaReference)dbo).setProjectName(projectName);
+					projectName = ProjectUrlParser.getUrl(projectName);
+					((ProjectSchemaReference) dbo).setProjectName(projectName);
 				}
 			}
 		} catch (NullPointerException e) {

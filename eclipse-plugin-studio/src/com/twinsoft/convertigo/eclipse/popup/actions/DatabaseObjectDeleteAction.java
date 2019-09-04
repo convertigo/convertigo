@@ -80,6 +80,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.DeleteProjectOption;
 
 public class DatabaseObjectDeleteAction extends MyAbstractAction {
 
@@ -375,7 +376,9 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			//Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName());
 			if (deleteProjectOnDisk) {
-				Engine.theApp.databaseObjectsManager.deleteProjectAndCar(databaseObject.getName());
+				Engine.theApp.databaseObjectsManager.deleteProjectAndCar(databaseObject.getName(), DeleteProjectOption.unloadOnly);
+			} else {
+				Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName(), DeleteProjectOption.unloadOnly);
 			}
 			ConvertigoPlugin.getDefault().deleteProjectPluginResource(deleteProjectOnDisk, databaseObject.getName());
 		}

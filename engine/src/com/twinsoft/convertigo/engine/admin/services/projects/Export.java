@@ -100,10 +100,9 @@ public class Export extends DownloadService {
 		}
 		
 		// build a new CAR file from project directory
-		CarUtils.makeArchive(projectName, exportOptions);
+		f = CarUtils.makeArchive(projectName, exportOptions);
 	
 		// upload CAR file to admin
-		f = new File(Engine.projectDir(projectName) + ".car");
 		HeaderName.ContentLength.setHeader(response, "" + f.length());
 		if (f.exists()) {
 			if (lastDate > 0) {
