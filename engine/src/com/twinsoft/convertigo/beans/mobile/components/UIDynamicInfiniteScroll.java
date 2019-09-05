@@ -154,7 +154,7 @@ public class UIDynamicInfiniteScroll extends UIDynamicComponent {
 				}
 				
 				sb.append(" [c8oPage]=\"this\"")
-					.append(isCallSequence ? " [c8oSParams]=" : " [c8oVParams]=").append("\"merge("+ props +", "+ vars +")\"");
+					.append(isCallSequence ? " [c8oSParams]=" : " [c8oVParams]=").append("\"merge(merge({},"+ props +"), "+ vars +")\"");
 			}
 		}
 		return sb;

@@ -263,7 +263,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 			
 			String scope = getScope();
-			String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
+			String in = formGroupName == null ? "{}": "merge({},"+formGroupName +".value)";
 			if (isStacked()) {
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
 			} else {
@@ -281,11 +281,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 					
 					if (formGroupName != null) {
-						vars = "merge("+formGroupName +".value, "+ vars +")";
+						vars = "merge(merge({},"+formGroupName +".value), "+ vars +")";
 					}
 					
 					String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
-					props = "merge("+ props  +", "+ stack +")";
+					props = "merge(merge({},"+ props  +"), "+ stack +")";
 					
 					if (compareToTplVersion("1.0.91") >= 0) {
 						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +", $event))";
