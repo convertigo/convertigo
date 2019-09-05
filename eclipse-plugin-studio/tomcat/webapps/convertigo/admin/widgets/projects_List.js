@@ -29,6 +29,14 @@ function projects_List_init() {
 	}).click(function(){
 		projectsDeploy();
 	});
+	
+	$("#projectsImportURL").button({
+		icons : {
+			primary : "ui-icon-circle-arrow-s"
+		}
+	}).click(function(){
+		projectsImportURL();
+	});
 
 	$("#projectsListButtonDeleteAll").button({				
 		icons : {
@@ -369,4 +377,35 @@ function exportProject(projectName) {
 	}, {
 		projectName : projectName
 	});
+}
+
+function projectsImportURL() {
+	var $input = $("<div><p>Import a project from url like:<br/><b>&lt;project name&gt;=&lt;git URL&gt;[:path=&lt;optional subpath&gt;][:branch=&lt;optional branch&gt;]</b></p><p><input type=\"text\" size=\"70\"/></p><p style=\"color: red\" id=\"importError\"></p></div>");
+	$input.dialog({
+		autoOpen : true,
+		title: "Import from a Remote Project URL",
+		modal: true,
+		minWidth: 600,
+		buttons : {
+			Import: function () {
+				var url = $input.find("input").val();
+				callService("projects.ImportURL", function(xml) {
+					var error = $(xml).find("error").text();
+					if (error != "") {
+						projects_List_update();
+						$input.dialog("close");
+					} else {
+						$input.find("#importError").text(error);
+					}
+				}, {url: url});
+			},
+			Cancel: function() {
+				$input.dialog("close");
+			}
+		},
+		close : function () {
+			$input.remove();
+		}
+	});
+	
 }

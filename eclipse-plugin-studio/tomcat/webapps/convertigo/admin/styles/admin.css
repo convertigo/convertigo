@@ -1531,7 +1531,7 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	top: 1px;
 }
 
-#projectsDeploy, #projectsListButtonDeleteAll, #projectsCheckRemoteDependencies {
+#projectsDeploy, #projectsImportURL, #projectsListButtonDeleteAll, #projectsCheckRemoteDependencies {
 	position:relative;
 	top: 5px;
 } 
