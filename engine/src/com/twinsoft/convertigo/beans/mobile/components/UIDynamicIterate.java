@@ -159,8 +159,6 @@ public class UIDynamicIterate extends UIDynamicAction {
 					}
 				}
 	
-//				String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"this.merge";
-				
 				String tsCode = "";
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
 				tsCode += "\t\t" + System.lineSeparator();
@@ -176,8 +174,6 @@ public class UIDynamicIterate extends UIDynamicAction {
 				
 				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
-//				tsCode +="\t\treturn this.actionBeans."+actionName+
-//						"(this, self.in.props, "+ cafMerge +"(self.in.vars, stack[\"root\"].in), doLoop)"+ System.lineSeparator();
 				tsCode +="\t\treturn this.actionBeans."+actionName+
 						"(this, self.in.props, {...stack[\"root\"].in, ...self.in.vars}, doLoop)"+ System.lineSeparator();
 				
