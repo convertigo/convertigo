@@ -157,9 +157,13 @@ C8O = {
                         fakeXHR.responseText = $iframe[0].contentWindow.document.outerHTML;
                         C8O._onCallSuccess(null, "success", fakeXHR);
                     } else {
-                        var xml = $iframe[0].contentWindow.document.XMLDocument;
-                        fakeXHR.responseText = "No responseText for multipart, use XSL or xml_response.";
-                        C8O._onCallSuccess(xml ? xml: $iframe[0].contentWindow.document, "success", fakeXHR);
+                        var xml = $iframe[0].contentWindow.document.XMLDocument ? $iframe[0].contentWindow.document.XMLDocument : $iframe[0].contentWindow.document;
+                        try {
+                        	fakeXHR.responseText = new XMLSerializer().serializeToString(xml);
+                        } catch (e) {
+                        	fakeXHR.responseText = "No responseText for multipart, use XSL or xml_response.";
+                        }
+                        C8O._onCallSuccess(xml, "success", fakeXHR);
                     }
                     C8O._onCallComplete(fakeXHR, "success");
                     $iframe.remove();
