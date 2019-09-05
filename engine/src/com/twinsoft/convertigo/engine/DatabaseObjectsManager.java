@@ -1161,7 +1161,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				Engine.logDatabaseObjectManager.error("Project \"" + projectName + "\" contains undefined global symbols: " + symbolsGetUndefined(projectName));
 			}
 			
-			if (!Engine.isStudioMode()) {
+			if (Engine.isEngineMode() && !Engine.isCliMode()) {
 				File prjDir = project.getDirFile();
 				File pDir = new File(Engine.PROJECTS_PATH, projectName);
 				if (pDir != prjDir && !pDir.exists()) {
