@@ -1280,6 +1280,67 @@ public class MobileBuilder {
 	}
 	
 	private String getPageModuleTsContent(PageComponent page) throws IOException {
+		// contributors
+		Map<String, File> comp_beans_dirs = new HashMap<>();
+		Map<String, String> module_ts_imports = new HashMap<>();
+		Set<String> module_ng_imports =  new HashSet<String>();
+		Set<String> module_ng_providers =  new HashSet<String>();
+		Set<String> module_ng_declarations =  new HashSet<String>();
+		Set<String> module_ng_components =  new HashSet<String>();
+		
+		List<Contributor> contributors = page.getContributors();
+		for (Contributor contributor : contributors) {
+			comp_beans_dirs.putAll(contributor.getCompBeanDir());
+			
+			module_ts_imports.putAll(contributor.getModuleTsImports());
+			module_ng_imports.addAll(contributor.getModuleNgImports());
+			module_ng_providers.addAll(contributor.getModuleNgProviders());
+			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+			module_ng_components.addAll(contributor.getModuleNgComponents());
+		}
+
+		String c8o_ModuleTsImports = "";
+		for (String comp : module_ts_imports.keySet()) {
+			if (comp.indexOf(" as ") != -1) {
+				c8o_ModuleTsImports += "import "+comp+" from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+			} else {
+				c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+			}
+		}
+		c8o_ModuleTsImports = c8o_ModuleTsImports.replaceAll("\\.\\./components/", "../../components/");
+		
+		String c8o_ModuleNgImports = "";
+		for (String module: module_ng_imports) {
+			c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
+		}
+		if (!c8o_ModuleNgImports.isEmpty()) {
+			c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports;
+		}
+		
+		String c8o_ModuleNgProviders = "";
+		for (String provider: module_ng_providers) {
+			c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
+		}
+		if (!c8o_ModuleNgProviders.isEmpty()) {
+			c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
+		}
+
+		String c8o_ModuleNgDeclarations = "";
+		for (String declaration: module_ng_declarations) {
+			c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
+		}
+		if (!c8o_ModuleNgDeclarations.isEmpty()) {
+			c8o_ModuleNgDeclarations = System.lineSeparator() + c8o_ModuleNgDeclarations;
+		}
+		
+		String c8o_ModuleNgComponents = "";
+		for (String component: module_ng_components) {
+			c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
+		}
+		if (!c8o_ModuleNgComponents.isEmpty()) {
+			c8o_ModuleNgComponents = System.lineSeparator() + c8o_ModuleNgComponents;
+		}
+		
 		String pageName = page.getName();
 		String c8o_PageName = pageName;
 		String c8o_PageModuleName = pageName + "Module";
@@ -1290,6 +1351,24 @@ public class MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageModuleName\\*/",c8o_PageModuleName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImport\\*/",c8o_PageImport);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/",c8o_ModuleNgImports);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+		
+		for (String compbean : comp_beans_dirs.keySet()) {
+			File srcDir = comp_beans_dirs.get(compbean);
+			for (File f: srcDir.listFiles()) {
+				String fContent = FileUtils.readFileToString(f, "UTF-8");
+				File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
+				writeFile(destFile, fContent, "UTF-8");
+			}
+		}
 		
 		return tsContent;
 	}
@@ -1508,17 +1587,19 @@ public class MobileBuilder {
 						c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
 						c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
 						c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
-					}
-					
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						comp_beans_dirs.putAll(contributor.getCompBeanDir());
 						
-						module_ts_imports.putAll(contributor.getModuleTsImports());
-						module_ng_imports.addAll(contributor.getModuleNgImports());
-						module_ng_providers.addAll(contributor.getModuleNgProviders());
-						module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-						module_ng_components.addAll(contributor.getModuleNgComponents());
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							comp_beans_dirs.putAll(contributor.getCompBeanDir());
+							
+							module_ts_imports.putAll(contributor.getModuleTsImports());
+							module_ng_imports.addAll(contributor.getModuleNgImports());
+							module_ng_providers.addAll(contributor.getModuleNgProviders());
+							module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+							module_ng_components.addAll(contributor.getModuleNgComponents());
+						}
+					} else {
+						writePageModuleTs(page);
 					}
 					
 					i++;
