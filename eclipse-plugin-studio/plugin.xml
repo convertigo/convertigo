@@ -1227,6 +1227,13 @@
             id="convertigo.projectContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
 		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyProjectRemoteURLAction"
+               enablesFor="1"
+               icon="icons/studio/clipboard_copy.gif"
+               id="convertigo.action.copyProjectRemoteURL"
+               label="Copy Project Remote URL"
+               menubarPath="clipboard"/>
+		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCloseAction"
                enablesFor="+"
                icon="icons/studio/close.gif"

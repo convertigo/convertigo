@@ -131,22 +131,32 @@ public class ProjectUrlParser {
 	
 	static public String getUrl(String projectName) {
 		try {
-			Project prj = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-			if (prj != null) {
-				File prjDir = prj.getDirFile();
-				File wrkDir = GitUtils.getWorkingDir(prjDir);
-				String remote = GitUtils.getRemote(wrkDir);
-				if (remote != null) {
-					String path = prjDir.getCanonicalPath().substring(wrkDir.getCanonicalPath().length());
-					if (!path.isEmpty()) {
-						remote += ":path=" + path.substring(1).replace('\\', '/');
-					}
-					String branch = GitUtils.getBranch(wrkDir);
-					if (!StringUtils.isEmpty(branch)) {
-						remote += ":branch=" + branch;
-					}
-					projectName = projectName + "=" + remote;
+			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			if (project != null) {
+				return getUrl(project);
+			}
+		} catch (Exception e) {
+			// skip
+		}
+		return projectName;
+	}
+	
+	static public String getUrl(Project project) {
+		String projectName = project.getName();
+		try {
+			File prjDir = project.getDirFile();
+			File wrkDir = GitUtils.getWorkingDir(prjDir);
+			String remote = GitUtils.getRemote(wrkDir);
+			if (remote != null) {
+				String path = prjDir.getCanonicalPath().substring(wrkDir.getCanonicalPath().length());
+				if (!path.isEmpty()) {
+					remote += ":path=" + path.substring(1).replace('\\', '/');
 				}
+				String branch = GitUtils.getBranch(wrkDir);
+				if (!StringUtils.isEmpty(branch)) {
+					remote += ":branch=" + branch;
+				}
+				projectName = projectName + "=" + remote;
 			}
 		} catch (Exception e) {
 			// skip
