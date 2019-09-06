@@ -262,10 +262,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				}
 			}
 			
-			//String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"merge";
-			
 			String scope = getScope();
-			String in = formGroupName == null ? "{}": "merge("+formGroupName +".value, {})";
+			String in = formGroupName == null ? "{}": "merge({},"+formGroupName +".value)";
 			if (isStacked()) {
 				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
 			} else {
@@ -283,12 +281,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 					
 					if (formGroupName != null) {
-						//vars = cafMerge + "("+formGroupName +".value, "+ vars +")";
-						vars = "merge("+formGroupName +".value, "+ vars +")";
+						vars = "merge(merge({},"+formGroupName +".value), "+ vars +")";
 					}
 					
 					String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
-					props = "merge("+ props  +", "+ stack +")";
+					props = "merge(merge({},"+ props  +"), "+ stack +")";
 					
 					if (compareToTplVersion("1.0.91") >= 0) {
 						return "resolveError(actionBeans."+ actionName + "(this,"+ props + ","+ vars +", $event))";
@@ -563,8 +560,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 				}
 	
-				String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"this.merge";
-				
 				String tsCode = "";
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
 				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
@@ -573,24 +568,24 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if ("InvokeAction".equals(ionBean.getName())) {
 					if (isBroken()) {
 						tsCode +="\t\treturn this.actionBeans."+actionName+
-								"(this, "+ cafMerge +"(self.in.props, {message: 'Invoke source is broken'}), "+
-									cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+								"(this, {...self.in.props, ...{message: 'Invoke source is broken'}}, "+
+									"{...stack[\"root\"].in, ...self.in.vars})"+ System.lineSeparator();
 					} else {
 						if (getSharedAction() != null) {
-							tsCode +="\t\treturn this.actionBeans."+actionName+
-									"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
-												cafMerge +"(self.in.vars, "+ cafMerge +"(params, stack[\"root\"].in)), event)"+
+							tsCode +="\t\treturn this.actionBeans."+ actionName +
+									"(this, {...{stack: stack, parent: parent, out: out}, ...self.in.props}, "+ 
+												"{...stack[\"root\"].in, ...params, ...self.in.vars}, event)"+ 
 													System.lineSeparator();
 						} else {
-							tsCode +="\t\treturn this.actionBeans."+actionName+
-									"(this, "+ cafMerge +"(self.in.props, {stack: stack, parent: parent, out: out}), "+ 
-												cafMerge +"(self.in.vars, stack[\"root\"].in), event)"+ 
+							tsCode +="\t\treturn this.actionBeans."+ actionName +
+									"(this, {...{stack: stack, parent: parent, out: out}, ...self.in.props}, "+ 
+												"{...stack[\"root\"].in, ...self.in.vars}, event)"+ 
 													System.lineSeparator();
 						}
 					}
 				} else {
 					tsCode +="\t\treturn this.actionBeans."+actionName+
-									"(this, self.in.props, "+ cafMerge +"(self.in.vars, stack[\"root\"].in))"+ System.lineSeparator();
+							"(this, self.in.props, {...stack[\"root\"].in, ...self.in.vars})"+ System.lineSeparator();
 				}
 				
 				tsCode += "\t\t.catch((error:any) => {"+ System.lineSeparator();

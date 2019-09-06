@@ -727,6 +727,7 @@ $(document).ready(function() {
 									frameborder : "0",
 									src : url + "#__first_call=false"
 								}).one("load", function () {
+									$iframe[0].contentWindow.C8O.vars.endpoint_url = url.replace("/index.html","/");
 									$iframe[0].contentWindow.C8O.call($form[0]);
 								}).appendTo($window_exe_content.empty());
 							} else {
@@ -738,6 +739,7 @@ $(document).ready(function() {
 									if (!$("#window_exe_device").is(":visible")) {
 										$form.attr("action", $form.attr("action") + "?__content_type=text/plain");
 									}
+									$form.attr("enctype", "multipart/form-data");
 									$form.attr("target", this.contentWindow.name = "tesplatformIframe").submit();
 								}).appendTo($window_exe_content.empty());
 							}
@@ -752,7 +754,7 @@ $(document).ready(function() {
 				} else {
 					if (requester != "index.html") {
 						if (!$("#window_exe_device").is(":visible")) {
-							href += "&__content_type=text/plain"
+							href += "&__content_type=text/plain";
 						}
 					}
 					launchCliplet(href);
