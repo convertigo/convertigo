@@ -87,7 +87,7 @@ public class ImportWizardPage extends WizardPage {
 		projectReferenceComposite.setLayoutData(gd);
 				
 		updateStatus();
-		setControl(fileSelectionArea);
+		setControl(page);
 	}
 
 	private void updateStatus() {
