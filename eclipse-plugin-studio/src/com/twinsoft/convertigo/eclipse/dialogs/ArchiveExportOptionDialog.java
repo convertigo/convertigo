@@ -68,18 +68,22 @@ public class ArchiveExportOptionDialog extends Dialog {
 		int i = 0;
 		File projectDir = project.getDirFile();
 		for (ArchiveExportOption option: ArchiveExportOption.values()) {
-			Button check = new Button(composite, SWT.CHECK);
 			long size = option.size(projectDir);
-			check.setVisible(size > 0);
-			check.setData(option);
-			if (option == ArchiveExportOption.includeTestCase) {
-				check.setText(option.display());
+			if (size > 0) {
+				Button check = new Button(composite, SWT.CHECK);
+				check.setData(option);
+				if (option == ArchiveExportOption.includeTestCase) {
+					check.setText(option.display());
+				} else {
+					check.setText(option.display() + " [" + FileUtils.byteCountToDisplaySize(size) +"]");
+				}
+				check.setSelection(archiveExportOptions.contains(option));
+				archiveExportOptionsSWT[i++] = check;
 			} else {
-				check.setText(option.display() + " [" + FileUtils.byteCountToDisplaySize(size) +"]");
+				archiveExportOptionsSWT[i++] = null;
 			}
-			check.setSelection(archiveExportOptions.contains(option));
-			archiveExportOptionsSWT[i++] = check;
 		}
+		composite.pack(true);
 		return composite;
 	}
 
@@ -105,9 +109,10 @@ public class ArchiveExportOptionDialog extends Dialog {
 	protected void okPressed() {
 		version = versionSWT.getText();
 		archiveExportOptions.clear();
+		archiveExportOptions.addAll(ArchiveExportOption.all);
 		for (Button check: archiveExportOptionsSWT) {
-			if (check.getSelection()) {
-				archiveExportOptions.add((ArchiveExportOption) check.getData());
+			if (check != null && !check.getSelection()) {
+				archiveExportOptions.remove((ArchiveExportOption) check.getData());
 			}
 		}
 		ArchiveExportOption.save(project.getDirFile(), archiveExportOptions);

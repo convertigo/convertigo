@@ -14,8 +14,12 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 public enum ArchiveExportOption {
 	includeTestCase("include Requestables TestCases", dir -> new File[] { new File(dir, "c8oProject.yaml"), new File(dir, "_c8oProject")}),
 	includeStubs("include Stubs", dir -> new File[] { new File(dir, "stubs")}),
-	includeMobileApp("include Mobile Builder build result", dir -> new File[] { new File(dir, "DisplayObjects/mobile")}),
-	includeMobilePlatformsAssets("include Mobile Platforms assests", dir -> {
+	includeMobileApp("include Mobile Builder build result", dir -> {
+		File[] files = new File(dir, "DisplayObjects/mobile").listFiles((file) -> !file.getName().equals("assets"));
+		return files;
+	}),
+	includeMobileAppAssets("include Mobile Builder assets", dir -> new File[] { new File(dir, "DisplayObjects/mobile/assets") }),
+	includeMobilePlatformsAssets("include Mobile Platforms assets", dir -> {
 		File[] platforms = new File(dir, "DisplayObjects/platforms").listFiles();
 		if (platforms == null) {
 			return new File[0];
