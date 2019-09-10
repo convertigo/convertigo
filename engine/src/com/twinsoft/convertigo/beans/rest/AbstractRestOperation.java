@@ -68,6 +68,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 
 	private transient boolean hasBodyParameter = false;
 	
+	private boolean terminateSession = true;
+	
 	@Override
 	public AbstractRestOperation clone() throws CloneNotSupportedException {
 		AbstractRestOperation clonedObject = (AbstractRestOperation) super.clone();
@@ -460,7 +462,17 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 		catch (Throwable t) {
 			throw new EngineException("Operation \""+ getName() +"\" failed to handle request", t);
 		} finally {
-			request.setAttribute("convertigo.requireEndOfContext", true);
+			if (terminateSession) {
+				request.setAttribute("convertigo.requireEndOfContext", true);
+			}
 		}
+	}
+
+	public boolean isTerminateSession() {
+		return terminateSession;
+	}
+
+	public void setTerminateSession(boolean terminateSession) {
+		this.terminateSession = terminateSession;
 	}
 }
