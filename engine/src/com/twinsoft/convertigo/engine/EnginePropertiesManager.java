@@ -629,6 +629,8 @@ public class EnginePropertiesManager {
 		FULLSYNC_COUCH_USERNAME ("fullsync.couch.username", "", "Couch DB username for FullSync", PropertyCategory.FullSync),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		FULLSYNC_COUCH_PASSWORD ("fullsync.couch.password", "", "Couch DB password for FullSync", PropertyCategory.FullSync),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		FULLSYNC_COUCH_PREFIX ("fullsync.couch.prefix", "", "Couch DB prefix for all FullSync databases", PropertyCategory.FullSync),
 		
 		/* End of configuration keys definition */;
 		

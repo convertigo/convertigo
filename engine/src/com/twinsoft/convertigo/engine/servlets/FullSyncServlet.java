@@ -88,6 +88,7 @@ import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager.FullSyncAuthentication;
+import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncClient;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -138,7 +139,8 @@ public class FullSyncServlet extends HttpServlet {
 		HttpSession httpSession = request.getSession();
 		
 		try {
-			RequestParser requestParser = new RequestParser(request);
+			FullSyncClient fsClient = Engine.theApp.couchDbManager.getFullSyncClient();
+			RequestParser requestParser = new RequestParser(request, fsClient.getPrefix());
 			
 			Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
 			
@@ -177,7 +179,7 @@ public class FullSyncServlet extends HttpServlet {
 		    			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		    			for (Connector connector : project.getConnectorsList()) {
 		    				if (connector instanceof FullSyncConnector) {
-		    					FullSyncConnector fullSyncConnector = (FullSyncConnector)connector;
+		    					FullSyncConnector fullSyncConnector = (FullSyncConnector) connector;
 		    					if (fullSyncConnector.getDatabaseName().equals(dbName)) {
 		    						allowAnonymous = fullSyncConnector.getAnonymousReplication() == FullSyncAnonymousReplication.allow;
 		    						break;
@@ -219,7 +221,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			boolean isChanges = "_changes".equals(special);
 			
-			String version = Engine.theApp.couchDbManager.getFullSyncClient().getServerVersion();
+			String version = fsClient.getServerVersion();
 			
 			if (isChanges && version.compareTo("2.") >= 0) {
 				method = HttpMethodType.POST;
@@ -281,7 +283,7 @@ public class FullSyncServlet extends HttpServlet {
 			}
 			
 			{
-				Header authBasicHeader = Engine.theApp.couchDbManager.getFullSyncClient().getAuthBasicHeader();
+				Header authBasicHeader = fsClient.getAuthBasicHeader();
 				if (authBasicHeader != null) {
 					debug.append("request add BasicHeader");
 					newRequest.addHeader(authBasicHeader);
@@ -525,15 +527,16 @@ public class FullSyncServlet extends HttpServlet {
 								(isChanges && version.compareTo("2.") < 0) ||
 								"_bulk_get".equals(special) ||
 								"_all_docs".equals(special) ||
+								"_all_dbs".equals(special) ||
 								StringUtils.isNotEmpty(requestParser.getDocId()) ||
 								(bulkDocsRequest != null && listeners != null))) {
 						String charset = contentType.getCharset("UTF-8");
 						
 						try (OutputStreamWriter writer = new OutputStreamWriter(os, charset); BufferedInputStream bis = new BufferedInputStream(is)) {
 							if (isChanges) {
-							Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
+								Engine.logCouchDbManager.info("(FullSyncServlet) Entering in continuous loop:\n" + debug);
 								try (BufferedReader br = new BufferedReader(new InputStreamReader(bis, charset))) {
-							Engine.theApp.couchDbManager.filterChanges(httpSession.getId(), dbName, uri, fsAuth, br, writer);
+									Engine.theApp.couchDbManager.filterChanges(httpSession.getId(), dbName, uri, fsAuth, br, writer);
 								}
 							} else if (bulkDocsRequest != null) {
 								Engine.logCouchDbManager.info("(FullSyncServlet) Handle bulkDocsRequest:\n" + debug);
@@ -541,16 +544,16 @@ public class FullSyncServlet extends HttpServlet {
 								writer.write(responseStringEntity);
 								writer.flush();
 								if (listeners != null) {
-								Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
+									Engine.theApp.couchDbManager.handleBulkDocsResponse(request, listeners, bulkDocsRequest, responseStringEntity);
 								}
 							} else if (isCblBulkGet) {
 								Engine.logCouchDbManager.info("(FullSyncServlet) Checking text response documents for CBL BulkGet:\n" + debug);
 								Engine.theApp.couchDbManager.checkCblBulkGetResponse(special, fsAuth, bis, charset, response);
-									} else {
+							} else {
 								Engine.logCouchDbManager.info("(FullSyncServlet) Checking response documents:\n" + debug);
 								Engine.theApp.couchDbManager.checkResponse(special, fsAuth, bis, charset, writer);
-									}
-								}
+							}
+						}
 					} else if (code >= 200 && code < 300 &&
 							contentType.mimeType() == MimeType.MultiPartRelated && 
 							"_bulk_get".equals(special)) {
@@ -603,7 +606,7 @@ public class FullSyncServlet extends HttpServlet {
 		private String docId;
 		private boolean attachment = false;
 		
-		RequestParser(HttpServletRequest request) throws UnsupportedEncodingException {
+		RequestParser(HttpServletRequest request, String prefix) throws UnsupportedEncodingException {
 			String requestURI = request.getRequestURI();
 			String contextPath = request.getContextPath();
 			requestURI = requestURI.substring(contextPath.length());
@@ -618,6 +621,7 @@ public class FullSyncServlet extends HttpServlet {
 				path = mPath.group(1);
 				special = mPath.group(2);
 				if (special == null) {
+					path = path.replaceFirst("/", "/" + prefix);
 					dbName = mPath.group(3);
 					special = mPath.group(4);
 					docId = mPath.group(5);

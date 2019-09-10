@@ -178,7 +178,7 @@ dependencies {
 	compileFlat 'com.convertigo.lib:sapjco:3'
 	compileFlat 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat 'com.convertigo.lib:soapui:3.5.1'
-	compileFlat 'com.convertigo.provider:convertigo-provider-couchdb:7.6.3-SNAPSHOT'
+	compileFlat 'com.convertigo.provider:convertigo-provider-couchdb:7.7.0-SNAPSHOT'
 	compileFlat 'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
 	compileFlat 'com.convertigo.provider:convertigo-provider-sap:7.6.0-SNAPSHOT'
 	compileFlat 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
