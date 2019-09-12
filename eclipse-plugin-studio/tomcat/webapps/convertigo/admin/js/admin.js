@@ -292,7 +292,7 @@ function loadWidgets(layoutName, widgetOptions) {
 
 function loadWidget(widgetId, widgetOptions) {
 	var $widget = $("#" + widgetId);
-	if ($widget.text().length > 0) {
+	if ($widget.children().length > 0) {
 		$widget.show();
 		window[widgetId + "_update"](widgetOptions);
 	} else {	

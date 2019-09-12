@@ -176,7 +176,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		return roles;
 	}
 	
-	public void checkRoles(HttpSession httpSession, Role[] requiredRoles) throws AuthenticationException {
+	public void checkRoles(HttpSession httpSession, Role... requiredRoles) throws AuthenticationException {
 		List<Role> lRequiredRoles = Arrays.asList(requiredRoles);
 		
 		Role[] userRoles = roles(httpSession);

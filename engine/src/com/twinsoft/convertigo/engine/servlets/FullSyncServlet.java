@@ -57,6 +57,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -76,6 +77,7 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncListener;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -142,7 +144,16 @@ public class FullSyncServlet extends HttpServlet {
 			FullSyncClient fsClient = Engine.theApp.couchDbManager.getFullSyncClient();
 			RequestParser requestParser = new RequestParser(request, fsClient.getPrefix());
 			
-			Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
+			boolean isUtilsSession = "true".equals(httpSession.getAttribute("__isUtilsSession"));
+			boolean isUtilsRequest = false;
+			if (isUtilsSession || "_utils".equals(requestParser.special)) {
+				Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN);
+				httpSession.setAttribute("__isUtilsSession", "true");
+				String referer = request.getHeader("Referer");
+				isUtilsRequest = (referer != null && referer.contains("/_utils/") && !"_all_dbs".equals(requestParser.getSpecial()));
+			} else {
+				Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
+			}
 			
 			synchronized (httpSession) {
 				Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(httpSession);
@@ -232,7 +243,13 @@ public class FullSyncServlet extends HttpServlet {
 			HttpRequestBase newRequest;
 			
 			switch (method) {
-//			case DELETE: newRequest = new HttpDelete(); break; //disabled to prevent db delete
+			case DELETE: 
+				if (isUtilsRequest) {
+					newRequest = new HttpDelete();
+				} else {
+					throw new ServletException("Invalid HTTP method");
+				}
+				break; //disabled to prevent db delete
 			case GET: newRequest = new HttpGet(); break;
 			case HEAD: newRequest = new HttpHead(); break;
 			case OPTIONS: newRequest = new HttpOptions(); break;
@@ -521,6 +538,7 @@ public class FullSyncServlet extends HttpServlet {
 					//is = responseEntity.getContent();
 					
 					if (code >= 200 && code < 300 &&
+							!isUtilsRequest &&
 							contentType.mimeType().in(MimeType.Plain, MimeType.Json) &&
 							!"_design".equals(special) &&
 							!requestParser.hasAttachment() && (
@@ -559,7 +577,25 @@ public class FullSyncServlet extends HttpServlet {
 							"_bulk_get".equals(special)) {
 						Engine.logCouchDbManager.info("(FullSyncServlet) Checking multipart response documents for CBL BulkGet:\n" + debug);
 						Engine.theApp.couchDbManager.checkCblBulkGetResponse(fsAuth, is, response);
-							} else {
+					} else if (Pattern.matches(".*/bundle\\..*?\\.js", uri.getPath())) {
+						StringBuilder sb = new StringBuilder();
+						sb.append(IOUtils.toString(is, "UTF-8")
+								.replace("json=function(e){var t", "json=function(e){e=e.replace('../../','../');var t"));
+						sb.append("\n$(\"#primary-navbar\").remove();");
+						byte[] b = sb.toString().getBytes("UTF-8");
+						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
+						os.write(b);
+					} else if (Pattern.matches(".*/styles\\..*?\\.css", uri.getPath())) {
+						StringBuilder sb = new StringBuilder();
+						sb.append(IOUtils.toString(is, "UTF-8"));
+						sb.append("\n.closeMenu #dashboard { left: 0px; }");
+						sb.append("\n.closeMenu .pusher { padding-right: 0px; }");
+						sb.append("\nbutton.add-new-database-btn { display: none; }");
+						sb.append("\n#notification-center-btn { display: none; }");
+						byte[] b = sb.toString().getBytes("UTF-8");
+						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
+						os.write(b);
+					} else {
 						String contentLength = HeaderName.ContentLength.getHeader(newResponse);
 						if (contentLength != null) {
 							HeaderName.ContentLength.addHeader(response, contentLength);
@@ -592,7 +628,9 @@ public class FullSyncServlet extends HttpServlet {
 			Log4jHelper.mdcClear();
 			synchronized (httpSession) {
 				Set<HttpServletRequest> set = SessionAttribute.fullSyncRequests.get(httpSession);
-				set.remove(request);
+				if (set != null) {
+					set.remove(request);
+				}
 			}
 		}
 	}
@@ -621,11 +659,13 @@ public class FullSyncServlet extends HttpServlet {
 				path = mPath.group(1);
 				special = mPath.group(2);
 				if (special == null) {
-					path = path.replaceFirst("/", "/" + prefix);
 					dbName = mPath.group(3);
 					special = mPath.group(4);
 					docId = mPath.group(5);
 					attachment = docId != null && !mPath.group(6).isEmpty();
+					if (!dbName.isEmpty()) {
+						path = path.replaceFirst("/", "/" + prefix);
+					}
 				}
 			}
 		}
