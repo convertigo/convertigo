@@ -230,7 +230,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				String projectName = projectDir.getName();
 				
 				if (!projectNames.contains(projectName)) {
-					if (projectDir.isFile()) {
+					if (projectDir.isFile() && projectDir.length() < 4096) {
 						try {
 							projectDir = new File(FileUtils.readFileToString(projectDir, "UTF-8"));
 						} catch (IOException e) {

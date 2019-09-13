@@ -55,11 +55,12 @@ public enum ArchiveExportOption {
 	}
 	
 	public File[] dirs(File dir) {
-		return filter.filter(dir);
+		File[] res = filter.filter(dir);
+		return res == null ? new File[]{} : res;
 	}
 	
 	interface Filter {
-		File[] filter (File dir);
+		File[] filter(File dir);
 	}
 	
 	public static Set<ArchiveExportOption> load(File dir) {

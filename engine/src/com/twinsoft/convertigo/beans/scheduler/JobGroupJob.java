@@ -84,4 +84,8 @@ public class JobGroupJob extends AbstractJob {
 	public void setParallelJob(int parallelJob) {
 		this.parallelJob = parallelJob;
 	}
+
+	public void setSerial(boolean serial) {
+		this.parallelJob = serial ? 1 : Runtime.getRuntime().availableProcessors();
+	}
 }
