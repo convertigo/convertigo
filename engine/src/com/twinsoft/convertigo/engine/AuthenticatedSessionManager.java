@@ -62,6 +62,8 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		CERTIFICATE_CONFIG("Configure the certificate part"),
 		CONNECTIONS_VIEW("Consult the connections part"),
 		CONNECTIONS_CONFIG("Configure the connections part"),
+		FULLSYNC_VIEW("Consult the fullsync part"),
+		FULLSYNC_CONFIG("Configure the fullsync part"),
 		KEYS_VIEW("Consult the keys part"),
 		KEYS_CONFIG("Configure the keys part"),
 		LOGS_VIEW("Consult the logs part"),

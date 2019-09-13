@@ -147,7 +147,7 @@ public class FullSyncServlet extends HttpServlet {
 			boolean isUtilsSession = "true".equals(httpSession.getAttribute("__isUtilsSession"));
 			boolean isUtilsRequest = false;
 			if (isUtilsSession || "_utils".equals(requestParser.special)) {
-				Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN);
+				Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG, Role.FULLSYNC_VIEW);
 				httpSession.setAttribute("__isUtilsSession", "true");
 				String referer = request.getHeader("Referer");
 				isUtilsRequest = (referer != null && referer.contains("/_utils/") && !"_all_dbs".equals(requestParser.getSpecial()));
@@ -245,16 +245,27 @@ public class FullSyncServlet extends HttpServlet {
 			switch (method) {
 			case DELETE: 
 				if (isUtilsRequest) {
+					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 					newRequest = new HttpDelete();
 				} else {
+					// disabled to prevent db delete
 					throw new ServletException("Invalid HTTP method");
 				}
-				break; //disabled to prevent db delete
+				break;
 			case GET: newRequest = new HttpGet(); break;
 			case HEAD: newRequest = new HttpHead(); break;
 			case OPTIONS: newRequest = new HttpOptions(); break;
-			case POST: newRequest = new HttpPost(); break;
-			case PUT: newRequest = new HttpPut(); break;
+			case POST:
+				if (isUtilsRequest) {
+					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
+				}
+				newRequest = new HttpPost();
+				break;
+			case PUT:
+				if (isUtilsRequest) {
+					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
+				}
+				newRequest = new HttpPut(); break;
 			case TRACE: newRequest = new HttpTrace(); break;
 			default: throw new ServletException("Invalid HTTP method");
 			}
