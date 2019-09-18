@@ -59,7 +59,7 @@ public class FakeJarException extends RuntimeException {
 			String path;
 
 			if (isStudioMode)
-				path = new File(engine.getField("WEBAPP_PATH").get(null) + "/../../../lib/jco/").getCanonicalPath();
+				path = new File(engine.getField("WEBAPP_PATH").get(null) + "/../../../lib/").getCanonicalPath();
 			else {
 				path = new File(engine.getField("WEBAPP_PATH").get(null) + "/WEB-INF/lib/").getCanonicalPath();
 			}
