@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.FocusAdapter;
@@ -463,5 +464,40 @@ public class MobileSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
     @Override
 	public void performPaste() {
     	comboBox.paste();
+    }
+
+    @Override
+    public void setValidator(ICellEditorValidator validator) {
+    	super.setValidator(new ICellEditorValidator() {
+
+    		@Override
+    		public String isValid(Object value) {
+    			String error = null;
+    			String txt = null;
+    			Mode mode = null;
+    			if (value instanceof MobileSmartSourceType) {
+	    			MobileSmartSourceType m = (MobileSmartSourceType) value;
+	    			mode = m.getMode();
+	    			txt = m.getValue();
+	    			if (!Mode.PLAIN.equals(m.getMode())) {
+	    				String s = m.getValue();
+	    				if (s.isEmpty()) {
+	    					error = "cannot be empty";
+	    				}
+	    			}
+    			} else if (value instanceof String && msst != null) {
+    				mode = msst.getMode();
+    				txt = (String) value;
+    			}
+    			if (txt != null) {
+    				if (!Mode.PLAIN.equals(mode) && txt.isEmpty()) {
+    					error = "value cannot be empty with mode " + mode.label();
+    				} else if (validator != null) {
+    					error = validator.isValid(txt);
+    				}
+    			}
+    			return error;
+    		}
+    	});
     }
 }
