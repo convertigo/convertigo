@@ -8835,10 +8835,10 @@
 	      },
 	      
 	      "enableBackdropDismiss": {
-	        "label": "EnableBackdropDismiss",
+	        "label": "Enable Backdrop Dismiss",
 	        "description": "Whether the alert should be dismissed by tapping the backdrop. Default true.",
 	        "category": "@options",
-	        "type": "string",
+	        "type": "boolean",
 	        "value": "true",
 	        "values": [
 	        	"true",

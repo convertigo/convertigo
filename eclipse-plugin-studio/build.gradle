@@ -54,6 +54,7 @@ dependencies {
 	//runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
 	runtime 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
+	runtime project.property('sapjco3Version')
 }
 
 task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {

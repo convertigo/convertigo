@@ -76,6 +76,7 @@ tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 configurations {
 	swtLinux32
 	compileFlat
+	sapjco3
 }
 
 jar {
@@ -152,6 +153,13 @@ build.filename=${war.archiveName}"""
 	exclude '**/*.car'
 	rename 'keys_server.txt', 'keys.txt'
 	
+	afterEvaluate {
+		from configurations.sapjco3[0], {
+			into 'WEB-INF/lib'
+			rename '(.*)', 'sapjco3.jar'
+		}
+	}
+	
 	dependsOn 'unzipSwaggerUI'
 }
 
@@ -188,7 +196,7 @@ dependencies {
 	compileFlat 'com.convertigo.lib:soapui:3.5.1'
 	compileFlat 'com.convertigo.provider:convertigo-provider-couchdb:7.7.0-SNAPSHOT'
 	compileFlat 'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
-	compileFlat 'com.convertigo.provider:convertigo-provider-sap:7.6.0-SNAPSHOT'
+	compileFlat 'com.convertigo.provider:convertigo-provider-sap:7.6.4-SNAPSHOT'
 	compileFlat 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 	compileFlat 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat 'com.convertigo.twinsoft.lib:comm:1998.11.15'
@@ -259,10 +267,12 @@ dependencies {
 	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
+	compileOnly project.property('sapjco3Version')
+	sapjco3     project.property('sapjco3Version')
 	compile files(dependenciesJar.archivePath)
 	//compile publishing.publications.dependenciesJar
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
-	compile project(path: ':placeholders', configuration: 'allPlaceholders')
+	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
 	runtime files(patchJar.archivePath)
 }
 

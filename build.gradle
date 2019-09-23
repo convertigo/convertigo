@@ -25,6 +25,7 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserVersion = '7.2'
 ext.swaggerUiVersion = '3.19.3'
 ext.tomcatVersion = '9.0.22'
+ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoEngineAPI = '7.7.0-SNAPSHOT'
 
@@ -98,6 +99,8 @@ allprojects {
 			
 			into 'lib'
 			from configurations.runtime
+			
+			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}
 	}
 	
@@ -303,13 +306,13 @@ task updateEclipseCategory(type: Copy) {
 	into 'eclipse-repository'
 	rename '.*', 'category.xml'
 }
-	
+
 task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
 	group 'convertigo'
 	doFirst {
 		fileTree(dir: '.', include: '*/pom.xml').files.plus([file('pom-32.xml'), file('pom-commons.xml')]).each {
 			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
-	}
+		}
 	}
 }
 

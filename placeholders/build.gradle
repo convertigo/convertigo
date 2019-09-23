@@ -58,20 +58,8 @@ task mysqlJar(type: Jar) {
 	}
 }
 
-task sapjco3Jar(type: Jar) {
-	group 'convertigo'
-	
-	archiveFileName = 'sapjco3.jar'
-	manifest = myManifest
-	from(sourceSets.main.output) {
-		include 'readme.txt'
-		include 'com/sap/**'
-	}
-}
-
 artifacts {
 	allPlaceholders db2jccJar
 	allPlaceholders db2jccLicenceJar
 	allPlaceholders mysqlJar
-	allPlaceholders sapjco3Jar
 }
