@@ -94,7 +94,7 @@ public class ProjectsDataFilter implements Filter {
 			return;
     	}
     	
-    	if (requestedObject.endsWith("/index.jsp")) {
+    	if (Pattern.matches(".*?[/\\\\]index\\.jsp", requestedObject)) {
     		requestedObject = requestedObject.replaceAll("index.jsp", "index.html");
         	Engine.logContext.debug("index.jps remapped to '" + requestedObject + "'");
     	}
