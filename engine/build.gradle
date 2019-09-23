@@ -76,6 +76,7 @@ tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 configurations {
 	swtLinux32
 	compileFlat
+	sapjco3
 }
 
 jar {
@@ -151,6 +152,13 @@ build.filename=${war.archiveName}"""
 	exclude '**/keys.txt'
 	exclude '**/*.car'
 	rename 'keys_server.txt', 'keys.txt'
+	
+	afterEvaluate {
+		from configurations.sapjco3[0], {
+			into 'WEB-INF/lib'
+			rename '(.*)', 'sapjco3.jar'
+		}
+	}
 	
 	dependsOn 'unzipSwaggerUI'
 }
@@ -257,9 +265,11 @@ dependencies {
 	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:7.0.94'
 	compileOnly 'org.apache.tomcat:tomcat-dbcp:7.0.94'
 	compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
+	compileOnly project.property('sapjco3Version')
+	sapjco3     project.property('sapjco3Version')
 	compile files(dependenciesJar.archivePath)
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
-	compile project(path: ':placeholders', configuration: 'allPlaceholders')
+	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
 	runtime files(patchJar.archivePath)
 }
 

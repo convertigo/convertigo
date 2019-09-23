@@ -24,6 +24,7 @@ ext.convertigoCode = 'Os'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserVersion = '6.23.1'
 ext.swaggerUiVersion = '3.19.3'
+ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoEngineAPI = '7.6.3-SNAPSHOT'
 
@@ -97,6 +98,8 @@ allprojects {
 			
 			into 'lib'
 			from configurations.runtime
+			
+			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}
 	}
 	
