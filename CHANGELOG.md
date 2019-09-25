@@ -7,7 +7,7 @@
 - [#187](https://github.com/convertigo/convertigo/issues/187) MobileBuilder, improved assets files copy at build time
 - [#188](https://github.com/convertigo/convertigo/issues/188) UrlMapper, added a parameter "terminate session" to Operations that can be turned off
 - [#193](https://github.com/convertigo/convertigo/issues/193) CouchDB and FullSync connectors, optimized PostBulk merge/override to do less requests
-- [#196](https://github.com/convertigo/convertigo/issues/196) MobileBuilder, prevent empty value for properties in TS or SC mode to prevent build failure
+- [#196](https://github.com/convertigo/convertigo/issues/196) MobileBuilder, prevent empty value for properties in TS or SC mode to avoid build failure
 
 #### Bug Fixes:
 
