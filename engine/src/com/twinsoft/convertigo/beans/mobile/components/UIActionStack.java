@@ -148,6 +148,7 @@ public class UIActionStack extends UIComponent implements IShared {
 					
 					Object paramValue = param.getVariableValue();
 					if (!paramValue.toString().isEmpty()) {
+						paramValue = paramValue.toString().replaceAll("this\\.", "page.");
 						sbParams.append(sbParams.length() > 0 ? ", " : "");
 						sbParams.append(param.getVariableName()).append(": ");
 						sbParams.append("get('"+ param.getVariableName() +"', `"+ paramValue +"`)");
@@ -168,7 +169,6 @@ public class UIActionStack extends UIComponent implements IShared {
 			}
 			
 			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
-			String cafMerge = compareToTplVersion("7.5.2.0") >= 0 ? "C8oCafUtils.merge":"this.merge";
 			
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
@@ -177,22 +177,21 @@ public class UIActionStack extends UIComponent implements IShared {
 				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
-			
-			StringBuilder parameters = new StringBuilder();
-			parameters.append("page: "+ cafPageType +", props, vars, event: any");
 			cartridge.append("\t * @param page  , the current page").append(System.lineSeparator());
 			cartridge.append("\t * @param props , the object which holds properties key-value pairs").append(System.lineSeparator());
 			cartridge.append("\t * @param vars  , the object which holds variables key-value pairs").append(System.lineSeparator());
 			cartridge.append("\t * @param event , the current event object").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			
 			String functionName = getFunctionName();
+			
+			StringBuilder parameters = new StringBuilder();
+			parameters.append("page: "+ cafPageType +", props, vars, event: any");
 			
 			computed += System.lineSeparator();
 			computed += cartridge;
 			computed += "\t"+ functionName + "("+ parameters +"): Promise<any> {" + System.lineSeparator();
-			//computed += "\t\tlet stack = props[\"stack\"];" + System.lineSeparator();
+			computed += "\t\tlet c8oPage : "+ cafPageType +" = page;" + System.lineSeparator();
 			computed += "\t\tlet hasStack = props[\"stack\"] != undefined;" + System.lineSeparator();
 			computed += "\t\tlet stack = hasStack ? props[\"stack\"] : {root: {scope: {}, in: {}, out: event}};" + System.lineSeparator();
 			computed += "\t\tlet scope = stack[\"root\"].scope;" + System.lineSeparator();
@@ -202,7 +201,9 @@ public class UIActionStack extends UIComponent implements IShared {
 			computed += "\t\t" + System.lineSeparator();
 			computed += computeInnerGet("page",functionName);
 			computed += "\t\t" + System.lineSeparator();
-			computed += "\t\tlet params = "+ cafMerge +"("+ computeStackParams() +", vars);" + System.lineSeparator();
+			
+			computed += "\t\tlet params = { ..."+ computeStackParams() +", ...vars};" + System.lineSeparator();
+			
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tpage.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();

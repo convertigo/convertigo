@@ -1,4 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PutOperation" priority="0" version="   7   6   4">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PutOperation"/>
+        </property>
+        <property name="outputContent">
+            <java.lang.String value="toJson"/>
+        </property>
+        <property name="targetRequestable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="terminateSession">
+            <java.lang.Boolean value="true"/>
+        </property>
+    </urlmappingoperation>
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PostOperation" priority="0" version="   7   6   4">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostOperation"/>
+        </property>
+        <property name="outputContent">
+            <java.lang.String value="toJson"/>
+        </property>
+        <property name="targetRequestable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="terminateSession">
+            <java.lang.Boolean value="true"/>
+        </property>
+    </urlmappingoperation>
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.HeadOperation" priority="0" version="   7   6   4">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="HeadOperation"/>
+        </property>
+        <property name="outputContent">
+            <java.lang.String value="toJson"/>
+        </property>
+        <property name="targetRequestable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="terminateSession">
+            <java.lang.Boolean value="true"/>
+        </property>
+    </urlmappingoperation>
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.GetOperation" priority="0" version="   7   6   4">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetOperation"/>
+        </property>
+        <property name="outputContent">
+            <java.lang.String value="toJson"/>
+        </property>
+        <property name="targetRequestable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="terminateSession">
+            <java.lang.Boolean value="true"/>
+        </property>
+    </urlmappingoperation>
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.DeleteOperation" priority="0" version="   7   6   4">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DeleteOperation"/>
+        </property>
+        <property name="outputContent">
+            <java.lang.String value="toJson"/>
+        </property>
+        <property name="targetRequestable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="terminateSession">
+            <java.lang.Boolean value="true"/>
+        </property>
+    </urlmappingoperation>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   6   3">
         <property name="attrName">
             <java.lang.String value="(tap)"/>

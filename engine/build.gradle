@@ -76,6 +76,7 @@ tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 configurations {
 	swtLinux32
 	compileFlat
+	sapjco3
 }
 
 jar {
@@ -105,12 +106,22 @@ task dependenciesJar(type: Jar) {
 	zip64 = true
 	baseName = 'dependencies'
 	duplicatesStrategy = 'exclude'
-	//entryCompression = ZipEntryCompression.STORED
+	def allJars = file('build/tmp/allJars.txt')
+	doFirst {
+		def buf = []
+		def substr = System.getProperty("user.home").length() + 1
+		configurations.compileFlat.each {
+			buf += it.toString().substring(substr)
+		}
+		buf.sort()
+		allJars.text = buf.join('\n')
+	}
 	from {
 		configurations.compileFlat.collect {
 			it.isDirectory() ? it : zipTree(it)
 		}
 	}
+	from allJars
 	exclude 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/DEPENDENCIES'
 	exclude 'META-INF/MANIFEST.MF', 'META-INF/INDEX.LIST', 'META-INF/EVIWARE.*', 'META-INF/license.txt'
 	exclude 'META-INF/notice.txt', 'META-INF/README*', 'META-INF/spring*', 'overview.html', 'externs.zip'
@@ -141,6 +152,13 @@ build.filename=${war.archiveName}"""
 	exclude '**/keys.txt'
 	exclude '**/*.car'
 	rename 'keys_server.txt', 'keys.txt'
+	
+	afterEvaluate {
+		from configurations.sapjco3[0], {
+			into 'WEB-INF/lib'
+			rename '(.*)', 'sapjco3.jar'
+		}
+	}
 	
 	dependsOn 'unzipSwaggerUI'
 }
@@ -174,12 +192,11 @@ dependencies {
 	compileFlat 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
 	compileFlat 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
 	compileFlat 'com.convertigo.lib:ojdbc7:12.1.0.2'
-	compileFlat 'com.convertigo.lib:sapjco:3'
 	compileFlat 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat 'com.convertigo.lib:soapui:3.5.1'
-	compileFlat 'com.convertigo.provider:convertigo-provider-couchdb:7.6.3-SNAPSHOT'
+	compileFlat 'com.convertigo.provider:convertigo-provider-couchdb:7.6.4-SNAPSHOT'
 	compileFlat 'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
-	compileFlat 'com.convertigo.provider:convertigo-provider-sap:7.6.0-SNAPSHOT'
+	compileFlat 'com.convertigo.provider:convertigo-provider-sap:7.6.4-SNAPSHOT'
 	compileFlat 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 	compileFlat 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat 'com.convertigo.twinsoft.lib:comm:1998.11.15'
@@ -216,7 +233,7 @@ dependencies {
 	compileFlat 'oauth.signpost:signpost-core:1.2.1.2'
 	compileFlat 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
 	compileFlat 'org.apache.commons:commons-lang3:3.7'
-	compileFlat 'org.apache.httpcomponents:httpclient:4.5.9'
+	compileFlat 'org.apache.httpcomponents:httpclient:4.5.10'
 	compileFlat 'org.apache.pdfbox:pdfbox:2.0.11'
 	compileFlat 'org.apache.ws.commons.axiom:axiom-api:1.2.13'
 	compileFlat 'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
@@ -248,6 +265,8 @@ dependencies {
 	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:7.0.94'
 	compileOnly 'org.apache.tomcat:tomcat-dbcp:7.0.94'
 	compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
+	compileOnly project.property('sapjco3Version')
+	sapjco3     project.property('sapjco3Version')
 	compile files(dependenciesJar.archivePath)
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')

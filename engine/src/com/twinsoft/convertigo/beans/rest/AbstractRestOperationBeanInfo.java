@@ -39,12 +39,17 @@ public class AbstractRestOperationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
             properties[0] = new PropertyDescriptor("outputContent", beanClass, "getOutputContent", "setOutputContent");
             properties[0].setDisplayName(getExternalizedString("property.outputContent.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.outputContent.short_description"));
             properties[0].setPropertyEditorClass(DataContent.class);
+			
+            properties[1] = new PropertyDescriptor("terminateSession", beanClass, "isTerminateSession", "setTerminateSession");
+            properties[1].setDisplayName(getExternalizedString("property.terminateSession.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.terminateSession.short_description"));
+            properties[1].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

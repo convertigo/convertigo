@@ -216,7 +216,14 @@ public class BeansDefaultValues {
 									String ionName = (String) ion.remove("name");
 									ion.put("ionBean", ionName);
 									JSONObject dIonProps = ionObjects.getJSONObject(ionName);
-									String lVersion = (String) dIonProps.keys().next();
+									Iterator<?> keys = dIonProps.keys();
+									String lVersion = keys.next().toString();
+									while (keys.hasNext()) {
+										String v = keys.next().toString();
+										if (v.compareTo(lVersion) > 1) {
+											lVersion = v;
+										}
+									}
 									dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");
 									JSONObject ionProps = (JSONObject) ion.remove("properties");
 									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
@@ -393,9 +400,14 @@ public class BeansDefaultValues {
 								String ionName = (String) ion.remove("ionBean");
 								JSONObject dIonProps = ionObjects.getJSONObject(ionName);
 								
-								String dVersion;
 								Iterator<?> iProp = dIonProps.keys();
-								while ((dVersion = iProp.next().toString()).compareTo(nVersion) > 0);
+								String dVersion = iProp.next().toString();
+								while (iProp.hasNext()) {
+									String v = iProp.next().toString();
+									if (v.compareTo(nVersion) <= 0 && v.compareTo(dVersion) > 0) {
+										dVersion = v;
+									}
+								}
 								dIonProps = dIonProps.getJSONObject(dVersion).getJSONObject("properties");
 								
 								JSONObject ionProps = new JSONObject();

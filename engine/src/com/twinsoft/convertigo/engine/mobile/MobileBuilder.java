@@ -548,6 +548,9 @@ public class MobileBuilder {
 			// Copy template directory to working directory
 			copyTemplateFiles();
 			
+			// Copy template assets to build directory
+			copyAssetsToBuildDir();
+			
 			// Modify configuration files
 			updateConfigurationFiles();
 			
@@ -667,14 +670,28 @@ public class MobileBuilder {
 		}
 	}
 	
+	private void copyAssetsToBuildDir() throws EngineException {
+		try {
+			File tAssets = new File(ionicTplDir, "src/assets");
+			File bAssets = new File(ionicWorkDir, "../../DisplayObjects/mobile/assets");
+			FileUtils.copyDirectory(tAssets, bAssets);
+			Engine.logEngine.trace("(MobileBuilder) Assets files copied for ionic project '"+ project.getName() +"'");
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to copy ionic assats files for ionic project '"+ project.getName() +"'",e);
+		}
+	}
+	
 	private void updateConfigurationFiles() throws EngineException {
 		try {
 			IOFileFilter fileFilter = FileFilterUtils.or(FileFilterUtils.suffixFileFilter("json"),FileFilterUtils.suffixFileFilter("xml"),FileFilterUtils.suffixFileFilter("js"));
 			IOFileFilter dirFilter = FileFilterUtils.or(FileFilterUtils.nameFileFilter("config"));
 			for (File f: FileUtils.listFiles(ionicWorkDir, fileFilter, dirFilter)) {
 				String content = FileUtils.readFileToString(f, "UTF-8");
-				content = content.replaceAll("../DisplayObjects","../../DisplayObjects");
-				content = content.replaceAll("../Flashupdate","../../Flashupdate");
+				content = content.replaceAll("\\.\\./DisplayObjects","../../DisplayObjects");
+				content = content.replaceAll("\\.\\./Flashupdate","../../Flashupdate");
+				// prevent assets copy : already done by copyAssetsToBuildDir()
+				content = content.replaceAll("/assets/\\*\\*/\\*","/_fake_/assets/**/*");
 				writeFile(f, content, "UTF-8");
 			}
 			Engine.logEngine.trace("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
