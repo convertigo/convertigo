@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -246,6 +247,32 @@ public class FullSyncServlet extends HttpServlet {
 			case DELETE: 
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
+					if (requestParser.getDocId() == null && StringUtils.isNotBlank(requestParser.getDbName()) && DelegateServlet.canDelegate()) {
+						JSONObject instruction = new JSONObject();
+						JSONObject variables = new JSONObject();
+						try {
+							instruction.put("action", "deleteDatabase");
+							variables.put("db", requestParser.getDbName());
+							instruction.put("variables", variables);
+							JSONObject deleteResponse = DelegateServlet.delegate(instruction);
+							if (deleteResponse != null) {
+								JSONObject meta = CouchKey._c8oMeta.JSONObject(deleteResponse);
+								CouchKey._c8oMeta.remove(deleteResponse);
+								response.setStatus(meta.getInt("statusCode"));
+								JSONObject headers = meta.getJSONObject("headers");
+								for (java.util.Iterator<?> i = headers.keys(); i.hasNext();) {
+									String key = (String) i.next();
+									response.addHeader(key, headers.getString(key));
+								}
+								response.setCharacterEncoding("UTF-8");
+								try (Writer w = response.getWriter()) {
+									w.write(deleteResponse.toString());
+								}
+								return;
+							}
+						} catch (Exception e) {
+						}
+					}
 					newRequest = new HttpDelete();
 				} else {
 					// disabled to prevent db delete
