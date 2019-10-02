@@ -252,7 +252,7 @@ public class FullSyncServlet extends HttpServlet {
 						JSONObject variables = new JSONObject();
 						try {
 							instruction.put("action", "deleteDatabase");
-							variables.put("db", requestParser.getDbName());
+							variables.put("db", fsClient.getPrefix() + requestParser.getDbName());
 							instruction.put("variables", variables);
 							JSONObject deleteResponse = DelegateServlet.delegate(instruction);
 							if (deleteResponse != null) {
