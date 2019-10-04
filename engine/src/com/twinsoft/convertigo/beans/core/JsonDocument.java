@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
@@ -46,7 +47,7 @@ public class JsonDocument extends Document {
 		
 		// load document
 		if (docdata != null) {
-			jsonDocument = new JSONObject(docdata);
+			jsonDocument = new JSONObject(docdata.replaceAll("\r?\n", ""));
 		}
 	}
 
@@ -54,7 +55,11 @@ public class JsonDocument extends Document {
 	public Element toXml(org.w3c.dom.Document document) throws EngineException {
     	// store document
 		if (jsonDocument != null) {
-    		docdata = jsonDocument.toString();
+    		try {
+				docdata = jsonDocument.toString(2).replace("\\n", "\\n\n").replace("\\t", "    ");
+			} catch (JSONException e) {
+				docdata = jsonDocument.toString();
+			}
     	}
 
 		return super.toXml(document);
