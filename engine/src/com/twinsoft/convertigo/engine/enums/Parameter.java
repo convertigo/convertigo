@@ -59,8 +59,6 @@ public enum Parameter {
 	DeviceUUID("__uuid"),
 	Xslt("__xslt"),
 
-	SecurityToken("__security_token"),
-
 	Carioca("__bCarioca"),
 	CariocaUser("__user"),
 	CariocaPassword("__password"),

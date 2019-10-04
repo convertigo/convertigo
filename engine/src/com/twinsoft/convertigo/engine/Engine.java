@@ -183,11 +183,6 @@ public class Engine {
 	public ThreadManager threadManager;
 
 	/**
-	 * The security token manager.
-	 */
-	public SecurityTokenManager securityTokenManager;
-
-	/**
 	 * The cache manager.
 	 */
 	public CacheManager cacheManager;
@@ -669,10 +664,6 @@ public class Engine {
 					Engine.theApp.contextManager = null;
 					Engine.logEngine.error("Unable to launch the context manager.", e);
 				}
-
-				// Launch the security token manager
-				Engine.theApp.securityTokenManager = new SecurityTokenManager();
-				Engine.theApp.securityTokenManager.init();
 				
 				// Initialize the HttpClient
 				try {
@@ -922,11 +913,6 @@ public class Engine {
 				if (Engine.theApp.threadManager != null) {
 					Engine.logEngine.info("Removing the thread manager");
 					Engine.theApp.threadManager.destroy();
-				}
-
-				if (Engine.theApp.securityTokenManager != null) {
-					Engine.logEngine.info("Removing the security token manager");
-					Engine.theApp.securityTokenManager.destroy();
 				}
 
 				Engine.logEngine.info("Unregistering the SAP destination provider");
