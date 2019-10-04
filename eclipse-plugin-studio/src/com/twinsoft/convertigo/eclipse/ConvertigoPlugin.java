@@ -38,6 +38,7 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpSession;
 
@@ -978,7 +979,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			Repository.getGlobalListenerList().addWorkingTreeModifiedListener(event -> {
 				Engine.logStudio.debug("(Git Event) onWorkingTreeModified " + event);
 				File workDir = event.getRepository().getWorkTree();
-				Collection<String> files = event.getModified();
+				Collection<String> files = new TreeSet<>(event.getModified());
 				files.addAll(event.getDeleted());
 				Set<File> affectedProjects = new HashSet<>();
 				for (String f : files) {

@@ -30,7 +30,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
@@ -69,11 +68,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EngineStatistics;
-import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
 import com.twinsoft.convertigo.engine.JobManager;
-import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
-import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -384,7 +380,7 @@ public abstract class GenericRequester extends Requester {
 		}
 	}
 
-	protected void handleParameter(Context context, String parameterName, String parameterValue) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
+	protected void handleParameter(Context context, String parameterName, String parameterValue) {
 		// This gives the required context name
 		if (parameterName.equals(Parameter.Context.getName())) {
 			Engine.logContext.debug("Required context: " + parameterValue);
@@ -432,30 +428,6 @@ public abstract class GenericRequester extends Requester {
 				context.isNewSession = true;
 				context.tasServiceCode = parameterValue;
 				Engine.logContext.debug("The service code is overidden to \"" + parameterValue + "\".");
-			}
-		}
-		// This is the portal authentication token
-		else if (parameterName.equals(Parameter.SecurityToken.getName())) {
-			if ((parameterValue != null) && (parameterValue.length() > 0)) {
-				SecurityToken securityToken = Engine.theApp.securityTokenManager.consumeToken(parameterValue);
-				Engine.logContext.debug("The security token is \"" + securityToken + "\".");
-				
-				// Update the context with the security token information
-//				context.portalUserName = securityToken.userID;
-				if (context.httpSession != null) {
-//					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
-					SessionAttribute.authenticatedUser.set(context.httpSession, securityToken.getUserID());
-					Engine.logContext.debug("Authenticated user added in the HTTP session");
-				}
-				
-				if (!securityToken.getData().isEmpty()) {
-					for (Entry<String, String> entry : securityToken.getData().entrySet()) {
-						String key = entry.getKey();
-						String value = entry.getValue();
-						context.set(key, value);
-						Engine.logContext.debug("Added security data in the context: " + key + "=" + value);
-					}
-				}
 			}
 		}
 		// This is the key given by a Carioca request

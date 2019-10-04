@@ -34,8 +34,6 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
-import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.translators.Translator;
@@ -144,7 +142,7 @@ public class WebServiceServletRequester extends ServletRequester {
 	
 	}
 
-	public void handleParameter(String parameterName, String parameterValue) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
+	public void handleParameter(String parameterName, String parameterValue) {
 		handleParameter(context, parameterName, parameterValue);
 	}
 
