@@ -42,7 +42,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.engine.MinificationManager.MinificationOptions;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.Crypto2;
@@ -238,7 +237,6 @@ public class EnginePropertiesManager {
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Analytics ("Analytics"),
     	Notifications ("Notifications"),
-    	Minification ("Minification"),
     	MobileBuilder ("Mobile builder"),
     	FullSync ("Full sync")
     	;
@@ -593,14 +591,6 @@ public class EnginePropertiesManager {
 		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "STMP user", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
-		
-		/** MINIFICATION */
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = MinificationOptions.class)
-		MINIFICATION_LEVEL ("minification.level", MinificationOptions.strong.name(), "Common minification level", PropertyCategory.Minification),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
-		MINIFICATION_STATS ("minification.stats", "true", "Show statistics", PropertyCategory.Minification),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
-		MINIFICATION_FILENAMES ("minification.filenames", "true", "Show filenames", PropertyCategory.Minification),
 		
 		/** MOBILE BUILDER */
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
