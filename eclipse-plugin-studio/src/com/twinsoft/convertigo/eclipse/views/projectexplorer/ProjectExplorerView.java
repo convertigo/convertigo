@@ -145,6 +145,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
@@ -1215,6 +1216,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										objectType = "variable";
 										updateDlg = true;
 									}
+									if (dbo instanceof UICompVariable) {
+										objectType = "variable";
+										updateDlg = true;
+									}
 								}
 
 								if (updateDlg) {
@@ -1612,6 +1617,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STYLES;
 							}
 							else if (databaseObject instanceof UIControlVariable) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
+							}
+							else if (databaseObject instanceof UICompVariable) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 							}
 							else if (databaseObject instanceof UIStackVariable) {

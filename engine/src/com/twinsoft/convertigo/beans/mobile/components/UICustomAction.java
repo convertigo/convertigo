@@ -278,6 +278,13 @@ public class UICustomAction extends UIComponent implements IAction {
 		String scope = "";
 		DatabaseObject parent = getParent();
 		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent)&& !(parent instanceof UIEventSubscriber)) {
+			if (parent instanceof UIUseShared) {
+				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
+				if (uisc != null) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+				}
+			}
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
@@ -397,6 +404,9 @@ public class UICustomAction extends UIComponent implements IAction {
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
+							if (paramsPattern.matcher(smartValue).lookingAt()) {
+								smartValue = "scope."+ smartValue;
+							}
 							
 							if (!smartValue.isEmpty()) {
 								sbVars.append(sbVars.length() > 0 ? ", ":"");

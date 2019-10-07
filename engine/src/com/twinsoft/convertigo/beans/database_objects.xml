@@ -295,6 +295,9 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustom"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
 				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICompVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UISharedComponent"/>
+				</bean>
 			</beans>
 			<beans groupname="Shared Actions">
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack">
@@ -393,6 +396,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIUseShared"/>
 				</bean>
 			</beans>
 		</category>

@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInfiniteScroll;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
@@ -1262,6 +1263,46 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 												break;
 											} catch (EngineException e) {
 												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for InvokeAction !");
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			// Case a UICompVariable has been renamed
+			if (databaseObject instanceof UICompVariable) {
+				UICompVariable variable = (UICompVariable)databaseObject;
+				UISharedComponent comp = variable.getSharedComponent();
+				if (comp != null) {
+					// rename variable for UseShared
+					if (getObject() instanceof UIUseShared) {
+						UIUseShared uus = (UIUseShared)getObject();
+						if (uus.getSharedComponentQName().equals(comp.getQName())) {
+							boolean isLocalProject = variable.getProject().equals(uus.getProject());
+							boolean isSameValue = variable.getName().equals(oldValue);
+							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
+							
+							if (!isSameValue && shouldUpdate) {
+								Iterator<UIComponent> it = uus.getUIComponentList().iterator();
+								while (it.hasNext()) {
+									UIComponent component = (UIComponent)it.next();
+									if (component instanceof UIControlVariable) {
+										UIControlVariable uicv = (UIControlVariable)component;
+										if (uicv.getName().equals(oldValue)) {
+											try {
+												uicv.setName((String) newValue);
+												uicv.hasChanged = true;
+												
+												viewer.refresh();
+												markMainAsDirty(uus);
+												
+												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
+												break;
+											} catch (EngineException e) {
+												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for UseShared !");
 											}
 										}
 									}

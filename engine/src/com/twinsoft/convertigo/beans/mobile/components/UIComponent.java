@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONObject;
 
@@ -46,6 +47,8 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	
 	private static final long serialVersionUID = -1872010547443624681L;
 
+	protected static Pattern paramsPattern = Pattern.compile("^params\\d+\\..+");
+	
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	private boolean isEnabled = true;

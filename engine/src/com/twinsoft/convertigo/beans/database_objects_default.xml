@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICompVariable" priority="0" version="   7   7   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedComponent_Variable"/>
+        </property>
+        <property name="value">
+            <java.lang.String value="''"/>
+        </property>
+    </mobilecomponent>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>

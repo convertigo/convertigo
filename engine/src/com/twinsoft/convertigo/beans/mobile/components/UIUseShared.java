@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,7 +57,11 @@ public class UIUseShared extends UIElement {
 
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
-		throw new EngineException("You cannot add another component to this component");
+		if (!(uiComponent instanceof UIControlVariable)) {
+			throw new EngineException("You can only add Variable to this component");
+		}
+		
+		super.addUIComponent(uiComponent, after);
 	}
 	
 	@Override
@@ -64,15 +69,68 @@ public class UIUseShared extends UIElement {
 		return super.getUIComponentList();
 	}
 	
+	public UIControlVariable getVariable(String variableName) {
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIControlVariable) {
+				UIControlVariable variable = (UIControlVariable)component;
+				if (variable.getName().equals(variableName)) {
+					return variable;
+				}
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public String computeTemplate() {
+		String computed = "";
 		if (isEnabled()) {
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null) {
-				return uisc.computeTemplate(this);
+				
+				StringBuilder compVars = new StringBuilder();
+				Iterator<UIComponent> it1 = uisc.getUIComponentList().iterator();
+				while (it1.hasNext()) {
+					UIComponent component = (UIComponent)it1.next();
+					if (component instanceof UICompVariable) {
+						UICompVariable uicv = (UICompVariable)component;
+						if (uicv.isEnabled()) {
+							String varValue = uicv.getVariableValue();
+							if (!varValue.isEmpty()) {
+								compVars.append(compVars.length() > 0 ? ", ":"");
+								compVars.append(uicv.getVariableName()).append(": ");
+								compVars.append(varValue);
+							}
+						}
+					}
+				}
+				
+				StringBuilder useVars = new StringBuilder();
+				Iterator<UIComponent> it2 = getUIComponentList().iterator();
+				while (it2.hasNext()) {
+					UIComponent component = (UIComponent)it2.next();
+					if (component instanceof UIControlVariable) {
+						UIControlVariable uicv = (UIControlVariable)component;
+						if (uicv.isEnabled()) {
+							String varValue = uicv.getVarValue();
+							if (!varValue.isEmpty()) {
+								useVars.append(useVars.length() > 0 ? ", ":"");
+								useVars.append(uicv.getVarName()).append(": ");
+								useVars.append(varValue);
+							}
+						}
+					}
+				}
+				
+				String params = "merge({" + compVars.toString() + "},{" + useVars.toString() + "})";
+				computed += "<ng-container *ngFor=\"let params"+ uisc.priority +" of ["+params+"]\" >" + System.getProperty("line.separator");
+				computed += uisc.computeTemplate(this);
+				computed += "</ng-container>" + System.getProperty("line.separator");
 			}
 		}
-		return "";
+		return computed;
 	}
 	
 	@Override

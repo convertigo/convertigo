@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +42,18 @@ public class UISharedComponent extends UIComponent implements IShared {
 	public UISharedComponent clone() throws CloneNotSupportedException {
 		UISharedComponent cloned = (UISharedComponent) super.clone();
 		return cloned;
+	}
+	
+	public List<UICompVariable> getVariables() {
+		List<UICompVariable> list = new ArrayList<>();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UICompVariable) {
+				list.add((UICompVariable)component);
+			}
+		}
+		return Collections.unmodifiableList(list);
 	}
 	
 	@Override
@@ -65,10 +80,12 @@ public class UISharedComponent extends UIComponent implements IShared {
 		String computed = "";
 		if (isEnabled()) {
 			for (UIComponent uic: getUIComponentList()) {
-				try {
-					computed += uic.cloneSetParent(uiUse).computeTemplate();
-				} catch (CloneNotSupportedException e) {
-					Engine.logBeans.warn("(UISharedComponent) computeTemplate: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				if (!(uic instanceof UICompVariable)) {
+					try {
+						computed += uic.cloneSetParent(uiUse).computeTemplate();
+					} catch (CloneNotSupportedException e) {
+						Engine.logBeans.warn("(UISharedComponent) computeTemplate: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+					}
 				}
 			}
 		}
