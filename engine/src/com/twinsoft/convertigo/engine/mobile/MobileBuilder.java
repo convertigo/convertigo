@@ -332,7 +332,7 @@ public class MobileBuilder {
 		
 	public synchronized void appPwaChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
-			setAppWpaAble(app.isPWA());
+			configurePwaApp(app);
 			moveFiles();
 			Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
 		}
@@ -581,7 +581,7 @@ public class MobileBuilder {
 			updateTplVersion();
 			
 			// PWA
-			setAppWpaAble(application.isPWA());
+			configurePwaApp(application);
 			
 			// Write source files (based on bean components)
 			updateSourceFiles();
@@ -2063,13 +2063,15 @@ public class MobileBuilder {
 		return this.isPWA;
 	}
 	
-	private void setAppWpaAble(boolean isPWA) {
-		this.isPWA = isPWA;
+	private void configurePwaApp(ApplicationComponent app) {
+		this.isPWA = app.isPWA();
 		
 		try {
 			File tpl_index = new File(ionicTplDir, "src/index.html");
 			String tpl_content = FileUtils.readFileToString(tpl_index, "UTF-8");
 			String content = tpl_content;
+			
+			// Register service worker
 			if (isPWA) {
 				String replacement = "";
 				replacement += "<script>\n"
@@ -2081,6 +2083,9 @@ public class MobileBuilder {
 								+"</script>\n";
 				content = tpl_content.replace("<!--c8o_PWA-->", replacement);
 			}
+			
+			// Set application name
+			content = content.replace("<!--c8o_App_Name-->", app.getName());
 			
 			File index = new File(ionicWorkDir, "src/index.html");
 			writeFile(index, content, "UTF-8");
