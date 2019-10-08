@@ -458,7 +458,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	
 	private boolean hasImport(String name) {
 		return pageImports.containsKey(name) ||
-				getProject().getMobileBuilder().hasPageTplImport(name);
+				getProject().getMobileBuilder().hasTplPageTsImport(name);
 	}
 	
 	private boolean hasCustomImport(String name) {

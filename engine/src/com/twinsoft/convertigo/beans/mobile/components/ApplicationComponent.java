@@ -967,7 +967,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	private boolean hasImport(String name) {
 		return appImports.containsKey(name) ||
-				getProject().getMobileBuilder().hasAppTplImport(name);
+				getProject().getMobileBuilder().hasTplAppCompTsImport(name);
 	}
 	
 	private boolean hasCustomImport(String name) {

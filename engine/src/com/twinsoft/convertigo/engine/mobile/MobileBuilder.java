@@ -215,14 +215,19 @@ public class MobileBuilder {
 	// page.ts files for (deleted/disabled) pages containing pseudo-actions
 	boolean forceEnable = true;
 	
-	Map<String,String> appTplTsImports = null;
-	Map<String,String> pageTplTsImports = null;
-	Map<String,String> moduleTplTsImports = null;
-	Map<String,String> actionTplTsImports = null;
-	String moduleTplNgImports = null;
-	String moduleTplNgProviders = null;
-	String moduleTplNgDeclarations = null;
-	String moduleTplNgComponents = null;
+	Map<String,String> tpl_appCompTsImports = null;
+	Map<String,String> tpl_pageTsImports = null;
+	Map<String,String> tpl_appModuleTsImports = null;
+	Map<String,String> tpl_pageModuleTsImports = null;
+	Map<String,String> tpl_serviceActionTsImports = null;
+	String tpl_appModuleNgImports = null;
+	String tpl_appModuleNgProviders = null;
+	String tpl_appModuleNgDeclarations = null;
+	String tpl_appModuleNgComponents = null;
+	String tpl_pageModuleNgImports = null;
+	String tpl_pageModuleNgProviders = null;
+	String tpl_pageModuleNgDeclarations = null;
+	String tpl_pageModuleNgComponents = null;
 	String tplVersion = null;
 	
 	boolean isPWA = false;
@@ -647,21 +652,25 @@ public class MobileBuilder {
 				writtenFiles.clear();
 			}
 			
-			if (appTplTsImports != null) {
-				appTplTsImports.clear();
-				appTplTsImports = null;
+			if (tpl_appCompTsImports != null) {
+				tpl_appCompTsImports.clear();
+				tpl_appCompTsImports = null;
 			}
-			if (pageTplTsImports != null) {
-				pageTplTsImports.clear();
-				pageTplTsImports = null;
+			if (tpl_pageTsImports != null) {
+				tpl_pageTsImports.clear();
+				tpl_pageTsImports = null;
 			}
-			if (moduleTplTsImports != null) {
-				moduleTplTsImports.clear();
-				moduleTplTsImports = null;
+			if (tpl_appModuleTsImports != null) {
+				tpl_appModuleTsImports.clear();
+				tpl_appModuleTsImports = null;
 			}
-			if (actionTplTsImports != null) {
-				actionTplTsImports.clear();
-				actionTplTsImports = null;
+			if (tpl_pageModuleTsImports != null) {
+				tpl_pageModuleTsImports.clear();
+				tpl_pageModuleTsImports = null;
+			}
+			if (tpl_serviceActionTsImports != null) {
+				tpl_serviceActionTsImports.clear();
+				tpl_serviceActionTsImports = null;
 			}
 			if (tplVersion != null) {
 				tplVersion = null;
@@ -925,7 +934,7 @@ public class MobileBuilder {
 					Map<String, String> mapi = contributor.getActionTsImports();
 					String imports = "";
 					for (String comp : mapi.keySet()) {
-						if (!getActionTplTsImports().containsKey(comp)) {
+						if (!getTplServiceActionTsImports().containsKey(comp)) {
 							if (comp.indexOf(" as ") == -1)
 								imports += "import { "+comp+" } from '"+ mapi.get(comp) +"';"+ System.lineSeparator();
 							else
@@ -1084,40 +1093,47 @@ public class MobileBuilder {
 	}
 	
 	
-	public boolean hasAppTplImport(String name) {
-		return getAppTplTsImports().containsKey(name);
+	public boolean hasTplAppCompTsImport(String name) {
+		return getTplAppCompTsImports().containsKey(name);
 	}
 	
-	public boolean hasPageTplImport(String name) {
-		return getPageTplTsImports().containsKey(name);
+	public boolean hasTplPageTsImport(String name) {
+		return getTplPageTsImports().containsKey(name);
 	}
 	
-	private Map<String,String> getAppTplTsImports() {
-		if (appTplTsImports == null) {
-			appTplTsImports = initTplImports(new File(ionicTplDir, "src/app/app.component.ts"));
+	private Map<String,String> getTplAppCompTsImports() {
+		if (tpl_appCompTsImports == null) {
+			tpl_appCompTsImports = initTplImports(new File(ionicTplDir, "src/app/app.component.ts"));
 		}
-		return appTplTsImports;
+		return tpl_appCompTsImports;
 	}
 	
-	private Map<String,String> getPageTplTsImports() {
-		if (pageTplTsImports == null) {
-			pageTplTsImports = initTplImports(new File(ionicTplDir, "src/page.tpl"));
+	private Map<String,String> getTplPageTsImports() {
+		if (tpl_pageTsImports == null) {
+			tpl_pageTsImports = initTplImports(new File(ionicTplDir, "src/page.tpl"));
 		}
-		return pageTplTsImports;
+		return tpl_pageTsImports;
 	}
 	
-	private Map<String,String> getModuleTplTsImports() {
-		if (moduleTplTsImports == null) {
-			moduleTplTsImports = initTplImports(new File(ionicTplDir, "src/app/app.module.ts"));
+	private Map<String,String> getTplAppModuleTsImports() {
+		if (tpl_appModuleTsImports == null) {
+			tpl_appModuleTsImports = initTplImports(new File(ionicTplDir, "src/app/app.module.ts"));
 		}
-		return moduleTplTsImports;
+		return tpl_appModuleTsImports;
 	}
 
-	private String getModuleTplNgImports() {
-		if (moduleTplNgImports == null) {
+	private Map<String,String> getTplPageModuleTsImports() {
+		if (tpl_appModuleTsImports == null) {
+			tpl_appModuleTsImports = initTplImports(new File(ionicTplDir, "src/page.module.tpl"));
+		}
+		return tpl_appModuleTsImports;
+	}
+	
+	private String getTplAppModuleNgImports() {
+		if (tpl_appModuleNgImports == null) {
 			try {
 				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
-				moduleTplNgImports = getMarker(tsContent, "NgModules")
+				tpl_appModuleNgImports = getMarker(tsContent, "NgModules")
 						.replaceAll("/\\*Begin_c8o_NgModules\\*/","")
 						.replaceAll("/\\*End_c8o_NgModules\\*/","")
 						.replaceAll("\r\n", "").replaceAll("\n", "")
@@ -1125,17 +1141,35 @@ public class MobileBuilder {
 						.replaceAll("\\s", "");
 			} catch (Exception e) {
 				e.printStackTrace();
-				moduleTplNgImports = "";
+				tpl_appModuleNgImports = "";
 			}
 		}
-		return moduleTplNgImports;
+		return tpl_appModuleNgImports;
 	}
 	
-	private String getModuleTplNgProviders() {
-		if (moduleTplNgProviders == null) {
+	private String getTplPageModuleNgImports() {
+		if (tpl_pageModuleNgImports == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				tpl_pageModuleNgImports = getMarker(tsContent, "NgModules")
+						.replaceAll("/\\*Begin_c8o_NgModules\\*/","")
+						.replaceAll("/\\*End_c8o_NgModules\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_pageModuleNgImports = "";
+			}
+		}
+		return tpl_pageModuleNgImports;
+	}
+	
+	private String getTplAppModuleNgProviders() {
+		if (tpl_appModuleNgProviders == null) {
 			try {
 				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
-				moduleTplNgProviders = getMarker(tsContent, "NgProviders")
+				tpl_appModuleNgProviders = getMarker(tsContent, "NgProviders")
 						.replaceAll("/\\*Begin_c8o_NgProviders\\*/","")
 						.replaceAll("/\\*End_c8o_NgProviders\\*/","")
 						.replaceAll("\r\n", "").replaceAll("\n", "")
@@ -1143,17 +1177,35 @@ public class MobileBuilder {
 						.replaceAll("\\s", "");
 			} catch (Exception e) {
 				e.printStackTrace();
-				moduleTplNgProviders = "";
+				tpl_appModuleNgProviders = "";
 			}
 		}
-		return moduleTplNgProviders;
+		return tpl_appModuleNgProviders;
 	}
 
-	private String getModuleTplNgDeclarations() {
-		if (moduleTplNgDeclarations == null) {
+	private String getTplPageModuleNgProviders() {
+		if (tpl_pageModuleNgProviders == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				tpl_pageModuleNgProviders = getMarker(tsContent, "NgProviders")
+						.replaceAll("/\\*Begin_c8o_NgProviders\\*/","")
+						.replaceAll("/\\*End_c8o_NgProviders\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_pageModuleNgProviders = "";
+			}
+		}
+		return tpl_pageModuleNgProviders;
+	}
+	
+	private String getTplAppModuleNgDeclarations() {
+		if (tpl_appModuleNgDeclarations == null) {
 			try {
 				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
-				moduleTplNgDeclarations = getMarker(tsContent, "NgDeclarations")
+				tpl_appModuleNgDeclarations = getMarker(tsContent, "NgDeclarations")
 						.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/","")
 						.replaceAll("/\\*End_c8o_NgDeclarations\\*/","")
 						.replaceAll("\r\n", "").replaceAll("\n", "")
@@ -1161,17 +1213,35 @@ public class MobileBuilder {
 						.replaceAll("\\s", "");
 			} catch (Exception e) {
 				e.printStackTrace();
-				moduleTplNgDeclarations = "";
+				tpl_appModuleNgDeclarations = "";
 			}
 		}
-		return moduleTplNgDeclarations;
+		return tpl_appModuleNgDeclarations;
 	}
 	
-	private String getModuleTplNgComponents() {
-		if (moduleTplNgComponents == null) {
+	private String getTplPageModuleNgDeclarations() {
+		if (tpl_pageModuleNgDeclarations == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				tpl_pageModuleNgDeclarations = getMarker(tsContent, "NgDeclarations")
+						.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/","")
+						.replaceAll("/\\*End_c8o_NgDeclarations\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_pageModuleNgDeclarations = "";
+			}
+		}
+		return tpl_pageModuleNgDeclarations;
+	}
+	
+	private String getTplAppModuleNgComponents() {
+		if (tpl_appModuleNgComponents == null) {
 			try {
 				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/app/app.module.ts"), "UTF-8");
-				moduleTplNgComponents = getMarker(tsContent, "NgComponents")
+				tpl_appModuleNgComponents = getMarker(tsContent, "NgComponents")
 						.replaceAll("/\\*Begin_c8o_NgComponents\\*/","")
 						.replaceAll("/\\*End_c8o_NgComponents\\*/","")
 						.replaceAll("\r\n", "").replaceAll("\n", "")
@@ -1179,17 +1249,35 @@ public class MobileBuilder {
 						.replaceAll("\\s", "");
 			} catch (Exception e) {
 				e.printStackTrace();
-				moduleTplNgComponents = "";
+				tpl_appModuleNgComponents = "";
 			}
 		}
-		return moduleTplNgComponents;
+		return tpl_appModuleNgComponents;
 	}
 	
-	private Map<String,String> getActionTplTsImports() {
-		if (actionTplTsImports == null) {
-			actionTplTsImports = initTplImports(new File(ionicTplDir, "src/services/actionbeans.service.ts"));
+	private String getTplPageModuleNgComponents() {
+		if (tpl_pageModuleNgComponents == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				tpl_pageModuleNgComponents = getMarker(tsContent, "NgComponents")
+						.replaceAll("/\\*Begin_c8o_NgComponents\\*/","")
+						.replaceAll("/\\*End_c8o_NgComponents\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_pageModuleNgComponents = "";
+			}
 		}
-		return actionTplTsImports;
+		return tpl_pageModuleNgComponents;
+	}
+	
+	private Map<String,String> getTplServiceActionTsImports() {
+		if (tpl_serviceActionTsImports == null) {
+			tpl_serviceActionTsImports = initTplImports(new File(ionicTplDir, "src/services/actionbeans.service.ts"));
+		}
+		return tpl_serviceActionTsImports;
 	}
 
 	public static void initMapImports(Map<String,String> map, String tsContent) {
@@ -1300,45 +1388,69 @@ public class MobileBuilder {
 		}
 
 		String c8o_ModuleTsImports = "";
-		for (String comp : module_ts_imports.keySet()) {
-			if (comp.indexOf(" as ") != -1) {
-				c8o_ModuleTsImports += "import "+comp+" from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
-			} else {
-				c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+		Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
+		if (!tpl_ts_imports.isEmpty()) {
+			for (String comp : module_ts_imports.keySet()) {
+				if (!tpl_ts_imports.containsKey(comp)) {
+					if (comp.indexOf(" as ") != -1) {
+						c8o_ModuleTsImports += "import "+comp+" from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+					} else {
+						c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+					}
+				}
 			}
 		}
-		c8o_ModuleTsImports = c8o_ModuleTsImports.replaceAll("\\.\\./components/", "../../components/");
 		
 		String c8o_ModuleNgImports = "";
-		for (String module: module_ng_imports) {
-			c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
-		}
-		if (!c8o_ModuleNgImports.isEmpty()) {
-			c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports;
+		String tpl_ng_imports = getTplPageModuleNgImports();
+		if (!tpl_ng_imports.isEmpty()) {
+			for (String module: module_ng_imports) {
+				if (!tpl_ng_imports.contains(module)) {
+					c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgImports.isEmpty()) {
+				c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports;
+			}
 		}
 		
 		String c8o_ModuleNgProviders = "";
-		for (String provider: module_ng_providers) {
-			c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
-		}
-		if (!c8o_ModuleNgProviders.isEmpty()) {
-			c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
+		String tpl_ng_providers = getTplPageModuleNgProviders();
+		if (!tpl_ng_providers.isEmpty()) {
+			for (String provider: module_ng_providers) {
+				if (!tpl_ng_providers.contains(provider)) {
+					c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgProviders.isEmpty()) {
+				c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
+			}
 		}
 
 		String c8o_ModuleNgDeclarations = "";
-		for (String declaration: module_ng_declarations) {
-			c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
-		}
-		if (!c8o_ModuleNgDeclarations.isEmpty()) {
-			c8o_ModuleNgDeclarations = System.lineSeparator() + c8o_ModuleNgDeclarations;
+		String tpl_ng_declarations = getTplPageModuleNgDeclarations();
+		if (!tpl_ng_declarations.isEmpty()) {
+			for (String declaration: module_ng_declarations) {
+				if (!tpl_ng_declarations.contains(declaration)) {
+					c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgDeclarations.isEmpty()) {
+				c8o_ModuleNgDeclarations = System.lineSeparator() + c8o_ModuleNgDeclarations;
+			}
 		}
 		
 		String c8o_ModuleNgComponents = "";
-		for (String component: module_ng_components) {
-			c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
-		}
-		if (!c8o_ModuleNgComponents.isEmpty()) {
-			c8o_ModuleNgComponents = System.lineSeparator() + c8o_ModuleNgComponents;
+		String tpl_ng_components = getTplPageModuleNgComponents();
+		if (!tpl_ng_components.isEmpty()) {
+			for (String component: module_ng_components) {
+				if (!tpl_ng_components.contains(component)) {
+					c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgComponents.isEmpty()) {
+				c8o_ModuleNgComponents = System.lineSeparator() + c8o_ModuleNgComponents;
+			}
 		}
 		
 		String pageName = page.getName();
@@ -1521,7 +1633,7 @@ public class MobileBuilder {
 				
 				String c8o_ActionTsImports = "";
 				for (String comp : action_ts_imports.keySet()) {
-					if (!getActionTplTsImports().containsKey(comp)) {
+					if (!getTplServiceActionTsImports().containsKey(comp)) {
 						if (comp.indexOf(" as ") == -1)
 							c8o_ActionTsImports += "import { "+comp+" } from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
 						else
@@ -1606,7 +1718,7 @@ public class MobileBuilder {
 				}
 				
 				String c8o_ModuleTsImports = "";
-				Map<String, String> tpl_ts_imports = getModuleTplTsImports();
+				Map<String, String> tpl_ts_imports = getTplAppModuleTsImports();
 				if (!tpl_ts_imports.isEmpty()) {
 					for (String comp : module_ts_imports.keySet()) {
 						if (!tpl_ts_imports.containsKey(comp)) {
@@ -1620,7 +1732,7 @@ public class MobileBuilder {
 				}
 				
 				String c8o_ModuleNgImports = "";
-				String tpl_ng_imports = getModuleTplNgImports();
+				String tpl_ng_imports = getTplAppModuleNgImports();
 				if (!tpl_ng_imports.isEmpty()) {
 					for (String module: module_ng_imports) {
 						if (!tpl_ng_imports.contains(module)) {
@@ -1633,7 +1745,7 @@ public class MobileBuilder {
 				}
 				
 				String c8o_ModuleNgProviders = "";
-				String tpl_ng_providers = getModuleTplNgProviders();
+				String tpl_ng_providers = getTplAppModuleNgProviders();
 				if (!tpl_ng_providers.isEmpty()) {
 					for (String provider: module_ng_providers) {
 						if (!tpl_ng_providers.contains(provider)) {
@@ -1646,7 +1758,7 @@ public class MobileBuilder {
 				}
 
 				String c8o_ModuleNgDeclarations = "";
-				String tpl_ng_declarations = getModuleTplNgDeclarations();
+				String tpl_ng_declarations = getTplAppModuleNgDeclarations();
 				if (!tpl_ng_declarations.isEmpty()) {
 					for (String declaration: module_ng_declarations) {
 						if (!tpl_ng_declarations.contains(declaration)) {
@@ -1659,7 +1771,7 @@ public class MobileBuilder {
 				}
 				
 				String c8o_ModuleNgComponents = "";
-				String tpl_ng_components = getModuleTplNgComponents();
+				String tpl_ng_components = getTplAppModuleNgComponents();
 				if (!tpl_ng_components.isEmpty()) {
 					for (String component: module_ng_components) {
 						if (!tpl_ng_components.contains(component)) {
