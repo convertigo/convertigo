@@ -6813,6 +6813,7 @@
           "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -6886,6 +6887,7 @@
           "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -7600,6 +7602,7 @@
           "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -7676,6 +7679,7 @@
           "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -7766,6 +7770,7 @@
 		  "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -7822,6 +7827,7 @@
           "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -7890,6 +7896,7 @@
           "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -7947,6 +7954,7 @@
           "description": "Defines if we want to disable loading controller showing",
           "category": "@Properties",
           "type": "boolean",
+          "value": "false",
           "values": [
             "false",
             "true"
