@@ -3169,6 +3169,7 @@
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction"/>
