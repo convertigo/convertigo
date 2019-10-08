@@ -1,64 +1,126 @@
 {
- "ActionSheetAction": {"   7   6   0": {
-  "name": "ActionSheetAction",
-  "properties": {
-   "mockedResponse": {
-    "name": "mockedResponse",
-    "mode": "script",
-    "value": 0
-   },
-   "title": {
-    "name": "title",
-    "mode": "plain",
-    "value": false
-   },
-   "subtitle": {
-    "name": "subtitle",
-    "mode": "plain",
-    "value": false
-   },
-   "buttonLabels": {
-    "name": "buttonLabels",
-    "mode": "script",
-    "value": "['']"
-   },
-   "androidTheme": {
-    "name": "androidTheme",
-    "mode": "plain",
-    "value": false
-   },
-   "androidEnableCancelButton": {
-    "name": "androidEnableCancelButton",
-    "mode": "plain",
-    "value": false
-   },
-   "winphoneEnableCancelButton": {
-    "name": "winphoneEnableCancelButton",
-    "mode": "plain",
-    "value": false
-   },
-   "addCancelButtonWithLabel": {
-    "name": "addCancelButtonWithLabel",
-    "mode": "plain",
-    "value": false
-   },
-   "addDestructiveButtonWithLabel": {
-    "name": "addDestructiveButtonWithLabel",
-    "mode": "plain",
-    "value": false
-   },
-   "position": {
-    "name": "position",
-    "mode": "plain",
-    "value": false
-   },
-   "destructiveButtonLast": {
-    "name": "destructiveButtonLast",
-    "mode": "plain",
-    "value": false
+ "ActionSheetAction": {
+  "   7   6   0": {
+   "name": "ActionSheetAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "script",
+     "value": 0
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "subtitle": {
+     "name": "subtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "buttonLabels": {
+     "name": "buttonLabels",
+     "mode": "script",
+     "value": "['']"
+    },
+    "androidTheme": {
+     "name": "androidTheme",
+     "mode": "plain",
+     "value": false
+    },
+    "androidEnableCancelButton": {
+     "name": "androidEnableCancelButton",
+     "mode": "plain",
+     "value": false
+    },
+    "winphoneEnableCancelButton": {
+     "name": "winphoneEnableCancelButton",
+     "mode": "plain",
+     "value": false
+    },
+    "addCancelButtonWithLabel": {
+     "name": "addCancelButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "addDestructiveButtonWithLabel": {
+     "name": "addDestructiveButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": false
+    },
+    "destructiveButtonLast": {
+     "name": "destructiveButtonLast",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "ActionSheetAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "script",
+     "value": 0
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "subtitle": {
+     "name": "subtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "buttonLabels": {
+     "name": "buttonLabels",
+     "mode": "script",
+     "value": "['']"
+    },
+    "androidTheme": {
+     "name": "androidTheme",
+     "mode": "plain",
+     "value": false
+    },
+    "androidEnableCancelButton": {
+     "name": "androidEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "winphoneEnableCancelButton": {
+     "name": "winphoneEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "addCancelButtonWithLabel": {
+     "name": "addCancelButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "addDestructiveButtonWithLabel": {
+     "name": "addDestructiveButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": false
+    },
+    "destructiveButtonLast": {
+     "name": "destructiveButtonLast",
+     "mode": "plain",
+     "value": "false"
+    }
    }
   }
- }},
+ },
  "AlertAction": {"   7   6   0": {
   "name": "AlertAction",
   "properties": {
@@ -453,261 +515,524 @@
    }
   }
  }},
- "CalendarPickerAction": {"   7   6   0": {
-  "name": "CalendarPickerAction",
-  "properties": {
-   "defaultDate": {
-    "name": "defaultDate",
-    "mode": "script",
-    "value": "Date()"
-   },
-   "defaultDates": {
-    "name": "defaultDates",
-    "mode": "script",
-    "value": "[Date(),Date()]"
-   },
-   "defaultDateRange": {
-    "name": "defaultDateRange",
-    "mode": "script",
-    "value": "{from: Date(), to: Date()}"
-   },
-   "from": {
-    "name": "from",
-    "mode": "plain",
-    "value": false
-   },
-   "to": {
-    "name": "to",
-    "mode": "plain",
-    "value": false
-   },
-   "IonColor": {
-    "name": "IonColor",
-    "mode": "plain",
-    "value": "primary"
-   },
-   "pickMode": {
-    "name": "pickMode",
-    "mode": "plain",
-    "value": "single"
-   },
-   "closeLabel": {
-    "name": "closeLabel",
-    "mode": "plain",
-    "value": false
-   },
-   "doneLabel": {
-    "name": "doneLabel",
-    "mode": "plain",
-    "value": false
-   },
-   "canBackwardsSelected": {
-    "name": "canBackwardsSelected",
-    "mode": "plain",
-    "value": false
-   },
-   "closeIcon": {
-    "name": "closeIcon",
-    "mode": "plain",
-    "value": false
-   },
-   "doneIcon": {
-    "name": "doneIcon",
-    "mode": "plain",
-    "value": false
-   },
-   "title": {
-    "name": "title",
-    "mode": "plain",
-    "value": false
-   },
-   "defaultTitle": {
-    "name": "defaultTitle",
-    "mode": "plain",
-    "value": false
-   },
-   "defaultSubtitle": {
-    "name": "defaultSubtitle",
-    "mode": "plain",
-    "value": false
-   },
-   "disableWeeks": {
-    "name": "disableWeeks",
-    "mode": "script",
-    "value": "[]"
-   },
-   "monthFormat": {
-    "name": "monthFormat",
-    "mode": "plain",
-    "value": "MMM YYYY"
-   },
-   "weekdays": {
-    "name": "weekdays",
-    "mode": "script",
-    "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
-   },
-   "weekStart": {
-    "name": "weekStart",
-    "mode": "plain",
-    "value": 0
-   },
-   "daysConfig": {
-    "name": "daysConfig",
-    "mode": "script",
-    "value": "[]"
+ "CalendarPickerAction": {
+  "   7   6   0": {
+   "name": "CalendarPickerAction",
+   "properties": {
+    "defaultDate": {
+     "name": "defaultDate",
+     "mode": "script",
+     "value": "Date()"
+    },
+    "defaultDates": {
+     "name": "defaultDates",
+     "mode": "script",
+     "value": "[Date(),Date()]"
+    },
+    "defaultDateRange": {
+     "name": "defaultDateRange",
+     "mode": "script",
+     "value": "{from: Date(), to: Date()}"
+    },
+    "from": {
+     "name": "from",
+     "mode": "plain",
+     "value": false
+    },
+    "to": {
+     "name": "to",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "primary"
+    },
+    "pickMode": {
+     "name": "pickMode",
+     "mode": "plain",
+     "value": "single"
+    },
+    "closeLabel": {
+     "name": "closeLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "doneLabel": {
+     "name": "doneLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "canBackwardsSelected": {
+     "name": "canBackwardsSelected",
+     "mode": "plain",
+     "value": false
+    },
+    "closeIcon": {
+     "name": "closeIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "doneIcon": {
+     "name": "doneIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "defaultTitle": {
+     "name": "defaultTitle",
+     "mode": "plain",
+     "value": false
+    },
+    "defaultSubtitle": {
+     "name": "defaultSubtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "disableWeeks": {
+     "name": "disableWeeks",
+     "mode": "script",
+     "value": "[]"
+    },
+    "monthFormat": {
+     "name": "monthFormat",
+     "mode": "plain",
+     "value": "MMM YYYY"
+    },
+    "weekdays": {
+     "name": "weekdays",
+     "mode": "script",
+     "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+    },
+    "weekStart": {
+     "name": "weekStart",
+     "mode": "plain",
+     "value": 0
+    },
+    "daysConfig": {
+     "name": "daysConfig",
+     "mode": "script",
+     "value": "[]"
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "CalendarPickerAction",
+   "properties": {
+    "defaultDate": {
+     "name": "defaultDate",
+     "mode": "script",
+     "value": "Date()"
+    },
+    "defaultDates": {
+     "name": "defaultDates",
+     "mode": "script",
+     "value": "[Date(),Date()]"
+    },
+    "defaultDateRange": {
+     "name": "defaultDateRange",
+     "mode": "script",
+     "value": "{from: Date(), to: Date()}"
+    },
+    "from": {
+     "name": "from",
+     "mode": "plain",
+     "value": false
+    },
+    "to": {
+     "name": "to",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "primary"
+    },
+    "pickMode": {
+     "name": "pickMode",
+     "mode": "plain",
+     "value": "single"
+    },
+    "closeLabel": {
+     "name": "closeLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "doneLabel": {
+     "name": "doneLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "canBackwardsSelected": {
+     "name": "canBackwardsSelected",
+     "mode": "plain",
+     "value": "false"
+    },
+    "closeIcon": {
+     "name": "closeIcon",
+     "mode": "plain",
+     "value": "false"
+    },
+    "doneIcon": {
+     "name": "doneIcon",
+     "mode": "plain",
+     "value": "false"
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "defaultTitle": {
+     "name": "defaultTitle",
+     "mode": "plain",
+     "value": false
+    },
+    "defaultSubtitle": {
+     "name": "defaultSubtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "disableWeeks": {
+     "name": "disableWeeks",
+     "mode": "script",
+     "value": "[]"
+    },
+    "monthFormat": {
+     "name": "monthFormat",
+     "mode": "plain",
+     "value": "MMM YYYY"
+    },
+    "weekdays": {
+     "name": "weekdays",
+     "mode": "script",
+     "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+    },
+    "weekStart": {
+     "name": "weekStart",
+     "mode": "plain",
+     "value": 0
+    },
+    "daysConfig": {
+     "name": "daysConfig",
+     "mode": "script",
+     "value": "[]"
+    }
    }
   }
- }},
- "CallFullSyncAction": {"   7   6   0": {
-  "name": "CallFullSyncAction",
-  "properties": {
-   "requestable": {
-    "name": "requestable",
-    "mode": "plain",
-    "value": ""
-   },
-   "marker": {
-    "name": "marker",
-    "mode": "plain",
-    "value": ""
-   },
-   "verb": {
-    "name": "verb",
-    "mode": "plain",
-    "value": "get"
-   },
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
+ },
+ "CallFullSyncAction": {
+  "   7   6   0": {
+   "name": "CallFullSyncAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "verb": {
+     "name": "verb",
+     "mode": "plain",
+     "value": "get"
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "CallFullSyncAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "verb": {
+     "name": "verb",
+     "mode": "plain",
+     "value": "get"
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    }
    }
   }
- }},
- "CallSequenceAction": {"   7   6   0": {
-  "name": "CallSequenceAction",
-  "properties": {
-   "requestable": {
-    "name": "requestable",
-    "mode": "plain",
-    "value": ""
-   },
-   "marker": {
-    "name": "marker",
-    "mode": "plain",
-    "value": ""
-   },
-   "cachePolicy": {
-    "name": "cachePolicy",
-    "mode": "plain",
-    "value": false
-   },
-   "cacheTtl": {
-    "name": "cacheTtl",
-    "mode": "plain",
-    "value": "3000"
-   },
-   "timeout": {
-    "name": "timeout",
-    "mode": "plain",
-    "value": false
-   },
-   "threshold": {
-    "name": "threshold",
-    "mode": "plain",
-    "value": false
-   },
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
+ },
+ "CallSequenceAction": {
+  "   7   6   0": {
+   "name": "CallSequenceAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "cachePolicy": {
+     "name": "cachePolicy",
+     "mode": "plain",
+     "value": false
+    },
+    "cacheTtl": {
+     "name": "cacheTtl",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "timeout": {
+     "name": "timeout",
+     "mode": "plain",
+     "value": false
+    },
+    "threshold": {
+     "name": "threshold",
+     "mode": "plain",
+     "value": false
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "CallSequenceAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "cachePolicy": {
+     "name": "cachePolicy",
+     "mode": "plain",
+     "value": false
+    },
+    "cacheTtl": {
+     "name": "cacheTtl",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "timeout": {
+     "name": "timeout",
+     "mode": "plain",
+     "value": false
+    },
+    "threshold": {
+     "name": "threshold",
+     "mode": "plain",
+     "value": false
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    }
    }
   }
- }},
- "CameraAction": {"   7   6   0": {
-  "name": "CameraAction",
-  "properties": {
-   "quality": {
-    "name": "quality",
-    "mode": "script",
-    "value": 80
-   },
-   "destinationType": {
-    "name": "destinationType",
-    "mode": "plain",
-    "value": "FILE_URL"
-   },
-   "sourceType": {
-    "name": "sourceType",
-    "mode": "plain",
-    "value": "CAMERA"
-   },
-   "allowEdit": {
-    "name": "allowEdit",
-    "mode": "plain",
-    "value": "false"
-   },
-   "encodingType": {
-    "name": "encodingType",
-    "mode": "plain",
-    "value": "JPEG"
-   },
-   "targetWidth": {
-    "name": "targetWidth",
-    "mode": "script",
-    "value": 800
-   },
-   "targetHeight": {
-    "name": "targetHeight",
-    "mode": "script",
-    "value": 800
-   },
-   "mediaType": {
-    "name": "mediaType",
-    "mode": "plain",
-    "value": false
-   },
-   "correctOrientation": {
-    "name": "correctOrientation",
-    "mode": "plain",
-    "value": "true"
-   },
-   "saveToPhotoAlbum": {
-    "name": "saveToPhotoAlbum",
-    "mode": "plain",
-    "value": false
-   },
-   "cameraDirection": {
-    "name": "cameraDirection",
-    "mode": "plain",
-    "value": "BACK"
-   },
-   "x": {
-    "name": "x",
-    "mode": "script",
-    "value": false
-   },
-   "y": {
-    "name": "y",
-    "mode": "script",
-    "value": false
-   },
-   "width": {
-    "name": "width",
-    "mode": "script",
-    "value": false
-   },
-   "height": {
-    "name": "height",
-    "mode": "script",
-    "value": false
-   },
-   "arrowDir": {
-    "name": "arrowDir",
-    "mode": "plain",
-    "value": false
+ },
+ "CameraAction": {
+  "   7   6   0": {
+   "name": "CameraAction",
+   "properties": {
+    "quality": {
+     "name": "quality",
+     "mode": "script",
+     "value": 80
+    },
+    "destinationType": {
+     "name": "destinationType",
+     "mode": "plain",
+     "value": "FILE_URL"
+    },
+    "sourceType": {
+     "name": "sourceType",
+     "mode": "plain",
+     "value": "CAMERA"
+    },
+    "allowEdit": {
+     "name": "allowEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "encodingType": {
+     "name": "encodingType",
+     "mode": "plain",
+     "value": "JPEG"
+    },
+    "targetWidth": {
+     "name": "targetWidth",
+     "mode": "script",
+     "value": 800
+    },
+    "targetHeight": {
+     "name": "targetHeight",
+     "mode": "script",
+     "value": 800
+    },
+    "mediaType": {
+     "name": "mediaType",
+     "mode": "plain",
+     "value": false
+    },
+    "correctOrientation": {
+     "name": "correctOrientation",
+     "mode": "plain",
+     "value": "true"
+    },
+    "saveToPhotoAlbum": {
+     "name": "saveToPhotoAlbum",
+     "mode": "plain",
+     "value": false
+    },
+    "cameraDirection": {
+     "name": "cameraDirection",
+     "mode": "plain",
+     "value": "BACK"
+    },
+    "x": {
+     "name": "x",
+     "mode": "script",
+     "value": false
+    },
+    "y": {
+     "name": "y",
+     "mode": "script",
+     "value": false
+    },
+    "width": {
+     "name": "width",
+     "mode": "script",
+     "value": false
+    },
+    "height": {
+     "name": "height",
+     "mode": "script",
+     "value": false
+    },
+    "arrowDir": {
+     "name": "arrowDir",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "CameraAction",
+   "properties": {
+    "quality": {
+     "name": "quality",
+     "mode": "script",
+     "value": 80
+    },
+    "destinationType": {
+     "name": "destinationType",
+     "mode": "plain",
+     "value": "FILE_URL"
+    },
+    "sourceType": {
+     "name": "sourceType",
+     "mode": "plain",
+     "value": "CAMERA"
+    },
+    "allowEdit": {
+     "name": "allowEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "encodingType": {
+     "name": "encodingType",
+     "mode": "plain",
+     "value": "JPEG"
+    },
+    "targetWidth": {
+     "name": "targetWidth",
+     "mode": "script",
+     "value": 800
+    },
+    "targetHeight": {
+     "name": "targetHeight",
+     "mode": "script",
+     "value": 800
+    },
+    "mediaType": {
+     "name": "mediaType",
+     "mode": "plain",
+     "value": false
+    },
+    "correctOrientation": {
+     "name": "correctOrientation",
+     "mode": "plain",
+     "value": "true"
+    },
+    "saveToPhotoAlbum": {
+     "name": "saveToPhotoAlbum",
+     "mode": "plain",
+     "value": "false"
+    },
+    "cameraDirection": {
+     "name": "cameraDirection",
+     "mode": "plain",
+     "value": "BACK"
+    },
+    "x": {
+     "name": "x",
+     "mode": "script",
+     "value": false
+    },
+    "y": {
+     "name": "y",
+     "mode": "script",
+     "value": false
+    },
+    "width": {
+     "name": "width",
+     "mode": "script",
+     "value": false
+    },
+    "height": {
+     "name": "height",
+     "mode": "script",
+     "value": false
+    },
+    "arrowDir": {
+     "name": "arrowDir",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
+ },
  "Card": {"   7   6   0": {
   "name": "Card",
   "properties": {}
@@ -1074,161 +1399,326 @@
    "value": false
   }}
  }},
- "FullSyncDeleteAction": {"   7   6   0": {
-  "name": "FullSyncDeleteAction",
-  "properties": {
-   "requestable": {
-    "name": "requestable",
-    "mode": "plain",
-    "value": ""
-   },
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
-   },
-   "marker": {
-    "name": "marker",
-    "mode": "plain",
-    "value": false
-   },
-   "docid": {
-    "name": "docid",
-    "mode": "plain",
-    "value": false
-   },
-   "rev": {
-    "name": "rev",
-    "mode": "plain",
-    "value": false
+ "FullSyncDeleteAction": {
+  "   7   6   0": {
+   "name": "FullSyncDeleteAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "rev": {
+     "name": "rev",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "FullSyncDeleteAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "rev": {
+     "name": "rev",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
- "FullSyncDeleteAttachmentAction": {"   7   6   0": {
-  "name": "FullSyncDeleteAttachmentAction",
-  "properties": {
-   "requestable": {
-    "name": "requestable",
-    "mode": "plain",
-    "value": ""
-   },
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
-   },
-   "docid": {
-    "name": "docid",
-    "mode": "plain",
-    "value": false
-   },
-   "name": {
-    "name": "name",
-    "mode": "plain",
-    "value": false
+ },
+ "FullSyncDeleteAttachmentAction": {
+  "   7   6   0": {
+   "name": "FullSyncDeleteAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "FullSyncDeleteAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
- "FullSyncGetAction": {"   7   6   0": {
-  "name": "FullSyncGetAction",
-  "properties": {
-   "requestable": {
-    "name": "requestable",
-    "mode": "plain",
-    "value": ""
-   },
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
-   },
-   "marker": {
-    "name": "marker",
-    "mode": "plain",
-    "value": false
-   },
-   "_id": {
-    "name": "_id",
-    "mode": "plain",
-    "value": false
-   },
-   "__live": {
-    "name": "__live",
-    "mode": "plain",
-    "value": false
+ },
+ "FullSyncGetAction": {
+  "   7   6   0": {
+   "name": "FullSyncGetAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "FullSyncGetAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
- "FullSyncPostAction": {"   7   6   0": {
-  "name": "FullSyncPostAction",
-  "properties": {
-   "requestable": {
-    "name": "requestable",
-    "mode": "plain",
-    "value": ""
-   },
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
-   },
-   "_id": {
-    "name": "_id",
-    "mode": "plain",
-    "value": false
-   },
-   "_use_policy": {
-    "name": "_use_policy",
-    "mode": "plain",
-    "value": "override"
-   },
-   "RootKey": {
-    "name": "RootKey",
-    "mode": "plain",
-    "value": false
-   },
-   "c8oGrp": {
-    "name": "c8oGrp",
-    "mode": "plain",
-    "value": false
+ },
+ "FullSyncPostAction": {
+  "   7   6   0": {
+   "name": "FullSyncPostAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "_use_policy": {
+     "name": "_use_policy",
+     "mode": "plain",
+     "value": "override"
+    },
+    "RootKey": {
+     "name": "RootKey",
+     "mode": "plain",
+     "value": false
+    },
+    "c8oGrp": {
+     "name": "c8oGrp",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "FullSyncPostAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "_use_policy": {
+     "name": "_use_policy",
+     "mode": "plain",
+     "value": "override"
+    },
+    "RootKey": {
+     "name": "RootKey",
+     "mode": "plain",
+     "value": false
+    },
+    "c8oGrp": {
+     "name": "c8oGrp",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
- "FullSyncPutAttachmentAction": {"   7   6   0": {
-  "name": "FullSyncPutAttachmentAction",
-  "properties": {
-   "requestable": {
-    "name": "requestable",
-    "mode": "plain",
-    "value": ""
-   },
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
-   },
-   "docid": {
-    "name": "docid",
-    "mode": "plain",
-    "value": false
-   },
-   "name": {
-    "name": "name",
-    "mode": "plain",
-    "value": false
-   },
-   "content_type": {
-    "name": "content_type",
-    "mode": "plain",
-    "value": false
-   },
-   "content": {
-    "name": "content",
-    "mode": "plain",
-    "value": false
+ },
+ "FullSyncPutAttachmentAction": {
+  "   7   6   0": {
+   "name": "FullSyncPutAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    },
+    "content_type": {
+     "name": "content_type",
+     "mode": "plain",
+     "value": false
+    },
+    "content": {
+     "name": "content",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "FullSyncPutAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    },
+    "content_type": {
+     "name": "content_type",
+     "mode": "plain",
+     "value": false
+    },
+    "content": {
+     "name": "content",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
+ },
  "FullSyncSyncAction": {"   7   6   0": {
   "name": "FullSyncSyncAction",
   "properties": {
@@ -1264,111 +1754,218 @@
    }
   }
  }},
- "FullSyncViewAction": {"   7   6   0": {
-  "name": "FullSyncViewAction",
-  "properties": {
-   "noLoading": {
-    "name": "noLoading",
-    "mode": "plain",
-    "value": false
-   },
-   "marker": {
-    "name": "marker",
-    "mode": "plain",
-    "value": false
-   },
-   "fsview": {
-    "name": "fsview",
-    "mode": "plain",
-    "value": ""
-   },
-   "__live": {
-    "name": "__live",
-    "mode": "plain",
-    "value": false
-   },
-   "include_docs": {
-    "name": "include_docs",
-    "mode": "plain",
-    "value": "false"
-   },
-   "conflicts": {
-    "name": "conflicts",
-    "mode": "plain",
-    "value": false
-   },
-   "reduce": {
-    "name": "reduce",
-    "mode": "plain",
-    "value": false
-   },
-   "attachments": {
-    "name": "attachments",
-    "mode": "plain",
-    "value": false
-   },
-   "binary": {
-    "name": "binary",
-    "mode": "plain",
-    "value": false
-   },
-   "startkey": {
-    "name": "startkey",
-    "mode": "plain",
-    "value": false
-   },
-   "endkey": {
-    "name": "endkey",
-    "mode": "plain",
-    "value": false
-   },
-   "inclusive_end": {
-    "name": "inclusive_end",
-    "mode": "plain",
-    "value": false
-   },
-   "limit": {
-    "name": "limit",
-    "mode": "script",
-    "value": "500"
-   },
-   "skip": {
-    "name": "skip",
-    "mode": "script",
-    "value": false
-   },
-   "descending": {
-    "name": "descending",
-    "mode": "plain",
-    "value": false
-   },
-   "key": {
-    "name": "key",
-    "mode": "plain",
-    "value": false
-   },
-   "keys": {
-    "name": "keys",
-    "mode": "plain",
-    "value": false
-   },
-   "group": {
-    "name": "group",
-    "mode": "plain",
-    "value": false
-   },
-   "group_level": {
-    "name": "group_level",
-    "mode": "plain",
-    "value": false
-   },
-   "stale": {
-    "name": "stale",
-    "mode": "plain",
-    "value": false
+ "FullSyncViewAction": {
+  "   7   6   0": {
+   "name": "FullSyncViewAction",
+   "properties": {
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": false
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "fsview": {
+     "name": "fsview",
+     "mode": "plain",
+     "value": ""
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    },
+    "include_docs": {
+     "name": "include_docs",
+     "mode": "plain",
+     "value": "false"
+    },
+    "conflicts": {
+     "name": "conflicts",
+     "mode": "plain",
+     "value": false
+    },
+    "reduce": {
+     "name": "reduce",
+     "mode": "plain",
+     "value": false
+    },
+    "attachments": {
+     "name": "attachments",
+     "mode": "plain",
+     "value": false
+    },
+    "binary": {
+     "name": "binary",
+     "mode": "plain",
+     "value": false
+    },
+    "startkey": {
+     "name": "startkey",
+     "mode": "plain",
+     "value": false
+    },
+    "endkey": {
+     "name": "endkey",
+     "mode": "plain",
+     "value": false
+    },
+    "inclusive_end": {
+     "name": "inclusive_end",
+     "mode": "plain",
+     "value": false
+    },
+    "limit": {
+     "name": "limit",
+     "mode": "script",
+     "value": "500"
+    },
+    "skip": {
+     "name": "skip",
+     "mode": "script",
+     "value": false
+    },
+    "descending": {
+     "name": "descending",
+     "mode": "plain",
+     "value": false
+    },
+    "key": {
+     "name": "key",
+     "mode": "plain",
+     "value": false
+    },
+    "keys": {
+     "name": "keys",
+     "mode": "plain",
+     "value": false
+    },
+    "group": {
+     "name": "group",
+     "mode": "plain",
+     "value": false
+    },
+    "group_level": {
+     "name": "group_level",
+     "mode": "plain",
+     "value": false
+    },
+    "stale": {
+     "name": "stale",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "FullSyncViewAction",
+   "properties": {
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "fsview": {
+     "name": "fsview",
+     "mode": "plain",
+     "value": ""
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    },
+    "include_docs": {
+     "name": "include_docs",
+     "mode": "plain",
+     "value": "false"
+    },
+    "conflicts": {
+     "name": "conflicts",
+     "mode": "plain",
+     "value": false
+    },
+    "reduce": {
+     "name": "reduce",
+     "mode": "plain",
+     "value": "false"
+    },
+    "attachments": {
+     "name": "attachments",
+     "mode": "plain",
+     "value": false
+    },
+    "binary": {
+     "name": "binary",
+     "mode": "plain",
+     "value": false
+    },
+    "startkey": {
+     "name": "startkey",
+     "mode": "plain",
+     "value": false
+    },
+    "endkey": {
+     "name": "endkey",
+     "mode": "plain",
+     "value": false
+    },
+    "inclusive_end": {
+     "name": "inclusive_end",
+     "mode": "plain",
+     "value": false
+    },
+    "limit": {
+     "name": "limit",
+     "mode": "script",
+     "value": "500"
+    },
+    "skip": {
+     "name": "skip",
+     "mode": "script",
+     "value": false
+    },
+    "descending": {
+     "name": "descending",
+     "mode": "plain",
+     "value": false
+    },
+    "key": {
+     "name": "key",
+     "mode": "plain",
+     "value": false
+    },
+    "keys": {
+     "name": "keys",
+     "mode": "plain",
+     "value": false
+    },
+    "group": {
+     "name": "group",
+     "mode": "plain",
+     "value": false
+    },
+    "group_level": {
+     "name": "group_level",
+     "mode": "plain",
+     "value": false
+    },
+    "stale": {
+     "name": "stale",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
+ },
  "GenericItem": {"   7   6   0": {
   "name": "GenericItem",
   "properties": {"ItemPosition": {
@@ -2111,41 +2708,78 @@
   "name": "MenuItem",
   "properties": {}
  }},
- "ModalAction": {"   7   6   0": {
-  "name": "ModalAction",
-  "properties": {
-   "page": {
-    "name": "page",
-    "mode": "plain",
-    "value": ""
-   },
-   "data": {
-    "name": "data",
-    "mode": "plain",
-    "value": false
-   },
-   "blockWhileDisplayed": {
-    "name": "blockWhileDisplayed",
-    "mode": "plain",
-    "value": false
-   },
-   "showBackdrop": {
-    "name": "showBackdrop",
-    "mode": "plain",
-    "value": true
-   },
-   "enableBackdropDismiss": {
-    "name": "enableBackdropDismiss",
-    "mode": "plain",
-    "value": true
-   },
-   "cssClass": {
-    "name": "cssClass",
-    "mode": "plain",
-    "value": false
+ "ModalAction": {
+  "   7   6   0": {
+   "name": "ModalAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "blockWhileDisplayed": {
+     "name": "blockWhileDisplayed",
+     "mode": "plain",
+     "value": false
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": true
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": true
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "ModalAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "blockWhileDisplayed": {
+     "name": "blockWhileDisplayed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
+ },
  "NavBar": {"   7   6   0": {
   "name": "NavBar",
   "properties": {
@@ -2244,41 +2878,78 @@
   "name": "PopPageAction",
   "properties": {}
  }},
- "PopoverAction": {"   7   6   0": {
-  "name": "PopoverAction",
-  "properties": {
-   "page": {
-    "name": "page",
-    "mode": "plain",
-    "value": ""
-   },
-   "data": {
-    "name": "data",
-    "mode": "plain",
-    "value": false
-   },
-   "showBackdrop": {
-    "name": "showBackdrop",
-    "mode": "plain",
-    "value": true
-   },
-   "enableBackdropDismiss": {
-    "name": "enableBackdropDismiss",
-    "mode": "plain",
-    "value": true
-   },
-   "event": {
-    "name": "event",
-    "mode": "script",
-    "value": "(event == undefined ? $event : event)"
-   },
-   "cssClass": {
-    "name": "cssClass",
-    "mode": "plain",
-    "value": false
+ "PopoverAction": {
+  "   7   6   0": {
+   "name": "PopoverAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": true
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": true
+    },
+    "event": {
+     "name": "event",
+     "mode": "script",
+     "value": "(event == undefined ? $event : event)"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "PopoverAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "event": {
+     "name": "event",
+     "mode": "script",
+     "value": "(event == undefined ? $event : event)"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
+ },
  "PublishEventAction": {"   7   6   0": {
   "name": "PublishEventAction",
   "properties": {
@@ -3003,36 +3674,68 @@
    }
   }
  }},
- "Tabs": {"   7   6   0": {
-  "name": "Tabs",
-  "properties": {
-   "IonColor": {
-    "name": "IonColor",
-    "mode": "plain",
-    "value": "light"
-   },
-   "SelectedIndex": {
-    "name": "SelectedIndex",
-    "mode": "plain",
-    "value": false
-   },
-   "TabsHighlight": {
-    "name": "TabsHighlight",
-    "mode": "plain",
-    "value": false
-   },
-   "TabsLayout": {
-    "name": "TabsLayout",
-    "mode": "plain",
-    "value": false
-   },
-   "TabsPlacement": {
-    "name": "TabsPlacement",
-    "mode": "plain",
-    "value": false
+ "Tabs": {
+  "   7   6   0": {
+   "name": "Tabs",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "light"
+    },
+    "SelectedIndex": {
+     "name": "SelectedIndex",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsHighlight": {
+     "name": "TabsHighlight",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsLayout": {
+     "name": "TabsLayout",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsPlacement": {
+     "name": "TabsPlacement",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "Tabs",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "light"
+    },
+    "SelectedIndex": {
+     "name": "SelectedIndex",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsHighlight": {
+     "name": "TabsHighlight",
+     "mode": "plain",
+     "value": "false"
+    },
+    "TabsLayout": {
+     "name": "TabsLayout",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsPlacement": {
+     "name": "TabsPlacement",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
+ },
  "TextArea": {"   7   6   0": {
   "name": "TextArea",
   "properties": {
@@ -3171,46 +3874,88 @@
    "value": "item-left"
   }}
  }},
- "ToastAction": {"   7   6   0": {
-  "name": "ToastAction",
-  "properties": {
-   "message": {
-    "name": "message",
-    "mode": "plain",
-    "value": "some message"
-   },
-   "duration": {
-    "name": "duration",
-    "mode": "plain",
-    "value": "3000"
-   },
-   "position": {
-    "name": "position",
-    "mode": "plain",
-    "value": "bottom"
-   },
-   "cssClass": {
-    "name": "cssClass",
-    "mode": "plain",
-    "value": false
-   },
-   "showCloseButton": {
-    "name": "showCloseButton",
-    "mode": "plain",
-    "value": false
-   },
-   "closeButtonText": {
-    "name": "closeButtonText",
-    "mode": "plain",
-    "value": false
-   },
-   "dismissOnPageChange": {
-    "name": "dismissOnPageChange",
-    "mode": "plain",
-    "value": false
+ "ToastAction": {
+  "   7   6   0": {
+   "name": "ToastAction",
+   "properties": {
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some message"
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    },
+    "showCloseButton": {
+     "name": "showCloseButton",
+     "mode": "plain",
+     "value": false
+    },
+    "closeButtonText": {
+     "name": "closeButtonText",
+     "mode": "plain",
+     "value": false
+    },
+    "dismissOnPageChange": {
+     "name": "dismissOnPageChange",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   6   5": {
+   "name": "ToastAction",
+   "properties": {
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some message"
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    },
+    "showCloseButton": {
+     "name": "showCloseButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "closeButtonText": {
+     "name": "closeButtonText",
+     "mode": "plain",
+     "value": false
+    },
+    "dismissOnPageChange": {
+     "name": "dismissOnPageChange",
+     "mode": "plain",
+     "value": "false"
+    }
    }
   }
- }},
+ },
  "Toggle": {"   7   6   0": {
   "name": "Toggle",
   "properties": {
