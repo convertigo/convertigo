@@ -2197,7 +2197,8 @@ public class MobileBuilder {
 			}
 			
 			// Set application name
-			content = content.replace("<!--c8o_App_Name-->", app.getName());
+			String pwaAppName = app.getParent().getApplicationName();
+			content = content.replace("<!--c8o_App_Name-->", pwaAppName);
 			
 			File index = new File(ionicWorkDir, "src/index.html");
 			writeFile(index, content, "UTF-8");

@@ -162,7 +162,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 				}
 				// for this application
 				else if (this.equals(doto)) {
-					if (propertyName.equals("isPWA") || propertyName.equals("name")) {
+					if (propertyName.equals("isPWA")) {
 						if (!newValue.equals(oldValue)) {
 							markPwaAsDirty();
 						}
