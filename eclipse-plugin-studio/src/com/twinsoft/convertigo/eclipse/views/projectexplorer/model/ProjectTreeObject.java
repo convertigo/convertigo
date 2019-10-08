@@ -123,32 +123,25 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 	
 	@Override
-    public void hasBeenModified(boolean bModified) {
+	public void hasBeenModified(boolean bModified) {
 		if (bModified && !isInherited) {
 			markAsChanged(true);
 		}
 	}
 	
-	/**
-	 * Closes a project.
-	 * 
-	 * @return <code>false</code> if the close process has been canceled by user.
-	 */
 	public boolean close() {
 		// close opened editors
 		closeAllEditors();
 		
 		// save project and copy temporary files to project files
-		boolean bRet = !getObject().hasChanged || save(true);
-		if (bRet) {
-			ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
+		save(true);
+		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 
-			// clear Source picker view if needed
-			clearSourcePickerView();
-			
-			Engine.theApp.databaseObjectsManager.clearCache(getObject());
-		}
-		return bRet;
+		// clear Source picker view if needed
+		clearSourcePickerView();
+		
+		Engine.theApp.databaseObjectsManager.clearCache(getObject());
+		return true;
 	}
 
 	private void clearSourcePickerView() {
