@@ -2093,9 +2093,8 @@
           "description": "If true, show the tab highlight bar under the selected tab.",
           "category": "Attributes",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
             "false",
             "true"
           ]
@@ -6339,7 +6338,7 @@
           "description": "Define if execution of next actions has to be blocked while modal page is displayed",
           "category": "@Properties",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -6350,7 +6349,7 @@
           "description": "Show a backdrop (dark background) behind the page. This will only occur if the page is displayed as popup as defined in the <i>Theme</i> component. See <code>$modal-inset-min-width</code>.",
           "category": "@Properties",
           "type": "boolean",
-          "value": true,
+          "value": "true",
           "values": [
             "true",
             "false"
@@ -6362,7 +6361,7 @@
           "description": "If true, tapping on the back drop will dismiss the page.",
           "category": "@Properties",
           "type": "boolean",
-          "value": true,
+          "value": "true",
           "values": [
             "true",
             "false"
@@ -6433,7 +6432,7 @@
           "description": "Show a backdrop (dark background) behind the page. This will only occur if the page is displayed as popup as defined in the <i>Theme</i> component. See <code>$modal-inset-min-width</code>.",
           "category": "@Properties",
           "type": "boolean",
-          "value": true,
+          "value": "true",
           "values": [
             "true",
             "false"
@@ -6445,7 +6444,7 @@
           "description": "If true, tapping on the back drop will dismiss the page.",
           "category": "@Properties",
           "type": "boolean",
-          "value": true,
+          "value": "true",
           "values": [
             "true",
             "false"
@@ -6533,9 +6532,8 @@
           "description": "Whether or not to show a button to close the toast.",
           "category": "@Properties",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
           	"true",
           	"false"
           	]
@@ -6553,9 +6551,8 @@
           "description": "Whether to dismiss the toast when navigating to a new page.",
           "category": "@Properties",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
           	"true",
           	"false"
           	]
@@ -7190,9 +7187,8 @@
           "description": "Define if the calendar can be backwards selected.",
           "category": "@Properties",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
             "true",
             "false"
           ]
@@ -7203,9 +7199,8 @@
           "description": "Display close Icon.",
           "category": "@Properties",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
             "true",
             "false"
           ]
@@ -7216,9 +7211,8 @@
           "description": "Display done icon.",
           "category": "@Properties",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
             "true",
             "false"
           ]
@@ -8025,9 +8019,8 @@
         "label": "Reduce",
         "category": "#Optional Properties",
         "type": "boolean",
-        "value": false,
+        "value": "false",
         "values": [
-          false,
           "true",
           "false"
         ]
@@ -8621,9 +8614,8 @@
 	        "description": "Enable a cancel on Android.",
 	        "category": "@android options",
 	        "type": "boolean",
-	        "value": false,
+	        "value": "false",
 	        "values": [
-	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -8633,9 +8625,8 @@
 	        "description": "Enable a cancel on Windows Phone.",
 	        "category": "@winphone options",
 	        "type": "boolean",
-	        "value": false,
+	        "value": "false",
 	        "values": [
-	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -8666,9 +8657,8 @@
 	        "description": "Choose if destructive button will be the last.",
 	        "category": "@actionsheet options",
 	        "type": "boolean",
-	        "value": false,
+	        "value": "false",
 	        "values": [
-	            false,
 	        	"true",
 	        	"false"
 	        ]
@@ -9031,7 +9021,6 @@
 	        "type": "boolean",
 	        "value": "true",
 	        "values": [
-	        	false,
 	        	"true",
 	        	"false"
 	        ]
@@ -9041,9 +9030,8 @@
 	        "description": "Save the image to the photo album on the device after capture.",
 	        "category": "@camera options",
 	        "type": "boolean",
-	        "value": false,
+	        "value": "false",
 	        "values": [
-	        	false,
 	        	"true",
 	        	"false"
 	        ]
