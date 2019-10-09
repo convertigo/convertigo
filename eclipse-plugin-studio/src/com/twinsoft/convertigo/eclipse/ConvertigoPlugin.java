@@ -1634,7 +1634,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					sb.append(" in the workspace folder.");
 					resourceProject.create(monitor);
 				} else {
-					sb.append(" isn't in the workspace folder.");				
+					sb.append(" isn't in the workspace folder.");
 					IPath projectPath = new Path(projectDir).makeAbsolute();
 					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
 					description.setLocation(projectPath);
@@ -1656,11 +1656,22 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return getProjectPluginResource(projectName, null);
 	}
 
-	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {		
+	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
 		IProject resourceProject = createProjectPluginResource(projectName);
 		if (resourceProject.exists()) {
 			if (!resourceProject.isOpen()) {
-				resourceProject.open(monitor);
+				try {
+					resourceProject.open(monitor);
+				} catch (CoreException e) {
+					// case of missing .project on existing project
+					IPath projectPath = resourceProject.getLocation();
+					IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
+					description.setLocation(projectPath);
+					resourceProject.delete(false, false, monitor);
+					resourceProject.create(description, monitor);
+					resourceProject.open(monitor);
+				}
 			}
 		}
 		return resourceProject;
