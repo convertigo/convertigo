@@ -228,7 +228,7 @@ dependencies {
 	compileFlat 'io.swagger.core.v3:swagger-core:2.0.5'
 	compileFlat 'io.swagger.parser.v3:swagger-parser-core:2.0.5'
 	compileFlat 'io.swagger.parser.v3:swagger-parser-v3:2.0.5'
-	compileFlat 'javax.mail:mail:1.4'
+	compileFlat 'javax.mail:mail:1.4.7'
 	compileFlat 'log4j:log4j:1.2.12'
 	compileFlat 'oauth.signpost:signpost-core:1.2.1.2'
 	compileFlat 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}

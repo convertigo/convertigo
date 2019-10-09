@@ -26,6 +26,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.activation.CommandMap;
+import javax.activation.MailcapCommandMap;
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
@@ -81,6 +83,15 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 		public String toString() {
 			return label;
 		}
+	}
+	
+	static {
+		MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap(); 
+		mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html"); 
+		mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml"); 
+		mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain"); 
+		mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed"); 
+		mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
 	}
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
@@ -443,7 +454,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 				public void run() {
 					Properties props = new Properties();
 					try {
-						if (smtpAuthType == SmtpAuthType.sslTls){
+						if (smtpAuthType == SmtpAuthType.sslTls) {
 							Provider provider = (Provider) Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance();
 							java.security.Security.addProvider(provider);
 							props.put("mail.transport.protocol", "smtps");
