@@ -766,10 +766,14 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		String menuId = getMenuId();
 		if (!menuId.isEmpty()) {
 			try {
-				String constructor = System.lineSeparator() + "\t\tthis.menuId = '" + menuId +"';"
-									+ System.lineSeparator() + "\t\t";
-				String constructors = jsonScripts.getString("constructors") + constructor;
+				String constructors = jsonScripts.getString("constructors");
+				String cname = "menuId";
+				String ccode = System.lineSeparator() + "\t\tthis.menuId = '" + menuId +"';" + System.lineSeparator() + "\t\t";
+				if (addConstructor(cname, ccode)) {
+					constructors += ccode;
+				}
 				jsonScripts.put("constructors", constructors);
+				
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -779,26 +783,36 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
 		if (!subscriberList.isEmpty()) {
 			try {
-				String declaration = "public static nbInstance = 0;" + System.lineSeparator();
-				String declarations = jsonScripts.getString("declarations") + declaration;
+				String declarations = jsonScripts.getString("declarations");
+				String dname = "nbInstance";
+				String dcode = "public static nbInstance = 0;";
+				if (addDeclaration(dname, dcode)) {
+					declarations += dcode + System.lineSeparator();
+				}
 				jsonScripts.put("declarations", declarations);
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
 			
 			try {
-				String subscribers = computeEventConstructors(subscriberList);
-				subscribers += subscribers.isEmpty() ? "" : System.lineSeparator() + "\t\t";
-				String constructors = jsonScripts.getString("constructors") + subscribers;
+				String constructors = jsonScripts.getString("constructors");
+				String cname = "subscribers";
+				String ccode = computeEventConstructors(subscriberList);
+				if (addConstructor(cname, ccode)) {
+					constructors += ccode + (ccode.isEmpty() ? "" : System.lineSeparator() + "\t\t");
+				}
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
 			try {
-				String function = computeNgDestroy(subscriberList);
-				function += function.isEmpty() ? "" : System.lineSeparator() + "\t";
-				String functions = jsonScripts.getString("functions") + function;
+				String functions = jsonScripts.getString("functions");
+				String fname = "ngOnDestroy";
+				String fcode = computeNgDestroy(subscriberList);
+				if (addFunction(fname, fcode)) {
+					functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
+				}
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -812,8 +826,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				String computedEvent = viewEvent.computeEvent(eventList);
 				if (!computedEvent.isEmpty()) {
 					try {
-						String function = computedEvent + System.lineSeparator();
-						String functions = jsonScripts.getString("functions") + function;
+						String functions = jsonScripts.getString("functions");
+						String fname = viewEvent.name();
+						String fcode = computedEvent;
+						if (addFunction(fname, fcode)) {
+							functions += fcode + System.lineSeparator();
+						}
 						jsonScripts.put("functions", functions);
 					} catch (JSONException e) {
 						e.printStackTrace();
