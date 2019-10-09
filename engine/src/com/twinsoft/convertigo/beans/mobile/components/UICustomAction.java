@@ -473,7 +473,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		try {
 			String functions = jsonScripts.getString("functions");
 			
-			String fname = getFunctionName();
+			String fname = getActionName();
 			String fcode = computeActionMain();
 			if (main.addImport(fname, fcode)) {
 				functions += System.lineSeparator() + fcode;
