@@ -1,4 +1,5 @@
 import { NgModule } 			from '@angular/core';
+import { TranslateModule } 		from '@ngx-translate/core';
 import { IonicPageModule } 		from 'ionic-angular';
 /*=c8o_ModuleTsImports*/
 /*=c8o_PageImport*/
@@ -8,6 +9,7 @@ import { IonicPageModule } 		from 'ionic-angular';
 	/*=c8o_PageName*/
   /*End_c8o_NgDeclarations*/],
   imports: [/*Begin_c8o_NgModules*/
+  	TranslateModule.forChild(),
 	IonicPageModule.forChild(/*=c8o_PageName*/)
   /*End_c8o_NgModules*/],
   entryComponents: [/*Begin_c8o_NgComponents*/
