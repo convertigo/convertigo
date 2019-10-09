@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.engine.cache;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Document;
 
@@ -33,13 +32,10 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 
 public abstract class MemoryCacheManager extends CacheManager {
 	
-	protected Map<String, CacheEntry> cacheIndex;
+	protected Map<String, CacheEntry> cacheIndex = null;
 	
 	public void init() throws EngineException {
 		super.init();
-		
-		// Default cache index
-		cacheIndex = new ConcurrentHashMap<>();
 		
 		// Trying to restore the previous cache index if any
 		restoreCacheIndex();

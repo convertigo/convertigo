@@ -129,6 +129,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 		method.setParameter("t", "event");
 		method.setParameter("an", ticket.getProjectName());
 		method.setParameter("ec", ticket.getProjectName());
+		method.setParameter("el", ticket.getCustomerName());
 		
 		StringBuffer requestableName = new StringBuffer(ticket.getConnectorName());
 		if (requestableName.length() > 0) {
