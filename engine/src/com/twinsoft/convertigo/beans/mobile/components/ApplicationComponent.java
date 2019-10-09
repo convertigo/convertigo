@@ -111,6 +111,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		cloned.vSharedComponents = new LinkedList<UISharedComponent>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.appImports = new HashMap<String, String>();
+		cloned.appFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.rootPage = null;
@@ -993,6 +994,25 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return false;
 	}
     
+	private transient Map<String, String> appFunctions = new HashMap<String, String>();
+	
+	private boolean hasFunction(String name) {
+		return appFunctions.containsKey(name);
+	}
+	
+	@Override
+	public boolean addFunction(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (appFunctions) {
+				if (!hasFunction(name)) {
+					appFunctions.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private transient List<Contributor> contributors = null;
 	
 	public List<Contributor> getContributors() {
@@ -1047,6 +1067,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	protected synchronized void doComputeContents() {
 		try {
 			appImports.clear();
+			appFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");

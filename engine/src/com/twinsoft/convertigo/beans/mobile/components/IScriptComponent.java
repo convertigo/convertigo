@@ -21,4 +21,5 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 public interface IScriptComponent {
 	public boolean addImport(String name, String path);
+	public boolean addFunction(String name, String code);
 }

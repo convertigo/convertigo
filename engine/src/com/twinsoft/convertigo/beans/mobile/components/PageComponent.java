@@ -78,6 +78,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.pageImports = new HashMap<String, String>();
+		cloned.pageFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.isRoot = isRoot;
@@ -471,11 +472,31 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		}
 	}
 	
+	@Override
 	public boolean addImport(String name, String path) {
 		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
 			synchronized (pageImports) {
 				if (!hasImport(name) && !hasCustomImport(name)) {
 					pageImports.put(name, path);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> pageFunctions = new HashMap<String, String>();
+	
+	private boolean hasFunction(String name) {
+		return pageImports.containsKey(name);
+	}
+	
+	@Override
+	public boolean addFunction(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageFunctions) {
+				if (!hasFunction(name)) {
+					pageFunctions.put(name, code);
 					return true;
 				}
 			}
@@ -540,6 +561,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	protected synchronized void doComputeContents() {
 		try {
 			pageImports.clear();
+			pageFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
