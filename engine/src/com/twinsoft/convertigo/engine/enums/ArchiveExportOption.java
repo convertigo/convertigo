@@ -19,6 +19,7 @@ public enum ArchiveExportOption {
 		return files;
 	}),
 	includeMobileAppAssets("include Mobile Builder assets", dir -> new File[] { new File(dir, "DisplayObjects/mobile/assets") }),
+	includeMobileDataset("include Mobile Builder dataset", dir -> new File[] { new File(dir, "dataset") }),
 	includeMobilePlatformsAssets("include Mobile Platforms assets", dir -> {
 		File[] platforms = new File(dir, "DisplayObjects/platforms").listFiles();
 		if (platforms == null) {
