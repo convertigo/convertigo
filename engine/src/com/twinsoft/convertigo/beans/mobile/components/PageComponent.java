@@ -490,7 +490,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	private transient Map<String, String> pageFunctions = new HashMap<String, String>();
 	
 	private boolean hasFunction(String name) {
-		return pageImports.containsKey(name);
+		return pageFunctions.containsKey(name);
 	}
 	
 	@Override
