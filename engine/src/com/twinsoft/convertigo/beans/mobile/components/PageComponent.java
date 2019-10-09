@@ -78,6 +78,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.pageImports = new HashMap<String, String>();
+		cloned.pageDeclarations = new HashMap<String, String>();
+		cloned.pageConstructors = new HashMap<String, String>();
 		cloned.pageFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
@@ -504,6 +506,44 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return false;
 	}
 	
+	private transient Map<String, String> pageDeclarations = new HashMap<String, String>();
+	
+	private boolean hasDeclaration(String name) {
+		return pageDeclarations.containsKey(name);
+	}
+	
+	@Override
+	public boolean addDeclaration(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageDeclarations) {
+				if (!hasDeclaration(name)) {
+					pageDeclarations.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> pageConstructors = new HashMap<String, String>();
+	
+	private boolean hasConstructor(String name) {
+		return pageConstructors.containsKey(name);
+	}
+	
+	@Override
+	public boolean addConstructor(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageConstructors) {
+				if (!hasConstructor(name)) {
+					pageConstructors.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	protected Map<String, Set<String>> getInfoMap() {
 		Set<UIComponent> done = new HashSet<>();
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
@@ -561,6 +601,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	protected synchronized void doComputeContents() {
 		try {
 			pageImports.clear();
+			pageDeclarations.clear();
+			pageConstructors.clear();
 			pageFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			

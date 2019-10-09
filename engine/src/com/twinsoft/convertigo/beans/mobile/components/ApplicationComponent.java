@@ -111,6 +111,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		cloned.vSharedComponents = new LinkedList<UISharedComponent>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.appImports = new HashMap<String, String>();
+		cloned.appDeclarations = new HashMap<String, String>();
+		cloned.appConstructors = new HashMap<String, String>();
 		cloned.appFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
@@ -1013,6 +1015,44 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return false;
 	}
 	
+	private transient Map<String, String> appDeclarations = new HashMap<String, String>();
+	
+	private boolean hasDeclaration(String name) {
+		return appDeclarations.containsKey(name);
+	}
+	
+	@Override
+	public boolean addDeclaration(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (appDeclarations) {
+				if (!hasDeclaration(name)) {
+					appDeclarations.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> appConstructors = new HashMap<String, String>();
+	
+	private boolean hasConstructor(String name) {
+		return appConstructors.containsKey(name);
+	}
+	
+	@Override
+	public boolean addConstructor(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (appConstructors) {
+				if (!hasConstructor(name)) {
+					appConstructors.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private transient List<Contributor> contributors = null;
 	
 	public List<Contributor> getContributors() {
@@ -1067,6 +1107,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	protected synchronized void doComputeContents() {
 		try {
 			appImports.clear();
+			appDeclarations.clear();
+			appConstructors.clear();
 			appFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
