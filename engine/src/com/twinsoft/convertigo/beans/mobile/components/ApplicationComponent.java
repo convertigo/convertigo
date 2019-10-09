@@ -1297,16 +1297,28 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		// App events
 		if (compareToTplVersion("7.6.0.1") >= 0) {
 			try {
-				String subscribers = computeEventConstructors();
-				String constructors = jsonScripts.getString("constructors") + subscribers;
+				String constructors = jsonScripts.getString("constructors");
+
+				String cname = "subscribers";
+				String ccode = computeEventConstructors();
+				if (addConstructor(cname, ccode)) {
+					constructors += ccode;
+				}
+				
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
 			try {
-				String function = computeNgDestroy(); 
-				String functions = jsonScripts.getString("functions") + function;
+				String functions = jsonScripts.getString("functions");
+						
+				String fname = "ngOnDestroy";
+				String fcode = computeNgDestroy();
+				if (addFunction(fname, fcode)) {
+					functions += fcode;
+				}
+				
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
