@@ -457,13 +457,11 @@ public class UICustomAction extends UIComponent implements IAction {
 		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
 			try {
 				String functions = jsonScripts.getString("functions");
-				
 				String fname = getFunctionName();
 				String fcode = computeActionFunction();
-				if (main.addImport(fname, fcode)) {
+				if (main.addFunction(fname, fcode)) {
 					functions += System.lineSeparator() + fcode;
 				}
-				
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -472,13 +470,11 @@ public class UICustomAction extends UIComponent implements IAction {
 		
 		try {
 			String functions = jsonScripts.getString("functions");
-			
 			String fname = getActionName();
 			String fcode = computeActionMain();
-			if (main.addImport(fname, fcode)) {
+			if (main.addFunction(fname, fcode)) {
 				functions += System.lineSeparator() + fcode;
 			}
-			
 			jsonScripts.put("functions", functions);
 		} catch (JSONException e) {
 			e.printStackTrace();

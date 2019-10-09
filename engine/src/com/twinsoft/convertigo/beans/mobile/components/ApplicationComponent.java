@@ -1298,13 +1298,11 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		if (compareToTplVersion("7.6.0.1") >= 0) {
 			try {
 				String constructors = jsonScripts.getString("constructors");
-
 				String cname = "subscribers";
 				String ccode = computeEventConstructors();
 				if (addConstructor(cname, ccode)) {
 					constructors += ccode;
 				}
-				
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -1312,13 +1310,11 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			
 			try {
 				String functions = jsonScripts.getString("functions");
-						
 				String fname = "ngOnDestroy";
 				String fcode = computeNgDestroy();
 				if (addFunction(fname, fcode)) {
 					functions += fcode;
 				}
-				
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();

@@ -773,7 +773,6 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 					constructors += ccode;
 				}
 				jsonScripts.put("constructors", constructors);
-				
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}

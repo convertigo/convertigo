@@ -276,19 +276,16 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			
 			try {
 				String declarations = jsonScripts.getString("declarations") + System.lineSeparator();
-				
 				String all_dname = "all_" + identifier;
 				String all_dcode = "@ViewChildren(\""+ identifier +"\") public all_"+ identifier+" : QueryList<any>;";
 				if (main.addDeclaration(all_dname, all_dcode)) {
 					declarations += "\t" + all_dcode + System.lineSeparator();
 				}
-				
 				String dname = identifier;
 				String dcode = "@ViewChild(\""+ identifier +"\") public "+ identifier+";";
 				if (main.addDeclaration(dname, dcode)) {
 					declarations += "\t" + dcode + System.lineSeparator();
 				}
-				
 				jsonScripts.put("declarations", declarations);
 			} catch (JSONException e) {
 				e.printStackTrace();

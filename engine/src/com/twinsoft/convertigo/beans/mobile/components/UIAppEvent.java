@@ -227,7 +227,6 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 			
 			try {
 				String functions = jsonScripts.getString("functions");
-				
 				String fname = getFunctionName();
 				String fcode = computeListenerFunction();
 				if (main.addFunction(fname, fcode)) {

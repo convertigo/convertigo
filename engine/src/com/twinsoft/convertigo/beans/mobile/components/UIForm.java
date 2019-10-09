@@ -160,7 +160,6 @@ public class UIForm extends UIElement {
 			
 			try {
 				String declarations = jsonScripts.getString("declarations");
-				
 				String dname = "d_" + getFormGroupName();
 				String dcode = "public "+ getFormGroupName() + " :  FormGroup;";
 				if (main.addDeclaration(dname, dcode)) {
@@ -173,7 +172,6 @@ public class UIForm extends UIElement {
 			
 			try {
 				String constructors = jsonScripts.getString("constructors");
-				
 				String fname = "f_"+ getFormGroupName();
 				String fcode = computeFunction();
 				if (main.addConstructor(fname, fcode)) {
@@ -186,7 +184,6 @@ public class UIForm extends UIElement {
 			
 			try {
 				String constructors = jsonScripts.getString("constructors");
-				
 				String cname = "c_"+ getFormGroupName();
 				String ccode = computeConstructor();
 				if (main.addConstructor(cname, ccode)) {

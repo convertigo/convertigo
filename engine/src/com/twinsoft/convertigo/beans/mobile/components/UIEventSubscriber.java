@@ -163,13 +163,11 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 			
 			try {
 				String functions = jsonScripts.getString("functions");
-				
 				String fname = getFunctionName();
 				String fcode = computeListenerFunction();
 				if (main.addFunction(fname, fcode)) {
 					functions += System.lineSeparator() + fcode;
 				}
-				
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
