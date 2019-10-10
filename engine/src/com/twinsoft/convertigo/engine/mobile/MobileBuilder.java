@@ -1392,10 +1392,12 @@ public class MobileBuilder {
 		if (!tpl_ts_imports.isEmpty()) {
 			for (String comp : module_ts_imports.keySet()) {
 				if (!tpl_ts_imports.containsKey(comp)) {
+					String from = module_ts_imports.get(comp);
 					if (comp.indexOf(" as ") != -1) {
-						c8o_ModuleTsImports += "import "+comp+" from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						c8o_ModuleTsImports += "import "+comp+" from '"+ from +"';"+ System.lineSeparator();
 					} else {
-						c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						from = (from.startsWith("../components/") ? "../":"") + from;
+						c8o_ModuleTsImports += "import { "+comp+" } from '"+ from +"';"+ System.lineSeparator();
 					}
 				}
 			}
