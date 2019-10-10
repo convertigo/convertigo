@@ -49,8 +49,8 @@ import com.twinsoft.util.TWSKey;
 		name = "Update",
 		roles = { Role.WEB_ADMIN, Role.KEYS_CONFIG },
 		parameters = {},
-		returnValue = "" ,
-		cloud_forbidden = true)
+		returnValue = ""
+	)
 public class Update extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {

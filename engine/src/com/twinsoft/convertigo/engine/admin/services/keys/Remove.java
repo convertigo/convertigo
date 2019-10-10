@@ -48,8 +48,7 @@ import com.twinsoft.tas.KeyManager;
 		name = "Remove",
 		roles = { Role.WEB_ADMIN, Role.KEYS_CONFIG },
 		parameters = {},
-		returnValue = "",
-		cloud_forbidden = true
+		returnValue = ""
 	)
 public class Remove extends XmlService{
 
