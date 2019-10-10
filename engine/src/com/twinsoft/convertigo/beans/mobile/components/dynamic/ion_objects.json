@@ -6102,17 +6102,14 @@
       
       "config": {
         "module_ts_imports": [
-          {"from":"angular2-signaturepad", "components":["SignaturePadModule"]},
-          {"from":"../components/SignatureComponent/SignatureComponent", "components":["SignatureComponent"]}
+          {"from":"../components/SignatureComponent/SignatureModule", "components":["SignatureModule"]}
         ],
         "module_ng_imports": [
-          "SignaturePadModule"
+          "SignatureModule"
         ],
         "module_ng_declarations": [
-          "SignatureComponent"
         ],
         "module_ng_components": [
-          "SignatureComponent"
         ],
         "package_dependencies": [
             {"package":"angular2-signaturepad", "version":"2.7.0"}
@@ -6274,17 +6271,14 @@
       },	  
 	  "config": {
         "module_ts_imports": [
-          {"from":"angular-tree-component", "components":["TreeModule"]},
-          {"from":"../components/TreeviewComponent/TreeviewComponent", "components":["TreeviewComponent"]}
+          {"from":"../components/TreeviewComponent/TreeviewModule", "components":["TreeviewModule"]}
         ],
         "module_ng_imports": [
-          "TreeModule"
+          "TreeviewModule"
         ],
         "module_ng_declarations": [
-          "TreeviewComponent"
         ],
         "module_ng_components": [
-          "TreeviewComponent"
         ],
         "package_dependencies": [
             {"package":"angular-tree-component", "version":"7.0.0"}
