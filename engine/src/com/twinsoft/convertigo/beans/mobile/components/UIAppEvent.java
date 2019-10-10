@@ -217,8 +217,18 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		if (isEnabled()) {
+			IScriptComponent main = getMainScriptComponent();
+			if (main == null) {
+				return;
+			}
+			
 			try {
-				String functions = jsonScripts.getString("functions") + System.lineSeparator() + computeListenerFunction();
+				String functions = jsonScripts.getString("functions");
+				String fname = getFunctionName();
+				String fcode = computeListenerFunction();
+				if (main.addFunction(fname, fcode)) {
+					functions += System.lineSeparator() + fcode;
+				}
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
