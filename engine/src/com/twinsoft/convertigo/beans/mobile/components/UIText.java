@@ -26,6 +26,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.TranslateUtils;
 
 public class UIText extends UIComponent implements ITagsProperty {
 	
@@ -51,6 +52,16 @@ public class UIText extends UIComponent implements ITagsProperty {
 		this.textValue = textValue;
 	}
 
+	private boolean i18n = true;
+
+	public boolean isI18n() {
+		return i18n;
+	}
+
+	public void setI18n(boolean i18n) {
+		this.i18n = i18n;
+	}
+	
 	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
 		add(databaseObject, null);
@@ -65,6 +76,8 @@ public class UIText extends UIComponent implements ITagsProperty {
 		String value = textValue.getValue();
 		if (!Mode.PLAIN.equals(textValue.getMode())) {
 			value = "{{" + value + "}}";
+		} else if (isI18n()) {
+			value = TranslateUtils.htmlIonicTranslate(value);
 		}
 		return value;
 	}

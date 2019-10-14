@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIText" priority="0" version="   7   7   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="i18n">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Text"/>
+        </property>
+        <property name="textValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:some text</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICompVariable" priority="0" version="   7   7   0">
         <property name="comment">
             <java.lang.String value=""/>

@@ -38,13 +38,16 @@ public class UITextBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("textValue", beanClass, "getTextSmartType", "setTextSmartType");
 			properties[0].setDisplayName(getExternalizedString("property.textValue.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.textValue.short_description"));
             properties[0].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
 			
+			properties[1] = new PropertyDescriptor("i18n", beanClass, "isI18n", "setI18n");
+			properties[1].setDisplayName(getExternalizedString("property.i18n.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.i18n.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

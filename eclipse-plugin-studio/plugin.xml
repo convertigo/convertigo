@@ -709,6 +709,13 @@
                menubarPath="default">
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationTranslationsFileAction"
+               enablesFor="1"
+               id="convertigo.action.createMobileApplicationTranslationsFile"
+               label="Create or update translations file"
+               menubarPath="translate">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
                enablesFor="1"
                id="convertigo.action.openMobileBuilderReIntall"
