@@ -391,7 +391,7 @@ public class MobileResourceHelper {
 		// Update config.xml
 		File configFile = new File(destDir, "config.xml");
 		String configText = FileUtils.readFileToString(configFile, "UTF-8");
-		
+		long revision = destDir.lastModified();
 		configText = configText
 				.replace("$(ApplicationID)$", mobileApplication.getComputedApplicationId())
 				.replace("$(ApplicationVersion)$", mobileApplication.getComputedApplicationVersion())
@@ -428,9 +428,9 @@ public class MobileResourceHelper {
 		json.put("applicationDescription", mobileApplication.getApplicationDescription());
 		json.put("applicationId", mobileApplication.getComputedApplicationId());
 		json.put("applicationName", finalApplicationName);
-		json.put("builtRevision", destDir.lastModified());
+		json.put("builtRevision", revision);
 		json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("currentRevision", destDir.lastModified());
+		json.put("currentRevision", revision);
 		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
 		json.put("endPoint", endpoint);
 		json.put("platform", mobilePlatform.getCordovaPlatform());
@@ -441,6 +441,8 @@ public class MobileResourceHelper {
 		json.put("splashRemoveMode", mobileApplication.getSplashRemoveMode().name());
 		
 		write("env.json", json.toString());
+		
+		destDir.setLastModified(revision);
 		
 		return destDir;
 	}

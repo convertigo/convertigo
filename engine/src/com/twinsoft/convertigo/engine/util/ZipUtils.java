@@ -50,7 +50,7 @@ public class ZipUtils {
     
 	public static File makeZip(String archiveFileName, String sDir, String sRelativeDir, Set<File> excludedFiles) throws Exception {
 		File file = new File(archiveFileName);
-		try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file, true))) {
+		try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
 			ZipOutputStream zos = new ZipOutputStream(bos, Charset.forName("UTF-8"));
 			int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, excludedFiles == null ? Collections.<File>emptySet() : excludedFiles);
 			if (nbZipEntries > 0) zos.close();
