@@ -77,7 +77,11 @@ public class RouteDataActionComponent extends RouteActionComponent {
 				sb.append("new C8oRoute((data:any)=>{return "+ (condition.isEmpty() ? "true":condition) +"}, tableOptions)");
 				
 				if (!targetPage.isEmpty()) {
-					sb.append(".setTarget(\""+targetAction+"\", "+targetPage+")");
+					if (compareToTplVersion("7.7.0.2") < 0) {
+						sb.append(".setTarget(\""+targetAction+"\", "+targetPage+")");
+					} else {
+						sb.append(".setTarget(\""+targetAction+"\", \""+targetPage+"\")");
+					}
 				}
 				else {
 					sb.append(".setTarget(\""+targetAction+"\")");

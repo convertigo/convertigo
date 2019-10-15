@@ -1865,7 +1865,7 @@ public class MobileBuilder {
 					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
 				} else {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "null" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
 				}
 			}
