@@ -1389,7 +1389,7 @@ public class MobileBuilder {
 
 		String c8o_ModuleTsImports = "";
 		Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
-		if (!tpl_ts_imports.isEmpty()) {
+		if (!module_ts_imports.isEmpty()) {
 			for (String comp : module_ts_imports.keySet()) {
 				if (!tpl_ts_imports.containsKey(comp)) {
 					String from = module_ts_imports.get(comp);
@@ -1405,7 +1405,7 @@ public class MobileBuilder {
 		
 		String c8o_ModuleNgImports = "";
 		String tpl_ng_imports = getTplPageModuleNgImports();
-		if (!tpl_ng_imports.isEmpty()) {
+		if (!module_ng_imports.isEmpty()) {
 			for (String module: module_ng_imports) {
 				if (!tpl_ng_imports.contains(module)) {
 					c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
@@ -1418,7 +1418,7 @@ public class MobileBuilder {
 		
 		String c8o_ModuleNgProviders = "";
 		String tpl_ng_providers = getTplPageModuleNgProviders();
-		if (!tpl_ng_providers.isEmpty()) {
+		if (!module_ng_providers.isEmpty()) {
 			for (String provider: module_ng_providers) {
 				if (!tpl_ng_providers.contains(provider)) {
 					c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
@@ -1431,7 +1431,7 @@ public class MobileBuilder {
 
 		String c8o_ModuleNgDeclarations = "";
 		String tpl_ng_declarations = getTplPageModuleNgDeclarations();
-		if (!tpl_ng_declarations.isEmpty()) {
+		if (!module_ng_declarations.isEmpty()) {
 			for (String declaration: module_ng_declarations) {
 				if (!tpl_ng_declarations.contains(declaration)) {
 					c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
@@ -1444,7 +1444,7 @@ public class MobileBuilder {
 		
 		String c8o_ModuleNgComponents = "";
 		String tpl_ng_components = getTplPageModuleNgComponents();
-		if (!tpl_ng_components.isEmpty()) {
+		if (!module_ng_components.isEmpty()) {
 			for (String component: module_ng_components) {
 				if (!tpl_ng_components.contains(component)) {
 					c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
@@ -1721,7 +1721,7 @@ public class MobileBuilder {
 				
 				String c8o_ModuleTsImports = "";
 				Map<String, String> tpl_ts_imports = getTplAppModuleTsImports();
-				if (!tpl_ts_imports.isEmpty()) {
+				if (!module_ts_imports.isEmpty()) {
 					for (String comp : module_ts_imports.keySet()) {
 						if (!tpl_ts_imports.containsKey(comp)) {
 							if (comp.indexOf(" as ") != -1) {
@@ -1735,7 +1735,7 @@ public class MobileBuilder {
 				
 				String c8o_ModuleNgImports = "";
 				String tpl_ng_imports = getTplAppModuleNgImports();
-				if (!tpl_ng_imports.isEmpty()) {
+				if (!module_ng_imports.isEmpty()) {
 					for (String module: module_ng_imports) {
 						if (!tpl_ng_imports.contains(module)) {
 							c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
@@ -1748,7 +1748,7 @@ public class MobileBuilder {
 				
 				String c8o_ModuleNgProviders = "";
 				String tpl_ng_providers = getTplAppModuleNgProviders();
-				if (!tpl_ng_providers.isEmpty()) {
+				if (!module_ng_providers.isEmpty()) {
 					for (String provider: module_ng_providers) {
 						if (!tpl_ng_providers.contains(provider)) {
 							c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
@@ -1761,7 +1761,7 @@ public class MobileBuilder {
 
 				String c8o_ModuleNgDeclarations = "";
 				String tpl_ng_declarations = getTplAppModuleNgDeclarations();
-				if (!tpl_ng_declarations.isEmpty()) {
+				if (!module_ng_declarations.isEmpty()) {
 					for (String declaration: module_ng_declarations) {
 						if (!tpl_ng_declarations.contains(declaration)) {
 							c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
@@ -1774,7 +1774,7 @@ public class MobileBuilder {
 				
 				String c8o_ModuleNgComponents = "";
 				String tpl_ng_components = getTplAppModuleNgComponents();
-				if (!tpl_ng_components.isEmpty()) {
+				if (!module_ng_components.isEmpty()) {
 					for (String component: module_ng_components) {
 						if (!tpl_ng_components.contains(component)) {
 							c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
