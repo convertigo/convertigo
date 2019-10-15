@@ -92,24 +92,26 @@ public class ImportWizardPage extends WizardPage {
 
 	private void updateStatus() {
 		String message = null;
-		if (StringUtils.isEmpty(getParser().getProjectUrl())) {
-			if (filePath.equals("")) {
-				message = "Please select a file";
-			} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car") && !filePath.endsWith(".zip")) {
-				message = "Please select a compatible file extension";
-			} else if (!new File(filePath).exists()) {
-				message = "Please select an existing compatible file";
-			} else {
-				try {
-					String projectName = DatabaseObjectsManager.getProjectName(new File(filePath));
-					if (StringUtils.isNotBlank(projectName)) {
-						setMessage("Current project to import is '" + projectName + "'.");
+		ProjectUrlParser parser = getParser();
+		if (parser != null) {
+			if (StringUtils.isEmpty(parser.getProjectUrl())) {
+				if (filePath.equals("")) {
+					message = "Please select a file";
+				} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car") && !filePath.endsWith(".zip")) {
+					message = "Please select a compatible file extension";
+				} else if (!new File(filePath).exists()) {
+					message = "Please select an existing compatible file";
+				} else {
+					try {
+						String projectName = DatabaseObjectsManager.getProjectName(new File(filePath));
+						if (StringUtils.isNotBlank(projectName)) {
+							setMessage("Current project to import is '" + projectName + "'.");
+						}
+					} catch (Exception e) {
 					}
-				} catch (Exception e) {
 				}
 			}
 		}
-		
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
@@ -129,7 +131,10 @@ public class ImportWizardPage extends WizardPage {
 	}
 	
 	public ProjectUrlParser getParser() {
-		return projectReferenceComposite.getParser();
+		if (projectReferenceComposite != null) {
+			return projectReferenceComposite.getParser();
+		}
+		return null;
 	}
 	
 }
