@@ -22,9 +22,13 @@ package com.twinsoft.convertigo.engine.admin.services.mobiles;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +37,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -361,8 +366,10 @@ public class MobileResourceHelper {
 		JSONObject json = new JSONObject();
 		
 		if (buildMode == FlashUpdateBuildMode.full) {
+			fixMobileBuilderTimes();
 			prepareFiles();
 		} else if (buildMode == FlashUpdateBuildMode.light) {
+			fixMobileBuilderTimes();
 			prepareFiles(new FileFilter() {
 				
 				public boolean accept(File pathname) {
@@ -460,7 +467,7 @@ public class MobileResourceHelper {
 	public void prepareFilesForFlashupdate() throws ServiceException {
 		boolean changed = false;
 		final File lastEndpoint = new File(destDir, ".endpoint");
-		
+		fixMobileBuilderTimes();
 		if (Engine.isStudioMode() && destDir.exists()) {
 			try {
 				for (File directory: mobileDir) {
@@ -552,5 +559,71 @@ public class MobileResourceHelper {
 		long lastModified = destDir.lastModified();
 		FileUtils.write(file, content, "UTF-8");
 		destDir.setLastModified(lastModified);
+	}
+	
+	private void fixMobileBuilderTimes() {
+		try {
+			Path resourcePath = mobileApplication.getResourceFolder().toPath();
+			if (!Files.exists(resourcePath.resolve("build"))) {
+				return;
+			}
+			Path fuPath = Paths.get(project.getDirPath(), "Flashupdate");
+			Files.createDirectories(fuPath);
+			Path pathMD5 = fuPath.resolve("md5.json");
+			JSONObject[] jsonMD5 = {null};
+			if (Files.exists(pathMD5)) {
+				try {
+					jsonMD5[0] = new JSONObject(FileUtils.readFileToString(pathMD5.toFile(), "UTF-8"));
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			}
+			
+			if (jsonMD5[0] == null) {
+				jsonMD5[0] = new JSONObject();
+			}
+			
+			long[] latest = {0};
+			
+			Files.walk(resourcePath).filter(p -> !p.equals(pathMD5)).forEach(p -> {
+				if (Files.isDirectory(p)) {
+					return;
+				}
+				File f = p.toFile();
+				String key = resourcePath.relativize(p).toString().replace('\\', '/');
+				try {
+					JSONObject entryMD5 = jsonMD5[0].has(key) ? jsonMD5[0].getJSONObject(key) : null;
+					if (entryMD5 == null || FileUtils.isFileNewer(f, entryMD5.getLong("ts"))) {
+						try (FileInputStream fis = new FileInputStream(f)) {
+							String md5 = DigestUtils.md5Hex(fis);
+							String lastMD5 = entryMD5 == null ? null : entryMD5.getString("md5");
+							if (md5.equals(lastMD5)) {
+								f.setLastModified(entryMD5.getLong("ts"));
+							} else {
+								entryMD5 = new JSONObject();
+								entryMD5.put("md5", md5);
+								entryMD5.put("ts", f.lastModified());
+								jsonMD5[0].put(key, entryMD5);
+							}
+						}
+					}
+				} catch (Exception e) {
+					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e);
+				}
+				latest[0] = Math.max(latest[0], f.lastModified());
+			});
+			
+			if (latest[0] > 0) {
+				Files.walk(resourcePath).forEach(p -> {
+					if (Files.isDirectory(p)) {
+						p.toFile().setLastModified(latest[0]);
+					}
+				});
+			}
+			
+			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), "UTF-8");
+		} catch (Exception e) {
+			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e);
+		}
 	}
 }

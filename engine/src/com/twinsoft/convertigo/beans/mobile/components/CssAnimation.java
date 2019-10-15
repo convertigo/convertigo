@@ -137,6 +137,6 @@ public enum CssAnimation {
 				return s1.compareTo(s2);
 			}				
 		} );
-		return (String[]) names.toArray();
+		return names.toArray(new String[names.size()]);
 	}
 }
