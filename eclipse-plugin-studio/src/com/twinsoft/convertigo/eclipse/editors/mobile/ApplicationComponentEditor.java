@@ -25,8 +25,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -164,6 +166,11 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	private static Pattern pPriority = Pattern.compile("class(\\d+)");
 	private static Pattern pDatasetFile = Pattern.compile("(.+).json");
 	
+	private static final Set<Integer> usedPort = new HashSet<>();
+	private int portNode;
+	private int portReload;
+	private int portLogger;
+	
 	public ApplicationComponentEditor() {		
 		try {
 			devicesDefinition = new JSONArray(IOUtils.toString(getClass().getResourceAsStream("devices.json"), "UTF-8"));
@@ -217,7 +224,11 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		}
 		
 		terminateNode();
-		
+		synchronized (usedPort) {
+			usedPort.remove(portNode);
+			usedPort.remove(portReload);
+			usedPort.remove(portLogger);
+		}
 		super.dispose();
 	}
 	
@@ -1287,12 +1298,14 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
 				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
 					List<String> cmd = pb.command();
-					cmd.add("--port");
-					cmd.add("" + NetworkUtils.nextAvailable(8100));
-					cmd.add("--livereload-port");
-					cmd.add("" + NetworkUtils.nextAvailable(35729));
-					cmd.add("--dev-logger-port");
-					cmd.add("" + NetworkUtils.nextAvailable(53703));
+					synchronized (usedPort) {
+						cmd.add("--port");
+						cmd.add("" + (portNode = NetworkUtils.nextAvailable(8100, usedPort)));
+						cmd.add("--livereload-port");
+						cmd.add("" + (portReload = NetworkUtils.nextAvailable(35729, usedPort)));
+						cmd.add("--dev-logger-port");
+						cmd.add("" + (portLogger = NetworkUtils.nextAvailable(53703, usedPort)));
+					}
 				}
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
