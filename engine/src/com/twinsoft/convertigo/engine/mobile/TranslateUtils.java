@@ -173,6 +173,11 @@ public class TranslateUtils {
 		if (file.exists()) {
 			JSONObject translations = loadTranslations(file);
 			
+			// return if no change
+			if (jsonObject.toString().equals(translations.toString())) {
+				return;
+			}
+			
 			String translation = null, key = null;
 			@SuppressWarnings("unchecked")
 			Iterator<String> it = translations.keys();
