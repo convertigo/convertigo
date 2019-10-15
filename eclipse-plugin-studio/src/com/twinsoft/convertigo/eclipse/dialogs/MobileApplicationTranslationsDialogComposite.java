@@ -95,6 +95,13 @@ public class MobileApplicationTranslationsDialogComposite extends MyAbstractDial
 		btnAuto.setText(" Automatic translation from source to target language ?\n(using Free Google Translate API - limited by quotas)");
 		btnAuto.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
+		Label lbInfo = new Label(this, SWT.WRAP);
+		String s = 	"\nFor each of the source and target languages, if no translation file exists, it will be created in the " +
+					"\"DisplayObjects/mobile/assets/i18n\" directory of your project: <language>.json." +
+					"\nIf the file exists, it will simply be updated: the previous translations will not be modified." + 
+					"\nIf you want to perform automatic translation from the source language to the target one, please check the option.";
+		lbInfo.setText(s);
+		lbInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 	}
 
 	private String[] getLanguages() {
