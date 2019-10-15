@@ -52,7 +52,125 @@ databaseName: flightshare_fullsync
 ↓ResetDatabase [transactions.couchdb.ResetDatabaseTransaction]: 
 ↓Design_document [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"_id":"_design\/Design_document","filters":{},"updates":{},"views":{"AirportsByIACO":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.iaco != \"\")\r\n\t\t\t\temit(doc.airport.iaco, doc.airport);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"AirportsByCountry":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.country != \"\")\r\n\t\t\t\temit(doc.airport.country, doc.airport);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"AirportsByCity":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.city != \"\")\r\n\t\t\t\temit(doc.airport.city, doc.airport);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PlanesByTag":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.plane)\r\n\t\t\tif (doc.plane.tag != \"\")\r\n\t\t\t\temit(doc.plane.TAG, doc.plane);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"Flights":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.flight) {\r\n\t\t\t\tidx = doc.flight.date + \"-\" + doc.flight.time,\r\n\t\t\t\temit(idx, doc._id);\r\n\t\t\t\temit(idx, {_id: doc.flight.from});\r\n\t\t\t\temit(idx, {_id: doc.flight.to});\r\n\t\t\t\temit(idx, {_id: doc.flight.plane});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PublishedFlights":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.PublishedFlight)\r\n\t\t\temit(doc._id, doc.PublishedFlight);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}\r\n"},"AirportsByIACOOrCity":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.airport)\r\n\t\t\tif (doc.airport.iaco != \"\") {\r\n\t\t\t\temit(doc.airport.iaco, doc.airport);\r\n\t\t\t}\r\n\t\t\tif (doc.airport.city != \"\") {\r\n\t\t\t\temit(doc.airport.city.toUpperCase(), doc.airport);\r\n\t\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PublishRequests":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.publish) {\r\n\t\t\temit(doc._id, doc);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"PublishedFlightsDetails":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.PublishedFlight) {\r\n\t\t\temit(doc._id, doc._id);\r\n\t\t\temit(doc._id, {_id: doc.PublishedFlight.from});\r\n\t\t\temit(doc._id, {_id: doc.PublishedFlight.to});\r\n\t\t\temit(doc._id, {_id: doc.PublishedFlight.plane});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}\r\n\r\n"},"RegisterRequests":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.register) {\r\n\t\t\temit(doc._id, doc);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"users":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.userinfo)\r\n\t\t\temit(doc._id, doc);\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}}}'
+    →: |
+      '{
+        "_id": "_design\/Design_document",
+        "filters": {},
+        "updates": {},
+        "views": {
+          "AirportsByIACO": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.airport)\r\n
+                  if (doc.airport.iaco != \"\")\r\n
+                      emit(doc.airport.iaco, doc.airport);\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "AirportsByCountry": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.airport)\r\n
+                  if (doc.airport.country != \"\")\r\n
+                      emit(doc.airport.country, doc.airport);\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "AirportsByCity": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.airport)\r\n
+                  if (doc.airport.city != \"\")\r\n
+                      emit(doc.airport.city, doc.airport);\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "PlanesByTag": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.plane)\r\n
+                  if (doc.plane.tag != \"\")\r\n
+                      emit(doc.plane.TAG, doc.plane);\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "Flights": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.flight) {\r\n
+                      idx = doc.flight.date + \"-\" + doc.flight.time,\r\n
+                      emit(idx, doc._id);\r\n
+                      emit(idx, {_id: doc.flight.from});\r\n
+                      emit(idx, {_id: doc.flight.to});\r\n
+                      emit(idx, {_id: doc.flight.plane});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "PublishedFlights": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.PublishedFlight)\r\n
+                  emit(doc._id, doc.PublishedFlight);\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }\r\n
+      "},
+          "AirportsByIACOOrCity": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.airport)\r\n
+                  if (doc.airport.iaco != \"\") {\r\n
+                      emit(doc.airport.iaco, doc.airport);\r\n
+                  }\r\n
+                  if (doc.airport.city != \"\") {\r\n
+                      emit(doc.airport.city.toUpperCase(), doc.airport);\r\n
+                  }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "PublishRequests": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.publish) {\r\n
+                  emit(doc._id, doc);\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "PublishedFlightsDetails": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.PublishedFlight) {\r\n
+                  emit(doc._id, doc._id);\r\n
+                  emit(doc._id, {_id: doc.PublishedFlight.from});\r\n
+                  emit(doc._id, {_id: doc.PublishedFlight.to});\r\n
+                  emit(doc._id, {_id: doc.PublishedFlight.plane});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }\r\n
+      \r\n
+      "},
+          "RegisterRequests": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.register) {\r\n
+                  emit(doc._id, doc);\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "users": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.userinfo)\r\n
+                  emit(doc._id, doc);\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"}
+        }
+      }'
 ↓PublishRequestsListener [couchdb.FullSyncListener]: 
   targetSequence: FlightShare.PublishFlight
   targetView: FlightShare.flightshare_fullsync.Design_document.PublishRequests

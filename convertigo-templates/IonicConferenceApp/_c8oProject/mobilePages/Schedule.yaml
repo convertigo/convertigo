@@ -1389,8 +1389,7 @@ title: Title for Schedule
        "ionBean": "FullSyncViewAction",
        "marker": "plain:data",
        "fsview": "plain:IonicConferenceApp.conferenceapp.schedule.group",
-       "__live": "plain:data",
-       "reduce": "plain:false"
+       "__live": "plain:data"
       }'
     comment: Query to local database which values are available for all
   ↓QueryViewGroupsAll [mobile.components.UIDynamicAction-1514304571393]: 
@@ -1411,8 +1410,7 @@ title: Title for Schedule
        "ionBean": "FullSyncViewAction",
        "marker": "plain:fav",
        "fsview": "plain:IonicConferenceApp.conferenceapp.schedule.favoritebygroup",
-       "__live": "plain:datafav",
-       "reduce": "plain:false"
+       "__live": "plain:datafav"
       }'
     comment: Query to local database which values are available for favorites
   ↓QueryViewGroupsFav [mobile.components.UIDynamicAction-1514305109057]: 

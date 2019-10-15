@@ -54,13 +54,153 @@ databaseName: conferenceapp
           - ↑pNamespace: http://www.w3.org/2001/XMLSchema
 ↓map [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"_id":"_design\/map","filters":{},"updates":{},"views":{"all":{"map":"function (doc) {\r\n\ttry {\r\n\r\n\tif(doc._id.indexOf(\"_\") == -1){\r\n\t\temit(doc._id,{center: doc.center, lat: doc.lat, lng: doc.lng, name: doc.name});\r\n\t}\r\n\t\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}}}'
+    →: |
+      '{
+        "_id": "_design\/map",
+        "filters": {},
+        "updates": {},
+        "views": {"all": {"map": "function (doc) {\r\n
+          try {\r\n
+      \r\n
+          if(doc._id.indexOf(\"_\") == -1){\r\n
+              emit(doc._id,{center: doc.center, lat: doc.lat, lng: doc.lng, name: doc.name});\r\n
+          }\r\n
+          \r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"}}
+      }'
 ↓schedule [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"_id":"_design\/schedule","filters":{},"updates":{},"views":{"group":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif(doc.group != null){\r\n\t\t\temit(doc.group, {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}","reduce":"function (keys, values, rereduce) {\r\n\ttry {\r\n\t\treturn 0;\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"all":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif(doc.group != null){\r\n\t\t\temit(doc._id, doc._rev, {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"favoritebygroup":{"map":"function (doc) {\r\n\ttry {\r\n\tif(doc.group != null && doc.favorite == true){\r\n\t\temit(doc.group, {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}","reduce":"function (keys, values, rereduce) {\r\n\ttry {\r\n\t\treturn 0;\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"allbysearch":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif(doc.group != null){\r\n\t\t\temit(doc.name.toLowerCase(), {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}}}'
+    →: |
+      '{
+        "_id": "_design\/schedule",
+        "filters": {},
+        "updates": {},
+        "views": {
+          "group": {
+            "map": "function (doc) {\r\n
+          try {\r\n
+              if(doc.group != null){\r\n
+                  emit(doc.group, {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }",
+            "reduce": "function (keys, values, rereduce) {\r\n
+          try {\r\n
+              return 0;\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"
+          },
+          "all": {"map": "function (doc) {\r\n
+          try {\r\n
+              if(doc.group != null){\r\n
+                  emit(doc._id, doc._rev, {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "favoritebygroup": {
+            "map": "function (doc) {\r\n
+          try {\r\n
+          if(doc.group != null && doc.favorite == true){\r\n
+              emit(doc.group, {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n
+          }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }",
+            "reduce": "function (keys, values, rereduce) {\r\n
+          try {\r\n
+              return 0;\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"
+          },
+          "allbysearch": {"map": "function (doc) {\r\n
+          try {\r\n
+              if(doc.group != null){\r\n
+                  emit(doc.name.toLowerCase(), {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"}
+        }
+      }'
 ↓speaker [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"_id":"_design\/speaker","filters":{},"updates":{},"views":{"all":{"map":"function (doc) {\r\n\ttry {\r\n\tif(doc._id.indexOf(\"_speakers\") !== -1){\r\n\t\temit(doc._id,{about: doc.about, email: doc.email, location: doc.location, name: doc.name, phone: doc.phone, profilePic: doc.ProfilePic, twitter: doc.twitter});\r\n\t}\r\n\t\t\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"view":{"map":"function (doc) {\r\n\ttry {\r\n\t\tfor (var i = 0, len = doc.speakerNames.length; i < len; i++) {\r\n\t\t\tif(doc.speakerNames[i]){\r\n\t\t\t\temit(doc._id, doc._rev, {name: doc.name});\r\n\t\t\t}\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}\r\n"},"sessionBySpeaker":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif(doc.speakerNames){\r\n\t\t\temit(doc.speakerNames, {name: doc.name, id: doc._id});\r\n\t\t}\t\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}}}'
+    →: |
+      '{
+        "_id": "_design\/speaker",
+        "filters": {},
+        "updates": {},
+        "views": {
+          "all": {"map": "function (doc) {\r\n
+          try {\r\n
+          if(doc._id.indexOf(\"_speakers\") !== -1){\r\n
+              emit(doc._id,{about: doc.about, email: doc.email, location: doc.location, name: doc.name, phone: doc.phone, profilePic: doc.ProfilePic, twitter: doc.twitter});\r\n
+          }\r\n
+              \r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "view": {"map": "function (doc) {\r\n
+          try {\r\n
+              for (var i = 0, len = doc.speakerNames.length; i < len; i++) {\r\n
+                  if(doc.speakerNames[i]){\r\n
+                      emit(doc._id, doc._rev, {name: doc.name});\r\n
+                  }\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }\r\n
+      "},
+          "sessionBySpeaker": {"map": "function (doc) {\r\n
+          try {\r\n
+              if(doc.speakerNames){\r\n
+                  emit(doc.speakerNames, {name: doc.name, id: doc._id});\r\n
+              }    \r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"}
+        }
+      }'
 ↓tracks [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"_id":"_design\/tracks","filters":{},"updates":{},"views":{"all":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif(doc.visible != null){\r\n\t\t\temit(doc._id, {value: doc.value, visible: doc.visible, rev: doc.rev});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"allbyname":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif(doc.visible != null){\r\n\t\t\temit(doc.value, {visible: doc.visible});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}}}'
+    →: |
+      '{
+        "_id": "_design\/tracks",
+        "filters": {},
+        "updates": {},
+        "views": {
+          "all": {"map": "function (doc) {\r\n
+          try {\r\n
+              if(doc.visible != null){\r\n
+                  emit(doc._id, {value: doc.value, visible: doc.visible, rev: doc.rev});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "allbyname": {"map": "function (doc) {\r\n
+          try {\r\n
+              if(doc.visible != null){\r\n
+                  emit(doc.value, {visible: doc.visible});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"}
+        }
+      }'

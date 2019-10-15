@@ -93,7 +93,37 @@ databaseName: offchat_fullsync
     description: Document content
 ↓OffChat [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"views":{"checkUsername":{"map":"function (doc) {\r\n\tif (doc.type == \"user\") {\r\n\t\temit(doc.username, doc.token);\r\n\t}\r\n}"},"getChat":{"map":"function (doc) {\r\n\tif (doc.type == \"message\") {\r\n\t\tif (doc.ts) {\r\n\t\t\temit([doc.user, doc.ts], {user: doc.user, dir: doc.dir, message: doc.message, ts: doc.ts});\r\n\t\t} else {\r\n\t\t\temit([doc.user, doc.num], {user: doc.user, dir: doc.dir, message: doc.message, num: doc.num});\r\n\t\t}\r\n\t}\r\n}"},"typeMessage":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.type == \"message\") {\r\n\t\t\temit(doc._id, null);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}},"_id":"_design\/OffChat","filters":{},"updates":{}}'
+    →: |
+      '{
+        "views": {
+          "checkUsername": {"map": "function (doc) {\r\n
+          if (doc.type == \"user\") {\r\n
+              emit(doc.username, doc.token);\r\n
+          }\r\n
+      }"},
+          "getChat": {"map": "function (doc) {\r\n
+          if (doc.type == \"message\") {\r\n
+              if (doc.ts) {\r\n
+                  emit([doc.user, doc.ts], {user: doc.user, dir: doc.dir, message: doc.message, ts: doc.ts});\r\n
+              } else {\r\n
+                  emit([doc.user, doc.num], {user: doc.user, dir: doc.dir, message: doc.message, num: doc.num});\r\n
+              }\r\n
+          }\r\n
+      }"},
+          "typeMessage": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.type == \"message\") {\r\n
+                  emit(doc._id, null);\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"}
+        },
+        "_id": "_design\/OffChat",
+        "filters": {},
+        "updates": {}
+      }'
 ↓OnChat [couchdb.FullSyncListener]: 
   targetSequence: sampleMobileOffChat.OnChat
   targetView: sampleMobileOffChat.offchat_fullsync.OffChat.typeMessage
