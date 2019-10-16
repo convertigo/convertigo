@@ -77,7 +77,7 @@ public class UIText extends UIComponent implements ITagsProperty {
 		if (!Mode.PLAIN.equals(textValue.getMode())) {
 			value = "{{" + value + "}}";
 		} else if (isI18n()) {
-			value = TranslateUtils.htmlIonicTranslate(value);
+			value = TranslateUtils.htmlIonicTranslate(getProject(), value);
 		}
 		return value;
 	}

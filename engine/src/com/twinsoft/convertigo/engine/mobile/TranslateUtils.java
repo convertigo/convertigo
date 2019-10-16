@@ -33,6 +33,8 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class TranslateUtils {
@@ -117,10 +119,25 @@ public class TranslateUtils {
 		return new Translator();
 	}
 	
-	public static String htmlIonicTranslate(String text) {
-		String key = computeKey(text);
-		if (key != null  && !key.isEmpty()) {
-			return "{{ '" + key + "' | translate }}";
+	private static boolean existTranslationFiles(Project project) {
+		if (project != null) {
+			File i18nDir = new File(project.getDirPath(), "DisplayObjects/mobile/assets/i18n");
+			for (Locale locale: Locale.getAvailableLocales()) {
+				File translations = new File(i18nDir, locale.getLanguage() + ".json");
+				if (translations.exists()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static String htmlIonicTranslate(Project project, String text) {
+		if (existTranslationFiles(project)) {
+			String key = computeKey(text);
+			if (key != null  && !key.isEmpty()) {
+				return "{{ '" + key + "' | translate }}";
+			}
 		}
 		return text;
 	}
@@ -149,13 +166,12 @@ public class TranslateUtils {
 			if (key != null) {
 				try {
 					if (jsonObject.has(key)) {
-						System.out.println("For text \""+text+"\" : key \""+key+"\" already exist with value \""+jsonObject.getString(key)+"\"");
+						Engine.logEngine.warn("(TranslateUtils) For text \""+text+"\" : key \""+key+"\" already exist with value \""+jsonObject.getString(key)+"\"");
 					} else {
 						jsonObject.put(key, text);
 					}
 				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Engine.logEngine.warn("(TranslateUtils) An exception occured", e);
 				}
 			}
 		}
