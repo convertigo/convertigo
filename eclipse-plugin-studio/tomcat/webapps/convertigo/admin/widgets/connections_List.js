@@ -47,6 +47,7 @@ function updateConnectionsList(xml) {
 				adminRoles: $(this).attr("adminRoles"),
 				isFullSyncActive: $(this).attr("isFullSyncActive") == "true" ? '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-green.png" />' : '<img border="0" title="Connected" src="images/convertigo-administration-picto-bullet-red.png" />',
 				clientIP: $(this).attr("clientIP"),
+				deviceUUID: $(this).attr("deviceUUID"),
 				sessionLastAccessDate: $(this).attr("lastSessionAccessDate"),
 				sessionInactivityTime: $(this).attr("sessionInactivityTime"),
 				clientComputer: $(this).attr("clientComputer")
@@ -127,19 +128,20 @@ function connections_List_init() {
 	$("#sessionsList").jqGrid({
 		datatype : "local",
 		colNames : [
-		    '',
-		    '<img src="images/edit.gif" alt="Show logs"/>',
-		    'ID',
-		    'Contexts',
-		    'User',
-		    'Roles',
-		    '<span title="is FullSync active request">FS</span>',
-		    '<img src="images/convertigo-administration-picto-last-date.png" alt="Session last access date"/>',
-		    '<img src="images/convertigo-administration-picto-activity.png" alt="Session inactivity"/>',
-		    'Client IP'
+			'',
+			'<img src="images/edit.gif" alt="Show logs"/>',
+			'ID',
+			'Contexts',
+			'User',
+			'Roles',
+			'UUID',
+			'<span title="is FullSync active request">FS</span>',
+			'<img src="images/convertigo-administration-picto-last-date.png" alt="Session last access date"/>',
+			'<img src="images/convertigo-administration-picto-activity.png" alt="Session inactivity"/>',
+			'Client IP'
 		],
 		colModel : [
-	        {
+			{
 				name : 'btnDelete',
 				index : 'btnDelete',
 				sortable : false,
@@ -147,7 +149,7 @@ function connections_List_init() {
 				align : "center"
 			}, {
 				name : 'showlogs',
-				index : 'showlogs',						
+				index : 'showlogs',
 				width : 20,
 				align : "center"
 			}, {
@@ -169,6 +171,11 @@ function connections_List_init() {
 				name : 'adminRoles',
 				index : 'adminRoles',
 				width : 30,
+				align : "center"
+			}, {
+				name : 'deviceUUID',
+				index : 'deviceUUID',
+				width : 50,
 				align : "center"
 			}, {
 				name : 'isFullSyncActive',

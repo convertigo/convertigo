@@ -25,9 +25,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,9 +39,11 @@ import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.tas.KeyManager;
@@ -51,93 +56,100 @@ import com.twinsoft.tas.TASException;
  */
 public class HttpSessionListener implements HttpSessionBindingListener {
 	private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy-hh:mm:ss.SSS");
-    private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<>();
-    private static final Map<String, Object> tasExceptions = new ConcurrentHashMap<>();
-    
-    public void valueBound(HttpSessionBindingEvent event) {
-        try {
-            Engine.logEngine.debug("HTTP session starting...");
-            HttpSession httpSession = event.getSession();
-            String httpSessionID = httpSession.getId();
-                httpSessions.put(httpSessionID, httpSession);				
-            Engine.logEngine.debug("HTTP session started [" + httpSessionID + "]");
-            
-            if (Engine.isEngineMode()) {
-            	synchronized (dateFormat) {
-            	KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
-            }
-            }
-        } catch(TASException e) {
-        	tasExceptions.put(event.getSession().getId(), e);
+	private static final Map<String, HttpSession> httpSessions = new ConcurrentHashMap<>();
+	private static final Set<String> devices = Collections.synchronizedSet(new HashSet<>());
+
+	public void valueBound(HttpSessionBindingEvent event) {
+		try {
+			Engine.logEngine.debug("HTTP session starting...");
+			HttpSession httpSession = event.getSession();
+			String httpSessionID = httpSession.getId();
+			httpSessions.put(httpSessionID, httpSession);
+			Engine.logEngine.debug("HTTP session started [" + httpSessionID + "]");
+
+			if (Engine.isEngineMode() && !devices.contains(httpSessionID)) {
+				synchronized (dateFormat) {
+					KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
+				}
+			}
+		} catch(TASException e) {
 			if (KeyManager.hasExpired((long) Session.EmulIDSE)) {
 				Engine.logEngine.warn("The Standard Edition key is expired");
 			} else if (e.isOverflow()) {
-        		String line = dateFormat.format(new Date()) + "\t" + e.getCvMax() + "\t" + e.getCvCurrent() + "\n";
-        		try {
+				String line = dateFormat.format(new Date()) + "\t" + e.getCvMax() + "\t" + e.getCvCurrent() + "\n";
+				try {
 					FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
 				} catch (IOException e1) {
 					Engine.logEngine.error("Failed to write the 'Session License exceeded.log' file", e1);
 				}
-        		return;
-        	}
-        	
+				return;
+			}
+			
 			Engine.logEngine.info("No more HTTP session available for this Standard Edition.");
 			SessionAttribute.exception.set(event.getSession(), e);
-        	HttpUtils.terminateSession(event.getSession());
-        } catch(Exception e) {
-            Engine.logEngine.error("Exception during binding HTTP session listener", e);
-        }
-    }
-    
-    public void valueUnbound(HttpSessionBindingEvent event) {
-        try {
-            Engine.logContext.debug("HTTP session stopping...");
-            HttpSession httpSession = event.getSession();
-            String httpSessionID = httpSession.getId();
+			terminateSession(event.getSession());
+		} catch(Exception e) {
+			Engine.logEngine.error("Exception during binding HTTP session listener", e);
+		}
+	}
 
-            if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSession);
-            removeSession(httpSessionID);
-            
-            Engine.logContext.debug("HTTP session stopped [" + httpSessionID + "]");
-        } catch(Exception e) {
-            Engine.logContext.error("Exception during unbinding HTTP session listener", e);
-        }
-    }
-    
-    static public void terminateSession(HttpSession session) {
-    	HttpUtils.terminateSession(session);
-    	removeSession(session.getId());
-    }
-    
-    static public void terminateSession(String httpSessionID) {
-    	HttpSession session = httpSessions.get(httpSessionID);
-    	if (session != null) {
-    		terminateSession(session);
-    	}
-    }
-    
-    static public void removeSession(String httpSessionID) {
-    	if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode() && tasExceptions.remove(httpSessionID) == null) {
+	public void valueUnbound(HttpSessionBindingEvent event) {
+		try {
+			Engine.logContext.debug("HTTP session stopping...");
+			HttpSession httpSession = event.getSession();
+			String httpSessionID = httpSession.getId();
+
+			if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSession);
+			removeSession(httpSessionID);
+
+			Engine.logContext.debug("HTTP session stopped [" + httpSessionID + "]");
+		} catch(Exception e) {
+			Engine.logContext.error("Exception during unbinding HTTP session listener", e);
+		}
+	}
+
+	static public void terminateSession(HttpSession session) {
+		HttpUtils.terminateSession(session);
+		removeSession(session.getId());
+	}
+
+	static public void terminateSession(String httpSessionID) {
+		HttpSession session = httpSessions.get(httpSessionID);
+		if (session != null) {
+			terminateSession(session);
+		}
+	}
+
+	static public void removeSession(String httpSessionID) {
+		if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode() && !devices.remove(httpSessionID)) {
 			synchronized (dateFormat) {
 				KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
 			}
-    	}
-    }
-    
-    static public HttpSession getHttpSession(String sessionID) {
-        	return httpSessions.get(sessionID);
-        }
-    
-    static public void removeAllSession() {
-    	for (Entry<String, HttpSession> entry: httpSessions.entrySet()) {
-        		HttpUtils.terminateSession(entry.getValue());
-        		removeSession(entry.getKey());        		
-        	}
-        }
-    
-    static public void checkSession(HttpServletRequest request) throws TASException {
-    	HttpSession httpSession = request.getSession(true);
-    	SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
+		}
+	}
+
+	static public HttpSession getHttpSession(String sessionID) {
+		return httpSessions.get(sessionID);
+	}
+
+	static public void removeAllSession() {
+		for (Entry<String, HttpSession> entry: httpSessions.entrySet()) {
+			HttpUtils.terminateSession(entry.getValue());
+			removeSession(entry.getKey());
+		}
+	}
+
+	static public void checkSession(HttpServletRequest request) throws TASException {
+		HttpSession httpSession = request.getSession(true);
+		SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
+		String uuid = request.getParameter(Parameter.DeviceUUID.getName());
+		boolean newUUID = false;
+		if (StringUtils.isNotBlank(uuid)) {
+			SessionAttribute.deviceUUID.set(httpSession, uuid);
+			if (Engine.isCloudMode() && !uuid.startsWith("web-")) {
+				newUUID = devices.add(httpSession.getId());
+			}
+		}
 		if (!SessionAttribute.sessionListener.has(httpSession)) {
 			Engine.logContext.trace("Inserting HTTP session listener into the HTTP session");
 			SessionAttribute.sessionListener.set(httpSession, new HttpSessionListener());
@@ -151,14 +163,16 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 					throw new RuntimeException((Throwable) t);
 				}
 			}
+		} else if (Engine.isCloudMode() && newUUID) {
+			KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
 		}
-    }
-    
-    static public Collection<HttpSession> getSessions() {
-    	return new ArrayList<>(httpSessions.values());
-    }
-    
-    static public int countSessions() {
-    	return httpSessions.size();
-    }
+	}
+
+	static public Collection<HttpSession> getSessions() {
+		return new ArrayList<>(httpSessions.values());
+	}
+
+	static public int countSessions() {
+		return httpSessions.size();
+	}
 }
