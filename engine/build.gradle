@@ -194,21 +194,21 @@ dependencies {
 	compileFlat 'com.convertigo.lib:ojdbc7:12.1.0.2'
 	compileFlat 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat 'com.convertigo.lib:soapui:3.5.1'
-	compileFlat 'com.convertigo.provider:convertigo-provider-couchdb:7.7.0-SNAPSHOT'
-	compileFlat 'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
-	compileFlat 'com.convertigo.provider:convertigo-provider-sap:7.6.4-SNAPSHOT'
-	compileFlat 'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-couchdb:7.7.0-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-sap:7.6.4-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 	compileFlat 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat 'com.convertigo.twinsoft.lib:comm:1998.11.15'
 	compileFlat 'com.convertigo.twinsoft.lib:ms:2002.01.03'
 	compileFlat 'com.convertigo.twinsoft.lib:netscape:2002.01.04'
 	compileFlat 'com.convertigo.twinsoft.lib:phaos:1998.11.15'
-	compileFlat 'com.convertigo.twinsoft:api:2017.12.29'
+	compile     'com.convertigo.twinsoft:api:2017.12.29'
 	compileFlat 'com.convertigo.twinsoft:ibm:2017.03.10'
-	compileFlat 'com.convertigo.twinsoft:tas:2017.12.29'
+	compile     'com.convertigo.twinsoft:tas:2019.10.16'
 	compileFlat 'com.convertigo.twinsoft:twinj:2016.05.09'
 	compileFlat 'com.convertigo.twinsoft:ui:2009.06.15'
-	compileFlat 'com.convertigo.twinsoft:util:2017.12.29'
+	compile     'com.convertigo.twinsoft:util:2017.12.29'
 	compileFlat 'com.fasterxml.jackson.core:jackson-core:[2.8,2.9['
 	compileFlat 'com.github.fernandospr:javapns-jdk16:[2.2,2.3['
 	compileFlat 'com.google.gcm:gcm-server:1.0.0'
@@ -268,7 +268,6 @@ dependencies {
 	compileOnly project.property('sapjco3Version')
 	sapjco3     project.property('sapjco3Version')
 	compile files(dependenciesJar.archivePath)
-	//compile publishing.publications.dependenciesJar
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
 	runtime files(patchJar.archivePath)

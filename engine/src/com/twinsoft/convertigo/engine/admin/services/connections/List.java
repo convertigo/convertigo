@@ -96,8 +96,10 @@ public class List extends XmlService{
         contextsNumberElement.setTextContent("" + EnginePropertiesManager.getProperty(PropertyName.CONVERTIGO_MAX_CONTEXTS));
         rootElement.appendChild(contextsNumberElement);
         
+        int maxIDSE = Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE));
+        
         Element sessionsInUseElement = document.createElement("sessionsInUse");
-        sessionsInUseElement.setTextContent("" + HttpSessionListener.countSessions());
+        sessionsInUseElement.setTextContent("" + (maxIDSE - KeyManager.getCV(com.twinsoft.api.Session.EmulIDSE)));
         rootElement.appendChild(sessionsInUseElement);
         
         Element sessionsIsOverflowElement = document.createElement("sessionsIsOverflow");
@@ -105,7 +107,7 @@ public class List extends XmlService{
         rootElement.appendChild(sessionsIsOverflowElement);
         
         Element sessionsNumberElement = document.createElement("sessionsNumber");
-        sessionsNumberElement.setTextContent("" + Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE)));
+        sessionsNumberElement.setTextContent("" + maxIDSE);
         rootElement.appendChild(sessionsNumberElement);
         
         Element threadsInUseElement = document.createElement("threadsInUse");
@@ -173,6 +175,7 @@ public class List extends XmlService{
 	        	sessionElement.setAttribute("authenticatedUser", SessionAttribute.authenticatedUser.string(session));
 	        	sessionElement.setAttribute("contexts", Integer.toString(ctxs == null ? 0 : ctxs.size()));
 	        	sessionElement.setAttribute("clientIP", SessionAttribute.clientIP.string(session));
+	        	sessionElement.setAttribute("deviceUUID", SessionAttribute.deviceUUID.string(session));
 	        	sessionElement.setAttribute("lastSessionAccessDate", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(session.getLastAccessedTime())));
 	        	sessionElement.setAttribute("sessionInactivityTime", formatTime((now - session.getLastAccessedTime()) / 1000) + " / " + formatTime(session.getMaxInactiveInterval()));
 	        	Role[] r = (Role[]) session.getAttribute(SessionKey.ADMIN_ROLES.toString());
