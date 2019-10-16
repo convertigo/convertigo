@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -114,6 +115,16 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
 	    				ConvertigoPlugin.logDebug(target.getName() + " file successfully created or updated.");
     				}
     				
+    				// regenerate app templates
+    				try {
+    					application.markApplicationAsDirty();
+    					for (PageComponent page : application.getPageComponentList()) {
+    						if (page.isEnabled()) {
+    							page.markPageAsDirty();
+    						}
+    					}
+    				} catch (Throwable t) {}
+
     				ConvertigoPlugin.logInfo("Translations file(s) successfully created or updated.", true);
     			}
     		}
