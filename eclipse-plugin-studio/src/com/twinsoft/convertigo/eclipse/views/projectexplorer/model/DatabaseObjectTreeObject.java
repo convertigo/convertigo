@@ -431,7 +431,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         if (pec == null) {
 			if (value instanceof Boolean) {
 		    	String[] values = new String[] { "true", "false" };
-				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, values, acceptSymbols());
+				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, values, this, name);
 		    }
 			else if (value instanceof Number) {
 				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
@@ -453,11 +453,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     			} else if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)){
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
     				tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, acceptSymbols());
+    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
     			} else {
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class});
     				tags = (String[]) getTags.invoke(null, new Object[] { this } );
-    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, acceptSymbols());
+    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
     			}
    	        }
         	else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
@@ -500,7 +500,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        else if (Enum.class.isAssignableFrom(pec)) {
 	        	String[] tags = EnumUtils.toStrings(pec);
 	        	
-	        	propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, acceptSymbols());
+	        	propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
 	        }
         }
 

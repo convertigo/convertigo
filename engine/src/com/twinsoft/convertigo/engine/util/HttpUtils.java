@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.tas.KeyManager;
 
 public class HttpUtils {
@@ -282,6 +283,7 @@ public class HttpUtils {
 		if (httpSession != null) {
 			if (force || Engine.authenticatedSessionManager.isAnonymous(httpSession)) {
 				httpSession.setMaxInactiveInterval(1);
+				HttpSessionListener.removeSession(httpSession.getId());
 				if (Engine.theApp != null && Engine.theApp.contextManager != null) {
 					Engine.theApp.contextManager.removeAll(httpSession);
 				}

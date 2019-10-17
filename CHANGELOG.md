@@ -1,5 +1,32 @@
 # Changelog
 
+## 7.6.5
+
+#### Improvements:
+
+- * [#231](https://github.com/convertigo/convertigo/issues/231) Need to alert user for packages reinstallation when changing MB template
+
+#### Bug Fixes:
+
+- [#202](https://github.com/convertigo/convertigo/issues/202) Fixed, SmtpStep failed with "no object DCH for MIME"
+- * [#203](https://github.com/convertigo/convertigo/issues/203) Fixed, MobileBuilder property of bean "CallSequence" is wrong
+- [#208](https://github.com/convertigo/convertigo/issues/208) Fixed, removed unwanted standard output on XMLCopyStep execution
+- [#209](https://github.com/convertigo/convertigo/issues/209) Fixed, Studio Git Pull don't fail if their is only files to delete
+- [#210](https://github.com/convertigo/convertigo/issues/210) Fixed, Studio Open TestPlatform action directly open the right page
+- [#215](https://github.com/convertigo/convertigo/issues/215) Fixed, one of the GetRequestHeaderStep property name fixed to Header Name
+- [#218](https://github.com/convertigo/convertigo/issues/218) Fixed, no more CacheManager backup error at startup
+- [#219](https://github.com/convertigo/convertigo/issues/219) Fixed, Studio can now open existing projects without '.project'
+- * [#220](https://github.com/convertigo/convertigo/issues/220) MobileApplication : special character in Application xxx properties causes platform build to fail
+- * [#221](https://github.com/convertigo/convertigo/issues/221) Using twice the same SharedComponent in a Page duplicates its action declarations
+- [#222](https://github.com/convertigo/convertigo/issues/222) Fixed, Studio MobileBuilder viewer will not mix application editor if opened at the same time
+- [#224](https://github.com/convertigo/convertigo/issues/224) Fixed, lib_AmzonLEX now correctly open
+- * [#228](https://github.com/convertigo/convertigo/issues/228) IonicConferenceApp sample project does not work as intended
+- [#229](https://github.com/convertigo/convertigo/issues/229) Fixed, FlashUpdate now respect MobileBuilder application change to trigger an update
+- [#232](https://github.com/convertigo/convertigo/issues/232) Fixed, Server session count is now coherent when using an overflow session key
+- [#233](https://github.com/convertigo/convertigo/issues/233) Fixed, Studio can edit symbols of combo properties by validating the symbol option again
+
+---
+
 ## 7.6.4
 
 #### Improvements:

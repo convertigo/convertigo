@@ -87,7 +87,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			
 			Engine.logEngine.info("No more HTTP session available for this Standard Edition.");
 			SessionAttribute.exception.set(event.getSession(), e);
-			terminateSession(event.getSession());
+			HttpUtils.terminateSession(event.getSession());
 		} catch(Exception e) {
 			Engine.logEngine.error("Exception during binding HTTP session listener", e);
 		}
@@ -108,15 +108,10 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		}
 	}
 
-	static public void terminateSession(HttpSession session) {
-		HttpUtils.terminateSession(session);
-		removeSession(session.getId());
-	}
-
 	static public void terminateSession(String httpSessionID) {
 		HttpSession session = httpSessions.get(httpSessionID);
 		if (session != null) {
-			terminateSession(session);
+			HttpUtils.terminateSession(session);
 		}
 	}
 
@@ -135,7 +130,6 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	static public void removeAllSession() {
 		for (Entry<String, HttpSession> entry: httpSessions.entrySet()) {
 			HttpUtils.terminateSession(entry.getValue());
-			removeSession(entry.getKey());
 		}
 	}
 
