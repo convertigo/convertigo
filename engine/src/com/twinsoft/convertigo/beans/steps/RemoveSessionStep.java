@@ -25,7 +25,6 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class RemoveSessionStep extends Step {
@@ -53,10 +52,8 @@ public class RemoveSessionStep extends Step {
 		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope) && Engine.isEngineMode()) {
 				if (sequence.context != null && sequence.context.httpSession != null) {
-					String id = sequence.context.httpSession.getId();
 					HttpUtils.terminateSession(sequence.context.httpSession);
 					sequence.context.requireEndOfContext = true;
-					HttpSessionListener.removeSession(id);
 				} else {
 					Engine.logBeans.warn("(RemoveSessionStep) null httpSession, cannot be removed");
 				}
