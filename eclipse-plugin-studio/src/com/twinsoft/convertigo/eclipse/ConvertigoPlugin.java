@@ -103,6 +103,7 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.properties.PropertySheet;
+import org.eclipse.ui.views.properties.PropertySheetPage;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -1958,5 +1959,15 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 		}
 		return projects;
+	}
+	
+	public void refreshPropertiesView() {
+		PropertySheet view = getPropertiesView();
+		if (view != null) {
+			PropertySheetPage page = (PropertySheetPage) view.getCurrentPage();
+			if (page != null) {
+				page.refresh();
+			}
+		}
 	}
 }
