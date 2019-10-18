@@ -20,10 +20,14 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -69,7 +73,10 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
     				new WalkHelper() {
     					@Override
     					protected void walk(DatabaseObject databaseObject) throws Exception {
-    						if (databaseObject instanceof UIText) {
+    						if (databaseObject instanceof PageComponent) {
+								PageComponent page = (PageComponent)databaseObject;
+								textList.add(page.getTitle());
+    						} else if (databaseObject instanceof UIText) {
     							UIText uiText = (UIText)databaseObject;
     							MobileSmartSourceType msst = uiText.getTextSmartType();
     							if (Mode.PLAIN.equals(msst.getMode())) {
@@ -101,13 +108,21 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
     				if (!to.equals(from)) {
 	    				File target = new File(i18nDir, to.getLanguage() + ".json");
 	    				if (auto) {
-	    					Translator translator = TranslateUtils.newTranslator();
-	    					try {
-	    						translator.translate(from, source, to, target);
-	    						ConvertigoPlugin.logDebug(target.getName() + " file successfully translated.");
-	    					} catch (Exception e) {
-	    						ConvertigoPlugin.logError(e.getMessage(), false);
-	    					}
+	    					ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
+	    					dialog.run(true, false, new IRunnableWithProgress() {
+	    						@Override
+	    						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+	    							monitor.beginTask("translating", IProgressMonitor.UNKNOWN);
+	    	    					Translator translator = TranslateUtils.newTranslator();
+	    	    					try {
+	    	    						translator.translate(from, source, to, target);
+	    	    						ConvertigoPlugin.logDebug(target.getName() + " file successfully translated.");
+	    	    					} catch (Exception e) {
+	    	    						ConvertigoPlugin.logError(e.getMessage(), false);
+	    	    					}
+	    							monitor.done();
+	    						}
+	    					});
 	    				}
 	    				else {
 	        				TranslateUtils.storeTranslations(textList, target);

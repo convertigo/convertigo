@@ -41,7 +41,7 @@ import { ActionBeans }                                      from '../services/ac
 export class MyApp extends C8oPageBase {
     @ViewChild(Nav) nav: Nav;
     rootPage : any = /*=c8o_RootPage*/;
-    pages : Array<{title: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>;
+    pages : /*=c8o_PageArrayDef*/;
     pagesKeyValue: any;
     public actionBeans: ActionBeans;
     public events : Events;

@@ -90,7 +90,7 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 					.append(System.lineSeparator())
 					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchDefault item-left></ion-icon>")
 					.append(System.lineSeparator())
-					.append("{{p.title}}")
+					.append(compareToTplVersion("7.7.0.6") < 0 ? "{{p.title}}":"{{p.titleKey | translate}}")
 					.append(System.lineSeparator())
 					.append("</button>")
 					.append(System.lineSeparator());

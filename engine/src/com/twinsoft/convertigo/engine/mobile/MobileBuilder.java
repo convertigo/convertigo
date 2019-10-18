@@ -1828,6 +1828,7 @@ public class MobileBuilder {
 		String c8o_PagesVariables = "";
 		String c8o_PagesVariablesKeyValue = "";
 		String c8o_RootPage = "null";
+		String c8o_PageArrayDef = "";
 		String c8o_Version = app.getC8oVersion();
 		String c8o_AppComponentMarkers = app.getComponentScriptContent().getString();
 		String c8o_AppImports = app.getComputedImports();
@@ -1836,12 +1837,19 @@ public class MobileBuilder {
 		String c8o_AppFunctions = app.getComputedFunctions();
 		int i=1;
 		
+		if (app.compareToTplVersion("7.7.0.6") < 0) {
+			c8o_PageArrayDef = "Array<{title: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>";
+		} else {
+			c8o_PageArrayDef = "Array<{title: string, titleKey: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>";
+		}
+		
 		List<PageComponent> pages = getEnabledPages(app);
 		for (PageComponent page : pages) {
 			String pageName = page.getName();
 			String pageIcon = page.getIcon();
 			String pageIconPos = page.getIconPosition();
 			String pageTitle = page.getTitle();
+			String pageTitleKey = TranslateUtils.computeKey(page.getTitle());
 			boolean isRootPage = page.isRoot;
 			boolean isMenuPage = page.isInAutoMenu();
 			boolean isLastPage = i == pages.size();
@@ -1858,7 +1866,7 @@ public class MobileBuilder {
 					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 				}
 				c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
-			} else {
+			} else if (app.compareToTplVersion("7.7.0.6") < 0) {
 				if (isRootPage) {
 					c8o_RootPage = "'"+ c8o_RootPage + "'";
 					
@@ -1866,6 +1874,16 @@ public class MobileBuilder {
 					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
 				} else {
 					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
+				}
+			} else {
+				if (isRootPage) {
+					c8o_RootPage = "'"+ c8o_RootPage + "'";
+					
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
+				} else {
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
 					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
 				}
 			}
@@ -1884,6 +1902,7 @@ public class MobileBuilder {
 		
 		cContent = cContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 		cContent = cContent.replaceAll("/\\*\\=c8o_RootPage\\*/",c8o_RootPage);
+		cContent = cContent.replaceAll("/\\*\\=c8o_PageArrayDef\\*/",c8o_PageArrayDef);
 		cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariables\\*/",c8o_PagesVariables);
 		cContent = cContent.replaceAll("/\\*\\=c8o_PagesVariablesKeyValue\\*/",c8o_PagesVariablesKeyValue);
 		cContent = cContent.replaceAll("/\\*\\=c8o_RoutingTable\\*/",computedRoute);
