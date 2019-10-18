@@ -343,18 +343,14 @@ task generateDockerfile {
 	
 	doLast {
 		def base = file('docker/Dockerfile.tpl').text
-		base = base.replace('%VERSION%', convertigoVersion)
+		base = base.replace('%VERSION%', convertigoVersion).replace('%FROM%', 'tomcat:9-jdk11-openjdk')
 		
-		file('docker/default/Dockerfile').text = base.replace('%FROM%', 'tomcat:9-jdk11-openjdk')
-		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
+		file('docker/default/Dockerfile').text = base.replace('%BEGIN%', '')
+		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', '')
 		file('docker/default/root-index.html').text = file('docker/root-index.html').text
 		
-		file('docker/slim/Dockerfile').text = base.replace('%FROM%', 'tomcat:9-jdk11-openjdk-slim')
-		file('docker/slim/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
-		file('docker/slim/root-index.html').text = file('docker/root-index.html').text
-		
-		file('docker/openj9/Dockerfile').text = base.replace('%FROM%', 'tomcat:9-jdk11-adoptopenjdk-openj9')
-		file('docker/openj9/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
-		file('docker/openj9/root-index.html').text = file('docker/root-index.html').text
+		file('docker/aks/Dockerfile').text = base.replace('%BEGIN%', file('docker/aks-Dockerfile.tpl').text)
+		file('docker/aks/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', file('docker/aks-entrypoint.tpl').text)
+		file('docker/aks/root-index.html').text = file('docker/root-index.html').text
 	}
 }

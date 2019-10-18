@@ -84,7 +84,7 @@ if [ "$1" = "convertigo" ]; then
         sed -i.bak -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml
         unset COOKIE_PATH
     fi
-    
+    %ON_LAUNCH%
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
 fi
 

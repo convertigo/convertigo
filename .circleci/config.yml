@@ -244,7 +244,7 @@ jobs:
             docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION
           fi
           
-  build_docker_slim:
+  build_docker_aks:
     <<: *defaults
     
     docker:
@@ -263,49 +263,10 @@ jobs:
     - setup_remote_docker
     
     - run:
-        name: Docker build and push for slim
+        name: Docker build and push for aks
         command: |
           source /tmp/build.env
-          export TYPE=slim
-          cd docker/$TYPE
-          export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
-          echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
-          sed -e "s,ENV CONVERTIGO_WAR_URL .*,ENV CONVERTIGO_WAR_URL $CONVERTIGO_WAR_URL," -i.bak Dockerfile
-          echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
-          docker build --rm=false -t $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE .
-          docker push $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE
-          if [ "$CONVERTIGO_BRANCH" != "" ] ; then
-            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
-            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE
-          fi
-          if [ "$CONVERTIGO_BRANCH" = "develop" ] || [ "$CONVERTIGO_BRANCH" = "latest" ]; then
-            docker tag $CONVERTIGO_DOCKER:$CONVERTIGO_BRANCH-$TYPE $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
-            docker push $CONVERTIGO_DOCKER:$CONVERTIGO_VERSION-$TYPE
-          fi
-          
-  build_docker_openj9:
-    <<: *defaults
-    
-    docker:
-    - image: docker:latest
-    
-    steps:
-    
-    - restore_cache:
-        keys:
-        - v1-docker-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-    
-    - restore_cache:
-        keys:
-        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-    
-    - setup_remote_docker
-    
-    - run:
-        name: Docker build and push for openj9
-        command: |
-          source /tmp/build.env
-          export TYPE=openj9
+          export TYPE=aks
           cd docker/$TYPE
           export CONVERTIGO_WAR_URL=$CONVERTIGO_URL/convertigo-$CONVERTIGO_VERSION.war
           echo "CONVERTIGO_WAR_URL=$CONVERTIGO_WAR_URL"
@@ -340,10 +301,10 @@ jobs:
           git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
           
     - run:
-        name: Pull the docker slim image
+        name: Pull the docker aks image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-slim
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-aks
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -382,10 +343,10 @@ jobs:
           git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
           
     - run:
-        name: Pull the docker openj9 image
+        name: Pull the docker default image
         command: |
           source /tmp/build.env
-          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE-openj9
+          CONVERTIGO_IMAGE=$CONVERTIGO_DOCKER:$CONVERTIGO_DOCKER_IMAGE
           
           docker pull $CONVERTIGO_IMAGE
           docker tag $CONVERTIGO_IMAGE c8o:latest
@@ -628,13 +589,7 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
-    - build_docker_slim:
-        requires:
-        - build_engine_war
-        filters:
-          tags:
-            only: /^\d+\..*$/
-    - build_docker_openj9:
+    - build_docker_aks:
         requires:
         - build_engine_war
         filters:
@@ -642,13 +597,13 @@ workflows:
             only: /^\d+\..*$/
     - qualif_jmx_1:
         requires:
-        - build_docker_slim
+        - build_docker_aks
         filters:
           tags:
             only: /^\d+\..*$/
     - qualif_jmx_2:
         requires:
-        - build_docker_openj9
+        - build_docker_default
         filters:
           tags:
             only: /^\d+\..*$/
@@ -661,8 +616,7 @@ workflows:
     - release:
         requires:
         - build_docker_default
-        - build_docker_slim
-        - build_docker_openj9
+        - build_docker_aks
         - build_studio
         filters:
           branches:
