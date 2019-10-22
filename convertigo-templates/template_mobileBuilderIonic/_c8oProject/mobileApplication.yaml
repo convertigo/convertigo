@@ -12,8 +12,8 @@ componentScriptContent:
         /*Begin_c8o_AppInitialization*/
                         /* Uncomment the following lines to enable the i18n feature.
                          * You should add a json per language in the assets/i18n folder. */
-                        // translate.setDefaultLang('en');
-                        // translate.use(translate.getBrowserLang());
+                        translate.setDefaultLang('en');
+                        translate.use(translate.getBrowserLang());
                         
                         /* Uncomment the following lines to enable the custom status bar color. */
                         // statusBar.overlaysWebView(false);
