@@ -69,8 +69,14 @@ public class TranslateUtils {
 						URL obj = new URL(url);
 						HttpURLConnection con = (HttpURLConnection) obj.openConnection(); 
 						con.setRequestProperty("User-Agent", "Mozilla/5.0");
+						con.setRequestProperty("Accept-Charset", "UTF-8");	
 						
-						BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+						String encoding = con.getContentEncoding();
+						if (encoding == null) {
+							encoding = "UTF-8";
+						}
+						
+						BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), encoding));
 						StringBuffer response = new StringBuffer();
 						String inputLine;
 						while ((inputLine = in.readLine()) != null) {
