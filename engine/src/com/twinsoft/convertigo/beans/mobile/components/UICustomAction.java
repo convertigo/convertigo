@@ -671,6 +671,15 @@ public class UICustomAction extends UIComponent implements IAction {
 	
 	protected Contributor getContributor() {
 		return new Contributor() {
+			
+			@Override
+			public boolean isNgModuleForApp() {
+				if (!getModuleNgImports().isEmpty()) {
+					return true;
+				}
+				return false;
+			}
+			
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();

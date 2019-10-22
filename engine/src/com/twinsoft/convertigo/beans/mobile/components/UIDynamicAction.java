@@ -663,6 +663,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	protected Contributor getContributor() {
 		Contributor contributor = super.getContributor();
 		return new Contributor() {
+			
+			@Override
+			public boolean isNgModuleForApp() {
+				if (!getModuleNgImports().isEmpty()) {
+					return true;
+				}
+				return false;
+			}
+			
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();

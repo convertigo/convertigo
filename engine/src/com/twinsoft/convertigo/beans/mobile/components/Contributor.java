@@ -24,6 +24,10 @@ import java.io.File;
 import java.util.Map;
 
 public abstract class Contributor {
+	public boolean isNgModuleForApp() {
+		return false;
+	}
+	
 	abstract public Map<String, File> getCompBeanDir();
 	abstract public Map<String, String> getActionTsFunctions();
 	abstract public Map<String, String> getActionTsImports();

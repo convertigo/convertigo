@@ -1378,13 +1378,15 @@ public class MobileBuilder {
 		
 		List<Contributor> contributors = page.getContributors();
 		for (Contributor contributor : contributors) {
-			comp_beans_dirs.putAll(contributor.getCompBeanDir());
-			
-			module_ts_imports.putAll(contributor.getModuleTsImports());
-			module_ng_imports.addAll(contributor.getModuleNgImports());
-			module_ng_providers.addAll(contributor.getModuleNgProviders());
-			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-			module_ng_components.addAll(contributor.getModuleNgComponents());
+			if (!contributor.isNgModuleForApp()) {
+				comp_beans_dirs.putAll(contributor.getCompBeanDir());
+				
+				module_ts_imports.putAll(contributor.getModuleTsImports());
+				module_ng_imports.addAll(contributor.getModuleNgImports());
+				module_ng_providers.addAll(contributor.getModuleNgProviders());
+				module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+				module_ng_components.addAll(contributor.getModuleNgComponents());
+			}
 		}
 
 		String c8o_ModuleTsImports = "";
@@ -1679,7 +1681,7 @@ public class MobileBuilder {
 				Set<String> module_ng_declarations =  new HashSet<String>();
 				Set<String> module_ng_components =  new HashSet<String>();
 				
-				//Menus contributors
+				//App contributors
 				for (Contributor contributor : app.getContributors()) {
 					comp_beans_dirs.putAll(contributor.getCompBeanDir());
 
@@ -1713,6 +1715,20 @@ public class MobileBuilder {
 							module_ng_components.addAll(contributor.getModuleNgComponents());
 						}
 					} else {
+
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							if (contributor.isNgModuleForApp()) {
+								comp_beans_dirs.putAll(contributor.getCompBeanDir());
+								
+								module_ts_imports.putAll(contributor.getModuleTsImports());
+								module_ng_imports.addAll(contributor.getModuleNgImports());
+								module_ng_providers.addAll(contributor.getModuleNgProviders());
+								module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+								module_ng_components.addAll(contributor.getModuleNgComponents());
+							}
+						}
+						
 						writePageModuleTs(page);
 					}
 					
