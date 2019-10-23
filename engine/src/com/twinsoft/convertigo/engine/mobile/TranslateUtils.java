@@ -148,6 +148,16 @@ public class TranslateUtils {
 		return text;
 	}
 	
+	public static String getComputedKey(Project project, String text) {
+		if (existTranslationFiles(project)) {
+			String key = computeKey(text);
+			if (key != null  && !key.isEmpty()) {
+				return key;
+			}
+		}
+		return text;
+	}
+	
 	private static String escape(String text) {
 		String escaped = text;
 		escaped = escaped.replaceAll("\\'", "\'");
@@ -155,7 +165,7 @@ public class TranslateUtils {
 		return escaped;
 	}
 	
-	public static String computeKey(String text) {
+	private static String computeKey(String text) {
 		if (text != null  && !text.isEmpty()) {
 			String escaped = escape(text);
 			return escaped.length() < 40 ? escaped : escaped.substring(0, 40);

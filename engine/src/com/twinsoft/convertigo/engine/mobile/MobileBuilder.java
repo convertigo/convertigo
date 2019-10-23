@@ -1865,7 +1865,7 @@ public class MobileBuilder {
 			String pageIcon = page.getIcon();
 			String pageIconPos = page.getIconPosition();
 			String pageTitle = page.getTitle();
-			String pageTitleKey = TranslateUtils.computeKey(page.getTitle());
+			String pageTitleKey = TranslateUtils.getComputedKey(project, page.getTitle());
 			boolean isRootPage = page.isRoot;
 			boolean isMenuPage = page.isInAutoMenu();
 			boolean isLastPage = i == pages.size();
