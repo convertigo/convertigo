@@ -36,7 +36,9 @@ public class StdoutStream extends PrintStream {
 	}
 	
 	public void print(String s) {
-    	consoleStream.print(s);
+		if (consoleStream != null && !consoleStream.isClosed()) {
+			consoleStream.print(s);
+		}
 	}
 	
 	public void println() {
