@@ -64,6 +64,22 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		this.stack = stack;
 	}
 
+	public boolean isRecursive() {
+		UIActionStack parentSharedAction = ((UIDynamicInvoke)this.getOriginal()).getSharedAction();
+		// if UIDynamicInvoke is in a UIActionStack
+		if (parentSharedAction != null) {
+			UIActionStack targetSharedAction = this.getTargetSharedAction();
+			// if UIDynamicInvoke has a target UIActionStack
+			if (targetSharedAction != null) {
+				// if they are the same
+				if (parentSharedAction.priority == targetSharedAction.priority) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	public UIActionStack getTargetSharedAction() {
 		try {
 			String qname =  getSharedActionQName();

@@ -83,51 +83,71 @@ public class UIUseShared extends UIElement {
 		return null;
 	}
 	
+	public boolean isRecursive() {
+		UISharedComponent parentSharedComp = ((UIUseShared)this.getOriginal()).getSharedComponent();
+		// if UIUseShared is in a UISharedComponent
+		if (parentSharedComp != null) {
+			UISharedComponent targetSharedComp = this.getTargetSharedComponent();
+			// if UIUseShared has a target UISharedComponent
+			if (targetSharedComp != null) {
+				// if they are the same
+				if (parentSharedComp.priority == targetSharedComp.priority) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public String computeTemplate() {
 		String computed = "";
 		if (isEnabled()) {
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null) {
-				
-				StringBuilder compVars = new StringBuilder();
-				Iterator<UIComponent> it1 = uisc.getUIComponentList().iterator();
-				while (it1.hasNext()) {
-					UIComponent component = (UIComponent)it1.next();
-					if (component instanceof UICompVariable) {
-						UICompVariable uicv = (UICompVariable)component;
-						if (uicv.isEnabled()) {
-							String varValue = uicv.getVariableValue();
-							if (!varValue.isEmpty()) {
-								compVars.append(compVars.length() > 0 ? ", ":"");
-								compVars.append(uicv.getVariableName()).append(": ");
-								compVars.append(varValue);
+				if (isRecursive()) {
+					Engine.logBeans.warn("Shared component \""+ uisc.getName() +"\" is recursive!");
+					computed += "<!-- shared component recursive template not appended -->"+ System.getProperty("line.separator");
+				} else {
+					StringBuilder compVars = new StringBuilder();
+					Iterator<UIComponent> it1 = uisc.getUIComponentList().iterator();
+					while (it1.hasNext()) {
+						UIComponent component = (UIComponent)it1.next();
+						if (component instanceof UICompVariable) {
+							UICompVariable uicv = (UICompVariable)component;
+							if (uicv.isEnabled()) {
+								String varValue = uicv.getVariableValue();
+								if (!varValue.isEmpty()) {
+									compVars.append(compVars.length() > 0 ? ", ":"");
+									compVars.append(uicv.getVariableName()).append(": ");
+									compVars.append(varValue);
+								}
 							}
 						}
 					}
-				}
-				
-				StringBuilder useVars = new StringBuilder();
-				Iterator<UIComponent> it2 = getUIComponentList().iterator();
-				while (it2.hasNext()) {
-					UIComponent component = (UIComponent)it2.next();
-					if (component instanceof UIControlVariable) {
-						UIControlVariable uicv = (UIControlVariable)component;
-						if (uicv.isEnabled()) {
-							String varValue = uicv.getVarValue();
-							if (!varValue.isEmpty()) {
-								useVars.append(useVars.length() > 0 ? ", ":"");
-								useVars.append(uicv.getVarName()).append(": ");
-								useVars.append(varValue);
+					
+					StringBuilder useVars = new StringBuilder();
+					Iterator<UIComponent> it2 = getUIComponentList().iterator();
+					while (it2.hasNext()) {
+						UIComponent component = (UIComponent)it2.next();
+						if (component instanceof UIControlVariable) {
+							UIControlVariable uicv = (UIControlVariable)component;
+							if (uicv.isEnabled()) {
+								String varValue = uicv.getVarValue();
+								if (!varValue.isEmpty()) {
+									useVars.append(useVars.length() > 0 ? ", ":"");
+									useVars.append(uicv.getVarName()).append(": ");
+									useVars.append(varValue);
+								}
 							}
 						}
 					}
+					
+					String params = "merge({" + compVars.toString() + "},{" + useVars.toString() + "})";
+					computed += "<ng-container *ngFor=\"let params"+ uisc.priority +" of ["+params+"]\" >" + System.getProperty("line.separator");
+					computed += uisc.computeTemplate(this);
+					computed += "</ng-container>" + System.getProperty("line.separator");
 				}
-				
-				String params = "merge({" + compVars.toString() + "},{" + useVars.toString() + "})";
-				computed += "<ng-container *ngFor=\"let params"+ uisc.priority +" of ["+params+"]\" >" + System.getProperty("line.separator");
-				computed += uisc.computeTemplate(this);
-				computed += "</ng-container>" + System.getProperty("line.separator");
 			}
 		}
 		return computed;
@@ -138,7 +158,9 @@ public class UIUseShared extends UIElement {
 		if (isEnabled()) {
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null) {
-				uisc.computeScripts(this, jsonScripts);
+				if (!isRecursive()) {
+					uisc.computeScripts(this, jsonScripts);
+				}
 			}
 		}
 	}
@@ -147,7 +169,9 @@ public class UIUseShared extends UIElement {
 	public String computeStyle() {
 		UISharedComponent uisc = getTargetSharedComponent();
 		if (uisc != null) {
-			return uisc.computeStyle(this);
+			if (!isRecursive()) {
+				return uisc.computeStyle(this);
+			}
 		}
 		return "";
 	}
@@ -160,7 +184,9 @@ public class UIUseShared extends UIElement {
 			if (!done.add(this)) {
 				return;
 			}
-			uisc.addPageEvent(this, done, eventList);
+			if (!isRecursive()) {
+				uisc.addPageEvent(this, done, eventList);
+			}
 		}
 	}
 
@@ -172,7 +198,9 @@ public class UIUseShared extends UIElement {
 			if (!done.add(this)) {
 				return;
 			}
-			uisc.addEventSubscriber(this, done, eventList);
+			if (!isRecursive()) {
+				uisc.addEventSubscriber(this, done, eventList);
+			}
 		}
 	}
 
@@ -183,7 +211,9 @@ public class UIUseShared extends UIElement {
 			if (!done.add(this)) {
 				return;
 			}
-			uisc.addContributors(this, done, contributors);
+			if (!isRecursive()) {
+				uisc.addContributors(this, done, contributors);
+			}
 		}
 	}
 	
@@ -194,7 +224,9 @@ public class UIUseShared extends UIElement {
 			if (!done.add(this)) {
 				return;
 			}
-			uisc.addInfos(this, done, infoMap);
+			if (!isRecursive()) {
+				uisc.addInfos(this, done, infoMap);
+			}
 		}
 	}
 	

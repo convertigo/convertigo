@@ -94,10 +94,12 @@ import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -1429,9 +1431,20 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 						@Override
 						protected void walk(DatabaseObject databaseObject) throws Exception {
 							if (databaseObject instanceof UIUseShared) {
-								UISharedComponent uisc = ((UIUseShared)databaseObject).getTargetSharedComponent();
+								UIUseShared uius = (UIUseShared)databaseObject;
+								UISharedComponent uisc = uius.getTargetSharedComponent();
 								if (uisc != null) {
-									databaseObject = uisc;
+									if (!uius.isRecursive()) {
+										databaseObject = uisc;
+									}
+								}
+							} else if (databaseObject instanceof UIDynamicInvoke) {
+								UIDynamicInvoke uidi = (UIDynamicInvoke)databaseObject;
+								UIActionStack uisa = uidi.getTargetSharedAction();
+								if (uisa != null) {
+									if (!uidi.isRecursive()) {
+										databaseObject = uisa;
+									}
 								}
 							}
 							
