@@ -1378,15 +1378,13 @@ public class MobileBuilder {
 		
 		List<Contributor> contributors = page.getContributors();
 		for (Contributor contributor : contributors) {
-			if (!contributor.isNgModuleForApp()) {
-				comp_beans_dirs.putAll(contributor.getCompBeanDir());
-				
-				module_ts_imports.putAll(contributor.getModuleTsImports());
-				module_ng_imports.addAll(contributor.getModuleNgImports());
-				module_ng_providers.addAll(contributor.getModuleNgProviders());
-				module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-				module_ng_components.addAll(contributor.getModuleNgComponents());
-			}
+			comp_beans_dirs.putAll(contributor.getCompBeanDir());
+			
+			module_ts_imports.putAll(contributor.getModuleTsImports());
+			module_ng_imports.addAll(contributor.getModuleNgImports());
+			module_ng_providers.addAll(contributor.getModuleNgProviders());
+			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+			module_ng_components.addAll(contributor.getModuleNgComponents());
 		}
 
 		String c8o_ModuleTsImports = "";
