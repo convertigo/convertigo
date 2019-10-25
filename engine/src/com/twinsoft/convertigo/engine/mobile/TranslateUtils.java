@@ -45,6 +45,7 @@ public class TranslateUtils {
 		}
 		
 		public void translate(Locale from, File fromFile, Locale to, File toFile) throws EngineException {
+			boolean failed = false;
 			try {
 				// load source file (from)
 				JSONObject jsonObject = loadTranslations(fromFile);
@@ -52,7 +53,6 @@ public class TranslateUtils {
 				// translate using free google api
 				JSONObject translations = new JSONObject();
 				String value = null, key = null;
-				boolean failed = false;
 				try {
 					@SuppressWarnings("unchecked")
 					Iterator<String> it = jsonObject.keys();
@@ -98,12 +98,14 @@ public class TranslateUtils {
 					} else {
 						storeTranslations(translations, toFile);
 					}
-				} else {
-					throw new EngineException("Unable to translate file through google api");
 				}
 				
 			} catch (Exception e) {
-				new EngineException("Unexpected error while translating file", e);
+				if (failed) {
+					throw new EngineException("Unable to translate file through google api", e);
+				} else {
+					throw new EngineException("Unexpected error while translating file", e);
+				}
 			}
 		}
 		
@@ -182,7 +184,7 @@ public class TranslateUtils {
 			if (key != null) {
 				try {
 					if (jsonObject.has(key)) {
-						Engine.logEngine.warn("(TranslateUtils) For text \""+text+"\" : key \""+key+"\" already exist with value \""+jsonObject.getString(key)+"\"");
+						Engine.logEngine.debug("(TranslateUtils) For text \""+text+"\" : key \""+key+"\" already exist with value \""+jsonObject.getString(key)+"\"");
 					} else {
 						jsonObject.put(key, text);
 					}
