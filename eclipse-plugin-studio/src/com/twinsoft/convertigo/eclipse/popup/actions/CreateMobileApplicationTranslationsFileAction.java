@@ -38,7 +38,9 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MobileApplicationTranslationsDialog;
@@ -73,16 +75,28 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
     				new WalkHelper() {
     					@Override
     					protected void walk(DatabaseObject databaseObject) throws Exception {
+    						String text = null;
     						if (databaseObject instanceof PageComponent) {
 								PageComponent page = (PageComponent)databaseObject;
-								textList.add(page.getTitle());
+								text = page.getTitle();
+    						} else if (databaseObject instanceof UIUseShared) {
+    							UIUseShared uius = (UIUseShared)databaseObject;
+    							UISharedComponent uisc = uius.getTargetSharedComponent();
+    							if (uisc != null && ! uius.isRecursive()) {
+    								super.walk(uisc);
+    							}
     						} else if (databaseObject instanceof UIText) {
     							UIText uiText = (UIText)databaseObject;
     							MobileSmartSourceType msst = uiText.getTextSmartType();
     							if (Mode.PLAIN.equals(msst.getMode())) {
-    								textList.add(msst.getValue());
+    								text = msst.getValue();
     							}
     						}
+    						
+    						if (text != null && !textList.contains(text)) {
+    							textList.add(text);
+    						}
+    						
     						super.walk(databaseObject);
     					}
     				}.init(application);
@@ -107,6 +121,7 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
                 	// store target file
     				if (!to.equals(from)) {
 	    				File target = new File(i18nDir, to.getLanguage() + ".json");
+	    				// translate with google api
 	    				if (auto) {
 	    					ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
 	    					dialog.run(true, false, new IRunnableWithProgress() {
@@ -119,11 +134,15 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
 	    	    						ConvertigoPlugin.logDebug(target.getName() + " file successfully translated.");
 	    	    					} catch (Exception e) {
 	    	    						ConvertigoPlugin.logError(e.getMessage(), false);
+	    	    						try {
+											TranslateUtils.storeTranslations(textList, target);
+										} catch (Exception ex) {}
 	    	    					}
 	    							monitor.done();
 	    						}
 	    					});
 	    				}
+	    				// do not translate
 	    				else {
 	        				TranslateUtils.storeTranslations(textList, target);
 	    				}
@@ -143,7 +162,6 @@ public class CreateMobileApplicationTranslationsFileAction extends MyAbstractAct
     				ConvertigoPlugin.logInfo("Translations file(s) successfully created or updated.", true);
     			}
     		}
-        	
         }
         catch (Throwable e) {
         	ConvertigoPlugin.logException(e, "Unable to create the Mobile application translations file(s)!");
