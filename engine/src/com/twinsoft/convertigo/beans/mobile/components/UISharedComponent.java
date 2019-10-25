@@ -79,6 +79,8 @@ public class UISharedComponent extends UIComponent implements IShared {
 	protected String computeTemplate(UIUseShared uiUse) {
 		String computed = "";
 		if (isEnabled()) {
+			computed += "<!-- '"+ getName() +"' shared component template -->" + System.lineSeparator();
+			computed += "<ng-template #sc"+ this.priority +" let-params"+ this.priority +"=\"params"+ this.priority +"\" >" + System.lineSeparator();
 			for (UIComponent uic: getUIComponentList()) {
 				if (!(uic instanceof UICompVariable)) {
 					try {
@@ -88,6 +90,7 @@ public class UISharedComponent extends UIComponent implements IShared {
 					}
 				}
 			}
+			computed += "</ng-template >" + System.lineSeparator();
 		}
 		return computed;
 	}

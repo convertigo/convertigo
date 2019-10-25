@@ -24,4 +24,5 @@ public interface IScriptComponent {
 	public boolean addDeclaration(String name, String code);
 	public boolean addConstructor(String name, String code);
 	public boolean addFunction(String name, String code);
+	public boolean addTemplate(String name, String code);
 }
