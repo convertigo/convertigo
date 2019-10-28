@@ -208,6 +208,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 	
 	protected String getScope() {
+		
+		UIDynamicAction original = (UIDynamicAction) getOriginal();
+		UISharedComponent sharedComponent = original.getSharedComponent();
+		boolean isInSharedComponent = sharedComponent  != null;
+		
 		String scope = "";
 		
 		DatabaseObject parent = getParent();
@@ -217,6 +222,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (uisc != null) {
 					scope += !scope.isEmpty() ? ", ":"";
 					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+				}
+				if (isInSharedComponent) {
+					break;
 				}
 			}
 			if (parent instanceof UIControlDirective) {
@@ -247,6 +255,16 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			
 			parent = parent.getParent();
 		}
+		
+		if (!scope.isEmpty()) {
+			if (isInSharedComponent) {
+				scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+			} else {
+				scope = "merge({}, {"+ scope +"})";
+			}
+		} else {
+			scope = "{}";
+		}
 		return scope;
 	}
 	
@@ -272,7 +290,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			String scope = getScope();
 			String in = formGroupName == null ? "{}": "merge({},"+formGroupName +".value)";
 			if (isStacked()) {
-				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+ in +", out:$event}})";
+				return getFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";
 			} else {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
@@ -291,7 +309,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						vars = "merge(merge({},"+formGroupName +".value), "+ vars +")";
 					}
 					
-					String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
+					String stack = "{stack:{root: {scope:"+ scope +", in:"+ in +", out:$event}}}";
 					props = "merge(merge({},"+ props  +"), "+ stack +")";
 					
 					if (compareToTplVersion("1.0.91") >= 0) {

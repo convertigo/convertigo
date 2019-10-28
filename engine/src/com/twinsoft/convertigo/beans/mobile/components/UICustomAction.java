@@ -275,7 +275,12 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected String getScope() {
+		UICustomAction original = (UICustomAction) getOriginal();
+		UISharedComponent sharedComponent = original.getSharedComponent();
+		boolean isInSharedComponent = sharedComponent  != null;
+		
 		String scope = "";
+		
 		DatabaseObject parent = getParent();
 		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent)&& !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIUseShared) {
@@ -283,6 +288,9 @@ public class UICustomAction extends UIComponent implements IAction {
 				if (uisc != null) {
 					scope += !scope.isEmpty() ? ", ":"";
 					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+				}
+				if (isInSharedComponent) {
+					break;
 				}
 			}
 			if (parent instanceof UIControlDirective) {
@@ -312,6 +320,17 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 			parent = parent.getParent();
 		}
+		
+		if (!scope.isEmpty()) {
+			if (isInSharedComponent) {
+				scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+			} else {
+				scope = "merge({}, {"+ scope +"})";
+			}
+		} else {
+			scope = "{}";
+		}
+		
 		return scope;
 	}
 	
@@ -337,7 +356,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			String scope = getScope();
 			String in = formGroupName == null ? "{}": "merge({},"+formGroupName +".value)";
 			if (isStacked()) {
-				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
+				return getFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";
 			} else {
 				String props = "{}", vars = "{}";
 				String inputs = computeActionInputs(true);
@@ -352,7 +371,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					vars = "merge(merge({},"+formGroupName +".value), "+ vars +")";
 				}
 				
-				String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
+				String stack = "{stack:{root: {scope:"+ scope +", in:"+ in +", out:$event}}}";
 				props = "merge(merge({},"+ props  +"), "+ stack +")";
 				
 				String actionName = getActionName();

@@ -26,7 +26,9 @@ import java.util.Set;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -140,7 +142,8 @@ public class UIUseShared extends UIElement {
 					}
 				}
 				
-				String params = "merge({" + compVars.toString() + "},{" + useVars.toString() + "})";
+				String scope = getScope();
+				String params = "merge(merge({" + compVars.toString() + "},{" + useVars.toString() + "}),{scope:"+ scope +"})";
 				
 				// recursive case
 				if (parentSharedComp != null && parentSharedComp.priority == uisc.priority) {
@@ -158,6 +161,67 @@ public class UIUseShared extends UIElement {
 			}
 		}
 		return computed;
+	}
+	
+	protected String getScope() {
+		UIUseShared original = (UIUseShared) getOriginal();
+		UISharedComponent sharedComponent = original.getSharedComponent();
+		boolean isInSharedComponent = sharedComponent  != null;
+
+		String scope = "";
+		
+		DatabaseObject parent = getParent();
+		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
+			if (parent instanceof UIUseShared) {
+				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
+				if (uisc != null) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+				}
+				if (isInSharedComponent) {
+					break;
+				}
+			}
+			if (parent instanceof UIControlDirective) {
+				UIControlDirective uicd = (UIControlDirective)parent;
+				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+					
+					String item = uicd.getDirectiveItemName();
+					if (!item.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += item + ": "+ item;
+					}
+					String index = uicd.getDirectiveIndexName();
+					if (!index.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += index + ":" + index;
+					}
+				}
+			}
+			if (parent instanceof UIElement) {
+				String identifier = ((UIElement)parent).getIdentifier();
+				if (!identifier.isEmpty()) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += identifier+ ": "+ identifier;
+				}			
+			}
+			
+			parent = parent.getParent();
+		}
+		
+		if (!scope.isEmpty()) {
+			if (isInSharedComponent) {
+				scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+			} else {
+				scope = "merge({}, {"+ scope +"})";
+			}
+		} else {
+			scope = "{}";
+		}
+		
+		return scope;
 	}
 	
 	@Override
