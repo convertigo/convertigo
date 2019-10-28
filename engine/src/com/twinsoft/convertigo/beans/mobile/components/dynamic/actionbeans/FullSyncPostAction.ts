@@ -24,22 +24,26 @@
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
                 delete data[rootKey].c8oGrp
-                if (group != null)
+                delete data[rootKey].noLoading
+                delete data[rootKey].tplVersion
+                if (group != null) {
                     data["c8oGrp"] = group
-                    
+                }
                 data["_use_policy"] = policy
-                if(id != null){
-                    data["_id"]         = id
+                if (id != null) {
+                    data["_id"] = id
                 }
                 
             } else {
-                if(id == null){
+                if (id == null) {
                    delete props._id;
                 }
                 if (group == null) {
                     delete props.c8oGrp
                 }
                 data = C8oCafUtils.merge(props, vars)
+                delete data.noLoading
+                delete data.tplVersion
             }
             let md:boolean = props.noLoading;
             
