@@ -116,7 +116,11 @@ public class SourcePickerHelper implements IStepSourceEditor {
 								XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
 								if (xso != null) {
 									stepDoc = XmlSchemaUtils.getDomInstance(xso);	
+								} else {
+									System.out.println("Could not retrieve schema for step \""+ targetStep.getName() + "\"!");
 								}
+							} else {
+								System.out.println("Could not retrieve schema : targeted step is null!");
 							}
 							
 							if (stepDoc != null/* && !(targetStep instanceof IteratorStep)*/) { // stepDoc can be null for non "xml" step : e.g jIf
@@ -141,6 +145,8 @@ public class SourcePickerHelper implements IStepSourceEditor {
 						if (needToClean) {
 							clean();
 						}
+						onDisplayDone();
+						
 						shell.setCursor(null);
 						waitCursor.dispose();
 			        }
@@ -150,6 +156,10 @@ public class SourcePickerHelper implements IStepSourceEditor {
 			ConvertigoPlugin.logException(e, StringUtils.readStackTraceCauses(e));
 			clean();
 		}
+	}
+	
+	protected void onDisplayDone() {
+		// does nothing
 	}
 	
 	private Shell getParentShell() {

@@ -76,16 +76,6 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 			
 			@Override
 			protected String onDisplayXhtml(String xpath) {
-
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						enableOK(true);
-						noPreviousLabel.setText(noPreviousLabelText);
-						noPreviousLabel.setVisible(false);
-					}
-				});
-				
 				if (lastSelectedItem == null) {
 					sourceStep = step;
 					sourceXpath = xpath;
@@ -113,6 +103,18 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 					}
 				});
 				super.displayTargetWsdlDom(dbo);
+			}
+			
+			@Override
+			protected void onDisplayDone() {
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						enableOK(true);
+						noPreviousLabel.setText(noPreviousLabelText);
+						noPreviousLabel.setVisible(false);
+					}
+				});
 			}
 		};
 		
