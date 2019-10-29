@@ -119,6 +119,7 @@ import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ITablesProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -3018,6 +3019,44 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 			refreshTree();
 			return true;
+		}
+		return false;
+	}
+
+	public boolean folderAcceptMobileComponent(int folderType, DatabaseObject databaseObject) {
+		if (databaseObject != null && databaseObject instanceof MobileComponent) {
+			switch (folderType) {
+				case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
+					return databaseObject instanceof RouteActionComponent;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES:
+					return databaseObject instanceof UIAttribute &&
+							!(databaseObject instanceof UIControlAttr);
+				case ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS:
+					return databaseObject instanceof UIControlAttr;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS:
+					return databaseObject instanceof UIAppEvent ||
+							databaseObject instanceof UIPageEvent ||
+							databaseObject instanceof UIEventSubscriber ||
+							databaseObject instanceof RouteEventComponent ;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_MENUS:
+					return databaseObject instanceof UIDynamicMenu;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_PAGES:
+					return databaseObject instanceof PageComponent;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES:
+					return databaseObject instanceof RouteComponent;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS:
+					return databaseObject instanceof UIActionStack;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS:
+					return databaseObject instanceof UISharedComponent;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_STYLES:
+					return databaseObject instanceof UIStyle;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS:
+					return databaseObject instanceof UIFormValidator;
+				case ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES:
+					return databaseObject instanceof UIStackVariable ||
+							databaseObject instanceof UICompVariable ||
+							databaseObject instanceof UIControlVariable;
+			}
 		}
 		return false;
 	}
