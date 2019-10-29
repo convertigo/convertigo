@@ -38,8 +38,9 @@ import { ActionBeans } 																from '../../services/actionbeans.service'
 /*End_c8o_PageImport*/
 
 @IonicPage({
+  priority: /*=c8o_PagePriority*/,
   segment: /*=c8o_PageSegment*/,
-  priority: /*=c8o_PagePriority*/
+  defaultHistory: /*=c8o_PageHistory*/
 })
 @Component({
   selector: /*=c8o_PageSelector*/,

@@ -1,4 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent" isRoot="false" priority="0" version="   7   7   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="defaultHistory">
+            <java.lang.String value="[]"/>
+        </property>
+        <property name="icon">
+            <java.lang.String value=""/>
+        </property>
+        <property name="iconPosition">
+            <java.lang.String value=""/>
+        </property>
+        <property name="inAutoMenu">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="menu">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Page"/>
+        </property>
+        <property name="preloadPriority">
+            <java.lang.String value="low"/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="segment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="title">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIText" priority="0" version="   7   7   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -233,43 +273,7 @@
             <java.lang.String value="Event"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent" isRoot="false" priority="0" version="   7   7   0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="icon">
-            <java.lang.String value=""/>
-        </property>
-        <property name="iconPosition">
-            <java.lang.String value=""/>
-        </property>
-        <property name="inAutoMenu">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="menu">
-            <java.lang.String value=""/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Page"/>
-        </property>
-        <property name="preloadPriority">
-            <java.lang.String value="low"/>
-        </property>
-        <property name="scriptContent">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent/>
-            </xmlizable>
-        </property>
-        <property name="segment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="title">
-            <java.lang.String value=""/>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   6   2">
         <property name="attrValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">

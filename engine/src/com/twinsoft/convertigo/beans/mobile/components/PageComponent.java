@@ -458,6 +458,16 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.preloadPriority = preloadPriority;
 	}
 
+	private String defaultHistory = "[]";
+	
+	public String getDefaultHistory() {
+		return defaultHistory;
+	}
+
+	public void setDefaultHistory(String defaultHistory) {
+		this.defaultHistory = defaultHistory;
+	}
+	
 	private transient Map<String, String> pageImports = new HashMap<String, String>();
 	
 	private boolean hasImport(String name) {

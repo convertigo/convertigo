@@ -1327,6 +1327,7 @@ public class MobileBuilder {
 		String pageName = page.getName();
 		String c8o_PageName = pageName;
 		//String c8o_PageIonicName = pageName;
+		String c8o_PageHistory = page.getDefaultHistory();
 		String c8o_PagePriority = page.getPreloadPriority();
 		String c8o_PageSegment = page.getSegment();
 		String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
@@ -1342,6 +1343,7 @@ public class MobileBuilder {
 		//tsContent = tsContent.replaceAll("/\\*\\=c8o_PageIonicName\\*/","'"+c8o_PageIonicName+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PagePriority\\*/","'"+c8o_PagePriority+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSegment\\*/","'"+c8o_PageSegment+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageHistory\\*/",c8o_PageHistory);
 		
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
