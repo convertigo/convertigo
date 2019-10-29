@@ -196,7 +196,7 @@ dependencies {
 	compileFlat 'com.convertigo.lib:soapui:3.5.1'
 	compile     'com.convertigo.provider:convertigo-provider-couchdb:7.7.0-SNAPSHOT'
 	compile     'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
-	compile     'com.convertigo.provider:convertigo-provider-sap:7.6.4-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-sap:7.6.5-SNAPSHOT'
 	compile     'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 	compileFlat 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat 'com.convertigo.twinsoft.lib:comm:1998.11.15'

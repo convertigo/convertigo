@@ -85,14 +85,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 		}
 	}
 	
-	static {
-		MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap(); 
-		mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html"); 
-		mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml"); 
-		mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain"); 
-		mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed"); 
-		mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
-	}
+	static private MailcapCommandMap mailcapCommandMap = null;
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
@@ -454,6 +447,21 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 				public void run() {
 					Properties props = new Properties();
 					try {
+						if (mailcapCommandMap == null) {
+							MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap();
+							synchronized (mc) {
+								if (mailcapCommandMap == null) {
+									mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html");
+									mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml");
+									mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain");
+									mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
+									mc.addMailcap("multipart/mixed;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed");
+									mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
+								}
+								mailcapCommandMap = mc;
+							}
+						}
+						
 						if (smtpAuthType == SmtpAuthType.sslTls) {
 							Provider provider = (Provider) Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance();
 							java.security.Security.addProvider(provider);

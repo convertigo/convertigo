@@ -527,6 +527,22 @@ jobs:
     - run:
         name: Sync builds to S3
         command: aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
+    - run:
+        name: Remove old Docker images
+        command: |
+          if [ "$CONVERTIGO_DOCKER" = "convertigo/convertigo-ci" ]; then
+            DO="true"
+            while [ $DO = "true" ]; do
+              DO="false"
+              echo "finding images ..."
+              for image in $(curl -s 'https://cloud.docker.com/v2/repositories/convertigo/convertigo-ci/tags/?page_size=25&page=5' | jq -r '.results[].name' || true); do
+                img=$(echo $image)
+                echo "delete $img"
+                curl -s -X DELETE -u $DOCKER_USERNAME:$DOCKER_PASSWORD https://cloud.docker.com/v2/repositories/convertigo/convertigo-ci/tags/$img/
+                DO="true"
+              done
+            done
+          fi
         
   release:
     docker:
