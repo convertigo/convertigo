@@ -24,8 +24,8 @@
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
                 delete data[rootKey].c8oGrp
-                delete data[rootKey].noLoading
-                delete data[rootKey].tplVersion
+                delete data[rootKey]["noLoading"]
+                delete data[rootKey]["tplVersion"]
                 if (group != null) {
                     data["c8oGrp"] = group
                 }
@@ -42,8 +42,8 @@
                     delete props.c8oGrp
                 }
                 data = C8oCafUtils.merge(props, vars)
-                delete data.noLoading
-                delete data.tplVersion
+                delete data["noLoading"]
+                delete data["tplVersion"]
             }
             let md:boolean = props.noLoading;
             
