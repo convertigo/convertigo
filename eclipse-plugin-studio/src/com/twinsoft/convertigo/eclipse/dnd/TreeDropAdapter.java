@@ -839,8 +839,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	 */
 	@Override
 	public boolean validateDrop(Object target, int operation, TransferData transferType) {
-		ProjectExplorerView	explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
 		if (TextTransfer.getInstance().isSupportedType(transferType)) {
 			if (getCurrentOperation() == DND.DROP_MOVE) {
 				Object targetObject = getCurrentTarget();
@@ -917,7 +915,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						
 						if (targetTreeObject instanceof ObjectsFolderTreeObject) {
 							ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)targetTreeObject;
-							if (!explorerView.folderAcceptMobileComponent(folderTreeObject.folderType, databaseObject)) {
+							if (!ProjectExplorerView.folderAcceptMobileComponent(folderTreeObject.folderType, databaseObject)) {
 								return false;
 							}
 							// continue

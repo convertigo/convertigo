@@ -3028,7 +3028,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return comparator;
 	}
 
-	public boolean folderAcceptMobileComponent(int folderType, DatabaseObject databaseObject) {
+	public static boolean folderAcceptMobileComponent(int folderType, DatabaseObject databaseObject) {
 		if (databaseObject != null && databaseObject instanceof MobileComponent) {
 			switch (folderType) {
 				case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
