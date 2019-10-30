@@ -85,6 +85,7 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[9] = new PropertyDescriptor("defaultHistory", beanClass, "getDefaultHistory", "setDefaultHistory");
 			properties[9].setDisplayName(getExternalizedString("property.defaultHistory.display_name"));
 			properties[9].setShortDescription(getExternalizedString("property.defaultHistory.short_description"));
+			properties[9].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
