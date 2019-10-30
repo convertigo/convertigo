@@ -203,6 +203,7 @@ public class MobileBuilder {
 	private MbWorker worker = null;
 	
 	private Project project = null;
+	private boolean[] isBuilding = {false};
 	boolean needPkgUpdate = false;
 	boolean initDone = false;
 	boolean autoBuild = true;
@@ -2347,6 +2348,30 @@ public class MobileBuilder {
 					if (queue.offer(map)) {
 						pushedFiles.clear();
 					}
+				}
+			}
+		}
+	}
+
+	public void startBuild() {
+		synchronized (isBuilding) {
+			isBuilding[0] = true;
+		}
+	}
+	
+	public void buildFinished() {
+		synchronized (isBuilding) {
+			isBuilding[0] = false;
+			isBuilding.notify();
+		}
+	}
+	
+	public void waitBuildFinished() {
+		synchronized (isBuilding) {
+			if (isBuilding[0]) {
+				try {
+					isBuilding.wait(60000);
+				} catch (InterruptedException e) {
 				}
 			}
 		}

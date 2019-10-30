@@ -1287,6 +1287,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 			} catch (CoreException ce) {}
 			
 			try {
+				mb.startBuild();
 				File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
 				displayObjectsMobile.mkdirs();
 				
@@ -1346,10 +1347,11 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					if (StringUtils.isNotBlank(line)) {
 						Engine.logStudio.info(line);
 						appendOutput(line);
-						if (line.contains("build finished")) {
+						if (line.matches(".*build .*finished.*")) {
 							synchronized (mutex) {
 								mutex.notify();
 							}
+							mb.buildFinished();
 						}
 						Matcher m = pIsServerRunning.matcher(line);
 						if (m.matches()) {
@@ -1357,6 +1359,10 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 							envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
 							FileUtils.write(new File(displayObjectsMobile, "env.json"), envJSON.toString(4), "UTF-8");
 							baseUrl = m.group(1);
+							synchronized (mutex) {
+								mutex.notify();
+							}
+							mb.buildFinished();
 							doLoad();
 						}
 					}
@@ -1382,6 +1388,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 					mutex.notify();
 				}
 				mb.setBuildMutex(null);
+				mb.buildFinished();
 				try {
 					ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 				} catch (CoreException ce) {}
