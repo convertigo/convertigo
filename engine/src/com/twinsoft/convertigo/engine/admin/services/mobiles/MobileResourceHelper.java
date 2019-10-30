@@ -567,6 +567,7 @@ public class MobileResourceHelper {
 			if (!Files.exists(resourcePath.resolve("build"))) {
 				return;
 			}
+			mobileApplication.getProject().getMobileBuilder().waitBuildFinished();
 			Path fuPath = Paths.get(project.getDirPath(), "Flashupdate");
 			Files.createDirectories(fuPath);
 			Path pathMD5 = fuPath.resolve("md5.json");
@@ -598,8 +599,10 @@ public class MobileResourceHelper {
 							String md5 = DigestUtils.md5Hex(fis);
 							String lastMD5 = entryMD5 == null ? null : entryMD5.getString("md5");
 							if (md5.equals(lastMD5)) {
+								Engine.logEngine.trace("(MobileResourceHelper) restore " + f.getName() + " " + md5 + " from " + f.lastModified() + " to " + entryMD5.getLong("ts"));
 								f.setLastModified(entryMD5.getLong("ts"));
 							} else {
+								Engine.logEngine.trace("(MobileResourceHelper) changed " + f.getName() + " " + md5 + " != " + lastMD5 + " from " + (entryMD5 == null ? null : entryMD5.getLong("ts")) + " to "+ f.lastModified());
 								entryMD5 = new JSONObject();
 								entryMD5.put("md5", md5);
 								entryMD5.put("ts", f.lastModified());
@@ -610,13 +613,16 @@ public class MobileResourceHelper {
 				} catch (Exception e) {
 					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e);
 				}
-				latest[0] = Math.max(latest[0], f.lastModified());
+				if (!f.getName().equals("service-worker.js")) {
+					latest[0] = Math.max(latest[0], f.lastModified());
+				}
 			});
 			
 			if (latest[0] > 0) {
 				Files.walk(resourcePath).forEach(p -> {
-					if (Files.isDirectory(p)) {
-						p.toFile().setLastModified(latest[0]);
+					File f = p.toFile();
+					if (f.lastModified() > latest[0]) {
+						f.setLastModified(latest[0]);
 					}
 				});
 			}
