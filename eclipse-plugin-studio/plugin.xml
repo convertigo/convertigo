@@ -2060,6 +2060,14 @@
                </objectState>
             </enablement>
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/uicomponent_color_16x16.png"
+               id="convertigo.action.newUIComponent"
+               label="UI Component"
+               menubarPath="convertigo.menu.new/content">
+         </action>
          <menu
                id="convertigo.menu.new"
                label="New"

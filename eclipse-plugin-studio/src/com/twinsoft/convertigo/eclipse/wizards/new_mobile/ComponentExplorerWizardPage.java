@@ -36,16 +36,19 @@ public class ComponentExplorerWizardPage extends WizardPage {
 	private Object parentObject = null;
 	private Composite composite = null;
 	private DatabaseObject newBean = null;
+	private int folderType = -1;
+	
 //	private String helpString = null;
 	
-	public ComponentExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass) {
+	public ComponentExplorerWizardPage(Object parentObject, Class<DatabaseObject> beanClass, int folderType) {
 		super("ComponentExplorerWizardPage");
 		this.beanClass = beanClass;
 		this.parentObject = parentObject;
+		this.folderType = folderType;
 	}
 
 	public void createControl(Composite parent) {
-		composite = new ComponentExplorerComposite(this, parent, SWT.NULL, parentObject, beanClass);
+		composite = new ComponentExplorerComposite(this, parent, SWT.NULL, parentObject, beanClass, folderType);
 		setControl(composite);
 	}
 	

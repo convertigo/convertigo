@@ -54,6 +54,7 @@ public class MobileComponentCreateAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
+        	int folderType = -1;
     		TreeObject parentTreeObject = null;
     		DatabaseObject databaseObject = null;
     		ProjectExplorerView explorerView = getProjectExplorerView();
@@ -61,14 +62,16 @@ public class MobileComponentCreateAction extends MyAbstractAction {
     			parentTreeObject = explorerView.getFirstSelectedTreeObject();
     			
     			if (parentTreeObject instanceof ObjectsFolderTreeObject) {
-    				parentTreeObject = ((ObjectsFolderTreeObject) parentTreeObject).getParent();
+    				ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)parentTreeObject;
+    				folderType = folderTreeObject.folderType;
+    				parentTreeObject = folderTreeObject.getParent();
     				databaseObject  = (DatabaseObject) parentTreeObject.getObject();
     			}
     			else {
     				databaseObject = (DatabaseObject) parentTreeObject.getObject();
     			}
     			
-    			ComponentObjectWizard newObjectWizard = new ComponentObjectWizard(databaseObject, databaseObjectClassName);
+    			ComponentObjectWizard newObjectWizard = new ComponentObjectWizard(databaseObject, databaseObjectClassName, folderType);
         		WizardDialog wzdlg = new WizardDialog(shell, newObjectWizard);
         		wzdlg.setPageSize(850, 650);
         		wzdlg.open();
