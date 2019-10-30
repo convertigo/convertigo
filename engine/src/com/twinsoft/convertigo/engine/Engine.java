@@ -47,6 +47,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.log4j.Logger;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -66,6 +67,7 @@ import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProv
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
+import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
@@ -797,6 +799,12 @@ public class Engine {
 							Engine.theApp.referencedProjectManager.check();
 						}
 					});
+				}
+				
+				if (DelegateServlet.canDelegate()) {
+					JSONObject json = new JSONObject();
+					json.put("action", "engineStarted");
+					DelegateServlet.delegate(json);
 				}
 			} catch (Throwable e) {
 				isStartFailed = true;
