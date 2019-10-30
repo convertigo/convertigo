@@ -4509,5 +4509,13 @@
     "value": "false"
    }
   }
+ }},
+ "PauseAction": {"   7   7   0": {
+  "name": "PauseAction",
+  "properties": {"duration": {
+   "name": "duration",
+   "mode": "plain",
+   "value": "1000"
+  }}
  }}
 }

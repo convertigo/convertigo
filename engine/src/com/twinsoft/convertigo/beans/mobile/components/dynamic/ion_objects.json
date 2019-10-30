@@ -9845,6 +9845,28 @@
 	        "values": [false,true]
 	      }
       }
+    },
+    
+    "PauseAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "PauseAction",
+      "label": "PauseAction",
+      "description": [
+"Defines an <i>PauseAction</i> component. | This component helps waiting for a given time to be elapsed."],
+      "group": "Actions",
+      "icon16": "pauseaction_color_16x16.png",
+      "icon32": "pauseaction_color_32x32.png",
+      "properties": {
+	      "duration": {
+	        "label": "Duration",
+	        "description": "Specify the pause duration (ms)",
+	        "category": "@Properties",
+	        "mode": "plain",
+	        "type": "number",
+	        "value": "1000",
+	        "values": [false,true]
+	      }
+      }
     }
     
   }
