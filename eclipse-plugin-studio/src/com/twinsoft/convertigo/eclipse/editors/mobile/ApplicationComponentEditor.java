@@ -74,8 +74,11 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
 import com.teamdev.jxbrowser.browser.Browser;
@@ -1174,7 +1177,35 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		final MobileBuilderBuildMode buildMode = this.buildMode;
 		final int buildCount = ++this.buildCount;
 		final boolean isDark = SwtUtils.isDark();
+
+		// Close editors (*.temp.ts) to avoid npm error at build launch
+		ConvertigoPlugin.getDisplay().syncExec(
+			new Runnable() {
+				public void run() {
+					try {
+						MobileComponent mc = applicationEditorInput.application;
+						IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+						if (activePage != null) {
+							IEditorReference[] editorRefs = activePage.getEditorReferences();
+							for (int i = 0; i < editorRefs.length; i++) {
+								IEditorReference editorRef = (IEditorReference) editorRefs[i];
+								try {
+									IEditorInput editorInput = editorRef.getEditorInput();
+									if (editorInput != null && editorInput instanceof ComponentFileEditorInput) {
+										if (((ComponentFileEditorInput)editorInput).is(mc) ||
+											((ComponentFileEditorInput)editorInput).isChildOf(mc)) {
+												activePage.closeEditor(editorRef.getEditor(false), false);
+										}
+									}
+								} catch(Exception e) {}
+							}
+						}
+					} catch (Throwable t) {}
+				}
+			}
+		);
 		
+		// Launch build
 		Engine.execute(() -> {
 			try {
 				String loader = IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8");
