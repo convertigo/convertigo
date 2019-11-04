@@ -97,15 +97,20 @@
 			var url = window.location.href;
 			var parsedResponse = {};
 			
-		 	responseParams = ((url).split("#")[1]).split("&");
+		 	responseParams = ((url).split("?")[1]).split("&");
 	        for (var i = 0; i < responseParams.length; i++) {
 	             parsedResponse[responseParams[i].split("=")[0]] = unescape(responseParams[i].split("=")[1]);
 	        }
-	        if (parsedResponse["access_token"] !== undefined &&
-	            parsedResponse["access_token"] !== null) {
-	        		//console.log("access token is : " + parsedResponse["access_token"]);
+	        if (parsedResponse["code"] !== undefined &&
+	            parsedResponse["code"] !== null) {
+	        	//console.log("code : " + parsedResponse["code"]);
+	        	//console.log("state : " + parsedResponse["state"]);
+	        	if (parsedResponse["state"] == "c8ocsrf") {
+		        	parsedResponse["access_token"] = "none";
+		        	parsedResponse["redirect_uri"] = url.split("?")[0];
 	        		window.opener.postMessage(parsedResponse, '*');
 	        		window.close();
+	        	}
 	        } else {
 	        	console.log("Error on oAuth");
 	        }

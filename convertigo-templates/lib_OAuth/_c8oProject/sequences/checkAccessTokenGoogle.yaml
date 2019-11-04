@@ -1,0 +1,33 @@
+comment: |
+  Checks is a valid access token is held by the current users' session
+  
+  This as to be called by client apps to decide whenever or not they have to display an OAuth login screen
+  
+  
+↓GetTokenFromUserSession [steps.SessionGetStep-1572768404319]: 
+  key: oAuthAccessToken
+  output: false
+↓IfExistThenElse [steps.IfExistStep-1572768404322]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1572768404319
+        - java.lang.String: 
+          - ↑value: ./expression/text()
+  ↓login [steps.XMLElementStep-1572768404334]: 
+    nodeName: token
+    nodeText: ok
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1572768404319
+          - java.lang.String: 
+            - ↑value: ./expression/text()
+  ↓Return [steps.ReturnStep-1572768404337]: 
+↓login [steps.XMLElementStep-1572768404340]: 
+  nodeName: notoken
+  nodeText: true
