@@ -1,0 +1,18 @@
+databaseName: lib_usermanager_fullsync
+↓DeleteDocument [transactions.couchdb.DeleteDocumentTransaction]: 
+  ↓_use_docid [variables.RequestableVariable-1572602108218]: 
+    description: Document ID
+↓GetAccountDocument [transactions.couchdb.GetDocumentTransaction]: 
+  accessibility: Private
+  ↓_use_docid [variables.RequestableVariable-1572600355389]: 
+    description: Document ID
+↓GetServerInfo [transactions.couchdb.GetServerInfoTransaction]: 
+  ↑default: true
+↓PostDocument [transactions.couchdb.PostDocumentTransaction]: 
+  accessibility: Private
+  ↓_use_json_base [variables.RequestableVariable-1572600355393]: 
+    description: (string) – JSON use as a base for the document (js object). Optional
+  ↓_id [variables.RequestableVariable-1572600355396]: 
+    description: Document id
+  ↓data [variables.RequestableVariable-1572600355399]: 
+    description: Document content

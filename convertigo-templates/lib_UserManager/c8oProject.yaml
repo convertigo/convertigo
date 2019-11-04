@@ -1,0 +1,20 @@
+↑convertigo: 7.7.0.m006
+↓lib_UserManager [core.Project]: 
+  comment: |
+    'The lib_UserManager enables your projects to include user management and authentication in your apps. This library will handle :
+    
+    - user login with user/password using a salted password security
+    - user login using OpenID
+    
+    '
+  ↓lib_usermanager_fullsync [connectors.FullSyncConnector]: 🗏 connectors/lib_usermanager_fullsync.yaml
+  ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
+  ↓AddUser [sequences.GenericSequence]: 🗏 sequences/AddUser.yaml
+  ↓DeleteUser [sequences.GenericSequence]: 🗏 sequences/DeleteUser.yaml
+  ↓HashAndSalt [sequences.GenericSequence]: 🗏 sequences/HashAndSalt.yaml
+  ↓NewSequence [sequences.GenericSequence]: 🗏 sequences/NewSequence.yaml
+  ↓SignIn [sequences.GenericSequence]: 🗏 sequences/SignIn.yaml
+  ↓MobileApplication [core.MobileApplication]: 
+    ↓Application [mobile.components.ApplicationComponent]: 🗏 mobileApplication.yaml
+  ↓CouchDb_schema [references.ImportXsdSchemaReference]: 
+    urlpath: http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd

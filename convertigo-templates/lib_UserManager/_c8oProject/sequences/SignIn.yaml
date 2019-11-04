@@ -1,0 +1,145 @@
+↓Input_variables [steps.InputVariablesStep-1572602646388]: 
+↓Call_Transaction [steps.TransactionStep-1572602646412]: 
+  sourceTransaction: lib_UserManager.lib_usermanager_fullsync.GetAccountDocument
+  ↓_use_docid [variables.StepVariable-1572602726771]: 
+    description: Document ID
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1572602646388
+          - java.lang.String: 
+            - ↑value: ./user/text()
+↓IfExistThenElse [steps.IfExistThenElseStep-1572602646421]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1572602646412
+        - java.lang.String: 
+          - ↑value: ./document/couchdb_output/error
+  ↓jThen [steps.ThenStep-1572602646424]: 
+    ↓Error_structure [steps.XMLErrorStep-1572602646427]: 
+      code: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: 2
+      details: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: SOURCE
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1572602646412
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/error/text()
+      message: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: Invalid username
+  ↓jElse [steps.ElseStep-1572602646430]: 
+    ↓Call_Sequence [steps.SequenceStep-1572602646391]: 
+      sourceSequence: lib_UserManager.HashAndSalt
+      ↓salt [variables.StepVariable-1572603431368]: 
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1572602646412
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/account/salt/text()
+      ↓password [variables.StepVariable-1572603529414]: 
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1572602646388
+              - java.lang.String: 
+                - ↑value: ./password/text()
+      ↓hash [variables.StepVariable-1572603676838]: 
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1572602646412
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/account/hashPassword/text()
+    ↓IfExistThenElse [steps.IfExistThenElseStep-1572603564791]: 
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1572602646391
+            - java.lang.String: 
+              - ↑value: ./document/verified[text() = 'true']
+      ↓jThen [steps.ThenStep-1572603565165]: 
+        ↓Element [steps.XMLElementStep-1572602646433]: 
+          nodeName: user
+          nodeText: ok
+          sourceDefinition: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+              - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: 1572602646388
+                - java.lang.String: 
+                  - ↑value: ./user/text()
+        ↓Set_authenticated_user [steps.SetAuthenticatedUserStep-1572603813624]: 
+          userid: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+              - SmartType: 
+                - ↑mode: SOURCE
+                - com.twinsoft.convertigo.beans.common.XMLVector: 
+                  - java.lang.String: 
+                    - ↑value: 1572602646388
+                  - java.lang.String: 
+                    - ↑value: ./user/text()
+      ↓jElse [steps.ElseStep-1572603565167]: 
+        ↓Error_structure [steps.XMLErrorStep-1572603720867]: 
+          code: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+              - SmartType: 
+                - ↑mode: PLAIN
+                - →→: 3
+          details: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+              - SmartType: 
+                - ↑mode: SOURCE
+                - com.twinsoft.convertigo.beans.common.XMLVector: 
+          message: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+              - SmartType: 
+                - ↑mode: PLAIN
+                - →→: Invalid password
+↓user [variables.RequestableVariable-1572602646436]: 
+↓password [variables.RequestableVariable-1572602646439]: 
+↓TestInvalidPassword [core.TestCase]: 
+  ↓user [variables.TestCaseVariable-1572603756472]: 
+    value: olivierp@convertigo.com
+  ↓password [variables.TestCaseVariable-1572603756475]: 
+    value: kfdsfkjhdf
+↓TestInvalidUsename [core.TestCase]: 
+  ↓user [variables.TestCaseVariable-1572603885969]: 
+    value: XIYIUYIUY
+  ↓password [variables.TestCaseVariable-1572603885972]: 
+    value: test
+↓TestOK [core.TestCase]: 
+  ↓user [variables.TestCaseVariable-1572602646443]: 
+    value: olivierp@convertigo.com
+  ↓password [variables.TestCaseVariable-1572602646446]: 
+    value: test

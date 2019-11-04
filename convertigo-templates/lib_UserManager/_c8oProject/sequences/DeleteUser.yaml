@@ -1,0 +1,64 @@
+accessibility: Hidden
+authenticatedContextRequired: true
+↓Input_variables [steps.InputVariablesStep-1572602059921]: 
+↓Call_Transaction1 [steps.TransactionStep-1572602116292]: 
+  sourceTransaction: lib_UserManager.lib_usermanager_fullsync.DeleteDocument
+  ↓_use_docid [variables.StepVariable-1572602116294]: 
+    description: Document ID
+    sourceDefinition: 
+      - xmlizable: 
+        - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+        - com.twinsoft.convertigo.beans.common.XMLVector: 
+          - java.lang.String: 
+            - ↑value: 1572602059921
+          - java.lang.String: 
+            - ↑value: ./user/text()
+↓IfExistThenElse [steps.IfExistThenElseStep-1572602059954]: 
+  sourceDefinition: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+      - com.twinsoft.convertigo.beans.common.XMLVector: 
+        - java.lang.String: 
+          - ↑value: 1572602116292
+        - java.lang.String: 
+          - ↑value: ./document/couchdb_output/error
+  ↓jThen [steps.ThenStep-1572602059957]: 
+    ↓Error_structure [steps.XMLErrorStep-1572602059960]: 
+      code: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: 1
+      details: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: SOURCE
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1572602116292
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/error/text()
+      message: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.steps.SmartType
+          - SmartType: 
+            - ↑mode: PLAIN
+            - →→: User not found
+  ↓jElse [steps.ElseStep-1572602059963]: 
+    ↓Element [steps.XMLElementStep-1572602059966]: 
+      nodeName: deleted
+      nodeText: deleted
+      sourceDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - java.lang.String: 
+              - ↑value: 1572602059921
+            - java.lang.String: 
+              - ↑value: ./user/text()
+↓user [variables.RequestableVariable-1572602059969]: 
+↓TestOK [core.TestCase]: 
+  ↓user [variables.TestCaseVariable-1572602059976]: 
+    value: olivierp@convertigo.com
