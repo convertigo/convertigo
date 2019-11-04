@@ -47,6 +47,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.log4j.Logger;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -802,9 +803,15 @@ public class Engine {
 				}
 				
 				if (DelegateServlet.canDelegate()) {
-					JSONObject json = new JSONObject();
-					json.put("action", "engineStarted");
-					DelegateServlet.delegate(json);
+					execute(() -> {
+						try {
+							Engine.logEngine.info("Call delegate action 'engineStarted'");
+							JSONObject json = new JSONObject();
+							json.put("action", "engineStarted");
+							DelegateServlet.delegate(json);
+						} catch (JSONException e) {
+						}
+					});
 				}
 			} catch (Throwable e) {
 				isStartFailed = true;
