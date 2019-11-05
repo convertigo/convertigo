@@ -125,7 +125,7 @@ comment: |
                             '{
                              "ionBean": "OAuthLoginAction",
                              "provider": "plain:openid",
-                             "clientid": "plain:1044339658736-vg4dsovd0et42bs2g1litpfl2anqo78k.apps.googleusercontent.com",
+                             "clientid": "source:{\"filter\":\"Sequence\",\"project\":\"lib_UserManager\",\"input\":\"listen([''lib_OAuth.GetOAuthCredentials''])?.GoogleClientID\"}",
                              "scope": "plain:openid email",
                              "response_type": "plain:code",
                              "loginRequestable": "plain:lib_OAuth.loginGoogleWithCode",
@@ -178,7 +178,7 @@ comment: |
                             '{
                              "ionBean": "OAuthLoginAction",
                              "provider": "plain:linkedin",
-                             "clientid": "plain:775qwthiu873ko",
+                             "clientid": "source:{\"filter\":\"Sequence\",\"project\":\"lib_UserManager\",\"input\":\"listen([''lib_OAuth.GetOAuthCredentials''])?.LinkedInClientID\"}",
                              "scope": "plain:r_liteprofile,r_emailaddress"
                             }'
                           ↓PublishEvent [mobile.components.UIDynamicAction-1572687075042]: 
@@ -217,7 +217,7 @@ comment: |
                           beanData: |
                             '{
                              "ionBean": "OAuthLoginAction",
-                             "clientid": "plain:515d1637-30c8-40b7-b139-ecef1f17d0fa",
+                             "clientid": "source:{\"filter\":\"Sequence\",\"project\":\"lib_UserManager\",\"input\":\"listen([''lib_OAuth.GetOAuthCredentials''])?.AzureAdClientID\"}",
                              "tenantid": "plain:8a22dd7e-cfa3-4d41-8370-e59bb65a8a72",
                              "callbackurl": "plain:https:\/\/c8ocloud.convertigo.net\/convertigo\/projects\/lib_OAuth\/getToken.html"
                             }'
@@ -334,6 +334,8 @@ comment: |
             		page["LoginComponent.pageHeight"] = page.getInstance(Platform).height();
             		resolve();
             
+  ↓CallSequence [mobile.components.UIDynamicAction-1572952599704]: 
+    beanData: '{"ionBean":"CallSequenceAction","requestable":"plain:lib_OAuth.GetOAuthCredentials"}'
 ↓enableGoogleLogin [mobile.components.UICompVariable-1572626360536]: 
   comment: Set to false to disable loggin with google
   value: true

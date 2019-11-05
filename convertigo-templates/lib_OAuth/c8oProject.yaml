@@ -9,6 +9,7 @@
   ↓checkAccessToken [sequences.GenericSequence]: 🗏 sequences/checkAccessToken.yaml
   ↓checkAccessTokenGoogle [sequences.GenericSequence]: 🗏 sequences/checkAccessTokenGoogle.yaml
   ↓checkAccessTokenLinkedIn [sequences.GenericSequence]: 🗏 sequences/checkAccessTokenLinkedIn.yaml
+  ↓GetOAuthCredentials [sequences.GenericSequence]: 🗏 sequences/GetOAuthCredentials.yaml
   ↓loginAzureAdWithAccessToken [sequences.GenericSequence]: 🗏 sequences/loginAzureAdWithAccessToken.yaml
   ↓loginGoogleWithCode [sequences.GenericSequence]: 🗏 sequences/loginGoogleWithCode.yaml
   ↓loginLinkedInWithCode [sequences.GenericSequence]: 🗏 sequences/loginLinkedInWithCode.yaml
