@@ -212,6 +212,22 @@ comment: |
                         }'
                       selfClose: true
                       tagName: img
+                      ↓Event [mobile.components.UIControlEvent-1572936360458]: 
+                        ↓OAuthLoginAzureAD [mobile.components.UIDynamicAction-1572936360461]: 
+                          beanData: |
+                            '{
+                             "ionBean": "OAuthLoginAction",
+                             "clientid": "plain:515d1637-30c8-40b7-b139-ecef1f17d0fa",
+                             "tenantid": "plain:8a22dd7e-cfa3-4d41-8370-e59bb65a8a72",
+                             "callbackurl": "plain:https:\/\/c8ocloud.convertigo.net\/convertigo\/projects\/lib_OAuth\/getToken.html"
+                            }'
+                          ↓PublishEvent [mobile.components.UIDynamicAction-1572936360464]: 
+                            beanData: |
+                              '{
+                               "ionBean": "PublishEventAction",
+                               "topic": "plain:login",
+                               "data": "script:out"
+                              }'
             ↓Heading1 [mobile.components.UIDynamicTag-1572622846780]: 
               beanData: |
                 '{

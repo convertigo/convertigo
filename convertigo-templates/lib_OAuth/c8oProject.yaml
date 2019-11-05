@@ -12,3 +12,4 @@
   ↓loginAzureAdWithAccessToken [sequences.GenericSequence]: 🗏 sequences/loginAzureAdWithAccessToken.yaml
   ↓loginGoogleWithCode [sequences.GenericSequence]: 🗏 sequences/loginGoogleWithCode.yaml
   ↓loginLinkedInWithCode [sequences.GenericSequence]: 🗏 sequences/loginLinkedInWithCode.yaml
+  ↓SignOut [sequences.GenericSequence]: 🗏 sequences/SignOut.yaml
