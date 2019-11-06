@@ -26,7 +26,7 @@
     "@ionic-native/splash-screen": "~4.20.0",
     "@ionic-native/status-bar": "~4.20.0",
     "@ionic/storage": "2.2.0",
-    "ionic-angular": "3.9.5",
+    "ionic-angular": "3.9.9",
     "ionicons": "3.0.0",
     "rxjs": "6.3.3",
     "sw-toolbox": "3.6.0",
@@ -34,8 +34,8 @@
     "@ngx-translate/core":"9.0.2",
     "@ngx-translate/http-loader":"2.0.1",
     "animate.css": "3.7.0",  
-    "c8osdkangular": "3.0.1-beta20",
-    "c8ocaf": "1.1.8-beta5"
+    "c8osdkangular": "3.0.2",
+    "c8ocaf": "1.1.8"
   },
   "devDependencies": {
     "@ionic/app-scripts": "3.2.4",
