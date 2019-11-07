@@ -859,6 +859,51 @@
      "value": "false"
     }
    }
+  },
+  "   7   7   0": {
+   "name": "CallSequenceAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "cachePolicy": {
+     "name": "cachePolicy",
+     "mode": "plain",
+     "value": false
+    },
+    "cacheTtl": {
+     "name": "cacheTtl",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "timeout": {
+     "name": "timeout",
+     "mode": "plain",
+     "value": false
+    },
+    "threshold": {
+     "name": "threshold",
+     "mode": "plain",
+     "value": false
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "noAutoLogin": {
+     "name": "noAutoLogin",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
   }
  },
  "CameraAction": {

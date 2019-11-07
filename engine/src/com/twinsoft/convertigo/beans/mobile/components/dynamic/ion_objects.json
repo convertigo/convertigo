@@ -6810,6 +6810,17 @@
             "false",
             "true"
           ]
+		},
+		"noAutoLogin": {
+          "label": "Disable auto login",
+          "description": "Defines if we want to disable auto login",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
 		}
 	  }
 	},
