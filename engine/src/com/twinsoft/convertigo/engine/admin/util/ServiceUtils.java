@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -111,11 +112,12 @@ public class ServiceUtils {
 		return new FileAndProperties(file, storesProperties);
 	}
 	
-	public static void handleError(Document document, HttpServletResponse response) throws ServiceException {
+	public static void handleError(Document document, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
 		try {
-	        response.setStatus(500);
-	        // Bugfix IE #1622: do not forget to set the content type!
-	        response.setContentType(MimeType.TextXml.value());
+			HttpUtils.applyCorsHeaders(request, response);
+			response.setStatus(500);
+			// Bugfix IE #1622: do not forget to set the content type!
+			response.setContentType(MimeType.TextXml.value());
 			response.setCharacterEncoding("UTF-8");
 			Writer writer;
 			try {
@@ -129,17 +131,17 @@ public class ServiceUtils {
 		}
 	}
 	
-	public static void handleError(Throwable throwable, HttpServletResponse response) throws ServiceException {
+	public static void handleError(Throwable throwable, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
 		try {
-	        handleError(DOMUtils.handleError(throwable), response);
+	        handleError(DOMUtils.handleError(throwable), request, response);
 		} catch (ParserConfigurationException e) {
 			throw new ServiceException("Unable to create error document from throwable", e);
 		}
 	}
 	
-	public static void handleError(String sMessage, HttpServletResponse response) throws ServiceException {
+	public static void handleError(String sMessage, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
 		try {
-	        handleError(DOMUtils.handleError(sMessage), response);
+	        handleError(DOMUtils.handleError(sMessage), request, response);
 		} catch (ParserConfigurationException e) {
 			throw new ServiceException("Unable to create error document string", e);
 		}

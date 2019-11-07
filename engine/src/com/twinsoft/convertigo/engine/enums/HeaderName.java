@@ -145,6 +145,10 @@ public enum HeaderName {
 		Header[] headers = request.getHeaders(value);
 		return headers != null && headers.length > 0;
 	}
+
+	public boolean has(HttpServletResponse response) {
+		return response.containsHeader(value);
+	}
 	
 	private static Map<String, HeaderName> cache = new HashMap<String, HeaderName>();
 	static {
