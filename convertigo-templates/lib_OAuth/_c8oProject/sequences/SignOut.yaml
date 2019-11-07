@@ -1,3 +1,4 @@
+comment: Sign out from App.. Warning must be called with disableAutologin to true !
 ↓Remove_authenticated_user [steps.RemoveAuthenticatedUserStep-1572935723705]: 
 ↓Remove_from_session [steps.SessionRemoveStep-1572939430692]: 
   key: oAuthAccessToken

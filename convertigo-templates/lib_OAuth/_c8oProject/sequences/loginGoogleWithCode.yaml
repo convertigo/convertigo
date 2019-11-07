@@ -1,5 +1,5 @@
 comment: |
-  Checks if the implicit flow token is valid and get user information from AzureAd enpoint 2.0.
+  Perform the OAuth flow for Google
   
   If the token is valid, it will be stored in the user's session to be used when calling Microsoft APIs.
   
