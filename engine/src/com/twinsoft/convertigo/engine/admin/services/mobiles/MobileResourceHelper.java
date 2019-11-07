@@ -41,6 +41,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -402,9 +403,9 @@ public class MobileResourceHelper {
 		configText = configText
 				.replace("$(ApplicationID)$", mobileApplication.getComputedApplicationId())
 				.replace("$(ApplicationVersion)$", mobileApplication.getComputedApplicationVersion())
-				.replace("$(ApplicationName)$", finalApplicationName)
-				.replace("$(ApplicationDescription)$", mobileApplication.getApplicationDescription())
-				.replace("$(ApplicationAuthorName)$", mobileApplication.getApplicationAuthorName())
+				.replace("$(ApplicationName)$", StringEscapeUtils.escapeXml11(finalApplicationName))
+				.replace("$(ApplicationDescription)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationDescription()))
+				.replace("$(ApplicationAuthorName)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationAuthorName()))
 				.replace("$(ApplicationAuthorEmail)$", mobileApplication.getApplicationAuthorEmail())
 				.replace("$(ApplicationAuthorWebsite)$", mobileApplication.getApplicationAuthorSite())
 				.replace("$(PlatformName)$", mobilePlatform.getName())
