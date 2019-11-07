@@ -169,6 +169,17 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return handleError;
 	}
 
+	protected boolean handleFinally() {
+		boolean handleFinally = false;
+		UIActionFinallyEvent finallyEvent = getParentFinallyEvent();
+		if (finallyEvent != null && finallyEvent.isEnabled()) {
+			if (finallyEvent.numberOfActions() > 0) {
+				handleFinally = true;
+			}
+		}
+		return handleFinally;
+	}
+	
 	private UIActionErrorEvent getParentErrorEvent() {
 		DatabaseObject parent = getParent();
 		if (parent != null ) {
@@ -191,6 +202,34 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				UIEventSubscriber uiEventSubscriber = (UIEventSubscriber)parent;
 				if (uiEventSubscriber.isEnabled()) {
 					return uiEventSubscriber.getErrorEvent();
+				}
+			}
+		}
+		return null;
+	}
+	
+	private UIActionFinallyEvent getParentFinallyEvent() {
+		DatabaseObject parent = getParent();
+		if (parent != null ) {
+			if (parent instanceof UIControlEvent) {
+				UIControlEvent uiControlEvent = (UIControlEvent)parent;
+				if (uiControlEvent.isEnabled()) {
+					return uiControlEvent.getFinallyEvent();
+				}
+			} else if (parent instanceof UIAppEvent) {
+				UIAppEvent uiAppEvent = (UIAppEvent)parent;
+				if (uiAppEvent.isEnabled()) {
+					return uiAppEvent.getFinallyEvent();
+				}
+			} else if (parent instanceof UIPageEvent) {
+				UIPageEvent uiPageEvent = (UIPageEvent)parent;
+				if (uiPageEvent.isEnabled()) {
+					return uiPageEvent.getFinallyEvent();
+				}
+			} else if (parent instanceof UIEventSubscriber) {
+				UIEventSubscriber uiEventSubscriber = (UIEventSubscriber)parent;
+				if (uiEventSubscriber.isEnabled()) {
+					return uiEventSubscriber.getFinallyEvent();
 				}
 			}
 		}
@@ -508,6 +547,11 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				UIActionErrorEvent errorEvent = getParentErrorEvent();
 				sbCatch.append(errorEvent.computeEvent());
 			}
+			StringBuilder sbFinally = new StringBuilder();
+			if (handleFinally()) {
+				UIActionFinallyEvent finallyEvent = getParentFinallyEvent();
+				sbFinally.append(finallyEvent.computeEvent());
+			}
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("stack");
@@ -554,6 +598,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				computed += "\t\t})"+ System.lineSeparator();
 			}			
 			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			if (sbFinally.length() > 0) {
+				computed += "\t\t.then((res:any) => {"+ System.lineSeparator();
+				computed += "\t\tparent = self;"+ System.lineSeparator();
+				computed += "\t\tparent.out = res;"+ System.lineSeparator();
+				computed += "\t\tout = parent.out;"+ System.lineSeparator();
+				computed += "\t\t"+ sbFinally.toString();
+				computed += "\t\t})"+ System.lineSeparator();
+				computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			}			
 			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
 			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";

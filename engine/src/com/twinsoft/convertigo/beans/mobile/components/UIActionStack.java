@@ -37,6 +37,7 @@ public class UIActionStack extends UIComponent implements IShared {
 	private static final long serialVersionUID = -5668525501858865747L;
 
 	private transient UIActionErrorEvent errorEvent = null;
+	private transient UIActionFinallyEvent finallyEvent = null;
 	
 	public UIActionStack() {
 		super();
@@ -46,6 +47,7 @@ public class UIActionStack extends UIComponent implements IShared {
 	public UIActionStack clone() throws CloneNotSupportedException {
 		UIActionStack cloned = (UIActionStack) super.clone();
 		cloned.errorEvent = null;
+		cloned.finallyEvent = null;
 		return cloned;
 	}
 
@@ -55,11 +57,20 @@ public class UIActionStack extends UIComponent implements IShared {
 		
 		if (uiComponent instanceof UIActionErrorEvent) {
     		if (this.errorEvent != null) {
-    			throw new EngineException("The action \"" + getName() + "\" already contains an error event! Please delete it first.");
+    			throw new EngineException("The action \"" + getName() + "\" already contains an error handler! Please delete it first.");
     		}
     		else {
     			this.errorEvent = (UIActionErrorEvent)uiComponent;
     			after = -1L;// to be first
+    		}
+		}
+		if (uiComponent instanceof UIActionFinallyEvent) {
+    		if (this.finallyEvent != null) {
+    			throw new EngineException("The action \"" + getName() + "\" already contains a finally handler! Please delete it first.");
+    		}
+    		else {
+    			this.finallyEvent = (UIActionFinallyEvent)uiComponent;
+    			after = this.errorEvent != null ? this.errorEvent.priority : -1L;
     		}
 		}
 		
@@ -74,15 +85,20 @@ public class UIActionStack extends UIComponent implements IShared {
     		this.errorEvent = null;
     		markAsDirty();
         }
+        if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
+    		this.finallyEvent = null;
+    		markAsDirty();
+        }
 	}
 	
 	@Override
 	protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
-		if (databaseObject.equals(this.errorEvent)) {
+		if (databaseObject.equals(this.errorEvent) || databaseObject.equals(this.finallyEvent)) {
 			return;
-		} else if (this.errorEvent != null) {
+		} else if (this.errorEvent != null || this.finallyEvent != null) {
+			int num = this.errorEvent != null && this.finallyEvent != null ? 2:1;
 			int pos = getOrderedComponents().get(0).indexOf(databaseObject.priority);
-			if (pos-1 <= 0) {
+			if (pos-num <= 0) {
 				return;
 			}
 		}
@@ -91,7 +107,7 @@ public class UIActionStack extends UIComponent implements IShared {
 	
 	@Override
 	protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
-		if (databaseObject.equals(this.errorEvent)) {
+		if (databaseObject.equals(this.errorEvent) || databaseObject.equals(this.finallyEvent)) {
 			return;
 		}
 		super.decreaseOrder(databaseObject, after);
@@ -99,6 +115,10 @@ public class UIActionStack extends UIComponent implements IShared {
 	
 	protected UIActionErrorEvent getErrorEvent() {
 		return this.errorEvent;
+	}
+	
+	protected UIActionFinallyEvent getFinallyEvent() {
+		return this.finallyEvent;
 	}
 	
 	protected boolean handleError() {
@@ -110,6 +130,17 @@ public class UIActionStack extends UIComponent implements IShared {
 			}
 		}
 		return handleError;
+	}
+	
+	protected boolean handleFinally() {
+		boolean handleFinally = false;
+		UIActionFinallyEvent finallyEvent = getFinallyEvent();
+		if (finallyEvent != null && finallyEvent.isEnabled()) {
+			if (finallyEvent.numberOfActions() > 0) {
+				handleFinally = true;
+			}
+		}
+		return handleFinally;
 	}
 	
 	public String getActionName() {
@@ -167,6 +198,11 @@ public class UIActionStack extends UIComponent implements IShared {
 				UIActionErrorEvent errorEvent = getErrorEvent();
 				sbCatch.append(errorEvent.computeEvent());
 			}
+			StringBuilder sbFinally = new StringBuilder();
+			if (handleFinally()) {
+				UIActionFinallyEvent finallyEvent = getFinallyEvent();
+				sbFinally.append(finallyEvent.computeEvent());
+			}
 			
 			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
 			
@@ -222,8 +258,21 @@ public class UIActionStack extends UIComponent implements IShared {
 				computed += "\t\tout = parent.out;"+ System.lineSeparator();
 				computed += "\t\t"+ sCatch;
 				computed += "\t\t})"+ System.lineSeparator();
-			}			
+			}
 			computed += "\t\t.catch((error:any) => {page.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			if (sbFinally.length() > 0) {
+				String sFinally = sbFinally.toString();
+				sFinally = sFinally.replaceAll("this", "page");
+				sFinally = sFinally.replaceAll("page\\.actionBeans\\.", "this.");
+				
+				computed += "\t\t.then((res:any) => {"+ System.lineSeparator();
+				computed += "\t\tparent = self;"+ System.lineSeparator();
+				computed += "\t\tparent.out = res;"+ System.lineSeparator();
+				computed += "\t\tout = parent.out;"+ System.lineSeparator();
+				computed += "\t\t"+ sFinally;
+				computed += "\t\t})"+ System.lineSeparator();
+				computed += "\t\t.catch((error:any) => {page.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			}
 			computed += "\t\t.then((res:any) => {page.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
 			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";

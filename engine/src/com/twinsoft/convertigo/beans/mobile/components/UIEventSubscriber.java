@@ -43,13 +43,19 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	public UIEventSubscriber clone() throws CloneNotSupportedException {
 		UIEventSubscriber cloned = (UIEventSubscriber) super.clone();
 		cloned.errorEvent = null;
+		cloned.finallyEvent = null;
 		return cloned;
 	}
 	
 	private transient UIActionErrorEvent errorEvent = null;
+	private transient UIActionFinallyEvent finallyEvent = null;
 	
 	protected UIActionErrorEvent getErrorEvent() {
 		return this.errorEvent;
+	}
+	
+	protected UIActionFinallyEvent getFinallyEvent() {
+		return this.finallyEvent;
 	}
 	
 	private String topic = "";
@@ -72,11 +78,20 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		
 		if (uiComponent instanceof UIActionErrorEvent) {
     		if (this.errorEvent != null) {
-    			throw new EngineException("The action \"" + getName() + "\" already contains an error event! Please delete it first.");
+    			throw new EngineException("The subscriber \"" + getName() + "\" already contains an error event! Please delete it first.");
     		}
     		else {
     			this.errorEvent = (UIActionErrorEvent)uiComponent;
     			after = -1L;// to be first
+    		}
+		}
+		if (uiComponent instanceof UIActionFinallyEvent) {
+    		if (this.finallyEvent != null) {
+    			throw new EngineException("The subscriber \"" + getName() + "\" already contains a finally handler! Please delete it first.");
+    		}
+    		else {
+    			this.finallyEvent = (UIActionFinallyEvent)uiComponent;
+    			after = this.errorEvent != null ? this.errorEvent.priority : -1L;
     		}
 		}
 		
@@ -91,15 +106,20 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
     		this.errorEvent = null;
     		markAsDirty();
         }
+        if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
+    		this.finallyEvent = null;
+    		markAsDirty();
+        }
 	}
 	
 	@Override
 	protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
-		if (databaseObject.equals(this.errorEvent)) {
+		if (databaseObject.equals(this.errorEvent) || databaseObject.equals(this.finallyEvent)) {
 			return;
-		} else if (this.errorEvent != null) {
+		} else if (this.errorEvent != null || this.finallyEvent != null) {
+			int num = this.errorEvent != null && this.finallyEvent != null ? 2:1;
 			int pos = getOrderedComponents().get(0).indexOf(databaseObject.priority);
-			if (pos-1 <= 0) {
+			if (pos-num <= 0) {
 				return;
 			}
 		}
@@ -108,7 +128,7 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	
 	@Override
 	protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
-		if (databaseObject.equals(this.errorEvent)) {
+		if (databaseObject.equals(this.errorEvent) || databaseObject.equals(this.finallyEvent)) {
 			return;
 		}
 		super.decreaseOrder(databaseObject, after);
