@@ -43,7 +43,7 @@ public abstract class JSonService implements Service {
             
 			Engine.logAdmin.debug("JSON generated:\n" + sJSON);
         } catch (Throwable t) {
-			ServiceUtils.handleError(t, response);
+			ServiceUtils.handleError(t, request, response);
 		}
 	}
 

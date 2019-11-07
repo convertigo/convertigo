@@ -58,7 +58,7 @@ public abstract class XmlService implements Service {
 			}
         }
 	    catch (Throwable t) {
-			ServiceUtils.handleError(t, response);
+			ServiceUtils.handleError(t, request, response);
 		}
 	}
 

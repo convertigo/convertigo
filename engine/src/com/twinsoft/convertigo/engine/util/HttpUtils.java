@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.tas.KeyManager;
 
@@ -306,7 +307,7 @@ public class HttpUtils {
 	}
 	
 	public static String applyCorsHeaders(HttpServletRequest request, HttpServletResponse response, String corsOrigin, String methods) {
-		if (corsOrigin != null) {
+		if (corsOrigin != null && !RequestAttribute.corsOrigin.has(request)) {
 			HeaderName.AccessControlAllowOrigin.setHeader(response, corsOrigin);
 			HeaderName.AccessControlAllowCredentials.setHeader(response, "true");
 
@@ -331,6 +332,7 @@ public class HttpUtils {
 				}	
 			}
 		}
+		RequestAttribute.corsOrigin.set(request, corsOrigin == null ? "" : corsOrigin);
 		return corsOrigin;
 	}
 	

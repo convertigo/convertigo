@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProvider;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
@@ -1176,7 +1177,7 @@ public class Engine {
 			}
 			context.project.checkSymbols();
 			
-			if (context.httpServletRequest != null) {
+			if (context.httpServletRequest != null && !RequestAttribute.corsOrigin.has(context.httpServletRequest)) {
 				String origin = HeaderName.Origin.getHeader(context.httpServletRequest);
 				String corsOrigin = HttpUtils.filterCorsOrigin(context.project.getCorsOrigin(), origin);
 				if (corsOrigin != null) {
@@ -1184,6 +1185,7 @@ public class Engine {
 					context.setResponseHeader(HeaderName.AccessControlAllowCredentials.value(), "true");
 					Engine.logContext.trace("Add CORS header for: " + corsOrigin);
 				}
+				RequestAttribute.corsOrigin.set(context.httpServletRequest, corsOrigin == null ? "" : corsOrigin);
 			}
 			
 			// Loading sequence

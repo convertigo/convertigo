@@ -70,6 +70,7 @@ public abstract class GenericServlet extends HttpServlet {
 	protected void handleStaticData(HttpServletRequest request, HttpServletResponse response) {
 		String resourceUri = request.getServletPath();
 		Engine.logContext.debug("Serving static ressource: " + resourceUri);
+		HttpUtils.applyCorsHeaders(request, response);
 
 		// TODO: enhance to support content types according to file extension
 		if (resourceUri.endsWith(".xml") || resourceUri.endsWith(".cxml") || resourceUri.endsWith(".pxml"))
@@ -128,7 +129,11 @@ public abstract class GenericServlet extends HttpServlet {
 
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
-		doRequest(request, response);
+		String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
+		if (corsOrigin != null) {
+			Engine.logEngine.trace("Add CORS header for OPTIONS: " + corsOrigin);
+		}
+		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}
 
 	@Override
@@ -186,9 +191,12 @@ public abstract class GenericServlet extends HttpServlet {
 
 				response.addHeader("Expires", "-1");
 
-				if (getCacheControl(request).equals("false"))
+				if (getCacheControl(request).equals("false")) {
 					HeaderName.CacheControl.addHeader(response,
 							"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
+				}
+				
+				HttpUtils.applyCorsHeaders(request, response);
 				
 				/**
 				 * Disabled since #253 : Too much HTML Connector cookies in
@@ -419,6 +427,7 @@ public abstract class GenericServlet extends HttpServlet {
 		boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
 
+		HttpUtils.applyCorsHeaders(request, response);
 		Engine.logEngine.error("Unexpected exception", e);
 
 		if (bThrowHTTP500) {

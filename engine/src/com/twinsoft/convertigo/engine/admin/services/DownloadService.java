@@ -30,7 +30,7 @@ public abstract class DownloadService implements Service {
         try {
 			writeResponseResult(request, response);
 		} catch (Throwable t) {
-	    	ServiceUtils.handleError(t, response);
+	    	ServiceUtils.handleError(t, request, response);
 		}
 	}
 
