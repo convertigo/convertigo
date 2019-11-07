@@ -101,6 +101,19 @@ allprojects {
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}
+		
+		task cleanBin(type: Delete) {
+			group 'convertigo'
+			
+			def f = file('bin')
+			if (f.exists()) {
+				f.eachFile {
+					if (it.getName() != 'main') {
+						delete it
+					}
+				}
+			}
+		}
 	}
 	
 	plugins.withId('java') {
@@ -313,11 +326,11 @@ task buildStudioClean(type: Delete) {
 	delete 'eclipse-repository/target/products'
 }
 
-task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true)]) {
+task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true), getTasksByName('cleanBin', true)]) {
 	group 'convertigo'
 }
 
-task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfiguration', 'writeManifest']) {
+task generateEclipseConfigurationWithManifest(dependsOn: ['writeManifest', 'generateEclipseConfiguration']) {
 	group 'convertigo'
 }
 
