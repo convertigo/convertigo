@@ -19,7 +19,8 @@
             
             let args = [];
             let version:string = props.tplVersion ? props.tplVersion : '';
-            if (version.localeCompare("7.6.0.0") >= 0) {
+            let greater: any = typeof page["compare"]!== "undefined" ? page["compare"]("7.6.0.0", version) : version.localeCompare("7.6.0.0");
+            if (greater) {
                 args.push(rm,C8oCafUtils.merge({__localCache_priority: props.cachePolicy, __localCache_ttl: props.cacheTtl},vars),null,td, md)
             } else {
                 args.push(rm,C8oCafUtils.merge({__localCache_priority: props.cachePolicy, __localCache_ttl: props.cacheTtl},vars),null,td)

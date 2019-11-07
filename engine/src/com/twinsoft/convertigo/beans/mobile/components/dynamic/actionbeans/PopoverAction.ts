@@ -22,7 +22,8 @@
             let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
             let version:string = props.tplVersion ? props.tplVersion : '';
-            let v:any = version.localeCompare("7.7.0.2") >= 0 ? p : page.getPageByName(p);
+            let greater: any = typeof page["compare"]!== "undefined" ? page["compare"]("7.7.0.2", version) : version.localeCompare("7.7.0.2");
+            let v:any = greater ? p : page.getPageByName(p);
             let data = props.data ? props.data: {} 
         
             let PopoverCtrl = page.getInstance(PopoverController)

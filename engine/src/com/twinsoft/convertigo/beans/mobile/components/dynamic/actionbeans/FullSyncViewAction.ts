@@ -41,7 +41,8 @@
             
             let args = [];
             let version:string = props.tplVersion ? props.tplVersion : '';
-            if (version.localeCompare("7.6.0.0") >= 0) {
+            let greater: any = typeof page["compare"]!== "undefined" ? page["compare"]("7.6.0.0", version) : version.localeCompare("7.6.0.0");
+            if (greater) {
                 args.push("fs://" + rvm, options, null, 500, md)
             } else {
                 args.push("fs://" + rvm, options, null, 500)
