@@ -22,7 +22,7 @@
             let version:string = props.tplVersion ? props.tplVersion : '';
             let greater: any = typeof page["compare"]!== "undefined" ? page["compare"]("7.6.0.0", version) : version.localeCompare("7.6.0.0");
             if (greater) {
-                if (page["compare"]("7.7.0.11", version)) {
+                if (typeof page["compare"]!== "undefined" && page["compare"]("7.7.0.11", version)) {
                     parameters["__disableAutologin"] = props.noAutoLogin;
                 }
                 args.push(rm,C8oCafUtils.merge(parameters,vars),null,td, md)
