@@ -19,6 +19,7 @@ import { ChangeDetectorRef,
 		 InjectionToken,
 		 Injector,
 		 Type} 																		from "@angular/core";
+import { TranslateService }                                 						from '@ngx-translate/core';
 import { ActionBeans } 																from '../../services/actionbeans.service';
 
 
@@ -55,7 +56,7 @@ export class /*=c8o_PageName*/ extends C8oPage  {
 	/*Begin_c8o_PageDeclaration*/
 	/*End_c8o_PageDeclaration*/
 
-	constructor(routerProvider : C8oRouter, navParams: NavParams, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController){
+	constructor(routerProvider : C8oRouter, navParams: NavParams, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
 		super(routerProvider, navParams, loadingCtrl, sanitizer, ref, injector, menuCtrl);
 		this.events = this.getInstance(Events);
 		this.actionBeans = this.getInstance(ActionBeans);
