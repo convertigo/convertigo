@@ -39,6 +39,7 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 	private String p_continuous = "";
 	private String p_create_target = "";
 	private String p_doc_ids = "";
+	private String p_filter = "";
 	private String p_proxy = "";
 	private String p_source = "";
 	private String p_target = "";
@@ -65,10 +66,11 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 		} catch (JSONException e) {
 			//TODO: log
 		}
-		
+
+		String filter = getParameterStringValue(CouchParam.filter);
 		String proxy = getParameterStringValue(CouchParam.proxy);
 		
-		JSONObject response = getCouchClient().postReplicate(source, target, create_target, continuous, cancel, doc_ids, proxy);
+		JSONObject response = getCouchClient().postReplicate(source, target, create_target, continuous, cancel, doc_ids, filter, proxy);
 		
 		return response;
 	}
@@ -108,6 +110,14 @@ public class PostReplicateTransaction extends AbstractDatabaseTransaction {
 
 	public void setP_doc_ids(String p_doc_ids) {
 		this.p_doc_ids = p_doc_ids;
+	}
+
+	public String getP_filter() {
+		return p_filter;
+	}
+
+	public void setP_filter(String p_filter) {
+		this.p_filter = p_filter;
 	}
 
 	public String getP_proxy() {

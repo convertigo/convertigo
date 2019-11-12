@@ -32,6 +32,7 @@ public class GetServerUpdatesTransaction extends AbstractCouchDbTransaction {
 	private String q_feed = "";
 	private String q_timeout = "";
 	private String q_heartbeat = "";
+	private String q_since = "";
 	
 	public GetServerUpdatesTransaction() {
 		super();
@@ -79,5 +80,13 @@ public class GetServerUpdatesTransaction extends AbstractCouchDbTransaction {
 
 	public void setQ_heartbeat(String q_heartbeat) {
 		this.q_heartbeat = q_heartbeat;
+	}
+
+	public String getQ_since() {
+		return q_since;
+	}
+
+	public void setQ_since(String q_since) {
+		this.q_since = q_since;
 	}
 }

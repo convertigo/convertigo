@@ -38,12 +38,12 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/getview_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/getview_color_32x32.png";	
 			
-			properties = new PropertyDescriptor[21];
+			properties = new PropertyDescriptor[24];
 			
 			properties[0] = new PropertyDescriptor("viewname", beanClass, "getViewname", "setViewname");
 			properties[0].setDisplayName(getExternalizedString("property.viewname.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.viewname.short_description"));
-            properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 			
 			properties[1] = new PropertyDescriptor("q_update_seq", beanClass, "getQ_update_seq", "setQ_update_seq");
 			properties[1].setDisplayName(getExternalizedString("property.q_update_seq.display_name"));
@@ -97,33 +97,45 @@ public class GetViewTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[13].setDisplayName(getExternalizedString("property.q_inclusive_end.display_name"));
 			properties[13].setShortDescription(getExternalizedString("property.q_inclusive_end.short_description"));
 			
-			properties[14] = new PropertyDescriptor("q_key", beanClass, "getQ_key", "setQ_key");
-			properties[14].setDisplayName(getExternalizedString("property.q_key.display_name"));
-			properties[14].setShortDescription(getExternalizedString("property.q_key.short_description"));
+			properties[14] = new PropertyDescriptor("q_limit", beanClass, "getQ_limit", "setQ_limit");
+			properties[14].setDisplayName(getExternalizedString("property.q_limit.display_name"));
+			properties[14].setShortDescription(getExternalizedString("property.q_limit.short_description"));
 			
-			properties[15] = new PropertyDescriptor("q_limit", beanClass, "getQ_limit", "setQ_limit");
-			properties[15].setDisplayName(getExternalizedString("property.q_limit.display_name"));
-			properties[15].setShortDescription(getExternalizedString("property.q_limit.short_description"));
+			properties[15] = new PropertyDescriptor("q_reduce", beanClass, "getQ_reduce", "setQ_reduce");
+			properties[15].setDisplayName(getExternalizedString("property.q_reduce.display_name"));
+			properties[15].setShortDescription(getExternalizedString("property.q_reduce.short_description"));
 			
-			properties[16] = new PropertyDescriptor("q_reduce", beanClass, "getQ_reduce", "setQ_reduce");
-			properties[16].setDisplayName(getExternalizedString("property.q_reduce.display_name"));
-			properties[16].setShortDescription(getExternalizedString("property.q_reduce.short_description"));
+			properties[16] = new PropertyDescriptor("q_skip", beanClass, "getQ_skip", "setQ_skip");
+			properties[16].setDisplayName(getExternalizedString("property.q_skip.display_name"));
+			properties[16].setShortDescription(getExternalizedString("property.q_skip.short_description"));
 			
-			properties[17] = new PropertyDescriptor("q_skip", beanClass, "getQ_skip", "setQ_skip");
-			properties[17].setDisplayName(getExternalizedString("property.q_skip.display_name"));
-			properties[17].setShortDescription(getExternalizedString("property.q_skip.short_description"));
+			properties[17] = new PropertyDescriptor("q_stale", beanClass, "getQ_stale", "setQ_stale");
+			properties[17].setDisplayName(getExternalizedString("property.q_stale.display_name"));
+			properties[17].setShortDescription(getExternalizedString("property.q_stale.short_description"));
 			
-			properties[18] = new PropertyDescriptor("q_stale", beanClass, "getQ_stale", "setQ_stale");
-			properties[18].setDisplayName(getExternalizedString("property.q_stale.display_name"));
-			properties[18].setShortDescription(getExternalizedString("property.q_stale.short_description"));
+			properties[18] = new PropertyDescriptor("q_startkey", beanClass, "getQ_startkey", "setQ_startkey");
+			properties[18].setDisplayName(getExternalizedString("property.q_startkey.display_name"));
+			properties[18].setShortDescription(getExternalizedString("property.q_startkey.short_description"));
 			
-			properties[19] = new PropertyDescriptor("q_startkey", beanClass, "getQ_startkey", "setQ_startkey");
-			properties[19].setDisplayName(getExternalizedString("property.q_startkey.display_name"));
-			properties[19].setShortDescription(getExternalizedString("property.q_startkey.short_description"));
+			properties[19] = new PropertyDescriptor("q_startkey_docid", beanClass, "getQ_startkey_docid", "setQ_startkey_docid");
+			properties[19].setDisplayName(getExternalizedString("property.q_startkey_docid.display_name"));
+			properties[19].setShortDescription(getExternalizedString("property.q_startkey_docid.short_description"));
 			
-			properties[20] = new PropertyDescriptor("q_startkey_docid", beanClass, "getQ_startkey_docid", "setQ_startkey_docid");
-			properties[20].setDisplayName(getExternalizedString("property.q_startkey_docid.display_name"));
-			properties[20].setShortDescription(getExternalizedString("property.q_startkey_docid.short_description"));
+			properties[20] = new PropertyDescriptor("q_sorted", beanClass, "getQ_sorted", "setQ_sorted");
+			properties[20].setDisplayName(getExternalizedString("property.q_sorted.display_name"));
+			properties[20].setShortDescription(getExternalizedString("property.q_sorted.short_description"));
+			
+			properties[21] = new PropertyDescriptor("q_stable", beanClass, "getQ_stable", "setQ_stable");
+			properties[21].setDisplayName(getExternalizedString("property.q_stable.display_name"));
+			properties[21].setShortDescription(getExternalizedString("property.q_stable.short_description"));
+			
+			properties[22] = new PropertyDescriptor("q_key", beanClass, "getQ_key", "setQ_key");
+			properties[22].setDisplayName(getExternalizedString("property.q_key.display_name"));
+			properties[22].setShortDescription(getExternalizedString("property.q_key.short_description"));
+			
+			properties[23] = new PropertyDescriptor("q_keys", beanClass, "getQ_keys", "setQ_keys");
+			properties[23].setDisplayName(getExternalizedString("property.q_keys.display_name"));
+			properties[23].setShortDescription(getExternalizedString("property.q_keys.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

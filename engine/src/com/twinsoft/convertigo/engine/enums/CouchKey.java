@@ -50,6 +50,7 @@ public enum CouchKey {
 	name,
 	ok,
 	password,
+	filter,
 	proxy,
 	purged,
 	reason,

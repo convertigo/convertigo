@@ -710,8 +710,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						return true;
 					}
 					// Add a CallSequenceAction
-					else if (parent instanceof UIPageEvent || parent instanceof UIAppEvent ||
-							parent instanceof UIDynamicAction || parent instanceof UIActionStack) {
+					if (parent instanceof UIPageEvent || parent instanceof UIAppEvent || parent instanceof UIControlEvent ||
+							parent instanceof IAction || parent instanceof UIActionStack) {
 						UIComponent uiComponent = (UIComponent) parent;
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 						

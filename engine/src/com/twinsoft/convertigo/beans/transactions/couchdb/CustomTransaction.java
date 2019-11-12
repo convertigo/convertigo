@@ -94,18 +94,18 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 		CouchClient provider = getCouchClient();
 		
 		String evaluatedUrl = eUrl == null ? "" : eUrl.toString();
-		
+		URI uri;
 		if (evaluatedUrl.startsWith("//")) {
-			evaluatedUrl = provider.getServerUrl() + evaluatedUrl.substring(1);
+			uri = new URI(provider.getServerUrl() + evaluatedUrl.substring(1));	
 		} else {
 			if (!evaluatedUrl.startsWith("/")) {
 				evaluatedUrl = '/' + evaluatedUrl;
 			}
+			
 			String db = getConnector().getDatabaseName();
-			evaluatedUrl = provider.getDatabaseUrl(db) + evaluatedUrl;
+			uri = new URI(provider.getDatabaseUrl(db) + evaluatedUrl);
 		}
 		
-		URI uri = new URI(evaluatedUrl);
 		Engine.logBeans.debug("(CustomTransaction) CouchDb request uri: "+ uri.toString());
 		
 		String jsonString = null;
