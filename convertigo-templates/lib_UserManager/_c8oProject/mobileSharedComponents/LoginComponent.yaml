@@ -179,7 +179,8 @@ comment: |
                              "ionBean": "OAuthLoginAction",
                              "provider": "plain:linkedin",
                              "clientid": "source:{\"filter\":\"Sequence\",\"project\":\"lib_UserManager\",\"input\":\"listen([''lib_OAuth.GetOAuthCredentials''])?.LinkedInClientID\"}",
-                             "scope": "plain:r_liteprofile,r_emailaddress"
+                             "scope": "plain:r_liteprofile,r_emailaddress",
+                             "callbackurl": "plain:https:\/\/c8ocloud.convertigo.net\/convertigo\/projects\/lib_OAuth\/getTokenLinkedIn.html"
                             }'
                           ↓PublishEvent [mobile.components.UIDynamicAction-1572687075042]: 
                             beanData: |

@@ -196,6 +196,6 @@ comment: |
     - →→: x880b838d880fd89bd596d889626a189b728b0a12a1b0516c4fb9336f1f568190
   visibility: '-1'
 ↓redirect_uri [variables.RequestableVariable-1516296624224]: 
-  value: https://www.convertigo.com/authorize
+  value: https://c8ocloud.convertigo.net/convertigo/projects/lib_OAuth/getTokenLinkedIn.html
 ↓client_id [variables.RequestableVariable-1516297001764]: 
   value: ${lib_oauth.linkedin.clientid}
