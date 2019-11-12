@@ -1410,6 +1410,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	@Override
 	public String computeStyle() {
 		StringBuilder sb = new StringBuilder();
+		
+		// App theme and style
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
@@ -1418,6 +1420,16 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				if (!tpl.isEmpty()) {
 					sb.append(tpl).append(System.getProperty("line.separator"));
 				}
+			}
+		}
+		
+		// App menu styles
+		Iterator<UIDynamicMenu> itm = getMenuComponentList().iterator();
+		while (itm.hasNext()) {
+			UIDynamicMenu menu = itm.next();
+			String menuStyle = menu.computeStyle();
+			if (!menuStyle.isEmpty()) {
+				sb.append(menuStyle).append(System.lineSeparator());
 			}
 		}
 		
