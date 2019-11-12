@@ -49,10 +49,13 @@
                         
                             loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginLinkedInWithCode"
                             checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessTokenLinkedIn"
-                            callbackurl   = window["cordova"] != undefined ? 
+                            if (props.callbackurl) {
+                                callbackurl   = props.callbackurl 
+                            } else {
+                                callbackurl   = window["cordova"] != undefined ? 
                                     'https://www.convertigo.com/authorize':
                                     page.c8o.endpointConvertigo + "/projects/lib_OAuth/getTokenLinkedIn.html"
-                                    
+                            }
                             break
 
                         case "openid":
