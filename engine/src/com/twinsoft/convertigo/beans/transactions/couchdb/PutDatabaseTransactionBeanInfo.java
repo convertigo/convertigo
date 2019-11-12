@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class PutDatabaseTransactionBeanInfo extends MySimpleBeanInfo {
@@ -35,6 +37,16 @@ public class PutDatabaseTransactionBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/putdatabase_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/putdatabase_color_32x32.png";
+			
+			properties = new PropertyDescriptor[2];
+			
+			properties[0] = new PropertyDescriptor("q_q", beanClass, "getQ_q", "setQ_q");
+			properties[0].setDisplayName(getExternalizedString("property.q_q.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.q_q.short_description"));
+			
+			properties[1] = new PropertyDescriptor("q_n", beanClass, "getQ_n", "setQ_n");
+			properties[1].setDisplayName(getExternalizedString("property.q_n.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.q_n.short_description"));
 			
 		}
 		catch(Exception e) {

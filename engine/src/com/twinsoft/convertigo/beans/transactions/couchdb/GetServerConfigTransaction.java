@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.enums.CouchKey;
@@ -48,6 +49,12 @@ public class GetServerConfigTransaction extends AbstractCouchDbTransaction {
 		String section = getParameterStringValue(CouchParam.section);
 		String key = getParameterStringValue(CouchParam.key);
 		
+		if (StringUtils.isBlank(section)) {
+			section = null;
+		}
+		if (StringUtils.isBlank(key)) {
+			key = null;
+		}
 		JSONObject response = getCouchClient().getConfig(section, key);
 		response = GetServerConfigTransaction.handleConfigResponse(response, section, key);
 		
@@ -61,7 +68,7 @@ public class GetServerConfigTransaction extends AbstractCouchDbTransaction {
 				s.put(section, json);
 			} else {
 				JSONObject k = new JSONObject();
-				k.put(key, json.get("data"));
+				k.put(key, json.getString("data"));
 				s.put(section, k);
 			}
 			s.put(CouchKey._c8oMeta.key(), json.remove(CouchKey._c8oMeta.key()));

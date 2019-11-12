@@ -285,7 +285,21 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 					try {
 						getClass().getMethod("getP_" + name);
 					} catch (Throwable t) {
-						String value = getParameterStringValue(variable.getName());
+						String value;
+						if (variable.isMultiValued()) {
+							Object o = getParameterValue(variable.getName());
+							if (o instanceof Collection) {
+								JSONArray array = new JSONArray();
+								for (Object i : ((Collection<?>) o)) {
+									array.put(i);
+								}
+								value = array.toString();
+							} else {
+								value = o == null ? "" : o.toString();
+							}
+						} else {
+							value = getParameterStringValue(variable.getName());
+						}
 						
 						if (value != null && !value.isEmpty()) {
 							map.put(name, value);

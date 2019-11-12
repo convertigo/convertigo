@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -29,11 +31,12 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
-public class GetViewTransaction extends AbstractDatabaseTransaction implements ITagsProperty {
+public class GetViewTransaction extends AbstractDatabaseTransaction implements ITagsProperty, ICouchParametersExtra {
 
 	private static final long serialVersionUID = -3684374492418313635L;
 	
@@ -52,9 +55,12 @@ public class GetViewTransaction extends AbstractDatabaseTransaction implements I
 	private String q_att_encoding_info = "";
 	private String q_inclusive_end = "";
 	private String q_key = "";
+	private String q_keys = "";
 	private String q_limit = "";
 	private String q_reduce = "";
 	private String q_skip = "";
+	private String q_sorted = "";
+	private String q_stable = "";
 	private String q_stale = "";
 	private String q_startkey = "";
 	private String q_startkey_docid = "";
@@ -229,6 +235,14 @@ public class GetViewTransaction extends AbstractDatabaseTransaction implements I
 		this.q_key = q_key;
 	}
 
+	public String getQ_keys() {
+		return q_keys;
+	}
+
+	public void setQ_keys(String q_keys) {
+		this.q_keys = q_keys;
+	}
+
 	public String getQ_limit() {
 		return q_limit;
 	}
@@ -251,6 +265,22 @@ public class GetViewTransaction extends AbstractDatabaseTransaction implements I
 
 	public void setQ_skip(String q_skip) {
 		this.q_skip = q_skip;
+	}
+
+	public String getQ_sorted() {
+		return q_sorted;
+	}
+
+	public void setQ_sorted(String q_sorted) {
+		this.q_sorted = q_sorted;
+	}
+
+	public String getQ_stable() {
+		return q_stable;
+	}
+
+	public void setQ_stable(String q_stable) {
+		this.q_stable = q_stable;
 	}
 
 	public String getQ_stale() {
@@ -283,5 +313,12 @@ public class GetViewTransaction extends AbstractDatabaseTransaction implements I
 
 	public void setQ_update_seq(String q_update_seq) {
 		this.q_update_seq = q_update_seq;
+	}
+
+	@Override
+	public Collection<CouchExtraVariable> getCouchParametersExtra() {
+		return Arrays.asList(
+			CouchExtraVariable.keys
+		);
 	}
 }

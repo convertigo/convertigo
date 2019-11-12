@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
@@ -26,6 +28,9 @@ import org.codehaus.jettison.json.JSONObject;
 public class PutDatabaseTransaction extends AbstractDatabaseTransaction {
 
 	private static final long serialVersionUID = 6809890813346670619L;
+	
+	private String q_q = "";
+	private String q_n = "";
 	
 	public PutDatabaseTransaction() {
 		super();
@@ -41,7 +46,9 @@ public class PutDatabaseTransaction extends AbstractDatabaseTransaction {
 	protected Object invoke() throws Exception {
 		String db = getTargetDatabase();
 		
-		JSONObject response = getCouchClient().putDatabase(db);
+		Map<String, String> query = getQueryVariableValues();
+		
+		JSONObject response = getCouchClient().putDatabase(db, query);
 		
 		return response;
 	}
@@ -49,5 +56,21 @@ public class PutDatabaseTransaction extends AbstractDatabaseTransaction {
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "putDatabaseType");
+	}
+
+	public String getQ_q() {
+		return q_q;
+	}
+
+	public void setQ_q(String q_q) {
+		this.q_q = q_q;
+	}
+
+	public String getQ_n() {
+		return q_n;
+	}
+
+	public void setQ_n(String q_n) {
+		this.q_n = q_n;
 	}
 }

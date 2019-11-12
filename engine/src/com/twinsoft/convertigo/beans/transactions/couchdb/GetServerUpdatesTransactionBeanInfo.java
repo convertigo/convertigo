@@ -38,7 +38,7 @@ public class GetServerUpdatesTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/getserverupdates_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/getserverupdates_color_32x32.png";
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 			
 			properties[0] = new PropertyDescriptor("q_feed", beanClass, "getQ_feed", "setQ_feed");
 			properties[0].setDisplayName(getExternalizedString("property.q_feed.display_name"));
@@ -51,6 +51,10 @@ public class GetServerUpdatesTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("q_heartbeat", beanClass, "getQ_heartbeat", "setQ_heartbeat");
 			properties[2].setDisplayName(getExternalizedString("property.q_heartbeat.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.q_heartbeat.short_description"));
+			
+			properties[3] = new PropertyDescriptor("q_since", beanClass, "getQ_since", "setQ_since");
+			properties[3].setDisplayName(getExternalizedString("property.q_since.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.q_since.short_description"));
 
 		}
 		catch(Exception e) {
