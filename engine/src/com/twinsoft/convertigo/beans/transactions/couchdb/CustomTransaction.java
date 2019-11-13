@@ -23,6 +23,7 @@ import java.net.URI;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.codehaus.jettison.json.JSONObject;
@@ -185,7 +186,11 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	private void evaluateData(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
-			eData = RhinoUtils.evalCachedJavascript(javascriptContext, scope, getHttpData(), "httpData", 1, null);
+			String data = getHttpData();
+			if (StringUtils.isNotBlank(data)) {
+				data = "(" + data + ")";
+			}
+			eData = RhinoUtils.evalCachedJavascript(javascriptContext, scope, data, "httpData", 1, null);
 			if (eData instanceof org.mozilla.javascript.Undefined) {
 				eData = null;
 			}
