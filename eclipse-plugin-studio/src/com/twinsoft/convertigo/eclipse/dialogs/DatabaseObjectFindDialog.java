@@ -52,7 +52,14 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	
 	public DatabaseObjectFindDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
 		super(parentShell, dialogAreaClass, dialogTitle);
+		setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
+		setBlockOnOpen(false);
 		getDatabaseObjects(null);
+	}
+
+	@Override
+	protected int getShellStyle() {
+		return SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE;
 	}
 
 	@Override
@@ -101,28 +108,31 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
                     case 0: // *
                         bContinue = true;
                         break;
-                    case 1: // Screen class
+                    case 1: // Mobile Component
+                    	bContinue = databaseObject.getDatabaseType().equals("MobileComponent");
+                    	break;
+                    case 2: // Screen class
                         bContinue = databaseObject.getDatabaseType().equals("ScreenClass");
                         break;
-                    case 2: // Criteria
+                    case 3: // Criteria
                         bContinue = databaseObject.getDatabaseType().equals("Criteria");
                         break;
-                    case 3: // Extraction rule
+                    case 4: // Extraction rule
                         bContinue = databaseObject.getDatabaseType().equals("ExtractionRule");
                         break;
-                    case 4: // Sheet
+                    case 5: // Sheet
                         bContinue = databaseObject.getDatabaseType().equals("Sheet");
                         break;
-                    case 5: // Transaction
+                    case 6: // Transaction
                         bContinue = databaseObject.getDatabaseType().equals("Transaction");
                         break;
-                    case 6: // Statement
+                    case 7: // Statement
                         bContinue = databaseObject.getDatabaseType().equals("Statement");
                         break;
-                    case 7: // Sequence
+                    case 8: // Sequence
                         bContinue = databaseObject.getDatabaseType().equals("Sequence");
                         break;
-                    case 8: // Step
+                    case 9: // Step
                         bContinue = databaseObject.getDatabaseType().equals("Step");
                         break;
                 }
