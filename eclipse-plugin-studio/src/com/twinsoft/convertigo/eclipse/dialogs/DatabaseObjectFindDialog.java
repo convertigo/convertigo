@@ -81,15 +81,15 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 			treeParent = projectTreeObject;
 		
 		for(TreeObject child : treeParent.getChildren()) {
-			if (child instanceof DatabaseObjectTreeObject) {
+			if (child instanceof TreeParent) {
+				getDatabaseObjects((TreeParent)child);
+			} else if (child instanceof DatabaseObjectTreeObject) {
 				databaseObjectTreeObject = (DatabaseObjectTreeObject)child;
 				if (!databaseObjectTreeObject.isInherited) {
 					vDatabaseObjects.add(databaseObjectTreeObject);
 					if (child instanceof TreeParent)
 						getDatabaseObjects((TreeParent)child);
 				}
-			} else if (child instanceof TreeParent) {
-				getDatabaseObjects((TreeParent)child);
 			}
 		}
 	}
