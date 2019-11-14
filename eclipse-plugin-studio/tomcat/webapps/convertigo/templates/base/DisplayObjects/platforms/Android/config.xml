@@ -46,7 +46,7 @@
 			file="app/src/main/AndroidManifest.xml"
 			mode="merge"
 			target="/manifest/application">
-			<application android:largeHeap="true" />
+			<application android:largeHeap="true" android:usesCleartextTraffic="true" />
  		</edit-config>
 		<icon density="ldpi" src="res/icons/android/drawable-ldpi-icon.png" />
 		<icon density="mdpi" src="res/icons/android/drawable-mdpi-icon.png" />
