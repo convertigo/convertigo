@@ -43,7 +43,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
-import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -123,10 +122,7 @@ public class GetTestPlatform extends XmlService {
 				e_device.setAttribute("classname", platform.getClass().getSimpleName());
 				e_device.setAttribute("displayName", CachedIntrospector.getBeanInfo(platform.getClass()).getBeanDescriptor().getDisplayName());
 				e_device.setAttribute("packageType", platform.getPackageType());
-				
-				MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/flashupdate", projectName, platform.getName());
-				mobileResourceHelper.prepareFilesForFlashupdate();
-				e_device.setAttribute("revision", mobileResourceHelper.getRevision());
+				e_device.setAttribute("revision", "computing...");
 				
 				e_mobileApplication.appendChild(e_device);
 			}
