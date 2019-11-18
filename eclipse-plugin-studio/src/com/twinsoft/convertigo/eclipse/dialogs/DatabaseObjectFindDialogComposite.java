@@ -82,6 +82,7 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 		combo = new Combo(this, SWT.NONE);
 		combo.setLayoutData(gridData1);
 		combo.add("*");
+		combo.add("Mobile component");
 		combo.add("Screen class");
 		combo.add("Criteria");
 		combo.add("Extraction rule");

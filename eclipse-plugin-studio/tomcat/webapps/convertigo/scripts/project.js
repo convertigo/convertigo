@@ -27,6 +27,10 @@ function addMobilePlatform($platform, $parent) {
 	$platform_div.find(".qrcode_install").text($platform.attr("packageType"));
 	$platform_div.find(".platform_revision").text($platform.attr("revision"));
 	
+	call("mobiles.GetLocalRevision", {project: vars.projectName, platform: $platform.attr("name")}, function (xml) {
+		$platform_div.find(".platform_revision").text($(xml).find("revision").text());
+	});
+	
 	var params = $.param({
 		project: vars.projectName,
 		platform: $platform.attr("name")
