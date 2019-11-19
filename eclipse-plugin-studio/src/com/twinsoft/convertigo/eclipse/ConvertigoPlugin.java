@@ -130,6 +130,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -944,6 +945,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			ProcessUtils.setNpmFolder(node.getPath().getParentFile());
 		}
 		
+		IWorkbenchPage activePage = PlatformUI
+				.getWorkbench()
+				.getActiveWorkbenchWindow()
+				.getActivePage();
+		if (activePage != null) {
+			try {
+				String path = Engine.WEBAPP_PATH + "/scripts/index.js";
+				activePage.openEditor(new org.eclipse.ui.part.FileEditorInput(ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(path))),
+						"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
+				SwtUtils.refreshTheme();
+			} catch(Exception e) {
+			} 
+		}
 		studioLog.message("Convertigo studio started");
 	}
 

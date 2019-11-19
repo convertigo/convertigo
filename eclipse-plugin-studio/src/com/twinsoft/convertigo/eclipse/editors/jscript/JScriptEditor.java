@@ -139,8 +139,12 @@ public class JScriptEditor extends CompilationUnitEditor {
 	 * @see org.eclipse.ui.part.EditorPart#init(org.eclipse.ui.IEditorSite,
 	 *      org.eclipse.ui.IEditorInput)
 	 */
-	public void init(IEditorSite site, IEditorInput input) throws PartInitException {		
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		try {
+			if (!(input instanceof JScriptEditorInput)) {
+				close(false);
+				return;
+			}
 			setSite(site);
 			setInput(input);
 			eSite = site;
