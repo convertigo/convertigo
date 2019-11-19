@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -43,6 +45,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 
 	private String objectTextSubstring = null;
 	private boolean bMatchCase = false;
+	private boolean bRegExp = false;
 	private int objectType;
 	private List<DatabaseObjectTreeObject> vDatabaseObjects = new ArrayList<DatabaseObjectTreeObject>(64);
 	private TreeObject firstSelected = null;
@@ -61,6 +64,12 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	}
 
 	@Override
+	public boolean close() {
+		vDatabaseObjects.clear();
+		return super.close();
+	}
+
+	@Override
 	protected int getShellStyle() {
 		return SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE;
 	}
@@ -71,6 +80,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 			databaseObjectFindDialogComposite = (DatabaseObjectFindDialogComposite)dialogComposite;
 	        objectTextSubstring = (String)databaseObjectFindDialogComposite.getValue("Substring");
 	        bMatchCase = ((Boolean)databaseObjectFindDialogComposite.getValue("matchCase")).equals(Boolean.TRUE);
+	        bRegExp = ((Boolean)databaseObjectFindDialogComposite.getValue("isRegExp")).equals(Boolean.TRUE);
 	        objectType = Integer.parseInt((String)databaseObjectFindDialogComposite.getValue("ObjectType"));
 	        findDatabaseObject();
 		}
@@ -111,6 +121,19 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	}
 
 	protected void findDatabaseObject() {
+		Pattern pattern = null;
+		String substring = "";
+		
+		try {
+			pattern = bRegExp ? (bMatchCase ? Pattern.compile(objectTextSubstring) : 
+												Pattern.compile(objectTextSubstring, Pattern.CASE_INSENSITIVE)) : null;
+		} catch (Exception pex) {
+			ConvertigoPlugin.errorMessageBox(pex.getClass().getName()+ ":\n"+ pex.getMessage());
+			return;
+		}
+		
+		substring = bMatchCase ? objectTextSubstring : objectTextSubstring.toLowerCase();
+		
         while (true) {
     		Enumeration<DatabaseObjectTreeObject> enumDatabaseObjects = Collections.enumeration(vDatabaseObjects);
             while (enumDatabaseObjects.hasMoreElements()) {
@@ -159,12 +182,16 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 						e.printStackTrace();
 					}
                 	
-                    if (!bMatchCase) {
-                        objectTextSubstring = objectTextSubstring.toLowerCase();
-                        text = text.toLowerCase();
-                    }
-
-                    if (text.indexOf(objectTextSubstring) != -1) { // Object found !!!
+                	boolean bFound = false;
+                	if (bRegExp) {
+                		Matcher matcher = pattern.matcher(text);
+                		bFound = matcher.find();
+                	} else {
+                    	text = bMatchCase ? text : text.toLowerCase();
+                		bFound = text.indexOf(substring) != -1;
+                	}
+                	
+                    if (bFound) { // Object found !!!
                     	//System.out.println(text);
                     	ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject));
                     	vDatabaseObjects.remove(databaseObjectTreeObject);
@@ -173,12 +200,12 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
                 }
             }
 
+    		TreeObject treeSelected = firstSelected == null ? ConvertigoPlugin.projectManager.currentProjectTreeObject : firstSelected;
         	MessageBox messageBox = new MessageBox(getShell(),SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-			String message = "End of the search. Do you want to retry the search from the beginning?";
+			String message = "End of the search for "+ treeSelected.toString() +" object.\nDo you want to retry the search from the beginning?";
         	messageBox.setMessage(message);
         	int ret = messageBox.open();
         	if (ret == SWT.YES) {
-        		TreeObject treeSelected = firstSelected == null ? ConvertigoPlugin.projectManager.currentProjectTreeObject : firstSelected;
         		ConvertigoPlugin.getDefault().getProjectExplorerView().setSelectedTreeObject(treeSelected);
         		vDatabaseObjects.clear();
         		getDatabaseObjects(null);
