@@ -27,6 +27,7 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -69,6 +70,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
@@ -145,14 +147,14 @@ import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
 import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
-import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
@@ -3021,6 +3023,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			return true;
 		}
 		return false;
+	}
+	
+	public Comparator<TreeObject> getViewerComparator() {
+		Comparator<TreeObject> comparator = null;
+		ViewerComparator sorter = viewer != null ? viewer.getComparator() : new ViewerComparator();
+		comparator = new Comparator<TreeObject>() {
+			@Override
+			public int compare(TreeObject o1, TreeObject o2) {
+				return sorter.compare(viewer, o1, o2);
+			}
+		};
+		return comparator;
 	}
 
 	public static boolean folderAcceptMobileComponent(int folderType, DatabaseObject databaseObject) {
