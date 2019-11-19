@@ -327,4 +327,14 @@ public class YamlConverter {
 		}
 		FileUtils.write(yaml, y.sb.toString(), "UTF-8");
 	}
+	
+	public static String toYaml(Element element) throws IOException {
+		if (element != null) {
+			YamlConverter y = new YamlConverter();
+			y.sb = new StringBuilder();
+			y.writeYamlElement("", element, false);
+			return y.sb.toString();
+		}
+		return null;
+	}
 }

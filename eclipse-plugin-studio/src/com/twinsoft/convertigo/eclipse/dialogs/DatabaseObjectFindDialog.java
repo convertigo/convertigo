@@ -28,7 +28,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -36,6 +35,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.YamlConverter;
+
 
 public class DatabaseObjectFindDialog extends MyAbstractDialog {
 
@@ -43,6 +45,7 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	private boolean bMatchCase = false;
 	private int objectType;
 	private List<DatabaseObjectTreeObject> vDatabaseObjects = new ArrayList<DatabaseObjectTreeObject>(64);
+	private TreeObject firstSelected = null;
 	
 	private DatabaseObjectFindDialogComposite databaseObjectFindDialogComposite = null;
 	
@@ -75,18 +78,31 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 	
 	private void getDatabaseObjects(TreeParent treeObject) {
 		ProjectTreeObject projectTreeObject = ConvertigoPlugin.projectManager.currentProjectTreeObject;
-		DatabaseObjectTreeObject databaseObjectTreeObject = null;
-		TreeParent treeParent = treeObject;
-		if (treeObject == null)
-			treeParent = projectTreeObject;
 		
-		for(TreeObject child : treeParent.getChildren()) {
+		TreeParent treeParent = treeObject;
+		if (treeObject == null) {
+			treeParent = projectTreeObject;
+			
+			TreeObject treeSelected = ConvertigoPlugin.getDefault().getProjectExplorerView().getFirstSelectedTreeObject();
+    		while (treeSelected != null && !(treeSelected instanceof TreeParent)) {
+    			treeSelected = treeSelected.getParent();
+    		}
+    		if (treeSelected != null) {
+    			treeParent = (TreeParent)treeSelected;
+    		}
+			if (firstSelected == null) {
+				firstSelected = treeSelected;
+			}
+		}
+		
+		List<? extends TreeObject> children = treeParent.getChildren();
+		children.sort(ConvertigoPlugin.getDefault().getProjectExplorerView().getViewerComparator());
+		for (TreeObject child : children) {
 			if (child instanceof DatabaseObjectTreeObject) {
-				databaseObjectTreeObject = (DatabaseObjectTreeObject)child;
+				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)child;
 				if (!databaseObjectTreeObject.isInherited) {
 					vDatabaseObjects.add(databaseObjectTreeObject);
-					if (child instanceof TreeParent)
-						getDatabaseObjects((TreeParent)child);
+					getDatabaseObjects(databaseObjectTreeObject);
 				}
 			} else if (child instanceof TreeParent) {
 				getDatabaseObjects((TreeParent)child);
@@ -94,11 +110,9 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 		}
 	}
 
-	private Enumeration<DatabaseObjectTreeObject> enumDatabaseObjects;
-
 	protected void findDatabaseObject() {
-    	enumDatabaseObjects = Collections.enumeration(vDatabaseObjects);
         while (true) {
+    		Enumeration<DatabaseObjectTreeObject> enumDatabaseObjects = Collections.enumeration(vDatabaseObjects);
             while (enumDatabaseObjects.hasMoreElements()) {
             	DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) enumDatabaseObjects.nextElement();
                 DatabaseObject databaseObject = databaseObjectTreeObject.getObject(); 
@@ -139,12 +153,19 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
 
                 if (bContinue) {
                     String text = databaseObjectTreeObject.toString();
+                	try {
+                		text = YamlConverter.toYaml(databaseObject.toXml(XMLUtils.createDom()));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+                	
                     if (!bMatchCase) {
                         objectTextSubstring = objectTextSubstring.toLowerCase();
                         text = text.toLowerCase();
                     }
 
                     if (text.indexOf(objectTextSubstring) != -1) { // Object found !!!
+                    	//System.out.println(text);
                     	ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject));
                     	vDatabaseObjects.remove(databaseObjectTreeObject);
                     	return;
@@ -153,10 +174,13 @@ public class DatabaseObjectFindDialog extends MyAbstractDialog {
             }
 
         	MessageBox messageBox = new MessageBox(getShell(),SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-			String message = "The end of the document has been reached. Do you want to retry the search from the beginning of the document?";
+			String message = "End of the search. Do you want to retry the search from the beginning?";
         	messageBox.setMessage(message);
         	int ret = messageBox.open();
         	if (ret == SWT.YES) {
+        		TreeObject treeSelected = firstSelected == null ? ConvertigoPlugin.projectManager.currentProjectTreeObject : firstSelected;
+        		ConvertigoPlugin.getDefault().getProjectExplorerView().setSelectedTreeObject(treeSelected);
+        		vDatabaseObjects.clear();
         		getDatabaseObjects(null);
         	}
         	else {

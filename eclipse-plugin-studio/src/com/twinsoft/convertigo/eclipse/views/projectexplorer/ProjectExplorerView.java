@@ -27,6 +27,7 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -69,6 +70,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
@@ -266,6 +268,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
+@SuppressWarnings("deprecation")
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
 
 	public static final int TREE_OBJECT_TYPE_UNKNOWN = 0;
@@ -413,7 +416,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
-	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewContentProvider = new ViewContentProvider(this);
 
@@ -3011,5 +3013,17 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			return true;
 		}
 		return false;
+	}
+	
+	public Comparator<TreeObject> getViewerComparator() {
+		Comparator<TreeObject> comparator = null;
+		ViewerSorter sorter = viewer != null ? viewer.getSorter() : new ViewerSorter();
+		comparator = new Comparator<TreeObject>() {
+			@Override
+			public int compare(TreeObject o1, TreeObject o2) {
+				return sorter.compare(viewer, o1, o2);
+			}
+		};
+		return comparator;
 	}
 }
