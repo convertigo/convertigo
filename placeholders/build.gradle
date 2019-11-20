@@ -58,8 +58,22 @@ task mysqlJar(type: Jar) {
 	}
 }
 
+task oracleJar(type: Jar) {
+	group 'convertigo'
+	
+	archiveFileName = 'ojdbc.jar'
+	manifest = myManifest
+	from(sourceSets.main.output) {
+		include 'readme.txt'
+		include 'oracle/jdbc/driver/**'
+		include 'com/convertigo/jdbc/CommonDriver.class'
+		include 'com/convertigo/jdbc/FakeJarException.class'
+	}
+}
+
 artifacts {
 	allPlaceholders db2jccJar
 	allPlaceholders db2jccLicenceJar
 	allPlaceholders mysqlJar
+	allPlaceholders oracleJar
 }

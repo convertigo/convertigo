@@ -30,7 +30,7 @@ public class CommonDriver {
 		
 		String message = "(" + classPath + ") This is not the true " + jarName + ", due to license issue we cannot provide it.\n\n"
 				+ "If you do not have an official " + jarName + ", " + howToGetIt + "\n\n"
-				+ "You have to put the official " + jarName + " to your <project>/libs directory and try again.\n\n";
+				+ "You have to put the official " + jarName + " to your {project}/libs directory and try again.\n\n";
 		try {
 			Class<?> engine = Class.forName("com.twinsoft.convertigo.engine.Engine");
 			String path = new File("" + engine.getField("USER_WORKSPACE_PATH").get(null) + "/libs/").getCanonicalPath();
