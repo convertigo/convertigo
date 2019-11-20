@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.lang.ref.WeakReference;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -42,9 +43,6 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
-
-import oracle.jdbc.OraclePreparedStatement;
-import oracle.jdbc.OracleResultSet;
 
 public class DatabaseCacheManager extends CacheManager {
 
@@ -326,7 +324,7 @@ public class DatabaseCacheManager extends CacheManager {
 			// Case Oracle DB with XMLTYPE for Xml column : use prepared statement
 			// INSERT INTO CacheTable (Xml, ExpiryDate, RequestString, Project, [Transaction]) VALUES (XMLTYPE(?), {ExpiryDate}, '{RequestString}', '{Project}', '{Transaction}')
 			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("XMLTYPE(?)") != -1) {
-				OraclePreparedStatement statement = null;
+				PreparedStatement statement = null;
 				java.sql.Clob clb = null;
 				try {
 					xml = escapeString(xml);
@@ -334,7 +332,7 @@ public class DatabaseCacheManager extends CacheManager {
 					clb = sqlRequester.connection.createClob();
 					clb.setString(1, xml);
 					
-					statement = (OraclePreparedStatement) sqlRequester.connection.prepareStatement(sSqlRequest);
+					statement = sqlRequester.connection.prepareStatement(sSqlRequest);
 					statement.setClob(1, clb);
 					int nResult = statement.executeUpdate();
 					Engine.logCacheManager.debug(nResult + " row(s) inserted (Xml length="+ xml.length() +").");
@@ -411,15 +409,15 @@ public class DatabaseCacheManager extends CacheManager {
 			// Case Oracle DB with XMLTYPE for Xml column : use prepared statement
 			// SELECT x.Xml.getCLOBVal() Xml FROM CacheTable x WHERE Id \= {Id}
 			if (isOracleServerDatabase && sSqlRequest.toUpperCase().indexOf("GETCLOBVAL()") != -1) {
-				OraclePreparedStatement statement = null;
-				OracleResultSet rs = null;
+				PreparedStatement statement = null;
+				ResultSet rs = null;
 				java.sql.Clob clb = null;
 				try {
-					statement = (OraclePreparedStatement) sqlRequester.connection.prepareStatement(sSqlRequest);
-					rs = (OracleResultSet) statement.executeQuery(sSqlRequest);
+					statement = sqlRequester.connection.prepareStatement(sSqlRequest);
+					rs = statement.executeQuery(sSqlRequest);
 					rs.next();
 
-					clb = rs.getCLOB("Xml");
+					clb = rs.getClob("Xml");
 					Reader in = clb.getCharacterStream();
 					StringWriter w = new StringWriter();
 					IOUtils.copy(in, w);
