@@ -304,6 +304,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		
 		StringBuilder sbProps = new StringBuilder();
 		sbProps.append("tplVersion").append(": ").append("'"+ tplVersion +"'");
+		sbProps.append(", actionName").append(": ").append("'"+ getName() +"'");
+		sbProps.append(", actionFunction").append(": ").append("'"+ getActionName() +"'");
 		return sbProps;
 	}
 	

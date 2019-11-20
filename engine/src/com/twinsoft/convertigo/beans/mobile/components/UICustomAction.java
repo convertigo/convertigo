@@ -355,9 +355,20 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "";
 	}
 
+	protected StringBuilder initProps(boolean forTemplate) {
+		String tplVersion = getTplVersion();
+		tplVersion = tplVersion == null ? "" : tplVersion;
+		
+		StringBuilder sbProps = new StringBuilder();
+		sbProps.append("tplVersion").append(": ").append("'"+ tplVersion +"'");
+		sbProps.append(", actionName").append(": ").append("'"+ getName() +"'");
+		sbProps.append(", actionFunction").append(": ").append("'"+ getActionName() +"'");
+		return sbProps;
+	}
+	
 	protected String computeActionInputs(boolean forTemplate) {
 		if (isEnabled()) {
-			StringBuilder sbProps = new StringBuilder();
+			StringBuilder sbProps = initProps(forTemplate);
 			
 			StringBuilder sbVars = new StringBuilder();
 			Iterator<UIComponent> it = getUIComponentList().iterator();
