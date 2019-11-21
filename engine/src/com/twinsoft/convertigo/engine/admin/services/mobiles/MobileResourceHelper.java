@@ -459,7 +459,7 @@ public class MobileResourceHelper {
 		preparePackage();
 
 		// Build the ZIP file for the mobile device
-		File mobileArchiveFile = new File(destDir.getParentFile(), project.getName() + ".zip");
+		File mobileArchiveFile = new File(destDir.getParentFile(), project.getName() + "_" + mobilePlatform.getName() + "_SourcePackage.zip");
 		ZipUtils.makeZip(mobileArchiveFile.getPath(), destDir.getPath(), null);
 		
 		return mobileArchiveFile;
