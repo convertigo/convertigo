@@ -27,13 +27,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -59,19 +58,15 @@ public class GetSourcePackage extends DownloadService {
 			}
 		}
 		
-		String project = Keys.project.value(request);
-		String platform = Keys.platform.value(request);
-		
 		File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
-				
-		FileInputStream archiveInputStream = new FileInputStream(mobileArchiveFile);		
 		
-		HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + project + "_" + platform + "_SourcePackage.zip\"");
-		response.setContentType(MimeType.OctetStream.value());
-		
-		IOUtils.copy(archiveInputStream, response.getOutputStream());		
-		
-		archiveInputStream.close();
+		try (FileInputStream archiveInputStream = new FileInputStream(mobileArchiveFile)) {
+			HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + mobileArchiveFile.getName() + "\"");
+			HeaderName.ContentLength.setHeader(response, Long.toString(mobileArchiveFile.length()));
+			response.setContentType(MimeType.OctetStream.value());
+			
+			IOUtils.copy(archiveInputStream, response.getOutputStream());
+		}
 	}	
 
 }
