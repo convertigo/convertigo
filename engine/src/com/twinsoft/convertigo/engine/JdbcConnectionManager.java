@@ -87,7 +87,9 @@ public class JdbcConnectionManager implements AbstractManager {
 		Engine.logEngine.debug("(JdbcConnectionManager) Creating a new pool");
 		
 		BasicDataSource pool = new BasicDataSource();
-
+		
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		pool.setDriverClassLoader(cl);
 		pool.setDriverClassName(connector.getJdbcDriverClassName());
 		
 		String jdbcURL = connector.getRealJdbcURL();
