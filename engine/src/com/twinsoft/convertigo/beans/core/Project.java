@@ -84,7 +84,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
 	public static final String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 	
-	protected final Object mutexClassLoader = new Object();
+	private final Object mutexClassLoader = new Object();
 	
     /**
      * The Context timeout in seconds.
@@ -161,7 +161,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	transient private long lastChange = 0L;
 	
-	transient private ClassLoader loader;
+	transient private DirClassLoader loader;
 	
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
@@ -843,10 +843,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			return ((Project) original).getProjectClassLoader();
 		}
 		synchronized (mutexClassLoader) {
-			loader = null;
+			if (loader != null && loader.isContentChanged()) {
+				loader = null;
+			}
 			if (loader == null) {
 				List<File> dirs = addClassPathDirs(new LinkedList<>());
-				loader = new DirClassLoader(dirs, Engine.getEngineClassLoader());
+				File toCopy = new File(Engine.USER_WORKSPACE_PATH + "/libs/" + getName());
+				loader = new DirClassLoader(dirs, Engine.getEngineClassLoader(), toCopy);
 			}
 		}
 		return loader;
