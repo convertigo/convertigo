@@ -5,5 +5,5 @@
     
     Resources of this project are used as template to build a MobileBuilder application.
   httpSessionTimeout: 300
-  version: 7.6.5-beta
+  version: 7.6.5
   ↓void [connectors.HttpConnector]: 🗏 connectors/void.yaml

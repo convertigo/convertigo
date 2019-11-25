@@ -8,7 +8,7 @@
     lib_FileTransfer.CheckRemoveExpired.maxMinute : min delay (in minute) between 2 checks (def: 5)
     lib_FileTransfer.SplitFileInChunks.chunkSize : size (in MB) of chunk (def: 1)'
   jsonRoot: docNode
-  version: 7.6.5-beta
+  version: 7.6.5
   ↓c8ofiletransfer [connectors.FullSyncConnector]: 🗏 connectors/c8ofiletransfer.yaml
   ↓_AddLockedFile [sequences.GenericSequence]: 🗏 sequences/_AddLockedFile.yaml
   ↓_CheckRemoveExpired [sequences.GenericSequence]: 🗏 sequences/_CheckRemoveExpired.yaml

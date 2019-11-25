@@ -1,5 +1,5 @@
 ↑convertigo: 7.6.5.m006
 ↓template_javelinDKU [core.Project]: 
   comment: Legacy DKU Webization project
-  version: 7.6.5-beta
+  version: 7.6.5
   ↓javelinDKUTemplateConnector [connectors.JavelinConnector]: 🗏 connectors/javelinDKUTemplateConnector.yaml

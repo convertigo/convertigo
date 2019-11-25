@@ -2,7 +2,7 @@
 ↓IonicConferenceApp [core.Project]: 
   comment: This demo is based on Ionic Conference App but using the Convertigo Mobile Builder.
   corsOrigin: =Origin
-  version: 7.6.5-beta
+  version: 7.6.5
   ↓conferenceapp [connectors.FullSyncConnector]: 🗏 connectors/conferenceapp.yaml
   ↓CheckRemoteInit [sequences.GenericSequence]: 🗏 sequences/CheckRemoteInit.yaml
   ↓fill_all_database [sequences.GenericSequence]: 🗏 sequences/fill_all_database.yaml
