@@ -111,6 +111,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		cloned.vSharedComponents = new LinkedList<UISharedComponent>();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.appImports = new HashMap<String, String>();
+		cloned.appDeclarations = new HashMap<String, String>();
+		cloned.appConstructors = new HashMap<String, String>();
+		cloned.appFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.rootPage = null;
@@ -993,6 +996,63 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return false;
 	}
     
+	private transient Map<String, String> appFunctions = new HashMap<String, String>();
+	
+	private boolean hasFunction(String name) {
+		return appFunctions.containsKey(name);
+	}
+	
+	@Override
+	public boolean addFunction(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (appFunctions) {
+				if (!hasFunction(name)) {
+					appFunctions.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> appDeclarations = new HashMap<String, String>();
+	
+	private boolean hasDeclaration(String name) {
+		return appDeclarations.containsKey(name);
+	}
+	
+	@Override
+	public boolean addDeclaration(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (appDeclarations) {
+				if (!hasDeclaration(name)) {
+					appDeclarations.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> appConstructors = new HashMap<String, String>();
+	
+	private boolean hasConstructor(String name) {
+		return appConstructors.containsKey(name);
+	}
+	
+	@Override
+	public boolean addConstructor(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (appConstructors) {
+				if (!hasConstructor(name)) {
+					appConstructors.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private transient List<Contributor> contributors = null;
 	
 	public List<Contributor> getContributors() {
@@ -1047,6 +1107,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	protected synchronized void doComputeContents() {
 		try {
 			appImports.clear();
+			appDeclarations.clear();
+			appConstructors.clear();
+			appFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
@@ -1234,16 +1297,24 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		// App events
 		if (compareToTplVersion("7.6.0.1") >= 0) {
 			try {
-				String subscribers = computeEventConstructors();
-				String constructors = jsonScripts.getString("constructors") + subscribers;
+				String constructors = jsonScripts.getString("constructors");
+				String cname = "subscribers";
+				String ccode = computeEventConstructors();
+				if (addConstructor(cname, ccode)) {
+					constructors += ccode;
+				}
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
 			try {
-				String function = computeNgDestroy(); 
-				String functions = jsonScripts.getString("functions") + function;
+				String functions = jsonScripts.getString("functions");
+				String fname = "ngOnDestroy";
+				String fcode = computeNgDestroy();
+				if (addFunction(fname, fcode)) {
+					functions += fcode;
+				}
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -1339,6 +1410,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	@Override
 	public String computeStyle() {
 		StringBuilder sb = new StringBuilder();
+		
+		// App theme and style
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
@@ -1347,6 +1420,16 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				if (!tpl.isEmpty()) {
 					sb.append(tpl).append(System.getProperty("line.separator"));
 				}
+			}
+		}
+		
+		// App menu styles
+		Iterator<UIDynamicMenu> itm = getMenuComponentList().iterator();
+		while (itm.hasNext()) {
+			UIDynamicMenu menu = itm.next();
+			String menuStyle = menu.computeStyle();
+			if (!menuStyle.isEmpty()) {
+				sb.append(menuStyle).append(System.lineSeparator());
 			}
 		}
 		

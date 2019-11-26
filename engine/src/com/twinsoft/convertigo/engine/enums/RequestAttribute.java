@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.enums;
 import javax.servlet.ServletRequest;
 
 public enum RequestAttribute {
+	corsOrigin,
 	responseHeader,
 	responseStatus;
 	
@@ -33,6 +34,13 @@ public enum RequestAttribute {
 	
 	public String value() {
 		return value;
+	}
+	
+	public boolean has(ServletRequest request) {
+		if (request != null) {
+			return request.getAttribute(value()) != null;
+		}
+		return false;
 	}
 	
 	public void set(ServletRequest request, Object value) {

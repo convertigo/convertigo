@@ -156,8 +156,18 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		if (isEnabled() && !topic.isEmpty()) {
+			IScriptComponent main = getMainScriptComponent();
+			if (main == null) {
+				return;
+			}
+			
 			try {
-				String functions = jsonScripts.getString("functions") + System.lineSeparator() + computeListenerFunction();
+				String functions = jsonScripts.getString("functions");
+				String fname = getFunctionName();
+				String fcode = computeListenerFunction();
+				if (main.addFunction(fname, fcode)) {
+					functions += System.lineSeparator() + fcode;
+				}
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();

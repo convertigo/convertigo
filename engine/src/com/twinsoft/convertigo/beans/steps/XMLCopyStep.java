@@ -37,7 +37,6 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLCopyStep extends Step implements IStepSourceContainer {
@@ -104,7 +103,6 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		createCopy(this, doc, stepNode);
-		System.out.println("STEP NODE:" + XMLUtils.prettyPrintElement(stepNode));
 	}
 	
 	static protected void createCopy(Step step, Document doc, Element stepNode) throws EngineException {

@@ -78,6 +78,7 @@ RUN sed -i.bak \
         -e '/AprLifecycleListener/d' \
         -e '/JasperListener/d' \
         -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
+        -e 's,</Host>,  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n      </Host>,' \
         conf/server.xml \
     && sed -i.bak \
         -e 's,<Context>,<Context sessionCookiePath="/">,' \
@@ -87,7 +88,7 @@ RUN sed -i.bak \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
-ENV CONVERTIGO_VERSION 7.6.4
+ENV CONVERTIGO_VERSION 7.6.5
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 

@@ -22,9 +22,13 @@ package com.twinsoft.convertigo.engine.admin.services.mobiles;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,9 +37,11 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.text.StringEscapeUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -361,8 +367,10 @@ public class MobileResourceHelper {
 		JSONObject json = new JSONObject();
 		
 		if (buildMode == FlashUpdateBuildMode.full) {
+			fixMobileBuilderTimes();
 			prepareFiles();
 		} else if (buildMode == FlashUpdateBuildMode.light) {
+			fixMobileBuilderTimes();
 			prepareFiles(new FileFilter() {
 				
 				public boolean accept(File pathname) {
@@ -391,13 +399,13 @@ public class MobileResourceHelper {
 		// Update config.xml
 		File configFile = new File(destDir, "config.xml");
 		String configText = FileUtils.readFileToString(configFile, "UTF-8");
-		
+		long revision = destDir.lastModified();
 		configText = configText
 				.replace("$(ApplicationID)$", mobileApplication.getComputedApplicationId())
 				.replace("$(ApplicationVersion)$", mobileApplication.getComputedApplicationVersion())
-				.replace("$(ApplicationName)$", finalApplicationName)
-				.replace("$(ApplicationDescription)$", mobileApplication.getApplicationDescription())
-				.replace("$(ApplicationAuthorName)$", mobileApplication.getApplicationAuthorName())
+				.replace("$(ApplicationName)$", StringEscapeUtils.escapeXml11(finalApplicationName))
+				.replace("$(ApplicationDescription)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationDescription()))
+				.replace("$(ApplicationAuthorName)$", StringEscapeUtils.escapeXml11(mobileApplication.getApplicationAuthorName()))
 				.replace("$(ApplicationAuthorEmail)$", mobileApplication.getApplicationAuthorEmail())
 				.replace("$(ApplicationAuthorWebsite)$", mobileApplication.getApplicationAuthorSite())
 				.replace("$(PlatformName)$", mobilePlatform.getName())
@@ -428,9 +436,9 @@ public class MobileResourceHelper {
 		json.put("applicationDescription", mobileApplication.getApplicationDescription());
 		json.put("applicationId", mobileApplication.getComputedApplicationId());
 		json.put("applicationName", finalApplicationName);
-		json.put("builtRevision", destDir.lastModified());
+		json.put("builtRevision", revision);
 		json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("currentRevision", destDir.lastModified());
+		json.put("currentRevision", revision);
 		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
 		json.put("endPoint", endpoint);
 		json.put("platform", mobilePlatform.getCordovaPlatform());
@@ -442,6 +450,8 @@ public class MobileResourceHelper {
 		
 		write("env.json", json.toString());
 		
+		destDir.setLastModified(revision);
+		
 		return destDir;
 	}
 	
@@ -449,7 +459,7 @@ public class MobileResourceHelper {
 		preparePackage();
 
 		// Build the ZIP file for the mobile device
-		File mobileArchiveFile = new File(destDir.getParentFile(), project.getName() + ".zip");
+		File mobileArchiveFile = new File(destDir.getParentFile(), project.getName() + "_" + mobilePlatform.getName() + "_SourcePackage.zip");
 		ZipUtils.makeZip(mobileArchiveFile.getPath(), destDir.getPath(), null);
 		
 		return mobileArchiveFile;
@@ -458,7 +468,7 @@ public class MobileResourceHelper {
 	public void prepareFilesForFlashupdate() throws ServiceException {
 		boolean changed = false;
 		final File lastEndpoint = new File(destDir, ".endpoint");
-		
+		fixMobileBuilderTimes();
 		if (Engine.isStudioMode() && destDir.exists()) {
 			try {
 				for (File directory: mobileDir) {
@@ -550,5 +560,77 @@ public class MobileResourceHelper {
 		long lastModified = destDir.lastModified();
 		FileUtils.write(file, content, "UTF-8");
 		destDir.setLastModified(lastModified);
+	}
+	
+	private void fixMobileBuilderTimes() {
+		try {
+			Path resourcePath = mobileApplication.getResourceFolder().toPath();
+			if (!Files.exists(resourcePath.resolve("build"))) {
+				return;
+			}
+			mobileApplication.getProject().getMobileBuilder().waitBuildFinished();
+			Path fuPath = Paths.get(project.getDirPath(), "Flashupdate");
+			Files.createDirectories(fuPath);
+			Path pathMD5 = fuPath.resolve("md5.json");
+			JSONObject[] jsonMD5 = {null};
+			if (Files.exists(pathMD5)) {
+				try {
+					jsonMD5[0] = new JSONObject(FileUtils.readFileToString(pathMD5.toFile(), "UTF-8"));
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			}
+			
+			if (jsonMD5[0] == null) {
+				jsonMD5[0] = new JSONObject();
+			}
+			
+			long[] latest = {0};
+			
+			Files.walk(resourcePath).filter(p -> !p.equals(pathMD5)).forEach(p -> {
+				if (Files.isDirectory(p)) {
+					return;
+				}
+				File f = p.toFile();
+				String key = resourcePath.relativize(p).toString().replace('\\', '/');
+				try {
+					JSONObject entryMD5 = jsonMD5[0].has(key) ? jsonMD5[0].getJSONObject(key) : null;
+					if (entryMD5 == null || FileUtils.isFileNewer(f, entryMD5.getLong("ts"))) {
+						try (FileInputStream fis = new FileInputStream(f)) {
+							String md5 = DigestUtils.md5Hex(fis);
+							String lastMD5 = entryMD5 == null ? null : entryMD5.getString("md5");
+							if (md5.equals(lastMD5)) {
+								Engine.logEngine.trace("(MobileResourceHelper) restore " + f.getName() + " " + md5 + " from " + f.lastModified() + " to " + entryMD5.getLong("ts"));
+								f.setLastModified(entryMD5.getLong("ts"));
+							} else {
+								Engine.logEngine.trace("(MobileResourceHelper) changed " + f.getName() + " " + md5 + " != " + lastMD5 + " from " + (entryMD5 == null ? null : entryMD5.getLong("ts")) + " to "+ f.lastModified());
+								entryMD5 = new JSONObject();
+								entryMD5.put("md5", md5);
+								entryMD5.put("ts", f.lastModified());
+								jsonMD5[0].put(key, entryMD5);
+							}
+						}
+					}
+				} catch (Exception e) {
+					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e);
+				}
+				if (!f.getName().equals("service-worker.js")) {
+					latest[0] = Math.max(latest[0], f.lastModified());
+				}
+			});
+			
+			if (latest[0] > 0) {
+				Files.walk(resourcePath).forEach(p -> {
+					File f = p.toFile();
+					if (f.lastModified() > latest[0]) {
+						f.setLastModified(latest[0]);
+					}
+				});
+			}
+			
+			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), "UTF-8");
+		} catch (Exception e) {
+			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e);
+		}
 	}
 }

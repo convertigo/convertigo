@@ -91,7 +91,7 @@ public class PurgeDatabaseTransaction extends AbstractDatabaseTransaction implem
 				query.put("filter", "_selector");
 				body = new JSONObject("{\"selector\":{\"_deleted\":true}}");
 			}
-			int limit = 2;
+			int limit = 100;
 			query.put("limit", Integer.toString(limit));
 			
 			String since = "0";
@@ -182,11 +182,18 @@ public class PurgeDatabaseTransaction extends AbstractDatabaseTransaction implem
 		CouchKey.total_purged.put(response, purged);
 		
 		if (purged > 0) {
-			JSONObject ddoc = couchClient.getDocument(db, DesignDocumentC8o.getId());
-			String dbVersion = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
-			CouchKey.c8oDbVersion.put(ddoc, dbVersion);
-			couchClient.postDocument(db, ddoc, null, CouchPostDocumentPolicy.none, false);
-			Engine.logBeans.info("(PurgeDatabaseTransaction) Database '" + db + "' version changed to '" + dbVersion + "'.");
+			try {
+				JSONObject ddoc = couchClient.getDocument(db, DesignDocumentC8o.getId());
+				JSONObject meta = CouchKey._c8oMeta.JSONObject(ddoc);
+				if (meta.getInt("statusCode") == 200) {
+					String dbVersion = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
+					CouchKey.c8oDbVersion.put(ddoc, dbVersion);
+					couchClient.postDocument(db, ddoc, null, CouchPostDocumentPolicy.none, false);
+					Engine.logBeans.info("(PurgeDatabaseTransaction) Database '" + db + "' version changed to '" + dbVersion + "'.");
+				}
+			} catch (Exception e) {
+				Engine.logBeans.warn("(PurgeDatabaseTransaction) Failed to update database '" + db + "' version", e);
+			}
 		}
 		
 		return response;

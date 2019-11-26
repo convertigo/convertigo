@@ -355,9 +355,20 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "";
 	}
 
+	protected StringBuilder initProps(boolean forTemplate) {
+		String tplVersion = getTplVersion();
+		tplVersion = tplVersion == null ? "" : tplVersion;
+		
+		StringBuilder sbProps = new StringBuilder();
+		sbProps.append("tplVersion").append(": ").append("'"+ tplVersion +"'");
+		sbProps.append(", actionName").append(": ").append("'"+ getName() +"'");
+		sbProps.append(", actionFunction").append(": ").append("'"+ getActionName() +"'");
+		return sbProps;
+	}
+	
 	protected String computeActionInputs(boolean forTemplate) {
 		if (isEnabled()) {
-			StringBuilder sbProps = new StringBuilder();
+			StringBuilder sbProps = initProps(forTemplate);
 			
 			StringBuilder sbVars = new StringBuilder();
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -446,9 +457,12 @@ public class UICustomAction extends UIComponent implements IAction {
 		DatabaseObject parent = getParent();
 		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
 			try {
-				String function = computeActionFunction();
-				
-				String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
+				String functions = jsonScripts.getString("functions");
+				String fname = getFunctionName();
+				String fcode = computeActionFunction();
+				if (main.addFunction(fname, fcode)) {
+					functions += System.lineSeparator() + fcode;
+				}
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -456,9 +470,12 @@ public class UICustomAction extends UIComponent implements IAction {
 		}
 		
 		try {
-			String function = computeActionMain();
-			
-			String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
+			String functions = jsonScripts.getString("functions");
+			String fname = getActionName();
+			String fcode = computeActionMain();
+			if (main.addFunction(fname, fcode)) {
+				functions += System.lineSeparator() + fcode;
+			}
 			jsonScripts.put("functions", functions);
 		} catch (JSONException e) {
 			e.printStackTrace();

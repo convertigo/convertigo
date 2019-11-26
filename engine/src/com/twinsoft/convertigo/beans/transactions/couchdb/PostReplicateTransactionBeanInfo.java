@@ -38,7 +38,7 @@ public class PostReplicateTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postreplicate_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/postreplicate_color_32x32.png";
 			
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
             properties[0] = new PropertyDescriptor("p_cancel", beanClass, "getP_cancel", "setP_cancel");
             properties[0].setDisplayName(getExternalizedString("property.p_cancel.display_name"));
@@ -56,17 +56,21 @@ public class PostReplicateTransactionBeanInfo extends MySimpleBeanInfo {
             properties[3].setDisplayName(getExternalizedString("property.p_doc_ids.display_name"));
             properties[3].setShortDescription(getExternalizedString("property.p_doc_ids.short_description"));
             
-            properties[4] = new PropertyDescriptor("p_proxy", beanClass, "getP_proxy", "setP_proxy");
-            properties[4].setDisplayName(getExternalizedString("property.p_proxy.display_name"));
-            properties[4].setShortDescription(getExternalizedString("property.p_proxy.short_description"));
+            properties[4] = new PropertyDescriptor("p_filter", beanClass, "getP_filter", "setP_filter");
+            properties[4].setDisplayName(getExternalizedString("property.p_filter.display_name"));
+            properties[4].setShortDescription(getExternalizedString("property.p_filter.short_description"));
             
-            properties[5] = new PropertyDescriptor("p_source", beanClass, "getP_source", "setP_source");
-            properties[5].setDisplayName(getExternalizedString("property.p_source.display_name"));
-            properties[5].setShortDescription(getExternalizedString("property.p_source.short_description"));
+            properties[5] = new PropertyDescriptor("p_proxy", beanClass, "getP_proxy", "setP_proxy");
+            properties[5].setDisplayName(getExternalizedString("property.p_proxy.display_name"));
+            properties[5].setShortDescription(getExternalizedString("property.p_proxy.short_description"));
             
-            properties[6] = new PropertyDescriptor("p_target", beanClass, "getP_target", "setP_target");
-            properties[6].setDisplayName(getExternalizedString("property.p_target.display_name"));
-            properties[6].setShortDescription(getExternalizedString("property.p_target.short_description"));
+            properties[6] = new PropertyDescriptor("p_source", beanClass, "getP_source", "setP_source");
+            properties[6].setDisplayName(getExternalizedString("property.p_source.display_name"));
+            properties[6].setShortDescription(getExternalizedString("property.p_source.short_description"));
+            
+            properties[7] = new PropertyDescriptor("p_target", beanClass, "getP_target", "setP_target");
+            properties[7].setDisplayName(getExternalizedString("property.p_target.display_name"));
+            properties[7].setShortDescription(getExternalizedString("property.p_target.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

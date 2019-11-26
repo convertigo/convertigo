@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Document;
 
@@ -203,6 +204,10 @@ public class FileCacheManager extends MemoryCacheManager {
 		}
 		catch(Exception e) {
 			// Ignore it! (use default cache index)
+		}
+		if (cacheIndex == null) {
+			// Default cache index
+			cacheIndex = new ConcurrentHashMap<>();
 		}
 	}
 

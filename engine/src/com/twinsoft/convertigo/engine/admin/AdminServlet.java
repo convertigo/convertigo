@@ -140,28 +140,28 @@ public class AdminServlet extends HttpServlet {
 				String message = "Unknown " + isAdmin + "service '" + serviceName + "'";
 				Engine.logAdmin.error(message);
 				if (show_error) {
-					ServiceUtils.handleError(message, response);
+					ServiceUtils.handleError(message, request, response);
 				}
 			}
 			catch (NoClassDefFoundError e) {
 				String message = "Unknown " + isAdmin + "service '" + serviceName + "'";
 				Engine.logAdmin.error(message);
 				if (show_error) {
-					ServiceUtils.handleError(message, response);
+					ServiceUtils.handleError(message, request, response);
 				}
 			}
 			catch (AuthenticationException e) {
 				String authMessage = e.getMessage();
 				Engine.logAdmin.warn(authMessage);
 				if (show_error) {
-					ServiceUtils.handleError(authMessage, response);
+					ServiceUtils.handleError(authMessage, request, response);
 				}
 			}
 			catch (Exception e) {
 				Engine.logAdmin.error("Unable to execute the service '"
 						+ serviceName + "'", e);
 				if (show_error) {
-					ServiceUtils.handleError(e, response);
+					ServiceUtils.handleError(e, request, response);
 				}
 			}
 			finally {

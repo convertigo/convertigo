@@ -78,6 +78,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		PageComponent cloned = (PageComponent) super.clone();
 		cloned.vUIComponents = new LinkedList<UIComponent>();
 		cloned.pageImports = new HashMap<String, String>();
+		cloned.pageDeclarations = new HashMap<String, String>();
+		cloned.pageConstructors = new HashMap<String, String>();
+		cloned.pageFunctions = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.isRoot = isRoot;
@@ -454,11 +457,69 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		}
 	}
 	
+	@Override
 	public boolean addImport(String name, String path) {
 		if (name != null && path != null && !name.isEmpty() && !path.isEmpty()) {
 			synchronized (pageImports) {
 				if (!hasImport(name) && !hasCustomImport(name)) {
 					pageImports.put(name, path);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> pageFunctions = new HashMap<String, String>();
+	
+	private boolean hasFunction(String name) {
+		return pageFunctions.containsKey(name);
+	}
+	
+	@Override
+	public boolean addFunction(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageFunctions) {
+				if (!hasFunction(name)) {
+					pageFunctions.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> pageDeclarations = new HashMap<String, String>();
+	
+	private boolean hasDeclaration(String name) {
+		return pageDeclarations.containsKey(name);
+	}
+	
+	@Override
+	public boolean addDeclaration(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageDeclarations) {
+				if (!hasDeclaration(name)) {
+					pageDeclarations.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private transient Map<String, String> pageConstructors = new HashMap<String, String>();
+	
+	private boolean hasConstructor(String name) {
+		return pageConstructors.containsKey(name);
+	}
+	
+	@Override
+	public boolean addConstructor(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageConstructors) {
+				if (!hasConstructor(name)) {
+					pageConstructors.put(name, code);
 					return true;
 				}
 			}
@@ -523,6 +584,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	protected synchronized void doComputeContents() {
 		try {
 			pageImports.clear();
+			pageDeclarations.clear();
+			pageConstructors.clear();
+			pageFunctions.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
@@ -681,9 +745,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		String menuId = getMenuId();
 		if (!menuId.isEmpty()) {
 			try {
-				String constructor = System.lineSeparator() + "\t\tthis.menuId = '" + menuId +"';"
-									+ System.lineSeparator() + "\t\t";
-				String constructors = jsonScripts.getString("constructors") + constructor;
+				String constructors = jsonScripts.getString("constructors");
+				String cname = "menuId";
+				String ccode = System.lineSeparator() + "\t\tthis.menuId = '" + menuId +"';" + System.lineSeparator() + "\t\t";
+				if (addConstructor(cname, ccode)) {
+					constructors += ccode;
+				}
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -694,26 +761,36 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
 		if (!subscriberList.isEmpty()) {
 			try {
-				String declaration = "public static nbInstance = 0;" + System.lineSeparator();
-				String declarations = jsonScripts.getString("declarations") + declaration;
+				String declarations = jsonScripts.getString("declarations");
+				String dname = "nbInstance";
+				String dcode = "public static nbInstance = 0;";
+				if (addDeclaration(dname, dcode)) {
+					declarations += dcode + System.lineSeparator();
+				}
 				jsonScripts.put("declarations", declarations);
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
 			
 			try {
-				String subscribers = computeEventConstructors(subscriberList);
-				subscribers += subscribers.isEmpty() ? "" : System.lineSeparator() + "\t\t";
-				String constructors = jsonScripts.getString("constructors") + subscribers;
+				String constructors = jsonScripts.getString("constructors");
+				String cname = "subscribers";
+				String ccode = computeEventConstructors(subscriberList);
+				if (addConstructor(cname, ccode)) {
+					constructors += ccode + (ccode.isEmpty() ? "" : System.lineSeparator() + "\t\t");
+				}
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
 			try {
-				String function = computeNgDestroy(subscriberList);
-				function += function.isEmpty() ? "" : System.lineSeparator() + "\t";
-				String functions = jsonScripts.getString("functions") + function;
+				String functions = jsonScripts.getString("functions");
+				String fname = "ngOnDestroy";
+				String fcode = computeNgDestroy(subscriberList);
+				if (addFunction(fname, fcode)) {
+					functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
+				}
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -727,8 +804,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				String computedEvent = viewEvent.computeEvent(eventList);
 				if (!computedEvent.isEmpty()) {
 					try {
-						String function = computedEvent + System.lineSeparator();
-						String functions = jsonScripts.getString("functions") + function;
+						String functions = jsonScripts.getString("functions");
+						String fname = viewEvent.name();
+						String fcode = computedEvent;
+						if (addFunction(fname, fcode)) {
+							functions += fcode + System.lineSeparator();
+						}
 						jsonScripts.put("functions", functions);
 					} catch (JSONException e) {
 						e.printStackTrace();

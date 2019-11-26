@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -26,9 +28,10 @@ import javax.xml.namespace.QName;
 
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.engine.enums.CouchExtraVariable;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 
-public class AllDocsTransaction extends AbstractDatabaseTransaction {
+public class AllDocsTransaction extends AbstractDatabaseTransaction implements ICouchParametersExtra {
 
 	private static final long serialVersionUID = -3684374492418313635L;
 	
@@ -39,8 +42,11 @@ public class AllDocsTransaction extends AbstractDatabaseTransaction {
 	private String q_include_docs = "";
 	private String q_inclusive_end = "";
 	private String q_key = "";
+	private String q_keys = "";
 	private String q_limit = "";
 	private String q_skip = "";
+	private String q_sorted = "";
+	private String q_stable = "";
 	private String q_stale = "";
 	private String q_startkey = "";
 	private String q_startkey_docid = "";
@@ -139,6 +145,14 @@ public class AllDocsTransaction extends AbstractDatabaseTransaction {
 		this.q_key = q_key;
 	}
 
+	public String getQ_keys() {
+		return q_keys;
+	}
+
+	public void setQ_keys(String q_keys) {
+		this.q_keys = q_keys;
+	}
+
 	public String getQ_limit() {
 		return q_limit;
 	}
@@ -153,6 +167,22 @@ public class AllDocsTransaction extends AbstractDatabaseTransaction {
 
 	public void setQ_skip(String q_skip) {
 		this.q_skip = q_skip;
+	}
+
+	public String getQ_sorted() {
+		return q_sorted;
+	}
+
+	public void setQ_sorted(String q_sorted) {
+		this.q_sorted = q_sorted;
+	}
+
+	public String getQ_stable() {
+		return q_stable;
+	}
+
+	public void setQ_stable(String q_stable) {
+		this.q_stable = q_stable;
 	}
 
 	public String getQ_stale() {
@@ -185,5 +215,12 @@ public class AllDocsTransaction extends AbstractDatabaseTransaction {
 
 	public void setQ_update_seq(String q_update_seq) {
 		this.q_update_seq = q_update_seq;
+	}
+
+	@Override
+	public Collection<CouchExtraVariable> getCouchParametersExtra() {
+		return Arrays.asList(
+			CouchExtraVariable.keys
+		);
 	}
 }

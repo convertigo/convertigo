@@ -41,6 +41,7 @@ public enum CouchParam {
 	name,
 	new_edits,
 	password,
+	filter,
 	proxy,
 	rev,
 	section,

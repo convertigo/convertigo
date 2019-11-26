@@ -37,6 +37,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
@@ -44,46 +46,48 @@ import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 public class ServletUtils {
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {
-        	Engine.logContext.debug("Static file");
-        	
-        	// Warning date comparison: 'If-Modified-Since' header precision is second,
-        	// although file date precision is milliseconds on Windows
-        	long clientDate = request.getDateHeader("If-Modified-Since") / 1000;
-    		Engine.logContext.debug("If-Modified-Since: " + clientDate);
-    		long fileDate = file.lastModified() / 1000;
-    		Engine.logContext.debug("File date: " + fileDate);
-        	if (clientDate == fileDate) {
-        		Engine.logContext.debug("Returned HTTP 304 Not Modified");
-        		response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        	}
-        	else {
-	    		// Serve static files if they exist in the projects repository.
-	    		String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
-	        	Engine.logContext.debug("Found MIME type: " + mimeType);
-	        	HeaderName.ContentType.setHeader(response, mimeType);
-	    		HeaderName.CacheControl.setHeader(response, "public");
-	    		HeaderName.ContentLength.setHeader(response, "" + file.length());
-	    		response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
+			Engine.logContext.debug("Static file");
 
-	    		FileInputStream fileInputStream = null;
-	    		OutputStream output = response.getOutputStream();
-	    		try {
-	        		fileInputStream = new FileInputStream(file);
-	        		IOUtils.copy(fileInputStream, output);
-	    		}
-	    		finally {
-	    			if (fileInputStream != null) {
-	    				fileInputStream.close();
-	    			}
-	    		}
-        	}
-    	}
-    	else {
-    	    Engine.logContext.debug("Convertigo request => follow the normal filter chain");
-    	    chain.doFilter(request, response);
-    	}
+			// Warning date comparison: 'If-Modified-Since' header precision is second,
+			// although file date precision is milliseconds on Windows
+			long clientDate = request.getDateHeader("If-Modified-Since") / 1000;
+			Engine.logContext.debug("If-Modified-Since: " + clientDate);
+			long fileDate = file.lastModified() / 1000;
+			Engine.logContext.debug("File date: " + fileDate);
+			if (clientDate == fileDate) {
+				Engine.logContext.debug("Returned HTTP 304 Not Modified");
+				response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+			}
+			else {
+				long maxAge = EnginePropertiesManager.getPropertyAsLong(PropertyName.NET_MAX_AGE);
+
+				// Serve static files if they exist in the projects repository.
+				String mimeType = filterConfig.getServletContext().getMimeType(file.getName());
+				Engine.logContext.debug("Found MIME type: " + mimeType);
+				HeaderName.ContentType.setHeader(response, mimeType);
+				HeaderName.CacheControl.setHeader(response, "max-age=" + maxAge	);
+				HeaderName.ContentLength.setHeader(response, "" + file.length());
+				response.setDateHeader(HeaderName.LastModified.value(), file.lastModified());
+
+				FileInputStream fileInputStream = null;
+				OutputStream output = response.getOutputStream();
+				try {
+					fileInputStream = new FileInputStream(file);
+					IOUtils.copy(fileInputStream, output);
+				}
+				finally {
+					if (fileInputStream != null) {
+						fileInputStream.close();
+					}
+				}
+			}
+		}
+		else {
+			Engine.logContext.debug("Convertigo request => follow the normal filter chain");
+			chain.doFilter(request, response);
+		}
 	}
-	
+
 	public static void applyCustomHeaders(HttpServletRequest request, HttpServletResponse response) {
 		Map<String, String> headers = RequestAttribute.responseHeader.get(request);
 		String user = SessionAttribute.authenticatedUser.string(request.getSession(false));
@@ -114,5 +118,5 @@ public class ServletUtils {
 			}
 		}
 	}
-	
+
 }

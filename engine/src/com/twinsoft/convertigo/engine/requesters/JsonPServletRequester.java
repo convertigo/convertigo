@@ -22,8 +22,6 @@ package com.twinsoft.convertigo.engine.requesters;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Context;
-import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
-import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 
 public class JsonPServletRequester extends JsonServletRequester {
@@ -37,7 +35,7 @@ public class JsonPServletRequester extends JsonServletRequester {
     }
 
     @Override
-	protected void handleParameter(Context context, String parameterName, String parameterValue) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
+	protected void handleParameter(Context context, String parameterName, String parameterValue) {
 		super.handleParameter(context, parameterName, parameterValue);
 		
 		// This gives the required context name

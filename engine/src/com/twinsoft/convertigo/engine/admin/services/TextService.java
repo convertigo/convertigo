@@ -39,7 +39,7 @@ public abstract class TextService implements Service {
             
 			Engine.logAdmin.debug("Generated string response:\n" + sResponse);
         } catch (Throwable t) {
-			ServiceUtils.handleError(t, response);
+			ServiceUtils.handleError(t, request, response);
 		}
 	}
 

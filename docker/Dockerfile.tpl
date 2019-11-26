@@ -78,6 +78,7 @@ RUN sed -i.bak \
         -e '/AprLifecycleListener/d' \
         -e '/JasperListener/d' \
         -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
+        -e 's,</Host>,  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n      </Host>,' \
         conf/server.xml \
     && sed -i.bak \
         -e 's,<Context>,<Context sessionCookiePath="/">,' \

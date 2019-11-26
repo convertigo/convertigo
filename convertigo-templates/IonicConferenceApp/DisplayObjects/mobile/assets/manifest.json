@@ -1,10 +1,10 @@
 {
-  "name": "Ionic",
-  "short_name": "Ionic",
-  "start_url": "index.html",
+  "name": "PWA Application",
+  "short_name": "PWA App",
+  "start_url": "../index.html",
   "display": "standalone",
   "icons": [{
-    "src": "assets/imgs/logo.png",
+    "src": "icon_512x512.png",
     "sizes": "512x512",
     "type": "image/png"
   }],

@@ -25,8 +25,6 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
-import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.translators.PoolTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 
@@ -71,7 +69,7 @@ public class PoolRequester extends GenericRequester {
 		return result; 
 	}
 	
-	public void handleParameter(String parameterName, String parameterValue) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
+	public void handleParameter(String parameterName, String parameterValue) {
 		handleParameter(context, parameterName, parameterValue);
 	}
 }

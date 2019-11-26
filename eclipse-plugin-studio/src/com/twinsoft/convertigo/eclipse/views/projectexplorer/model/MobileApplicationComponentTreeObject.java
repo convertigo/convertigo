@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
 import java.util.List;
 
@@ -26,6 +28,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorDescriptor;
@@ -186,6 +191,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						}
 						markApplicationAsDirty();
 					} else if (propertyName.equals("tplProjectName")) {
+						// close app editor and reinitialize builder
 						Project project = getObject().getProject();
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
@@ -194,6 +200,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName());
 						iproject.refreshLocal(IResource.DEPTH_INFINITE, null);
 						
+						// force app sources regeneration
 						for (TreeObject to: this.getChildren()) {
 							if (to instanceof ObjectsFolderTreeObject) {
 								ObjectsFolderTreeObject ofto = (ObjectsFolderTreeObject)to;
@@ -207,6 +214,28 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 							}
 						}
 						markApplicationAsDirty();
+						
+						// delete node modules and alert user
+						final File nodeModules = new File(project.getDirPath(), "/_private/ionic/node_modules");
+						if (nodeModules.exists()) {
+							ProgressMonitorDialog dialog = new ProgressMonitorDialog(ConvertigoPlugin.getMainShell());
+							dialog.open();
+							dialog.run(true, false, new IRunnableWithProgress() {
+								@Override
+								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+									monitor.beginTask("deleting node modules", IProgressMonitor.UNKNOWN);
+									String alert = "template changed!";
+									if (com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(nodeModules)) {
+										alert = "You have just changed the template.\nPackages have been deleted and will be reinstalled next time you run your application again.";
+									} else {
+										alert = "You have just changed the template: packages could not be deleted!\nDo not forget to reinstall the packages before running your application again, otherwise it may be corrupted!";
+									}
+									monitor.done();
+									ConvertigoPlugin.infoMessageBox(alert);
+								}
+							});
+						}
+						
 					} else {
 						markApplicationAsDirty();
 					}

@@ -158,25 +158,37 @@ public class UIForm extends UIElement {
 				e.printStackTrace();
 			}
 			
-			String declaration = "public "+ getFormGroupName() + " :  FormGroup;" + System.lineSeparator();
 			try {
-				String declarations = jsonScripts.getString("declarations") + declaration;
+				String declarations = jsonScripts.getString("declarations");
+				String dname = "d_" + getFormGroupName();
+				String dcode = "public "+ getFormGroupName() + " :  FormGroup;";
+				if (main.addDeclaration(dname, dcode)) {
+					declarations += dcode + System.lineSeparator();
+				}
 				jsonScripts.put("declarations", declarations);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
-			String function = computeFunction() + System.lineSeparator();
 			try {
-				String constructors = jsonScripts.getString("constructors") + function;
+				String constructors = jsonScripts.getString("constructors");
+				String fname = "f_"+ getFormGroupName();
+				String fcode = computeFunction();
+				if (main.addConstructor(fname, fcode)) {
+					constructors += fcode + System.lineSeparator();
+				}
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
-			String constructor = computeConstructor() + System.lineSeparator();
 			try {
-				String constructors = jsonScripts.getString("constructors") + constructor;
+				String constructors = jsonScripts.getString("constructors");
+				String cname = "c_"+ getFormGroupName();
+				String ccode = computeConstructor();
+				if (main.addConstructor(cname, ccode)) {
+					constructors += ccode + System.lineSeparator();
+				}
 				jsonScripts.put("constructors", constructors);
 			} catch (JSONException e) {
 				e.printStackTrace();

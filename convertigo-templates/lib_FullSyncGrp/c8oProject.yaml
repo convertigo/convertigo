@@ -1,8 +1,8 @@
-↑convertigo: 7.6.4.m006
+↑convertigo: 7.6.5.m006
 ↓lib_FullSyncGrp [core.Project]: 
   comment: Library to define users and groups for fullsync replication filtering
   contextTimeout: 1800
-  version: 7.6.4
+  version: 7.6.5
   ↓c8ofullsyncgrp [connectors.FullSyncConnector]: 🗏 connectors/c8ofullsyncgrp.yaml
   ↓Groups [sequences.GenericSequence]: 🗏 sequences/Groups.yaml
   ↓GroupsOf [sequences.GenericSequence]: 🗏 sequences/GroupsOf.yaml

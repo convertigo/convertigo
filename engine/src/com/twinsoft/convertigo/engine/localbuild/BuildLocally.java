@@ -108,7 +108,7 @@ public abstract class BuildLocally {
 		
 		pb.redirectErrorStream(mergeError);
 		
-		Engine.logEngine.info("Executing command : " + parameters);
+		Engine.logEngine.info("Executing command : " + parameters + "\nEnv:" + pb.environment());
 		
 		process = pb.start();
 		

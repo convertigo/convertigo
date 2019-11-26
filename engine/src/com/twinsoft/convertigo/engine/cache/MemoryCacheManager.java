@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.engine.cache;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Document;
 
@@ -33,13 +32,10 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 
 public abstract class MemoryCacheManager extends CacheManager {
 	
-	protected Map<String, CacheEntry> cacheIndex;
+	protected Map<String, CacheEntry> cacheIndex = null;
 	
 	public void init() throws EngineException {
 		super.init();
-		
-		// Default cache index
-		cacheIndex = new ConcurrentHashMap<>();
 		
 		// Trying to restore the previous cache index if any
 		restoreCacheIndex();
@@ -55,7 +51,7 @@ public abstract class MemoryCacheManager extends CacheManager {
 	} 
 
 	public CacheEntry getCacheEntry(String requestString) throws EngineException {
-		CacheEntry cacheEntry = cacheIndex.get(requestString);
+		CacheEntry cacheEntry = cacheIndex != null ? cacheIndex.get(requestString) : null;
 		return cacheEntry;
 	}
 
@@ -65,9 +61,12 @@ public abstract class MemoryCacheManager extends CacheManager {
 	
 	protected CacheEntry storeResponse(Document response, String requestString, long expiryDate) throws EngineException {
 		storeWeakResponse(response, requestString);
-		CacheEntry cacheEntry = storeResponseToRepository(response, requestString, expiryDate);
-		cacheIndex.put(requestString, cacheEntry);
-		return cacheEntry;
+		if (cacheIndex != null) {
+			CacheEntry cacheEntry = storeResponseToRepository(response, requestString, expiryDate);
+			cacheIndex.put(requestString, cacheEntry);
+			return cacheEntry;
+		}
+		return null;
 	}
 
 	/**
@@ -121,7 +120,9 @@ public abstract class MemoryCacheManager extends CacheManager {
 	 * @throws EngineException if any error occurs during the removing procedure.
 	 */	
 	protected synchronized void removeStoredResponse(CacheEntry cacheEntry) throws EngineException {
-		cacheIndex.remove(cacheEntry.requestString);
+		if (cacheIndex != null) {
+			cacheIndex.remove(cacheEntry.requestString);
+		}
 		removeWeakResponse(cacheEntry);
 		removeStoredResponseImpl(cacheEntry);
 	}
@@ -154,6 +155,9 @@ public abstract class MemoryCacheManager extends CacheManager {
 	}
 
 	protected synchronized void removeExpiredCacheEntries(long time) throws EngineException {
+		if (cacheIndex == null) {
+			return;
+		}
 		Collection<CacheEntry> expired = new LinkedList<CacheEntry>();
 
 		for (CacheEntry cacheEntry : cacheIndex.values())

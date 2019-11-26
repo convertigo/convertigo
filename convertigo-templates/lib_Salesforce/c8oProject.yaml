@@ -1,7 +1,7 @@
-↑convertigo: 7.6.4.m006
+↑convertigo: 7.6.5.m006
 ↓lib_Salesforce [core.Project]: 
   comment: Salesforce connector library. This library enables Convertigo to connect to salesforce using the SOAP protocol. 
-  version: 7.6.4
+  version: 7.6.5
   ↓OAuthConnector [connectors.HttpConnector]: 🗏 connectors/OAuthConnector.yaml
   ↓SoapBinding [connectors.HttpConnector]: 🗏 connectors/SoapBinding.yaml
   ↓buildFieldsForObject [sequences.GenericSequence]: 🗏 sequences/buildFieldsForObject.yaml

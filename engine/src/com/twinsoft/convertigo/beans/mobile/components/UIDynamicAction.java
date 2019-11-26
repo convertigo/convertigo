@@ -304,6 +304,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		
 		StringBuilder sbProps = new StringBuilder();
 		sbProps.append("tplVersion").append(": ").append("'"+ tplVersion +"'");
+		sbProps.append(", actionName").append(": ").append("'"+ getName() +"'");
+		sbProps.append(", actionFunction").append(": ").append("'"+ getActionName() +"'");
 		return sbProps;
 	}
 	
@@ -451,9 +453,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		DatabaseObject parent = getParent();
 		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
 			try {
-				String function = computeActionFunction();
-				
-				String functions = jsonScripts.getString("functions") + System.lineSeparator() + function;
+				String functions = jsonScripts.getString("functions");
+				String fname = getFunctionName();
+				String fcode = computeActionFunction();
+				if (main.addFunction(fname, fcode)) {
+					functions += System.lineSeparator() + fcode;
+				}
 				jsonScripts.put("functions", functions);
 			} catch (JSONException e) {
 				e.printStackTrace();

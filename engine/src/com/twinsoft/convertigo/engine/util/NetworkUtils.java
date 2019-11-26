@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
+import java.util.Set;
 
 public class NetworkUtils {
 	public static boolean available(int port) {
@@ -51,10 +52,11 @@ public class NetworkUtils {
 	    return false;
 	}
 	
-	public static int nextAvailable(int port) {
-		while (!available(port)) {
+	public static int nextAvailable(int port, Set<Integer> usedport) {
+		while (usedport.contains(port) || !available(port)) {
 			port++;
 		};
+		usedport.add(port);
 		return port;
 	}
 }

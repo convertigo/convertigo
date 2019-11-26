@@ -91,24 +91,25 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			}
 		}
 		
+		Collection<CouchExtraVariable> extraVariables = null;
+		if (couchDbTransaction instanceof ICouchParametersExtra){
+			extraVariables = ((ICouchParametersExtra) couchDbTransaction).getCouchParametersExtra();
+		}
+		
+		if (extraVariables != null ) {
+			for (CouchExtraVariable extraVariable : extraVariables) {
+				String name = extraVariable.getVariableName();
+				Group group = name.startsWith("q_") ? groupQueries : groupData;
+				addToComposite(group, name, extraVariable.getVariableDescription(), extraVariable.isMultiValued());
+			}
+		}
+		
 		if (groupQueries.getChildren().length == 1) {
 			groupQueries.dispose();
 		}
 		
 		if (groupParameters.getChildren().length == 1) {
 			groupParameters.dispose();
-		}
-		
-		/* */
-		Collection<CouchExtraVariable> extraVariables = null;
-		if (couchDbTransaction instanceof ICouchParametersExtra){
-			extraVariables = ((ICouchParametersExtra) couchDbTransaction).getCouchParametersExtra();
-		}
-		
-		if (extraVariables != null ){
-			for (CouchExtraVariable extraVariable : extraVariables) {
-				addToComposite(groupData, extraVariable.getVariableName(), extraVariable.getVariableDescription(), extraVariable.isMultiValued());
-			}
 		}
 		
 		if (groupData.getChildren().length == 1) {
@@ -258,6 +259,19 @@ public class CouchVariablesComposite extends ScrolledComposite {
 							"</style></head><p>" + description + "</p></html>");
 
 			parametersCouch.add(name);
+			
+			Control[] children = choosenGroup.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				if (children[i] instanceof Label) {
+					String lab = ((Label) children[i]).getText();
+					if (label.compareTo(lab) < 0) {
+						labelName.moveAbove(children[i - 1]);
+						checkBtn.moveAbove(labelName);
+						browserDescription.moveBelow(labelName);
+						break;
+					}
+				}
+			}
 		}
 	}
 	

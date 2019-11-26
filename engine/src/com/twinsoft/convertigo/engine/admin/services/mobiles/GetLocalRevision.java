@@ -19,54 +19,50 @@
 
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
-import java.io.File;
-import java.io.FileInputStream;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
+import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
-import com.twinsoft.convertigo.engine.enums.HeaderName;
-import com.twinsoft.convertigo.engine.enums.MimeType;
 
 @ServiceDefinition(
-		name = "GetSourcePackage",
-		roles = { Role.ANONYMOUS },
-		parameters = {},
-		returnValue = ""
+	name = "GetLocalRevision",
+	roles = { Role.TEST_PLATFORM, Role.PROJECTS_CONFIG, Role.PROJECTS_VIEW },
+	parameters = {},
+	returnValue = ""
 )
-public class GetSourcePackage extends DownloadService {	
-	
+public class GetLocalRevision extends XmlService {
+
 	@Override
-	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws  Exception {
-		MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/www");
+	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		String project = Keys.project.value(request);
 		
-		if (mobileResourceHelper.mobileApplication == null) {
+		MobileApplication mobileApplication = GetBuildStatus.getMobileApplication(project);
+		
+		if (mobileApplication == null) {
 			throw new ServiceException("no such mobile application");
 		} else {
 			boolean bTpPrivateRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.TEST_PLATFORM_PRIVATE);
-			if (!bTpPrivateRole && mobileResourceHelper.mobileApplication.getAccessibility() == Accessibility.Private) {
+			if (!bTpPrivateRole && mobileApplication.getAccessibility() == Accessibility.Private) {
 				throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
 			}
 		}
 		
-		File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
-		
-		try (FileInputStream archiveInputStream = new FileInputStream(mobileArchiveFile)) {
-			HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + mobileArchiveFile.getName() + "\"");
-			HeaderName.ContentLength.setHeader(response, Long.toString(mobileArchiveFile.length()));
-			response.setContentType(MimeType.OctetStream.value());
-			
-			IOUtils.copy(archiveInputStream, response.getOutputStream());
-		}
-	}	
+		String platformName = Keys.platform.value(request);
+		MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/flashupdate", project, platformName);
+		mobileResourceHelper.prepareFilesForFlashupdate();
 
+		Element elt = document.createElement("revision");
+		elt.setTextContent(mobileResourceHelper.getRevision());
+		document.getDocumentElement().appendChild(elt);
+	}
 }

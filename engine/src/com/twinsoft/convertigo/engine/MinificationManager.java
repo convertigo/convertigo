@@ -24,12 +24,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,20 +44,11 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
-import ro.isdc.wro.extensions.processor.js.UglifyJsProcessor;
-import ro.isdc.wro.model.resource.processor.impl.css.CssCompressorProcessor;
-import ro.isdc.wro.model.resource.processor.impl.css.CssMinProcessor;
-import ro.isdc.wro.model.resource.processor.impl.js.JSMinProcessor;
-
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ComboEnum;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyCategory;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
-import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
-import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
-public class MinificationManager implements AbstractManager, PropertyChangeEventListener {
+public class MinificationManager implements AbstractManager {
 	static final File minificationCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/minification");
 	static final Pattern requestPattern = Pattern.compile("(.*?/projects/|^)(((.*?)/.*?([^/]*?\\.(?:(js)|(css))))(?:\\?(.*)|$))");
 	static final Pattern tailCssUrl = Pattern.compile("([^?]*/).*?\\.css(?:\\?.*)?");
@@ -163,8 +152,7 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 		private File cacheFile;
 		private ResourceType resourceType;
 		private File virtualFile;
-		private boolean filenames = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.MINIFICATION_FILENAMES);
-		private boolean stats = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.MINIFICATION_STATS);
+		private boolean filenames = true;
 		
 		private ResourceBundle(ResourceType resourceType, File virtualFile, String key) {
 			this.resourceType= resourceType; 
@@ -200,8 +188,6 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 			if (!cacheFile.exists() || checkNewer()) {
 				StringWriter sources = new StringWriter();
 				
-				int fullsize = 0;
-				
 				if (filenames) {
 					sources.append("/*/!\\ C8O resource minification: ");
 				
@@ -224,7 +210,6 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 						int lineCpt = 1;
 						
 						for (String line = br.readLine(); line != null; line = br.readLine()) {
-							fullsize += (line.length() + 1);
 							sources.append(StringUtils.rightPad(line, 110, ' ') + String.format(" // %03d", lineCpt++));
 							if (filenames) {
 								if (lineCpt % 50 == 1) {
@@ -235,46 +220,13 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 						}
 						br.close();
 					} else {
-						String raw = FileUtils.readFileToString(file, resourceEntry.getEncoding());
-						fullsize += raw.length();
-						
-						if (minification == MinificationOptions.none) {
-							sources.append(raw);
-						} else {
-							StringWriter minified = new StringWriter();
-							try {
-								if (resourceType == ResourceType.js) {
-									if (minification == MinificationOptions.light) {
-										new JSMinProcessor().process(new StringReader(raw), minified);
-									} else {
-										new UglifyJsProcessor().process(new StringReader(raw), minified);
-										minified.append(';');
-									}
-								} else {
-									if (minification == MinificationOptions.light) {
-										new CssMinProcessor().process(new StringReader(raw), minified);
-									} else {
-										new CssCompressorProcessor().process(new StringReader(raw), minified);
-									}
-								}
-								sources.append(minified.toString());
-							} catch (Throwable e) {
-								e.printStackTrace();
-								sources.append(raw);
-							}
-						}
+						String raw = FileUtils.readFileToString(file, resourceEntry.getEncoding());						
+						sources.append(raw);
 					}
 					if (filenames) {
 						sources.append("\n/*/!\\ </" + file.getName() + "> */\n");
 					}
 				}
-				
-				int saved = fullsize > 0 ? (100 - (sources.getBuffer().length() * 100 / fullsize)) : 0;
-				if (stats) {
-					sources.append("/*/!\\ " + saved + "%  saved */");
-				}
-				
-				Engine.logEngine.debug("(MinificationManager) Write new minified [saved " + saved + "%] '" + resourceType + "' response to: " + cacheFile);
 				
 				result = sources.toString();
 				
@@ -328,14 +280,9 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 		public void setFilenames(boolean filenames) {
 			this.filenames = filenames;
 		}
-
-		public void setStats(boolean stats) {
-			this.stats = stats;
-		}
 	}
 	
 	private Map<String, ResourceBundle> cache = new HashMap<String, MinificationManager.ResourceBundle>();
-	private String settingKey;
 	
 	public boolean check(HttpServletRequest request, HttpServletResponse response) {
 		String requestURI = HttpUtils.originalRequestURI(request);
@@ -371,9 +318,9 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 	private ResourceBundle process(Matcher requestMatcher) {
 		try {
 			if (requestMatcher.matches() && RequestPart.query.value(requestMatcher) != null) {
-				String key = RequestPart.fullFromProject.value(requestMatcher) + settingKey;
+				String key = RequestPart.fullFromProject.value(requestMatcher);
 				MinificationOptions minification = MinificationOptions.common;
-				MinificationOptions commonMinification = EnginePropertiesManager.getPropertyAsEnum(PropertyName.MINIFICATION_LEVEL);
+				MinificationOptions commonMinification = MinificationOptions.none;
 				String version = "";
 				
 				ResourceBundle resourceBundle;
@@ -416,11 +363,6 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 							try {
 								boolean filenames = Boolean.parseBoolean(options.getString(GlobalOptions.filenames.name()));
 								resourceBundle.setFilenames(filenames);
-							} catch (Exception e) {};
-							
-							try {
-								boolean stats = Boolean.parseBoolean(options.getString(GlobalOptions.stats.name()));
-								resourceBundle.setStats(stats);
 							} catch (Exception e) {};
 							
 						} catch (JSONException e1) {
@@ -525,31 +467,11 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 	}
 	
 	public void init() throws EngineException {
-		refreshSettingKey();
 		minificationCacheDirectory.mkdirs();
-		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
 	}
 	
 	public void destroy() throws EngineException {
-		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
 		cache.clear();
-	}
-
-	synchronized private void refreshSettingKey() {
-		settingKey = "";
-		for (PropertyName propertyName : Arrays.asList(
-				PropertyName.MINIFICATION_FILENAMES,
-				PropertyName.MINIFICATION_LEVEL,
-				PropertyName.MINIFICATION_STATS)) {
-			settingKey += ";" + propertyName.name() + "=" + EnginePropertiesManager.getProperty(propertyName);
-		}		
-	}
-	
-	@Override
-	public void onEvent(PropertyChangeEvent event) {
-		if (event.getKey().category == PropertyCategory.Minification) {
-			refreshSettingKey();
-		}
 	}
 	
 	static private File getCommonFolder(ResourceType resourceType) {

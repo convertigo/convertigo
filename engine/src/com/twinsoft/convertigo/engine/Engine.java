@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProvider;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
@@ -181,11 +182,6 @@ public class Engine {
 	 * The thread manager.
 	 */
 	public ThreadManager threadManager;
-
-	/**
-	 * The security token manager.
-	 */
-	public SecurityTokenManager securityTokenManager;
 
 	/**
 	 * The cache manager.
@@ -669,10 +665,6 @@ public class Engine {
 					Engine.theApp.contextManager = null;
 					Engine.logEngine.error("Unable to launch the context manager.", e);
 				}
-
-				// Launch the security token manager
-				Engine.theApp.securityTokenManager = new SecurityTokenManager();
-				Engine.theApp.securityTokenManager.init();
 				
 				// Initialize the HttpClient
 				try {
@@ -924,11 +916,6 @@ public class Engine {
 					Engine.theApp.threadManager.destroy();
 				}
 
-				if (Engine.theApp.securityTokenManager != null) {
-					Engine.logEngine.info("Removing the security token manager");
-					Engine.theApp.securityTokenManager.destroy();
-				}
-
 				Engine.logEngine.info("Unregistering the SAP destination provider");
 				try {
 					SapJcoDestinationDataProvider.destroy();
@@ -1170,7 +1157,7 @@ public class Engine {
 			}
 			context.project.checkSymbols();
 			
-			if (context.httpServletRequest != null) {
+			if (context.httpServletRequest != null && !RequestAttribute.corsOrigin.has(context.httpServletRequest)) {
 				String origin = HeaderName.Origin.getHeader(context.httpServletRequest);
 				String corsOrigin = HttpUtils.filterCorsOrigin(context.project.getCorsOrigin(), origin);
 				if (corsOrigin != null) {
@@ -1178,6 +1165,7 @@ public class Engine {
 					context.setResponseHeader(HeaderName.AccessControlAllowCredentials.value(), "true");
 					Engine.logContext.trace("Add CORS header for: " + corsOrigin);
 				}
+				RequestAttribute.corsOrigin.set(context.httpServletRequest, corsOrigin == null ? "" : corsOrigin);
 			}
 			
 			// Loading sequence

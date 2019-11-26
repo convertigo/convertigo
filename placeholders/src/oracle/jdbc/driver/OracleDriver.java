@@ -17,18 +17,19 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.engine;
+package oracle.jdbc.driver;
 
-public class NoSuchSecurityTokenException extends SecurityTokenException {
+import com.convertigo.jdbc.CommonDriver;
 
-	private static final long serialVersionUID = 577212443061751865L;
-
-	public NoSuchSecurityTokenException(String tokenID) {
-		super(tokenID);
+public class OracleDriver {
+	final static String classPath = "oracle.jdbc.driver.OracleDriver";
+	final static String jarName = "ojdbcX-z.y.x.w.jar";
+	
+	static {
+		init();
 	}
-
-	@Override
-	public String getMessage() {
-		return "Unknown token ID: " + "'" + tokenID + "'";
+	
+	static void init() {
+		CommonDriver.init(classPath, jarName, "you can download it for free at https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html .");
 	}
 }

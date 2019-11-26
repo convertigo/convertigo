@@ -17,7 +17,7 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.6.4'
+ext.convertigoVersion = '7.6.5'
 ext.convertigoTag = ''
 ext.convertigoCodename = 'osmium'
 ext.convertigoCode = 'Os'
@@ -26,7 +26,7 @@ ext.jxBrowserVersion = '6.23.1'
 ext.swaggerUiVersion = '3.19.3'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
-ext.convertigoEngineAPI = '7.6.3-SNAPSHOT'
+ext.convertigoEngineAPI = '7.6.5-SNAPSHOT'
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
@@ -100,6 +100,19 @@ allprojects {
 			from configurations.runtime
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
+		}
+		
+		task cleanBin(type: Delete) {
+			group 'convertigo'
+			
+			def f = file('bin')
+			if (f.exists()) {
+				f.eachFile {
+					if (it.getName() != 'main') {
+						delete it
+					}
+				}
+			}
 		}
 	}
 	
@@ -313,11 +326,11 @@ task buildStudioClean(type: Delete) {
 	delete 'eclipse-repository/target/products'
 }
 
-task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true)]) {
+task generateEclipseConfiguration(dependsOn: [getTasksByName('cleanEclipse', true), getTasksByName('eclipse', true), getTasksByName('cleanBin', true)]) {
 	group 'convertigo'
 }
 
-task generateEclipseConfigurationWithManifest(dependsOn: ['generateEclipseConfiguration', 'writeManifest']) {
+task generateEclipseConfigurationWithManifest(dependsOn: ['writeManifest', 'generateEclipseConfiguration']) {
 	group 'convertigo'
 }
 

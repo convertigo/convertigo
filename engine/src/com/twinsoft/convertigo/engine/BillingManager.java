@@ -122,7 +122,8 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		}
 		
 		try {
-			String username = (String) context.get("username");
+			String username = context.getAuthenticatedUser();
+			username = username == null ? (String) context.get("username") : username;
 			username = username == null ? context.tasUserName : username;
 			username = username == null ? "user" : username;
 			

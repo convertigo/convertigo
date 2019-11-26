@@ -42,8 +42,8 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.BaseEventListener;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
-import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class CacheManager extends AbstractRunnableManager implements BaseEventListener {
@@ -307,7 +307,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Ba
 		if ("true".equals(response.getDocumentElement().getAttribute("fromcache")) && context.parentContext == null) {
 			HttpSession session = context.httpSession;
 			if (session != null && session.isNew()) {
-				HttpSessionListener.terminateSession(session);
+				HttpUtils.terminateSession(session);
 			}
 		}
 		

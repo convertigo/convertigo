@@ -23,6 +23,7 @@ import java.net.URI;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.codehaus.jettison.json.JSONObject;
@@ -93,13 +94,18 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 		CouchClient provider = getCouchClient();
 		
 		String evaluatedUrl = eUrl == null ? "" : eUrl.toString();
-		
-		if (!evaluatedUrl.startsWith("/")) {
-			evaluatedUrl = '/' + evaluatedUrl;
+		URI uri;
+		if (evaluatedUrl.startsWith("//")) {
+			uri = new URI(provider.getServerUrl() + evaluatedUrl.substring(1));	
+		} else {
+			if (!evaluatedUrl.startsWith("/")) {
+				evaluatedUrl = '/' + evaluatedUrl;
+			}
+			
+			String db = getConnector().getDatabaseName();
+			uri = new URI(provider.getDatabaseUrl(db) + evaluatedUrl);
 		}
 		
-		String db = getConnector().getDatabaseName();
-		URI uri = new URI(provider.getDatabaseUrl(db) + evaluatedUrl);
 		Engine.logBeans.debug("(CustomTransaction) CouchDb request uri: "+ uri.toString());
 		
 		String jsonString = null;
@@ -180,7 +186,11 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 
 	private void evaluateData(Context context, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
-			eData = RhinoUtils.evalCachedJavascript(javascriptContext, scope, getHttpData(), "httpData", 1, null);
+			String data = getHttpData();
+			if (StringUtils.isNotBlank(data)) {
+				data = "(" + data + ")";
+			}
+			eData = RhinoUtils.evalCachedJavascript(javascriptContext, scope, data, "httpData", 1, null);
 			if (eData instanceof org.mozilla.javascript.Undefined) {
 				eData = null;
 			}

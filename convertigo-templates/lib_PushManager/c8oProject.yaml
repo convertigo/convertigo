@@ -1,7 +1,7 @@
-↑convertigo: 7.6.4.m006
+↑convertigo: 7.6.5.m006
 ↓lib_PushManager [core.Project]: 
   comment: This library handles push notification registers from mobile devices and holds a sample push notification sequence.
-  version: 7.6.4
+  version: 7.6.5
   ↓PushManagerDataBase [connectors.SqlConnector]: 🗏 connectors/PushManagerDataBase.yaml
   ↓RegisterDevice [sequences.GenericSequence]: 🗏 sequences/RegisterDevice.yaml
   ↓SendNotifications [sequences.GenericSequence]: 🗏 sequences/SendNotifications.yaml

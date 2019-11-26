@@ -35,7 +35,8 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 	private Combo combo = null;
 	private Label label2 = null;
 	private Text text = null;
-	private Button checkBox = null;
+	private Button checkBox1 = null;
+	private Button checkBox2 = null;
 
 	public DatabaseObjectFindDialogComposite(Composite parent, int style) {
 		super(parent, style);
@@ -58,9 +59,11 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 		label2.setText("Substring");
 		text = new Text(this, SWT.BORDER);
 		text.setLayoutData(gridData3);
-		checkBox = new Button(this, SWT.CHECK);
-		checkBox.setText("Match case");
-		checkBox.setLayoutData(gridData2);
+		checkBox1 = new Button(this, SWT.CHECK);
+		checkBox1.setText("Match case");
+		//checkBox1.setLayoutData(gridData2);
+		checkBox2 = new Button(this, SWT.CHECK);
+		checkBox2.setText("Regular expression");
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 2;
 		this.setLayout(gridLayout);
@@ -82,6 +85,7 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 		combo = new Combo(this, SWT.NONE);
 		combo.setLayoutData(gridData1);
 		combo.add("*");
+		combo.add("Mobile component");
 		combo.add("Screen class");
 		combo.add("Criteria");
 		combo.add("Extraction rule");
@@ -101,9 +105,13 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 	}
 	
 	public boolean matchCase() {
-		return checkBox.getSelection();
+		return checkBox1.getSelection();
 	}
 
+	public boolean isRegExp() {
+		return checkBox2.getSelection();
+	}
+	
 	public Object getValue(String name) {
 		if (name.equals("ObjectType"))
 			return String.valueOf(getObjectType());
@@ -111,6 +119,8 @@ public class DatabaseObjectFindDialogComposite extends MyAbstractDialogComposite
 			return getSubstring();
 		if (name.equals("matchCase"))
 			return Boolean.valueOf(matchCase());
+		if (name.equals("isRegExp"))
+			return Boolean.valueOf(isRegExp());
 		return null;
 	}
 	
