@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.MobilePageSegmentValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
@@ -164,6 +165,21 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 	
 	@Override
+	public boolean rename(String newName, boolean bDialog) {
+		PageComponent page = getObject();
+		String oldName = page.getName();
+		boolean isRenamed = super.rename(newName, bDialog);
+		if (isRenamed && !oldName.equals(newName)) {
+			String oldSegment = page.getSegment();
+			if (oldSegment.lastIndexOf("-"+oldName.toLowerCase()) != -1) { // path-to-<page_name>
+				page.setSegment(oldSegment.replace(oldName.toLowerCase(), newName.toLowerCase()));
+				Engine.logEngine.debug("For page renamed to \""+ newName +"\", segment has been replaced with \""+ page.getSegment() +"\"");
+			}
+		}
+		return isRenamed;
+	}
+
+	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
 		
@@ -191,7 +207,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						if (getObject().compareToTplVersion("7.7.0.2") < 0) {
 							markAppModuleTsAsDirty();
 						} else {
-							markPageModuleTsAsDirty();
+							markPageTsAsDirty();
 							markPageAsDirty();
 						}
 					}
