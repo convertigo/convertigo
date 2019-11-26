@@ -1,4 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction" priority="0" version="   7   7   0">
+        <property name="actionValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[		page.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);
+		resolve();
+]]></com.twinsoft.convertigo.beans.common.FormatedContent>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="cordova_plugins">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="module_ng_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="module_ng_providers">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="module_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="name">
+            <java.lang.String value="CustomAction"/>
+        </property>
+        <property name="package_dependencies">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="page_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
