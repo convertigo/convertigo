@@ -43,6 +43,7 @@ public class JdbcConnectionManager implements AbstractManager {
 
 	private static Class<?> dataSourceCls = null;
 	private static Method dataSourceClose = null;
+	private static Method dataSourceSetDriverClassLoader = null;
 	private static Method dataSourceSetDriverClassName = null;
 	private static Method dataSourceSetUrl = null;
 	private static Method dataSourceSetUsername = null;
@@ -79,6 +80,7 @@ public class JdbcConnectionManager implements AbstractManager {
 				dataSourceGetMaxActive = dataSourceCls.getMethod("getMaxActive");
 			}
 			dataSourceClose = dataSourceCls.getMethod("close");
+			dataSourceSetDriverClassLoader = dataSourceCls.getMethod("setDriverClassLoader", ClassLoader.class);
 			dataSourceSetDriverClassName = dataSourceCls.getMethod("setDriverClassName", String.class);
 			dataSourceSetUrl = dataSourceCls.getMethod("setUrl", String.class);
 			dataSourceSetUsername = dataSourceCls.getMethod("setUsername", String.class);
@@ -134,7 +136,9 @@ public class JdbcConnectionManager implements AbstractManager {
 		Engine.logEngine.debug("(JdbcConnectionManager) Creating a new pool");
 		
 		Object pool = dataSourceCls.getConstructor().newInstance();
-
+		
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		dataSourceSetDriverClassLoader.invoke(pool, cl);
 		dataSourceSetDriverClassName.invoke(pool, connector.getJdbcDriverClassName());
 		
 		String jdbcURL = connector.getRealJdbcURL();

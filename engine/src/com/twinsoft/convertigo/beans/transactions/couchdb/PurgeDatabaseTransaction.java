@@ -91,7 +91,7 @@ public class PurgeDatabaseTransaction extends AbstractDatabaseTransaction implem
 				query.put("filter", "_selector");
 				body = new JSONObject("{\"selector\":{\"_deleted\":true}}");
 			}
-			int limit = 2;
+			int limit = 100;
 			query.put("limit", Integer.toString(limit));
 			
 			String since = "0";

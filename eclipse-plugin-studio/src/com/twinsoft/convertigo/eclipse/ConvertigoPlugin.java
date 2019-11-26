@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +44,7 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
@@ -101,6 +103,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.properties.PropertySheet;
 import org.eclipse.ui.views.properties.PropertySheetPage;
@@ -949,11 +952,24 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				.getActivePage();
 		if (activePage != null) {
 			try {
-				String path = Engine.WEBAPP_PATH + "/scripts/index.js";
-				activePage.openEditor(new org.eclipse.ui.part.FileEditorInput(ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(path))),
-						"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
+				IProject toRemove = ResourcesPlugin.getWorkspace().getRoot().getProject("initEditor");
+				try {
+					toRemove.create(null);
+					toRemove.open(null);
+				} catch (Exception e) {
+				}
+				IFile iFile = toRemove.getFile("initEditor.js");
+				try (ByteArrayInputStream is = new ByteArrayInputStream(new String("// Performing editor initialization ...\nClosing automatically !").getBytes("UTF-8"))) {
+					iFile.create(is , true, null);	
+				} catch (Exception e2) {
+				}
+				IEditorInput input = new FileEditorInput(iFile);
+				IEditorPart part = activePage.openEditor(input, "org.eclipse.wst.jsdt.ui.CompilationUnitEditor");
 				SwtUtils.refreshTheme();
+				part.dispose();
+				toRemove.delete(true, null);
 			} catch(Exception e) {
+//				e.printStackTrace();
 			} 
 		}
 		studioLog.message("Convertigo studio started");

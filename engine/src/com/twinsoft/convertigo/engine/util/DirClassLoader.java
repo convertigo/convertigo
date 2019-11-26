@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
-public class DirClassLoader extends ClassLoader {
+public class DirClassLoader extends URLClassLoader {
 	ClassLoader parent;
 	ClassLoader loader;
 	List<File> dirs;
@@ -38,116 +37,109 @@ public class DirClassLoader extends ClassLoader {
 	String lastContent;
 	
 	public DirClassLoader(File dir, ClassLoader parent) {
+		super(makeURLs(Arrays.asList(dir), null), null);
 		this.dirs = Arrays.asList(dir);
 		this.parent = parent;
+		isContentChanged();
 	}
 	
-	public DirClassLoader(List<File> dirs, ClassLoader parent) {
+	public DirClassLoader(List<File> dirs, ClassLoader parent, File copyTo) {
+		super(makeURLs(dirs, copyTo), null);
 		this.dirs = dirs;
 		this.parent = parent;
+		isContentChanged();
 	}
 	
-	private synchronized void checkLoader() {
-		long now = System.currentTimeMillis();
-		if (now < nextCheck) {
-			return;
-		}
-		nextCheck = now + 5000;
+	private static URL[] makeURLs(List<File> dirs, File copyTo) {
 		ArrayList<URL> urls = new ArrayList<>();
 		for (File dir: dirs) {
 			if (dir.exists()) {
 				String[] list = dir.list();
 				for (String file: list) {
 					if (file.endsWith(".jar") || file.equals("classes")) {
+						File f = new File(dir, file);
+						if (copyTo != null) {
+							File d = new File(copyTo, file);
+							try {
+								if (f.isDirectory()) {
+									FileUtils.copyDirectory(f, d);
+								} else {
+									FileUtils.copyFile(f, d);
+								}
+							} catch (Exception e) {
+								// destination should exist and locked
+							}
+							f = d;
+						}
 						try {
-							urls.add(new File(dir, file).toURI().toURL());
-						} catch (MalformedURLException e) {
-							e.printStackTrace();
+							urls.add(f.toURI().toURL());
+						} catch (Exception e) {
+							// improbable
 						}
 					}
 				}
 			}
 		}
 		
-		if (urls.isEmpty()) {
-			loader = parent;
-			return;
+		return urls.toArray(new URL[urls.size()]);
+	}
+	
+	public synchronized boolean isContentChanged() {
+		long now = System.currentTimeMillis();
+		if (now < nextCheck) {
+			return false;
 		}
-		
-		String content = urls.toString();
+		nextCheck = now + 5000;
+		StringBuilder sb = new StringBuilder();
+		for (URL u : makeURLs(dirs, null)) {
+			sb.append(u.toString().replaceFirst(".*/(.+?)$", "$1"));
+		}
+		String content = sb.toString();
 		if (content.equals(lastContent)) {
-			return;
+			return false;
 		}
 		lastContent = content;
-		
-		loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), null);
+		return true;
 	}
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		checkLoader();
+		Class<?> cls = null;
 		try {
-			return loader.loadClass(name);
+			cls = super.loadClass(name);
 		} catch (ClassNotFoundException e) {
-			return parent != null ? parent.loadClass(name) : null;
+			if (parent != null) {
+				cls = parent.loadClass(name);
+			}
 		}
+		return cls;
 	}
 
 	@Override
 	public URL getResource(String name) {
-		checkLoader();
-		URL url = loader.getResource(name);
-		if (url != null || parent == null) {
-			return url;
-		} else {
-			return parent.getResource(name);
+		URL url = super.getResource(name);
+		if (url == null && parent != null) {
+			url = parent.getResource(name);
 		}
+		return url;
 	}
 
 	@Override
 	public Enumeration<URL> getResources(String name) throws IOException {
-		checkLoader();
-		Enumeration<URL> eu = loader.getResources(name);
-		if (eu.hasMoreElements() || parent == null) {
-			return eu;
-		} else {
-			return parent.getResources(name);
+		Enumeration<URL> eu = super.getResources(name);
+		if (!eu.hasMoreElements() && parent != null) {
+			eu = parent.getResources(name);
 		}
+		return eu;
 	}
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
-		checkLoader();
-		InputStream is = loader.getResourceAsStream(name);
-		if (is != null || parent == null) {
-			return is;
-		} else {
-			return parent.getResourceAsStream(name);
+		InputStream is = super.getResourceAsStream(name);
+		if (is == null && parent != null) {
+			is = parent.getResourceAsStream(name);
 		}
+		return is;
 	}
-
-	@Override
-	public void setDefaultAssertionStatus(boolean enabled) {
-		checkLoader();
-		loader.setDefaultAssertionStatus(enabled);
-	}
-
-	@Override
-	public void setPackageAssertionStatus(String packageName, boolean enabled) {
-		checkLoader();
-		loader.setPackageAssertionStatus(packageName, enabled);
-	}
-
-	@Override
-	public void setClassAssertionStatus(String className, boolean enabled) {
-		checkLoader();
-		loader.setClassAssertionStatus(className, enabled);
-	}
-
-	@Override
-	public void clearAssertionStatus() {
-		checkLoader();
-		loader.clearAssertionStatus();
-	}
-
+	
 }

@@ -695,7 +695,10 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			toolTestConnection.setToolTipText("Test SQL connection");
 			toolTestConnection.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
 				public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+					Thread t = Thread.currentThread();
+					ClassLoader cl = t.getContextClassLoader(); 
 					try {
+						t.setContextClassLoader(connector.getProject().getProjectClassLoader());
 						((SqlConnector) connector).open();
 						
 						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_WORKING | SWT.OK);
@@ -706,8 +709,10 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_ERROR | SWT.OK);
 						mb.setMessage("Failed to connect to the database! \n"+e1.getMessage());
 						mb.open();
+					} finally {
+						t.setContextClassLoader(cl);
+						((SqlConnector) connector).close();
 					}
-					((SqlConnector) connector).close();
 				}
 
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
