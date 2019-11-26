@@ -60,6 +60,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
+	public static final String SEGMENT_PREFIX = "path-to-";
+	
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	transient private Runnable _markPageAsDirty;

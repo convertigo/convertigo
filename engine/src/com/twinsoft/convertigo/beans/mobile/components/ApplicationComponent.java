@@ -573,7 +573,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			pageComponent.setTitle("Title for "+ newDatabaseObjectName);
 		}
 		if (pageComponent.getSegment().isEmpty() || pageComponent.bNew) {
-			pageComponent.setSegment("path-to-"+newDatabaseObjectName.toLowerCase());
+			pageComponent.setSegment(PageComponent.SEGMENT_PREFIX + newDatabaseObjectName.toLowerCase());
 		}
 		super.add(pageComponent);
 		

@@ -171,7 +171,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		boolean isRenamed = super.rename(newName, bDialog);
 		if (isRenamed && !oldName.equals(newName)) {
 			String oldSegment = page.getSegment();
-			if (oldSegment.lastIndexOf("-"+oldName.toLowerCase()) != -1) { // path-to-<page_name>
+			if (oldSegment.equals(PageComponent.SEGMENT_PREFIX + oldName.toLowerCase())) { // path-to-<page_name>
 				page.setSegment(oldSegment.replace(oldName.toLowerCase(), newName.toLowerCase()));
 				Engine.logEngine.debug("For page renamed to \""+ newName +"\", segment has been replaced with \""+ page.getSegment() +"\"");
 			}
