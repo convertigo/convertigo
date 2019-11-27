@@ -160,11 +160,33 @@ public class TranslateUtils {
 		return text;
 	}
 	
+	private static boolean isCharAllowed(char c) {
+		if ((c == '_') || (c == '-')) {
+			return true;
+		}
+		if ((c >= (char) 48) && (c <= (char) 57)) { // Numbers
+			return true;
+		}
+		if ((c >= (char) 65) && (c <= (char) 90)) { // Uppercase letters
+			return true;
+		}
+		if ((c >= (char) 97) && (c <= (char) 122)) { // Lowercase letters
+			return true;
+		}
+		return false;
+	}
+	
 	private static String escape(String text) {
-		String escaped = text;
-		escaped = escaped.replaceAll("\\'", "\'");
-		escaped = escaped.replaceAll("\\s", "_");
-		return escaped;
+		if (text != null  && !text.isEmpty()) {
+			int len = text.length();
+			StringBuffer sb = new StringBuffer(len);
+	        for (int i = 0 ; i < len ; i++) {
+	            char c = text.charAt(i);
+	            sb.append(isCharAllowed(c) ? c : "__");
+	        }
+	        return sb.toString();
+		}
+		return text;
 	}
 	
 	private static String computeKey(String text) {
