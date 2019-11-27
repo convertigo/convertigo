@@ -2189,16 +2189,41 @@ public class MobileBuilder {
 			}
 			// defers the dir deletion
 			else {
-				/*File nDir = toTmpFile(dir);
+				// Deletion DOES NOT WORK for now
+				/*Engine.logEngine.debug("(MobileBuilder) Defers the deletion of directory " + dir.getPath());
+				dirsToDelete.add(dir);
+				
+				File nDir = toTmpFile(dir);
 				if (nDir.exists()) {
-					Engine.logEngine.debug("(MobileBuilder) Defers the deletion of directory " + dir.getPath());
 					try {
 						FileUtils.deleteDirectory(nDir);
-						dirsToDelete.add(dir);
 					} catch (IOException e) {
-						Engine.logEngine.warn("(MobileBuilder) Failed to delete directory " + dir.getPath(), e);
+						Engine.logEngine.warn("(MobileBuilder) Failed to delete temporary directory " + nDir.getPath(), e);
 					}
 				}*/
+				
+				// Replace segment in old page.ts to avoid deeplinks errors
+				String oldPage = dir.getName();
+				File oldPageDir = new File(ionicWorkDir, "src/pages/"+oldPage);
+				File oldPageTsFile = new File(oldPageDir, oldPage.toLowerCase() + ".ts");
+				if (oldPageTsFile.exists()) {
+					synchronized (writtenFiles) {
+						if (writtenFiles.contains(oldPageTsFile)) {
+							File oldPageTsFileTmp = toTmpFile(oldPageTsFile);
+							if (oldPageTsFileTmp.exists()) {
+								oldPageTsFile = oldPageTsFileTmp;
+							}
+						}
+					}
+					try {
+						String tsContent = FileUtils.readFileToString(oldPageTsFile, "UTF-8");
+						String oldSegment = PageComponent.SEGMENT_PREFIX + oldPage.toLowerCase();
+						tsContent = tsContent.replaceFirst("segment\\s*\\:\\s*'(.+)'", "segment: '"+ oldSegment +"'");
+						writeFile(oldPageTsFile, tsContent, "UTF-8");
+					} catch (IOException e) {
+						Engine.logEngine.warn("(MobileBuilder) Failed to defer write of " + oldPageTsFile.getPath(), e);
+					}
+				}
 			}
 		} else {
 			try {
