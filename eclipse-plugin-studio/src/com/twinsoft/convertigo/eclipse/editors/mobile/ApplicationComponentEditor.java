@@ -126,7 +126,77 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
-public class ApplicationComponentEditor extends EditorPart implements MobileEventListener {
+public final class ApplicationComponentEditor extends EditorPart implements MobileEventListener {
+	
+	public class ApplicationComponentBrowserImpl {
+
+		@JsAccessible
+		public void onDragOver(JsObject o) {
+			try {
+				double x = (Double) o.property("screenX").get();
+				double y = (Double) o.property("screenY").get();
+				highlightPoint((int) x, (int) y);
+			} catch (Exception e) {
+				onDrop(o);
+			}
+		}
+
+		@JsAccessible
+		public void onDrop(JsObject o) {
+			try {
+				String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
+				DatabaseObject target = exHighlightMobileComponent;
+				DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
+				if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
+					for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
+						if (uic instanceof UIControlEvent) {
+							target = uic;
+							break;
+						}
+					}
+				}
+				DatabaseObject fTarget = target;
+				c8oBrowser.getDisplay().asyncExec(() -> {
+					boolean autoBuild = false;
+					MobileBuilder mb = null;
+
+					Engine.logStudio.info("---------------------- Drop started ----------------------");
+					try {
+						IEditorPart editorPart = ApplicationComponentEditor.this;
+						if (editorPart != null) {
+							IEditorInput input = editorPart.getEditorInput();
+							mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+						}
+						if (mb != null) {
+							autoBuild = mb.isAutoBuild();
+							if (autoBuild) {
+								mb.setAutoBuild(false);
+							}
+						}
+
+						ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
+						TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
+						BatchOperationHelper.start();
+						ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
+						BatchOperationHelper.stop();
+					} catch (Exception e) {
+						BatchOperationHelper.cancel();
+						Engine.logStudio.debug("Failed to drop: " + e.getMessage());
+					} finally {
+						PaletteSourceTransfer.getInstance().setPaletteSource(null);
+
+						Engine.logStudio.info("---------------------- Drop ended   ----------------------");
+						if (mb != null) {
+							if (autoBuild) {
+								mb.setAutoBuild(true);
+							}
+						}
+					}
+				});
+			} catch (Exception e) {
+			}
+		}
+	};
 	
 	private ApplicationComponentEditorInput applicationEditorInput;
 	
@@ -171,6 +241,8 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 	private int portNode;
 	private int portReload;
 	private int portLogger;
+	
+	public ApplicationComponentBrowserImpl browserInterface;
 	
 	public ApplicationComponentEditor() {		
 		try {
@@ -367,80 +439,10 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 		browser = c8oBrowser.getBrowser();
 		debugUrl = c8oBrowser.getDebugUrl();
 		
-		final ApplicationComponentBrowserImpl browserInterface = new ApplicationComponentBrowserImpl() {
-
-			@Override
-			@JsAccessible
-			public void onDragOver(JsObject o) {
-				try {
-					double x = (Double) o.property("screenX").get();
-					double y = (Double) o.property("screenY").get();
-					highlightPoint((int) x, (int) y);
-				} catch (Exception e) {
-					onDrop(o);
-				}
-			}
-
-			@Override
-			@JsAccessible
-			public void onDrop(JsObject o) {
-				try {
-					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
-					DatabaseObject target = exHighlightMobileComponent;
-					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
-					if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
-						for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
-							if (uic instanceof UIControlEvent) {
-								target = uic;
-								break;
-							}
-						}
-					}
-					DatabaseObject fTarget = target;
-					c8oBrowser.getDisplay().asyncExec(() -> {
-						boolean autoBuild = false;
-						MobileBuilder mb = null;
-
-						Engine.logStudio.info("---------------------- Drop started ----------------------");
-						try {
-							IEditorPart editorPart = ApplicationComponentEditor.this;
-							if (editorPart != null) {
-								IEditorInput input = editorPart.getEditorInput();
-								mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
-							}
-							if (mb != null) {
-								autoBuild = mb.isAutoBuild();
-								if (autoBuild) {
-									mb.setAutoBuild(false);
-								}
-							}
-
-							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
-							TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
-							BatchOperationHelper.start();
-							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
-							BatchOperationHelper.stop();
-						} catch (Exception e) {
-							BatchOperationHelper.cancel();
-							Engine.logStudio.debug("Failed to drop: " + e.getMessage());
-						} finally {
-							PaletteSourceTransfer.getInstance().setPaletteSource(null);
-
-							Engine.logStudio.info("---------------------- Drop ended   ----------------------");
-							if (mb != null) {
-								if (autoBuild) {
-									mb.setAutoBuild(true);
-								}
-							}
-						}
-					});
-				} catch (Exception e) {
-				}
-			}
-		};
+		browserInterface = new ApplicationComponentBrowserImpl();
 		
 		browser.set(InjectJsCallback.class, params -> {
-		    String url = params.frame().browser().url();
+			String url = params.frame().browser().url();
 			if (baseUrl != null && url.startsWith(baseUrl)) {
 				try {
 					Frame frame = params.frame();
@@ -464,7 +466,7 @@ public class ApplicationComponentEditor extends EditorPart implements MobileEven
 				}
 			}
 //			browser.setZoomLevel(zoomFactor.zoomLevel());
-		    return Response.proceed();
+			return Response.proceed();
 		});
 		
 		browser.set(ShowContextMenuCallback.class, (params, tell) -> {
