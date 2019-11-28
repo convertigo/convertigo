@@ -1331,6 +1331,7 @@ public class MobileBuilder {
 		String c8o_PageHistory = page.getDefaultHistory();
 		String c8o_PagePriority = page.getPreloadPriority();
 		String c8o_PageSegment = page.getSegment();
+		String c8o_PageChangeDetection = page.getChangeDetectionStrategy();
 		String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
 		String c8o_PageSelector = "page-"+pageName.toLowerCase();
 		String c8o_PageImports = page.getComputedImports();
@@ -1348,6 +1349,7 @@ public class MobileBuilder {
 		
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageChangeDetection\\*/",c8o_PageChangeDetection);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageDeclarations\\*/",c8o_PageDeclarations);

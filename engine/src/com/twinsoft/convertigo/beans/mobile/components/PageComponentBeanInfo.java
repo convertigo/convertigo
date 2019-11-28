@@ -38,7 +38,7 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[10];
+			properties = new PropertyDescriptor[11];
 
 			properties[0] = new PropertyDescriptor("iconPosition", beanClass, "getIconPosition", "setIconPosition");
 			properties[0].setDisplayName(getExternalizedString("property.iconPosition.display_name"));
@@ -53,6 +53,7 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[2].setDisplayName(getExternalizedString("property.segment.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.segment.short_description"));
 			properties[2].setPropertyEditorClass(getEditorClass("PropertyWithValidatorEditor")); 
+			properties[2].setExpert(true);
 			
 			properties[3] = new PropertyDescriptor("scriptContent", beanClass, "getScriptContent", "setScriptContent");
 			properties[3].setDisplayName(getExternalizedString("property.scriptContent.display_name"));
@@ -81,11 +82,19 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[8].setDisplayName(getExternalizedString("property.preloadPriority.display_name"));
 			properties[8].setShortDescription(getExternalizedString("property.preloadPriority.short_description"));
 			properties[8].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			properties[8].setExpert(true);
 			
 			properties[9] = new PropertyDescriptor("defaultHistory", beanClass, "getDefaultHistory", "setDefaultHistory");
 			properties[9].setDisplayName(getExternalizedString("property.defaultHistory.display_name"));
 			properties[9].setShortDescription(getExternalizedString("property.defaultHistory.short_description"));
+			properties[9].setExpert(true);
 			properties[9].setHidden(true);
+			
+			properties[10] = new PropertyDescriptor("changeDetection", beanClass, "getChangeDetection", "setChangeDetection");
+			properties[10].setDisplayName(getExternalizedString("property.changeDetection.display_name"));
+			properties[10].setShortDescription(getExternalizedString("property.changeDetection.short_description"));
+			properties[10].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			properties[10].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

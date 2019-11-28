@@ -470,6 +470,20 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.defaultHistory = defaultHistory;
 	}
 	
+	private ChangeDetection changeDetection = ChangeDetection.Default;
+	
+	public ChangeDetection getChangeDetection() {
+		return changeDetection;
+	}
+
+	public void setChangeDetection(ChangeDetection changeDetection) {
+		this.changeDetection = changeDetection;
+	}
+	
+	public String getChangeDetectionStrategy() {
+		return getChangeDetection().strategy();
+	}
+	
 	private transient Map<String, String> pageImports = new HashMap<String, String>();
 	
 	private boolean hasImport(String name) {
@@ -1001,6 +1015,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		}
 		if (propertyName.equals("preloadPriority")) {
 			return new String[] {"high","low","off"};
+		}
+		if (propertyName.equals("changeDetection")) {
+			return EnumUtils.toNames(ChangeDetection.class);
 		}
 		return new String[0];
 	}

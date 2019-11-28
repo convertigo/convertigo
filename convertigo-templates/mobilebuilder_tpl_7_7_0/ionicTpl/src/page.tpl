@@ -21,7 +21,7 @@ import { ActionBeans } 																	from '../../services/actionbeans.service
 /*End_c8o_PageImport*/
 
 @IonicPage({priority: /*=c8o_PagePriority*/, segment: /*=c8o_PageSegment*/, defaultHistory: /*=c8o_PageHistory*/})
-@Component({selector: /*=c8o_PageSelector*/, templateUrl: /*=c8o_PageTplUrl*/})
+@Component({selector: /*=c8o_PageSelector*/, templateUrl: /*=c8o_PageTplUrl*/, changeDetection: /*=c8o_PageChangeDetection*/})
 export class /*=c8o_PageName*/ extends C8oPage  {
 	/*=c8o_PageDeclarations*/
 
