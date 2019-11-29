@@ -30,7 +30,13 @@ function fullsync_Frame_init() {
 					});
 				}
 			}
-	    });
+			if ($doc.find("#btRefresh").length == 0) {
+				$doc.find("#header-docs-left>div,#breadcrumbs>div").prepend("<button id=\"btRefresh\" type=\"button\" class=\"faux-header__doc-header-backlink\">↻</button>");
+				$doc.find("#btRefresh").on("click", function () {
+					$("#couchdbframe")[0].contentWindow.location.reload()
+				});
+			}
+		});
 	};
 }
 

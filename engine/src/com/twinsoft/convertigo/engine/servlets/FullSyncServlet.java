@@ -630,6 +630,8 @@ public class FullSyncServlet extends HttpServlet {
 						sb.append("\n.closeMenu .pusher { padding-right: 0px; }");
 						sb.append("\nbutton.add-new-database-btn { display: none; }");
 						sb.append("\n#notification-center-btn { display: none; }");
+						sb.append("\na.fonticon-replicate { display: none; }");
+						sb.append("\n.faux-header__doc-header-dropdown-itemwrapper a.faux-header__doc-header-dropdown-item[href*=\"replication\"] { display: none; }\n");
 						byte[] b = sb.toString().getBytes("UTF-8");
 						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
 						os.write(b);
