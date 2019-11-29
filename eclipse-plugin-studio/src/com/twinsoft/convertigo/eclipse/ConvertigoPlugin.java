@@ -924,6 +924,32 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 
 		runAtStartup(() -> {
+			IWorkbenchPage activePage = PlatformUI
+					.getWorkbench()
+					.getActiveWorkbenchWindow()
+					.getActivePage();
+			if (activePage != null) {
+				try {
+					IProject toRemove = ResourcesPlugin.getWorkspace().getRoot().getProject("initEditor");
+					try {
+						toRemove.create(null);
+						toRemove.open(null);
+					} catch (Exception e) {
+					}
+					IFile iFile = toRemove.getFile("initEditor.js");
+					try (ByteArrayInputStream is = new ByteArrayInputStream(new String("// Performing editor initialization ...\nClosing automatically !").getBytes("UTF-8"))) {
+						iFile.create(is , true, null);	
+					} catch (Exception e2) {
+					}
+					IEditorInput input = new FileEditorInput(iFile);
+					IEditorPart part = activePage.openEditor(input, "org.eclipse.wst.jsdt.ui.CompilationUnitEditor");
+					SwtUtils.refreshTheme();
+					part.dispose();
+					toRemove.delete(true, null);
+				} catch(Exception e) {
+//					e.printStackTrace();
+				} 
+			}
 			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
 			if (templates != null) {
 				for (File tpl: templates) {
@@ -936,7 +962,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 							}
 							ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
 						}
-
 					} catch (Exception e) {
 						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
 					}
@@ -948,32 +973,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			ProcessUtils.setNpmFolder(node.getPath().getParentFile());
 		}
 		
-		IWorkbenchPage activePage = PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
-		if (activePage != null) {
-			try {
-				IProject toRemove = ResourcesPlugin.getWorkspace().getRoot().getProject("initEditor");
-				try {
-					toRemove.create(null);
-					toRemove.open(null);
-				} catch (Exception e) {
-				}
-				IFile iFile = toRemove.getFile("initEditor.js");
-				try (ByteArrayInputStream is = new ByteArrayInputStream(new String("// Performing editor initialization ...\nClosing automatically !").getBytes("UTF-8"))) {
-					iFile.create(is , true, null);	
-				} catch (Exception e2) {
-				}
-				IEditorInput input = new FileEditorInput(iFile);
-				IEditorPart part = activePage.openEditor(input, "org.eclipse.wst.jsdt.ui.CompilationUnitEditor");
-				SwtUtils.refreshTheme();
-				part.dispose();
-				toRemove.delete(true, null);
-			} catch(Exception e) {
-//				e.printStackTrace();
-			} 
-		}
 		studioLog.message("Convertigo studio started");
 	}
 
