@@ -127,11 +127,11 @@ title: Title for Login
                       - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
                       - com.twinsoft.convertigo.beans.common.FormatedContent: 
                         →: |
-                          		if (props.stack["CallLogin"].in.vars.username != window.localStorage.username) {
+                          		if (props.stack["root"].in.username != window.localStorage.username) {
                           		    this.form1517569296572.controls["username"].setValue(window.localStorage.username);
                           		    reject("User cannot change, should be '" + window.localStorage.username + "'");
                           		}
-                                  if (props.stack["CallLogin"].in.vars.password != window.localStorage.password) {
+                                  if (props.stack["root"].in.password != window.localStorage.password) {
                                       reject("Wrong password!");
                                   }
                                   window.sessionStorage.username = window.localStorage.username;
@@ -180,11 +180,11 @@ title: Title for Login
                                 window.document.body.className = "";
                         		
                         		page.c8o.log.debug(event ? event.toString():'no event');
-                        		let user = window.sessionStorage.username = props.stack["CallLogin"].in.vars.username;
+                        		let user = window.sessionStorage.username = props.stack["root"].in.username;
                         		let exUser = window.localStorage.username;
                         		if (user != exUser) {
                         		    window.localStorage.username = user;
-                        		    window.localStorage.password = props.stack["CallLogin"].in.vars.password;
+                        		    window.localStorage.password = props.stack["root"].in.password;
                         		    this.call('fs://offchat_fullsync.reset').then(function () {
                         		        resolve();
                         		    }, function () {
