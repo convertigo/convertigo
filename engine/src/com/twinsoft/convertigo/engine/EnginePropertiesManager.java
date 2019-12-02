@@ -354,8 +354,9 @@ public class EnginePropertiesManager {
 		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
 		
 		/** ACCOUNTS */
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
-		@PropertyOptions(propertyType = PropertyType.PasswordHash)
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD, propertyType = PropertyType.PasswordHash)
 		ADMIN_PASSWORD ("admin.password", ""+"admin".hashCode(), "Admin password", PropertyCategory.Account),
 		TEST_PLATFORM_USERNAME ("testplatform.username", "", "Test Platform username (leave it blank for anonymous access)", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
