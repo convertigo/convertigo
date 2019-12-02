@@ -182,7 +182,7 @@ public class TranslateUtils {
 			StringBuffer sb = new StringBuffer(len);
 	        for (int i = 0 ; i < len ; i++) {
 	            char c = text.charAt(i);
-	            sb.append(isCharAllowed(c) ? c : "__");
+	            sb.append(isCharAllowed(c) ? c : "_");
 	        }
 	        return sb.toString();
 		}
