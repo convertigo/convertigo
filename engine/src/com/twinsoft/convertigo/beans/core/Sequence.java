@@ -1138,7 +1138,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	public boolean isRunning() {
-		return !arborting && runningThread != null && runningThread.bContinue;
+		try {
+			return !arborting && runningThread != null && runningThread.bContinue;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	//TODO: see how to synchronize if context.arbortRequestable() is used trough
