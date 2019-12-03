@@ -44,8 +44,13 @@ public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			if (treeObject instanceof ObjectsFolderTreeObject) {
-				TreeParent treeParent = ((ObjectsFolderTreeObject)treeObject).getParent();
-				enable = treeParent != null && treeParent instanceof MobileComponentTreeObject;
+				ObjectsFolderTreeObject oft = (ObjectsFolderTreeObject)treeObject;
+				if (oft.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
+					enable = false;
+				} else {
+					TreeParent treeParent = oft.getParent();
+					enable = treeParent != null && treeParent instanceof MobileComponentTreeObject;
+				}
 			} else if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
 				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
