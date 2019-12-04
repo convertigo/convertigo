@@ -64,7 +64,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -332,32 +331,35 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			final String propertyName, final String propertyValue,
 			final Set<String> undefinedSymboles, final boolean showCheckBox) {
 		final boolean[] result = {false,false};
+		
+		Runnable runnable = new Runnable() {
+			public void run() {
+			try {
+				int level = ModalContext.getModalLevel();
+				if (level > 0) {
+					// prevents double modal windows: dead lock on linux/gtk studio
+					getDisplay().syncExec(this);
+					return;
+				} 
 
-		getDisplay().syncExec(
-				new Runnable() {
-					public void run() {
-						try {
-							int level = ModalContext.getModalLevel();
-							if (level > 0) {
-								// prevents double modal windows: dead lock on linux/gtk studio
-								getDisplay().syncExec(this);
-								return;
-							} 
+				GlobalsSymbolsWarnDialog dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName,
+						objectName, objectType,
+						propertyName, propertyValue,
+						undefinedSymboles, showCheckBox);
+				dialogGlobalSymbols.open();
 
-							GlobalsSymbolsWarnDialog dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName,
-									objectName, objectType,
-									propertyName, propertyValue,
-									undefinedSymboles, showCheckBox);
-							dialogGlobalSymbols.open();
-
-							result[0] = dialogGlobalSymbols.getCreateAction();
-							result[1] = dialogGlobalSymbols.getCheckButtonSelection();
-						} catch (Exception e){
-							ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
-						}
-					}
-				}
-				);
+				result[0] = dialogGlobalSymbols.getCreateAction();
+				result[1] = dialogGlobalSymbols.getCheckButtonSelection();
+			} catch (Exception e){
+				ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
+			}
+		}};
+		
+		if (Thread.currentThread().equals(Display.getDefault().getThread())) {
+			runnable.run();
+		} else {
+			getDisplay().syncExec(runnable);
+		}
 		return result;
 	}
 
@@ -480,7 +482,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				try {
 
 					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
-					final long[] timeout = {System.currentTimeMillis() + 10000};
+					final long[] timeout = {System.currentTimeMillis() + 30000};
 
 					GridLayout gridLayout = new GridLayout();
 					gridLayout.numColumns = 1;
@@ -639,6 +641,32 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 						}
 					}
 
+					IWorkbenchPage activePage = PlatformUI
+							.getWorkbench()
+							.getActiveWorkbenchWindow()
+							.getActivePage();
+					if (activePage != null) {
+						try {
+							IProject toRemove = ResourcesPlugin.getWorkspace().getRoot().getProject("initEditor");
+							try {
+								toRemove.create(null);
+								toRemove.open(null);
+							} catch (Exception e) {
+							}
+							IFile iFile = toRemove.getFile("initEditor.js");
+							try (ByteArrayInputStream is = new ByteArrayInputStream(new String("// Performing editor initialization ...\nClosing automatically !").getBytes("UTF-8"))) {
+								iFile.create(is , true, null);	
+							} catch (Exception e2) {
+							}
+							IEditorInput input = new FileEditorInput(iFile);
+							IEditorPart part = activePage.openEditor(input, "org.eclipse.wst.jsdt.ui.CompilationUnitEditor");
+							SwtUtils.refreshTheme();
+							activePage.closeEditor(part, false);
+							toRemove.delete(true, null);
+						} catch(Exception e) {
+						}
+					}
+
 					closeButton.setText("Close");
 					closeButton.setEnabled(true);
 
@@ -672,27 +700,29 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		parent.getDisplay().asyncExec(() -> {
 			final C8oBrowser browser;
 			try {
+				if (filler.isDisposed()) {
+					progressListener.completed(null);
+					return;
+				}
 				browser = new C8oBrowser(filler, SWT.NONE);
-			} catch (SWTError e) {
+				String username = "n/a";
+				try {
+					Properties properties = decodePsc();
+					username = DeploymentKey.adminUser.value(properties, 1);
+				} catch (Exception e) {}
+
+				String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
+				url += "&" + URLUtils.encodePart("user", username);
+				url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
+
+				browser.addProgressListener(progressListener);
+				browser.setUrl(url);
+				parent.layout(true, true);
+			} catch (Exception e) {
 				System.out.println("Could not instantiate Browser: " + e.getMessage());
+				progressListener.completed(null);
 				return;
 			}
-
-
-
-			String username = "n/a";
-			try {
-				Properties properties = decodePsc();
-				username = DeploymentKey.adminUser.value(properties, 1);
-			} catch (Exception e) {}
-
-			String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-			url += "&" + URLUtils.encodePart("user", username);
-			url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
-
-			browser.addProgressListener(progressListener);
-			browser.setUrl(url);
-			parent.layout(true, true);
 		});
 	}
 
@@ -924,32 +954,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 
 		runAtStartup(() -> {
-			IWorkbenchPage activePage = PlatformUI
-					.getWorkbench()
-					.getActiveWorkbenchWindow()
-					.getActivePage();
-			if (activePage != null) {
-				try {
-					IProject toRemove = ResourcesPlugin.getWorkspace().getRoot().getProject("initEditor");
-					try {
-						toRemove.create(null);
-						toRemove.open(null);
-					} catch (Exception e) {
-					}
-					IFile iFile = toRemove.getFile("initEditor.js");
-					try (ByteArrayInputStream is = new ByteArrayInputStream(new String("// Performing editor initialization ...\nClosing automatically !").getBytes("UTF-8"))) {
-						iFile.create(is , true, null);	
-					} catch (Exception e2) {
-					}
-					IEditorInput input = new FileEditorInput(iFile);
-					IEditorPart part = activePage.openEditor(input, "org.eclipse.wst.jsdt.ui.CompilationUnitEditor");
-					SwtUtils.refreshTheme();
-					part.dispose();
-					toRemove.delete(true, null);
-				} catch(Exception e) {
-//					e.printStackTrace();
-				} 
-			}
 			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
 			if (templates != null) {
 				for (File tpl: templates) {

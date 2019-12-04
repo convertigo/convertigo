@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
@@ -48,12 +47,12 @@ public class JScriptEditor extends CompilationUnitEditor {
 
 	@Override
 	public void dispose() {
-		if (jstt != null) {
-			jstt.dispose();
-		}
 		try {
+			if (jstt != null) {
+				jstt.dispose();
+			}
 			eInput.getFile().delete(true, null);
-		} catch (CoreException e) {
+		} catch (Exception e) {
 		}
 		super.dispose();
 	}
@@ -142,7 +141,10 @@ public class JScriptEditor extends CompilationUnitEditor {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		try {
 			if (!(input instanceof JScriptEditorInput)) {
-				close(false);
+				try {
+					site.getPage().closeEditor(this, false);
+				} catch (Exception e) {
+				}
 				return;
 			}
 			setSite(site);
