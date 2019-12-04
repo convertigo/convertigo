@@ -31,6 +31,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.Properties;
 
+import com.twinsoft.convertigo.engine.Engine;
+
 public class PropertiesUtils {
 	
 	public static Properties load(String filepath) throws IOException {
@@ -80,6 +82,15 @@ public class PropertiesUtils {
 	}
 	
 	public static void store(Properties properties, File file, String comments) throws IOException {
+		Properties existing = new Properties();
+		try {
+			load(existing, file);
+			if (existing.equals(properties)) {
+				Engine.logEngine.debug("(PropertiesUtils) Same content, doesn't write properties to " + file);
+				return;
+			}
+		} catch (Exception e) {
+		}
 		try (FileOutputStream fos = new FileOutputStream(file)) {
 			store(properties, fos, comments);
 		}
@@ -90,9 +101,7 @@ public class PropertiesUtils {
 	}
 	
 	public static void store(Properties properties, String filepath, String comments) throws IOException {
-		try (FileOutputStream fos = new FileOutputStream(filepath)) {
-			store(properties, fos, comments);
-		}
+		store(properties, new File(filepath), comments);
 	}
 	
 	public static void store(Properties properties, OutputStream outputStream, String comments) throws IOException {
