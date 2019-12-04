@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1643,10 +1642,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (Engine.isCliMode()) {
 			return;
 		}
-		
+
 		globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,  
 				System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE, 
-                        Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
+						Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 
 		Properties prop = new Properties();
 
 		try {
@@ -1654,11 +1653,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 		} catch (FileNotFoundException e) {
 			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
 					+ globalSymbolsFilePath + "\" does not exist! Creating a new one...");
-			
+
 			// Create the global_symbols.properties file into the default workspace
 			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
 			globalSymbolsFilePath = globalSymbolsProperties.getAbsolutePath();
-			
+
 			try {
 				PropertiesUtils.store(prop, globalSymbolsProperties, "global symbols");
 				Engine.logDatabaseObjectManager.info("New global symbols file created: " + globalSymbolsProperties.getAbsolutePath());
@@ -1678,14 +1677,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!");
 	}
 	
-	private void symbolsLoad(Properties map) {		
+	private void symbolsLoad(Properties map) {
 		// Enumeration of the properties
 		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
 		boolean needUpdate = false;
 		while (propsEnum.hasMoreElements()) {
 			String propertyName = propsEnum.nextElement();
 			try {
-				symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+				symbolsAdd(propertyName, map.getProperty(propertyName, ""), false);
 				needUpdate = true;
 			} catch (Exception e) {
 				Engine.logEngine.info("Don't add invalid symbol '" + propertyName + "'", e);
@@ -1694,10 +1693,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (needUpdate) {
 			symbolsUpdated();
 		}
-	}
-	
-	public void symbolsStore(OutputStream out) throws IOException {
-		PropertiesUtils.store(symbolsProperties, out, "global symbols");
 	}
 	
 	public void symbolsUpdate(Properties map, String importAction) {
@@ -1742,14 +1737,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				if (keepServerSymbols){
 					if (!symbolsProperties.containsKey(propertyName)) {
-						symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+						symbolsAdd(propertyName, map.getProperty(propertyName, ""), false);
 						needUpdate = true;
 					}
 				} else {
 					if (symbolsProperties.containsKey(propertyName)) {
 						symbolsProperties.remove(propertyName);
 					}
-					symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+					symbolsAdd(propertyName, map.getProperty(propertyName, ""), false);
 					needUpdate = true;
 				}
 			} catch (Exception e) {
@@ -1763,6 +1758,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	private void symbolsUpdated() {
 		try {
+			System.out.println("symbolsUpdated: " + symbolsProperties + " to:" + globalSymbolsFilePath);
 			PropertiesUtils.store(symbolsProperties, globalSymbolsFilePath, "global symbols");
 		} catch (Exception e) {
 			Engine.logEngine.error("Failed to store symbols!", e);
