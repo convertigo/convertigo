@@ -1378,7 +1378,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (definition.size() > 0) {
 			String xpath = definition.get(1);
 			if (xpath.startsWith("./")) {
-				Long key = new Long(definition.get(0));
+				Long key = Long.valueOf(definition.get(0));
 				Step sourceStep = sequence.loadedSteps.get(key);
 				if (sourceStep != null) {
 					if (VersionUtils.compare(version, "4.6.0") < 0) {

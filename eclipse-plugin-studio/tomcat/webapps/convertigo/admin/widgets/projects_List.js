@@ -57,8 +57,7 @@ function projects_List_init() {
 				name : 'name',
 				index : 'name',
 				width : 80,
-				align : "left",
-				formatter : htmlEncode
+				align : "left"
 			}, {
 				name : 'comment',
 				index : 'comment',
