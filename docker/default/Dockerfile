@@ -88,7 +88,7 @@ RUN sed -i.bak \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
-ENV CONVERTIGO_VERSION 7.6.5
+ENV CONVERTIGO_VERSION 7.6.6
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 

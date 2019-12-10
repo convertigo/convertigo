@@ -114,6 +114,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 	
 	public void removeAuthenticatedSession(HttpSession httpSession) {
+		if (httpSession == null) {
+			return;
+		}
 		for (SessionKey key : SessionKey.values()) {
 			httpSession.removeAttribute(key.toString());
 		}
@@ -170,19 +173,21 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 
 	public Role[] getRoles(HttpSession httpSession) {
+		if (httpSession == null) {
+			return null;
+		}
 		Role[] roles = roles(httpSession);
 		roles = (roles == null ? null : roles.clone());
 		Engine.logAdmin.debug("Getting roles for session " + httpSession.getId() + ": " + roles);
 		return roles;
 	}
 	
-	public void checkRoles(HttpSession httpSession, Role[] requiredRoles) throws AuthenticationException {
-		List<Role> lRequiredRoles = Arrays.asList(requiredRoles);
-		
+	public void checkRoles(HttpSession httpSession, Role[] requiredRoles) throws AuthenticationException {		
 		Role[] userRoles = roles(httpSession);
 		if (userRoles == null) {
 			throw new AuthenticationException("Authentication failure: no role defined");
 		}
+		List<Role> lRequiredRoles = Arrays.asList(requiredRoles);
 		
 		List<Role> lUserRoles = Arrays.asList(userRoles);
 		
@@ -198,6 +203,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 	
 	private Role[] roles(HttpSession httpSession) {
+		if (httpSession == null) {
+			return null;
+		}
 		return (Role[]) httpSession.getAttribute(SessionKey.ADMIN_ROLES.toString());
 	}
 	

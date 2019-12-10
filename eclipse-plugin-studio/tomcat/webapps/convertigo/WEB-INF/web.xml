@@ -15,11 +15,15 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
-    <!--
+    
     <session-config> 
-        <session-timeout>1</session-timeout> 
+       <!-- <session-timeout>1</session-timeout> -->
+        <cookie-config>
+            <http-only>true</http-only>
+            <secure>false</secure>
+        </cookie-config> 
     </session-config>
-    -->
+    
     <filter>
 		<filter-name>CompressionFilter</filter-name>
 		<filter-class>com.twinsoft.convertigo.engine.servlets.CompressionFilter</filter-class>

@@ -130,10 +130,10 @@ public class AdminServlet extends HttpServlet {
 				boolean needsAuthentication = !AuthenticatedSessionManager.hasRole(serviceDefinition.roles(), Role.ANONYMOUS);
 				Engine.logAdmin.debug("Needs authentication: " + needsAuthentication);
 				if (needsAuthentication) {
-					Engine.authenticatedSessionManager.checkRoles(request.getSession(), serviceDefinition.roles());
+					Engine.authenticatedSessionManager.checkRoles(request.getSession(false), serviceDefinition.roles());
 				}
 				
-				Service service = (Service) serviceClass.newInstance();
+				Service service = (Service) serviceClass.getConstructor().newInstance();
 				service.run(serviceName, request, response);
 			}
 			catch (ClassNotFoundException e) {

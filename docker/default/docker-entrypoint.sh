@@ -85,6 +85,13 @@ if [ "$1" = "convertigo" ]; then
         unset COOKIE_PATH
     fi
     
+    if [ "$COOKIE_SECURE" == "true" ]; then
+        sed -i.bak -e "s,<secure>false</secure>,<secure>true</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    else
+    	sed -i.bak -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    fi
+    unset COOKIE_SECURE
+    
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
 fi
 

@@ -46,10 +46,13 @@ public class CheckAuthentication extends XmlService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		HttpSession httpSession = request.getSession();
+		HttpSession httpSession = request.getSession(false);
 		
 		// Handle anonymous access for test platform user
 		if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).length() == 0) {
+			if (httpSession == null) {
+				httpSession = request.getSession(true);
+			}
 			if (!Engine.authenticatedSessionManager.isAuthenticated(httpSession)) {
 				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, new Role[] { Role.TEST_PLATFORM });
 			}

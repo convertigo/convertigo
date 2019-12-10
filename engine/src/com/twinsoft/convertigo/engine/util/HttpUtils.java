@@ -163,7 +163,7 @@ public class HttpUtils {
 	
 			int maxTotalConnections = 100;
 			try {
-				maxTotalConnections = new Integer(
+				maxTotalConnections = Integer.valueOf(
 						EnginePropertiesManager
 								.getProperty(PropertyName.HTTP_CLIENT_MAX_TOTAL_CONNECTIONS))
 						.intValue();
@@ -174,7 +174,7 @@ public class HttpUtils {
 	
 			int maxConnectionsPerHost = 50;
 			try {
-				maxConnectionsPerHost = new Integer(
+				maxConnectionsPerHost = Integer.valueOf(
 						EnginePropertiesManager
 								.getProperty(PropertyName.HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST))
 						.intValue();
@@ -230,7 +230,7 @@ public class HttpUtils {
 						
 						int maxTotalConnections = 100;
 						try {
-							maxTotalConnections = new Integer(
+							maxTotalConnections = Integer.valueOf(
 									EnginePropertiesManager
 											.getProperty(PropertyName.HTTP_CLIENT_MAX_TOTAL_CONNECTIONS))
 									.intValue();
@@ -241,7 +241,7 @@ public class HttpUtils {
 						
 						int maxConnectionsPerHost = 50;
 						try {
-							maxConnectionsPerHost = new Integer(
+							maxConnectionsPerHost = Integer.valueOf(
 									EnginePropertiesManager
 											.getProperty(PropertyName.HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST))
 									.intValue();

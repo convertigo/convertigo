@@ -94,7 +94,7 @@ public class Authenticate extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		boolean logIn = "login".equals(ServiceUtils.getRequiredParameter(request, "authType"));
 
-		HttpSession httpSession = request.getSession();
+		HttpSession httpSession = request.getSession(false);
 
 		// Login
 		if (logIn) {
@@ -118,7 +118,6 @@ public class Authenticate extends XmlService {
 				password = ServiceUtils.getRequiredParameter(request, "authPassword");
 			}
 
-			httpSession.setAttribute(SessionKey.ADMIN_USER.toString(), user);
 			Engine.logAdmin.info("User '" + user + "' is trying to login");
 
 			// Check authentication attempts
@@ -175,7 +174,6 @@ public class Authenticate extends XmlService {
 						} else if (user.matches(".+@.+\\.[a-z]+")
 								&& user.equals(SimpleCipher.decode(password))) {
 							roles = new Role[] { Role.TRIAL };
-							httpSession.setAttribute("trial_user", true);
 						} else {
 							Engine.logAdmin.error("Trial authentication failure: wrong username/password");
 						}
@@ -222,7 +220,11 @@ public class Authenticate extends XmlService {
 				}
 			} else {
 				Authenticate.authenticationAttempts.remove(user);
-
+				if (httpSession != null) {
+					httpSession.invalidate();
+				}
+				httpSession = request.getSession(true);
+				httpSession.setAttribute(SessionKey.ADMIN_USER.toString(), user);
 				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, roles);
 
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
