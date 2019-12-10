@@ -57,17 +57,20 @@ function projects_List_init() {
 				name : 'name',
 				index : 'name',
 				width : 80,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'comment',
 				index : 'comment',
 				width : 120,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'version',
 				index : 'version',
 				width : 40,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'exported',
 				index : 'exported',
@@ -231,7 +234,7 @@ function projectsDeploy(xml) {
 
 function deleteProject(projectName) {
 	$("#project_Edit").hide();
-	$('<div></div>').html("<p>Do you really want to delete the project '" + projectName + "'?</p>")
+	$('<div></div>').html("<p>Do you really want to delete the project '" + htmlEncode(projectName) + "'?</p>")
 			.dialog(
 					{
 						autoOpen : true,
@@ -269,7 +272,7 @@ function deleteProject(projectName) {
 
 function reloadProject(projectName) {
 	$("#project_Edit").hide();
-	$('<div></div>').html("<p>Do you really want to reload the project '" + projectName + "'?</p>")
+	$('<div></div>').html("<p>Do you really want to reload the project '" + htmlEncode(projectName) + "'?</p>")
 			.dialog(
 					{
 						autoOpen : true,

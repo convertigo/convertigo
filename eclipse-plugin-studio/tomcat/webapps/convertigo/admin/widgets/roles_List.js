@@ -179,13 +179,13 @@ function roles_List_init() {
 				index : 'name',
 				width : 80,
 				align : "left",
-				formatter : $.jgrid.htmlEncode
+				formatter : htmlEncode
 			}, {
 				name : 'value',
 				index : 'value',
 				width : 120,
 				align : "left",
-				formatter : $.jgrid.htmlEncode
+				formatter : htmlEncode
 			}, {
 				name : 'btnEdit',
 				index : 'btnEdit',
@@ -352,7 +352,7 @@ function addUser(xml, mode) {
 function editUser(username) {
 	$("#username").val(username);
 	$("#roles input").prop("checked", false);
-	var $user = $last_roles_list_xml.find("user[name='" + username + "']");
+	var $user = $last_roles_list_xml.find("user[name='" + username.replace(/'/g,"\\'") + "']");
 	$user.find("role").each(function () {
 		$("#c" + $(this).attr("name")).prop("checked", true);
 	});

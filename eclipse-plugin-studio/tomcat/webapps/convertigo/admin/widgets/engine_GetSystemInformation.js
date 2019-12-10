@@ -26,19 +26,19 @@ function engine_GetSystemInformation_init(){
 
 function engine_GetSystemInformation_update() {
 	callService("engine.GetSystemInformation", function(xml) {
-		$("#sysinfoHostName").html($(xml).find("host").attr("name"));
-		$("#sysinfoOsArchitecture").html($(xml).find("os").attr("architecture"));
-		$("#sysinfoOsAvailableProcessors").html($(xml).find("os").attr("availableProcessors"));
-		$("#sysinfoOsName").html($(xml).find("os").attr("name"));
-		$("#sysinfoOsVersion").html($(xml).find("os").attr("version"));
-		$("#sysinfoHostAddresses").html($(xml).find("host").attr("addresses"));
-		$("#sysinfoJavaVendor").html($(xml).find("java").attr("vendor"));
-		$("#sysinfoJavaVersion").html($(xml).find("java").attr("version"));
-		$("#sysinfoJavaClassVersion").html($(xml).find("java").attr("classVersion"));
-		$("#sysinfoMemoryTotal").html("" + parseInt(parseInt($(xml).find("memory").attr("total")) / 1024 / 1024));
-		$("#sysinfoMemoryAvailable").html("" + parseInt(parseInt($(xml).find("memory").attr("available")) / 1024 / 1024));
-		$("#sysinfoMemoryMaximal").html("" + parseInt(parseInt($(xml).find("memory").attr("maximal")) / 1024 / 1024));
-		$("#sysinfoBrowser").html($(xml).find("browser").text());
+		$("#sysinfoHostName").text($(xml).find("host").attr("name"));
+		$("#sysinfoOsArchitecture").text($(xml).find("os").attr("architecture"));
+		$("#sysinfoOsAvailableProcessors").text($(xml).find("os").attr("availableProcessors"));
+		$("#sysinfoOsName").text($(xml).find("os").attr("name"));
+		$("#sysinfoOsVersion").text($(xml).find("os").attr("version"));
+		$("#sysinfoHostAddresses").text($(xml).find("host").attr("addresses"));
+		$("#sysinfoJavaVendor").text($(xml).find("java").attr("vendor"));
+		$("#sysinfoJavaVersion").text($(xml).find("java").attr("version"));
+		$("#sysinfoJavaClassVersion").text($(xml).find("java").attr("classVersion"));
+		$("#sysinfoMemoryTotal").text("" + parseInt(parseInt($(xml).find("memory").attr("total")) / 1024 / 1024));
+		$("#sysinfoMemoryAvailable").text("" + parseInt(parseInt($(xml).find("memory").attr("available")) / 1024 / 1024));
+		$("#sysinfoMemoryMaximal").text("" + parseInt(parseInt($(xml).find("memory").attr("maximal")) / 1024 / 1024));
+		$("#sysinfoBrowser").text($(xml).find("browser").text());
 	});
 }
 

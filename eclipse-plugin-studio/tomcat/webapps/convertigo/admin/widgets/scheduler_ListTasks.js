@@ -55,17 +55,20 @@ function scheduler_ListTasks_init () {
 				name : "name",
 				index : "name",					
 				align : "left",
-				width : 30
+				width : 30,
+				formatter : htmlEncode
 			}, {
 				name : "description",
 				index : "description",
 				align : "left",
-				width : 50
+				width : 50,
+				formatter : htmlEncode
 			}, {
 				name : "info",
 				index : "info",
 				align : "center",
-				width : 50
+				width : 50,
+				formatter : htmlEncode
 			}, {
 				name : "edit",
 				index : "edit",
@@ -100,29 +103,33 @@ function scheduler_ListTasks_init () {
 				name : "enabled",
 				index : "enabled",					
 				align : "center",
-				width : 10			
+				width : 10
 			}, {
 				name : "name",
 				index : "name",					
 				align : "left",
-				width : 20
+				width : 20,
+				formatter : htmlEncode
 			}, {
 				name : "description",
 				index : "description",
 				align : "left",
-				width : 30
+				width : 30,
+				formatter : htmlEncode
 			}, {
 				name : "info",
 				index : "info",
 				align : "center",
-				width : 20
+				width : 20,
+				formatter : htmlEncode
 			}, {
 				name : "next",
 				classes : "nextCron",
 				index : "next",
 				align : "center",
 				sortable : false,
-				width : 20
+				width : 20,
+				formatter : htmlEncode
 			}, {
 				name : "edit",
 				index : "edit",
@@ -488,7 +495,7 @@ function scheduler_ListTasks_update () {
 				
 				row = {
 					enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
-					name : htmlEncode(name),
+					name : name,
 					description : $element.attr("description"),
 					info : $element.attr("info"),
 					next : firstCron,
@@ -526,7 +533,7 @@ function scheduler_ListTasks_update () {
 			} else {
 				row = {
 					enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
-					name : htmlEncode(name),
+					name : name,
 					description : $element.attr("description"),
 					info : $element.attr("info"),
 					edit : htmlCode($("#schedulerTemplate .schedulerElementEdit")),
@@ -575,7 +582,7 @@ function fillDialog ($element_xml) {
 		var key = setting_order[i];
 		var attr = $element_xml.attr(key);
 		if (typeof(attr) !== "undefined") {
-			var $input = $("#schedulerDialogAddEntry *[name=" + key + "]");
+			var $input = $("#schedulerDialogAddEntry *[name=" + key.replace(/'/g,"\\'") + "]");
 			if ($input.is("[type=checkbox]")) {
 				if ("true" === attr) {
 					$input.prop("checked", true);
@@ -645,7 +652,7 @@ function saveElement () {
 				$problems.append($("<li/>").text($(this).text()));
 			});
 			if ($problems.children().length > 0) {
-				showError("There is some issues : " + $("<d/>").append($problems).html());
+				showErrorHtml("There is some issues : " + $("<d/>").append($problems).html());
 			} else {
 				showInfo("The element was correctly saved.");
 				scheduler_ListTasks_update();

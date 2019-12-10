@@ -57,19 +57,19 @@ function engine_GetStatus_update() {
 			$("#statusStartedLed").attr("src", "images/convertigo-administration-picto-bullet-gray.png");
 			$("#statusStoppedLed").attr("src", "images/convertigo-administration-picto-bullet-red.png");}
 
-		$("#statusStartStopVerb").html($(xml).find("engineState").text());
+		$("#statusStartStopVerb").text($(xml).find("engineState").text());
 		var startDate = new Date(parseInt($(xml).find("startStopDate").text()));
 		$("#statusStartDate").text(startDate);
 		$("#statusUptimeDays").text($(xml).find("runningElapse").attr("days"));
 		$("#statusUptimeHours").text($(xml).find("runningElapse").attr("hours"));
 		$("#statusUptimeMinutes").text($(xml).find("runningElapse").attr("minutes"));
 		$("#statusUptimeSeconds").text($(xml).find("runningElapse").attr("seconds"));
-		$("#statusProduct").html($(xml).find("version").attr("product"));
-		$("#statusBuild").html($(xml).find("version").attr("build"));
-		$("#statusEngine").html($(xml).find("version").attr("engine"));
-		$("#statusObjects").html($(xml).find("version").attr("beans"));	
-		$("#statusBuildDate").html($(xml).find("build").attr("date"));
-		$("#statusBuildFilename").html($(xml).find("build").attr("filename"));	
+		$("#statusProduct").text($(xml).find("version").attr("product"));
+		$("#statusBuild").text($(xml).find("version").attr("build"));
+		$("#statusEngine").text($(xml).find("version").attr("engine"));
+		$("#statusObjects").text($(xml).find("version").attr("beans"));	
+		$("#statusBuildDate").text($(xml).find("build").attr("date"));
+		$("#statusBuildFilename").text($(xml).find("build").attr("filename"));	
 		
 		$("#statusLicenceType").text($(xml).find("version").attr("licence-type"));	
 		$("#statusLicenceNumber").text($(xml).find("version").attr("licence-number"));

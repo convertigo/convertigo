@@ -131,13 +131,13 @@ function globalSymbols_List_init() {
 				index : 'name',
 				width : 80,
 				align : "left",
-				formatter : $.jgrid.htmlEncode
+				formatter : htmlEncode
 			}, {
 				name : 'value',
 				index : 'value',
 				width : 120,
 				align : "left",
-				formatter : $.jgrid.htmlEncode
+				formatter : htmlEncode
 			}, {
 				name : 'btnEdit',
 				index : 'btnEdit',
