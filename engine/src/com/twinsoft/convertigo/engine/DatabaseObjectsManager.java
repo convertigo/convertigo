@@ -92,6 +92,7 @@ import com.twinsoft.convertigo.engine.migration.Migration7_4_0;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -1481,7 +1482,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			exportProject(project);
 			file = new File(newDir, file.getName());
 			ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
-	        FileUtils.deleteQuietly(new File(newDir, ".project"));
+			FileUtils.deleteQuietly(new File(newDir, ".project"));
 		} catch (Exception e) {
 			throw new ConvertigoException("Failed to rename to project", e);
 		}
@@ -1684,7 +1685,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		while (propsEnum.hasMoreElements()) {
 			String propertyName = propsEnum.nextElement();
 			try {
-				symbolsAdd(propertyName, map.getProperty(propertyName, ""), false);
+				symbolsAdd(propertyName, uncipherSymbol(map, propertyName), false);
 				needUpdate = true;
 			} catch (Exception e) {
 				Engine.logEngine.info("Don't add invalid symbol '" + propertyName + "'", e);
@@ -1728,6 +1729,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 	
+	static private String uncipherSymbol(Properties props, String name) {
+		String value = props.getProperty(name);
+		if (value != null && name.endsWith(".secret")) {
+			value = Crypto2.decodeFromHexString(value);
+		}
+		return value;
+	}
+	
 	private void symbolsFileImport(Properties map, boolean keepServerSymbols) {		
 		// Enumeration of the properties
 		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
@@ -1737,14 +1746,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				if (keepServerSymbols){
 					if (!symbolsProperties.containsKey(propertyName)) {
-						symbolsAdd(propertyName, map.getProperty(propertyName, ""), false);
+						symbolsAdd(propertyName, uncipherSymbol(map, propertyName), false);
 						needUpdate = true;
 					}
 				} else {
 					if (symbolsProperties.containsKey(propertyName)) {
 						symbolsProperties.remove(propertyName);
 					}
-					symbolsAdd(propertyName, map.getProperty(propertyName, ""), false);
+					symbolsAdd(propertyName, uncipherSymbol(map, propertyName), false);
 					needUpdate = true;
 				}
 			} catch (Exception e) {
@@ -1758,8 +1767,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	private void symbolsUpdated() {
 		try {
-			System.out.println("symbolsUpdated: " + symbolsProperties + " to:" + globalSymbolsFilePath);
-			PropertiesUtils.store(symbolsProperties, globalSymbolsFilePath, "global symbols");
+			Properties symbolsToStore = new Properties();
+			Enumeration<String> propsEnum = GenericUtils.cast(symbolsProperties.propertyNames());
+			while (propsEnum.hasMoreElements()) {
+				String name = propsEnum.nextElement();
+				symbolsToStore.put(name, symbolsGetValueStore(name));
+			}
+			System.out.println("symbolsUpdated: " + symbolsToStore + " to:" + globalSymbolsFilePath);
+			PropertiesUtils.store(symbolsToStore, globalSymbolsFilePath, "global symbols");
 		} catch (Exception e) {
 			Engine.logEngine.error("Failed to store symbols!", e);
 		}
@@ -1794,6 +1809,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public String symbolsGetValue(String symbolName) {
 		return symbolsProperties.getProperty(symbolName);
+	}
+	
+	public String symbolsGetValueStore(String symbolName) {
+		String value = symbolsGetValue(symbolName);
+		if (value != null && symbolName.endsWith(".secret")) {
+			value = Crypto2.encodeToHexString(value);
+		}
+		return value;
+	}
+	
+	public String symbolsGetValueService(String symbolName) {
+		String value = symbolsGetValue(symbolName);
+		if (value != null && symbolName.endsWith(".secret")) {
+			value = "**********";
+		}
+		return value;
 	}
 	
 	public Set<String> symbolsGetNames() {

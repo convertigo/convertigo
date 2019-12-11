@@ -24,9 +24,13 @@ function globalSymbols_List_init() {
 		icons : {
 			primary : "ui-icon-plus"
 		}
-	}).click(function(){
-		addSymbol();
-	});
+	}).click(addSymbol);
+	
+	$("#addSymbolSecret").button({
+		icons : {
+			primary : "ui-icon-key"
+		}
+	}).click(addSymbolSecret);
 	
 	initializeImportSymbol();	
 	$("#importSymbol").button({
@@ -195,6 +199,7 @@ function hideExportSymbolsPanel() {
 	$('#symbolsList').showCol('btnEdit');
 	$('#symbolsList').showCol('btnDelete');
 	$("#addSymbol").button("enable");
+	$("#addSymbolSecret").button("enable");
 	$("#importSymbol").button("enable");
 	$("#symbolsListButtonDeleteAll").button("enable");
 	$("#exportSymbolsButtonAction").hide();
@@ -270,30 +275,62 @@ function addSymbol(xml, mode) {
 	$("#addValue").val("");
 	
 	$("#dialog-add-symbol").dialog({
-			autoOpen : true,
-			title : "Add symbol",
-			modal : true,
-			buttons : {
-				"Ok" : function () {
-					callService("global_symbols.Add", function(xml) {
-						var $response = $(xml).find("response:first");  
-						if ($response.attr("state") == "success") {
-							$("#addName").val("");
-							$("#addValue").val("");
-							globalSymbols_List_update();
-						}
-						showInfo($(xml).find("response").attr("message"));
-					}, {symbolName: $("#addName").val(), symbolValue: $("#addValue").val()});
-				},
-				Cancel : function() {
-					$(this).dialog('close');
-					return false;
-				}
+		autoOpen : true,
+		title : "Add symbol",
+		modal : true,
+		buttons : {
+			"Ok" : function () {
+				callService("global_symbols.Add", function(xml) {
+					var $response = $(xml).find("response:first");  
+					if ($response.attr("state") == "success") {
+						$("#addName").val("");
+						$("#addValue").val("");
+						globalSymbols_List_update();
+					}
+					showInfo($(xml).find("response").attr("message"));
+				}, {symbolName: $("#addName").val(), symbolValue: $("#addValue").val()});
+			},
+			Cancel : function() {
+				$(this).dialog('close');
+				return false;
 			}
-		});
+		}
+	});
+}
+
+function addSymbolSecret(xml, mode) {
+	$("#addNameSecret").prop("disabled", false).val("");
+	$("#addValueSecret").val("");
+	
+	$("#dialog-add-symbol-secret").dialog({
+		autoOpen : true,
+		title : "Add secret symbol",
+		modal : true,
+		buttons : {
+			"Ok" : function () {
+				callService("global_symbols.Add", function(xml) {
+					var $response = $(xml).find("response:first");  
+					if ($response.attr("state") == "success") {
+						$("#addNameSecret").val("");
+						$("#addValueSecret").val("");
+						globalSymbols_List_update();
+					}
+					showInfo($(xml).find("response").attr("message"));
+				}, {symbolName: $("#addNameSecret").val() + ".secret", symbolValue: $("#addValueSecret").val()});
+			},
+			Cancel : function() {
+				$(this).dialog('close');
+				return false;
+			}
+		}
+	});
 }
 
 function editSymbol(symbolName, symbolValue) {
+	if (symbolName.endsWith(".secret")) {
+		editSymbolSecret(symbolName, symbolValue);
+		return;
+	}
 	$("#addName").val(symbolName);
 	$("#addValue").val(symbolValue);
 	
@@ -311,6 +348,38 @@ function editSymbol(symbolName, symbolValue) {
 						}
 						showInfo($(xml).find("response").attr("message"));
 					}, {oldSymbolName: symbolName, symbolName: $("#addName").val(), symbolValue: $("#addValue").val()});
+				},
+				Cancel : function() {
+					$(this).dialog("close");
+					return false;
+				}
+			}
+		}
+	);
+}
+
+function editSymbolSecret(symbolName, symbolValue) {
+	$("#addNameSecret").prop("disabled", true).val(symbolName.replace(/\.secret$/, ""));
+	$("#addValueSecret").val(symbolValue);
+	
+	$("#dialog-add-symbol-secret").dialog({
+			autoOpen : true,
+			title : "Edit secret symbol",
+			modal : true,
+			buttons : {
+				"Ok" : function() {
+					if (symbolValue == $("#addValueSecret").val()) {
+						showInfo("You haven't change the value!");
+						return;
+					}
+					callService("global_symbols.Edit", function(xml) {
+						var $response = $(xml).find("response:first");  
+						if ($response.attr("state") == "success") {
+							globalSymbols_List_update();
+							$("#dialog-add-symbol-secret").dialog("close");
+						}
+						showInfo($(xml).find("response").attr("message"));
+					}, {oldSymbolName: symbolName, symbolName: $("#addNameSecret").val() + ".secret", symbolValue: $("#addValueSecret").val()});
 				},
 				Cancel : function() {
 					$(this).dialog("close");
@@ -374,6 +443,7 @@ function exportSymbolButtonsToggle() {
 	}
 	//Disable buttons from buttons bar
 	$("#addSymbol").button(status);
+	$("#addSymbolSecret").button(status);
 	$("#importSymbol").button(status);
 	$("#symbolsListButtonDeleteAll").button(status);
 

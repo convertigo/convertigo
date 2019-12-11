@@ -1521,9 +1521,13 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	top: 1px;
 }
 
-#addSymbol, #importSymbol, #exportSymbol, #symbolsListButtonDeleteAll  {
+#addSymbol, #addSymbolSecret, #importSymbol, #exportSymbol, #symbolsListButtonDeleteAll  {
 	position: relative;
 	top: 4px;
+}
+
+#dialog-add-symbol-secret {
+	text-align: left;
 }
 
 .ui-button-text {
