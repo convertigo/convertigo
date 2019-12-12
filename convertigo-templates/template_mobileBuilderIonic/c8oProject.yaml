@@ -1,8 +1,8 @@
-↑convertigo: 7.6.5.m006
+↑convertigo: 7.6.6.m006
 ↓template_mobileBuilderIonic [core.Project]: 
   comment: Convertigo Mobile builder Project
   corsOrigin: =Origin
-  version: 7.6.5
+  version: 7.6.6-beta
   ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
   ↓MobileApplication [core.MobileApplication]: 
     comment: Describes the mobile application global properties
