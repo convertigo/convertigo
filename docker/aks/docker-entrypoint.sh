@@ -7,7 +7,7 @@ if [ "$1" = "convertigo" ]; then
     ## function used to cipher passwords
     
     toHash() {
-        echo "System.out.println(\"$1\".hashCode())" | jshell -
+        echo "System.out.println(org.apache.commons.codec.digest.DigestUtils.sha512Hex(\"$1\"))" | jshell --class-path $CATALINA_HOME/webapps/convertigo/WEB-INF/lib/dependencies-*.jar -
     }
         
     ## if needed, force the admin and testplatform accounts
@@ -85,6 +85,14 @@ if [ "$1" = "convertigo" ]; then
         unset COOKIE_PATH
     fi
     
+    if [ "$COOKIE_SECURE" == "true" ]; then
+        sed -i.bak -e "s,<secure>false</secure>,<secure>true</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    else
+    	sed -i.bak -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    fi
+    unset COOKIE_SECURE
+    
+    
     if [ "$TUNNEL_PORT" != "" ]; then
         if [ "$TUNNEL_KEY" != "" ]; then
             TUNNEL_KEY="--key $TUNNEL_KEY"
@@ -100,6 +108,7 @@ if [ "$1" = "convertigo" ]; then
         fi
     fi
     for i in $(set | grep "_SERVICE_\|_PORT" | cut -f1 -d=); do unset $i; done
+    
     
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
 fi

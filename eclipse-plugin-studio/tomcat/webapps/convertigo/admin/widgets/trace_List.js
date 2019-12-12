@@ -43,7 +43,8 @@ function trace_List_init() {
 			index : 'port',
 			width : 20,
 			sorttype:'int',
-			align : "left"
+			align : "left",
+			formatter : htmlEncode
 		}, {
 			name : 'file',
 			index : 'file',

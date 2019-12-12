@@ -886,7 +886,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						Step targetStep = (Step)((ob instanceof StepVariable) ? ((StepVariable) ob).getParent() : ob);
 						
 						// Check for drop to a step in the same sequence
-						Long key = new Long(stepSource.getPriority());
+						Long key = Long.valueOf(stepSource.getPriority());
 						Step sourceStep = targetStep.getSequence().loadedSteps.get(key);
 						if ((sourceStep != null) && (!targetStep.equals(sourceStep))) {
 							// Check for drop on a 'following' step

@@ -27,13 +27,13 @@ function environmentVariables_List_init(gridId) {
 			index : 'name',
 			width : 80,
 			align : "left",
-			formatter : $.jgrid.htmlEncode
+			formatter : htmlEncode
 		}, {
 			name : 'value',
 			index : 'value',
 			width : 120,
 			align : "left",
-			formatter : $.jgrid.htmlEncode
+			formatter : htmlEncode
 		} ],
 		ignoreCase : true,
 		autowidth : true,

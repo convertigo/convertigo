@@ -12,10 +12,10 @@
  * * custom.js (this file)
  *
  * You can find documentation about Convertigo Templating Framework here:
- * http://www.convertigo.com/document/latest/reference-manual/convertigo-templating-framework/
+ * https://www.convertigo.com/document/latest/reference-manual/convertigo-templating-framework/
  *
  * You can find documentation about Convertigo Internationalization Framework here:
- * http://www.convertigo.com/document/latest/reference-manual/internationalization-framework/
+ * https://www.convertigo.com/document/latest/reference-manual/internationalization-framework/
  *
  *******************************************************
  *******************************************************/

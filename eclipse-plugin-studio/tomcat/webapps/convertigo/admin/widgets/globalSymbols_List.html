@@ -23,6 +23,7 @@ if not, see <http://www.gnu.org/licenses/>.
 	<body>
 		<div class="bgButtonAction">
 			<button id="addSymbol">Add Symbol</button>
+			<button id="addSymbolSecret">Add Secret Symbol</button>
 			<button id="importSymbol">Import Symbols</button>
 			<button id="exportSymbol">Export Symbols</button>
 			<button id="symbolsListButtonDeleteAll">Delete all</button>
@@ -42,11 +43,21 @@ if not, see <http://www.gnu.org/licenses/>.
 		<table id="symbolsList"></table>
 	
 		<form id="dialog-add-symbol">
-				<label for="name">Name : </label>
-				<input type='text' id='addName' value='' autocomplete="new-password"/>
-				<br/>
-				<label for="value">Value : </label>
-				<input type='text' id='addValue' value='' autocomplete="new-password"/>
+			<label for="addName">Name : </label>
+			<input type='text' id='addName' value='' autocomplete="new-password"/>
+			<br/>
+			<label for="addValue">Value : </label>
+			<input type='text' id='addValue' value='' autocomplete="new-password"/>
+		</form>
+	
+		<form id="dialog-add-symbol-secret">
+			<p>In secret mode, the value is stored ciphered and the key automatically ends with <b>.secret</b></p>
+			<label for="addNameSecret">Name : </label>
+			<input type='text' id='addNameSecret' value='' autocomplete="new-password"/>
+			<b>.secret</b>
+			<br/>
+			<label for="addValueSecret">Value : </label>
+			<input type='password' id='addValueSecret' value='' autocomplete="new-password"/>
 		</form>
 		
 	</body>

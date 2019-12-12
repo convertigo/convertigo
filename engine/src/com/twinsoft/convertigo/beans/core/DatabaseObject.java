@@ -785,7 +785,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 		try {
 			Engine.logBeans.trace("Creating object of class \"" + objectClassName + "\"");
-			databaseObject = (DatabaseObject) Class.forName(objectClassName).newInstance();
+			databaseObject = (DatabaseObject) Class.forName(objectClassName).getConstructor().newInstance();
 		} catch (Exception e) {
 			String s = node.getNodeName();// XMLUtils.prettyPrintDOM(node);
 			String message = "Unable to create a new instance of the object from the serialized XML data.\n"
@@ -809,7 +809,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		}
 
 		try {
-			long priority = new Long(element.getAttribute("priority")).longValue();
+			long priority = Long.valueOf(element.getAttribute("priority")).longValue();
 			databaseObject.priority = priority;
 
 			Class<? extends DatabaseObject> databaseObjectClass = databaseObject.getClass();

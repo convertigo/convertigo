@@ -80,7 +80,7 @@ function authenticate(data) {
 			if ($xml.find("success").length > 0) {
 				location = $("form").attr("action");
 			} else {
-				$("#dlgAuthFailed_message").html($xml.find("error").text().replace(/\n/g, "<br/>"));
+				$("#dlgAuthFailed_message").text($xml.find("error").text());
 				$("#dlgAuthFailed").dialog('open');
 			};
 		}

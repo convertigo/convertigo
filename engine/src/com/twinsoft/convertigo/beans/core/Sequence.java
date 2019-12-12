@@ -671,7 +671,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         step.setParent(this);// do not call super.add otherwise it will generate an exception
         step.sequence = this;
         
-        loadedSteps.put(new Long(step.priority), step);
+        loadedSteps.put(Long.valueOf(step.priority), step);
         addStepListener(step);
         
        	insertOrderedStep(step, after);
@@ -681,7 +681,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	XMLVector<Long> ordered = orderedSteps.get(0);
     	int size = ordered.size();
     	
-    	Long value = new Long(step.priority);
+    	Long value = Long.valueOf(step.priority);
     	
     	if (ordered.contains(value))
     		return;
@@ -701,7 +701,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	XMLVector<Long> ordered = orderedVariables.get(0);
     	int size = ordered.size();
     	
-    	Long value = new Long(variable.priority);
+    	Long value = Long.valueOf(variable.priority);
     	
     	if (ordered.contains(value))
     		return;
@@ -723,7 +723,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	vVariables.remove(variable);
     	variable.setParent(null);
 
-    	Long value = new Long(variable.priority);
+    	Long value = Long.valueOf(variable.priority);
         removeOrderedVariable(value);
     }
     
@@ -734,10 +734,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	step.setParent(null);// Do not call super.remove otherwise it will generate an exception
     	step.sequence = null;
     	
-    	Long value = new Long(step.priority);
+    	Long value = Long.valueOf(step.priority);
         removeOrderedStep(value);
         
-        loadedSteps.remove(new Long(step.priority));
+        loadedSteps.remove(Long.valueOf(step.priority));
         removeStepListener(step);
     }
     
@@ -780,7 +780,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	XMLVector<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof Step)
     		ordered = orderedSteps.get(0);
@@ -804,7 +804,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
     	XMLVector<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof Step)
     		ordered = orderedSteps.get(0);
@@ -1052,7 +1052,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			Long stepPriority = null;
 			Step step = getCopy(timeID);
 			if (step != null) {
-				stepPriority = new Long(step.priority);
+				stepPriority = Long.valueOf(step.priority);
 				step.cleanCopy();
 				//step.copiesOfInstance = 0;
 			}
@@ -1202,7 +1202,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	public boolean useSameJSessionForSteps() {
-		return new Boolean(EnginePropertiesManager.getProperty(PropertyName.SEQUENCE_STEPS_USE_SAME_JSESSION)).booleanValue();
+		return Boolean.valueOf(EnginePropertiesManager.getProperty(PropertyName.SEQUENCE_STEPS_USE_SAME_JSESSION)).booleanValue();
 	}
 	
 	public void onCachedResponse() {
@@ -1513,8 +1513,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		stepToExecute.checkSymbols();
 			
     		if (stepToExecute.execute(javascriptContext, scope)) {
-    			//childrenSteps.put(new Long(stepToExecute.priority), stepToExecute.executeTimeID);
-    			childrenSteps.put(stepToExecute.executeTimeID, new Long(stepToExecute.priority));
+    			//childrenSteps.put(Long.valueOf(stepToExecute.priority), stepToExecute.executeTimeID);
+    			childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
        			executedSteps.putAll(stepToExecute.executedSteps);
     		}
     		else {

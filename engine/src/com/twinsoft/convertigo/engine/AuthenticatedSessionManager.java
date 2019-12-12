@@ -31,9 +31,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -116,6 +118,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 	
 	public void removeAuthenticatedSession(HttpSession httpSession) {
+		if (httpSession == null) {
+			return;
+		}
 		for (SessionKey key : SessionKey.values()) {
 			httpSession.removeAttribute(key.toString());
 		}
@@ -172,6 +177,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 
 	public Role[] getRoles(HttpSession httpSession) {
+		if (httpSession == null) {
+			return null;
+		}
 		Role[] roles = roles(httpSession);
 		roles = (roles == null ? null : roles.clone());
 		Engine.logAdmin.debug("Getting roles for session " + httpSession.getId() + ": " + roles);
@@ -179,12 +187,11 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 	
 	public void checkRoles(HttpSession httpSession, Role... requiredRoles) throws AuthenticationException {
-		List<Role> lRequiredRoles = Arrays.asList(requiredRoles);
-		
 		Role[] userRoles = roles(httpSession);
 		if (userRoles == null) {
 			throw new AuthenticationException("Authentication failure: no role defined");
 		}
+		List<Role> lRequiredRoles = Arrays.asList(requiredRoles);
 		
 		List<Role> lUserRoles = Arrays.asList(userRoles);
 		
@@ -200,6 +207,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 	
 	private Role[] roles(HttpSession httpSession) {
+		if (httpSession == null) {
+			return null;
+		}
 		return (Role[]) httpSession.getAttribute(SessionKey.ADMIN_ROLES.toString());
 	}
 	
@@ -223,6 +233,10 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		return cache;
 	}
 	
+	private synchronized JSONObject loadSync() throws IOException, JSONException {
+		return load();
+	}
+	
 	private void save(JSONObject db) throws IOException {
 		String json = db.toString();
 		cache = db;
@@ -240,7 +254,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 				throw new IllegalArgumentException("Blank password not allowed");
 			}
 			if ("admin".equals(username)) {
-				throw new IllegalArgumentException("Cannot defined another 'admin' user");				
+				throw new IllegalArgumentException("Cannot defined another 'admin' user");
 			}
 			
 			JSONArray array = new JSONArray();
@@ -276,10 +290,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	
 	public Set<String> getUsers() throws EngineException {
 		try {
-			JSONObject db;
-			synchronized (this) {
-				db = load();
-			}
+			JSONObject db = loadSync();
 			Set<String> users = new TreeSet<String>();
 			for (Iterator<String> i = GenericUtils.cast(db.keys()); i.hasNext();) {
 				users.add(i.next());
@@ -292,35 +303,35 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	
 	public Set<Role> getRoles(String username) throws EngineException {
 		try {
-			JSONObject db;
-			synchronized (this) {
-				db = load();
-			}
-			JSONArray array = db.getJSONObject(username).getJSONArray("roles");
-			Set<Role> roles = new TreeSet<Role>();
-			for (int i = 0; i < array.length(); i++) {
-				try {
-					addRoles(roles, Role.valueOf(array.getString(i)));
-				} catch (IllegalArgumentException e) {
-					Engine.logEngine.warn("Fail to load the role '" + array.getString(i) + "', ignored");
-				}
-			}
-			return roles;
+			return getRoles(loadSync(), username);
 		} catch (Exception e) {
 			throw new EngineException("Failed to get roles", e);
 		}
 	}
 	
+	private Set<Role> getRoles(JSONObject db, String username) throws JSONException {
+		JSONArray array = db.getJSONObject(username).getJSONArray("roles");
+		Set<Role> roles = new TreeSet<Role>();
+		for (int i = 0; i < array.length(); i++) {
+			try {
+				addRoles(roles, Role.valueOf(array.getString(i)));
+			} catch (IllegalArgumentException e) {
+				Engine.logEngine.warn("Fail to load the role '" + array.getString(i) + "', ignored");
+			}
+		}
+		return roles;
+	}
+	
 	public String getPassword(String username) throws EngineException {
 		try {
-			JSONObject db;
-			synchronized (this) {
-				db = load();
-			}
-			return db.getJSONObject(username).getString("password");
+			return getPassword(loadSync(), username);
 		} catch (Exception e) {
 			throw new EngineException("Failed to get the password", e);
 		}
+	}
+	
+	private String getPassword(JSONObject db, String username) throws JSONException {
+		return db.getJSONObject(username).getString("password");
 	}
 
 	public void deleteUsers() throws EngineException {
@@ -335,14 +346,22 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	
 	public boolean hasUser(String username) throws EngineException {
 		try {
-			JSONObject db;
-			synchronized (this) {
-				db = load();
-			}
-			return db.has(username);
+			return loadSync().has(username);
 		} catch (Exception e) {
 			return false;
 		}
+	}
+	
+	public Set<Role> checkUser(String username, String password) throws EngineException {
+		try {
+			JSONObject db = loadSync();
+			String pwd = getPassword(db, username);
+			if (DigestUtils.sha512Hex(password).equals(pwd) || DigestUtils.md5Hex(password).equals(pwd)) {
+				return getRoles(db, username);
+			}
+		} catch (Exception e) {
+		}
+		return null;
 	}
 	
 	public void updateUsers(JSONObject users, String importAction) throws EngineException {
@@ -406,5 +425,26 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		} catch (Exception exception) {
 			throw new EngineException("Failed to update Users", exception);
 		}
+	}
+	
+	public static void validatePassword(String password) throws EngineException {
+		String message;
+		try {
+			String regex = EnginePropertiesManager.getProperty(PropertyName.USER_PASSWORD_REGEX);
+			if (StringUtils.isBlank(regex)) {
+				return;
+			}
+			if (Pattern.compile(regex).matcher(password).matches()) {
+				return;
+			}
+			if (PropertyName.USER_PASSWORD_REGEX.defaultValue.equals(regex)) {
+				message = "The password must respect: almost 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.";	
+			} else {
+				message = "The password must match this regular expression: " + regex;
+			}
+		} catch (Exception e) {
+			message = e.getMessage();
+		}
+		throw new EngineException(message);
 	}
 }

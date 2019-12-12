@@ -145,7 +145,7 @@ function updateDate(){
 	var currentDate = new Date();
 	var diff = currentDate.getTime()-startDate.getTime();
 	var utc = serverDate + diff + initialDiffClientServer;
-	$("#mainDate").html(new Date(utc).toLocaleString());
+	$("#mainDate").text(new Date(utc).toLocaleString());
 	setTimeout(function() {
 		updateDate();
 	}, 10000);
@@ -247,6 +247,24 @@ function endWait() {
 }
 
 function showError(message, javaStackTrace, callback) {
+	$("#dlgErrorMessage").text(message);
+	
+	if(typeof(javaStackTrace) == "undefined"){
+		$("#dlgErrorJavaStackTraceTitle").hide();
+		$("#dlgErrorJavaStackTrace").empty();
+	}else{
+		$("#dlgErrorJavaStackTrace").hide().text(javaStackTrace);
+		$("#dlgErrorJavaStackTraceTitle").show();
+	}	
+	
+	$("#dlgError").dialog("open").on("dialogclose", function () {
+		if (typeof(callback) == "function") {
+			callback();
+		}
+	}).parent().css("width", "auto");
+}
+
+function showErrorHtml(message, javaStackTrace, callback) {
 	$("#dlgErrorMessage").html(message);
 	
 	if(typeof(javaStackTrace) == "undefined"){
@@ -265,6 +283,14 @@ function showError(message, javaStackTrace, callback) {
 }
 
 function showInfo(message) {
+	$("#dlgInfoMessage").text(message);
+	$("#dlgInfo").dialog('open');
+	if($("#dlgInfo").width() > $(window).width()/2){
+		$("#dlgInfo").parent().css("width", $(window).width()/2).css("left", "" + $(window).width()/4 + "px");
+	}
+}
+
+function showInfoHtml(message) {
 	$("#dlgInfoMessage").html(message);
 	$("#dlgInfo").dialog('open');
 	if($("#dlgInfo").width() > $(window).width()/2){
@@ -273,7 +299,7 @@ function showInfo(message) {
 }
 
 function showConfirm(message, staff) {
-	$("#dlgConfirmMessage").html(message);
+	$("#dlgConfirmMessage").text(message);
 	$("#dlgConfirm").dialog('open');
 	functionConfirm = staff;
 }
@@ -355,10 +381,6 @@ function loadWidget(widgetId, widgetOptions) {
 					//Environment variables
 					case "environmentVariables_List":
 						urlHelp += "global-symbols/#environment";
-						break;
-					//Store page
-					case "store":
-						urlHelp += "store/";
 						break;
 					//Role page
 					case "role":
@@ -590,8 +612,9 @@ function domToString2(xmlNode) {
 	return false;
 }
 
-function htmlEncode(text) {
-	return $("<d/>").text(text).html();
+function htmlEncode(html) {
+	var txt = $.jgrid.htmlEncode(html);
+	return txt;
 }
 
 function htmlCode($elt) {

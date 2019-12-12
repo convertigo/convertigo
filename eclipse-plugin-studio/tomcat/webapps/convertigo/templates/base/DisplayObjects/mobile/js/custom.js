@@ -15,13 +15,13 @@
  * * jquery.mobile(.min).js
  *
  * You can find documentation about Convertigo Templating Framework here:
- * http://www.convertigo.com/document/latest/reference-manual/convertigo-templating-framework/
+ * https://www.convertigo.com/document/latest/reference-manual/convertigo-templating-framework/
  *
  * You can find documentation about Convertigo Internationalization Framework here:
- * http://www.convertigo.com/document/latest/reference-manual/internationalization-framework/
+ * https://www.convertigo.com/document/latest/reference-manual/internationalization-framework/
  * 
  * You can find documentation about Convertigo FullSync Framework here:
- * http://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/
+ * https://www.convertigo.com/document/latest/reference-manual/convertigo-full-sync-architecture/interacting-locally-with-the-data/
  *******************************************************
  *******************************************************/
 

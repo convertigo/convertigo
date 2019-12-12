@@ -61,8 +61,9 @@ public class Export extends DownloadService {
 			//Write symbols saved with name and value for each requested/selected symbols
 			for (int i = 0; i < symbolsNames.length(); i++) {
 				JSONObject jo = symbolsNames.getJSONObject(i);
-				String symbolValue = Engine.theApp.databaseObjectsManager.symbolsGetValue(jo.getString("name"));
-				properties.setProperty(jo.getString("name"), symbolValue);
+				String name = jo.getString("name");
+				String symbolValue = Engine.theApp.databaseObjectsManager.symbolsGetValueStore(name);
+				properties.setProperty(name, symbolValue);
 			}
 
 			HeaderName.ContentDisposition.setHeader(response,

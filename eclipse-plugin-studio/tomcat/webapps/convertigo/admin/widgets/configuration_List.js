@@ -52,7 +52,7 @@ function configuration_List_init () {
 			}
 			
 			//Get Url for each widgets
-			var urlHelp = "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/configuration/";
+			var urlHelp = "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/configuration/";
 			switch ($x_category.attr("name"))
 			{
 				case "Main":
@@ -126,7 +126,7 @@ function configuration_List_init () {
 				var type = $x_property.attr("type");
 				var $property = $template.find(".config-property" + (type === "Boolean" ? "-boolean" : "") + ":first").clone();
 				$property.find(".config-property-name:first").text($x_property.attr("description")).attr("for", id);
-				$property.find(".config-property-name:first").html($property.find(".config-property-name:first").html().replace(new RegExp("\\n","g"), "<br/>"));
+				$property.find(".config-property-name:first").text($property.find(".config-property-name:first").text());
 				
 				var $property_value;
 				var value = $x_property.attr("value");
