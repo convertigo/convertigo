@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
@@ -354,12 +355,14 @@ public class EnginePropertiesManager {
 		/** ACCOUNTS */
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
-		ADMIN_PASSWORD ("admin.password", ""+"admin".hashCode(), "Admin password", PropertyCategory.Account),
+		ADMIN_PASSWORD ("admin.password", encodeValue(PropertyType.PasswordHash, "admin"), "Admin password", PropertyCategory.Account),
 		TEST_PLATFORM_USERNAME ("testplatform.username", "", "Test Platform username (leave it blank for anonymous access)", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
-		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "Test Platform password", PropertyCategory.Account),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
+		TEST_PLATFORM_PASSWORD ("testplatform.password", encodeValue(PropertyType.PasswordHash, ""), "Test Platform password", PropertyCategory.Account),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SECURITY_FILTER ("security.filter", "false", "Security Filter", PropertyCategory.Account),
+		@PropertyOptions(advance = true)
+		USER_PASSWORD_REGEX ("user.password.regexp", "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[\\w~@#$%^&*+=`|{}:;!.?\\\"()\\[\\]-]{8,20}$", "RegularExpression used to validate password change for Admin accounts.", PropertyCategory.Account),
 		
 		/** LOGS */
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
@@ -689,8 +692,12 @@ public class EnginePropertiesManager {
     
     public static boolean checkProperty(PropertyName property, String value) {
     	String current_value = getProperty(property);
-    	value = encodeValue(property.getType(), value);
-    	return current_value.equals(value);
+    	String val = encodeValue(property.getType(), value);
+    	if (current_value.equals(val)) {
+    		return true;
+    	}
+    	val = encodeValueOld(property.getType(), value);
+    	return current_value.equals(val);
     }
     
     public static long getPropertyAsLong(PropertyName property) {
@@ -1031,6 +1038,17 @@ public class EnginePropertiesManager {
 	}
 	
 	private static String encodeValue(PropertyType propertyType, String value) {
+		switch (propertyType) {
+		case PasswordHash:
+			value = DigestUtils.sha512Hex(value);
+			break;
+		default:
+			break;
+		}
+		return value;
+	}
+	
+	private static String encodeValueOld(PropertyType propertyType, String value) {
 		switch (propertyType) {
 		case PasswordHash:
 			value = "" + value.hashCode();

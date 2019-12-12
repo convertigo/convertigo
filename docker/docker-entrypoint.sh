@@ -7,7 +7,7 @@ if [ "$1" = "convertigo" ]; then
     ## function used to cipher passwords
     
     toHash() {
-        jrunscript -e "java.lang.System.out.println(\"$1\".hashCode())"
+        jrunscript -cp $CATALINA_HOME/webapps/convertigo/WEB-INF/lib/dependencies-*.jar -e "java.lang.System.out.println(org.apache.commons.codec.digest.DigestUtils.sha512Hex(\"$1\"))"
     }
     
     ## if needed, force the admin and testplatform accounts

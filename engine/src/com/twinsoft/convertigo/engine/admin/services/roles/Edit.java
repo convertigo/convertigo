@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -64,7 +65,8 @@ public class Edit extends XmlService {
 			if (StringUtils.isBlank(password)) {
 				password = Engine.authenticatedSessionManager.getPassword(oldUsername);
 			} else {
-				password = DigestUtils.md5Hex(password);
+				AuthenticatedSessionManager.validatePassword(password);
+				password = DigestUtils.sha512Hex(password);
 			}
 			
 			if (!username.equals(oldUsername)) {

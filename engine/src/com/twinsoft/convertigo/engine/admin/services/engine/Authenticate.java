@@ -29,7 +29,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
@@ -146,6 +145,7 @@ public class Authenticate extends XmlService {
 				}
 			}
 
+			Set<Role> rolesSet;
 			Role[] roles = null;
 
 			// Legacy authentication
@@ -155,10 +155,9 @@ public class Authenticate extends XmlService {
 			} else if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).equals(user)
 					&& EnginePropertiesManager.checkProperty(PropertyName.TEST_PLATFORM_PASSWORD, password)) {
 				roles = AuthenticatedSessionManager.toRoles(Role.TEST_PLATFORM, Role.AUTHENTICATED);
-			} else if (Engine.authenticatedSessionManager.hasUser(user) && Engine.authenticatedSessionManager.getPassword(user).equals(DigestUtils.md5Hex(password))) {
-				Set<Role> set = Engine.authenticatedSessionManager.getRoles(user);
-				roles = new Role[set.size() + 1];
-				set.toArray(roles);
+			} else if ((rolesSet = Engine.authenticatedSessionManager.checkUser(user, password)) != null) {
+				roles = new Role[rolesSet.size() + 1];
+				rolesSet.toArray(roles);
 				roles[roles.length - 1] = Role.AUTHENTICATED;
 			}
 			// Trial authentication
