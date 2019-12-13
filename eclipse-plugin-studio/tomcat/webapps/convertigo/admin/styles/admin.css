@@ -1861,7 +1861,7 @@ a.start {
 
 /* = SYMBOLS WIDGET
 ---------------------------------------------------------------------- */
-#dialog-add-symbol {
+#dialog-add-symbol, #dialog-add-symbol-secret {
 	display: none;
 }
 
