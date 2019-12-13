@@ -652,7 +652,7 @@ function saveElement () {
 				$problems.append($("<li/>").text($(this).text()));
 			});
 			if ($problems.children().length > 0) {
-				showErrorHtml("There is some issues : " + $("<d/>").append($problems).html());
+				showErrorHtml("There are some issues : " + $("<d/>").append($problems).html());
 			} else {
 				showInfo("The element was correctly saved.");
 				scheduler_ListTasks_update();
