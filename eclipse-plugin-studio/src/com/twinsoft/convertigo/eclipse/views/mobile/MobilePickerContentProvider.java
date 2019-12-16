@@ -127,7 +127,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			} else {
 				if (infos != null) {
 					
-			}
+				}
 			}
 			return param;
 		}
