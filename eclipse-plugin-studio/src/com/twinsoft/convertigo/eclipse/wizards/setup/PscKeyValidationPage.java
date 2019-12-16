@@ -148,7 +148,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		goToRegisterWebsite.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				org.eclipse.swt.program.Program.launch("http://register.convertigo.com");
+				org.eclipse.swt.program.Program.launch("https://signup.convertigo.com");
 			}
 			
 			@Override
