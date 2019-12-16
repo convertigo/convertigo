@@ -94,7 +94,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		details.setText(
 				"\nIncluded with Convertigo Community Edition, you get access to a 15 days free « Convertigo Cloud » account. You will be able to deploy your projects on this cloud account, and when the trial expires, " +
 				"you will have the opportunity to buy production Convertigo Cloud devices licences.\n\n" +
-				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on your Convertigo Cloud account. \n\n" +
+				"As a result of the cloud signup process, you will receive a PSC by email that will configure your Studio for projects deployment on your Convertigo Cloud account. \n\n" +
 				"You can access the Convertigo Community suppprt on Stack overflow by clicking this link: <a href=\"https://stackoverflow.com/questions/ask?tags=convertigo\">https://stackoverflow.com/questions/ask?tags=convertigo</a>.\n\n" +
 				"Registered users will also get a free 30 minutes \"Getting Started\" web meeting session with one of our support engineers. The link to choose an available slot will be available in the same email providing you the PSC. \n\n"
 		);
@@ -105,11 +105,11 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		registerComposite.setLayout(new GridLayout(2, false));
 		
 		Button goToRegisterWebsite = new Button(registerComposite, SWT.NONE);
-		goToRegisterWebsite.setText("Click now to register");
+		goToRegisterWebsite.setText("Click now to Signup");
 		
 		Link registerLink = new Link(registerComposite, SWT.WRAP);
 		registerLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		registerLink.setText("or go to <a href=\"http://register.convertigo.com\">http://register.convertigo.com</a>");
+		registerLink.setText("or go to <a href=\"https://signup.convertigo.com\">https://signup.convertigo.com</a>");
 		
 		Label label = new Label (container, SWT.NONE);
 		FontData fontDefaultData = label.getFont().getFontData()[0];
