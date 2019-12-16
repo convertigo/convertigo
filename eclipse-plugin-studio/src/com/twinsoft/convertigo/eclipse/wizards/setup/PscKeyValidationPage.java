@@ -92,12 +92,11 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
-				"A Personal Studio Configuration (PSC) is required to start Convertigo Studio. " +
-				"A PSC automatically configures your Studio for project deployments on Convertigo Cloud and Convertigo Servers.\n\n" +
-				"Note that previous Convertigo \"personal registration certificates\" are also valid PSCs.\n\n" +
-				"Included with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
-				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/Forums\">http://www.convertigo.com/Forums</a>\n\n" +
-				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n"
+				"\nIncluded with Convertigo Community Edition, you get access to a 15 days free « Convertigo Cloud » account. You will be able to deploy your projects on this cloud account, and when the trial expires, " +
+				"you will have the opportunity to buy production Convertigo Cloud devices licences.\n\n" +
+				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on your Convertigo Cloud account. \n\n" +
+				"You can access the Convertigo Community suppprt on Stack overflow by clicking this link: <a href=\"https://stackoverflow.com/questions/ask?tags=convertigo\">https://stackoverflow.com/questions/ask?tags=convertigo</a>.\n\n" +
+				"Registered users will also get a free 30 minutes \"Getting Started\" web meeting session with one of our support engineers. The link to choose an available slot will be available in the same email providing you the PSC. \n\n"
 		);
 		details.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
