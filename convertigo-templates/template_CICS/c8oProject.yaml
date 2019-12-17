@@ -1,5 +1,5 @@
 ↑convertigo: 7.6.6.m006
 ↓template_CICS [core.Project]: 
   comment: CICS project
-  version: 7.6.6-beta
+  version: 7.6.6
   ↓CICSConnector [connectors.CicsConnector]: 🗏 connectors/CICSConnector.yaml

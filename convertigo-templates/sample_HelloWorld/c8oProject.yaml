@@ -2,7 +2,7 @@
 ↓sample_HelloWorld [core.Project]: 
   comment: Hello World project demonstrating a feed reader
   corsOrigin: =Origin
-  version: 7.6.6-beta
+  version: 7.6.6
   ↓RSSConnector [connectors.HttpConnector]: 🗏 connectors/RSSConnector.yaml
   ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
   ↓GetCNNFeed [sequences.GenericSequence]: 🗏 sequences/GetCNNFeed.yaml

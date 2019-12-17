@@ -1,5 +1,5 @@
 ↑convertigo: 7.6.6.m006
 ↓template_SAP [core.Project]: 
   comment: SAP project
-  version: 7.6.6-beta
+  version: 7.6.6
   ↓SAP_Connector [connectors.SapJcoConnector]: 🗏 connectors/SAP_Connector.yaml

@@ -1,7 +1,7 @@
 ↑convertigo: 7.6.6.m006
 ↓lib_OAuth [core.Project]: 
   comment: OAuth library to perform authentication
-  version: 7.6.6-beta
+  version: 7.6.6
   ↓LinkedInApi [connectors.HttpConnector]: 🗏 connectors/LinkedInApi.yaml
   ↓LinkedInOAuth [connectors.HttpConnector]: 🗏 connectors/LinkedInOAuth.yaml
   ↓MicrosoftGraphApi [connectors.HttpConnector]: 🗏 connectors/MicrosoftGraphApi.yaml

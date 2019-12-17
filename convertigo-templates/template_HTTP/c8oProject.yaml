@@ -1,5 +1,5 @@
 ↑convertigo: 7.6.6.m006
 ↓template_HTTP [core.Project]: 
   comment: HTTP Connector project
-  version: 7.6.6-beta
+  version: 7.6.6
   ↓HTTPTemplateConnector [connectors.HttpConnector]: 🗏 connectors/HTTPTemplateConnector.yaml

@@ -2,7 +2,7 @@
 ↓FlightShare [core.Project]: 
   comment: Flying Club flight sharing application
   corsOrigin: =Origin
-  version: 7.6.6-beta
+  version: 7.6.6
   ↓flightshare_fullsync [connectors.FullSyncConnector]: 🗏 connectors/flightshare_fullsync.yaml
   ↓CheckRemoteInit [sequences.GenericSequence]: 🗏 sequences/CheckRemoteInit.yaml
   ↓CreateFlight [sequences.GenericSequence]: 🗏 sequences/CreateFlight.yaml
