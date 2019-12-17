@@ -1,5 +1,26 @@
 # Changelog
 
+## 7.6.6
+
+#### Improvements:
+
+- [#189](https://github.com/convertigo/convertigo/issues/189) Possibility to add a new palette component/action by drag and dropping on its folder
+- [#276](https://github.com/convertigo/convertigo/issues/276) Set Cookie ‘HttpOnly’ and ‘Secure’ (also via Docker setting)
+- [#277](https://github.com/convertigo/convertigo/issues/277) Global symbols: Values with .secret suffix are stored ciphered and hidden
+- [#278](https://github.com/convertigo/convertigo/issues/278) Password policy for administration console account (via Reg. Exp.)
+- [#280](https://github.com/convertigo/convertigo/issues/280) Test Platform Convertigo header display : width too small
+
+
+#### Bug Fixes:
+
+- [#268](https://github.com/convertigo/convertigo/issues/268) Fixed, SampleMobileOffChat project does not work as intented since 7.6.4
+- [#270](https://github.com/convertigo/convertigo/issues/270) Fixed, prevent random NPE on heavy charge
+- [#272](https://github.com/convertigo/convertigo/issues/272) Fixed, global_symbols.properties no more write at startup
+- [#273](https://github.com/convertigo/convertigo/issues/273) Fixed, premature end of Sequence if calls done on the same Context at the same time
+- [#279](https://github.com/convertigo/convertigo/issues/279) Fixed, Dev Network link is broken in Administration Console and Test Platform
+
+---
+
 ## 7.6.5
 
 #### Improvements:
@@ -22,7 +43,7 @@
 - [#213](https://github.com/convertigo/convertigo/issues/213) Fixed, background of selected variable with the JS Editor is visible using the Dark Theme
 - [#218](https://github.com/convertigo/convertigo/issues/218) Fixed, no more CacheManager backup error at startup
 - [#219](https://github.com/convertigo/convertigo/issues/219) Fixed, Studio can now open existing projects without '.project'
-- [#220](https://github.com/convertigo/convertigo/issues/220) Fixed, Mobile Application can build with special characters in Application fields (author, name, description �)
+- [#220](https://github.com/convertigo/convertigo/issues/220) Fixed, Mobile Application can build with special characters in Application fields (author, name, description ?)
 - [#221](https://github.com/convertigo/convertigo/issues/221) Fixed, using twice the same SharedComponent in a Page declares only once its action declarations
 - [#222](https://github.com/convertigo/convertigo/issues/222) Fixed, Studio MobileBuilder viewer will not mix application editor if opened at the same time
 - [#229](https://github.com/convertigo/convertigo/issues/229) Fixed, FlashUpdate now follows MobileBuilder application changes to trigger an update
@@ -33,7 +54,7 @@
 - [#249](https://github.com/convertigo/convertigo/issues/249) Fixed, Mobile Builder Styles within a menu component are not appended into App.scss
 - [#250](https://github.com/convertigo/convertigo/issues/250) Fixed, can now DnD a sequence on a CustomAction to create a CallSequence action
 - [#253](https://github.com/convertigo/convertigo/issues/253) Fixed, Android localbuild application can reach non https endpoint
-- [#256](https://github.com/convertigo/convertigo/issues/256) Fixed, CouchDB Connector Purge transaction doesn�t create useless documents anymore
+- [#256](https://github.com/convertigo/convertigo/issues/256) Fixed, CouchDB Connector Purge transaction doesn?t create useless documents anymore
 - [#260](https://github.com/convertigo/convertigo/issues/260) Fixed, can build mobile source package can be downloaded for multiple platforms at the same time
 
 ---
@@ -190,7 +211,7 @@
 - [#65](https://github.com/convertigo/convertigo/issues/65) Fixed the random disappearing of files from DisplayObjects/mobile/assets/i18n
 - [#68](https://github.com/convertigo/convertigo/issues/68) Fixed barcodescanner plugin build for Android
 - [#69](https://github.com/convertigo/convertigo/issues/69) Fixed all Mobile palette documentation links now to ionic3 documentation
-- [#75](https://github.com/convertigo/convertigo/issues/75) Fixed �Null� error when deleting a project
+- [#75](https://github.com/convertigo/convertigo/issues/75) Fixed ?Null? error when deleting a project
 - [#80](https://github.com/convertigo/convertigo/issues/80) Fixed the popup error when no bean found with the search bar
 - [#85](https://github.com/convertigo/convertigo/issues/85) Fixed the Invalid Thread Exception when adding a Component that requiring additional packages
 - [#103](https://github.com/convertigo/convertigo/issues/103) Fixed Scheduler to count session and clear contexts
