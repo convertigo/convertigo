@@ -435,10 +435,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			if (Pattern.compile(regex).matcher(password).matches()) {
 				return;
 			}
-			if (PropertyName.USER_PASSWORD_REGEX.defaultValue.equals(regex)) {
-				message = "The password must respect: at least 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.";	
-			} else {
-				message = "The password must match this regular expression: " + regex;
+			message = EnginePropertiesManager.getProperty(PropertyName.USER_PASSWORD_INSTRUCTION);
+			if (StringUtils.isBlank(message)) {
+				message = "Password doesn't respect policy.";
 			}
 		} catch (Exception e) {
 			message = e.getMessage();
