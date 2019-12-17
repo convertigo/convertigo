@@ -180,7 +180,7 @@ function configuration_List_init () {
 
 		$( "#configAccordion" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
 		$( "#configAccordion ul" ).removeClass( "ui-corner-all ui-widget-header");
-	    $( "#configAccordion li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
+		$( "#configAccordion li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
 		
 		
 		$(".config-toggle-advanced-properties").click(function () {
@@ -258,8 +258,11 @@ function updateConfiguration () {
 			$(".config-update").button("disable");
 		}, domToString2(xmlDoc), function(xml) {
 			var $xml = $(xml);
-			showError($xml.find("message:first").text(), undefined, function () {
-				window.location.reload();				
+			var message = $xml.find("message:first").text();
+			showError(message, undefined, function () {
+				if (!message.startsWith("Invalid password:")) {
+					window.location.reload();
+				}
 			});
 		}, {contentType : "application/xml"});
 	} else {

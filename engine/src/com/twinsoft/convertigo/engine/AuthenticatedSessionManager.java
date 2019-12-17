@@ -426,7 +426,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 	
 	public static void validatePassword(String password) throws EngineException {
-		String message;
+		String message = "Invalid password: ";
 		try {
 			String regex = EnginePropertiesManager.getProperty(PropertyName.USER_PASSWORD_REGEX);
 			if (StringUtils.isBlank(regex)) {
@@ -435,9 +435,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 			if (Pattern.compile(regex).matcher(password).matches()) {
 				return;
 			}
-			message = EnginePropertiesManager.getProperty(PropertyName.USER_PASSWORD_INSTRUCTION);
+			message += EnginePropertiesManager.getProperty(PropertyName.USER_PASSWORD_INSTRUCTION);
 			if (StringUtils.isBlank(message)) {
-				message = "Password doesn't respect policy.";
+				message += "doesn't respect policy.";
 			}
 		} catch (Exception e) {
 			message = e.getMessage();
