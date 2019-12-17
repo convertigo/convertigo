@@ -329,62 +329,62 @@ function loadWidget(widgetId, widgetOptions) {
 				$tmp.find(".widget_content_center").first().append(xml);
 				//Condition added by alexandret
 				//Get Url for each widgets to go to help informations
-				var urlHelp = "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/";
+				var urlHelp = "https://www.convertigo.com/documentation/latest/operating-guide/using-convertigo-administration-console/";
 				switch (widgetId)
 				{
 					//home page
 					case "engine_GetStatus":
 					case "engine_GetSystemInformation":
 					case "engine_Monitor":
-						urlHelp += "general-presentation-of-the-administration-console/home-page/";
+						urlHelp += "#home-page";
 						break;
 					//Configuration page
 					case "configuration_List":
-						urlHelp += "configuration/configuration-page/";
+						urlHelp += "#configuration-page";
 						break;
 					//Connections page
 					case "connections_List":
-						urlHelp += "connections/";
+						urlHelp += "#connections";
 						break;
 					//Projects page
 					case "projects_List":
-						urlHelp += "projects/";
+						urlHelp += "#projects";
 						break;
 					//Certificates page
 					case "certificates_List":
-						urlHelp += "certificates/";
+						urlHelp += "#certificates";
 						break;
 					//Logs page
 					case "logs_Show":
-						urlHelp += "logs/";
+						urlHelp += "#logs-1";
 						break;
 					//Trace player page
 					case "trace_List":
-						urlHelp += "trace-player/";
+						urlHelp += "#trace-player";
 						break;
 					//Cache page
 					case "cache":
-						urlHelp += "cache/";
+						urlHelp += "#cache-1";
 						break;
 					//Scheduler page
 					case "scheduler_ListTasks":
-						urlHelp += "scheduler/scheduler-page/";
+						urlHelp += "#scheduler";
 						break;
 					//Keys page
 					case "keys_List":
-						urlHelp += "keys/";
+						urlHelp += "#keys";
 						break;
 					//Symbols page
 					case "globalSymbols_List":
-						urlHelp += "global-symbols/";
+						urlHelp += "#global-symbols";
 						break;
 					//Environment variables
 					case "environmentVariables_List":
-						urlHelp += "global-symbols/#environment";
+						urlHelp += "#description-of-environment-variables-table";
 						break;
 					//Role page
 					case "role":
-						urlHelp += "roles/";
+						urlHelp += "#roles";
 						break;	
 				}
 				//show icon help button

@@ -234,26 +234,20 @@ ul li {
 	background: none;
 }
 .container_info_inside {
-	width:150px;
-	height:80px;
 	margin-top:5px !important;
-	/margin-top:0;
-	-margin-top:0;
-	float:left;
 }
 .picto {
-	width:40px;
-	height:45px;
-	float:left;
-	margin:10px 5px 0 10px;
+	width: 40px;
+	height: 45px;
+	display: table-cell;
+	vertical-align: middle;
 }
 .info {
-	margin:15px 0 0 0;
-	width:45px !important;
-	-width:auto;
-	/width:auto;
-	float:left !important;
-	font-size:11px;
+	font-size: 11px;
+	display: table-cell;
+	word-break: break-word;
+	vertical-align: middle;
+	padding-left: 10px;
 }
 .spacerV {
 	height:22px;
@@ -263,9 +257,7 @@ ul li {
 /* Bottom info content style */
 .content_bottom {
 	width:100%;
-	margin:10px 0 0 15px !important; 
-	-margin:0px 0 0 15px;
-	/margin:0px 0 0 15px;
+	margin:10px 0 0 15px !important;
 	float:left;
 }
 .picto2 {
@@ -273,8 +265,6 @@ ul li {
 	height:30px;
 	float:left;
 	margin:6px 5px -20px 0px !important;
-	-margin:8px 5px 0px 0px;
-	/margin:8px 5px 0px 0px;
 }
 /* End bottom info content style */
 .footer {

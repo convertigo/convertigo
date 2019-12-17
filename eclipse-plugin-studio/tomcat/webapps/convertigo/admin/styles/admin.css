@@ -1867,7 +1867,7 @@ a.start {
 
 /* = SYMBOLS WIDGET
 ---------------------------------------------------------------------- */
-#dialog-add-symbol {
+#dialog-add-symbol, #dialog-add-symbol-secret {
 	display: none;
 }
 
@@ -1892,27 +1892,6 @@ a.start {
 	margin-right: auto;
 	margin-bottom: 10px;
 	min-width: 330px;
-}
-
-/* = Store
----------------------------------------------------------------------- */
-#dialogDownloadStore {
-	display: none;
-	margin-left: 25px;
-}
-
-#dialogDownloadStore input {
-    width:20px;
-    position:relative;
-    vertical-align:middle;
-}
-
-#dialogDownloadStore label {  
-    width:100px;
-    text-align: left;
-    position:relative;
-    display:inline-block;
-    vertical-align:middle;
 }
 
 .bleu {

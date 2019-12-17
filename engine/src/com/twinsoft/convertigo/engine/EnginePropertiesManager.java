@@ -366,6 +366,8 @@ public class EnginePropertiesManager {
 		SECURITY_FILTER ("security.filter", "false", "Security Filter", PropertyCategory.Account),
 		@PropertyOptions(advance = true)
 		USER_PASSWORD_REGEX ("user.password.regexp", "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[\\w~@#$%^&*+=`|{}:;!.?\\\"()\\[\\]-]{8,20}$", "RegularExpression used to validate password change for Admin accounts.", PropertyCategory.Account),
+		@PropertyOptions(advance = true)
+		USER_PASSWORD_INSTRUCTION ("user.password.instruction", "must respect at least 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.", "Instruction in case of RegularExpression failure for password change.", PropertyCategory.Account),
 		
 		/** LOGS */
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),

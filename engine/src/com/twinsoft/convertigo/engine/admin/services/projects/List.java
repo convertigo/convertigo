@@ -46,45 +46,48 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		},
 		parameters = {},
 		returnValue = "the projects list"
-	)
-public class List extends XmlService {
+		)
+public class List extends XmlService{
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
-        
-        Element projectsListElement = document.createElement("projects");
-        root.appendChild(projectsListElement);
-        
-    	for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
-    		try {
-    			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-    			String deployDate = "n/a";
-    			File file = new File(Engine.projectDir(projectName) + ".car");
-    			if (file.exists())
-    				deployDate = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale()).format(new Date(file.lastModified()));
 
-    			String comment = project.getComment();
-    			if (comment.length() > 100) comment = comment.substring(0, 100) + "...";
+		Element projectsListElement = document.createElement("projects");
+		root.appendChild(projectsListElement);
+		boolean isStudio = Engine.isStudioMode();
+		for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
+			try {
+				if (isStudio && projectName.startsWith("mobilebuilder_tpl_") && new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car").exists()) {
+					continue;
+				}
+				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+				String deployDate = "n/a";
+				File file = new File(Engine.projectDir(projectName) + ".car");
+				if (file.exists())
+					deployDate = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale()).format(new Date(file.lastModified()));
 
-    			String version = project.getVersion();
-    			
-    			DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale());
-    			String exported = project.getInfoForProperty("exported", df, request.getLocale());
-    			
-    			Element projectElement = document.createElement("project");
-    			projectElement.setAttribute("name", projectName);
-    			projectElement.setAttribute("comment", comment);
-    			projectElement.setAttribute("version", version);
-    			projectElement.setAttribute("exported", exported);
-    			projectElement.setAttribute("exportedTs", "" + project.getExportTime());
-    			projectElement.setAttribute("deployDate", deployDate);
-    			projectElement.setAttribute("deployDateTs", "" + file.lastModified());
-    			
-    			if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
-    				projectElement.setAttribute("undefined_symbols", "true");
-    			}
+				String comment = project.getComment();
+				if (comment.length() > 100) comment = comment.substring(0, 100) + "...";
 
-    			for (Reference ref: project.getReferenceList()) {
+				String version = project.getVersion();
+
+				DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, request.getLocale());
+				String exported = project.getInfoForProperty("exported", df, request.getLocale());
+
+				Element projectElement = document.createElement("project");
+				projectElement.setAttribute("name", projectName);
+				projectElement.setAttribute("comment", comment);
+				projectElement.setAttribute("version", version);
+				projectElement.setAttribute("exported", exported);
+				projectElement.setAttribute("exportedTs", "" + project.getExportTime());
+				projectElement.setAttribute("deployDate", deployDate);
+				projectElement.setAttribute("deployDateTs", "" + file.lastModified());
+
+				if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
+					projectElement.setAttribute("undefined_symbols", "true");
+				}
+
+				for (Reference ref: project.getReferenceList()) {
 					if (ref instanceof ProjectSchemaReference) {
 						ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
 						if (prjRef.getParser().isValid() && Engine.theApp.databaseObjectsManager.getOriginalProjectByName(prjRef.getParser().getProjectName(), true) == null) {
@@ -93,13 +96,13 @@ public class List extends XmlService {
 						}
 					}
 				}
-    			
-    			projectsListElement.appendChild(projectElement);
-    		}
-    		catch (EngineException e) {
-    			String message="Unable to get project information ('" + projectName + "')";
-    			Engine.logAdmin.error(message, e);
-    		}
-    	}	
+
+				projectsListElement.appendChild(projectElement);
+			}
+			catch (EngineException e) {
+				String message="Unable to get project information ('" + projectName + "')";
+				Engine.logAdmin.error(message, e);
+			}
+		}	
 	}
 }
