@@ -161,22 +161,26 @@ function connections_List_init() {
 				name : 'contexts',
 				index : 'contexts',
 				width : 50,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'user',
 				index : 'user',
 				width : 60,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode				
 			}, {
 				name : 'adminRoles',
 				index : 'adminRoles',
 				width : 30,
-				align : "center"
+				align : "center",
+				formatter : htmlEncode
 			}, {
 				name : 'deviceUUID',
 				index : 'deviceUUID',
 				width : 50,
-				align : "center"
+				align : "center",
+				formatter : htmlEncode
 			}, {
 				name : 'isFullSyncActive',
 				index : 'isFullSyncActive',
@@ -186,17 +190,20 @@ function connections_List_init() {
 				name : 'sessionLastAccessDate',
 				index : 'sessionLastAccessDate',
 				width : 50,
-				align : 'left'
+				align : 'left',
+				formatter : htmlEncode
 			}, {
 				name : 'sessionInactivityTime',
 				index : 'sessiontInactivityTime',
 				width : 50,
-				align : 'left'
+				align : 'left',
+				formatter : htmlEncode
 			}, {
 				name : 'clientIP',
 				index : 'clientIP',
 				width : 60,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			} ],
 			ignoreCase : true,
 			autowidth : true,
@@ -251,52 +258,62 @@ function connections_List_init() {
 				name : 'contextName',
 				index : 'contextName',
 				width : 120,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'project',
 				index : 'project',
 				width : 50,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'connector',
 				index : 'connector',
 				width : 60,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'requested',
 				index : 'requested',
 				width : 60,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'status',
 				index : 'status',
 				width : 50,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'user',
 				index : 'user',
 				width : 60,
-				align : "left"
+				align : "left",
+				formatter : htmlEncode
 			}, {
 				name : 'contextCreationDate',
 				index : 'contextCreationDate',
 				width : 50,
-				align : 'left'
+				align : 'left',
+				formatter : htmlEncode
 			}, {
 				name : 'contextLastAccessDate',
 				index : 'contextLastAccessDate',
 				width : 50,
-				align : 'left'
+				align : 'left',
+				formatter : htmlEncode
 			}, {
 				name : 'contextInactivityTime',
 				index : 'contextInactivityTime',
 				width : 50,
-				align : 'left'
+				align : 'left',
+				formatter : htmlEncode
 			}, {
 				name : 'clientComputer',
 				index : 'clientComputer',
 				width : 100,						
-				align : 'left'
+				align : 'left',
+				formatter : htmlEncode
 			} ],
 			ignoreCase : true,
 			autowidth : true,

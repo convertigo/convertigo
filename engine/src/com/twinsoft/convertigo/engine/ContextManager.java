@@ -75,7 +75,9 @@ public class ContextManager extends AbstractRunnableManager {
     
     private Map<String, DevicePool> devicePools;
     private long manage_poll_timeout = -1;
-    
+
+	private final Object contextCreationMutex = new Object();
+	
 	public void init() throws EngineException {
 		Engine.logContextManager.info("ContextManager initialization...");
 
@@ -213,44 +215,36 @@ public class ContextManager extends AbstractRunnableManager {
 		Context context = get(contextID);
 		// Create a new context
 		if (context == null) {
-			// Studio mode
-//			if (Engine.isStudioMode()) {
-//				// Throws exception if studio context does not exist
-//				if (contextName.indexOf(":"+ CONTEXT_TYPE_SEQUENCE +":")>0) 	// :S:
-//					throw new EngineException("Context \"" + contextName + "\" not found; Please verify that the corresponding sequence exists and check its editor is opened in Studio.");
-//				else
-//				if (contextName.indexOf(":"+ CONTEXT_TYPE_TRANSACTION +":")>0)	// :C:
-//					throw new EngineException("Context \"" + contextName + "\" not found; Please verify that the corresponding connector exists and check its editor is opened in Studio.");
-//				else
-//				if (contextName.indexOf(":"+ CONTEXT_TYPE_UNKNOWN +":")>0)		// ::
-//					throw new EngineException("Context \"" + contextName + "\" not found; Please verify that the corresponding project exists and is opened in Studio.");
-//			}
-			if (Engine.isStudioMode()) {
-				// Allows context creation even in Studio mode
-				// for HTTP call through test platform, ...
-				// for Call steps
+			long numberOfContext = contexts.size();
+			long maxNumberOfContext = EnginePropertiesManager.getPropertyAsLong(PropertyName.CONVERTIGO_MAX_CONTEXTS);
+			if (numberOfContext >= maxNumberOfContext) {
+				Engine.logContextManager.warn("Max number of contexts reached: " + numberOfContext + "/" + maxNumberOfContext);
+				throw new MaxNumberOfContextsException("Maximum number of contexts reached, please try later");
+			} else {
+				Engine.logContextManager.debug("Current number of contexts: " + numberOfContext + "/" + maxNumberOfContext);
 			}
-				long numberOfContext = contexts.size();
-				long maxNumberOfContext = EnginePropertiesManager.getPropertyAsLong(PropertyName.CONVERTIGO_MAX_CONTEXTS);
-				if (numberOfContext >= maxNumberOfContext) {
-					Engine.logContextManager.warn("Max number of contexts reached: " + numberOfContext + "/" + maxNumberOfContext);
-					throw new MaxNumberOfContextsException("Maximum number of contexts reached, please try later");
+			
+			context = new Context(contextID);
+			context.name = contextName;
+			context.cacheEntry = null;
+			currentContextNum++;
+			context.contextNum = currentContextNum;
+			long creationTime = System.currentTimeMillis();
+			context.creationTime = creationTime;
+			context.lastAccessTime = creationTime;
+			context.projectName = projectName;
+			
+			synchronized (contextCreationMutex) {
+				Context existing = contexts.get(context.contextID);
+				if (existing == null) {
+					Engine.logContextManager.debug("Context \"" + contextName + "\" not found; creating the execution context");
+					Engine.logContextManager.debug("Setting the creation time for context " + contextID + ": " + creationTime);
+					add(context);
 				} else {
-					Engine.logContextManager.debug("Current number of contexts: " + numberOfContext + "/" + maxNumberOfContext);
+					Engine.logContextManager.debug("Context \"" + contextName + "\" found (prevented parallel creation).");
+					context = existing;
 				}
-				
-				Engine.logContextManager.debug("Context \"" + contextName + "\" not found; creating the execution context");
-				context = new Context(contextID);
-				context.name = contextName;
-				context.cacheEntry = null;
-				currentContextNum++;
-				context.contextNum = currentContextNum;
-				long creationTime = System.currentTimeMillis();
-				Engine.logContextManager.debug("Setting the creation time for context " + contextID + ": " + creationTime);
-				context.creationTime = creationTime;
-				context.lastAccessTime = creationTime;
-				context.projectName = projectName;
-				add(context);
+			}
 		} else {
 			Engine.logContextManager.debug("Context \"" + contextName + "\" found.");
 		}
@@ -743,7 +737,7 @@ public class ContextManager extends AbstractRunnableManager {
 		String poolContextID = getPoolContextID(projectName, connectorName, poolName, "" + contextNumber);
 		Engine.logContextManager.trace("Managing the context " + poolContextID);
 		
-		Context context = contexts.get(poolContextID);
+		Context context = get(poolContextID);
 		if (context != null) { // Context already created
 			if (context.waitingRequests == 0) { // Context not currently used
 				// Ignore locked contexts

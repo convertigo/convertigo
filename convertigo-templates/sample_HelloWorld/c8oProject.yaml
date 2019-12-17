@@ -1,8 +1,8 @@
-↑convertigo: 7.6.5.m006
+↑convertigo: 7.6.6.m006
 ↓sample_HelloWorld [core.Project]: 
   comment: Hello World project demonstrating a feed reader
   corsOrigin: =Origin
-  version: 7.6.5
+  version: 7.6.6
   ↓RSSConnector [connectors.HttpConnector]: 🗏 connectors/RSSConnector.yaml
   ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
   ↓GetCNNFeed [sequences.GenericSequence]: 🗏 sequences/GetCNNFeed.yaml

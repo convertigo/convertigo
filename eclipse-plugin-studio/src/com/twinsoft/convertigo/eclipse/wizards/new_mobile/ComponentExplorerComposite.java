@@ -70,6 +70,7 @@ import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
 public class ComponentExplorerComposite extends Composite {
@@ -81,6 +82,7 @@ public class ComponentExplorerComposite extends Composite {
 	protected Class<? extends DatabaseObject> databaseObjectClass = null;
 	protected CLabel currentSelectedObject = null;
 
+	private int folderType = -1;
 	private DatabaseObject parentObject = null;
 	protected Cursor handCursor = null;
 	protected Map<CLabel, Object> objectsMap = null;
@@ -96,14 +98,15 @@ public class ComponentExplorerComposite extends Composite {
 	protected List<String> documentedDboList = new ArrayList<String>();
 
 	public ComponentExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
-			Class<? extends DatabaseObject> beanClass) {
-		this(parent, style, parentObject, beanClass);
+			Class<? extends DatabaseObject> beanClass, int folderType) {
+		this(parent, style, parentObject, beanClass, folderType);
 		this.wizardPage = wizardPage;
 	}
 
 	public ComponentExplorerComposite(Composite parent, int style, Object parentObject,
-			Class<? extends DatabaseObject> beanClass) {
+			Class<? extends DatabaseObject> beanClass, int folderType) {
 		super(parent, style);
+		this.folderType = folderType;
 		this.parentObject = (DatabaseObject) parentObject;
 		this.databaseObjectClass = beanClass;
 
@@ -118,6 +121,17 @@ public class ComponentExplorerComposite extends Composite {
 		initialize();
 	}
 
+	protected boolean isAllowed(Component c) {
+		boolean isAllowed = parentObject != null ? c.isAllowedIn(parentObject):true;
+		if (isAllowed && folderType != -1) {
+			DatabaseObject dbo = ComponentManager.createBean(c);
+			if (dbo != null) {
+				isAllowed = ProjectExplorerView.folderAcceptMobileComponent(folderType, dbo);
+			}
+		}
+		return isAllowed;
+	}
+	
 	protected void findDatabaseObjects(String searchText) {
 		if (objectsMap.isEmpty()) {
 			try {
@@ -148,7 +162,7 @@ public class ComponentExplorerComposite extends Composite {
 
 				boolean bSelected = true;
 				for (Component c : components) {
-					boolean isAllowed = parentObject != null ? c.isAllowedIn(parentObject):true;
+					boolean isAllowed = isAllowed(c);
 					boolean isMatching = searchText.isEmpty() || 
 							c.getLabel().toLowerCase().indexOf(searchText.toLowerCase()) != -1 ||
 							c.getTag().startsWith(searchText.toLowerCase());

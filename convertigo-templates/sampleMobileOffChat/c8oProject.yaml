@@ -1,7 +1,7 @@
-↑convertigo: 7.6.5.m006
+↑convertigo: 7.6.6.m006
 ↓sampleMobileOffChat [core.Project]: 
   comment: Mobile application sample of a chat that can be use offline using the FullSync
-  version: 7.6.5
+  version: 7.6.6
   ↓offchat_fullsync [connectors.FullSyncConnector]: 🗏 connectors/offchat_fullsync.yaml
   ↓Login [sequences.GenericSequence]: 🗏 sequences/Login.yaml
   ↓OnChat [sequences.GenericSequence]: 🗏 sequences/OnChat.yaml
@@ -31,7 +31,7 @@
               /*Begin_c8o_AppFunction*/
               	/*End_c8o_AppFunction*/
               
-      tplProjectName: mobilebuilder_tpl_7_5_2
+      tplProjectName: mobilebuilder_tpl_7_6_0
       ↓Login [mobile.components.PageComponent-1517565746153]: 🗏 mobilePages/Login.yaml
       ↓Sync [mobile.components.PageComponent-1517841304460]: 🗏 mobilePages/Sync.yaml
       ↓Lobby [mobile.components.PageComponent-1517842598071]: 🗏 mobilePages/Lobby.yaml

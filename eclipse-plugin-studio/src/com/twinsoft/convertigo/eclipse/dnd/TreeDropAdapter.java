@@ -886,7 +886,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						Step targetStep = (Step)((ob instanceof StepVariable) ? ((StepVariable) ob).getParent() : ob);
 						
 						// Check for drop to a step in the same sequence
-						Long key = new Long(stepSource.getPriority());
+						Long key = Long.valueOf(stepSource.getPriority());
 						Step sourceStep = targetStep.getSequence().loadedSteps.get(key);
 						if ((sourceStep != null) && (!targetStep.equals(sourceStep))) {
 							// Check for drop on a 'following' step
@@ -903,24 +903,39 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		}
 		if (PaletteSourceTransfer.getInstance().isSupportedType(transferType)) {
-			if (target instanceof DatabaseObjectTreeObject) {
-				DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)target).getObject();
+			if (target instanceof TreeObject) {
+				TreeObject targetTreeObject = (TreeObject)target;
+				
 				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
-				if (paletteSource != null && parentDatabaseObject != null) {
+				if (paletteSource != null) {
 					try {
 						String xmlData = paletteSource.getXmlData();
 						List<Object> list = ConvertigoPlugin.clipboardManagerDND.read(xmlData);
 						DatabaseObject databaseObject = (DatabaseObject) list.get(0);
-						if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-							return false;
+						
+						if (targetTreeObject instanceof ObjectsFolderTreeObject) {
+							ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)targetTreeObject;
+							if (!ProjectExplorerView.folderAcceptMobileComponent(folderTreeObject.folderType, databaseObject)) {
+								return false;
+							}
+							// continue
+							targetTreeObject = folderTreeObject.getParent();
 						}
-						if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-							return false;
+						if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+							DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)targetTreeObject).getObject();
+							if (parentDatabaseObject != null) {
+								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+									return false;
+								}
+								if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+									return false;
+								}
+								if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
+									return false;
+								}
+								return true;
+							}
 						}
-						if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
-							return false;
-						}
-						return true;
 					} catch (Exception e) {
 						e.printStackTrace(System.out);
 					}
@@ -1173,6 +1188,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		else if (data instanceof PaletteSource) {
 			try {
+				if (targetTreeObject instanceof ObjectsFolderTreeObject) {
+					ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)targetTreeObject;
+					targetTreeObject = folderTreeObject.getParent();
+				}
+				
 				if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 					DatabaseObject parent = (DatabaseObject)targetTreeObject.getObject();
 					String xmlData = ((PaletteSource)data).getXmlData();

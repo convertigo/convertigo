@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -93,6 +92,7 @@ import com.twinsoft.convertigo.engine.migration.Migration7_4_0;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -1379,7 +1379,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (definition.size() > 0) {
 			String xpath = definition.get(1);
 			if (xpath.startsWith("./")) {
-				Long key = new Long(definition.get(0));
+				Long key = Long.valueOf(definition.get(0));
 				Step sourceStep = sequence.loadedSteps.get(key);
 				if (sourceStep != null) {
 					if (VersionUtils.compare(version, "4.6.0") < 0) {
@@ -1482,7 +1482,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			exportProject(project);
 			file = new File(newDir, file.getName());
 			ProjectUtils.renameProjectFile(file, newName, keepOldReferences);
-	        FileUtils.deleteQuietly(new File(newDir, ".project"));
+			FileUtils.deleteQuietly(new File(newDir, ".project"));
 		} catch (Exception e) {
 			throw new ConvertigoException("Failed to rename to project", e);
 		}
@@ -1643,10 +1643,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (Engine.isCliMode()) {
 			return;
 		}
-		
+
 		globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,  
 				System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE, 
-                        Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
+						Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 
 		Properties prop = new Properties();
 
 		try {
@@ -1654,11 +1654,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 		} catch (FileNotFoundException e) {
 			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
 					+ globalSymbolsFilePath + "\" does not exist! Creating a new one...");
-			
+
 			// Create the global_symbols.properties file into the default workspace
 			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
 			globalSymbolsFilePath = globalSymbolsProperties.getAbsolutePath();
-			
+
 			try {
 				PropertiesUtils.store(prop, globalSymbolsProperties, "global symbols");
 				Engine.logDatabaseObjectManager.info("New global symbols file created: " + globalSymbolsProperties.getAbsolutePath());
@@ -1678,14 +1678,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!");
 	}
 	
-	private void symbolsLoad(Properties map) {		
+	private void symbolsLoad(Properties map) {
 		// Enumeration of the properties
 		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
 		boolean needUpdate = false;
 		while (propsEnum.hasMoreElements()) {
 			String propertyName = propsEnum.nextElement();
 			try {
-				symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+				symbolsAdd(propertyName, uncipherSymbol(map, propertyName), false);
 				needUpdate = true;
 			} catch (Exception e) {
 				Engine.logEngine.info("Don't add invalid symbol '" + propertyName + "'", e);
@@ -1694,10 +1694,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (needUpdate) {
 			symbolsUpdated();
 		}
-	}
-	
-	public void symbolsStore(OutputStream out) throws IOException {
-		PropertiesUtils.store(symbolsProperties, out, "global symbols");
 	}
 	
 	public void symbolsUpdate(Properties map, String importAction) {
@@ -1733,6 +1729,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 	
+	static private String uncipherSymbol(Properties props, String name) {
+		String value = props.getProperty(name);
+		if (value != null && name.endsWith(".secret")) {
+			value = Crypto2.decodeFromHexString(value);
+		}
+		return value;
+	}
+	
 	private void symbolsFileImport(Properties map, boolean keepServerSymbols) {		
 		// Enumeration of the properties
 		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
@@ -1742,14 +1746,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				if (keepServerSymbols){
 					if (!symbolsProperties.containsKey(propertyName)) {
-						symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+						symbolsAdd(propertyName, uncipherSymbol(map, propertyName), false);
 						needUpdate = true;
 					}
 				} else {
 					if (symbolsProperties.containsKey(propertyName)) {
 						symbolsProperties.remove(propertyName);
 					}
-					symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+					symbolsAdd(propertyName, uncipherSymbol(map, propertyName), false);
 					needUpdate = true;
 				}
 			} catch (Exception e) {
@@ -1763,7 +1767,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	private void symbolsUpdated() {
 		try {
-			PropertiesUtils.store(symbolsProperties, globalSymbolsFilePath, "global symbols");
+			Properties symbolsToStore = new Properties();
+			Enumeration<String> propsEnum = GenericUtils.cast(symbolsProperties.propertyNames());
+			while (propsEnum.hasMoreElements()) {
+				String name = propsEnum.nextElement();
+				symbolsToStore.put(name, symbolsGetValueStore(name));
+			}
+			System.out.println("symbolsUpdated: " + symbolsToStore + " to:" + globalSymbolsFilePath);
+			PropertiesUtils.store(symbolsToStore, globalSymbolsFilePath, "global symbols");
 		} catch (Exception e) {
 			Engine.logEngine.error("Failed to store symbols!", e);
 		}
@@ -1798,6 +1809,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public String symbolsGetValue(String symbolName) {
 		return symbolsProperties.getProperty(symbolName);
+	}
+	
+	public String symbolsGetValueStore(String symbolName) {
+		String value = symbolsGetValue(symbolName);
+		if (value != null && symbolName.endsWith(".secret")) {
+			value = Crypto2.encodeToHexString(value);
+		}
+		return value;
+	}
+	
+	public String symbolsGetValueService(String symbolName) {
+		String value = symbolsGetValue(symbolName);
+		if (value != null && symbolName.endsWith(".secret")) {
+			value = "**********";
+		}
+		return value;
 	}
 	
 	public Set<String> symbolsGetNames() {

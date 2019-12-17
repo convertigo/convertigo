@@ -1,4 +1,4 @@
-↑convertigo: 7.6.5.m006
+↑convertigo: 7.6.6.m006
 ↓lib_Sigfox [core.Project]: 
   comment: |
     'lib_Sigfox is the interface library for Sigfox IoT network.
@@ -18,7 +18,7 @@
     You will be able to launch any sequence you want fomr the DataCallBack sequence to perform the needed tasks for your project.
     
     '
-  version: 7.6.5
+  version: 7.6.6
   ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
   ↓DataCallBack [sequences.GenericSequence]: 🗏 sequences/DataCallBack.yaml
   ↓ErrorCallBack [sequences.GenericSequence]: 🗏 sequences/ErrorCallBack.yaml

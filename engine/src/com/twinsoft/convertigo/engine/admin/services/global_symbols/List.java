@@ -39,15 +39,15 @@ public class List extends XmlService{
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
-        
-        Element symbolsListElement = document.createElement("symbols");
-        root.appendChild(symbolsListElement);
-        
-    	for (String symbolName : Engine.theApp.databaseObjectsManager.symbolsGetNames()) { 
+
+		Element symbolsListElement = document.createElement("symbols");
+		root.appendChild(symbolsListElement);
+
+		for (String symbolName : Engine.theApp.databaseObjectsManager.symbolsGetNames()) { 
 			Element symbolElement = document.createElement("symbol");
 			symbolElement.setAttribute("name", symbolName);
-			symbolElement.setAttribute("value", Engine.theApp.databaseObjectsManager.symbolsGetValue(symbolName));
+			symbolElement.setAttribute("value", Engine.theApp.databaseObjectsManager.symbolsGetValueService(symbolName));
 			symbolsListElement.appendChild(symbolElement);
-    	}	
+		}	
 	}
 }

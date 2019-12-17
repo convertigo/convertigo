@@ -28,9 +28,9 @@ function removeKey(key) {
 					var keyErrorMessage = $(this).attr("errorMessage");
 					var keyText = $(this).attr("text");
 					if (keyErrorMessage) {
-						message += "Unable to remove the key '" + keyText + "'<br/><br/>" + keyErrorMessage;
+						message += "Unable to remove the key '" + keyText + "'\n\n" + keyErrorMessage;
 					} else {
-						message += "The key <em>" + keyText + "</em> has been successfully removed.";
+						message += "The key '" + keyText + "' has been successfully removed.";
 						keys_List_update();
 					}
 				});
@@ -64,9 +64,9 @@ function keys_List_init() {
 					var keyErrorMessage = $(this).attr("errorMessage");
 					var keyText = $(this).attr("text");
 					if (keyErrorMessage) {
-						message += "Unable to add the key '" + keyText + "'<br/><br/>" + keyErrorMessage;
+						message += "Unable to add the key '" + keyText + "'\n\n" + keyErrorMessage;
 					} else {
-						message += "The key <em>" + keyText + "</em> has been successfully added.";
+						message += "The key '" + keyText + "' has been successfully added.";
 						keys_List_update();
 					}
 				});

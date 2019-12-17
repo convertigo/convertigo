@@ -52,62 +52,56 @@ function configuration_List_init () {
 			}
 			
 			//Get Url for each widgets
-			var urlHelp = "http://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/configuration/";
+			var urlHelp = "https://www.convertigo.com/documentation/latest/operating-guide/using-convertigo-administration-console/";
 			switch ($x_category.attr("name"))
 			{
 				case "Main":
-					urlHelp += "main-parameters/";
+					urlHelp += "#main-parameters";
 					break;
 				case "Account":
-					urlHelp += "accounts/";
+					urlHelp += "#accounts";
 					break;
 				case "Logs":
-					urlHelp += "logs/";
+					urlHelp += "#logs";
 					break;
 				case "Context":
-					urlHelp += "real-time-activity-monitoring/";
+					urlHelp += "#real-time-activity-monitoring";
 					break;
 				case "XmlGeneration":
-					urlHelp += "xml-generation/";
+					urlHelp += "#xml-generation";
 					break;
 				case "XulRunner":
-					urlHelp += "html-parser/";
+					urlHelp += "#html-parser";
 					break;
 				case "HttpClient":
-					urlHelp += "http-client/";
+					urlHelp += "#http-client";
 					break;
 				case "Network":
-					urlHelp += "network/";
+					urlHelp += "#network";
 					break;
 				case "Proxy":
-					urlHelp += "proxy/";
-					break;
-				case "SecurityToken":
-					urlHelp += "security-token/";
+					urlHelp += "#proxy";
 					break;
 				case "Ssl":
-					urlHelp += "ssl/";
+					urlHelp += "#ssl";
 					break;
 				case "Cache":
-					urlHelp += "cache/";
+					urlHelp += "#cache";
 					break;
 				case "Carioca":
-					urlHelp += "legacy-carioca-portal/";
+					urlHelp += "#legacy-carioca-portal";
 					break;
 				case "Analytics":
-					urlHelp += "analytics/";
+					urlHelp += "#analytics";
 					break;
 				case "Notifications":
-					urlHelp += "notifications/";
-					break;
-				case "Minification":
-					urlHelp += "minification/";
+					urlHelp += "#notifications";
 					break;
 				case "MobileBuilder":
-					urlHelp += "mobile-builder/";
+					urlHelp += "#mobile-builder";
 					break;
-				case "FULLSYNC":
-					urlHelp += "full-sync/";
+				case "FullSync":
+					urlHelp += "#full-sync";
 					break;
 			}
 
@@ -126,7 +120,7 @@ function configuration_List_init () {
 				var type = $x_property.attr("type");
 				var $property = $template.find(".config-property" + (type === "Boolean" ? "-boolean" : "") + ":first").clone();
 				$property.find(".config-property-name:first").text($x_property.attr("description")).attr("for", id);
-				$property.find(".config-property-name:first").html($property.find(".config-property-name:first").html().replace(new RegExp("\\n","g"), "<br/>"));
+				$property.find(".config-property-name:first").text($property.find(".config-property-name:first").text());
 				
 				var $property_value;
 				var value = $x_property.attr("value");
@@ -186,7 +180,7 @@ function configuration_List_init () {
 
 		$( "#configAccordion" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
 		$( "#configAccordion ul" ).removeClass( "ui-corner-all ui-widget-header");
-	    $( "#configAccordion li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
+		$( "#configAccordion li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
 		
 		
 		$(".config-toggle-advanced-properties").click(function () {
@@ -264,8 +258,11 @@ function updateConfiguration () {
 			$(".config-update").button("disable");
 		}, domToString2(xmlDoc), function(xml) {
 			var $xml = $(xml);
-			showError($xml.find("message:first").text(), undefined, function () {
-				window.location.reload();				
+			var message = $xml.find("message:first").text();
+			showError(message, undefined, function () {
+				if (!message.startsWith("Invalid password:")) {
+					window.location.reload();
+				}
 			});
 		}, {contentType : "application/xml"});
 	} else {

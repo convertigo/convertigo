@@ -75,7 +75,7 @@ function loadProjectGSymbol(projectName){
 			htmlCode += "<p>Find here the undefined Global Symbols for this project: </p>";
 			htmlCode += "<ul>";
 			$(xml).find("undefined_symbols").children().each(function() {
-				htmlCode += "<li>"+$(this).text()+"</li>";
+				htmlCode += "<li>" + htmlEncode($(this).text()) + "</li>";
 			});
 			htmlCode += "</ul>";
 			
@@ -105,12 +105,12 @@ function loadProject(projectName) {
 		$("#project_Edit").show();
 		
 		// set the title of the widget
-		$("#project_Edit h3").first().html("Project " + $(xml).find("project").attr("name"));
+		$("#project_Edit h3").first().text("Project " + $(xml).find("project").attr("name"));
 		
 		// create the project node
-		var htmlProjectEditDivTree = '<div class="projectEdit-selectableElement" qname="' + $(xml).find("project").first().attr('qname') + '">'+
+		var htmlProjectEditDivTree = '<div class="projectEdit-selectableElement" qname="' + htmlEncode($(xml).find("project").first().attr('qname')) + '">'+
 			'<span id="projectTreeWidgetRoot"><img src="services/database_objects.GetIcon?className=com.twinsoft.convertigo.beans.core.Project" />'
-				+ $(xml).find("project").attr("name") + '</span></div></div>';
+				+ htmlEncode($(xml).find("project").attr("name")) + '</span></div></div>';
 		htmlProjectEditDivTree += "<ul id=\"projectEditTree\"></ul>";				
 		$("#projectEditDivTree").html(htmlProjectEditDivTree);
 
@@ -287,7 +287,7 @@ function loadElement(elementQName, $treeitem) {
 		
 		$("#projectEditObjectPropertiesList").html($projectEditObjectPropertiesListTable);
 		$(".projectEditorPropertyHelpIcon > img").click(function(){
-			showInfo($(this).data("long_description"));
+			showInfoHtml($(this).data("long_description"));
 		});
 		xmlDatabaseObject = xml;
 	}, {"qname":elementQName});
@@ -454,10 +454,10 @@ function projectEditObjectSubmitProperties() {
 	callService("database_objects.Set", 
 		function(xml) {
 			if ($(xml).find("response").attr("state")==="success") {
-				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
+				showInfo($(xml).find("response").attr("message"));
 			}
 			if ($(xml).find("response").attr("state")==="error") {
-				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
+				showError($(xml).find("response").attr("message"),$(xml).find("stackTrace").text()); 
 			}
 			loadProjectGSymbol(project_Name);
 			projects_List_update();
@@ -475,11 +475,11 @@ function projectDeclareGlobalSymbols() {
 	callService("global_symbols.Create",  
 		function(xml) { 
 			if ($(xml).find("response").attr("state")==="success") {
-				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
+				showInfo($(xml).find("response").attr("message"));
 				project_Edit_update();
 			}
 			if ($(xml).find("response").attr("state")==="error") {
-				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
+				showError($(xml).find("response").attr("message"),$(xml).find("stackTrace").text()); 
 			}
 			
 			projects_List_update();
@@ -506,15 +506,15 @@ function projectStats() {
 		                }
 			        }]
 				});
-				$("#statisticsGlobalProjectName").html(project_Name);
-				$("#statisticsGlobalProjectInfo").html($(xml).find("statistics").children(project_Name).text().replace("<br/>",", "));
+				$("#statisticsGlobalProjectName").text(project_Name);
+				$("#statisticsGlobalProjectInfo").text($(xml).find("statistics").children(project_Name).text().replace("<br/>",", "));
 				
 				var htmlStats = "";
 				$(xml).find("statistics").children("*").each(function() {
 					if (this.tagName != project_Name) {
 						htmlStats += "<table><tr><td>"
-						htmlStats += "<img src=\"images/stats_"+this.tagName.toLowerCase()+"_16x16.png\" /></td>";
-						htmlStats += "<td><strong>"+this.tagName.replace("_"," ")+"</strong><br/>"+$(this).text()+"<br/><br/></td>";
+						htmlStats += "<img src=\"images/stats_" + htmlEncode(this.tagName.toLowerCase()) + "_16x16.png\" /></td>";
+						htmlStats += "<td><strong>"+ htmlEncode(this.tagName.replace("_"," ")) + "</strong><br/>" + htmlEncode($(this).text()) + "<br/><br/></td>";
 						htmlStats += "</tr></table>";
 					}
 				});

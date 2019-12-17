@@ -46,6 +46,7 @@ public class ComponentObjectWizard extends Wizard {
 	
 	private String className = "java.lang.Object";
 	private DatabaseObject parentObject = null; 
+	private int folderType = -1;
 	
     private ComponentExplorerWizardPage objectExplorerPage = null;
     private ComponentInfoWizardPage objectInfoPage = null;
@@ -53,9 +54,14 @@ public class ComponentObjectWizard extends Wizard {
     public DatabaseObject newBean = null;
 
     public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
+    	this(selectedDatabaseObject, newClassName, -1);
+    }
+    
+    public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, int folderType) {
 		super();
 		this.parentObject = selectedDatabaseObject;
 		this.className = newClassName;
+		this.folderType = folderType;
 		setWindowTitle("Create a new component");
 		setNeedsProgressMonitor(true);
 		setHelpAvailable(true);
@@ -90,7 +96,7 @@ public class ComponentObjectWizard extends Wizard {
 				objectExplorerPageMessage = "Please select a UI component template.";
 			}
 			
-			objectExplorerPage = new ComponentExplorerWizardPage(parentObject, beanClass);
+			objectExplorerPage = new ComponentExplorerWizardPage(parentObject, beanClass, folderType);
 			objectExplorerPage.setTitle(objectExplorerPageTitle);
 			objectExplorerPage.setMessage(objectExplorerPageMessage);
 			this.addPage(objectExplorerPage);

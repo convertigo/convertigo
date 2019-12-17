@@ -83,6 +83,9 @@ public class Update extends XmlService {
 			PropertyName property = PropertyName.valueOf(propKey);
 			if (property.isVisible()) {
 				String propValue = ((Element) nl.item(i)).getAttribute("value");
+				if (PropertyName.TEST_PLATFORM_PASSWORD.equals(property) || PropertyName.ADMIN_PASSWORD.equals(property)) {
+					AuthenticatedSessionManager.validatePassword(propValue);
+				}
 				EnginePropertiesManager.setProperty(property, propValue);
 				Engine.logAdmin.info("The engine property '" + propKey + "' has been updated to '" + propValue + "'");
 			}

@@ -7,7 +7,7 @@ if [ "$1" = "convertigo" ]; then
     ## function used to cipher passwords
     
     toHash() {
-        jrunscript -e "java.lang.System.out.println(\"$1\".hashCode())"
+        jrunscript -cp $CATALINA_HOME/webapps/convertigo/WEB-INF/lib/dependencies-*.jar -e "java.lang.System.out.println(org.apache.commons.codec.digest.DigestUtils.sha512Hex(\"$1\"))"
     }
     
     ## if needed, force the admin and testplatform accounts
@@ -84,6 +84,13 @@ if [ "$1" = "convertigo" ]; then
         sed -i.bak -e "s,sessionCookiePath=\"[^\"]*\",sessionCookiePath=\"$COOKIE_PATH\"," $CATALINA_HOME/conf/context.xml
         unset COOKIE_PATH
     fi
+    
+    if [ "$COOKIE_SECURE" = "true" ]; then
+        sed -i.bak -e "s,<secure>false</secure>,<secure>true</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    else
+    	sed -i.bak -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    fi
+    unset COOKIE_SECURE
     
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
 fi

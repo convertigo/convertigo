@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -73,7 +74,8 @@ public class Add extends XmlService {
 					set.add(Role.valueOf(role));
 				}
 			}
-			Engine.authenticatedSessionManager.setUser(username, DigestUtils.md5Hex(password), set);
+			AuthenticatedSessionManager.validatePassword(password);
+			Engine.authenticatedSessionManager.setUser(username, DigestUtils.sha512Hex(password), set);
 			response.setAttribute("state", "success");
 			response.setAttribute("message","User '" + username + "' have been successfully declared!");
 		} catch (Exception e) {

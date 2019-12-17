@@ -51,11 +51,15 @@ public class RemoveSessionStep extends Step {
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
 			if (super.stepExecute(javascriptContext, scope) && Engine.isEngineMode()) {
-				if (sequence.context != null && sequence.context.httpSession != null) {
-					HttpUtils.terminateSession(sequence.context.httpSession);
-					sequence.context.requireEndOfContext = true;
-				} else {
-					Engine.logBeans.warn("(RemoveSessionStep) null httpSession, cannot be removed");
+				try {
+					if (sequence.context != null && sequence.context.httpSession != null) {
+						HttpUtils.terminateSession(sequence.context.httpSession);
+						sequence.context.requireEndOfContext = true;
+					} else {
+						Engine.logBeans.warn("(RemoveSessionStep) null httpSession, cannot be removed");
+					}
+				} catch (Exception e) {
+					Engine.logBeans.warn("(RemoveSessionStep) failure on remove: " + e.getMessage());
 				}
 			}
 			return true;

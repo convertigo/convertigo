@@ -24,7 +24,10 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.studio.ActionModel;
 import com.twinsoft.convertigo.engine.studio.DatabaseObjectsAction;
@@ -40,7 +43,15 @@ public class CreateMobileUIComponentAction extends MobileComponentCreateAction {
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-			if (treeObject instanceof DatabaseObjectTreeObject) {
+			if (treeObject instanceof ObjectsFolderTreeObject) {
+				ObjectsFolderTreeObject oft = (ObjectsFolderTreeObject)treeObject;
+				if (oft.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
+					enable = false;
+				} else {
+					TreeParent treeParent = oft.getParent();
+					enable = treeParent != null && treeParent instanceof MobileComponentTreeObject;
+				}
+			} else if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject dbo = (DatabaseObject) treeObject.getObject();
 				ActionModel actionModel = DatabaseObjectsAction.selectionChanged(getClass().getName(), dbo);
 				enable = actionModel.isEnabled;
