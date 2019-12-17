@@ -39,9 +39,9 @@ var setting_order = ["name", "enabled", "description", "jobName", "scheduleName"
 function scheduler_ListTasks_init () {
 	
 	////////////////////////////////////////HELP MANAGEMENT//////////////////////////////////
-	$("#helpJobs").attr("href", getHelpUrl("jobs-table/"));
-	$("#helpSchedules").attr("href", getHelpUrl("schedules-table/"));
-	$("#helpScheduledJobs").attr("href", getHelpUrl("scheduled-jobs-table/"));	
+	$("#helpJobs").attr("href", getHelpUrl("#jobs-table"));
+	$("#helpSchedules").attr("href", getHelpUrl("#schedules-table"));
+	$("#helpScheduledJobs").attr("href", getHelpUrl("#scheduled-jobs-table"));	
 	////////////////////////////////////////INITIALIZATION OF THE TABLE//////////////////////
 	$(".scheduledTableData").jqGrid({
 		datatype : "local",
@@ -687,7 +687,7 @@ function parseJSONarray(value) {
 }
 
 function getHelpUrl(help_sub_url) {
-	return "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/scheduler/" + help_sub_url;
+	return "https://www.convertigo.com/documentation/latest/operating-guide/using-convertigo-administration-console/" + help_sub_url;
 }
 
 function editAction(xml){

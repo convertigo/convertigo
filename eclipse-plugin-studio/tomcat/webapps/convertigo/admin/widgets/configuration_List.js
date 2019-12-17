@@ -52,62 +52,56 @@ function configuration_List_init () {
 			}
 			
 			//Get Url for each widgets
-			var urlHelp = "https://www.convertigo.com/document/latest/operating-guide/using-convertigo-administration-console/configuration/";
+			var urlHelp = "https://www.convertigo.com/documentation/latest/operating-guide/using-convertigo-administration-console/";
 			switch ($x_category.attr("name"))
 			{
 				case "Main":
-					urlHelp += "main-parameters/";
+					urlHelp += "#main-parameters";
 					break;
 				case "Account":
-					urlHelp += "accounts/";
+					urlHelp += "#accounts";
 					break;
 				case "Logs":
-					urlHelp += "logs/";
+					urlHelp += "#logs";
 					break;
 				case "Context":
-					urlHelp += "real-time-activity-monitoring/";
+					urlHelp += "#real-time-activity-monitoring";
 					break;
 				case "XmlGeneration":
-					urlHelp += "xml-generation/";
+					urlHelp += "#xml-generation";
 					break;
 				case "XulRunner":
-					urlHelp += "html-parser/";
+					urlHelp += "#html-parser";
 					break;
 				case "HttpClient":
-					urlHelp += "http-client/";
+					urlHelp += "#http-client";
 					break;
 				case "Network":
-					urlHelp += "network/";
+					urlHelp += "#network";
 					break;
 				case "Proxy":
-					urlHelp += "proxy/";
-					break;
-				case "SecurityToken":
-					urlHelp += "security-token/";
+					urlHelp += "#proxy";
 					break;
 				case "Ssl":
-					urlHelp += "ssl/";
+					urlHelp += "#ssl";
 					break;
 				case "Cache":
-					urlHelp += "cache/";
+					urlHelp += "#cache";
 					break;
 				case "Carioca":
-					urlHelp += "legacy-carioca-portal/";
+					urlHelp += "#legacy-carioca-portal";
 					break;
 				case "Analytics":
-					urlHelp += "analytics/";
+					urlHelp += "#analytics";
 					break;
 				case "Notifications":
-					urlHelp += "notifications/";
-					break;
-				case "Minification":
-					urlHelp += "minification/";
+					urlHelp += "#notifications";
 					break;
 				case "MobileBuilder":
-					urlHelp += "mobile-builder/";
+					urlHelp += "#mobile-builder";
 					break;
-				case "FULLSYNC":
-					urlHelp += "full-sync/";
+				case "FullSync":
+					urlHelp += "#full-sync";
 					break;
 			}
 
