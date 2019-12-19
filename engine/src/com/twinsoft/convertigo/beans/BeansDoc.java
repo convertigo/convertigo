@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean.DocumentedMode;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
@@ -89,6 +90,14 @@ public class BeansDoc {
 		}
 		long start = System.currentTimeMillis();
 		int count = new BeansDoc(outputDirectory, imageDirectory, max).run();
+		
+		File sidebar = new File(dir, "_data/sidebars/c8o_sidebar.yml");
+		if (sidebar.exists()) {
+			String content = FileUtils.readFileToString(sidebar, "UTF-8");
+			content = content.replaceFirst("(version: ).*", "$1" + ProductVersion.helpVersion);
+			FileUtils.write(sidebar, content, "UTF-8");
+		}
+		
 		long total = System.currentTimeMillis() - start;
 		System.out.println("\nGenerated in: " + dir.getAbsolutePath());
 		System.out.println("Generated " + count + " objects in: " + total + " ms (" + (total * 1.0f / count) + " ms / object)");
