@@ -30,7 +30,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
-import com.teamdev.jxbrowser.browser.Browser;
+import com.teamdev.jxbrowser.chromium.Browser;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.Engine;
@@ -39,7 +39,6 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	
 	C8oBrowser c8oBrowser;
 	Browser browser;
-	
 	public MobileDebugView() {
 		
 	}
@@ -54,8 +53,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	@Override
 	public void createPartControl(Composite parent) {
 		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
-		browser = c8oBrowser.getBrowser();
-		browser.zoom().disable();
+		c8oBrowser.setZoomEnabled(false);
 		c8oBrowser.setText("<head><style>color: $foreground$; background-color: $background$;</style></head>"
 				+ "<body>please select a mobile application editor</body>");
 		
@@ -79,7 +77,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 						u = json.getJSONObject(0).getString("devtoolsFrontendUrl");
 					} catch (Exception e) {
 					}
-					browser.navigation().loadUrl(u);
+					c8oBrowser.loadURL(u);
 				});
 			}
 		}
