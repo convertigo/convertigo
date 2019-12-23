@@ -134,8 +134,8 @@ window.addEventListener("dragover", function (e) {
 window.addEventListener("drop", function (e) {
 	try {
 		// bug from jxbrowser 7.0, onDrag
-		// window.java.onDrop(e);
-		window.java.onDragOver(e);
+		//window.java.onDragOver(e);
+		window.java.onDrop(e);
 	} catch (ex) {
 		console.log("drop: " + ex);
 	}
