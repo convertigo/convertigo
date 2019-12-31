@@ -1,4 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction" default="false" priority="0" version="   7   7   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostFind"/>
+        </property>
+        <property name="p_bookmark">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_execution_stats">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_fields">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_limit">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_selector">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_skip">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_sort">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_stable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_update">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_use_index">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent" isRoot="false" priority="0" version="   7   7   0">
         <property name="changeDetection">
             <java.lang.String value="Default"/>

@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class AbstractCouchDbTransaction extends TransactionWithVariables implements IComplexTypeAffectation {
@@ -232,6 +233,56 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 		catch (Exception e) {}
 		return null;
+	}
+	
+	public Object getEvaluatedParam(org.mozilla.javascript.Context cx, CouchParam param) throws Exception {
+		String str = getParameterStringValue(param);
+		if (str.isEmpty()) {
+			throw new EngineException("empty parameter");
+		}
+		try {
+			Object o = RhinoUtils.evalCachedJavascript(cx, scope, str, param.name(), 1, null);
+			o = toJson(o);
+			return o;
+		} catch (Exception e) {}
+		return str;
+	}
+	
+	public void putEvaluatedParam(org.mozilla.javascript.Context cx, JSONObject json, CouchParam param) {
+		try {
+			Object o = getEvaluatedParam(cx, param);
+			json.put(param.name(), o);
+		} catch (Exception e) { }
+	}
+	
+	public void putBooleanParam(JSONObject json, CouchParam param) {
+		try {
+			String str = getParameterStringValue(param);
+			if (!str.isEmpty()) {
+				json.put(param.name(), Boolean.parseBoolean(str));
+			}
+		} catch (Exception e) {
+		}
+	}
+	
+	public void putLongParam(JSONObject json, CouchParam param) {
+		try {
+			String str = getParameterStringValue(param);
+			if (!str.isEmpty()) {
+				json.put(param.name(), Long.parseLong(str));
+			}
+		} catch (Exception e) {
+		}
+	}
+	
+	public void putStringParam(JSONObject json, CouchParam param) {
+		try {
+			String str = getParameterStringValue(param);
+			if (!str.isEmpty()) {
+				json.put(param.name(), str);
+			}
+		} catch (Exception e) {
+		}
 	}
 	
 	public String getParameterStringValue(CouchParam param) throws EngineException {

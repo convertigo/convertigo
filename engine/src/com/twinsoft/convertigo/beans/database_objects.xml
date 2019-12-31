@@ -1306,6 +1306,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostCompactTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
@@ -1418,6 +1421,9 @@
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction">

@@ -79,6 +79,14 @@
 		</xsd:simpleContent>
 	</xsd:complexType>
 
+	<xsd:complexType name="decimal-with-type">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:decimal">
+				<xsd:attribute name="type" type="xsd:string" use="optional" />
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+
 	<xsd:complexType name="arrayType">
 		<xsd:sequence>
 			<xsd:element name="item" minOccurs="0" maxOccurs="unbounded"
@@ -803,12 +811,22 @@
 			<xsd:group ref="tns:couchTransactionGroup" />
 			<xsd:sequence minOccurs="0">
 				<xsd:element name="couchdb" type="tns:string-with-type" />
+				<xsd:element name="features" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="item" type="tns:string-with-type" minOccurs="0" maxOccurs="unbounded"/>
+						</xsd:sequence>
+						<xsd:attribute name="length" type="xsd:string" use="optional" />
+						<xsd:attribute name="type" type="xsd:string" use="optional" />
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="git_sha" type="tns:string-with-type" minOccurs="0" />
 				<xsd:element name="uuid" type="tns:string-with-type" />
 				<xsd:element name="vendor">
 					<xsd:complexType>
 						<xsd:sequence>
 							<xsd:element name="name" type="tns:string-with-type" />
-							<xsd:element name="version" type="tns:string-with-type" />
+							<xsd:element name="version" type="tns:string-with-type" minOccurs="0" />
 						</xsd:sequence>
 						<xsd:attribute name="type" type="xsd:string" use="optional" />
 					</xsd:complexType>
@@ -1070,6 +1088,41 @@
 	<xsd:complexType name="postDocumentType">
 		<xsd:sequence>
 			<xsd:group ref="tns:couchDocumentTransactionGroup" />
+		</xsd:sequence>
+		<xsd:attribute name="type" type="xsd:string" use="optional" />
+	</xsd:complexType>
+
+	<xsd:complexType name="postFindType">
+		<xsd:sequence>
+			<xsd:group ref="tns:couchTransactionGroup" />
+			<xsd:element name="bookmark" type="tns:string-with-type" minOccurs="0" maxOccurs="1" />
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="docs">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="item" minOccurs="0" maxOccurs="unbounded">
+								<xsd:attribute name="type" type="xsd:string" use="optional" />
+							</xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="type" type="xsd:string" use="optional" />
+						<xsd:attribute name="length" type="xsd:string" use="optional" />
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:element name="execution_stats" minOccurs="0" maxOccurs="1">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="execution_time_ms" type="tns:decimal-with-type" />
+						<xsd:element name="results_returned" type="tns:int-with-type" />
+						<xsd:element name="total_docs_examined" type="tns:int-with-type" />
+						<xsd:element name="total_keys_examined" type="tns:int-with-type" />
+						<xsd:element name="total_quorum_docs_examined" type="tns:int-with-type" />
+					</xsd:sequence>
+					<xsd:attribute name="type" type="xsd:string" use="optional" />
+				</xsd:complexType>
+				<xsd:attribute name="type" type="xsd:string" use="optional" />
+			</xsd:element>
+			<xsd:element name="warning" type="tns:string-with-type" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="type" type="xsd:string" use="optional" />
 	</xsd:complexType>

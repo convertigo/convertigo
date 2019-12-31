@@ -3171,6 +3171,7 @@
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction"/>
