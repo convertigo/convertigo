@@ -95,7 +95,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 				"\nIncluded with Convertigo Community Edition, you get access to a 15 days free « Convertigo Cloud » account. You will be able to deploy your projects on this cloud account, and when the trial expires, " +
 				"you will have the opportunity to buy production Convertigo Cloud devices licences.\n\n" +
 				"As a result of the cloud signup process, you will receive a PSC by email that will configure your Studio for projects deployment on your Convertigo Cloud account. \n\n" +
-				"You can access the Convertigo Community suppprt on Stack overflow by clicking this link: <a href=\"https://stackoverflow.com/questions/ask?tags=convertigo\">https://stackoverflow.com/questions/ask?tags=convertigo</a>.\n\n" +
+				"You can access the Convertigo Community support on Stack overflow by clicking this link: <a href=\"https://stackoverflow.com/questions/ask?tags=convertigo\">https://stackoverflow.com/questions/ask?tags=convertigo</a>.\n\n" +
 				"Registered users will also get a free 30 minutes \"Getting Started\" web meeting session with one of our support engineers. The link to choose an available slot will be available in the same email providing you the PSC. \n\n"
 		);
 		details.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
