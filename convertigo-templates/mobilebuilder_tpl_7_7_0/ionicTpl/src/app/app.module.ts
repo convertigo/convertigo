@@ -1,6 +1,7 @@
 import { NgModule, ErrorHandler }		                                      from '@angular/core';
 import { HttpClient, HttpClientModule }                                       from '@angular/common/http';
 import { BrowserModule }                                                      from '@angular/platform-browser';
+import { BrowserAnimationsModule }                                            from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule }   								  from '@angular/forms';
 
 import { IonicApp, IonicModule, IonicErrorHandler, DeepLinkConfig }           from 'ionic-angular';
@@ -39,6 +40,7 @@ export function createTranslateLoader(http: HttpClient) {
   /*End_c8o_NgDeclarations*/],
   imports: [/*Begin_c8o_NgModules*/
     BrowserModule,
+    BrowserAnimationsModule,
     HttpClientModule,
 	FormsModule,
 	ReactiveFormsModule,

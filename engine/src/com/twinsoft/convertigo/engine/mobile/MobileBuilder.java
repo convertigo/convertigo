@@ -1124,10 +1124,10 @@ public class MobileBuilder {
 	}
 
 	private Map<String,String> getTplPageModuleTsImports() {
-		if (tpl_appModuleTsImports == null) {
-			tpl_appModuleTsImports = initTplImports(new File(ionicTplDir, "src/page.module.tpl"));
+		if (tpl_pageModuleTsImports == null) {
+			tpl_pageModuleTsImports = initTplImports(new File(ionicTplDir, "src/page.module.tpl"));
 		}
-		return tpl_appModuleTsImports;
+		return tpl_pageModuleTsImports;
 	}
 	
 	private String getTplAppModuleNgImports() {
@@ -1391,6 +1391,9 @@ public class MobileBuilder {
 			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
 			module_ng_components.addAll(contributor.getModuleNgComponents());
 		}
+		// fix for BrowserAnimationsModule until it will be handled in config
+		module_ts_imports.remove("BrowserAnimationsModule");
+		module_ng_imports.remove("BrowserAnimationsModule");
 
 		String c8o_ModuleTsImports = "";
 		Map<String, String> tpl_ts_imports = getTplPageModuleTsImports();
