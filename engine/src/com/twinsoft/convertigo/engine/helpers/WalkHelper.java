@@ -26,6 +26,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.core.Index;
 import com.twinsoft.convertigo.beans.core.Listener;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.UrlMapper;
@@ -314,6 +315,12 @@ public class WalkHelper {
 			if (before(databaseObject, Listener.class)) {
 				for (Listener listener : connector.getListenersList()) {
 					walk(listener);
+				}
+			}
+			
+			if (before(databaseObject, Index.class)) {
+				for (Index index : connector.getIndexList()) {
+					walk(index);
 				}
 			}
 		} else if (databaseObject instanceof Transaction) {

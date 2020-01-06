@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.couchdb.JsonIndex;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -185,52 +186,53 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
 
-		String propertyName = (String)treeObjectEvent.propertyName;
+		String propertyName = (String) treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "":propertyName);
 		
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
+		Connector connector = getObject();
+		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			// If a bean name has changed
 			if (propertyName.equals("name")) {
 				handlesBeanNameChanged(treeObjectEvent);
-			}
-			else {
+			} else if (treeObject.equals(this)) {
 				// if this connector has changed
-				if (treeObject.equals(this)) {
-					Connector connector = this.getObject();
-					
-					if (connector instanceof SapJcoConnector) {
-						try {
-							((SapJcoConnector)connector).getSapJCoProvider().updateDestination();
-						}
-						catch (Exception e) {
-							ConvertigoPlugin.logWarning(e, "Could not update SAP destination !");
-						}
+				if (connector instanceof SapJcoConnector) {
+					try {
+						((SapJcoConnector)connector).getSapJCoProvider().updateDestination();
 					}
-					else if (connector instanceof CouchDbConnector) {
-						if (propertyName.equals("https") ||
+					catch (Exception e) {
+						ConvertigoPlugin.logWarning(e, "Could not update SAP destination !");
+					}
+				} else if (connector instanceof CouchDbConnector) {
+					if (propertyName.equals("https") ||
 							propertyName.equals("port") ||
 							propertyName.equals("server") ||
 							propertyName.equals("couchUsername") ||
-							propertyName.equals("couchPassword"))
-						{
-							((CouchDbConnector)connector).release();
-							CouchDbManager.syncDocument(connector);
-		    		    	try {
-		    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
-		    				} catch (Exception e) {
-		    					ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
-		    				}
+							propertyName.equals("couchPassword")) {
+						((CouchDbConnector)connector).release();
+						CouchDbManager.syncDocument(connector);
+						try {
+							ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+						} catch (Exception e) {
+							ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
 						}
-						else if (propertyName.equals("databaseName")) {
-							CouchDbManager.syncDocument(connector);
-		    		    	try {
-		    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
-		    				} catch (Exception e) {
-		    					ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
-		    				}
+					} else if (propertyName.equals("databaseName")) {
+						CouchDbManager.syncDocument(connector);
+						try {
+							ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+						} catch (Exception e) {
+							ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
 						}
 					}
+				}
+			} else if (connector instanceof CouchDbConnector) {
+				DatabaseObject dbo = ((DatabaseObjectTreeObject) treeObject).getObject();
+				if (dbo instanceof JsonIndex &&
+						connector.equals(dbo.getParent()) &&
+						(propertyName.equals("fields") || propertyName.equals("ascending"))) {
+					CouchDbManager.syncDocument(getObject());
 				}
 			}
 		}

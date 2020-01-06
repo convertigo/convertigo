@@ -1249,6 +1249,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.JsonIndex">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.FullSyncListener">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector"/>
                 </bean>
@@ -1347,12 +1350,15 @@
 		<category name="CouchDB">
 			<beans>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector">
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-                </bean>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
-                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
-                </bean>
-            </beans>
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.couchdb.JsonIndex">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+				</bean>
+			</beans>
             <beans groupname="Document transactions">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>

@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <index classname="com.twinsoft.convertigo.beans.couchdb.JsonIndex" priority="0" version="   7   7   0">
+        <property name="ascending">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="fields">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="name">
+            <java.lang.String value="Json_Index"/>
+        </property>
+    </index>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>

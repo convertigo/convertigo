@@ -37,6 +37,11 @@ task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest', 
 	description 'Run this task after a Convertigo version change.'
 }
 
+configurations.all {
+	// Check for updates every build
+	resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 eclipse {
 	project {
 		comment = 'Main project to develop the Convertigo platform'

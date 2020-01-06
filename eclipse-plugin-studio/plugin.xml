@@ -1427,6 +1427,13 @@
                label="Transaction"
                menubarPath="convertigo.menu.new/content"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateIndexAction"
+               enablesFor="1"
+               icon="icons/studio/menu/index_color_16x16.png"
+               id="convertigo.action.newIndex"
+               label="Index"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDocumentAction"
                enablesFor="1"
                icon="icons/studio/menu/document_color_16x16.png"
@@ -1716,6 +1723,19 @@
                <objectState
                      name="folderType"
                      value="16"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateIndexAction"
+               enablesFor="1"
+               icon="icons/studio/menu/index_color_16x16.png"
+               id="convertigo.action.newIndex"
+               label="Index"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="35"/>
             </enablement>
          </action>
          <action

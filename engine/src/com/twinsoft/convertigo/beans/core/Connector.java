@@ -279,15 +279,19 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	 */
 	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof Transaction)
+		if (databaseObject instanceof Transaction) {
 			addTransaction((Transaction) databaseObject);
-		else if (databaseObject instanceof Pool)
+		} else if (databaseObject instanceof Pool) {
 			addPool((Pool) databaseObject);
-		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document)
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document) {
 			addDocument((com.twinsoft.convertigo.beans.core.Document) databaseObject);
-		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener)
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
 			addListener((com.twinsoft.convertigo.beans.core.Listener) databaseObject);
-		else throw new EngineException("You cannot add to a connector a database object of type " + databaseObject.getClass().getName());
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Index) {
+			addIndex((com.twinsoft.convertigo.beans.core.Index) databaseObject);
+		} else {
+			throw new EngineException("You cannot add to a connector a database object of type " + databaseObject.getClass().getName());
+		}
 	}
 
 	/**
@@ -455,6 +459,26 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		listener.setName(newDatabaseObjectName);
 		vListeners.add(listener);
 		super.add(listener);
+	}
+	
+	transient private List<com.twinsoft.convertigo.beans.core.Index> vIndexes = new ArrayList<com.twinsoft.convertigo.beans.core.Index>();
+	
+	public List<com.twinsoft.convertigo.beans.core.Index> getIndexList() {
+		checkSubLoaded();
+		return sort(vIndexes);
+	}
+	
+	public void removeIndex(com.twinsoft.convertigo.beans.core.Index index) throws EngineException {
+		checkSubLoaded();
+		vIndexes.remove(index);
+	}
+	
+	protected void addIndex(com.twinsoft.convertigo.beans.core.Index index) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vIndexes, index.getName(), index.bNew);
+		index.setName(newDatabaseObjectName);
+		vIndexes.add(index);
+		super.add(index);
 	}
 	
 	@Override

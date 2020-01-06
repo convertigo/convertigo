@@ -48,6 +48,7 @@ public class PostFindTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[1] = new PropertyDescriptor("p_selector", beanClass, "getP_selector", "setP_selector");
 			properties[1].setDisplayName(getExternalizedString("property.p_selector.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.p_selector.short_description"));
+			properties[1].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
 			properties[1].setValue("scriptable", Boolean.TRUE);
 			
 			properties[2] = new PropertyDescriptor("p_limit", beanClass, "getP_limit", "setP_limit");

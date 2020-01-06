@@ -344,6 +344,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_VALIDATORS = 0x219;
 	public static final int TREE_OBJECT_TYPE_FOLDER_MENUS = 0x21A;
 	public static final int TREE_OBJECT_TYPE_FOLDER_AUTHENTICATIONS = 0x21B;
+	public static final int TREE_OBJECT_TYPE_FOLDER_INDEXES = 0x21C;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1732,13 +1733,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 						} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_LISTENERS;
-							com.twinsoft.convertigo.beans.core.Listener listener = (com.twinsoft.convertigo.beans.core.Listener)databaseObject;
+							com.twinsoft.convertigo.beans.core.Listener listener = (com.twinsoft.convertigo.beans.core.Listener) databaseObject;
 							String listenerRenderer = listener.getRenderer();
-							if (listenerRenderer.equals("FullSyncListenerTreeObject"))
+							if (listenerRenderer.equals("FullSyncListenerTreeObject")) {
 								databaseObjectTreeObject = new FullSyncListenerTreeObject(viewer, listener, false);
-							else
+							} else {
 								databaseObjectTreeObject = new ListenerTreeObject(viewer, listener, false);
-
+							}
+							
+						} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Index) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_INDEXES;
+							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
+							
 						} else {
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
@@ -2574,6 +2580,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PLATFORMS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS;
+			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_INDEXES) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_INDEXES;
 			}
 		}
 		else if (treeNode instanceof HandlersDeclarationTreeObject) {

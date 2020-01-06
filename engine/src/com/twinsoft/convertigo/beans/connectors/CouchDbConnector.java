@@ -254,7 +254,7 @@ public class CouchDbConnector extends Connector {
 				String _id = CouchKey._id.String(jsonDocument);
 				String docName = _id.replaceAll(CouchKey._design.key(), "");
 				
-				if (getDocumentByName(docName) == null && !"c8o".equals(docName)) { // document does'nt exist locally
+				if (getDocumentByName(docName) == null && !"c8o".equals(docName) && !"query".equals(CouchKey.language.String(jsonDocument))) { // document does'nt exist locally
 					DesignDocument ddoc = new DesignDocument();
 					ddoc.setName(docName);
 					ddoc.setJSONObject(jsonDocument);

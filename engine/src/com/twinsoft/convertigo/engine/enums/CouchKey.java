@@ -45,6 +45,7 @@ public enum CouchKey {
 	error,
 	filters,
 	keys,
+	language,
 	last_seq,
 	map,
 	name,
