@@ -1579,8 +1579,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					e.printStackTrace();
 				}
 			} else {
+				node = node.getParent();
 				while (!(node == null || node instanceof DOMElement)) {
-//					node = node.parent().get();
 					node = node.getParent();
 				}
 			}
