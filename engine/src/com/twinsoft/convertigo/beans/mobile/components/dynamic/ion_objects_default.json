@@ -2695,31 +2695,58 @@
   "name": "MapInfoWindow",
   "properties": {}
  }},
- "MapMarker": {"   7   6   0": {
-  "name": "MapMarker",
-  "properties": {
-   "IconUrl": {
-    "name": "IconUrl",
-    "mode": "script",
-    "value": ""
-   },
-   "Latitude": {
-    "name": "Latitude",
-    "mode": "script",
-    "value": "48.6969459"
-   },
-   "Longitude": {
-    "name": "Longitude",
-    "mode": "script",
-    "value": "2.1775981"
-   },
-   "Title": {
-    "name": "Title",
-    "mode": "script",
-    "value": "'Convertigo'"
+ "MapMarker": {
+  "   7   6   0": {
+   "name": "MapMarker",
+   "properties": {
+    "IconUrl": {
+     "name": "IconUrl",
+     "mode": "script",
+     "value": ""
+    },
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Title": {
+     "name": "Title",
+     "mode": "script",
+     "value": "'Convertigo'"
+    }
+   }
+  },
+  "   7   7   0": {
+   "name": "MapMarker",
+   "properties": {
+    "IconUrl": {
+     "name": "IconUrl",
+     "mode": "script",
+     "value": "''"
+    },
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Title": {
+     "name": "Title",
+     "mode": "script",
+     "value": "'Convertigo'"
+    }
    }
   }
- }},
+ },
  "Menu": {"   7   6   0": {
   "name": "Menu",
   "properties": {

@@ -5091,9 +5091,9 @@
           "mode": "script",
           "attr":"[iconUrl]",
           "label": "Icon",
-          "description": "Icon (the URL of the image) for the foreground. Leaving this field blank will place the default Google Map Maker Icon.",
+          "description": "Icon (the URL of the image) for the foreground. Setting an empty string for this field will place the default Google Map Maker Icon.",
           "category": "@Display",
-          "value": ""
+          "value": "''"
         },
         "Latitude": {
           "mode": "script",
