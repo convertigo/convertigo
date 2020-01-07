@@ -7,8 +7,8 @@
     - user login using OpenID
     
     '
+  version: 7.7.0-beta
   ↓lib_usermanager_fullsync [connectors.FullSyncConnector]: 🗏 connectors/lib_usermanager_fullsync.yaml
-  ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
   ↓AddUser [sequences.GenericSequence]: 🗏 sequences/AddUser.yaml
   ↓DeleteUser [sequences.GenericSequence]: 🗏 sequences/DeleteUser.yaml
   ↓HashAndSalt [sequences.GenericSequence]: 🗏 sequences/HashAndSalt.yaml

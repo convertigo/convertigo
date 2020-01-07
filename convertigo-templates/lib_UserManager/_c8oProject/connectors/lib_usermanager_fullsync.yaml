@@ -1,3 +1,4 @@
+↑default: true
 databaseName: lib_usermanager_fullsync
 ↓DeleteDocument [transactions.couchdb.DeleteDocumentTransaction]: 
   ↓_use_docid [variables.RequestableVariable-1572602108218]: 

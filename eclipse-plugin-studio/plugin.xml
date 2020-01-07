@@ -349,6 +349,16 @@
 <!-- Libraries projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryUserManagerWizard"
+             icon="icons/studio/library_usermanager_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
+             name="User Manager"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo User Manager library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryAmazonLexWizard"
              icon="icons/studio/library_amazonLex_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
