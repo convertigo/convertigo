@@ -241,7 +241,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 	
 	protected boolean isStacked() {
-		return handleError() || handleFailure() || numberOfActions() > 0 || 
+		return handleError() || handleFailure() || handleFinally() || numberOfActions() > 0 || 
 				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent || 
 				getParent() instanceof UIEventSubscriber;
 	}
