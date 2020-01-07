@@ -61,4 +61,4 @@ authenticatedContextRequired: true
 ↓user [variables.RequestableVariable-1572602059969]: 
 ↓TestOK [core.TestCase]: 
   ↓user [variables.TestCaseVariable-1572602059976]: 
-    value: olivierp@convertigo.com
+    value: test@mail.com

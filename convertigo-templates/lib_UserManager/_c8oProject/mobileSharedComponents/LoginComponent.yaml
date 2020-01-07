@@ -259,7 +259,7 @@ comment: |
                  "ionBean": "Input",
                  "FormControlName": "plain:user",
                  "Type": "plain:email",
-                 "Value": "plain:olivierp@convertigo.com"
+                 "Value": "plain:test@mail.com"
                 }'
               tagName: ion-input
               ↓ControlValidator [mobile.components.UIFormControlValidator-1572604498937]: 
