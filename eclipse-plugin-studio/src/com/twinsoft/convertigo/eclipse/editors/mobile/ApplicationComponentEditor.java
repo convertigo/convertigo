@@ -235,8 +235,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	
 	private DeviceOS deviceOS = DeviceOS.android;
 	private ZoomFactor zoomFactor = ZoomFactor.z100;
-	private double dpiFactorX = 1;
-	private double dpiFactorY = 1;
 	
 	private MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
 	private int buildCount = 0;
@@ -367,12 +365,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		} catch (Exception e1) {
 			new InstallNpmComposite(parent, SWT.NONE);
 			return;
-		}
-		
-		{
-			Point dpi = parent.getDisplay().getDPI();
-			dpiFactorX = dpi.x / 96f;
-			dpiFactorY = dpi.y / 96f; 
 		}
 		
 		DeviceOS.init(parent.getDisplay());
@@ -1186,8 +1178,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
 		int height = NumberUtils.toInt(deviceHeight.getText(), -1);
 		
-		width = zoomFactor.swt(width, dpiFactorX);
-		height = zoomFactor.swt(height, dpiFactorY);
+		width = zoomFactor.swt(width);
+		height = zoomFactor.swt(height);
 		browserGD.horizontalAlignment = width < 0 ? GridData.FILL : GridData.CENTER;
 		browserGD.verticalAlignment = height < 0 ? GridData.FILL : GridData.CENTER;
 		browserScroll.setMinWidth(browserGD.widthHint = browserGD.minimumWidth = width);
@@ -1515,7 +1507,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 //			}
 //			exHighlightElement = element;
 //			String classes = element.attributeValue("class");
-		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint((int) Math.round(x * dpiFactorX), (int) Math.round(y * dpiFactorY));
+		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(x, y);
 		DOMNode node = nodeAP.getNode();
 		while (!(node == null || node instanceof DOMElement)) {
 			node = node.getParent();
