@@ -224,6 +224,7 @@ public class EnginePropertiesManager {
     	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
     	Context ("Real-time activity monitoring"),
     	XmlGeneration ("XML generation"),
+    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	XulRunner ("HTML parser"),
     	HttpClient ("HTTP client"),
     	Network ("Network"),
@@ -238,6 +239,7 @@ public class EnginePropertiesManager {
     	Analytics ("Analytics"),
     	Notifications ("Notifications"),
     	MobileBuilder ("Mobile builder"),
+    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	FullSync ("Full sync")
     	;
     	
@@ -351,7 +353,7 @@ public class EnginePropertiesManager {
 		ZIP_BACKUP_OLD_PROJECT ("project.zip_backup_old", "true", "Automatically performs a dated zip backup of replaced projects", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin': use client 'Origin' header\n• 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
-		@PropertyOptions(advance = true)
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
 		
 		/** ACCOUNTS */
@@ -470,7 +472,7 @@ public class EnginePropertiesManager {
 		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.HttpClient),
 
 		/** CONNECTORS MONITORING */
-		@PropertyOptions(propertyType = PropertyType.Boolean)
+		@PropertyOptions(propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		CONNECTORS_MONITORING ("connectors.monitoring", "false", "Display running connectors in monitor of Legacy connectors", PropertyCategory.Context),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		DOCUMENT_LOG_SCREEN_DUMPS ("document.log.screen_dumps", "false", "Trace in logs the screen dumps of the running Legacy connectors", PropertyCategory.Context),
