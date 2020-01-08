@@ -44,11 +44,8 @@ public class MakeSplash {
 		String codename = System.getProperty("c8o_codename", "code name");
 		String code = System.getProperty("c8o_code", "Cn");
 		String copyright = System.getProperty("c8o_copyright", "Copyright © 2001-" + Calendar.getInstance().get(Calendar.YEAR) + " - Convertigo");
-		String output = System.getProperty("c8o_output", "splash.bmp");
+		String outputs = System.getProperty("c8o_outputs", "splash.bmp");
 		
-		File output_file = new File(output);
-		
-		System.out.println("Making Splash : " + output_file.getCanonicalPath());
 		System.out.println("Version       : " + version);
 		System.out.println("Codename      : " + codename + " (" + code + ")");
 		System.out.println("Copyright     : " + copyright);
@@ -85,7 +82,12 @@ public class MakeSplash {
 		write(version, 340, 230, 13f, true);
 		write(copyright, 270, 312, 9.5f, false);
 		
-		ImageIO.write(splash, "bmp", output_file);
+		for (String output: outputs.split(":")) {
+			File output_file = new File(output);
+			System.out.println("Making Splash : " + output_file.getCanonicalPath());
+			String ext = output.replaceFirst(".*\\.(.*?)$", "$1");
+			ImageIO.write(splash, ext, output_file);
+		}
 	}
 
 }
