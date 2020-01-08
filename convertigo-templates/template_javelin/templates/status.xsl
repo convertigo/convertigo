@@ -27,7 +27,7 @@
 						<img border="0" src="../../images/convertigo.gif"/>
 					</a>
 					<br/>
-					<font size="-1">Copyright © 2001-2011 Convertigo SA. All rights reserved.</font>
+					<font size="-1">Copyright © 2001-2020 Convertigo SA. All rights reserved.</font>
 				</p>
 			</body>
 		</html>
