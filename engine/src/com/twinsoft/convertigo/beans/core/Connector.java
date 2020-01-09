@@ -299,15 +299,17 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	 */
 	@Override
 	public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof Pool)
+		if (databaseObject instanceof Pool) {
 			removePool((Pool) databaseObject);
-		else if (databaseObject instanceof Transaction)
+		} else if (databaseObject instanceof Transaction) {
 			removeTransaction((Transaction) databaseObject);
-		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document)
-			removeDocument((com.twinsoft.convertigo.beans.core.Document)databaseObject);
-		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener)
-			removeListener((com.twinsoft.convertigo.beans.core.Listener)databaseObject);
-		else throw new EngineException("You cannot remove from a connector a database object of type " + databaseObject.getClass().getName());
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document) {
+			removeDocument((com.twinsoft.convertigo.beans.core.Document) databaseObject);
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
+			removeListener((com.twinsoft.convertigo.beans.core.Listener) databaseObject);
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Index) {
+			removeIndex((com.twinsoft.convertigo.beans.core.Index) databaseObject);
+		}else throw new EngineException("You cannot remove from a connector a database object of type " + databaseObject.getClass().getName());
 		super.remove(databaseObject);
 	}
 

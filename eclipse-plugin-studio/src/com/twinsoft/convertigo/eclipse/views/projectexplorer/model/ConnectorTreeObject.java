@@ -231,7 +231,7 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 				DatabaseObject dbo = ((DatabaseObjectTreeObject) treeObject).getObject();
 				if (dbo instanceof JsonIndex &&
 						connector.equals(dbo.getParent()) &&
-						(propertyName.equals("fields") || propertyName.equals("ascending"))) {
+						(propertyName.equals("fields") || propertyName.equals("ascending") || propertyName.equals("name"))) {
 					CouchDbManager.syncDocument(getObject());
 				}
 			}
@@ -251,15 +251,17 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 			if (transaction.getConnector().equals(connector)) {
 				if (connector.getEndTransactionName().equals(oldValue)) {
 					connector.setEndTransactionName((String)newValue);
-					
-    		    	try {
-    					ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
-    				} catch (Exception e) {
-    					ConvertigoPlugin.logWarning(e, "Could not refresh in tree Connector \""+databaseObject.getName()+"\" !");
-    				}
-					
+
+					try {
+						ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+					} catch (Exception e) {
+						ConvertigoPlugin.logWarning(e, "Could not refresh in tree Connector \""+databaseObject.getName()+"\" !");
+					}
+
 				}
 			}
+		} else if (databaseObject instanceof JsonIndex && connector.equals(databaseObject.getParent())) {
+			CouchDbManager.syncDocument(connector);
 		}
 		
 		// Case of this connector rename : update all transaction schemas
