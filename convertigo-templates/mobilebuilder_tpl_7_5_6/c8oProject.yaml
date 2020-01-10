@@ -1,9 +1,9 @@
-↑convertigo: 7.7.0.m006
+↑convertigo: 7.8.0.m006
 ↓mobilebuilder_tpl_7_5_6 [core.Project]: 
   comment: |
     MobileBuilder Template project
     
     Resources of this project are used as template to build a MobileBuilder application.
   httpSessionTimeout: 300
-  version: 7.7.0-beta
+  version: 7.8.0-beta
   ↓void [connectors.HttpConnector]: 🗏 connectors/void.yaml

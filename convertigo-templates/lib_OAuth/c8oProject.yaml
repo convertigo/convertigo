@@ -1,7 +1,7 @@
-↑convertigo: 7.7.0.m006
+↑convertigo: 7.8.0.m006
 ↓lib_OAuth [core.Project]: 
   comment: OAuth library to perform authentication
-  version: 7.7.0-beta
+  version: 7.8.0-beta
   ↓GoogleOAuth [connectors.HttpConnector]: 🗏 connectors/GoogleOAuth.yaml
   ↓LinkedInApi [connectors.HttpConnector]: 🗏 connectors/LinkedInApi.yaml
   ↓LinkedInOAuth [connectors.HttpConnector]: 🗏 connectors/LinkedInOAuth.yaml

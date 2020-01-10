@@ -1,4 +1,4 @@
-↑convertigo: 7.7.0.m006
+↑convertigo: 7.8.0.m006
 ↓lib_UserManager [core.Project]: 
   comment: |
     'The lib_UserManager enables your projects to include user management and authentication in your apps. This library will handle :
@@ -7,7 +7,7 @@
     - user login using OpenID
     
     '
-  version: 7.7.0-beta
+  version: 7.8.0-beta
   ↓lib_usermanager_fullsync [connectors.FullSyncConnector]: 🗏 connectors/lib_usermanager_fullsync.yaml
   ↓AddUser [sequences.GenericSequence]: 🗏 sequences/AddUser.yaml
   ↓DeleteUser [sequences.GenericSequence]: 🗏 sequences/DeleteUser.yaml
