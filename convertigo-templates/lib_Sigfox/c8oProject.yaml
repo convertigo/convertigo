@@ -18,7 +18,7 @@
     You will be able to launch any sequence you want fomr the DataCallBack sequence to perform the needed tasks for your project.
     
     '
-  version: 7.7.0-beta
+  version: 7.7.0
   ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
   ↓DataCallBack [sequences.GenericSequence]: 🗏 sequences/DataCallBack.yaml
   ↓ErrorCallBack [sequences.GenericSequence]: 🗏 sequences/ErrorCallBack.yaml
