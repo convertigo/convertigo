@@ -73,26 +73,6 @@ to create mobile enterprise applications
          version="@convertigoVersion@.qualifier"/>
 
    <plugin
-         id="com.twinsoft.convertigo.studio.xulrunner.win32_win32_x86"
-         os="win32"
-         ws="win32"
-         arch="x86"
-         download-size="0"
-         install-size="0"
-         version="@convertigoVersion@.qualifier"
-         fragment="true"/>
-
-   <plugin
-         id="com.twinsoft.convertigo.studio.jxbrowser.win32"
-         os="win32"
-         ws="win32"
-         arch="x86"
-         download-size="0"
-         install-size="0"
-         version="@convertigoVersion@.qualifier"
-         fragment="true"/>
-<!--no win32-->
-   <plugin
          id="com.twinsoft.convertigo.studio.jxbrowser.win64"
          os="win32"
          ws="win32"
@@ -101,7 +81,7 @@ to create mobile enterprise applications
          install-size="0"
          version="@convertigoVersion@.qualifier"
          fragment="true"/>
-         
+
    <plugin
          id="com.twinsoft.convertigo.studio.jxbrowser.mac"
          os="macosx"
@@ -121,5 +101,4 @@ to create mobile enterprise applications
          install-size="0"
          version="@convertigoVersion@.qualifier"
          fragment="true"/>
-<!--/no win32-->
 </feature>
