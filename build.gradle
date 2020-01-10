@@ -214,62 +214,10 @@ task writeManifest(dependsOn:  ['updateEclipseVersion', 'makeSplash']) {
 	dependsOn wm
 }
 
-task buildStudio32(type: Exec, dependsOn: ['writeManifest']) {
+task buildStudio(type: Exec, dependsOn: ['writeManifest']) {
 	group 'convertigo'
 	
 	onlyIf { !file('eclipse-repository/target/products').exists() }
-	
-	doFirst {
-		file('pom.xml').bytes = file('pom-32.xml').bytes
-		def featureFile = file('eclipse-feature/feature.xml')
-		def featureTxt = featureFile.text
-		featureFile.renameTo(file('eclipse-feature/feature.xml.tmp'))
-		featureTxt = (featureTxt =~ /(?s)<!--no win32-->.*?<!--\/no win32-->/).replaceAll('')
-		featureFile.text = featureTxt
-		def productFile = file('eclipse-repository/Convertigo.product')
-		def productTxt = productFile.text
-		productFile.renameTo(file('eclipse-repository/Convertigo.product.tmp'))
-		productTxt = (productTxt =~ /(?s)<!--no win32-->.*?<!--\/no win32-->/).replaceAll('<feature id="org.eclipse.ecf.filetransfer.httpclient4.feature"/><feature id="org.eclipse.ecf.filetransfer.httpclient4.ssl.feature"/>')
-		productFile.text = productTxt
-	}
-	
-	doLast {
-		file('pom.xml').delete()
-		file('eclipse-feature/feature.xml').delete()
-		file('eclipse-repository/Convertigo.product').delete()
-		file('eclipse-feature/feature.xml.tmp').renameTo(file('eclipse-feature/feature.xml'))
-		file('eclipse-repository/Convertigo.product.tmp').renameTo(file('eclipse-repository/Convertigo.product'))
-	}
-	
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine 'cmd', '/c', 'mvn'
-	} else {
-		commandLine 'mvn'
-	}
-	
-	args 'clean', 'install'
-}
-
-task buildStudio(type: Exec, dependsOn: ['buildStudio32']) {
-	group 'convertigo'
-	
-	def target32 = file('eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86')
-	def tmp32 = file('build/x86')
-	
-	doFirst {
-		file('pom.xml').bytes = file('pom-commons.xml').bytes
-		if (target32.exists()) {
-			file('build').mkdirs()
-			target32.renameTo(tmp32)
-		}
-	}
-	
-	doLast {
-		file('pom.xml').delete()
-		if (tmp32.exists()) {
-			tmp32.renameTo(target32)
-		}
-	}
 	
 	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
 		commandLine 'cmd', '/c', 'mvn'
@@ -328,7 +276,7 @@ task updateEclipseCategory(type: Copy) {
 task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-product:writeAboutIni', ':eclipse-plugin-product:writePluginXml', ':eclipse-feature:updateFeature']) {
 	group 'convertigo'
 	doFirst {
-		fileTree(dir: '.', include: '*/pom.xml').files.plus([file('pom-32.xml'), file('pom-commons.xml')]).each {
+		fileTree(dir: '.', include: '*/pom.xml').files.plus(file('pom.xml')).each {
 			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
 		}
 	}
