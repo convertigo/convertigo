@@ -169,14 +169,16 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 				if (databaseObject instanceof Transaction) {
 					if (connector.getEndTransactionName().equals(databaseObject.getName())) {
 						connector.setEndTransactionName("");
-						
-	    		    	try {
-	    					ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
-	    				} catch (Exception e) {
-	    					ConvertigoPlugin.logWarning(e, "Could not refresh in tree Connector \""+databaseObject.getName()+"\" !");
-	    				}
-						
+
+						try {
+							ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+						} catch (Exception e) {
+							ConvertigoPlugin.logWarning(e, "Could not refresh in tree Connector \""+databaseObject.getName()+"\" !");
+						}
+
 					}
+				} else if (databaseObject instanceof JsonIndex) {
+					CouchDbManager.syncDocument(connector);
 				}
 			}
 		}

@@ -64,6 +64,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.couchdb.JsonIndex;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
@@ -316,6 +317,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				CouchDbConnector couchDbConnector = (CouchDbConnector) databaseObject;
 				if (couchDbConnector.bNew) {
 					CouchDbManager.syncDocument(couchDbConnector);
+				}
+			}
+			
+			if (databaseObject instanceof JsonIndex) {
+				JsonIndex jsonIndex = (JsonIndex) databaseObject;
+				if (jsonIndex.bNew && jsonIndex.getConnector() != null) {
+					CouchDbManager.syncDocument(jsonIndex.getConnector());
 				}
 			}
 			
