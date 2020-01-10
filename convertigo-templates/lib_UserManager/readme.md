@@ -1,7 +1,8 @@
 
 # lib_UserManager
 Here is how to set up the project for the different login providers:
-- Google
+
+- **Google**
     1. Log in to https://console.developers.google.com
     2. Create a **NEW PROJECT**.
     3. Go to **Credentials > Create credentials > OAuth client ID**
@@ -13,8 +14,7 @@ Here is how to set up the project for the different login providers:
     7. Add following **Authorised redirect URIs**:
         - https://c8ocloud.convertigo.net/convertigo/projects/libOAuth/getTokenGoogle.html
         
-
-- LinkedIn
+- **LinkedIn**
     1. Log in to https://linkedin.com/developers
     2. Go to **My Apps > Create app**
     3. Fill in the form to create your application.
@@ -23,7 +23,7 @@ Here is how to set up the project for the different login providers:
     5. Go to **Auth > OAuth 2.0 settings** and set Redirect URLs:
         - https://c8ocloud.convertigo.net/convertigo/projects/libOAuth/getTokenlinkedIn.html
 
-- Azure
+- **Azure**
     1. Log in to https://portal.azure.com
     2. Go to **All Services > Azure Active Directory > App registrations**
     3. Click **New registration**.
