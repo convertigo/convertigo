@@ -757,7 +757,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			
 			@Override
 			public boolean isNgModuleForApp() {
-				if (!getModuleNgImports().isEmpty()) {
+				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
 					return true;
 				}
 				return false;
