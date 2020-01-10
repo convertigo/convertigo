@@ -21,17 +21,17 @@
             _data = C8oCafUtils.merge(_data, props)
             _data = C8oCafUtils.merge(_data, vars)
             
-            delete _data.requestable
-            delete _data.RootKey
+            delete _data["requestable"]
+            delete _data["RootKey"]
             
             if (rootKey != undefined) {
                 data[rootKey] = C8oCafUtils.merge({}, _data)
                 data["_use_policy"] = policy
-                if (group != null) {
-                    data["c8oGrp"] = group
-                }
                 if (id != null) {
                     data["_id"] = id
+                }
+                if (group != null) {
+                    data["c8oGrp"] = group
                 }
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
@@ -45,10 +45,10 @@
             } else {
                 data = C8oCafUtils.merge({}, _data)
                 if (id == null) {
-                   delete data._id;
+                   delete data["_id"];
                 }
                 if (group == null) {
-                    delete data.c8oGrp
+                    delete data["c8oGrp"]
                 }
                 
                 delete data["stack"]
