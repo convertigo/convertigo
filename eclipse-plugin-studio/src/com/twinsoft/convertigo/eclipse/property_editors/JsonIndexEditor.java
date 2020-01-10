@@ -36,6 +36,8 @@ public class JsonIndexEditor extends TableEditor {
 	public CellEditor[] getColumnEditors(Composite parent) {
 		columnEditors = new CellEditor[1];
 		columnEditors[0] = new TextCellEditor(parent);
+		columnSizes = new int[1];
+		columnSizes[0] = 250;
 		return columnEditors;
 	}
 }

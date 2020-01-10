@@ -178,7 +178,9 @@ public class TableEditorComposite extends AbstractDialogComposite {
 		GridData gridData = new GridData(GridData.FILL_BOTH);
 		gridData.grabExcessVerticalSpace = true;
 		gridData.horizontalSpan = 3;
-		table.setLayoutData(gridData);		
+		gridData.minimumWidth = 320;
+		gridData.minimumHeight = 240;
+		table.setLayoutData(gridData);
 		table.setLinesVisible(true);
 		table.setHeaderVisible(true);
 	}
