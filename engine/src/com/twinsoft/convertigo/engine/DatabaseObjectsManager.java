@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -216,6 +216,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		
 		File projectsDir = new File(Engine.PROJECTS_PATH);
 		SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+		projectNames.addAll(projects.keySet());
 		projectNames.addAll(studioProjects.getProjects(checkOpenable).keySet());
 		
 		File[] list = projectsDir.listFiles();
@@ -228,12 +229,20 @@ public class DatabaseObjectsManager implements AbstractManager {
 			for (File projectDir : projectsDir.listFiles()) {
 				String projectName = projectDir.getName();
 				
-				if (!projectNames.contains(projectName) && projectDir.isDirectory() &&
-						(new File(projectDir, projectName + ".xml").exists() || new File(projectDir, "c8oProject.yaml").exists())) {
-					if (!checkOpenable || canOpenProject(projectName)) {
-						projectNames.add(projectName);
-					} else {
-						clearCache(projectName);
+				if (!projectNames.contains(projectName)) {
+					if (projectDir.isFile() && projectDir.length() < 4096) {
+						try {
+							projectDir = new File(FileUtils.readFileToString(projectDir, "UTF-8"));
+						} catch (IOException e) {
+						}
+					}
+					if (projectDir.isDirectory() &&
+							(new File(projectDir, projectName + ".xml").exists() || new File(projectDir, "c8oProject.yaml").exists())) {
+						if (!checkOpenable || canOpenProject(projectName)) {
+							projectNames.add(projectName);
+						} else {
+							clearCache(projectName);
+						}
 					}
 				}
 			}
@@ -241,11 +250,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		
 		Engine.logDatabaseObjectManager.trace("Project names found: " + projectNames.toString());
 		return new ArrayList<String>(projectNames);
-	}
-
-	public String[] getAllProjectNamesArray() {
-		Collection<String> c = getAllProjectNamesList();
-		return c.toArray(new String[c.size()]);
 	}
 
 	protected void checkForEngineMigrationProcess(String projectName) throws ProjectInMigrationProcessException {
@@ -480,36 +484,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public void buildCar(String projectName) {
-		try {
-			CarUtils.makeArchive(projectName);
-		} catch (EngineException e) {
-			Engine.logDatabaseObjectManager.error("Build car failed!", e);
-		}
-	}
-
 	public boolean existsProject(String projectName) {
 		File file = studioProjects.getProject(projectName);
 		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName);
 		}
 		return file.exists();
-	}
-
-	public void deleteProject(String projectName) throws EngineException {
-		try {
-			deleteProject(projectName, DeleteProjectOption.createBackup);
-		} catch (Exception e) {
-			throw new EngineException("Unable to delete the project \"" + projectName + "\".", e);
-		}
-	}
-
-	public void deleteProject(String projectName, boolean bCreateBackup) throws EngineException {
-		try {
-			deleteProject(projectName, bCreateBackup ? DeleteProjectOption.createBackup : null);
-		} catch (Exception e) {
-			throw new EngineException("Unable to delete the project \"" + projectName + "\".", e);
-		}
 	}
 	
 	public void deleteProject(String projectName, boolean bCreateBackup, boolean bDataOnly)
@@ -524,6 +504,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		boolean bDataOnly = DeleteProjectOption.dataOnly.as(options);
 		boolean bPreserveEclipe = DeleteProjectOption.preserveEclipse.as(options);
 		boolean bPreserveVCS = DeleteProjectOption.preserveVCS.as(options);
+		boolean bUnloadOnly = DeleteProjectOption.unloadOnly.as(options);
 		try {
 			// Remove all pooled related contexts in server mode
 			if (Engine.isEngineMode()) {
@@ -537,12 +518,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 					Engine.theApp.contextManager.removeAll("/" + projectName);
 				}
 			}
+			
+			if (bUnloadOnly) {
+				clearCache(projectName);
+				return;
+			}
+			
 			File projectDir = new File(Engine.projectDir(projectName));
 			File removeDir = projectDir;
 			
 			if (!bDataOnly && !bPreserveEclipe && !bPreserveVCS) {
-				StringBuilder sb = new StringBuilder(Engine.PROJECTS_PATH + "/_remove_" + projectName);
-				while ((removeDir = new File(sb.toString())).exists()) {
+				StringBuilder sb = new StringBuilder("_remove_" + projectName);
+				while ((removeDir = new File(projectDir.getParentFile(), sb.toString())).exists()) {
 					sb.append('_');
 				}
 				if (!projectDir.renameTo(removeDir)) {
@@ -556,18 +543,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 
 			if (bDataOnly) {
-				Engine.logDatabaseObjectManager.info("Deleting __datas for  project \"" + projectName + "\"");
-				String dataDir = Engine.PROJECTS_PATH + "/" + projectName + "/_data";
-				deleteDir(new File(dataDir));
+				Engine.logDatabaseObjectManager.info("Deleting _data for project \"" + projectName + "\"");
+				File dataDir = new File(removeDir, "_data");
+				deleteDir(dataDir);
 
-				Engine.logDatabaseObjectManager
-						.info("Deleting __private for  project \"" + projectName + "\"");
-				String privateDir = Engine.PROJECTS_PATH + "/" + projectName + "/_private";
-				deleteDir(new File(privateDir));
+				Engine.logDatabaseObjectManager.info("Deleting _private for project \"" + projectName + "\"");
+				File privateDir = new File(removeDir, "/_private");
+				deleteDir(privateDir);
 			} else {
 				Engine.logDatabaseObjectManager.info("Deleting  project \"" + projectName + "\"");
 				if (!bPreserveEclipe && !bPreserveVCS) {
 					deleteDir(removeDir);
+					File f = new File(Engine.PROJECTS_PATH, projectName);
+					if (f.exists() && f.isFile()) {
+						f.delete();
+					}
 				} else {
 					for (File f: removeDir.listFiles((dir, name) -> {
 						if (bPreserveEclipe && (name.equals(".project") || name.equals(".settings"))) {
@@ -590,9 +580,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	public void deleteProjectAndCar(String projectName) throws EngineException {
+	public void deleteProjectAndCar(String projectName, DeleteProjectOption... options) throws EngineException {
 		try {
-			deleteProject(projectName);
+			deleteProject(projectName, options);
 
 			String projectArchive = Engine.projectDir(projectName) + ".car";
 			deleteDir(new File(projectArchive));
@@ -649,10 +639,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 	
 				// Creating backup
-				ZipUtils.makeZip(projectArchiveFilename, projectDir.getPath(), projectName, Arrays.asList(
+				ZipUtils.makeZip(projectArchiveFilename, projectDir.getPath(), projectName, new HashSet<File>(Arrays.asList(
 						new File(projectDir, "_private"),
 						new File(projectDir, ".git"),
-						new File(projectDir, ".svn")
+						new File(projectDir, ".svn"))
 				));
 			} else {
 				Engine.logDatabaseObjectManager.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
@@ -956,13 +946,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 			File file = new File(importFileName);
 			if (importFileName.endsWith(".xml") && !file.exists()) {
 				String oldName = importFileName;
-				importFileName = new File(file.getParentFile(), "c8oProject.yaml").getAbsolutePath();
-				Engine.logDatabaseObjectManager.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + importFileName);
+				file = new File(file.getParentFile(), "c8oProject.yaml");
+				Engine.logDatabaseObjectManager.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + file);
 			}
-			Project project = importProject(importFileName, null);
+			if (!file.exists()) {
+				return null;
+			}
+			Project project = importProject(file.getAbsolutePath(), null);
 			if (!Engine.isCliMode()) {
 				Engine.logDatabaseObjectManager.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFileName);
-				CouchDbManager.syncDocument(project);
+				Engine.execute(() -> CouchDbManager.syncDocument(project));
 			}
 			return project;
 		} catch (Exception e) {
@@ -982,7 +975,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	static public String getProjectName(File projectFile) throws EngineException {
 		String projectName = null;
 		if (projectFile.exists()) {
-			if (projectFile.getName().equals("c8oProject.yaml")) {
+			String filename = projectFile.getName();
+			if (filename.equals("c8oProject.yaml")) {
 				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
 					String line = br.readLine();
 					Matcher m = pYamlProjectName.matcher("");
@@ -998,14 +992,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 				} catch (Exception e) {
 					throw new EngineException("Unable to parse the yaml: " + projectFile.getAbsolutePath(), e);
 				}
-			} else if (projectFile.getName().endsWith(".car")) {
+			} else if (filename.endsWith(".car") || filename.endsWith(".zip")) {
 				try {
 					projectName = ZipUtils.getProjectName(projectFile.getAbsolutePath());
 				} catch (IOException e) {
 				}
 			}
 			if (projectName == null) {
-				Matcher m = pProjectName.matcher(projectFile.getName());
+				Matcher m = pProjectName.matcher(filename);
 				if (m.matches()) {
 					projectName = m.group(1);
 				}
@@ -1165,6 +1159,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 			
 			if (project.undefinedGlobalSymbols) {
 				Engine.logDatabaseObjectManager.error("Project \"" + projectName + "\" contains undefined global symbols: " + symbolsGetUndefined(projectName));
+			}
+			
+			if (Engine.isEngineMode() && !Engine.isCliMode()) {
+				File prjDir = project.getDirFile();
+				File pDir = new File(Engine.PROJECTS_PATH, projectName);
+				if (pDir != prjDir && !pDir.exists()) {
+					FileUtils.write(pDir, prjDir.getCanonicalPath(), "UTF-8");
+				}
 			}
 			
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" imported!");

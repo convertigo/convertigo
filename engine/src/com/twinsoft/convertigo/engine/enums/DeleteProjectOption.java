@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,7 +25,8 @@ public enum DeleteProjectOption {
 	createBackup,
 	dataOnly,
 	preserveEclipse,
-	preserveVCS;
+	preserveVCS,
+	unloadOnly;
 	
 	public boolean as(DeleteProjectOption... options) {
 		return ArrayUtils.contains(options, this);

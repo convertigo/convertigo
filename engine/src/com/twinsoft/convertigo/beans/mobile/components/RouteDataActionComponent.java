@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -77,7 +77,11 @@ public class RouteDataActionComponent extends RouteActionComponent {
 				sb.append("new C8oRoute((data:any)=>{return "+ (condition.isEmpty() ? "true":condition) +"}, tableOptions)");
 				
 				if (!targetPage.isEmpty()) {
-					sb.append(".setTarget(\""+targetAction+"\", "+targetPage+")");
+					if (compareToTplVersion("7.7.0.2") < 0) {
+						sb.append(".setTarget(\""+targetAction+"\", "+targetPage+")");
+					} else {
+						sb.append(".setTarget(\""+targetAction+"\", \""+targetPage+"\")");
+					}
 				}
 				else {
 					sb.append(".setTarget(\""+targetAction+"\")");

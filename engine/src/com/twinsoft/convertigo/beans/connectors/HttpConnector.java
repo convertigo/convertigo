@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -83,6 +83,7 @@ import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jettison.json.JSONException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -115,6 +116,7 @@ import com.twinsoft.convertigo.engine.enums.HttpPool;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.BigMimeMultipart;
@@ -618,7 +620,16 @@ public class HttpConnector extends Connector {
 			method = body.getHttpMethod();
 			httpObjectVariableValue = httpTransaction.getParameterValue(Parameter.HttpBody.getName());
 			if (method.equals("POST") && httpObjectVariableValue != null) {
-				postQuery = ParameterUtils.toString(httpObjectVariableValue);
+				if ("application/json".equals(contentType) && httpObjectVariableValue instanceof Element) {
+					try {
+						postQuery = XMLUtils.XmlToJson(((Element) httpObjectVariableValue), true, true, JsonRoot.docChildNodes);
+					} catch (JSONException e) {
+						Engine.logBeans.warn("Failed to transform the XML input to JSON string: [" + e.getClass().getCanonicalName() + "] " + e.getMessage());
+						postQuery = ParameterUtils.toString(httpObjectVariableValue);
+					}
+				} else {
+					postQuery = ParameterUtils.toString(httpObjectVariableValue);
+				}
 				isFormUrlEncoded = false;
 			}
 		}

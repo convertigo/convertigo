@@ -1,8 +1,8 @@
-↑convertigo: 7.6.6.m006
+↑convertigo: 7.7.0.m006
 ↓lib_Twitter [core.Project]: 
   bStrictMode: false
   comment: lib_Twitter Library to interact with twitter
-  version: 7.6.6
+  version: 7.7.0
   ↓lib_TwitterConnector [connectors.HttpConnector]: 🗏 connectors/lib_TwitterConnector.yaml
   ↓GetSearchUsers [sequences.GenericSequence]: 🗏 sequences/GetSearchUsers.yaml
   ↓GetShowUser [sequences.GenericSequence]: 🗏 sequences/GetShowUser.yaml

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONObject;
 
@@ -46,6 +47,8 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	
 	private static final long serialVersionUID = -1872010547443624681L;
 
+	protected static Pattern paramsPattern = Pattern.compile("^params\\d+\\..+");
+	
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	private boolean isEnabled = true;
@@ -244,6 +247,22 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
     	markAsDirty();
 	}
 
+	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIUseShared) {
+				uiComponent.addPageEvent(done, eventList);
+			}
+		}
+	}
+	
+	public void addEventSubscriber(Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIUseShared) {
+				uiComponent.addEventSubscriber(done, eventList);
+			}
+		}
+	}
+	
 	public List<UIComponent> getUIComponentList() {
 		checkSubLoaded();
 		return sort(vUIComponents);

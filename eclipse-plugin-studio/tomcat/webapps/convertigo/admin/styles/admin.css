@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -539,6 +539,12 @@ background-position-x: -2px;
     display: none;
     border-radius: 15px;
     padding: 15px;
+}
+
+#couchdbframe {
+    width: 100%;
+    height: 1200px;
+    border: none;
 }
 
 /* = WIDGET
@@ -1535,7 +1541,7 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	top: 1px;
 }
 
-#projectsDeploy, #projectsListButtonDeleteAll {
+#projectsDeploy, #projectsImportURL, #projectsListButtonDeleteAll, #projectsCheckRemoteDependencies {
 	position:relative;
 	top: 5px;
 } 

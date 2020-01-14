@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectFileFieldEditor extends StringButtonFieldEditor {
 
-	private String[] filterExtensions = new String[]{"*.car;*.xml;c8oProject.yaml"};
+	private String[] filterExtensions = new String[]{"*.car;*.zip;*.xml;c8oProject.yaml"};
 	private String[] filterNames = new String[]{"Convertigo projects"};
 	
 	/**

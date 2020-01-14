@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -64,6 +64,8 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		CERTIFICATE_CONFIG("Configure the certificate part"),
 		CONNECTIONS_VIEW("Consult the connections part"),
 		CONNECTIONS_CONFIG("Configure the connections part"),
+		FULLSYNC_VIEW("Consult the fullsync part"),
+		FULLSYNC_CONFIG("Configure the fullsync part"),
 		KEYS_VIEW("Consult the keys part"),
 		KEYS_CONFIG("Configure the keys part"),
 		LOGS_VIEW("Consult the logs part"),
@@ -184,7 +186,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		return roles;
 	}
 	
-	public void checkRoles(HttpSession httpSession, Role[] requiredRoles) throws AuthenticationException {		
+	public void checkRoles(HttpSession httpSession, Role... requiredRoles) throws AuthenticationException {
 		Role[] userRoles = roles(httpSession);
 		if (userRoles == null) {
 			throw new AuthenticationException("Authentication failure: no role defined");

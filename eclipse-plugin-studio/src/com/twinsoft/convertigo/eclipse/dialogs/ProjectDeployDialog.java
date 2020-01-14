@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,9 +24,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -41,11 +39,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
 import com.twinsoft.convertigo.eclipse.DeploymentConfigurationReadOnly;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.RemoteAdmin;
 import com.twinsoft.convertigo.engine.util.RemoteAdminException;
@@ -53,6 +53,9 @@ import com.twinsoft.convertigo.engine.util.RemoteAdminException;
 public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 
 	private ProjectDeployDialogComposite projectDeployDialogComposite;
+	
+	private Project project;
+	private Set<ArchiveExportOption> archiveExportOptions;
 	
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
@@ -64,11 +67,11 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	boolean trustAllCertificates = false;
 	boolean isHttps = false;
 	boolean bAssembleXsl = false;
-	private List<TestCase> listTestCasesSelected = new ArrayList<>(); 
 	
-	public ProjectDeployDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, List<TestCase> listTestCasesSelected) {
-		super(parentShell, dialogAreaClass, dialogTitle, 460, 500);
-		this.listTestCasesSelected = listTestCasesSelected;
+	public ProjectDeployDialog(Shell parentShell, Project project, Set<ArchiveExportOption> archiveExportOptions) {
+		super(parentShell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project", 460, 500);
+		this.project = project;
+		this.archiveExportOptions = archiveExportOptions;
 	}
 	
 	@Override
@@ -298,12 +301,8 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 			setTextLabel("Archive creation");
 			ConvertigoPlugin.logDebug("Creation of the archive...");
 			File file;
-			try {				
-				if (!listTestCasesSelected.isEmpty()) {
-					file = CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject, listTestCasesSelected);
-				} else {
-					file = CarUtils.makeArchive(ConvertigoPlugin.projectManager.currentProject);
-				}
+			try {
+				file = CarUtils.makeArchive(new File(Engine.PROJECTS_PATH, project.getName() + ".car"), project, archiveExportOptions);
 			} catch(com.twinsoft.convertigo.engine.EngineException e) {
 				throw new com.twinsoft.convertigo.engine.EngineException("The archive creation has failed: (EngineException) "+ e.getMessage());
 			}

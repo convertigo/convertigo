@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -137,6 +137,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	static final int LIBRARY_SIGFOX = 809;
 	static final int LIBRARY_SALESFORCE = 810;
 	static final int LIBRARY_FULLSYNC_GRP = 811;
+	static final int LIBRARY_USERMANAGER = 812;
 	
 	// mobile samples
 	static final int SAMPLE_OFFCHAT = 1317;
@@ -189,6 +190,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	private static final String FULLSYNC_GRP_LIBRARY_PROJECT_FILE_NAME = "lib_FullSyncGrp.car";
 	private static final String SIGFOX_LIBRARY_PROJECT_FILE_NAME = "lib_Sigfox.car";
 	private static final String SALESFORCE_LIBRARY_PROJECT_FILE_NAME = "lib_Salesforce.car";
+	private static final String USERMANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_UserManager.car";
 	// referemnce manual samples
 	private static final String REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME = "sample_refManual_siteClipper.car";
 	private static final String REFMANUAL_STATEMENTS_PROJECT_FILE_NAME = "sample_refManual_statements.car";
@@ -246,6 +248,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_FULLSYNC_GRP:
 		case LIBRARY_SIGFOX:
 		case LIBRARY_SALESFORCE:
+		case LIBRARY_USERMANAGER:
 			pageSummarySampleProject = new NewProjectWizardPageSummarySampleProject(selection);
 			addPage(pageSummarySampleProject);
 			break;
@@ -449,6 +452,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case LIBRARY_FILE_TRANSFER:
 			case LIBRARY_FULLSYNC_GRP:
 			case LIBRARY_SIGFOX:
+			case LIBRARY_USERMANAGER:
 				monitor.beginTask("Creating project", 7);
 				createFromArchiveProject(monitor);
 				return;
@@ -981,6 +985,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_SIGFOX:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SIGFOX_LIBRARY_PROJECT_FILE_NAME;
 			projectName = SIGFOX_LIBRARY_PROJECT_FILE_NAME.substring(0, SIGFOX_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_USERMANAGER:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + USERMANAGER_LIBRARY_PROJECT_FILE_NAME;
+			projectName = USERMANAGER_LIBRARY_PROJECT_FILE_NAME.substring(0, USERMANAGER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_OFFCHAT:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_OFFCHAT_PROJECT_FILE_NAME;

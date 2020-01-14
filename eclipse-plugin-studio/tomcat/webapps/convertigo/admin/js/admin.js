@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -318,7 +318,7 @@ function loadWidgets(layoutName, widgetOptions) {
 
 function loadWidget(widgetId, widgetOptions) {
 	var $widget = $("#" + widgetId);
-	if ($widget.text().length > 0) {
+	if ($widget.children().length > 0) {
 		$widget.show();
 		window[widgetId + "_update"](widgetOptions);
 	} else {	

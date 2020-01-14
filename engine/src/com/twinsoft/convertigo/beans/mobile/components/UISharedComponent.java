@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +42,18 @@ public class UISharedComponent extends UIComponent implements IShared {
 	public UISharedComponent clone() throws CloneNotSupportedException {
 		UISharedComponent cloned = (UISharedComponent) super.clone();
 		return cloned;
+	}
+	
+	public List<UICompVariable> getVariables() {
+		List<UICompVariable> list = new ArrayList<>();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UICompVariable) {
+				list.add((UICompVariable)component);
+			}
+		}
+		return Collections.unmodifiableList(list);
 	}
 	
 	@Override
@@ -64,13 +79,18 @@ public class UISharedComponent extends UIComponent implements IShared {
 	protected String computeTemplate(UIUseShared uiUse) {
 		String computed = "";
 		if (isEnabled()) {
+			computed += "<!-- '"+ getName() +"' shared component template -->" + System.lineSeparator();
+			computed += "<ng-template #sc"+ this.priority +" let-params"+ this.priority +"=\"params"+ this.priority +"\" >" + System.lineSeparator();
 			for (UIComponent uic: getUIComponentList()) {
-				try {
-					computed += uic.cloneSetParent(uiUse).computeTemplate();
-				} catch (CloneNotSupportedException e) {
-					Engine.logBeans.warn("(UISharedComponent) computeTemplate: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				if (!(uic instanceof UICompVariable)) {
+					try {
+						computed += uic.cloneSetParent(uiUse).computeTemplate();
+					} catch (CloneNotSupportedException e) {
+						Engine.logBeans.warn("(UISharedComponent) computeTemplate: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+					}
 				}
 			}
+			computed += "</ng-template >" + System.lineSeparator();
 		}
 		return computed;
 	}
@@ -107,17 +127,19 @@ public class UISharedComponent extends UIComponent implements IShared {
 		if (!done.add(this)) {
 			return;
 		}
-		Contributor contributor = getContributor();
-		if (contributor != null) {
-			if (!contributors.contains(contributor)) {
-				contributors.add(contributor);
+		if (isEnabled()) {
+			Contributor contributor = getContributor();
+			if (contributor != null) {
+				if (!contributors.contains(contributor)) {
+					contributors.add(contributor);
+				}
 			}
-		}
-		for (UIComponent uic : getUIComponentList()) {
-			try {
-				uic.cloneSetParent(uiUse).addContributors(done, contributors);
-			} catch (CloneNotSupportedException e) {
-				Engine.logBeans.warn("(UISharedComponent) addContributors: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+			for (UIComponent uic : getUIComponentList()) {
+				try {
+					uic.cloneSetParent(uiUse).addContributors(done, contributors);
+				} catch (CloneNotSupportedException e) {
+					Engine.logBeans.warn("(UISharedComponent) addContributors: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
 			}
 		}
 	}
@@ -126,12 +148,48 @@ public class UISharedComponent extends UIComponent implements IShared {
 		if (!done.add(this)) {
 			return;
 		}
-		for (UIComponent uic : getUIComponentList()) {
-			try {
-				uic.cloneSetParent(uiUse).addInfos(done, infoMap);
-			} catch (CloneNotSupportedException e) {
-				Engine.logBeans.warn("(UISharedComponent) addInfos: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+		if (isEnabled()) {
+			for (UIComponent uic : getUIComponentList()) {
+				try {
+					uic.cloneSetParent(uiUse).addInfos(done, infoMap);
+				} catch (CloneNotSupportedException e) {
+					Engine.logBeans.warn("(UISharedComponent) addInfos: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
 			}
-		}		
+		}
+	}
+
+	public void addPageEvent(UIUseShared uiUse, Set<UIComponent> done, List<UIPageEvent> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
+		if (isEnabled()) {
+			for (UIComponent uic : getUIComponentList()) {
+				try {
+					if (uic instanceof UIPageEvent && uic.isEnabled()) {
+						eventList.add((UIPageEvent)uic);
+					}
+				} catch (Exception e) {
+					Engine.logBeans.warn("(UISharedComponent) addPageEvent: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
+			}
+		}
+	}
+
+	public void addEventSubscriber(UIUseShared uiUse, Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
+		if (isEnabled()) {
+			for (UIComponent uic : getUIComponentList()) {
+				try {
+					if (uic instanceof UIEventSubscriber && uic.isEnabled()) {
+						eventList.add((UIEventSubscriber)uic);
+					}
+				} catch (Exception e) {
+					Engine.logBeans.warn("(UISharedComponent) addEventSubscriber: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
+			}
+		}
 	}
 }

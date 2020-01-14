@@ -15,7 +15,8 @@
       <programArgsLin>--launcher.GTK_version
 2
       </programArgsLin>
-      <vmArgs>
+      <vmArgs>--add-opens=java.base/java.nio=ALL-UNNAMED
+--add-opens=java.base/java.lang=ALL-UNNAMED
          <argsX86>-Xms256m -Xmx1024m</argsX86>
          <argsX86_64>-Xms256m -Xmx2048m</argsX86_64>
       </vmArgs>
@@ -58,8 +59,13 @@
       <feature id="org.eclipse.ecf.core.feature"/>
       <feature id="org.eclipse.ecf.core.ssl.feature"/>
       <feature id="org.eclipse.ecf.filetransfer.feature"/>
-      <feature id="org.eclipse.ecf.filetransfer.httpclient4.feature"/>
-      <feature id="org.eclipse.ecf.filetransfer.httpclient4.ssl.feature"/>
+<!--no win32-->
+      <feature id="org.eclipse.ecf.filetransfer.httpclient45.feature"/>
+      <feature id="org.eclipse.help"/>
+      <feature id="org.eclipse.jgit"/>
+      <feature id="org.eclipse.jgit.ssh.apache"/>
+      <feature id="org.eclipse.wst.jsdt.chromium.debug.feature"/>
+<!--/no win32-->
       <feature id="org.eclipse.ecf.filetransfer.ssl.feature"/>
       <feature id="org.eclipse.egit"/>
       <feature id="org.eclipse.egit.gitflow.feature"/>
@@ -109,7 +115,7 @@
    </configurations>
 
    <repositories>
-      <repository location="http://download.eclipse.org/releases/2019-03" enabled="true" />
+      <repository location="http://download.eclipse.org/releases/2019-06" enabled="true" />
 <!--      <repository location="http://download.eclipse.org/eclipse/updates/4.7" enabled="true" /> -->
 <!--      <repository location="http://download.convertigo.com/studio/7.6" enabled="true" /> -->
    </repositories>

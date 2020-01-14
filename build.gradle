@@ -17,16 +17,17 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.6.6'
+ext.convertigoVersion = '7.7.0'
 ext.convertigoTag = ''
-ext.convertigoCodename = 'osmium'
-ext.convertigoCode = 'Os'
+ext.convertigoCodename = 'iridium'
+ext.convertigoCode = 'Ir'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-ext.jxBrowserVersion = '6.23.1'
+ext.jxBrowserVersion = '6.24.2'
 ext.swaggerUiVersion = '3.19.3'
+ext.tomcatVersion = '9.0.30'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
-ext.convertigoEngineAPI = '7.6.5-SNAPSHOT'
+ext.convertigoEngineAPI = '7.7.0-SNAPSHOT'
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
@@ -34,6 +35,11 @@ ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
 task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest', 'generateDockerfile']) {
 	group 'convertigo'
 	description 'Run this task after a Convertigo version change.'
+}
+
+configurations.all {
+	// Check for updates every build
+	resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
 eclipse {
@@ -217,14 +223,22 @@ task buildStudio32(type: Exec, dependsOn: ['writeManifest']) {
 		file('pom.xml').bytes = file('pom-32.xml').bytes
 		def featureFile = file('eclipse-feature/feature.xml')
 		def featureTxt = featureFile.text
-		featureFile.renameTo(file('eclipse-feature/feature-commons.xml'))
+		featureFile.renameTo(file('eclipse-feature/feature.xml.tmp'))
 		featureTxt = (featureTxt =~ /(?s)<!--no win32-->.*?<!--\/no win32-->/).replaceAll('')
 		featureFile.text = featureTxt
+		def productFile = file('eclipse-repository/Convertigo.product')
+		def productTxt = productFile.text
+		productFile.renameTo(file('eclipse-repository/Convertigo.product.tmp'))
+		productTxt = (productTxt =~ /(?s)<!--no win32-->.*?<!--\/no win32-->/).replaceAll('<feature id="org.eclipse.ecf.filetransfer.httpclient4.feature"/><feature id="org.eclipse.ecf.filetransfer.httpclient4.ssl.feature"/>')
+		productFile.text = productTxt
 	}
 	
 	doLast {
 		file('pom.xml').delete()
-		file('eclipse-feature/feature-commons.xml').renameTo(file('eclipse-feature/feature.xml'))
+		file('eclipse-feature/feature.xml').delete()
+		file('eclipse-repository/Convertigo.product').delete()
+		file('eclipse-feature/feature.xml.tmp').renameTo(file('eclipse-feature/feature.xml'))
+		file('eclipse-repository/Convertigo.product.tmp').renameTo(file('eclipse-repository/Convertigo.product'))
 	}
 	
 	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
@@ -347,18 +361,14 @@ task generateDockerfile {
 	
 	doLast {
 		def base = file('docker/Dockerfile.tpl').text
-		base = base.replace('%VERSION%', convertigoVersion)
+		base = base.replace('%VERSION%', convertigoVersion).replace('%FROM%', 'tomcat:9-jdk11-openjdk')
 		
-		file('docker/default/Dockerfile').text = base.replace('%FROM%', 'tomcat:7-jdk8-openjdk')
-		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
+		file('docker/default/Dockerfile').text = base.replace('%BEGIN%', '')
+		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', '')
 		file('docker/default/root-index.html').text = file('docker/root-index.html').text
 		
-		file('docker/slim/Dockerfile').text = base.replace('%FROM%', 'tomcat:7-jdk8-openjdk-slim')
-		file('docker/slim/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
-		file('docker/slim/root-index.html').text = file('docker/root-index.html').text
-		
-		file('docker/openj9/Dockerfile').text = base.replace('%FROM%', 'tomcat:7-jdk8-adoptopenjdk-openj9')
-		file('docker/openj9/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text
-		file('docker/openj9/root-index.html').text = file('docker/root-index.html').text
+		file('docker/aks/Dockerfile').text = base.replace('%BEGIN%', file('docker/aks-Dockerfile.tpl').text)
+		file('docker/aks/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', file('docker/aks-entrypoint.tpl').text)
+		file('docker/aks/root-index.html').text = file('docker/root-index.html').text
 	}
 }

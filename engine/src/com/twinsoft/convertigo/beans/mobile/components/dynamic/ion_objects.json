@@ -218,7 +218,8 @@
       "values": [
         false,
         "large",
-        "small"
+        "small",
+        "mini"
       ]
     },
     "IconPosition": {
@@ -5090,9 +5091,9 @@
           "mode": "script",
           "attr":"[iconUrl]",
           "label": "Icon",
-          "description": "Icon (the URL of the image) for the foreground. Leaving this field blank will place the default Google Map Maker Icon.",
+          "description": "Icon (the URL of the image) for the foreground. Setting an empty string for this field will place the default Google Map Maker Icon.",
           "category": "@Display",
-          "value": ""
+          "value": "''"
         },
         "Latitude": {
           "mode": "script",
@@ -6101,17 +6102,14 @@
       
       "config": {
         "module_ts_imports": [
-          {"from":"angular2-signaturepad", "components":["SignaturePadModule"]},
-          {"from":"../components/SignatureComponent/SignatureComponent", "components":["SignatureComponent"]}
+          {"from":"../components/SignatureComponent/SignatureModule", "components":["SignatureModule"]}
         ],
         "module_ng_imports": [
-          "SignaturePadModule"
+          "SignatureModule"
         ],
         "module_ng_declarations": [
-          "SignatureComponent"
         ],
         "module_ng_components": [
-          "SignatureComponent"
         ],
         "package_dependencies": [
             {"package":"angular2-signaturepad", "version":"2.7.0"}
@@ -6273,17 +6271,14 @@
       },	  
 	  "config": {
         "module_ts_imports": [
-          {"from":"angular-tree-component", "components":["TreeModule"]},
-          {"from":"../components/TreeviewComponent/TreeviewComponent", "components":["TreeviewComponent"]}
+          {"from":"../components/TreeviewComponent/TreeviewModule", "components":["TreeviewModule"]}
         ],
         "module_ng_imports": [
-          "TreeModule"
+          "TreeviewModule"
         ],
         "module_ng_declarations": [
-          "TreeviewComponent"
         ],
         "module_ng_components": [
-          "TreeviewComponent"
         ],
         "package_dependencies": [
             {"package":"angular-tree-component", "version":"7.0.0"}
@@ -6808,6 +6803,17 @@
 		"noLoading": {
           "label": "Disable loading controller",
           "description": "Defines if we want to disable loading controller showing",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+		},
+		"noAutoLogin": {
+          "label": "Disable auto login",
+          "description": "Defines if we want to disable auto login",
           "category": "@Properties",
           "type": "boolean",
           "value": "false",
@@ -9847,6 +9853,28 @@
 	        "mode": "script",
 	        "type": "string",
 	        "value": "[]",
+	        "values": [false,true]
+	      }
+      }
+    },
+    
+    "PauseAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "displayName": "PauseAction",
+      "label": "PauseAction",
+      "description": [
+"Defines an <i>PauseAction</i> component. | This component helps waiting for a given time to be elapsed."],
+      "group": "Actions",
+      "icon16": "pauseaction_color_16x16.png",
+      "icon32": "pauseaction_color_32x32.png",
+      "properties": {
+	      "duration": {
+	        "label": "Duration",
+	        "description": "Specify the pause duration (ms)",
+	        "category": "@Properties",
+	        "mode": "plain",
+	        "type": "number",
+	        "value": "1000",
 	        "values": [false,true]
 	      }
       }

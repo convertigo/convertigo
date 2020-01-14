@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -65,7 +65,11 @@ public class UIDynamicTab extends UIDynamicElement {
 		String pageName = getPageName();
 		if (!pageName.isEmpty()) {
 			try {
-				attributes.append(" [root]").append("=").append("\"router.pagesKeyValue['"+ pageName +"']\"");
+				if (compareToTplVersion("7.7.0.2") < 0) {
+					attributes.append(" [root]").append("=").append("\"router.pagesKeyValue['"+ pageName +"']\"");
+				} else {
+					attributes.append(" [root]").append("=").append("\"'"+ pageName +"'\"");
+				}
 			} catch (Exception e) {}
 		}
 		return attributes;

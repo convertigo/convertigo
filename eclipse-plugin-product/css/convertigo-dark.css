@@ -38,6 +38,7 @@ NewProjectWizardComposite7, NewProjectWizardComposite8, NewProjectWizardComposit
 NewProjectWizardComposite10, NewProjectWizardComposite11, ConfigureSAPConnectorComposite,
 ConfigureSQLConnectorComposite, StatementGeneratorComposite, LearnScreenClassWizardComposite1,
 LearnScreenClassWizardComposite2, NewProjectWizardCompositeSummarySampleProject,
+ProjectReferenceComposite,
 ComponentExplorerComposite, ComponentExplorerComposite *,
 ObjectsExplorerComposite, ObjectsExplorerComposite * {
 	background-color: inherit;

@@ -1,0 +1,177 @@
+componentScriptContent: 
+  - xmlizable: 
+    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+      →: |
+        /*Begin_c8o_AppImport*/
+        /*End_c8o_AppImport*/
+        /*Begin_c8o_AppDeclaration*/
+        	/*End_c8o_AppDeclaration*/
+        /*Begin_c8o_AppConstructor*/
+        		this.c8o.logLevelLocal = C8oLogLevel.TRACE;
+        		/*End_c8o_AppConstructor*/
+        /*Begin_c8o_AppInitialization*/
+                        statusBar.overlaysWebView(false);
+                        statusBar.backgroundColorByHexString("#00a2c9");
+                        statusBar.styleBlackOpaque();
+                        /*End_c8o_AppInitialization*/
+        /*Begin_c8o_AppFunction*/
+        	/*End_c8o_AppFunction*/
+        
+tplProjectName: mobilebuilder_tpl_7_5_2
+↓Login [mobile.components.PageComponent-1517565746153]: 🗏 mobilePages/Login.yaml
+↓Sync [mobile.components.PageComponent-1517841304460]: 🗏 mobilePages/Sync.yaml
+↓Lobby [mobile.components.PageComponent-1517842598071]: 🗏 mobilePages/Lobby.yaml
+↓Chat [mobile.components.PageComponent-1517848543093]: 🗏 mobilePages/Chat.yaml
+↓Theme [mobile.components.UITheme-1517567391269]: 
+  styleContent: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+        →: |
+          '// Ionic Variables and Theming. For more info, please see:
+          // http://ionicframework.com/docs/v2/theming/ 
+          $font-path: "../assets/fonts";
+          
+          @import "ionic.globals";
+          
+          
+          // Shared Variables
+          // --------------------------------------------------
+          // To customize the look and feel of this app, you can override
+          // the Sass variables found in Ionic''s source scss files.
+          // To view all the possible Ionic variables, see:
+          // http://ionicframework.com/docs/v2/theming/overriding-ionic-variables/
+          
+          
+          
+          
+          // Named Color Variables
+          // --------------------------------------------------
+          // Named colors makes it easy to reuse colors on various components.
+          // It''s highly recommended to change the default colors
+          // to match your app''s branding. Ionic uses a Sass map of
+          // colors so you can add, rename and remove colors as needed.
+          // The "primary" color is the only required color in the map.
+          
+          $colors: (
+                  primary:    #00a2c9,
+                  secondary:  #ffffff,
+                  danger:     #f53d3d,
+                  light:      #3edaff,
+                  dark:       #00a2c9
+          );
+          
+          
+          // App iOS Variables
+          // --------------------------------------------------
+          // iOS only Sass variables can go here
+          
+          $button-ios-border-radius: 4px;
+          
+          
+          // App Material Design Variables
+          // --------------------------------------------------
+          // Material Design only Sass variables can go here
+          
+          $button-md-border-radius: 4px;
+          
+          // App Windows Variables
+          // --------------------------------------------------
+          // Windows only Sass variables can go here
+          
+          
+          
+          
+          // App Theme
+          // --------------------------------------------------
+          // Ionic apps can have different themes applied, which can
+          // then be future customized. This import comes last
+          // so that the above variables are used and Ionic''s
+          // default are overridden.
+          
+          @import "ionic.theme.default";
+          
+          
+          // Ionicons
+          // --------------------------------------------------
+          // The premium icon font for Ionic. For more info, please see:
+          // http://ionicframework.com/docs/v2/ionicons/
+          
+          @import "ionic.ionicons";
+          
+          
+          // Fonts
+          // --------------------------------------------------
+          
+          @import "roboto";
+          @import "noto-sans";'
+↓Style [mobile.components.UIStyle-1517567453178]: 
+  styleContent: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+        →: |
+          '.content {
+              background: url(../assets/icon.svg) 50% 66% / 80% no-repeat fixed;
+              background-color: color($colors, light);
+          }
+          
+          p {
+          	color: color($colors, secondary);
+          }
+          
+          .item-md h2, .item-ios h2 {
+          	font-weight: bold;
+          	font-size: 120%;
+          }
+          
+          ion-avatar {
+          	display: flex;
+          	align-items: center;
+          	justify-content: center;
+          	background-color: color($colors, light);
+          	border-radius: 100%;
+          	box-shadow: 1px 1px;
+          }
+          
+          ion-item.item {
+          	align-items: start;
+          }
+          
+          ion-footer .toolbar-md, ion-footer .toolbar-ios {
+          	min-height: unset;
+          }
+          
+          @media all and (max-height: 500px) {
+          	ion-footer {
+          		display: none;
+          	}
+          	
+          	ion-content .scroll-content {
+          		margin-bottom: 0px !important;
+          	}
+          } 
+          
+          @keyframes sync {
+              from   {background-position-y: 0%;}
+              to   {background-position-y: 100%;}
+          }
+          
+          .card-md, .card-ios {
+          	max-width: 780px;
+          	margin: 10px auto 10px auto;
+          }
+          
+          .toast-error .toast-container {
+          	background-color: color($colors, danger);
+          }
+          
+          .offline .toolbar-background {
+          	background-color: darkorange !important;
+          }
+          
+          .class1517910596011, .class1517996593478 {
+          	max-height: 480px;
+          	object-fit: contain;
+          }'

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,6 +24,10 @@ import java.io.File;
 import java.util.Map;
 
 public abstract class Contributor {
+	public boolean isNgModuleForApp() {
+		return false;
+	}
+	
 	abstract public Map<String, File> getCompBeanDir();
 	abstract public Map<String, String> getActionTsFunctions();
 	abstract public Map<String, String> getActionTsImports();

@@ -120,6 +120,13 @@
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.actions.CheckRemoteDependenciesAction"
+               icon="icons/studio/remote_dependencies.gif"
+               id="com.twinsoft.convertigo.CheckRemoteDependenvies"
+               label="&amp;Check remote dependencies"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
                icon="icons/setupwizard_16x16.gif"
                id="com.twinsoft.convertigo.Setup"
@@ -340,6 +347,16 @@
           <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
        </wizard>
 <!-- Libraries projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryUserManagerWizard"
+             icon="icons/studio/library_usermanager_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
+             name="User Manager"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo User Manager library project.</description>
+       </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryAmazonLexWizard"
@@ -700,6 +717,13 @@
                id="convertigo.action.editMobileAppComponentClass"
                label="Edit application class"
                menubarPath="default">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationTranslationsFileAction"
+               enablesFor="1"
+               id="convertigo.action.createMobileApplicationTranslationsFile"
+               label="Create or update translations file"
+               menubarPath="translate">
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
@@ -1220,6 +1244,13 @@
             id="convertigo.projectContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
 		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyProjectRemoteURLAction"
+               enablesFor="1"
+               icon="icons/studio/clipboard_copy.gif"
+               id="convertigo.action.copyProjectRemoteURL"
+               label="Copy Project Remote URL"
+               menubarPath="clipboard"/>
+		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCloseAction"
                enablesFor="+"
                icon="icons/studio/close.gif"
@@ -1404,6 +1435,13 @@
                icon="icons/studio/menu/transaction_color_16x16.png"
                id="convertigo.action.newTransaction"
                label="Transaction"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateIndexAction"
+               enablesFor="1"
+               icon="icons/studio/menu/index_color_16x16.png"
+               id="convertigo.action.newIndex"
+               label="Index"
                menubarPath="convertigo.menu.new/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDocumentAction"
@@ -1695,6 +1733,19 @@
                <objectState
                      name="folderType"
                      value="16"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateIndexAction"
+               enablesFor="1"
+               icon="icons/studio/menu/index_color_16x16.png"
+               id="convertigo.action.newIndex"
+               label="Index"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="35"/>
             </enablement>
          </action>
          <action
@@ -3150,6 +3201,7 @@
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction"/>
@@ -3163,6 +3215,7 @@
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction"/>
 						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction"/>
@@ -3576,7 +3629,7 @@
       <wizard
             category="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
             class="com.twinsoft.convertigo.eclipse.wizards.import_export.ImportWizard"
-            icon="icons/sample.gif"
+            icon="icons/convertigo_16x16.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.ImportWizard"
             name="Convertigo project">
          <description>

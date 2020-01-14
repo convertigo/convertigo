@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -502,6 +502,9 @@ public class SecurityFilter implements Filter, PropertyChangeEventListener {
 
 				@Override
 				public void addCookie(Cookie arg0) {}
+
+				@Override
+				public void setContentLengthLong(long length) {}
 			}, new FilterChain() {
 
 				@Override

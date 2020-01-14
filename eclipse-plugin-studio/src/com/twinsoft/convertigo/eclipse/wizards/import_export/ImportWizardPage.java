@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -32,14 +32,18 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
+import com.twinsoft.convertigo.eclipse.swt.ProjectReferenceComposite;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 
 public class ImportWizardPage extends WizardPage {
 	protected ProjectFileFieldEditor editor = null;
 	protected String filePath = "";
+	protected ProjectReferenceComposite projectReferenceComposite;
 	
 	public ImportWizardPage() {
 		super("Import","Import a Convertigo project",null);
@@ -49,19 +53,16 @@ public class ImportWizardPage extends WizardPage {
 	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
 	public void createControl(Composite parent) {
-		Composite fileSelectionArea = new Composite(parent, SWT.NONE);
-		GridData fileSelectionData = new GridData(GridData.GRAB_HORIZONTAL
-				| GridData.FILL_HORIZONTAL);
-		fileSelectionArea.setLayoutData(fileSelectionData);
+		Composite page = new Composite(parent, SWT.NONE);
+		page.setLayout(new GridLayout(2, false));
 
-		GridLayout fileSelectionLayout = new GridLayout();
-		fileSelectionLayout.numColumns = 1;
-		fileSelectionLayout.makeColumnsEqualWidth = false;
-		fileSelectionLayout.marginWidth = 0;
-		fileSelectionLayout.marginHeight = 0;
-		fileSelectionArea.setLayout(fileSelectionLayout);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.horizontalSpan = 2;
 		
-		editor = new ProjectFileFieldEditor("fileSelect","Select File: ",fileSelectionArea);
+		Composite fileSelectionArea = new Composite(page, SWT.NONE);
+		fileSelectionArea.setLayoutData(gd);
+		
+		editor = new ProjectFileFieldEditor("fileSelect","Select File: ", fileSelectionArea);
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				IPath path = new Path(ImportWizardPage.this.editor.getStringValue());
@@ -69,29 +70,48 @@ public class ImportWizardPage extends WizardPage {
 				updateStatus();
 			}
 		});
-		fileSelectionArea.moveAbove(null);
+		
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.horizontalSpan = 2;
+		new Label(page, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(gd);
+		
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.horizontalSpan = 2;
+		Label label = new Label(page , SWT.NONE);
+		label.setLayoutData(gd);
+		label.setText("Project can also be imported by a \"Project remote URL\":");
+		
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.horizontalSpan = 2;
+		projectReferenceComposite = new ProjectReferenceComposite(page, SWT.NONE, new ProjectUrlParser(""), () -> updateStatus());
+		projectReferenceComposite.setLayoutData(gd);
+				
 		updateStatus();
-		setControl(fileSelectionArea);		
+		setControl(page);
 	}
 
 	private void updateStatus() {
 		String message = null;
-		if (filePath.equals("")) {
-			message = "Please select a file";
-		} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car")) {
-			message = "Please select a compatible file extension";
-		} else if (!new File(filePath).exists()) {
-			message = "Please select an existing compatible file";
-		} else {
-			try {
-				String projectName = DatabaseObjectsManager.getProjectName(new File(filePath));
-				if (StringUtils.isNotBlank(projectName)) {
-					setMessage("Current project to import is '" + projectName + "'.");
+		ProjectUrlParser parser = getParser();
+		if (parser != null) {
+			if (StringUtils.isEmpty(parser.getProjectUrl())) {
+				if (filePath.equals("")) {
+					message = "Please select a file";
+				} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car") && !filePath.endsWith(".zip")) {
+					message = "Please select a compatible file extension";
+				} else if (!new File(filePath).exists()) {
+					message = "Please select an existing compatible file";
+				} else {
+					try {
+						String projectName = DatabaseObjectsManager.getProjectName(new File(filePath));
+						if (StringUtils.isNotBlank(projectName)) {
+							setMessage("Current project to import is '" + projectName + "'.");
+						}
+					} catch (Exception e) {
+					}
 				}
-			} catch (Exception e) {
 			}
 		}
-		
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
@@ -105,9 +125,16 @@ public class ImportWizardPage extends WizardPage {
 	 */
 	@Override
 	public IWizardPage getNextPage() {
+		if (getParser().isValid()) return null;
 		if (Engine.isProjectFile(filePath)) return null;
 		return super.getNextPage();
 	}
-
+	
+	public ProjectUrlParser getParser() {
+		if (projectReferenceComposite != null) {
+			return projectReferenceComposite.getParser();
+		}
+		return null;
+	}
 	
 }

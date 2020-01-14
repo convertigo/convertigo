@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -90,7 +90,7 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 					.append(System.lineSeparator())
 					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchDefault item-left></ion-icon>")
 					.append(System.lineSeparator())
-					.append("{{p.title}}")
+					.append(compareToTplVersion("7.7.0.6") < 0 ? "{{p.title}}":"{{p.titleKey | translate}}")
 					.append(System.lineSeparator())
 					.append("</button>")
 					.append(System.lineSeparator());

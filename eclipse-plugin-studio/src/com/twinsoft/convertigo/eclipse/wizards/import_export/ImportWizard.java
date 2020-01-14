@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -31,6 +31,7 @@ import org.eclipse.ui.IWorkbench;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -49,6 +50,18 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	 */
 	public boolean performFinish() {
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		if (fileChooserPage.getParser().isValid()) {
+			try {
+				if (Engine.theApp.referencedProjectManager.importProject(fileChooserPage.getParser())) {
+					explorerView.refreshProjects();
+					return true;
+				}
+			} catch (Exception e) {
+				Engine.logStudio.debug("Loading from GIT failed", e);
+				fileChooserPage.setErrorMessage("Loading failed due to a '" + e.getClass().getSimpleName() + "': " + e.getMessage());
+			}
+			return false;
+		}
 		String filePath = fileChooserPage.getFilePath();
 		try {
 			if (explorerView != null) {
@@ -102,7 +115,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	 */
 	@Override
 	public boolean canFinish() {
-		return getTargetProjectName() != null;
+		return fileChooserPage.getParser().isValid() || getTargetProjectName() != null;
 	}
 
 	//Modified by julienda - 13/09/2012

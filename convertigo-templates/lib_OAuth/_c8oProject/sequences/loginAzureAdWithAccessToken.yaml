@@ -1,5 +1,5 @@
 comment: |
-  Checks if the implicit flow token is valid and get user information from AzureAd enpoint 2.0.
+  Perform the OAuth flow for AzureAD
   
   If the token is valid, it will be stored in the user's session to be used when calling Microsoft APIs.
   
@@ -73,6 +73,61 @@ comment: |
     ↓login [steps.XMLElementStep-1493626951781]: 
       nodeName: login
       nodeText: ok
+    ↓Concat [steps.XMLConcatStep-1572959831948]: 
+      nodeName: authUser
+      separator: 
+      sourcesDefinition: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+          - com.twinsoft.convertigo.beans.common.XMLVector: 
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+              - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: description
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                  - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: azuread:
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+              - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: description
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                  - com.twinsoft.convertigo.beans.common.XMLVector: 
+                    - java.lang.String: 
+                      - ↑value: 1493473336468
+                    - java.lang.String: 
+                      - ↑value: ./document/object/id/text()
+                - java.lang.String: 
+                  - ↑value: ''
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+              - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: description
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                  - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: ':'
+            - xmlizable: 
+              - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+              - com.twinsoft.convertigo.beans.common.XMLVector: 
+                - java.lang.String: 
+                  - ↑value: description
+                - xmlizable: 
+                  - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+                  - com.twinsoft.convertigo.beans.common.XMLVector: 
+                    - java.lang.String: 
+                      - ↑value: 1493473336468
+                    - java.lang.String: 
+                      - ↑value: ./document/object/userPrincipalName/text()
+                - java.lang.String: 
+                  - ↑value: ''
     ↓Set_authenticated_user [steps.SetAuthenticatedUserStep-1493626951783]: 
       userid: 
         - xmlizable: 
@@ -81,9 +136,9 @@ comment: |
             - ↑mode: SOURCE
             - com.twinsoft.convertigo.beans.common.XMLVector: 
               - java.lang.String: 
-                - ↑value: 1493473336468
+                - ↑value: 1572959831948
               - java.lang.String: 
-                - ↑value: ./document/object/userPrincipalName/text()
+                - ↑value: ./text()
     ↓Copy [steps.XMLCopyStep-1493627024028]: 
       sourceDefinition: 
         - xmlizable: 

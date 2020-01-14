@@ -1,0 +1,22 @@
+↑default: true
+comment: don't use it
+↓void [transactions.HttpTransaction]: 
+  ↑default: true
+  comment: don't use it
+  handlers: 
+    →: |
+      '
+      // Handles the transaction start event.
+      function onTransactionStarted() {
+          // TODO: add your code here
+      
+          // TODO: customize the returned value (if you omit returned value, the 
+          // algorithm will continue its process).
+          // Possible values are:
+          //    cancel - means the algorithm cancels the transaction core process.
+      
+          log.message("This transaction does nothing as it has a return \"cancel\" statement in the \"onTransactionStarted\" handler.");
+          
+          return "cancel";
+      }
+      '

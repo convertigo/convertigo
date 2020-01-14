@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -92,12 +92,11 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
-				"A Personal Studio Configuration (PSC) is required to start Convertigo Studio. " +
-				"A PSC automatically configures your Studio for project deployments on Convertigo Cloud and Convertigo Servers.\n\n" +
-				"Note that previous Convertigo \"personal registration certificates\" are also valid PSCs.\n\n" +
-				"Included with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
-				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/Forums\">http://www.convertigo.com/Forums</a>\n\n" +
-				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n"
+				"\nIncluded with Convertigo Community Edition, you get access to a 15 days free « Convertigo Cloud » account. You will be able to deploy your projects on this cloud account, and when the trial expires, " +
+				"you will have the opportunity to buy production Convertigo Cloud devices licences.\n\n" +
+				"As a result of the cloud signup process, you will receive a PSC by email that will configure your Studio for projects deployment on your Convertigo Cloud account. \n\n" +
+				"You can access the Convertigo Community support on Stack overflow by clicking this link: <a href=\"https://stackoverflow.com/questions/ask?tags=convertigo\">https://stackoverflow.com/questions/ask?tags=convertigo</a>.\n\n" +
+				"Registered users will also get a free 30 minutes \"Getting Started\" web meeting session with one of our support engineers. The link to choose an available slot will be available in the same email providing you the PSC. \n\n"
 		);
 		details.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
@@ -106,11 +105,11 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		registerComposite.setLayout(new GridLayout(2, false));
 		
 		Button goToRegisterWebsite = new Button(registerComposite, SWT.NONE);
-		goToRegisterWebsite.setText("Click now to register");
+		goToRegisterWebsite.setText("Click now to Signup");
 		
 		Link registerLink = new Link(registerComposite, SWT.WRAP);
 		registerLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		registerLink.setText("or go to <a href=\"http://register.convertigo.com\">http://register.convertigo.com</a>");
+		registerLink.setText("or go to <a href=\"https://signup.convertigo.com\">https://signup.convertigo.com</a>");
 		
 		Label label = new Label (container, SWT.NONE);
 		FontData fontDefaultData = label.getFont().getFontData()[0];
@@ -149,7 +148,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		goToRegisterWebsite.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				org.eclipse.swt.program.Program.launch("http://register.convertigo.com");
+				org.eclipse.swt.program.Program.launch("https://signup.convertigo.com");
 			}
 			
 			@Override

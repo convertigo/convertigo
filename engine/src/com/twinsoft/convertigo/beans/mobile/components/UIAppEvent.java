@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,13 +19,12 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -40,6 +39,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	private static final long serialVersionUID = 2861783522824694904L;
 	
 	private transient UIActionErrorEvent errorEvent = null;
+	private transient UIActionFinallyEvent finallyEvent = null;
 	
 	public enum AppEventType {
 		ionicPromise,
@@ -55,7 +55,8 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		onSessionLost("handleSessionLost()", AppEventType.c8oObservable, "7.6.0.2"),
 		onNetworkReachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
 		onNetworkUnreachable("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
-		onNetworkOffline("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3")
+		onNetworkOffline("handleNetworkEvents()", AppEventType.c8oObservable, "7.6.0.3"),
+		onAutoLogin("handleAutoLoginResponse()", AppEventType.c8oObservable, "7.7.0.1")
 		;
 		
 		String event;
@@ -68,15 +69,15 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		}
 		
 		static String[] getTagsForProperty(String tplVersion) {
-			List<String> tagList = new ArrayList<String>();
+			TreeSet<String> eventSet = new TreeSet<String>();
 			if (tplVersion != null) {
 				for (AppEvent appEvent: AppEvent.values()) {
 					if (MobileBuilder.compareVersions(tplVersion, appEvent.tplVersion) >= 0) {
-						tagList.add(appEvent.name());
+						eventSet.add(appEvent.name());
 					}
 				}
 			}
-			return tagList.toArray(new String[tagList.size()]);
+			return eventSet.toArray(new String[eventSet.size()]);
 		}
 		
 		String computeConstructor(String functionName) {
@@ -96,6 +97,9 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 				if (this.equals(onNetworkOffline)) {
 					return "\t\tthis.c8o."+ event +".subscribe((data) => {if (data == C8oNetworkStatus.Offline) {this."+ functionName +"(data)}});"+ System.lineSeparator();
 				}
+				if (this.equals(onAutoLogin)) {
+					return "\t\tthis.c8o."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
+				}				
 			}
 			if (type.equals(AppEventType.ionicPromise)) {
 				//TODO
@@ -122,6 +126,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	public UIAppEvent clone() throws CloneNotSupportedException {
 		UIAppEvent cloned = (UIAppEvent) super.clone();
 		cloned.errorEvent = null;
+		cloned.finallyEvent = null;
 		return cloned;
 	}
 
@@ -147,6 +152,11 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	protected UIActionErrorEvent getErrorEvent() {
 		return this.errorEvent;
 	}
+
+	protected UIActionFinallyEvent getFinallyEvent() {
+		return this.finallyEvent;
+	}
+	
 	
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
@@ -154,11 +164,20 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		
 		if (uiComponent instanceof UIActionErrorEvent) {
     		if (this.errorEvent != null) {
-    			throw new EngineException("The action \"" + getName() + "\" already contains an error event! Please delete it first.");
+    			throw new EngineException("The event \"" + getName() + "\" already contains an error event! Please delete it first.");
     		}
     		else {
     			this.errorEvent = (UIActionErrorEvent)uiComponent;
     			after = -1L;// to be first
+    		}
+		}
+		if (uiComponent instanceof UIActionFinallyEvent) {
+    		if (this.finallyEvent != null) {
+    			throw new EngineException("The event \"" + getName() + "\" already contains a finally handler! Please delete it first.");
+    		}
+    		else {
+    			this.finallyEvent = (UIActionFinallyEvent)uiComponent;
+    			after = this.errorEvent != null ? this.errorEvent.priority : -1L;
     		}
 		}
 		
@@ -173,15 +192,20 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
     		this.errorEvent = null;
     		markAsDirty();
         }
+        if (uiComponent != null && uiComponent.equals(this.finallyEvent)) {
+    		this.finallyEvent = null;
+    		markAsDirty();
+        }
 	}
 	
 	@Override
 	protected void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
-		if (databaseObject.equals(this.errorEvent)) {
+		if (databaseObject.equals(this.errorEvent) || databaseObject.equals(this.finallyEvent)) {
 			return;
-		} else if (this.errorEvent != null) {
+		} else if (this.errorEvent != null || this.finallyEvent != null) {
+			int num = this.errorEvent != null && this.finallyEvent != null ? 2:1;
 			int pos = getOrderedComponents().get(0).indexOf(databaseObject.priority);
-			if (pos-1 <= 0) {
+			if (pos-num <= 0) {
 				return;
 			}
 		}
@@ -190,7 +214,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	
 	@Override
 	protected void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
-		if (databaseObject.equals(this.errorEvent)) {
+		if (databaseObject.equals(this.errorEvent) || databaseObject.equals(this.finallyEvent)) {
 			return;
 		}
 		super.decreaseOrder(databaseObject, after);

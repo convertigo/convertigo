@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -60,6 +60,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
+	public static final String SEGMENT_PREFIX = "path-to-";
+	
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	
 	transient private Runnable _markPageAsDirty;
@@ -81,6 +83,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		cloned.pageDeclarations = new HashMap<String, String>();
 		cloned.pageConstructors = new HashMap<String, String>();
 		cloned.pageFunctions = new HashMap<String, String>();
+		cloned.pageTemplates = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.isRoot = isRoot;
@@ -304,20 +307,26 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	}
 
 	public List<UIPageEvent> getUIPageEventList() {
+		Set<UIComponent> done = new HashSet<>();
 		List<UIPageEvent> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
 			if (uiComponent instanceof UIPageEvent) {
 				eventList.add((UIPageEvent) uiComponent);
+			} else {
+				uiComponent.addPageEvent(done, eventList);
 			}
 		}
 		return eventList;
 	}
 
 	public List<UIEventSubscriber> getUIEventSubscriberList() {
+		Set<UIComponent> done = new HashSet<>();
 		List<UIEventSubscriber> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
 			if (uiComponent instanceof UIEventSubscriber) {
 				eventList.add((UIEventSubscriber) uiComponent);
+			} else {
+				uiComponent.addEventSubscriber(done, eventList);
 			}
 		}
 		return eventList;
@@ -430,6 +439,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		}
 		return menuId;
 	}
+	
 	protected FormatedContent scriptContent = new FormatedContent("");
 
 	public FormatedContent getScriptContent() {
@@ -440,11 +450,45 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		this.scriptContent = scriptContent;
 	}
 	
+	private String preloadPriority = "low";
+	
+	public String getPreloadPriority() {
+		return preloadPriority;
+	}
+
+	public void setPreloadPriority(String preloadPriority) {
+		this.preloadPriority = preloadPriority;
+	}
+
+	private String defaultHistory = "[]";
+	
+	public String getDefaultHistory() {
+		return defaultHistory;
+	}
+
+	public void setDefaultHistory(String defaultHistory) {
+		this.defaultHistory = defaultHistory;
+	}
+	
+	private ChangeDetection changeDetection = ChangeDetection.Default;
+	
+	public ChangeDetection getChangeDetection() {
+		return changeDetection;
+	}
+
+	public void setChangeDetection(ChangeDetection changeDetection) {
+		this.changeDetection = changeDetection;
+	}
+	
+	public String getChangeDetectionStrategy() {
+		return getChangeDetection().strategy();
+	}
+	
 	private transient Map<String, String> pageImports = new HashMap<String, String>();
 	
 	private boolean hasImport(String name) {
 		return pageImports.containsKey(name) ||
-				getProject().getMobileBuilder().hasPageTplImport(name);
+				getProject().getMobileBuilder().hasTplPageTsImport(name);
 	}
 	
 	private boolean hasCustomImport(String name) {
@@ -527,6 +571,25 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return false;
 	}
 	
+	private transient Map<String, String> pageTemplates = new HashMap<String, String>();
+	
+	private boolean hasTemplate(String name) {
+		return pageTemplates.containsKey(name);
+	}
+	
+	@Override
+	public boolean addTemplate(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (pageTemplates) {
+				if (!hasTemplate(name)) {
+					pageTemplates.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	protected Map<String, Set<String>> getInfoMap() {
 		Set<UIComponent> done = new HashSet<>();
 		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
@@ -587,6 +650,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			pageDeclarations.clear();
 			pageConstructors.clear();
 			pageFunctions.clear();
+			pageTemplates.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
@@ -658,6 +722,10 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	
 	public void markPageTsAsDirty() throws EngineException {
 		getProject().getMobileBuilder().pageTsChanged(this, false);
+	}
+	
+	public void markPageModuleTsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().pageModuleTsChanged(this);
 	}
 	
 	public void markPageEnabledAsDirty() throws EngineException {
@@ -837,6 +905,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 	
 	@Override
 	public String computeTemplate() {
+		// compute page template
 		StringBuilder sb = new StringBuilder();
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
@@ -848,7 +917,19 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				}
 			}
 		}
-		return sb.toString();
+		
+		// then add all necessary shared component templates
+		String sharedTemplates = "";
+		if (!pageTemplates.isEmpty()) {
+			sharedTemplates += "<!-- ====== SHARED TEMPLATES ====== -->"+ System.lineSeparator();
+			for (String sharedTemplate: pageTemplates.values()) {
+				sharedTemplates += sharedTemplate;
+			}
+			sharedTemplates += "<!-- ============================== -->"+ System.lineSeparator();
+			sharedTemplates += System.lineSeparator();
+		}
+		
+		return sharedTemplates + sb.toString();
 	}
 
 	public String getComputedStyle() {
@@ -931,6 +1012,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		}
 		if (propertyName.equals("iconPosition")) {
 			return new String[] {"item-left","item-end","item-right","item-start"};
+		}
+		if (propertyName.equals("preloadPriority")) {
+			return new String[] {"high","low","off"};
+		}
+		if (propertyName.equals("changeDetection")) {
+			return EnumUtils.toNames(ChangeDetection.class);
 		}
 		return new String[0];
 	}

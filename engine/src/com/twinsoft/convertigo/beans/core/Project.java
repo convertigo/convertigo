@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -641,6 +641,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return Engine.projectDir(getName());
 	}
 	
+	public File getDirFile() {
+		return Engine.projectFile(getName()).getParentFile();
+	}
+	
 	public String getXsdDirPath() {
 		return getDirPath() + "/" + XSD_FOLDER_NAME;
 	}
@@ -752,7 +756,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			}
 		}
 		else if (dbo instanceof ProjectSchemaReference) {
-			String targetProjectName = ((ProjectSchemaReference) dbo).getProjectName();
+			String targetProjectName = ((ProjectSchemaReference) dbo).getParser().getProjectName();
 			neededProjects.put(targetProjectName, true);
 		}
 		else if (dbo instanceof Sequence) {

@@ -86,4 +86,50 @@ databaseName: c8ofiletransfer
     description: (string) – Return only documents that match the specified key. Optional
 ↓design [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"_id":"_design\/design","filters":{},"updates":{},"views":{"creation":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.type == \"chunk\" && !doc.alias) {\r\n\t\t\temit(doc.creation, doc._rev);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"count_by_uuid":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.type == \"chunk\" && doc.uuid) {\r\n\t\t\temit(doc.uuid, {rev: doc._rev});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}","reduce":"_count"},"alias":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.alias && doc._id.match(\"_0$\")) {\r\n\t\t\temit(doc.alias, {filename: doc.filename, uuid: doc.uuid});\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"},"no_alias":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.type == \"chunk\" && !doc.alias && doc.uuid && doc._id.match(\"_0$\")) {\r\n\t\t\temit(doc.uuid, null);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}"}}}'
+    →: |
+      '{
+        "_id": "_design\/design",
+        "filters": {},
+        "updates": {},
+        "views": {
+          "creation": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.type == \"chunk\" && !doc.alias) {\r\n
+                  emit(doc.creation, doc._rev);\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "count_by_uuid": {
+            "map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.type == \"chunk\" && doc.uuid) {\r\n
+                  emit(doc.uuid, {rev: doc._rev});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }",
+            "reduce": "_count"
+          },
+          "alias": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.alias && doc._id.match(\"_0$\")) {\r\n
+                  emit(doc.alias, {filename: doc.filename, uuid: doc.uuid});\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"},
+          "no_alias": {"map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.type == \"chunk\" && !doc.alias && doc.uuid && doc._id.match(\"_0$\")) {\r\n
+                  emit(doc.uuid, null);\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }"}
+        }
+      }'

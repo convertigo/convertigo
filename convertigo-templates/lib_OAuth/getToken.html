@@ -59,7 +59,7 @@
 		<div id="message">Please wait while we log in...</div>
 		
 		<div id="load">
-			<div id="loading">Loading …</div>
+			<div id="loading">Loading ï¿½</div>
 			<div id="loader"></div>
 		</div>
 		
@@ -99,7 +99,7 @@
 			
 		 	responseParams = ((url).split("#")[1]).split("&");
 	        for (var i = 0; i < responseParams.length; i++) {
-	             parsedResponse[responseParams[i].split("=")[0]] = responseParams[i].split("=")[1];
+	             parsedResponse[responseParams[i].split("=")[0]] = unescape(responseParams[i].split("=")[1]);
 	        }
 	        if (parsedResponse["access_token"] !== undefined &&
 	            parsedResponse["access_token"] !== null) {

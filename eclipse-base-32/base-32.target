@@ -32,7 +32,7 @@
 		<unit id="org.eclipse.egit.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.egit.gitflow.feature.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.jgit.lfs.feature.group" version="0.0.0"/>
-		<repository location="http://download.eclipse.org/egit/updates/"/>
+		<repository location="https://download.eclipse.org/egit/updates-5.5.1/"/>
 	</location>
 </locations>
 </target>

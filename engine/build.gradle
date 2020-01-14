@@ -193,7 +193,7 @@ dependencies {
 	compileFlat 'com.convertigo.lib:mozilla-interfaces:1.9.0.17'
 	compileFlat 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat 'com.convertigo.lib:soapui:3.5.1'
-	compile     'com.convertigo.provider:convertigo-provider-couchdb:7.6.5-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-couchdb:7.7.0-SNAPSHOT'
 	compile     'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
 	compile     'com.convertigo.provider:convertigo-provider-sap:7.6.5-SNAPSHOT'
 	compile     'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
@@ -229,6 +229,7 @@ dependencies {
 	compileFlat 'io.swagger.parser.v3:swagger-parser-v3:2.0.5'
 	compileFlat 'javax.mail:mail:1.4.7'
 	compileFlat 'log4j:log4j:1.2.12'
+	compileFlat 'org.slf4j:slf4j-simple:2.0.0-alpha1'
 	compileFlat 'oauth.signpost:signpost-core:1.2.1.2'
 	compileFlat 'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
 	compileFlat 'org.apache.commons:commons-lang3:3.7'
@@ -241,6 +242,7 @@ dependencies {
 	compileFlat 'org.apache.xmlbeans:xmlbeans:2.6.0'
 	compileFlat 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat 'org.codehaus.jettison:jettison:1.4.0'
+	compileFlat 'org.eclipse.jgit:org.eclipse.jgit:5.6.0.201912101111-r'
 	compileFlat 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
 	compileFlat 'org.hibernate:hibernate-core:5.2.10.Final'
 	compileFlat 'org.mozilla:rhino:1.7.10'
@@ -252,15 +254,15 @@ dependencies {
 	compileFlat 'xml-resolver:xml-resolver:1.2'
 	// runtime dependencies from here
 	compileFlat 'com.convertigo.lib:qrcode:2011.05.19'
-	compileFlat 'net.sf.jt400:jt400:9.8'
+	compileFlat 'net.sf.jt400:jt400:10.1'
 	compileFlat 'net.sourceforge.jtds:jtds:1.3.1'
 	compileFlat 'org.apache.odftoolkit:simple-odf:0.8.2-incubating'
 	compileFlat 'org.hsqldb:hsqldb:1.8.0.10'
 	compileFlat 'org.mariadb.jdbc:mariadb-java-client:2.4.0'
-	compileFlat 'org.postgresql:postgresql:42.2.6'
+	compileFlat 'org.postgresql:postgresql:42.2.9'
 	// end runtime dependencies
-	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:7.0.94'
-	compileOnly 'org.apache.tomcat:tomcat-dbcp:7.0.94'
+	compileOnly 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	compileOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	compileOnly 'com.convertigo.lib:swt:4.4.2-linux32'
 	compileOnly project.property('sapjco3Version')
 	sapjco3     project.property('sapjco3Version')

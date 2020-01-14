@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -224,6 +224,7 @@ public class EnginePropertiesManager {
     	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
     	Context ("Real-time activity monitoring"),
     	XmlGeneration ("XML generation"),
+    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	XulRunner ("HTML parser"),
     	HttpClient ("HTTP client"),
     	Network ("Network"),
@@ -238,6 +239,7 @@ public class EnginePropertiesManager {
     	Analytics ("Analytics"),
     	Notifications ("Notifications"),
     	MobileBuilder ("Mobile builder"),
+    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	FullSync ("Full sync")
     	;
     	
@@ -351,10 +353,13 @@ public class EnginePropertiesManager {
 		ZIP_BACKUP_OLD_PROJECT ("project.zip_backup_old", "true", "Automatically performs a dated zip backup of replaced projects", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
 		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin': use client 'Origin' header\n• 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
 		
 		/** ACCOUNTS */
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
-		@PropertyOptions(propertyType = PropertyType.PasswordHash)
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD, propertyType = PropertyType.PasswordHash)
 		ADMIN_PASSWORD ("admin.password", encodeValue(PropertyType.PasswordHash, "admin"), "Admin password", PropertyCategory.Account),
 		TEST_PLATFORM_USERNAME ("testplatform.username", "", "Test Platform username (leave it blank for anonymous access)", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
@@ -431,7 +436,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.AuditAppender.layout.ConversionPattern", "!%c{1} | %d | %-5p | %m%n", "Log4J audit appender layout conversion pattern", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX ("log4j.appender.AuditAppender.MaxBackupIndex", "100", "Log4J audit appender max backup index", PropertyCategory.Logs),
+		LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX ("log4j.appender.AuditAppender.MaxBackupIndex", "25", "Log4J audit appender max backup index", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_AUDITAPPENDER_MAXFILESIZE ("log4j.appender.AuditAppender.MaxFileSize", "10MB", "Log4J audit appender max file size", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
@@ -445,7 +450,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG4J_APPENDER_CEMSAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.CemsAppender.layout.ConversionPattern", "!%-28c{1} | %d | %-5p | %-32t | %X{ContextualParameters}%m%n", "Log4J default appender layout conversion pattern", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "100", "Log4J default appender max backup index", PropertyCategory.Logs),
+		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "25", "Log4J default appender max backup index", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_CEMSAPPENDER_MAXFILESIZE ("log4j.appender.CemsAppender.MaxFileSize", "10MB", "Log4J default appender max file size", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
@@ -467,7 +472,7 @@ public class EnginePropertiesManager {
 		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.HttpClient),
 
 		/** CONNECTORS MONITORING */
-		@PropertyOptions(propertyType = PropertyType.Boolean)
+		@PropertyOptions(propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		CONNECTORS_MONITORING ("connectors.monitoring", "false", "Display running connectors in monitor of Legacy connectors", PropertyCategory.Context),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		DOCUMENT_LOG_SCREEN_DUMPS ("document.log.screen_dumps", "false", "Trace in logs the screen dumps of the running Legacy connectors", PropertyCategory.Context),
@@ -605,6 +610,8 @@ public class EnginePropertiesManager {
 		FULLSYNC_COUCH_USERNAME ("fullsync.couch.username", "", "Couch DB username for FullSync", PropertyCategory.FullSync),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		FULLSYNC_COUCH_PASSWORD ("fullsync.couch.password", "", "Couch DB password for FullSync", PropertyCategory.FullSync),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		FULLSYNC_COUCH_PREFIX ("fullsync.couch.prefix", "", "Couch DB prefix for all FullSync databases", PropertyCategory.FullSync),
 		
 		/* End of configuration keys definition */;
 		

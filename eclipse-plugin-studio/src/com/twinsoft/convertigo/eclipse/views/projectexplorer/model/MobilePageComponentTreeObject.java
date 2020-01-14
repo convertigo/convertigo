@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.MobilePageSegmentValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
@@ -164,6 +165,21 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 	}
 	
 	@Override
+	public boolean rename(String newName, boolean bDialog) {
+		PageComponent page = getObject();
+		String oldName = page.getName();
+		boolean isRenamed = super.rename(newName, bDialog);
+		if (isRenamed && !oldName.equals(newName)) {
+			String oldSegment = page.getSegment();
+			if (oldSegment.equals(PageComponent.SEGMENT_PREFIX + oldName.toLowerCase())) { // path-to-<page_name>
+				page.setSegment(oldSegment.replace(oldName.toLowerCase(), newName.toLowerCase()));
+				Engine.logEngine.debug("For page renamed to \""+ newName +"\", segment has been replaced with \""+ page.getSegment() +"\"");
+			}
+		}
+		return isRenamed;
+	}
+
+	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
 		
@@ -188,7 +204,39 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					}
 				} else if (propertyName.equals("segment")) {
 					if (!newValue.equals(oldValue)) {
-						markAppModuleTsAsDirty();
+						if (getObject().compareToTplVersion("7.7.0.2") < 0) {
+							markAppModuleTsAsDirty();
+						} else {
+							markPageTsAsDirty();
+							markPageAsDirty();
+						}
+					}
+				} else if (propertyName.equals("preloadPriority")) {
+					if (!newValue.equals(oldValue)) {
+						if (getObject().compareToTplVersion("7.7.0.2") < 0) {
+							markAppModuleTsAsDirty();
+						} else {
+							markPageTsAsDirty();
+							markPageAsDirty();
+						}
+					}
+				} else if (propertyName.equals("defaultHistory")) {
+					if (!newValue.equals(oldValue)) {
+						if (getObject().compareToTplVersion("7.7.0.8") < 0) {
+							markPageAsDirty();
+						} else {
+							markPageTsAsDirty();
+							markPageAsDirty();
+						}
+					}
+				} else if (propertyName.equals("changeDetection")) {
+					if (!newValue.equals(oldValue)) {
+						if (getObject().compareToTplVersion("7.7.0.14") < 0) {
+							markPageAsDirty();
+						} else {
+							markPageTsAsDirty();
+							markPageAsDirty();
+						}
 					}
 				} else if (propertyName.equals("title") || 
 							propertyName.equals("icon") ||
@@ -256,6 +304,15 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					"Error while writing the page.ts file for page '" + page.getName() + "'");	}
 	}
 
+	protected void markPageModuleTsAsDirty() {
+		PageComponent page = getObject();
+		try {
+			page.markPageModuleTsAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the page.module.ts file for page '" + page.getName() + "'");	}
+	}
+	
 	@Override
 	public NamedSourceSelector getNamedSourceSelector() {
 		return new NamedSourceSelector() {

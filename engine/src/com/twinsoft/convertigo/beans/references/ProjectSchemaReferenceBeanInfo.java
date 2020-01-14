@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -42,6 +42,7 @@ public class ProjectSchemaReferenceBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("projectName", beanClass, "getProjectName", "setProjectName");
             properties[0].setDisplayName(getExternalizedString("property.projectName.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.projectName.short_description"));
+            properties[0].setPropertyEditorClass(getEditorClass("ProjectReferenceEditor"));
             
 	        PropertyDescriptor filepathProperty = getPropertyDescriptor("filepath");
 	        filepathProperty.setHidden(true);

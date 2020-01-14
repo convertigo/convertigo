@@ -80,7 +80,8 @@ export class SignatureComponent implements ControlValueAccessor {
   }
 
   public drawComplete(): void {
-    this.signature = this.signaturePad.toDataURL('image/jpeg', 0.5);
+    this.signature = this.signaturePad.toDataURL('image/png', 0.5);
+    //console.log('signature completed: ' + this._signature);
   }
 
   public clear(): void {

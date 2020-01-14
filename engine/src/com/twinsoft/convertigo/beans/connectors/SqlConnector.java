@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -231,6 +231,8 @@ public class SqlConnector extends Connector {
 			throw new EngineException("Unable to retrieve a valid connection from pool", e);
 		} catch (NamingException e) {
 			throw new EngineException("Unable to find the JNDI resource", e);
+		} catch (Exception e) {
+			throw new EngineException("Unable to get a connection", e);
 		}
 
 		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + realJdbcURL);
@@ -407,6 +409,7 @@ public class SqlConnector extends Connector {
 		fireDataChanged(new ConnectorEvent(this, new SqlData(data, columnHeaders)));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		close();

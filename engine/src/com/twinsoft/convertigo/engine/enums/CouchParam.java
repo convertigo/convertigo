@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ public enum CouchParam {
 	all_or_nothing,
 	attname,
 	attpath,
+	bookmark,
 	cancel,
 	continuous,
 	create_target,
@@ -34,10 +35,13 @@ public enum CouchParam {
 	destination_rev,
 	doc_ids,
 	docid,
+	execution_stats,
+	fields,
 	func,
 	include_docs,
 	json_base,
 	key,
+	limit,
 	name,
 	new_edits,
 	password,
@@ -45,8 +49,14 @@ public enum CouchParam {
 	proxy,
 	rev,
 	section,
+	selector,
+	skip,
+	sort,
 	source,
+	stable,
 	target,
+	update,
+	use_index,
 	value,
 	view;
 	

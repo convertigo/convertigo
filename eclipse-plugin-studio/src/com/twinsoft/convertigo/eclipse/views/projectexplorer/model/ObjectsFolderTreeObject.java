@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -61,6 +61,7 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 	public static final int FOLDER_TYPE_AUTHENTICATIONS = 32;
 	public static final int FOLDER_TYPE_SHARED_ACTIONS = 33;
 	public static final int FOLDER_TYPE_SHARED_COMPONENTS = 34;
+	public static final int FOLDER_TYPE_INDEXES = 35;
 	
 	public int folderType;
 	
@@ -176,9 +177,12 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 			case FOLDER_TYPE_SHARED_COMPONENTS:
 				folderName = "Shared components";
 				break;
+			case FOLDER_TYPE_INDEXES:
+				folderName = "Indexes";
+				break;
 		}
 
-        setObject(folderName);
+		setObject(folderName);
 	}
 
 	public boolean testAttribute(Object target, String name, String value) {

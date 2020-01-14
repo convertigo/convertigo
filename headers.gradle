@@ -1,5 +1,5 @@
 def licenseText = '''\
-Copyright (c) 2001-2019 Convertigo SA.
+Copyright (c) 2001-2020 Convertigo SA.
 
 This program  is free software; you  can redistribute it and/or
 Modify  it  under the  terms of the  GNU  Affero General Public
@@ -52,11 +52,11 @@ task updateHtmlHeaders {
 	group 'convertigo'
 	
 	def files = fileTree(dir: 'eclipse-plugin-studio/tomcat/webapps/convertigo', include: ['admin/**/*.html', '*.html'])
-	
+	def htmlHeader = licenseText.replaceAll('(.*)\r?\n', '$1' + System.lineSeparator());
 	doFirst {
 		files.each {
 			println "replacing ${it}"
-			it.write(it.getText('UTF-8').replaceFirst('^(<!--[\\D\\d]*?-->)?\\s*', "<!--${System.lineSeparator()}${licenseText}-->${System.lineSeparator()}"), 'UTF-8')
+			it.write(it.getText('UTF-8').replaceFirst('^(<!--[\\D\\d]*?-->)?\\s*', "<!--${System.lineSeparator()}${htmlHeader}-->${System.lineSeparator()}"), 'UTF-8')
 		}
 	}
 }

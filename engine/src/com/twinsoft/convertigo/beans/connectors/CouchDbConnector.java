@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -254,7 +254,7 @@ public class CouchDbConnector extends Connector {
 				String _id = CouchKey._id.String(jsonDocument);
 				String docName = _id.replaceAll(CouchKey._design.key(), "");
 				
-				if (getDocumentByName(docName) == null && !"c8o".equals(docName)) { // document does'nt exist locally
+				if (getDocumentByName(docName) == null && !"c8o".equals(docName) && !"query".equals(CouchKey.language.String(jsonDocument))) { // document does'nt exist locally
 					DesignDocument ddoc = new DesignDocument();
 					ddoc.setName(docName);
 					ddoc.setJSONObject(jsonDocument);

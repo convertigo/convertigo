@@ -127,14 +127,16 @@ window.addEventListener("dragover", function (e) {
 		e.dataTransfer.dropEffect = "move";
 		window.java.onDragOver(e);
 	} catch (ex) {
-		console.log(ex);
+		console.log("dragover: " + ex);
 	}
 });
 
 window.addEventListener("drop", function (e) {
 	try {
+		// bug from jxbrowser 7.0, onDrag
+		//window.java.onDragOver(e);
 		window.java.onDrop(e);
 	} catch (ex) {
-		console.log(ex);
+		console.log("drop: " + ex);
 	}
 });

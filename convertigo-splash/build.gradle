@@ -20,11 +20,11 @@ run.systemProperties(
 	'c8o_codename': convertigoCodename,
 	'c8o_code': convertigoCode,
 	'c8o_copyright': "Copyright © 2001-${currentYear} - Convertigo",
-	'c8o_output': '../eclipse-plugin-product/splash.bmp'
+	'c8o_outputs': '../eclipse-plugin-product/splash.bmp:../eclipse-plugin-product/content/convertigoBox.png'
 )
 
 run {
 	inputs.files 'convertigo-splash/convertigo_background.png', 'convertigo-splash/eclipse_builton.png'
 	inputs.properties run.systemProperties
-	outputs.file '../eclipse-plugin-product/splash.bmp'
+	outputs.files '../eclipse-plugin-product/splash.bmp', '../eclipse-plugin-product/content/convertigoBox.png'
 }

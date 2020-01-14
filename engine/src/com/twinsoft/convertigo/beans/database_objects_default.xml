@@ -1,5 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction" default="false" priority="0" version="   7   6   5">
+    <index classname="com.twinsoft.convertigo.beans.couchdb.JsonIndex" priority="0" version="   7   7   0">
+        <property name="ascending">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="fields">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="name">
+            <java.lang.String value="Json_Index"/>
+        </property>
+    </index>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction" default="false" priority="0" version="   7   7   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostFind"/>
+        </property>
+        <property name="p_bookmark">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_execution_stats">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_fields">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_limit">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_selector">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_skip">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_sort">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_stable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_update">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_use_index">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.PageComponent" isRoot="false" priority="0" version="   7   7   0">
+        <property name="changeDetection">
+            <java.lang.String value="Default"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="defaultHistory">
+            <java.lang.String value="[]"/>
+        </property>
+        <property name="icon">
+            <java.lang.String value=""/>
+        </property>
+        <property name="iconPosition">
+            <java.lang.String value=""/>
+        </property>
+        <property name="inAutoMenu">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="menu">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Page"/>
+        </property>
+        <property name="preloadPriority">
+            <java.lang.String value="low"/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="segment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="title">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction" priority="0" version="   7   7   0">
+        <property name="actionValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[		page.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);
+		resolve();
+]]></com.twinsoft.convertigo.beans.common.FormatedContent>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="cordova_plugins">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="module_ng_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="module_ng_providers">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="module_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="name">
+            <java.lang.String value="CustomAction"/>
+        </property>
+        <property name="package_dependencies">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="page_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -59,7 +253,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction" default="false" priority="0" version="   7   6   5">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -137,7 +331,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction" default="false" priority="0" version="   7   6   5">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -263,7 +457,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction" default="false" priority="0" version="   7   6   5">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -326,73 +520,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction" default="false" priority="0" version="   7   6   5">
-        <property name="accessibility">
-            <java.lang.String value="Public"/>
-        </property>
-        <property name="addStatistics">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="authenticatedContextRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="authenticatedUserAsCacheKey">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="bIncludeCertificateGroup">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="billable">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="clientCachable">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="encodingCharSet">
-            <java.lang.String value="UTF-8"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="GetServerDatabases"/>
-        </property>
-        <property name="q_descending">
-            <java.lang.String value=""/>
-        </property>
-        <property name="q_endkey">
-            <java.lang.String value=""/>
-        </property>
-        <property name="q_limit">
-            <java.lang.String value=""/>
-        </property>
-        <property name="q_skip">
-            <java.lang.String value=""/>
-        </property>
-        <property name="q_startkey">
-            <java.lang.String value=""/>
-        </property>
-        <property name="responseExpiryDate">
-            <java.lang.String value=""/>
-        </property>
-        <property name="responseTimeout">
-            <java.lang.Long value="60"/>
-        </property>
-        <property name="secureConnectionRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="sheetLocation">
-            <java.lang.Integer value="0"/>
-        </property>
-        <property name="xmlComplexTypeAffectation">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
-                <schemaDefinition/>
-            </xmlizable>
-        </property>
-        <wsdltype/>
-        <handlers/>
-    </transaction>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction" default="false" priority="0" version="   7   6   5">
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction" default="false" priority="0" version="   7   7   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
         </property>
@@ -494,7 +622,118 @@
         <wsdltype/>
         <handlers/>
     </transaction>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PutOperation" priority="0" version="   7   6   4">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent" priority="0" version="   7   7   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Finally_Handler"/>
+        </property>
+    </mobilecomponent>
+    
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIText" priority="0" version="   7   7   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="i18n">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Text"/>
+        </property>
+        <property name="textValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:some text</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UICompVariable" priority="0" version="   7   7   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedComponent_Variable"/>
+        </property>
+        <property name="value">
+            <java.lang.String value="''"/>
+        </property>
+    </mobilecomponent>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction" default="false" priority="0" version="   7   7   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerDatabases"/>
+        </property>
+        <property name="q_descending">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_endkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_limit">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_skip">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_startkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PutOperation" priority="0" version="   7   7   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -511,7 +750,7 @@
             <java.lang.Boolean value="true"/>
         </property>
     </urlmappingoperation>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PostOperation" priority="0" version="   7   6   4">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.PostOperation" priority="0" version="   7   7   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -528,7 +767,7 @@
             <java.lang.Boolean value="true"/>
         </property>
     </urlmappingoperation>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.HeadOperation" priority="0" version="   7   6   4">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.HeadOperation" priority="0" version="   7   7   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -545,7 +784,7 @@
             <java.lang.Boolean value="true"/>
         </property>
     </urlmappingoperation>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.GetOperation" priority="0" version="   7   6   4">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.GetOperation" priority="0" version="   7   7   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -562,7 +801,7 @@
             <java.lang.Boolean value="true"/>
         </property>
     </urlmappingoperation>
-    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.DeleteOperation" priority="0" version="   7   6   4">
+    <urlmappingoperation classname="com.twinsoft.convertigo.beans.rest.DeleteOperation" priority="0" version="   7   7   0">
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -579,7 +818,35 @@
             <java.lang.Boolean value="true"/>
         </property>
     </urlmappingoperation>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   6   3">
+    <reference classname="com.twinsoft.convertigo.beans.references.ProjectSchemaReference" priority="0" version="   7   7   0">
+        <property name="authPassword">
+            <java.lang.String value=""/>
+        </property>
+        <property name="authUser">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="filepath">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Project_reference"/>
+        </property>
+        <property name="needAuthentication">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="projectName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="urlpath">
+            <java.lang.String value=""/>
+        </property>
+    </reference>
+    
+    
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   7   0">
         <property name="attrName">
             <java.lang.String value="(tap)"/>
         </property>
@@ -601,6 +868,7 @@
             <java.lang.String value="Event"/>
         </property>
     </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   7   6   2">
         <property name="attrValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -28,8 +28,9 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -44,25 +45,20 @@ public class ZipUtils {
 	private static final Pattern reProjectFromCAR = Pattern.compile("(.*?)/(?:\\1\\.xml|c8oProject\\.yaml)");
 	
 	public static File makeZip(String archiveFileName, String sDir, String sRelativeDir) throws Exception {
-		File file = new File(archiveFileName);
-		FileOutputStream fos = new FileOutputStream(file);
-		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, Collections.<File>emptyList());
-		if (nbZipEntries > 0) zos.close();
-		return file;
+		return makeZip(archiveFileName, sDir, sRelativeDir, null);
 	}
     
-	public static File makeZip(String archiveFileName, String sDir, String sRelativeDir, List<File> excludedFiles) throws Exception {
+	public static File makeZip(String archiveFileName, String sDir, String sRelativeDir, Set<File> excludedFiles) throws Exception {
 		File file = new File(archiveFileName);
-		try (FileOutputStream fos = new FileOutputStream(file)) {
-			ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-			int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, excludedFiles);
+		try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file))) {
+			ZipOutputStream zos = new ZipOutputStream(bos, Charset.forName("UTF-8"));
+			int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, excludedFiles == null ? Collections.<File>emptySet() : excludedFiles);
 			if (nbZipEntries > 0) zos.close();
 			return file;
 		}
 	}
     
-	private static int putEntries(ZipOutputStream zos, String sDir, String sRelativeDir, final List<File> excludedFiles) throws Exception {
+	private static int putEntries(ZipOutputStream zos, String sDir, String sRelativeDir, final Set<File> excludedFiles) throws Exception {
 		Engine.logEngine.trace("==========================================================");
 		Engine.logEngine.trace("sDir=" + sDir);
 		Engine.logEngine.trace("sRelativeDir=" + sRelativeDir);
@@ -105,12 +101,12 @@ public class ZipUtils {
 		}
 		return nbe;
 	}
-    
+
 	public static void expandZip(String zipFileName, String rootDir) throws FileNotFoundException, IOException {
 		expandZip(zipFileName, rootDir, null);
 	}
-	
-    public static void expandZip(String zipFileName, String rootDir, String prefixDir) throws FileNotFoundException, IOException {
+
+	public static void expandZip(String zipFileName, String rootDir, String prefixDir) throws FileNotFoundException, IOException {
 		Engine.logEngine.debug("Expanding the zip file " + zipFileName);
 
 		// Creating the root directory
@@ -136,7 +132,7 @@ public class ZipUtils {
 				} else {
 					
 					String entryName = entry.getName();
-					Engine.logEngine.debug("+ Analyzing the entry: " + entryName);	            
+					Engine.logEngine.debug("+ Analyzing the entry: " + entryName);
 					
 					try {
 						// Ignore entry if does not belong to the project directory

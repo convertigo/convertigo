@@ -1,0 +1,119 @@
+<html>
+	<head>
+		<script src="../../scripts/jquery.min.js"></script>
+		<style>
+			body {
+				padding: 0px;
+				background-color: lightblue;
+				font-family: sans-serif;
+				overflow-x: hidden;
+				overflow-y: hidden;
+			}
+			#main {
+				padding: 3% 25% 3% 25%;
+			}
+			#load {
+			    margin: auto;
+			    text-align: center;
+			}
+			
+			#Message {
+			    margin: auto;
+			    text-align: center;
+			}
+			
+			#loader {
+			  border: 16px solid #f3f3f3;
+			  border-radius: 50%;
+			  border-top: 16px solid #3498db;
+			  width: 120px;
+			  height: 120px;
+			  animation: spin 2s linear infinite;
+			  margin: auto;
+			}
+			#loading {
+				position: relative;
+				top: 86px;
+			}
+			#l1, #l2, #l3 {
+				margin-top: 3 px;
+			}
+			#l2 {
+				opacity: 0.5;
+			}
+			#l3 {
+				opacity: 0.2;
+			}
+			@keyframes spin {
+			  0% { transform: rotate(0deg); }
+			  100% { transform: rotate(360deg); }
+			}
+		</style>
+	</head>
+	<body>
+		<br />
+		<br />
+		<br />
+		<br />
+		<br />
+		<div id="message">Please wait while we log in...</div>
+		
+		<div id="load">
+			<div id="loading">Loading �</div>
+			<div id="loader"></div>
+		</div>
+		
+		<script>
+			function _c8o_toast(msg) {
+				var toast = document.createElement("div");
+				toast.textContent = msg;
+				toast.setAttribute("style",
+					"position: fixed;" +
+					"z-index: 99999999;" +
+					"top: 0px;" +
+					"margin: 2% 5%;" +
+					"background-color: black;" +
+					"color: white;" +
+					"font-size: 1.5em;" +
+					"font-family: sans-serif;" +
+					"padding: 5px 0px;" +
+					"width: 90%;" +
+					"border-radius: 10px;" +
+					"text-align: center;" +
+					"transition: 1s;"
+				);
+				
+				document.body.appendChild(toast);
+				
+				window.setTimeout(function () {
+					toast.style.opacity = 0;
+				}, 2000);
+				window.setTimeout(function () {
+					toast.remove();
+				}, 3000);
+			}
+			
+			
+			var url = window.location.href;
+			var parsedResponse = {};
+			
+		 	responseParams = ((url).split("?")[1]).split("&");
+	        for (var i = 0; i < responseParams.length; i++) {
+	             parsedResponse[responseParams[i].split("=")[0]] = unescape(responseParams[i].split("=")[1]);
+	        }
+	        if (parsedResponse["code"] !== undefined &&
+	            parsedResponse["code"] !== null) {
+	        	//console.log("code : " + parsedResponse["code"]);
+	        	//console.log("state : " + parsedResponse["state"]);
+	        	if (parsedResponse["state"] == "c8ocsrf") {
+		        	parsedResponse["access_token"] = "none";
+		        	parsedResponse["redirect_uri"] = url.split("?")[0];
+	        		window.opener.postMessage(parsedResponse, '*');
+	        		window.close();
+	        	}
+	        } else {
+	        	console.log("Error on oAuth");
+	        }
+         </script>
+	</body>
+</html>

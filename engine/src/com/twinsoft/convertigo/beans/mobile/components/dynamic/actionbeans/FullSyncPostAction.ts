@@ -15,37 +15,55 @@
             let id     = props._id
             let group  = props.c8oGrp
             
-            delete props.requestable
-            delete props.RootKey
-
             let data = {}
+        
+            let _data = {}
+            _data = C8oCafUtils.merge(_data, props)
+            _data = C8oCafUtils.merge(_data, vars)
+            
+            delete _data["requestable"]
+            delete _data["RootKey"]
+            
             if (rootKey != undefined) {
-                data[rootKey] = C8oCafUtils.merge(props, vars)
+                data[rootKey] = C8oCafUtils.merge({}, _data)
+                data["_use_policy"] = policy
+                if (id != null) {
+                    data["_id"] = id
+                }
+                if (group != null) {
+                    data["c8oGrp"] = group
+                }
                 delete data[rootKey]._use_policy
                 delete data[rootKey]._id
                 delete data[rootKey].c8oGrp
-                if (group != null)
-                    data["c8oGrp"] = group
-                    
-                data["_use_policy"] = policy
-                if(id != null){
-                    data["_id"]         = id
-                }
                 
+                delete data[rootKey]["stack"]
+                delete data[rootKey]["noLoading"]
+                delete data[rootKey]["tplVersion"]
+                delete data[rootKey]["actionName"]
+                delete data[rootKey]["actionFunction"]
             } else {
-                if(id == null){
-                   delete props._id;
+                data = C8oCafUtils.merge({}, _data)
+                if (id == null) {
+                   delete data["_id"];
                 }
                 if (group == null) {
-                    delete props.c8oGrp
+                    delete data["c8oGrp"]
                 }
-                data = C8oCafUtils.merge(props, vars)
+                
+                delete data["stack"]
+                delete data["noLoading"]
+                delete data["tplVersion"]
+                delete data["actionName"]
+                delete data["actionFunction"]
             }
+        
             let md:boolean = props.noLoading;
             
             let args = [];
             let version:string = props.tplVersion ? props.tplVersion : '';
-            if (version.localeCompare("7.6.0.0") >= 0) {
+            let greater: any = typeof page["compare"]!== "undefined" ? page["compare"]("7.6.0.0", version) : version.localeCompare("7.6.0.0");
+            if (greater) {
                 args.push("fs://" + rvm, data, null, 500, md)
             } else {
                 args.push("fs://" + rvm, data, null, 500)

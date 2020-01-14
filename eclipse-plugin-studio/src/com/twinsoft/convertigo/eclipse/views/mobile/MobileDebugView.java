@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,6 +19,10 @@
 
 package com.twinsoft.convertigo.eclipse.views.mobile;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.codehaus.jettison.json.JSONArray;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IPartListener2;
@@ -29,12 +33,12 @@ import org.eclipse.ui.part.ViewPart;
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class MobileDebugView extends ViewPart implements IPartListener2 {
 	
 	C8oBrowser c8oBrowser;
 	Browser browser;
-	
 	public MobileDebugView() {
 		
 	}
@@ -49,8 +53,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	@Override
 	public void createPartControl(Composite parent) {
 		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
-		browser = c8oBrowser.getBrowser();
-		browser.setZoomEnabled(false);
+		c8oBrowser.setZoomEnabled(false);
 		c8oBrowser.setText("<head><style>color: $foreground$; background-color: $background$;</style></head>"
 				+ "<body>please select a mobile application editor</body>");
 		
@@ -67,10 +70,14 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		if (part instanceof ApplicationComponentEditor) {
 			String url = ((ApplicationComponentEditor) part).getDebugUrl();
 			if (url != null) {
-				C8oBrowser.run(() -> {
-					if (!url.equals(browser.getURL())) {
-						browser.loadURL(url);
+				Engine.execute(() -> {
+					String u = url;
+					try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(new HttpGet(url + "/json"))) {
+						JSONArray json = new JSONArray(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+						u = json.getJSONObject(0).getString("devtoolsFrontendUrl");
+					} catch (Exception e) {
 					}
+					c8oBrowser.loadURL(u);
 				});
 			}
 		}

@@ -34,7 +34,7 @@ RUN apt-get update -y \
     unzip \
   && rm -rf /var/lib/apt/lists/*
 
-
+%BEGIN%
 ## grab gosu for easy step-down from root and tini for signal handling
 
 ENV GOSU_VERSION 1.11

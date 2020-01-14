@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -64,6 +64,22 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		this.stack = stack;
 	}
 
+	public boolean isRecursive() {
+		UIActionStack parentSharedAction = ((UIDynamicInvoke)this.getOriginal()).getSharedAction();
+		// if UIDynamicInvoke is in a UIActionStack
+		if (parentSharedAction != null) {
+			UIActionStack targetSharedAction = this.getTargetSharedAction();
+			// if UIDynamicInvoke has a target UIActionStack
+			if (targetSharedAction != null) {
+				// if they are the same
+				if (parentSharedAction.priority == targetSharedAction.priority) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	public UIActionStack getTargetSharedAction() {
 		try {
 			String qname =  getSharedActionQName();

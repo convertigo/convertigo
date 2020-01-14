@@ -1,0 +1,49 @@
+accessibility: Private
+↓Hash [steps.SimpleStep-1572600502810]: 
+  expression: |
+    'if (salt == undefined) {
+    	// no Salt provided so use in set password mode.
+    	// We will generate a salt and HASH the whole stuff.
+    	// returning the hash and the salt.
+    	random = new java.security.SecureRandom();
+    	byteArray = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 32);
+    	random.nextBytes(byteArray);
+    	var jSalt = com.twinsoft.convertigo.engine.util.Base64.encodeBytes(byteArray);
+    	var jHash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(password + "+" + jSalt);
+    } else {
+    	// We do have a salt, so this is used in Verify mode
+    	testHash = org.apache.commons.codec.digest.DigestUtils.sha1Hex(password + "+" + salt) +"";
+    	var jVerified = testHash == hash ? true : false;
+    }
+    
+    
+    '
+↓jElement [steps.ElementStep-1572600502813]: 
+  expression: jHash
+  nodeName: hash
+↓jElement1 [steps.ElementStep-1572600502816]: 
+  expression: jSalt
+  nodeName: salt
+↓jElement11 [steps.ElementStep-1572600502819]: 
+  expression: jVerified
+  nodeName: verified
+↓password [variables.RequestableVariable-1572600502822]: 
+↓salt [variables.RequestableVariable-1572600502825]: 
+↓hash [variables.RequestableVariable-1572600502828]: 
+↓TestSetPassword [core.TestCase]: 
+  ↓password [variables.TestCaseVariable-1572600502832]: 
+    value: test
+↓TestVerifyKo [core.TestCase]: 
+  ↓password [variables.TestCaseVariable-1572600502836]: 
+    value: jfdhkjhdjfsqdf
+  ↓salt [variables.TestCaseVariable-1572600502839]: 
+    value: mQ8TitvuEwaEZ79u/Q3y3LcSBFjSvX7FJ1EbdJ5ctT0=
+  ↓hash [variables.TestCaseVariable-1572600502842]: 
+    value: ef44670e87be2d1187d42a52b761db48
+↓TestVerifyOk [core.TestCase]: 
+  ↓password [variables.TestCaseVariable-1572600502846]: 
+    value: test
+  ↓salt [variables.TestCaseVariable-1572600502849]: 
+    value: vCmR6MTjtEp6m5altVCo+0klbbcm5fzinNasEEJCdTg=
+  ↓hash [variables.TestCaseVariable-1572600502852]: 
+    value: fea793eea05936bab8247499a0e297b165b30f34

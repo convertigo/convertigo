@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -70,7 +70,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
-import org.eclipse.jface.viewers.ViewerSorter;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
@@ -150,6 +150,7 @@ import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
@@ -269,7 +270,6 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-@SuppressWarnings("deprecation")
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
 
 	public static final int TREE_OBJECT_TYPE_UNKNOWN = 0;
@@ -344,6 +344,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_VALIDATORS = 0x219;
 	public static final int TREE_OBJECT_TYPE_FOLDER_MENUS = 0x21A;
 	public static final int TREE_OBJECT_TYPE_FOLDER_AUTHENTICATIONS = 0x21B;
+	public static final int TREE_OBJECT_TYPE_FOLDER_INDEXES = 0x21C;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -417,6 +418,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
+	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewContentProvider = new ViewContentProvider(this);
 
@@ -1218,6 +1220,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										objectType = "variable";
 										updateDlg = true;
 									}
+									if (dbo instanceof UICompVariable) {
+										objectType = "variable";
+										updateDlg = true;
+									}
 								}
 
 								if (updateDlg) {
@@ -1617,6 +1623,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							else if (databaseObject instanceof UIControlVariable) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 							}
+							else if (databaseObject instanceof UICompVariable) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
+							}
 							else if (databaseObject instanceof UIStackVariable) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 							}
@@ -1724,13 +1733,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 						} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Listener) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_LISTENERS;
-							com.twinsoft.convertigo.beans.core.Listener listener = (com.twinsoft.convertigo.beans.core.Listener)databaseObject;
+							com.twinsoft.convertigo.beans.core.Listener listener = (com.twinsoft.convertigo.beans.core.Listener) databaseObject;
 							String listenerRenderer = listener.getRenderer();
-							if (listenerRenderer.equals("FullSyncListenerTreeObject"))
+							if (listenerRenderer.equals("FullSyncListenerTreeObject")) {
 								databaseObjectTreeObject = new FullSyncListenerTreeObject(viewer, listener, false);
-							else
+							} else {
 								databaseObjectTreeObject = new ListenerTreeObject(viewer, listener, false);
-
+							}
+							
+						} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Index) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_INDEXES;
+							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
+							
 						} else {
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
@@ -2567,6 +2581,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PLATFORMS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS;
 			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_INDEXES) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_INDEXES;
+			}
 		}
 		else if (treeNode instanceof HandlersDeclarationTreeObject) {
 			return ProjectExplorerView.TREE_OBJECT_TYPE_HANDLERS_DECLARATION;
@@ -2959,6 +2976,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			public void run() {
 				try {
 					ConvertigoPlugin.logDebug("[ProjectExplorerView] event 'migrationFinished' received");
+					Engine.theApp.referencedProjectManager.check();
 					refreshProjects();
 					refreshTree();
 				}
@@ -2993,7 +3011,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (Engine.isProjectFile(filePath)) {
 			ConvertigoPlugin.getDefault().createProjectPluginResource(targetProjectName, new File(filePath).getParent());
 			importedProject = Engine.theApp.databaseObjectsManager.importProject(filePath);
-		} else if (filePath.endsWith(".car") && (targetProjectName != null)) {
+		} else if ((filePath.endsWith(".car") || filePath.endsWith(".zip")) && (targetProjectName != null)) {
 			importedProject = Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
 		}
 
@@ -3018,7 +3036,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	
 	public Comparator<TreeObject> getViewerComparator() {
 		Comparator<TreeObject> comparator = null;
-		ViewerSorter sorter = viewer != null ? viewer.getSorter() : new ViewerSorter();
+		ViewerComparator sorter = viewer != null ? viewer.getComparator() : new ViewerComparator();
 		comparator = new Comparator<TreeObject>() {
 			@Override
 			public int compare(TreeObject o1, TreeObject o2) {
@@ -3059,6 +3077,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					return databaseObject instanceof UIFormValidator;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES:
 					return databaseObject instanceof UIStackVariable ||
+							databaseObject instanceof UICompVariable ||
 							databaseObject instanceof UIControlVariable;
 			}
 		}

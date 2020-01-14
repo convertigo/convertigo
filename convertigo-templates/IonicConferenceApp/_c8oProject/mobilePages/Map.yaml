@@ -73,7 +73,7 @@ title: Title for Map
         beanData: |
           '{
            "ionBean": "MapMarker",
-           "IconUrl": "plain:false",
+           "IconUrl": "script:''''",
            "Latitude": "source:{\"filter\":\"Iteration\",\"project\":\"IonicConferenceApp\",\"input\":\"item1504732037883.value.lat\"}",
            "Longitude": "source:{\"filter\":\"Iteration\",\"project\":\"IonicConferenceApp\",\"input\":\"item1504732037883.value.lng\"}",
            "Title": "source:{\"filter\":\"Iteration\",\"project\":\"IonicConferenceApp\",\"input\":\"item1504732037883?.value.name\"}"

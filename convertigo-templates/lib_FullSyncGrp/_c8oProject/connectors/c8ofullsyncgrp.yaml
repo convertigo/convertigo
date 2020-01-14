@@ -36,4 +36,35 @@ databaseName: c8ofullsyncgrp
   ↓_id [variables.RequestableVariable-1485254252736]: 
 ↓design [couchdb.DesignDocument]: 
   docdata: 
-    →: '{"_id":"_design\/design","filters":{},"updates":{},"views":{"get_users_by_group":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.type == \"c8oGrp\" && doc.user && doc.group) {\r\n\t\t\temit(doc.group, doc.user);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}","reduce":"_count"},"get_groups_by_user":{"map":"function (doc) {\r\n\ttry {\r\n\t\tif (doc.type == \"c8oGrp\" && doc.user && doc.group) {\r\n\t\t\temit(doc.user, doc.group);\r\n\t\t}\r\n\t} catch (err) {\r\n\t\tlog(err.message);\r\n\t}\r\n}","reduce":"_count"}}}'
+    →: |
+      '{
+        "_id": "_design\/design",
+        "filters": {},
+        "updates": {},
+        "views": {
+          "get_users_by_group": {
+            "map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.type == \"c8oGrp\" && doc.user && doc.group) {\r\n
+                  emit(doc.group, doc.user);\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }",
+            "reduce": "_count"
+          },
+          "get_groups_by_user": {
+            "map": "function (doc) {\r\n
+          try {\r\n
+              if (doc.type == \"c8oGrp\" && doc.user && doc.group) {\r\n
+                  emit(doc.user, doc.group);\r\n
+              }\r\n
+          } catch (err) {\r\n
+              log(err.message);\r\n
+          }\r\n
+      }",
+            "reduce": "_count"
+          }
+        }
+      }'

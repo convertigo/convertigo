@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,6 +20,17 @@
 package com.twinsoft.convertigo.eclipse.editors.mobile;
 
 public enum ZoomFactor {
+//	z150(ZoomLevel.P_150, 1.5),
+//	z125(ZoomLevel.P_125, 1.25),
+//	z110(ZoomLevel.P_110, 1.1),
+//	z100(ZoomLevel.P_100, 1),
+//	z90(ZoomLevel.P_90, 0.90),
+//	z80(ZoomLevel.P_80, 0.80),
+//	z75(ZoomLevel.P_75, 0.75),
+//	z67(ZoomLevel.P_67, 0.67),
+//	z50(ZoomLevel.P_50, 0.5),
+//	z33(ZoomLevel.P_33, 1f/3),
+//	z25(ZoomLevel.P_25, 0.25);
 	z150(2.22390108574154, 1.5),
 	z125(1.22390108574154, 1.25),
 	z110(0.5227586989, 1.1),
@@ -32,20 +43,23 @@ public enum ZoomFactor {
 	z33(-6.025685103, 1f/3),
 	z25(-7.603568034, 0.25);
 	
+//	private ZoomLevel jx;
 	private double jx;
 	private double swt;
 	
+//	ZoomFactor(ZoomLevel jx, double swt) {
 	ZoomFactor(double jx, double swt) {
 		this.jx = jx;
 		this.swt = swt;
 	}
 	
+//	ZoomLevel zoomLevel() {
 	double zoomLevel() {
 		return jx;
 	}
 	
-	int swt(int viewport, double dpiFactor) {
-		return (int) Math.round(viewport * swt * dpiFactor);
+	int swt(int viewport) {
+		return (int) Math.round(viewport * swt);
 	}
 	
 	ZoomFactor in() {

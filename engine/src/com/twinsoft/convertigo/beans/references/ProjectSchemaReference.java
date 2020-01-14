@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -27,11 +27,13 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class ProjectSchemaReference extends ImportXsdSchemaReference {
 	private static final long serialVersionUID = 6345829826119228229L;
 	
 	private String projectName = "";
+	private transient ProjectUrlParser parser;
 
 	public String getProjectName() {
 		return projectName;
@@ -39,6 +41,11 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 
 	public void setProjectName(String projectName) {
 		this.projectName = projectName;
+		parser = new ProjectUrlParser(projectName);
+	}
+	
+	public ProjectUrlParser getParser() {
+		return parser;
 	}
 
 	
@@ -46,7 +53,7 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 	public XmlSchemaImport getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaImport schemaImport = new XmlSchemaImport();
 		try {
-			String pname = getProjectName();
+			String pname = parser.getProjectName();
 			if (pname.equals("")) {
 				throw new EngineException("Incorrect schema import: referenced Convertigo project name is empty");
 			}
@@ -84,7 +91,7 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 		String label = "";
 		try {
 			// Check for project
-			Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(getProjectName());
+			Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName());
 			if (p == null) {
 				label = "! broken project !";
 			}
@@ -94,9 +101,11 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 		}
 		
 		if (label.isEmpty()) {
-			return getProjectName();
+			return parser.getProjectName();
 		} else {
-			return getProjectName() + " " + label;
+			return parser.getProjectName() + " " + label;
 		}
 	}
+	
+	
 }

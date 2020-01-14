@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -47,6 +47,8 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.log4j.Logger;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -67,6 +69,7 @@ import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProv
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
+import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
@@ -233,6 +236,8 @@ public class Engine {
 	 * The REST api manager
 	 */
 	public RestApiManager restApiManager;
+	
+	public ReferencedProjectManager referencedProjectManager;
 	
 	/**
 	 * Loggers
@@ -690,6 +695,8 @@ public class Engine {
 				Engine.theApp.schemaManager = new SchemaManager();
 				Engine.theApp.schemaManager.init();
 				
+				Engine.theApp.referencedProjectManager = new ReferencedProjectManager();
+				
 				// XUL initialization
 				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 				if (xulrunner_url == null || xulrunner_url.equals("")) {
@@ -791,6 +798,19 @@ public class Engine {
 									Engine.logEngine.error("Failed to load " + name, e);
 								}
 							}
+							Engine.theApp.referencedProjectManager.check();
+						}
+					});
+				}
+				
+				if (DelegateServlet.canDelegate()) {
+					execute(() -> {
+						try {
+							Engine.logEngine.info("Call delegate action 'engineStarted'");
+							JSONObject json = new JSONObject();
+							json.put("action", "engineStarted");
+							DelegateServlet.delegate(json);
+						} catch (JSONException e) {
 						}
 					});
 				}
@@ -1718,6 +1738,16 @@ public class Engine {
 	public static File projectFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
 		if (file == null) {
+			File f = new File(Engine.PROJECTS_PATH,  projectName);
+			if (f.exists() && f.isFile()) {
+				try {
+					f = new File(FileUtils.readFileToString(f, "UTF-8"));
+					file = new File(f, projectName + ".xml");
+				} catch (IOException e) {
+				}
+			}
+		}
+		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 		}
 		return file;
@@ -1725,6 +1755,16 @@ public class Engine {
 	
 	public static File projectYamlFile(String projectName) {
 		File file = DatabaseObjectsManager.studioProjects.getProject(projectName);
+		if (file == null) {
+			File f = new File(Engine.PROJECTS_PATH,  projectName);
+			if (f.exists() && f.isFile()) {
+				try {
+					f = new File(FileUtils.readFileToString(f, "UTF-8"));
+					file = new File(f, "c8oProject.yaml");
+				} catch (IOException e) {
+				}
+			}
+		}
 		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/c8oProject.yaml");
 		}

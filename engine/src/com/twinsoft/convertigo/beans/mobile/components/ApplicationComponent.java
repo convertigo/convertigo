@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -114,6 +114,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		cloned.appDeclarations = new HashMap<String, String>();
 		cloned.appConstructors = new HashMap<String, String>();
 		cloned.appFunctions = new HashMap<String, String>();
+		cloned.appTemplates = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.rootPage = null;
@@ -572,7 +573,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			pageComponent.setTitle("Title for "+ newDatabaseObjectName);
 		}
 		if (pageComponent.getSegment().isEmpty() || pageComponent.bNew) {
-			pageComponent.setSegment("path-to-"+newDatabaseObjectName.toLowerCase());
+			pageComponent.setSegment(PageComponent.SEGMENT_PREFIX + newDatabaseObjectName.toLowerCase());
 		}
 		super.add(pageComponent);
 		
@@ -970,7 +971,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	private boolean hasImport(String name) {
 		return appImports.containsKey(name) ||
-				getProject().getMobileBuilder().hasAppTplImport(name);
+				getProject().getMobileBuilder().hasTplAppCompTsImport(name);
 	}
 	
 	private boolean hasCustomImport(String name) {
@@ -1053,6 +1054,25 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		return false;
 	}
 	
+	private transient Map<String, String> appTemplates = new HashMap<String, String>();
+	
+	private boolean hasTemplate(String name) {
+		return appTemplates.containsKey(name);
+	}
+	
+	@Override
+	public boolean addTemplate(String name, String code) {
+		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
+			synchronized (appTemplates) {
+				if (!hasTemplate(name)) {
+					appTemplates.put(name, code);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private transient List<Contributor> contributors = null;
 	
 	public List<Contributor> getContributors() {
@@ -1110,6 +1130,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 			appDeclarations.clear();
 			appConstructors.clear();
 			appFunctions.clear();
+			appTemplates.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
@@ -1224,6 +1245,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	public String computeTemplate() {
 		StringBuilder sb = new StringBuilder();
 		
+		// compute app template
 		String layout = getSplitPaneLayout();
 		boolean hasSplitPane = !layout.equals("not set");
 		if (hasSplitPane) {
@@ -1248,7 +1270,19 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		if (hasSplitPane) {
 			sb.append("</ion-split-pane>").append(System.lineSeparator());
 		}
-		return sb.toString();
+		
+		// then add all necessary shared component templates
+		String sharedTemplates = "";
+		if (!appTemplates.isEmpty()) {
+			sharedTemplates += "<!-- ====== SHARED TEMPLATES ====== -->"+ System.lineSeparator();
+			for (String sharedTemplate: appTemplates.values()) {
+				sharedTemplates += sharedTemplate;
+			}
+			sharedTemplates += "<!-- ============================== -->"+ System.lineSeparator();
+			sharedTemplates += System.lineSeparator();
+		}
+		
+		return sharedTemplates + sb.toString();
 	}
 
 	private String computeEventConstructors() {

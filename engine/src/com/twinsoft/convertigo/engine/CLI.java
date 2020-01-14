@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -113,7 +113,7 @@ public class CLI {
 	
 	public File exportToCar(Project project, File dest) throws Exception {
 		dest.mkdirs();
-		return CarUtils.makeArchive(dest.getAbsolutePath(), project, project.getName());
+		return CarUtils.makeArchive(dest.getAbsolutePath(), project);
 	}
 	
 	public static void main(String[] args) throws Exception {

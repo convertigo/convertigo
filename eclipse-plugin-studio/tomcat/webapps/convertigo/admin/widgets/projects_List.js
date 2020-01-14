@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,7 +29,14 @@ function projects_List_init() {
 	}).click(function(){
 		projectsDeploy();
 	});
-
+	
+	$("#projectsImportURL").button({
+		icons : {
+			primary : "ui-icon-circle-arrow-s"
+		}
+	}).click(function(){
+		projectsImportURL();
+	});
 
 	$("#projectsListButtonDeleteAll").button({				
 		icons : {
@@ -46,6 +53,18 @@ function projects_List_init() {
 				projects_List_init();
 				endWait();
 			}, 1000);
+		});					
+	});
+
+	$("#projectsCheckRemoteDependencies").button({				
+		icons : {
+			primary : "ui-icon-arrowthickstop-1-s"
+		}
+	}).hide().click(function() {
+		showConfirm("Are you sure you want to load dependencies projects from git?", function() {
+			callService("projects.CheckDependencies", function(xml) {
+				projects_List_update();
+			});
 		});					
 	});
 
@@ -167,15 +186,20 @@ function updateProjectsList(xml) {
 											btnReload : "<a href=\"javascript: reloadProject('"
 													+ projectName
 													+ "')\"><img border=\"0\" title=\"Reload the project\" src=\"images/convertigo-administration-picto-reload.png\"></a>",
-											btnExport : "<a href=\"services/projects.Export?projectName="
+											btnExport : "<a href=\"javascript: exportProject('"
 												+ projectName
-												+ "\"><img border=\"0\" title=\"Make CAR archive from the project\" src=\"images/convertigo-administration-picto-save.png\"></a>",
+												+ "')\"><img border=\"0\" title=\"Make CAR archive from the project\" src=\"images/convertigo-administration-picto-save.png\"></a>",
 											btnTest : "<a target=\"_blank\" href=\"../project.html#" + projectName
 												+ "\"><img border=\"0\" title=\"Test the project\" src=\"images/convertigo-administration-picto-test-platform.png\"></a>"
 										});
 					});
 	if( $(".iconAlertGlobalSymbols").length > 0 ){
 		$(".iconAlertGlobalSymbols").parent("a").parent("td").parent("tr").addClass("alertGlobalSymbols");
+	}
+	if ($(xml).find("project[missingDependencies=true]").length > 0) {
+		$("#projectsCheckRemoteDependencies").show();
+	} else {
+		$("#projectsCheckRemoteDependencies").hide();
 	}
 }
 
@@ -312,4 +336,78 @@ function editProject(projectName, alertUndefinedSymbol) {
 		$("#projectEditUndefinedSymbolsInfo").hide();
 	}
 	loadProject(projectName);
+}
+
+function exportProject(projectName) {
+	//see projectEdit.js
+	//
+	callService("projects.ExportOptions", function(xml) {
+		var $div = $("<div/>");
+		$div.css({"text-align": "left"});
+		$(xml).find("option").each(function(x) {
+			var id = "exportOption_" + this.getAttribute("name"); 
+			$("<input/>").attr({
+				checked: "checked",
+				type: "checkbox",
+				name: this.getAttribute("name"),
+				id: id
+			}).appendTo($div);
+			$("<label/>").text(this.getAttribute("display")).attr("for", id).appendTo($div);
+			$div.append("<br/>");
+		});
+		$div.dialog({
+			autoOpen : true,
+			title: "Export the project '" + projectName + "' with:",
+			modal: true,
+			buttons : {
+				Export: function () {
+					var options = {};
+					$div.find("input").each(function () {
+						options[this.getAttribute("name")] = this.checked;
+					});
+					location = "services/projects.Export?projectName=" + encodeURIComponent(projectName) + "&exportOptions=" + encodeURIComponent(JSON.stringify(options));
+					$div.dialog("close");
+				},
+				Cancel: function() {
+					$div.dialog("close");
+				}
+			},
+			close : function () {
+				$div.remove();
+			}
+		});
+	}, {
+		projectName : projectName
+	});
+}
+
+function projectsImportURL() {
+	var $input = $("<div><p>Import a project from url like:<br/><b>&lt;project name&gt;=&lt;git URL&gt;[:path=&lt;optional subpath&gt;][:branch=&lt;optional branch&gt;]</b></p><p><input type=\"text\" size=\"70\"/></p><p style=\"color: red\" id=\"importError\"></p></div>");
+	$input.dialog({
+		autoOpen : true,
+		title: "Import from a Remote Project URL",
+		modal: true,
+		minWidth: 600,
+		buttons : {
+			Import: function () {
+				var url = $input.find("input").val();
+				callService("projects.ImportURL", function(xml) {
+					var error = $(xml).find("error").text();
+					if (error != "") {
+						projects_List_update();
+						$input.dialog("close");
+					} else {
+						$input.find("#importError").text(error);
+					}
+				}, {url: url});
+			},
+			Cancel: function() {
+				$input.dialog("close");
+			}
+		},
+		close : function () {
+			$input.remove();
+		}
+	});
+	
 }

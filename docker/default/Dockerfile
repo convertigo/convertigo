@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:7-jdk8-openjdk
+FROM tomcat:9-jdk11-openjdk
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -88,7 +88,7 @@ RUN sed -i.bak \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
-ENV CONVERTIGO_VERSION 7.6.6
+ENV CONVERTIGO_VERSION 7.7.0
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 

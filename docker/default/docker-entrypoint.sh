@@ -7,9 +7,9 @@ if [ "$1" = "convertigo" ]; then
     ## function used to cipher passwords
     
     toHash() {
-        jrunscript -cp $CATALINA_HOME/webapps/convertigo/WEB-INF/lib/dependencies-*.jar -e "java.lang.System.out.println(org.apache.commons.codec.digest.DigestUtils.sha512Hex(\"$1\"))"
+        echo "System.out.println(org.apache.commons.codec.digest.DigestUtils.sha512Hex(\"$1\"))" | jshell --class-path $CATALINA_HOME/webapps/convertigo/WEB-INF/lib/dependencies-*.jar -
     }
-    
+        
     ## if needed, force the admin and testplatform accounts
     
     if [ "$CONVERTIGO_ADMIN_USER" != "" ]; then
@@ -91,6 +91,8 @@ if [ "$1" = "convertigo" ]; then
     	sed -i.bak -e "s,<secure>true</secure>,<secure>false</secure>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
     fi
     unset COOKIE_SECURE
+    
+    
     
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
 fi

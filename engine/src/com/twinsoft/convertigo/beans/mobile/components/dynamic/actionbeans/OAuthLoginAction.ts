@@ -22,10 +22,14 @@
                                     '%20Files.ReadWrite'
                             response_mode = 'fragment&state=12345&nonce=678910'                         // Ask implicitflow
                             response_type = 'id_token+token'
-                                
-                            callbackurl = window["cordova"] != undefined ?
-                                    'https://login.live.com/oauth20_desktop.srf' :
-                                    page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html"   // the call back URL to check (As declared in the app portal)
+
+                            if (props.callbackurl) {
+                                callbackurl   = props.callbackurl 
+                            } else {
+                                callbackurl = window["cordova"] != undefined ?
+                                        'https://login.live.com/oauth20_desktop.srf' :
+                                        page.c8o.endpointConvertigo + "/projects/lib_OAuth/getToken.html"   // the call back URL to check (As declared in the app portal)
+                            }
                                 
                             oAuthUrl = 'https://login.microsoftonline.com/' + tenantid + '/oauth2/v2.0/authorize?' +     
                                 'client_id=' + clientid +                                             
@@ -49,10 +53,13 @@
                         
                             loginRequestable = props.loginRequestable ? props.loginRequestable : "lib_OAuth.loginLinkedInWithCode"
                             checkAccessTokenRequestable = props.checkAccessTokenRequestable ? props.checkAccessTokenRequestable : "lib_OAuth.checkAccessTokenLinkedIn"
-                            callbackurl   = window["cordova"] != undefined ? 
+                            if (props.callbackurl) {
+                                callbackurl   = props.callbackurl 
+                            } else {
+                                callbackurl   = window["cordova"] != undefined ? 
                                     'https://www.convertigo.com/authorize':
                                     page.c8o.endpointConvertigo + "/projects/lib_OAuth/getTokenLinkedIn.html"
-                                    
+                            }
                             break
 
                         case "openid":

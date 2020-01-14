@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -193,7 +193,7 @@ public class UICustomAction extends UIComponent implements IAction {
 	/*
 	 * The action value
 	 */
-	private FormatedContent actionValue = new FormatedContent("\t\tpage.c8o.log.debug(event ? event.toString():'no event');\n\t\tresolve();\n");
+	private FormatedContent actionValue = new FormatedContent("\t\tpage.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);\n\t\tresolve();\n");
 	
 	public FormatedContent getActionValue() {
 		return actionValue;
@@ -240,6 +240,17 @@ public class UICustomAction extends UIComponent implements IAction {
 		return handleError;
 	}
 
+	protected boolean handleFinally() {
+		boolean handleFinally = false;
+		UIActionFinallyEvent finallyEvent = getParentFinallyEvent();
+		if (finallyEvent != null && finallyEvent.isEnabled()) {
+			if (finallyEvent.numberOfActions() > 0) {
+				handleFinally = true;
+			}
+		}
+		return handleFinally;
+	}
+	
 	private UIActionErrorEvent getParentErrorEvent() {
 		DatabaseObject parent = getParent();
 		if (parent != null ) {
@@ -268,16 +279,59 @@ public class UICustomAction extends UIComponent implements IAction {
 		return null;
 	}
 
+	private UIActionFinallyEvent getParentFinallyEvent() {
+		DatabaseObject parent = getParent();
+		if (parent != null ) {
+			if (parent instanceof UIControlEvent) {
+				UIControlEvent uiControlEvent = (UIControlEvent)parent;
+				if (uiControlEvent.isEnabled()) {
+					return uiControlEvent.getFinallyEvent();
+				}
+			} else if (parent instanceof UIAppEvent) {
+				UIAppEvent uiAppEvent = (UIAppEvent)parent;
+				if (uiAppEvent.isEnabled()) {
+					return uiAppEvent.getFinallyEvent();
+				}
+			} else if (parent instanceof UIPageEvent) {
+				UIPageEvent uiPageEvent = (UIPageEvent)parent;
+				if (uiPageEvent.isEnabled()) {
+					return uiPageEvent.getFinallyEvent();
+				}
+			} else if (parent instanceof UIEventSubscriber) {
+				UIEventSubscriber uiEventSubscriber = (UIEventSubscriber)parent;
+				if (uiEventSubscriber.isEnabled()) {
+					return uiEventSubscriber.getFinallyEvent();
+				}
+			}
+		}
+		return null;
+	}
+	
 	protected boolean isStacked() {
-		return handleError() || handleFailure() || numberOfActions() > 0 || 
+		return handleError() || handleFailure() || handleFinally() || numberOfActions() > 0 || 
 				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent ||
 				getParent() instanceof UIEventSubscriber;
 	}
 	
 	protected String getScope() {
+		UICustomAction original = (UICustomAction) getOriginal();
+		UISharedComponent sharedComponent = original.getSharedComponent();
+		boolean isInSharedComponent = sharedComponent  != null;
+		
 		String scope = "";
+		
 		DatabaseObject parent = getParent();
 		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent)&& !(parent instanceof UIEventSubscriber)) {
+			if (parent instanceof UIUseShared) {
+				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
+				if (uisc != null) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+				}
+				if (isInSharedComponent) {
+					break;
+				}
+			}
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
@@ -305,6 +359,17 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 			parent = parent.getParent();
 		}
+		
+		if (!scope.isEmpty()) {
+			if (isInSharedComponent) {
+				scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+			} else {
+				scope = "merge({}, {"+ scope +"})";
+			}
+		} else {
+			scope = "{}";
+		}
+		
 		return scope;
 	}
 	
@@ -330,7 +395,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			String scope = getScope();
 			String in = formGroupName == null ? "{}": "merge({},"+formGroupName +".value)";
 			if (isStacked()) {
-				return getFunctionName() + "({root: {scope:{"+scope+"}, in:"+in+", out:$event}})";
+				return getFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";
 			} else {
 				String props = "{}", vars = "{}";
 				String inputs = computeActionInputs(true);
@@ -345,7 +410,7 @@ public class UICustomAction extends UIComponent implements IAction {
 					vars = "merge(merge({},"+formGroupName +".value), "+ vars +")";
 				}
 				
-				String stack = "{stack:{root: {scope:{"+scope+"}, in:"+ in +", out:$event}}}";
+				String stack = "{stack:{root: {scope:"+ scope +", in:"+ in +", out:$event}}}";
 				props = "merge(merge({},"+ props  +"), "+ stack +")";
 				
 				String actionName = getActionName();
@@ -408,6 +473,9 @@ public class UICustomAction extends UIComponent implements IAction {
 							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
+							if (paramsPattern.matcher(smartValue).lookingAt()) {
+								smartValue = "scope."+ smartValue;
+							}
 							
 							if (!smartValue.isEmpty()) {
 								sbVars.append(sbVars.length() > 0 ? ", ":"");
@@ -492,6 +560,11 @@ public class UICustomAction extends UIComponent implements IAction {
 				UIActionErrorEvent errorEvent = getParentErrorEvent();
 				sbCatch.append(errorEvent.computeEvent());
 			}
+			StringBuilder sbFinally = new StringBuilder();
+			if (handleFinally()) {
+				UIActionFinallyEvent finallyEvent = getParentFinallyEvent();
+				sbFinally.append(finallyEvent.computeEvent());
+			}
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("stack");
@@ -538,6 +611,15 @@ public class UICustomAction extends UIComponent implements IAction {
 				computed += "\t\t})"+ System.lineSeparator();
 			}			
 			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			if (sbFinally.length() > 0) {
+				computed += "\t\t.then((res:any) => {"+ System.lineSeparator();
+				computed += "\t\tparent = self;"+ System.lineSeparator();
+				computed += "\t\tparent.out = res;"+ System.lineSeparator();
+				computed += "\t\tout = parent.out;"+ System.lineSeparator();
+				computed += "\t\t"+ sbFinally.toString();
+				computed += "\t\t})"+ System.lineSeparator();
+				computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			}			
 			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
 			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";
@@ -672,6 +754,15 @@ public class UICustomAction extends UIComponent implements IAction {
 	
 	protected Contributor getContributor() {
 		return new Contributor() {
+			
+			@Override
+			public boolean isNgModuleForApp() {
+				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
+					return true;
+				}
+				return false;
+			}
+			
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();

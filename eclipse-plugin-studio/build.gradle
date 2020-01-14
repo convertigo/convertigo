@@ -46,13 +46,16 @@ eclipse {
 	}
 }
 
+tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
+
 dependencies {
 	runtime project(':engine')
 	runtime 'com.convertigo.lib:jxbrowser-license:2019.04.02'
 	runtime 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
-	runtime 'org.apache.tomcat.embed:tomcat-embed-core:7.0.82'
-	runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:7.0.82'
-	runtime 'org.apache.tomcat:tomcat-dbcp:7.0.82'
+	//runtime 'com.teamdev.jxbrowser:jxbrowser-swing:' + jxBrowserVersion
+	runtime 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	//runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
+	runtime 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	runtime project.property('sapjco3Version')
 }

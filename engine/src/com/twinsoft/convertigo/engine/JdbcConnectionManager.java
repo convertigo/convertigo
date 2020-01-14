@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -36,13 +37,30 @@ import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 
-import org.apache.tomcat.dbcp.dbcp.BasicDataSource;
-
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 
 public class JdbcConnectionManager implements AbstractManager {
 
-	private Map<String,BasicDataSource> databasePools;
+	private static Class<?> dataSourceCls = null;
+	private static Method dataSourceClose = null;
+	private static Method dataSourceSetDriverClassLoader = null;
+	private static Method dataSourceSetDriverClassName = null;
+	private static Method dataSourceSetUrl = null;
+	private static Method dataSourceSetUsername = null;
+	private static Method dataSourceSetPassword = null;
+	private static Method dataSourceSetMaxActive = null;
+	private static Method dataSourceSetValidationQuery = null;
+	private static Method dataSourceSetTestOnBorrow = null;
+	private static Method dataSourceSetTestOnReturn = null;
+	private static Method dataSourceSetTestWhileIdle = null;
+	private static Method dataSourceSetTimeBetweenEvictionRunsMillis = null;
+	private static Method dataSourceSetNumTestsPerEvictionRun = null;
+	private static Method dataSourceGetConnection = null;
+	private static Method dataSourceGetNumActive = null;
+	private static Method dataSourceGetMaxActive = null;
+	private static Method dataSourceGetNumIdle = null;
+	private static Method dataSourceGetMaxIdle = null;
+	private Map<String, Object> databasePools;
 	private Set<String> driversLoaded;
 	
 	public JdbcConnectionManager() {
@@ -51,6 +69,37 @@ public class JdbcConnectionManager implements AbstractManager {
 	public void init() throws EngineException {
 		databasePools = new HashMap<>(2048);
 		driversLoaded = new HashSet<>();
+		try {
+			try {
+				dataSourceCls = Class.forName("org.apache.tomcat.dbcp.dbcp2.BasicDataSource");
+				dataSourceSetMaxActive = dataSourceCls.getMethod("setMaxOpenPreparedStatements", int.class);
+				dataSourceGetMaxActive = dataSourceCls.getMethod("getMaxOpenPreparedStatements");
+			} catch (ClassNotFoundException e) {
+				dataSourceCls = Class.forName("org.apache.tomcat.dbcp.dbcp.BasicDataSource");
+				dataSourceSetMaxActive = dataSourceCls.getMethod("setMaxActive", int.class);
+				dataSourceGetMaxActive = dataSourceCls.getMethod("getMaxActive");
+			}
+			dataSourceClose = dataSourceCls.getMethod("close");
+			dataSourceSetDriverClassLoader = dataSourceCls.getMethod("setDriverClassLoader", ClassLoader.class);
+			dataSourceSetDriverClassName = dataSourceCls.getMethod("setDriverClassName", String.class);
+			dataSourceSetUrl = dataSourceCls.getMethod("setUrl", String.class);
+			dataSourceSetUsername = dataSourceCls.getMethod("setUsername", String.class);
+			dataSourceSetPassword = dataSourceCls.getMethod("setPassword", String.class);
+			dataSourceSetValidationQuery = dataSourceCls.getMethod("setValidationQuery", String.class);
+			dataSourceSetTestOnBorrow = dataSourceCls.getMethod("setTestOnBorrow", boolean.class);
+			dataSourceSetTestOnReturn = dataSourceCls.getMethod("setTestOnReturn", boolean.class);
+			dataSourceSetTestWhileIdle = dataSourceCls.getMethod("setTestWhileIdle", boolean.class);
+			dataSourceSetTimeBetweenEvictionRunsMillis = dataSourceCls.getMethod("setTimeBetweenEvictionRunsMillis", long.class);
+			dataSourceSetNumTestsPerEvictionRun = dataSourceCls.getMethod("setNumTestsPerEvictionRun", int.class);
+			
+			dataSourceGetConnection = dataSourceCls.getMethod("getConnection");
+			dataSourceGetNumActive = dataSourceCls.getMethod("getNumActive");
+			dataSourceGetNumIdle = dataSourceCls.getMethod("getNumIdle");
+			dataSourceGetMaxIdle = dataSourceCls.getMethod("getMaxIdle");
+			Engine.logEngine.info("(JdbcConnectionManager) Init done"); 
+		} catch (Exception e) {
+			Engine.logEngine.error("(JdbcConnectionManager) Init failed", e); 
+		}
 	}
 	
 	public void destroy() throws EngineException {
@@ -59,9 +108,9 @@ public class JdbcConnectionManager implements AbstractManager {
 			String poolKey = (String)keysEnum.nextElement();
 			Engine.logEngine.debug("[SqlConnectionManager] Closing datasource '" + poolKey + "'...");
 			try {
-				((BasicDataSource)databasePools.get(poolKey)).close();
+				dataSourceClose.invoke(databasePools.get(poolKey));
 				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' closed.");
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' close failure ! ");
 			}
 			databasePools.remove(poolKey);
@@ -74,39 +123,39 @@ public class JdbcConnectionManager implements AbstractManager {
 		if (databasePools.containsKey(poolKey)) {
 			Engine.logEngine.debug("[SqlConnectionManager] Closing datasource '" + poolKey + "'...");
 			try {
-				((BasicDataSource)databasePools.get(poolKey)).close();
+				dataSourceClose.invoke(databasePools.get(poolKey));
 				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' closed.");
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				Engine.logEngine.debug("[SqlConnectionManager] Datasource '" + poolKey + "' close failure ! ");
 			}
 			databasePools.remove(poolKey);
 		}
 	}
 
-	private BasicDataSource addDatabasePool(SqlConnector connector) {
+	private Object addDatabasePool(SqlConnector connector) throws Exception {
 		Engine.logEngine.debug("(JdbcConnectionManager) Creating a new pool");
 		
-		BasicDataSource pool = new BasicDataSource();
+		Object pool = dataSourceCls.getConstructor().newInstance();
 		
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
-		pool.setDriverClassLoader(cl);
-		pool.setDriverClassName(connector.getJdbcDriverClassName());
+		dataSourceSetDriverClassLoader.invoke(pool, cl);
+		dataSourceSetDriverClassName.invoke(pool, connector.getJdbcDriverClassName());
 		
 		String jdbcURL = connector.getRealJdbcURL();
 		Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
-		pool.setUrl(jdbcURL);
+		dataSourceSetUrl.invoke(pool, jdbcURL);
 
 		String user = connector.getJdbcUserName();
 		Engine.logEngine.debug("(JdbcConnectionManager) User: " + user);
-		pool.setUsername(user);
+		dataSourceSetUsername.invoke(pool, user);
 
 		String password = connector.getJdbcUserPassword();
 		Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
-		pool.setPassword(password);
+		dataSourceSetPassword.invoke(pool, password);
 
 		int maxConnections = connector.getJdbcMaxConnection();
 		Engine.logEngine.debug("(JdbcConnectionManager) maxConnections: " + maxConnections);
-		pool.setMaxActive(maxConnections);
+		dataSourceSetMaxActive.invoke(pool, maxConnections);
 
 		/* Database query to list tables
 			*JDBC Drivers
@@ -151,20 +200,20 @@ public class JdbcConnectionManager implements AbstractManager {
 			}
 		}
 		Engine.logEngine.debug("(JdbcConnectionManager) SQL validation query: " + query);
-		pool.setValidationQuery(query);
+		dataSourceSetValidationQuery.invoke(pool, query);
 
 		boolean testOnBorrow = connector.getTestOnBorrow();
 		Engine.logEngine.debug("(JdbcConnectionManager) testOnBorrow=" + testOnBorrow);
-		pool.setTestOnBorrow(testOnBorrow);
+		dataSourceSetTestOnBorrow.invoke(pool, testOnBorrow);
 		
-		pool.setTestOnReturn(true);
-		pool.setTestWhileIdle(true);
+		dataSourceSetTestOnReturn.invoke(pool, true);
+		dataSourceSetTestWhileIdle.invoke(pool, true);
 		
 		long timeBetweenEvictionRunsMillis = connector.getIdleConnectionTestTime() * 1000;
 		Engine.logEngine.debug("(JdbcConnectionManager) Time between eviction runs millis: " + timeBetweenEvictionRunsMillis);
-		pool.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);
+		dataSourceSetTimeBetweenEvictionRunsMillis.invoke(pool, timeBetweenEvictionRunsMillis);
 		
-		pool.setNumTestsPerEvictionRun(3);
+		dataSourceSetNumTestsPerEvictionRun.invoke(pool, 3);
 		
 		databasePools.put(getKey(connector), pool);
 		Engine.logEngine.debug("(JdbcConnectionManager) Pool added");
@@ -172,10 +221,10 @@ public class JdbcConnectionManager implements AbstractManager {
 		return pool;
 	}
 
-	private synchronized BasicDataSource getDatabasePool (SqlConnector connector) {
+	private synchronized Object getDatabasePool (SqlConnector connector) throws Exception {
 		if (databasePools.containsKey(getKey(connector))) {
 			Engine.logEngine.debug("(JdbcConnectionManager) getDatabasePool() returning existing pool");
-			return (BasicDataSource) databasePools.get(getKey(connector));
+			return databasePools.get(getKey(connector));
 		}
 		else {
 			Engine.logEngine.debug("(JdbcConnectionManager) getDatabasePool() returning new pool");
@@ -187,7 +236,7 @@ public class JdbcConnectionManager implements AbstractManager {
 		return connector.getQName();
 	}
 	
-	public Connection getConnection(SqlConnector connector) throws SQLException, ClassNotFoundException, NamingException {
+	public Connection getConnection(SqlConnector connector) throws Exception {
 		Connection connection;
 		Engine.logEngine.debug("(JdbcConnectionManager) Trying to get a SQL connection...");
 		
@@ -215,15 +264,15 @@ public class JdbcConnectionManager implements AbstractManager {
 				Engine.logEngine.debug("(JdbcConnectionManager) getConnection for "
 						+ connector.getProject().getName() + "." + connector.getName());
 
-				BasicDataSource pool = getDatabasePool(connector);
+				Object pool = getDatabasePool(connector);
 				Engine.logEngine.debug("(JdbcConnectionManager) pool = " + pool);
-				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
-				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
+				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + dataSourceGetNumActive.invoke(pool) + "/" + dataSourceGetMaxActive.invoke(pool));
+				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + dataSourceGetNumIdle.invoke(pool) + "/" + dataSourceGetMaxIdle.invoke(pool));
 
-				connection = pool.getConnection();
+				connection = (Connection) dataSourceGetConnection.invoke(pool);
 				Engine.logEngine.debug("(JdbcConnectionManager) pooled connection = " + connection);
-				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
-				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
+				Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + dataSourceGetNumActive.invoke(pool) + "/" + dataSourceGetMaxActive.invoke(pool));
+				Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + dataSourceGetNumIdle.invoke(pool) + "/" + dataSourceGetMaxIdle.invoke(pool));
 			} else {
 
 				String jdbcURL = connector.getRealJdbcURL();
@@ -255,7 +304,7 @@ public class JdbcConnectionManager implements AbstractManager {
 		synchronized (driversLoaded) {
 			if (!driversLoaded.contains(jdbcDriverClassName)) {
 				ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-				Driver d = (Driver) classLoader.loadClass(jdbcDriverClassName).newInstance();
+				Driver d = (Driver) classLoader.loadClass(jdbcDriverClassName).getDeclaredConstructor().newInstance();
 				DriverManager.registerDriver(new DriverShim(d));
 				driversLoaded.add(jdbcDriverClassName);
 			}

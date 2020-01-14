@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,4 +24,5 @@ public interface IScriptComponent {
 	public boolean addDeclaration(String name, String code);
 	public boolean addConstructor(String name, String code);
 	public boolean addFunction(String name, String code);
+	public boolean addTemplate(String name, String code);
 }

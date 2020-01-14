@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -109,8 +109,6 @@ import org.eclipse.ui.views.properties.PropertySheetPage;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
-import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
@@ -733,9 +731,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 		
-		Engine.execute(() -> {
-			new Browser(BrowserContext.defaultContext()).dispose();
-		});
+//		Engine.execute(() -> {
+//			new Browser(BrowserContext.defaultContext()).dispose();
+//		});
 		
 		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (activeWindow != null) {

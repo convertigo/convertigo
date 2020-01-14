@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,6 +29,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -38,9 +40,9 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 @ServiceDefinition(
 		name = "GetProjects",
 		roles = {
-				Role.TEST_PLATFORM,
-				Role.PROJECTS_CONFIG, Role.PROJECTS_VIEW,
-				Role.CERTIFICATE_CONFIG, Role.CERTIFICATE_VIEW
+			Role.TEST_PLATFORM,
+			Role.PROJECTS_CONFIG, Role.PROJECTS_VIEW,
+			Role.CERTIFICATE_CONFIG, Role.CERTIFICATE_VIEW
 		},
 		parameters = {},
 		returnValue = "the projects list"
@@ -83,7 +85,17 @@ public class List extends XmlService{
 
 				if (Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(projectName)) {
 					projectElement.setAttribute("undefined_symbols", "true");
-				} 
+				}
+
+				for (Reference ref: project.getReferenceList()) {
+					if (ref instanceof ProjectSchemaReference) {
+						ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
+						if (prjRef.getParser().isValid() && Engine.theApp.databaseObjectsManager.getOriginalProjectByName(prjRef.getParser().getProjectName(), true) == null) {
+							projectElement.setAttribute("missingDependencies", "true");
+							break;
+						}
+					}
+				}
 
 				projectsListElement.appendChild(projectElement);
 			}

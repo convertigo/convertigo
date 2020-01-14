@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -163,6 +163,14 @@ public class BeansDefaultValues {
 					nCopy.setAttribute("yaml_file", "sequences/" + pName + ".yaml");
 				} else if (cls.equals("mobile.components.PageComponent")) {
 					nCopy.setAttribute("yaml_file", "mobilePages/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.UIActionStack")) {
+					nCopy.setAttribute("yaml_file", "mobileSharedActions/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.UISharedComponent")) {
+					nCopy.setAttribute("yaml_file", "mobileSharedComponents/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.UIDynamicMenu")) {
+					nCopy.setAttribute("yaml_file", "mobileMenus/" + pName + ".yaml");
+				} else if (cls.equals("mobile.components.ApplicationComponent")) {
+					nCopy.setAttribute("yaml_file", "mobile" + pName + ".yaml");
 				} else if (cls.equals("core.UrlMapper")) {
 					nCopy.setAttribute("yaml_file", "urlMapper.yaml");
 				} else if (cls.equals("rest.PathMapping")) {

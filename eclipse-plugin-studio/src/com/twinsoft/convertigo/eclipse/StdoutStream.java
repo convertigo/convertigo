@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -36,7 +36,9 @@ public class StdoutStream extends PrintStream {
 	}
 	
 	public void print(String s) {
-    	consoleStream.print(s);
+		if (consoleStream != null && !consoleStream.isClosed()) {
+			consoleStream.print(s);
+		}
 	}
 	
 	public void println() {

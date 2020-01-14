@@ -1,0 +1,129 @@
+componentScriptContent: 
+  - xmlizable: 
+    - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+    - com.twinsoft.convertigo.beans.common.FormatedContent: 
+      →: |
+        /*Begin_c8o_AppImport*/
+        /*End_c8o_AppImport*/
+        /*Begin_c8o_AppDeclaration*/
+        	/*End_c8o_AppDeclaration*/
+        /*Begin_c8o_AppConstructor*/
+        		/*End_c8o_AppConstructor*/
+        /*Begin_c8o_AppInitialization*/
+                        statusBar.overlaysWebView(false);
+                        statusBar.backgroundColorByHexString("#387ef5");
+                        statusBar.styleBlackOpaque();
+        			/*End_c8o_AppInitialization*/
+        /*Begin_c8o_AppFunction*/
+        	/*End_c8o_AppFunction*/
+        
+tplProjectName: mobilebuilder_tpl_7_5_2
+↓Menu [mobile.components.UIDynamicMenu-1500890597895]: 🗏 mobileMenus/Menu.yaml
+↓Page [mobile.components.PageComponent-1500538678074]: 🗏 mobilePages/Page.yaml
+↓Theme [mobile.components.UITheme-1491635018260]: 
+  comment: Global color themes can be customized here
+  styleContent: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+        →: |
+          '// Ionic Variables and Theming. For more info, please see:
+          // http://ionicframework.com/docs/v2/theming/ 
+          $font-path: "../assets/fonts";
+          
+          @import "ionic.globals";
+          
+          
+          // Shared Variables
+          // --------------------------------------------------
+          // To customize the look and feel of this app, you can override
+          // the Sass variables found in Ionic''s source scss files.
+          // To view all the possible Ionic variables, see:
+          // http://ionicframework.com/docs/v2/theming/overriding-ionic-variables/
+          
+          
+          
+          
+          // Named Color Variables
+          // --------------------------------------------------
+          // Named colors makes it easy to reuse colors on various components.
+          // It''s highly recommended to change the default colors
+          // to match your app''s branding. Ionic uses a Sass map of
+          // colors so you can add, rename and remove colors as needed.
+          // The "primary" color is the only required color in the map.
+          
+          $colors: (
+                  primary:    #387ef5,
+                  secondary:  #32db64,
+                  danger:     #f53d3d,
+                  light:      #f4f4f4,
+                  dark:       #222
+          );
+          
+          
+          // App iOS Variables
+          // --------------------------------------------------
+          // iOS only Sass variables can go here
+          
+          
+          
+          
+          // App Material Design Variables
+          // --------------------------------------------------
+          // Material Design only Sass variables can go here
+          
+          
+          
+          
+          // App Windows Variables
+          // --------------------------------------------------
+          // Windows only Sass variables can go here
+          
+          
+          
+          
+          // App Theme
+          // --------------------------------------------------
+          // Ionic apps can have different themes applied, which can
+          // then be future customized. This import comes last
+          // so that the above variables are used and Ionic''s
+          // default are overridden.
+          
+          @import "ionic.theme.default";
+          
+          
+          // Ionicons
+          // --------------------------------------------------
+          // The premium icon font for Ionic. For more info, please see:
+          // http://ionicframework.com/docs/v2/ionicons/
+          
+          @import "ionic.ionicons";
+          
+          
+          // Fonts
+          // --------------------------------------------------
+          
+          @import "roboto";
+          @import "noto-sans";'
+↓Style [mobile.components.UIStyle-1491635462437]: 
+  comment: You can add some global application styles here
+  styleContent: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+        →: |
+          '.content {
+          	/* add some styling CSS rules here for the body of your app
+          	   for example,
+          	 		background-color: your color; 
+          	 		background-image: url(some background image);
+          	*/
+          }
+          
+          .toolbar-background {
+          	/* add some styling CSS rules here for the Headers and Footers
+          	   for example,
+          	 		background-color: your color; 
+          	*/
+          }
+          '

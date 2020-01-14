@@ -1,4 +1,4 @@
-↑convertigo: 7.6.6.m006
+↑convertigo: 7.7.0.m006
 ↓lib_FileTransfer [core.Project]: 
   comment: |
     'Library used by the mobile Convertigo SDK do handle large file transfers.
@@ -8,7 +8,7 @@
     lib_FileTransfer.CheckRemoveExpired.maxMinute : min delay (in minute) between 2 checks (def: 5)
     lib_FileTransfer.SplitFileInChunks.chunkSize : size (in MB) of chunk (def: 1)'
   jsonRoot: docNode
-  version: 7.6.6
+  version: 7.7.0
   ↓c8ofiletransfer [connectors.FullSyncConnector]: 🗏 connectors/c8ofiletransfer.yaml
   ↓_AddLockedFile [sequences.GenericSequence]: 🗏 sequences/_AddLockedFile.yaml
   ↓_CheckRemoveExpired [sequences.GenericSequence]: 🗏 sequences/_CheckRemoveExpired.yaml

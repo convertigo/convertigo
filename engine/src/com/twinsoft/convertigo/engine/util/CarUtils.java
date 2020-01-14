@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,12 +22,20 @@ package com.twinsoft.convertigo.engine.util;
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -45,66 +53,80 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 public class CarUtils {
 
-	public static File makeArchive(String projectName) throws EngineException {
+	public static File makeArchive(String projectName, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
 		Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-		return makeArchive(project);
+		return makeArchive(project, archiveExportOptions);
 	}
 
-	public static File makeArchive(Project project) throws EngineException {
-		return makeArchive(Engine.PROJECTS_PATH, project);
-	}
-	
-	public static File makeArchive(Project project, List<TestCase> listTestCasesSelected) throws EngineException {
-		return makeArchive(Engine.PROJECTS_PATH, project, listTestCasesSelected);
+	public static File makeArchive(Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
+		return makeArchive(Engine.PROJECTS_PATH, project, archiveExportOptions);
 	}
 
 	public static File makeArchive(String dir, Project project) throws EngineException {
-		return makeArchive(dir, project, project.getName());
+		return makeArchive(new File(dir, project.getName() + ".car"), project, ArchiveExportOption.all);
 	}
-	
-	public static File makeArchive(String dir, Project project, List<TestCase> listTestCasesSelected) throws EngineException {
-		return makeArchive(dir, project, project.getName(), listTestCasesSelected);
+
+	public static File makeArchive(String dir, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
+		return makeArchive(new File(dir, project.getName() + ".car"), project, archiveExportOptions);
 	}
-	
-	public static File makeArchive(String dir, Project project, String exportName) throws EngineException {
-		List<File> undeployedFiles=getUndeployedFiles(project.getName());	
+
+	public static File makeArchive(File file, Project project, Set<ArchiveExportOption> archiveExportOptions) throws EngineException {
+		Set<File> undeployedFiles = getUndeployedFiles(project.getName());
 		String projectName = project.getName();
+		String dirPath = project.getDirPath();
+		File projectDir = new File(dirPath);
+		File skipTestCase = null;
 		try {
-			// Export the project
-			String exportedProjectFileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
-			exportProject(project, exportedProjectFileName);
+			if (!archiveExportOptions.contains(ArchiveExportOption.includeTestCase)) {
+				skipTestCase = new File(projectDir, "_private/noTestCase/c8oProject.yaml");
+				CarUtils.exportProject(project, skipTestCase.getAbsolutePath(), false);
+			}
+			for (ArchiveExportOption opt: ArchiveExportOption.values()) {
+				if (!archiveExportOptions.contains(opt)) {
+					for (File dir: opt.dirs(projectDir)) {
+						undeployedFiles.add(dir);
+					}
+				}
+			}
+			FileUtils.deleteQuietly(file);
+			File f = ZipUtils.makeZip(file.getAbsolutePath(), dirPath, projectName, undeployedFiles);
 			
-			// Create Convertigo archive
-			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			return ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
+			if (skipTestCase != null) {
+				Map<String, String> zip_properties = new HashMap<>();
+				zip_properties.put("create", "false");
+				zip_properties.put("encoding", "UTF-8");
+				URI zip_disk = URI.create("jar:" + f.toURI());
+				try (FileSystem zipfs = FileSystems.newFileSystem(zip_disk, zip_properties)) {
+					Path addNewFile = skipTestCase.getParentFile().toPath();
+					Files.walk(addNewFile).forEach(p -> {
+						try {
+							String relat = addNewFile.relativize(p).toString();
+							if (!relat.isEmpty()) {
+								Files.copy(p, zipfs.getPath(projectName, relat));
+							}
+						} catch (IOException e) {
+							Engine.logEngine.debug("(CarUtils) failed to copy project without TestCase: " + e);
+						}
+					});
+				}
+			}
+			return f;
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
-		}
-	}
-	
-	public static File makeArchive(String dir, Project project, String exportName, 
-			List<TestCase> listTestCasesSelected) throws EngineException {
-		List<File> undeployedFiles= getUndeployedFiles(project.getName());	
-		String projectName = project.getName();
-		try {
-			// Export the project
-			String exportedProjectFileName = Engine.projectDir(projectName) + "/" + projectName + ".xml";
-			exportProject(project, exportedProjectFileName, listTestCasesSelected);
-			
-			// Create Convertigo archive
-			String projectArchiveFilename = dir + "/" + exportName + ".car";
-			return ZipUtils.makeZip(projectArchiveFilename, Engine.projectDir(projectName), projectName, undeployedFiles);
-		} catch(Exception e) {
-			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
+		} finally {
+			if (skipTestCase != null) {
+				FileUtils.deleteQuietly(skipTestCase.getParentFile());
+			}
 		}
 	}
 
-	private static List<File> getUndeployedFiles(String projectName){
-		final List<File> undeployedFiles = new LinkedList<File>();
+	private static Set<File> getUndeployedFiles(String projectName){
+		final Set<File> undeployedFiles = new HashSet<File>();
 		
 		File projectDir = new File(Engine.projectDir(projectName));
 		
@@ -142,12 +164,11 @@ public class CarUtils {
 	}
 
 	public static void exportProject(Project project, String fileName) throws EngineException {
-		exportProject(project, fileName, new ArrayList<TestCase>());
+		exportProject(project, fileName, true);
 	}
 	
-	public static void exportProject(Project project, String fileName, 
-			List<TestCase> selectedTestCases) throws EngineException {
-		Document document = exportProject(project, selectedTestCases);
+	public static void exportProject(Project project, String fileName, boolean includeTestCases) throws EngineException {
+		Document document = exportProject(project, includeTestCases);
 		try {
 			exportYAMLProject(fileName, document);
 		} catch (Exception e) {
@@ -196,7 +217,7 @@ public class CarUtils {
 		}
 	}
 	
-	private static Document exportProject(Project project, final List<TestCase> selectedTestCases) 
+	private static Document exportProject(Project project, final boolean includeTestCases) 
 			throws EngineException {
 		try {
 			final Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
@@ -243,10 +264,10 @@ public class CarUtils {
 					parentElement.appendChild(document.createTextNode("\n"));
 					parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "<" + name + ">", 150)));
 					
-					if (databaseObject instanceof TestCase && selectedTestCases.size() > 0) { 
-						if (selectedTestCases.contains((TestCase)databaseObject)) {
+					if (databaseObject instanceof TestCase) {
+						if (includeTestCases) {
 							parentElement.appendChild(element);
-						} 
+						}
 					} else {
 						parentElement.appendChild(element);
 					}

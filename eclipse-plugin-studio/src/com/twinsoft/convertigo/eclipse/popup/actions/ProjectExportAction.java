@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.awt.Toolkit;
 import java.io.File;
-import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.window.Window;
@@ -32,10 +32,8 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.ProjectChooseTestCasesDialog;
-import com.twinsoft.convertigo.eclipse.dialogs.ProjectVersionUpdateDialog;
+import com.twinsoft.convertigo.eclipse.dialogs.ArchiveExportOptionDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -58,50 +56,44 @@ public class ProjectExportAction extends MyAbstractAction {
         try {
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
+    			ProjectTreeObject projectTreeObject = (ProjectTreeObject) explorerView.getFirstSelectedTreeObject();
     			Project project = (Project) projectTreeObject.getObject();
-            	String projectName = project.getName();                
-            	
-            	ProjectVersionUpdateDialog dlg = new ProjectVersionUpdateDialog(shell, project.getVersion());
-            	if (dlg.open() == Window.OK) {
-            		project.setVersion(dlg.result);
-            		project.hasChanged = true;
-            		projectTreeObject.save(false);
+            	String projectName = project.getName();
+
+            	if (projectTreeObject.hasChanged() && !projectTreeObject.save(true)) {
+            		return;
             	}
             	
-            	projectTreeObject.save(true);
+            	ArchiveExportOptionDialog dlg = new ArchiveExportOptionDialog(shell, project);
+            	if (dlg.open() != Window.OK) {
+            		return;
+            	}
+            	
+            	if (!dlg.getVersion().equals(project.getVersion())) {
+	        		project.setVersion(dlg.getVersion());
+	        		project.hasChanged = true;
+	        		projectTreeObject.save(false);
+            	}
+        		
             	explorerView.refreshTreeObject(projectTreeObject);
     			
     			String projectArchive = projectName + ".car";
     			
             	FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
             	fileDialog.setText("Export a project");
-            	fileDialog.setFilterExtensions(new String[]{"*.car","*.xml"});
-            	fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo projects"});
+            	fileDialog.setFilterExtensions(new String[]{"*.car","*.zip"});
+            	fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo archives as zip"});
             	fileDialog.setFilterPath(Engine.PROJECTS_PATH);
             	fileDialog.setFileName(projectArchive);
-
-            	ProjectChooseTestCasesDialog dlgTC = null;
-            	List<TestCase> listTestCasesSelected = null;
-            	boolean checkTestCases = dlg.isCheckTestCases();
-            	
-            	if (checkTestCases) {
-            		dlgTC = new ProjectChooseTestCasesDialog(shell, project);
-					if (dlgTC.open()==Window.OK) {
-						listTestCasesSelected = dlgTC.getTestCasesMap();
-					}
-            	}
             	
             	String filePath = fileDialog.open();
-            	if (filePath != null) {
-					String exportName = project.getName();
-					
+            	if (filePath != null) {					
 					File file = new File(filePath);
 					
-					if(file.exists()){
-						if(ConvertigoPlugin.questionMessageBox(shell, "File already exists. Do you want to overwrite?")==SWT.YES){
-							if(file.delete()==false){
-								ConvertigoPlugin.warningMessageBox("Error when deleting the file "+file.getName()+"! Please verify access rights!");
+					if (file.exists()) {
+						if (ConvertigoPlugin.questionMessageBox(shell, "File already exists. Do you want to overwrite?") == SWT.YES) {
+							if (!file.delete()) {
+								ConvertigoPlugin.warningMessageBox("Error when deleting the file " + file.getName() + "! Please verify access rights!");
 								return;
 							}
 						} else {
@@ -109,37 +101,8 @@ public class ProjectExportAction extends MyAbstractAction {
 						}
 					}
 					
-					String filename = file.getName();
-					int idx = -1;
-					if(filePath.endsWith(".xml")){
-						idx = filename.lastIndexOf(".xml");
-					}else if(filePath.endsWith(".car")){
-						idx = filename.lastIndexOf(".car");
-					}
-					
-					String overriddenProjectName = filename.substring(0, idx);
-					
-            		if (filePath.endsWith(".xml")) {
-    					if (!overriddenProjectName.equals(exportName)) {
-        					Toolkit.getDefaultToolkit().beep();
-        					ConvertigoPlugin.logWarning("Xml file and project must have same name!");
-        					return;
-    					}
-    					if (checkTestCases) {
-    						CarUtils.exportProject(project, filePath, listTestCasesSelected);
-    					} else {
-    						CarUtils.exportProject(project, filePath);
-    					}
-            		}
-    				else if (filePath.endsWith(".car")) {
-    					if (!overriddenProjectName.equals(exportName)) {
-    						exportName = overriddenProjectName;
-    					}
-    					if (checkTestCases) {
-    						CarUtils.makeArchive(file.getParent(), project, exportName, listTestCasesSelected);
-    					} else {
-    						CarUtils.makeArchive(file.getParent(), project, exportName);	
-    					}
+            		if (Pattern.matches(".+(\\.zip|\\.car)", file.getName())) {
+    					CarUtils.makeArchive(file, project, dlg.getArchiveExportOptions());
     				}
     				else {
     					Toolkit.getDefaultToolkit().beep();

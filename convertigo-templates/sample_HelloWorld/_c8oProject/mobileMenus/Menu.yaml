@@ -1,0 +1,32 @@
+beanData: '{"ionBean":"Menu"}'
+comment: A menu with all pages added automatically
+tagName: ion-menu
+↓Header [mobile.components.UIDynamicElement-1500890727582]: 
+  beanData: '{"ionBean":"Header"}'
+  tagName: ion-header
+  ↓ToolBar [mobile.components.UIDynamicElement-1500890731485]: 
+    beanData: '{"ionBean":"ToolBar"}'
+    tagName: ion-toolbar
+    ↓BarTitle [mobile.components.UIDynamicElement-1500890752959]: 
+      beanData: '{"ionBean":"BarTitle"}'
+      tagName: ion-title
+      ↓Text [mobile.components.UIText-1500890755422]: 
+        textValue: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+            - MobileSmartSourceType: plain:My Menu
+↓Content [mobile.components.UIDynamicElement-1500890742326]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓List [mobile.components.UIDynamicElement-1501343197007]: 
+    beanData: |
+      '{
+       "ionBean": "List",
+       "Nolines": "plain:no-lines",
+       "Inset": "plain:inset"
+      }'
+    tagName: ion-list
+    ↓MenuAutoItems [mobile.components.UIDynamicMenuItems-1500890605250]: 
+      beanData: '{"ionBean":"MenuAutoItems"}'
+      itemtitle: 
+      tagName: button

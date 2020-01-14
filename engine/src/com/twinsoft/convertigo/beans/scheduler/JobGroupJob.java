@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -83,5 +83,9 @@ public class JobGroupJob extends AbstractJob {
 
 	public void setParallelJob(int parallelJob) {
 		this.parallelJob = parallelJob;
+	}
+
+	public void setSerial(boolean serial) {
+		this.parallelJob = serial ? 1 : Runtime.getRuntime().availableProcessors();
 	}
 }

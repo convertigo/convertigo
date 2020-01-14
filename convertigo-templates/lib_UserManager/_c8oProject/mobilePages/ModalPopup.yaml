@@ -1,0 +1,7 @@
+segment: path-to-modalpopup
+title: Title for ModalPopup
+↓Content [mobile.components.UIDynamicElement-1572623676016]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓UseSharedComponent [mobile.components.UIUseShared-1572623676068]: 
+    sharedcomponent: lib_UserManager.MobileApplication.Application.LoginComponent

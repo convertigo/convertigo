@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,7 +37,7 @@ public class OpenConvertigoDocumentationAction implements IWorkbenchWindowAction
 
 	public void run(IAction action) {
 		try {
-			Program.launch("http://www.convertigo.com/technical-documentation/");
+			Program.launch("https://www.convertigo.com/technical-documentation/");
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while opening the Convertigo administration page");
 		}

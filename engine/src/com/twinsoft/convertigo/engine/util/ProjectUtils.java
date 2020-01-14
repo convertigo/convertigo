@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -402,7 +402,7 @@ public class ProjectUtils {
 			return true;
 		for (Reference reference : project.getReferenceList()) {
 			if (reference instanceof ProjectSchemaReference) {
-				if (((ProjectSchemaReference)reference).getProjectName().equals(projectName))
+				if (((ProjectSchemaReference)reference).getParser().getProjectName().equals(projectName))
 					return true;
 			}
 		}

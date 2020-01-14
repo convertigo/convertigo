@@ -226,6 +226,15 @@
     </servlet-mapping>
     
     <servlet>
+		<servlet-name>DelegateServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.servlets.DelegateServlet</servlet-class>
+	</servlet>
+    <servlet-mapping>
+        <servlet-name>DelegateServlet</servlet-name>
+        <url-pattern>/delegate</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
 		<servlet-name>FullSyncServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.FullSyncServlet</servlet-class>
 	</servlet>
@@ -281,9 +290,6 @@
     <servlet-mapping>
         <servlet-name>AdminServlet</servlet-name>
         <url-pattern>/admin/services/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>AdminServlet</servlet-name>
         <url-pattern>/services/*</url-pattern>
     </servlet-mapping>
 

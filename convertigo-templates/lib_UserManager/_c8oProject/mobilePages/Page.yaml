@@ -1,0 +1,36 @@
+↑isRoot: true
+segment: path-to-page
+title: Title for Page
+↓Content [mobile.components.UIDynamicElement-1572604185704]: 
+  beanData: '{"ionBean":"Content"}'
+  tagName: ion-content
+  ↓Button [mobile.components.UIDynamicElement-1572623544377]: 
+    beanData: '{"ionBean":"Button"}'
+    tagName: button
+    ↓Text [mobile.components.UIText-1572623555409]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Show Login popup
+    ↓Event [mobile.components.UIControlEvent-1572623622961]: 
+      ↓ModalPage [mobile.components.UIDynamicAction-1572623631585]: 
+        beanData: '{"ionBean":"ModalAction","page":"plain:lib_UserManager.MobileApplication.Application.ModalPopup"}'
+  ↓Button1 [mobile.components.UIDynamicElement-1572935670185]: 
+    beanData: '{"ionBean":"Button"}'
+    tagName: button
+    ↓Text [mobile.components.UIText-1572935670188]: 
+      textValue: 
+        - xmlizable: 
+          - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
+          - MobileSmartSourceType: plain:Logout
+    ↓Event [mobile.components.UIControlEvent-1572935670191]: 
+      ↓CallSequence [mobile.components.UIDynamicAction-1572939315358]: 
+        beanData: '{"ionBean":"CallSequenceAction","requestable":"plain:lib_OAuth.SignOut"}'
+  ↓UseSharedComponent [mobile.components.UIUseShared-1572626026023]: 
+    sharedcomponent: lib_UserManager.MobileApplication.Application.LoginComponent
+↓Subscribe_Handler [mobile.components.UIEventSubscriber-1572609277501]: 
+  topic: login
+  ↓Toast [mobile.components.UIDynamicAction-1572609298870]: 
+    beanData: '{"ionBean":"ToastAction","message":"script:''Login sucessful'' + JSON.stringify(out)"}'
+  ↓CloseModal [mobile.components.UIDynamicAction-1572625352885]: 
+    beanData: '{"ionBean":"CloseModalAction"}'

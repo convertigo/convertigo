@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -50,10 +50,12 @@ import com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAnimation;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
+import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
@@ -364,6 +366,7 @@ public class ComponentManager {
 			group = GROUP_SHARED_COMPONENTS;
 			components.add(getDboComponent(UISharedComponent.class,group));
 			components.add(getDboComponent(UIUseShared.class,group));
+			components.add(getDboComponent(UICompVariable.class,group));
 			
 			// Add shared actions
 			group = GROUP_SHARED_ACTIONS;
@@ -378,6 +381,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIEventSubscriber.class,group));
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
+			components.add(getDboComponent(UIActionFinallyEvent.class,group));
 			components.add(getDboComponent(UIActionLoopEvent.class,group));
 			components.add(getDboComponent(UIActionElseEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
@@ -595,6 +599,7 @@ public class ComponentManager {
 				
 				if (dboParent instanceof UIActionStack) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
+						UIActionFinallyEvent.class.isAssignableFrom(dboClass) ||
 						UIStackVariable.class.isAssignableFrom(dboClass) ||
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
@@ -603,7 +608,10 @@ public class ComponentManager {
 				else if (dboParent instanceof UISharedComponent) {
 					if (UIText.class.isAssignableFrom(dboClass) ||
 						UICustom.class.isAssignableFrom(dboClass) ||
-						UIElement.class.isAssignableFrom(dboClass)) {
+						UIElement.class.isAssignableFrom(dboClass) ||
+						UIPageEvent.class.isAssignableFrom(dboClass) ||
+						UIEventSubscriber.class.isAssignableFrom(dboClass) ||
+						UICompVariable.class.isAssignableFrom(dboClass)) {
 						if (!IAction.class.isAssignableFrom(dboClass)) {
 							return true;
 						}
@@ -614,6 +622,7 @@ public class ComponentManager {
 						dboParent instanceof UIControlEvent ||
 						dboParent instanceof UIEventSubscriber) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
+						UIActionFinallyEvent.class.isAssignableFrom(dboClass) ||
 						IAction.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
@@ -643,6 +652,10 @@ public class ComponentManager {
 					if (UIAttribute.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
+				} else if (dboParent instanceof UIUseShared) {
+					if (UIControlVariable.class.isAssignableFrom(dboClass)) {
+						return true;
+					}
 				} else if (dboParent instanceof UIElement) {
 					if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
 						return menu != null;
@@ -654,6 +667,7 @@ public class ComponentManager {
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&
 						!UIStackVariable.class.isAssignableFrom(dboClass) &&
+						!UICompVariable.class.isAssignableFrom(dboClass) &&
 						!UIAppEvent.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&

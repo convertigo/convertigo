@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -77,14 +77,13 @@ public class CouchVariablesComposite extends ScrolledComposite {
 		
 		/* Fill the Group widget */
 		for (PropertyDescriptor property : propertyDescriptors) {
-			final String name = property.getName();
-			final String description = property.getShortDescription();
-			if (!parametersCouch.contains(name) ){
-
+			String name = property.getName();
+			String description = property.getShortDescription();
+			if (!parametersCouch.contains(name)) {
 				if ( (name.startsWith("q_") || name.startsWith("p_")) ) {
-					if (!parentObject.getClass().getCanonicalName().equals(property.getValue( 
-								MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS))) {
+					if (!parentObject.getClass().getCanonicalName().equals(property.getValue(MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS))) {
 						Group choosenGroup = name.startsWith("q_") ? groupQueries : groupParameters;
+						description = description.replaceFirst("\\|", "");
 						addToComposite(choosenGroup, name, description, false);
 					}
 				} 

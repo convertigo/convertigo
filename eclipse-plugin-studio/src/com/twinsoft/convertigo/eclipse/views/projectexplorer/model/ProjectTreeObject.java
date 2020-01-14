@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,7 +20,9 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -56,11 +58,13 @@ import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.couchdb.JsonIndex;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
@@ -81,8 +85,10 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 
 public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject, IResourceChangeListener {
@@ -118,32 +124,25 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 	
 	@Override
-    public void hasBeenModified(boolean bModified) {
+	public void hasBeenModified(boolean bModified) {
 		if (bModified && !isInherited) {
 			markAsChanged(true);
 		}
 	}
 	
-	/**
-	 * Closes a project.
-	 * 
-	 * @return <code>false</code> if the close process has been canceled by user.
-	 */
 	public boolean close() {
 		// close opened editors
 		closeAllEditors();
 		
 		// save project and copy temporary files to project files
-		boolean bRet = save(true);
-		if (bRet) {
-			ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
+		save(true);
+		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 
-			// clear Source picker view if needed
-			clearSourcePickerView();
-			
-			Engine.theApp.databaseObjectsManager.clearCache(getObject());
-		}
-		return bRet;
+		// clear Source picker view if needed
+		clearSourcePickerView();
+		
+		Engine.theApp.databaseObjectsManager.clearCache(getObject());
+		return true;
 	}
 
 	private void clearSourcePickerView() {
@@ -207,7 +206,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	 * @return <code>false</code> if the save process has been canceled by user.
 	 */
 	public boolean save(boolean bDialog) {
-		boolean ret = true;
+		boolean ret = false;
 		
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -239,6 +238,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						IProject iProject = getIProject();
 						iProject.refreshLocal(IResource.DEPTH_ONE, null);
 						iProject.getFolder("_c8oProject").refreshLocal(IResource.DEPTH_INFINITE, null);
+						ret = true;
 					}
 				}
 			} catch (Exception e) {
@@ -317,6 +317,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				CouchDbConnector couchDbConnector = (CouchDbConnector) databaseObject;
 				if (couchDbConnector.bNew) {
 					CouchDbManager.syncDocument(couchDbConnector);
+				}
+			}
+			
+			if (databaseObject instanceof JsonIndex) {
+				JsonIndex jsonIndex = (JsonIndex) databaseObject;
+				if (jsonIndex.bNew && jsonIndex.getConnector() != null) {
+					CouchDbManager.syncDocument(jsonIndex.getConnector());
 				}
 			}
 			
@@ -850,9 +857,60 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							Display.getDefault().asyncExec(this);
 							return;
 						} 
+						ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 
 						String message = "For \"" + project.getName() + "\" project :\n";
-
+						List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
+						for (String targetProjectName: missingProjects) {
+							if (allProjects.contains(targetProjectName)) {
+								try {
+									int response = ConvertigoPlugin.questionMessageBox(null, message + "Open \"" + targetProjectName + "\" project ?");
+									if (response == SWT.YES) {
+										TreeObject obj = pev.getProjectRootObject(targetProjectName);
+										if (obj != null && obj instanceof UnloadedProjectTreeObject) {
+											pev.loadProject(((UnloadedProjectTreeObject) obj));
+											missingProjects.remove(targetProjectName);	
+										}
+									}
+								} catch (Exception e) {
+									Engine.logStudio.warn("Failed to open \"" + targetProjectName + "\"", e);
+								}
+							}
+						}
+						
+						Map<String, ProjectUrlParser> refToImport = new HashMap<>();
+						for (Reference ref: project.getReferenceList()) {
+							if (ref instanceof ProjectSchemaReference) {
+								ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
+								if (missingProjects.contains(prjRef.getParser().getProjectName()) && prjRef.getParser().isValid()) {
+									message += "\nDo you want to automatically import \"" + prjRef.getProjectName() + "\" from \"" + prjRef.getParser().getGitRepo() + "\" ?";
+									refToImport.put(prjRef.getParser().getProjectName(), prjRef.getParser());
+								}
+							}
+						}
+						
+						if (!refToImport.isEmpty()) {
+							int response = ConvertigoPlugin.questionMessageBox(null, message);
+							if (response == SWT.YES) {
+								Engine.execute(() -> {
+									boolean loaded = false;
+									for (ProjectUrlParser parser: refToImport.values()) {
+										try {
+											loaded |= Engine.theApp.referencedProjectManager.importProject(parser);
+										} catch (Exception e) {
+											Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
+										}
+									}
+									if (loaded) {
+										Engine.theApp.fireMigrationFinished(new EngineEvent(""));
+									}
+								});
+								return;
+							}
+						}
+						
+						message = "For \"" + project.getName() + "\" project :\n";
+						
 						for (String targetProjectName: missingProjects) {
 							message += "  > The project \"" + targetProjectName + "\" is missing\n";
 						}
@@ -869,8 +927,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								for (String targetProjectName: missingProjectReferences) {
 									try {
 										ProjectSchemaReference reference = new ProjectSchemaReference();
-										reference.setProjectName(targetProjectName);
+										String projectName = targetProjectName;
 										reference.setName(targetProjectName + "_reference");
+										projectName = ProjectUrlParser.getUrl(projectName);
+										reference.setProjectName(projectName);
 										project.add(reference);
 
 										ProjectExplorerView explorerView = ConvertigoPlugin.projectManager.getProjectExplorerView();
@@ -880,9 +940,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 									}
 								}
 								hasBeenModified(true);
-
 							}
-						} else {
+						} else if (!missingProjects.isEmpty()) {
 							ConvertigoPlugin.warningMessageBox(message);
 						}
 					} finally {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,8 +21,8 @@ package com.twinsoft.convertigo.engine.admin.services.store;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -74,7 +74,7 @@ public class DownloadStoreFolder extends DownloadService {
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String storePath = Engine.WEBAPP_PATH + "/WEB-INF/" + StoreFiles.STORE_DIRECTORY_NAME + "/";
-		List<File> excludedFiles = getExcludedFiles(request, storePath);
+		Set<File> excludedFiles = getExcludedFiles(request, storePath);
 		
 		// Check if at least one file is included
 		if (excludedFiles.size() < StoreFiles.size()) {
@@ -96,8 +96,8 @@ public class DownloadStoreFolder extends DownloadService {
 		}
 	}
 	
-	private List<File> getExcludedFiles(HttpServletRequest request, String storePath) {
-		List<File> excludedFiles = new ArrayList<File>(StoreFiles.size());
+	private Set<File> getExcludedFiles(HttpServletRequest request, String storePath) {
+		Set<File> excludedFiles = new HashSet<File>(StoreFiles.size());
 		
 		for (StoreFiles parameter : StoreFiles.values()) {
 			String value = request.getParameter(parameter.name());
@@ -109,7 +109,7 @@ public class DownloadStoreFolder extends DownloadService {
 		return excludedFiles;
 	}
 	
-	private void addExcludedFile(List<File> excludedFiles, String storePath, StoreFiles parameter) {
+	private void addExcludedFile(Set<File> excludedFiles, String storePath, StoreFiles parameter) {
 		excludedFiles.add(new File(storePath, parameter.filename()));
 	}
 }

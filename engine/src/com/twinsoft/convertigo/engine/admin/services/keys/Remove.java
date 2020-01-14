@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -48,8 +48,7 @@ import com.twinsoft.tas.KeyManager;
 		name = "Remove",
 		roles = { Role.WEB_ADMIN, Role.KEYS_CONFIG },
 		parameters = {},
-		returnValue = "",
-		cloud_forbidden = true
+		returnValue = ""
 	)
 public class Remove extends XmlService{
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,20 +24,18 @@ import java.util.Locale;
 public class DateUtils {
 	
 	public static Locale getLocale(String isoCountryCode){
-		Locale locale = Locale.FRENCH;
+		Locale locale = Locale.forLanguageTag(isoCountryCode);
+		if (!locale.getLanguage().isEmpty()) {
+			return locale;
+		}
 		Locale[] locales = Locale.getAvailableLocales();
 	    for (int i = 0; i < locales.length; i++){
 	    	locale = locales[i];
-	    	//System.out.println(i + ": " + locale.getLanguage() + ", " + locale.getCountry() + ", " + locale.getDisplayName());
-	    	if (isoCountryCode.equals(locale.getCountry()))
+//	    	System.out.println(i + ": " + locale.getLanguage() + ", " + locale.getCountry() + ", " + locale.getDisplayName());
+	    	if (isoCountryCode.equalsIgnoreCase(locale.getCountry()) || (locale.getCountry().isEmpty() && isoCountryCode.equalsIgnoreCase(locale.getLanguage()))) {
 	    		return locale;
+	    	}
 	    }
-	    return locale;
+	    return Locale.FRENCH;
 	}
-	
-
-//	public static void main(String[] args) {
-//
-//	}
-
 }
