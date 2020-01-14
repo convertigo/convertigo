@@ -436,7 +436,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.AuditAppender.layout.ConversionPattern", "!%c{1} | %d | %-5p | %m%n", "Log4J audit appender layout conversion pattern", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX ("log4j.appender.AuditAppender.MaxBackupIndex", "100", "Log4J audit appender max backup index", PropertyCategory.Logs),
+		LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX ("log4j.appender.AuditAppender.MaxBackupIndex", "25", "Log4J audit appender max backup index", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_AUDITAPPENDER_MAXFILESIZE ("log4j.appender.AuditAppender.MaxFileSize", "10MB", "Log4J audit appender max file size", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
@@ -450,7 +450,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG4J_APPENDER_CEMSAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.CemsAppender.layout.ConversionPattern", "!%-28c{1} | %d | %-5p | %-32t | %X{ContextualParameters}%m%n", "Log4J default appender layout conversion pattern", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
-		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "100", "Log4J default appender max backup index", PropertyCategory.Logs),
+		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "25", "Log4J default appender max backup index", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_CEMSAPPENDER_MAXFILESIZE ("log4j.appender.CemsAppender.MaxFileSize", "10MB", "Log4J default appender max file size", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)

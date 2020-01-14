@@ -73,7 +73,11 @@ public class ProxyManager {
 		public void onEvent(final PropertyChangeEvent event) {
 			if (event.getKey().toString().startsWith("htmlProxy.")) {
 				getEngineProperties();
-				AbstractXulWebViewer.setProxySettings();
+				try {
+					AbstractXulWebViewer.setProxySettings();
+				} catch (Throwable e) {
+					// should fail if not a xul version (most of cases)
+				}
 			}
 		}
 	};
