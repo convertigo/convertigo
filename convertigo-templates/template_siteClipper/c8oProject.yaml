@@ -1,5 +1,5 @@
-↑convertigo: 7.7.0.m006
+↑convertigo: 7.7.1.m006
 ↓template_siteClipper [core.Project]: 
   comment: Site Clipping project
-  version: 7.7.0
+  version: 7.7.1-beta
   ↓template_siteClipperConnector [connectors.SiteClipperConnector]: 🗏 connectors/template_siteClipperConnector.yaml
