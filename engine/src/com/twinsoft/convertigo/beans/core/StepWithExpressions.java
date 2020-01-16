@@ -172,7 +172,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 					Long stepPriority = null;
 					Step step = sequence.getCopy(timeID);
 					if (step != null) {
-						stepPriority = new Long(step.priority);
+						stepPriority = Long.valueOf(step.priority);
 						step.cleanCopy();
 					}
 					sequence.removeCopy(timeID, stepPriority);
@@ -238,7 +238,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
         step.setParent(this);// do not call super.add otherwise it will generate an exception
         step.sequence = getSequence();
         
-        sequence.loadedSteps.put(new Long(step.priority), step);
+        sequence.loadedSteps.put(Long.valueOf(step.priority), step);
         sequence.addStepListener(step);
         
        	insertOrderedStep(step, after);
@@ -248,7 +248,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     	XMLVector<Long> ordered = orderedSteps.get(0);
     	int size = ordered.size();
     	
-    	Long value = new Long(step.priority);
+    	Long value = Long.valueOf(step.priority);
     	
     	if (ordered.contains(value))
     		return;
@@ -271,10 +271,10 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     	step.setParent(null); // Do not call super.remove otherwise it will generate an exception
     	step.sequence = null;
     	
-    	Long value = new Long(step.priority);
+    	Long value = Long.valueOf(step.priority);
         removeOrderedStep(value);
         
-        sequence.loadedSteps.remove(new Long(step.priority));
+        sequence.loadedSteps.remove(Long.valueOf(step.priority));
         sequence.removeStepListener(step);
     }
     
@@ -363,7 +363,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	XMLVector<Long> ordered = orderedSteps.get(0);
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (!ordered.contains(value))
     		return;
@@ -382,7 +382,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
     	XMLVector<Long> ordered = orderedSteps.get(0);
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (!ordered.contains(value))
     		return;
@@ -561,7 +561,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
             		if (Engine.logBeans.isDebugEnabled())
             			Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" executing step : "+ step.getName());
            			if (step.execute(javascriptContext, scope)) {
-           				//childrenSteps.put(step.executeTimeID, new Long(step.priority));
+           				//childrenSteps.put(step.executeTimeID, Long.valueOf(step.priority));
        					//executedSteps.putAll(step.executedSteps);
            				if (step instanceof ParallelStep) {
            		    		try {
@@ -587,7 +587,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
                		step.xpathApi.release();
                	}
                	step.cleanCopy();
-               	refSequence.removeCopy(step.executeTimeID, new Long(step.priority));
+               	refSequence.removeCopy(step.executeTimeID, Long.valueOf(step.priority));
                	if (Engine.logBeans.isDebugEnabled())
                		Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" done");
             }
@@ -684,7 +684,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     	if (stepToExecute != null) {
     		// Execute step
     		if (stepToExecute.execute(javascriptContext, scope)) {
-    			childrenSteps.put(stepToExecute.executeTimeID, new Long(stepToExecute.priority));
+    			childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
    				executedSteps.putAll(stepToExecute.executedSteps);
     		}
     		else {

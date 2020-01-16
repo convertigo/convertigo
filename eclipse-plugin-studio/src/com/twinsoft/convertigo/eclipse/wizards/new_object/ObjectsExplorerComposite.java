@@ -169,7 +169,7 @@ public class ObjectsExplorerComposite extends Composite {
 												Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class
 														.forName(beanInfoClassName));
 												if (beanInfoClass != null) {
-													beanMap.put(beanInfoClass.newInstance(), beansCategory);
+													beanMap.put(beanInfoClass.getConstructor().newInstance(), beansCategory);
 													beansCategorySet.add(beansCategory);
 												} else {
 													String message = java.text.MessageFormat.format(

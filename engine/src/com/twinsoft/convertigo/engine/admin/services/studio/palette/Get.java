@@ -264,7 +264,7 @@ public class Get extends XmlService {
 												}
 
 												// Create bean
-												DboBeanData dboBeanData = new DboBeanData(beanInfoClass.newInstance());
+												DboBeanData dboBeanData = new DboBeanData(beanInfoClass.getConstructor().newInstance());
 												dboBeansData.addDboBean(dboBeanData);
 											}
 											else {

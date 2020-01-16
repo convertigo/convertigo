@@ -487,7 +487,7 @@ public class CommandSNA extends com.twinsoft.convertigo.beans.common.Command {
 				for (int j = 0 ; j < len_nl ; j++) {
 					xmlNode = nl.item(j);
 					if (xmlNode.getNodeType() == Node.ELEMENT_NODE) {
-						bLabelFirst = new Boolean(XMLUtils.readObjectFromXml((Element) xmlNode).toString()).booleanValue();
+						bLabelFirst = Boolean.valueOf(XMLUtils.readObjectFromXml((Element) xmlNode).toString()).booleanValue();
 						continue;
 					}
 				}

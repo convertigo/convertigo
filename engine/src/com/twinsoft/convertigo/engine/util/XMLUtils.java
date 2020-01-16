@@ -440,30 +440,30 @@ public class XMLUtils {
 		try {
 			if (nodeName.equals("java.lang.Boolean")) {
 				if (nodeValue.equalsIgnoreCase("true") || nodeValue.equalsIgnoreCase("false")) {
-					return new Boolean(nodeValue);
+					return Boolean.valueOf(nodeValue);
 				} else {
 					return nodeValue;
 				}
 			} else if (nodeName.equals("java.lang.Byte")) {
-				return new Byte(nodeValue);
+				return Byte.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Character")) {
-				return new Character(nodeValue.charAt(0));
+				return Character.valueOf(nodeValue.charAt(0));
 			} else if (nodeName.equals("java.lang.Integer")) {
-				return new Integer(nodeValue);
+				return Integer.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Double")) {
-				return new Double(nodeValue);
+				return Double.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Float")) {
-				return new Float(nodeValue);
+				return Float.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Long")) {
-				return new Long(nodeValue);
+				return Long.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Short")) {
-				return new Short(nodeValue);
+				return Short.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.String")) {
 				return nodeValue;
 			} else if (nodeName.equals("array")) {
 				String className = node.getAttribute("classname");
 				String length = node.getAttribute("length");
-				int len = (new Integer(length)).intValue();
+				int len = (Integer.valueOf(length)).intValue();
 	
 				Object array;
 				if (className.equals("byte")) {
@@ -506,7 +506,7 @@ public class XMLUtils {
 				String className = node.getAttribute("classname");
 	
 				Node xmlNode = findChildNode(node, Node.ELEMENT_NODE);
-				Object xmlizable = Class.forName(className).newInstance();
+				Object xmlizable = Class.forName(className).getConstructor().newInstance();
 				((XMLizable) xmlizable).readXml(xmlNode);
 	
 				return xmlizable;

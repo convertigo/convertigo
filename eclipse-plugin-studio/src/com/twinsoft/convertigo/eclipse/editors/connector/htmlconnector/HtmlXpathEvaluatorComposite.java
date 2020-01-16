@@ -122,7 +122,7 @@ public class HtmlXpathEvaluatorComposite extends XpathEvaluatorComposite {
 	
 										for(int i=0;i<etats.length;i++){
 											if(etats[i]!=null){
-												final Integer index = new Integer(i);
+												final Integer index = Integer.valueOf(i);
 												MenuItem item2 = new MenuItem(menu, SWT.NONE);
 												item2.setText(etats[i]);
 												item2.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {

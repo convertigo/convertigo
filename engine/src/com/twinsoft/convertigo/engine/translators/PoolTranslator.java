@@ -57,7 +57,7 @@ public class PoolTranslator implements Translator {
 		Scriptable scope = javascriptContext.initStandardObjects(null);
 
 		try {		
-			Integer iContextNumber = new Integer(context.poolContextNumber);
+			Integer iContextNumber = Integer.valueOf(context.poolContextNumber);
 			Scriptable jsContextNumber = org.mozilla.javascript.Context.toObject(iContextNumber, scope);
 			scope.put("contextNumber", scope, jsContextNumber);
 

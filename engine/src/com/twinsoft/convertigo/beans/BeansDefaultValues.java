@@ -499,7 +499,7 @@ public class BeansDefaultValues {
 			
 			for (Node node: nodes) {
 				String classname = node.getNodeValue();
-				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).newInstance();
+				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).getConstructor().newInstance();
 				Element def = dbo.toXml(document);
 				if (def.hasAttribute("priority")) {
 					def.setAttribute("priority", "0");

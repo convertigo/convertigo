@@ -97,7 +97,7 @@ public class XMLTableRow extends XMLVector<Object> {
 		XMLVector<Object> v = new XMLVector<Object>();
 		v.add(colName);
 		v.add(colXpath);
-		v.add(new Boolean(bExtractChilds));
+		v.add(Boolean.valueOf(bExtractChilds));
 		columns.add(v);
 		return v;
 	}

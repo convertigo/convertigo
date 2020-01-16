@@ -759,9 +759,9 @@ public class Table extends JavelinMashupEventExtractionRule {
 		for(TableColumn tc : columns){
 			XMLVector<Object> element = new XMLVector<Object>();
 			element.add(new String(tc.title));
-			element.add(new Integer(tc.startColumn));
-			element.add(new Integer(tc.endColumn));
-			element.add(new Integer(tc.lineIndex));
+			element.add(Integer.valueOf(tc.startColumn));
+			element.add(Integer.valueOf(tc.endColumn));
+			element.add(Integer.valueOf(tc.lineIndex));
 			cols.add(element);
 		}
 		return cols;

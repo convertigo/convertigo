@@ -58,7 +58,7 @@ public class EditorFrameworkDialog extends Dialog {
 			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_BOTH);
 
 			dialogComposite = (AbstractDialogComposite) constructor.newInstance(new Object[] { composite,
-					new Integer(SWT.NONE), cellEditor });
+					Integer.valueOf(SWT.NONE), cellEditor });
 			dialogComposite.setLayoutData(gridData);
 			dialogComposite.setParentDialog(this);
 		} catch (Exception e) {

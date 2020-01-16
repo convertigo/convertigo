@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 	)
 public class GetIconsCSS extends DownloadService  {
 
+	@SuppressWarnings("unlikely-arg-type")
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		Document pluginDocument = Get.getPluginDocument();			

@@ -380,7 +380,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof PageComponent)
     		ordered = orderedPages.get(0);

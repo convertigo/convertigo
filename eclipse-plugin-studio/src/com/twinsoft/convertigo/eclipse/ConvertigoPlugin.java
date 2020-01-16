@@ -787,7 +787,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		studioLog.logLevel = Log.LOGLEVEL_DEBUG;
 
 		try {
-			studioLog.logLevel = new Integer(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_LOG_LEVEL)).intValue();
+			studioLog.logLevel = Integer.valueOf(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_LOG_LEVEL)).intValue();
 		}
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the log level; using default log level (4).");
@@ -796,21 +796,21 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		studioLog.message("Starting the Convertigo studio eclipse plugin");
 
 		try {
-			highlightDetectedObject = new Boolean(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_TREE_HIGHLIGHT_DETECTED)).booleanValue();
+			highlightDetectedObject = Boolean.valueOf(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_TREE_HIGHLIGHT_DETECTED)).booleanValue();
 		}
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the highlight option; using default highlight option (true).");
 		}
 
 		try {
-			autoOpenDefaultConnector = new Boolean(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR)).booleanValue();
+			autoOpenDefaultConnector = Boolean.valueOf(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR)).booleanValue();
 		}
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the auto open default connector option; using default (false).");
 		}
 
 		try {
-			mobileBuilderThreshold = new Integer(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MOBILE_BUILDER_THRESHOLD)).intValue();
+			mobileBuilderThreshold = Integer.valueOf(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_MOBILE_BUILDER_THRESHOLD)).intValue();
 		}
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the mobile builder threshold option; using default (200).");

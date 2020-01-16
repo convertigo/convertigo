@@ -43,10 +43,10 @@ public class ZoneEditorComposite extends AbstractDialogComposite {
 		initialize();
 		
 		XMLRectangle zone = (XMLRectangle)cellEditor.databaseObjectTreeObject.getPropertyValue(cellEditor.propertyDescriptor.getId());
-        textTop.setText(new Integer(zone.y).toString());
-        textLeft.setText(new Integer(zone.x).toString());
-        textWidth.setText(new Integer(zone.width).toString());
-        textHeight.setText(new Integer(zone.height).toString());
+        textTop.setText(Integer.valueOf(zone.y).toString());
+        textLeft.setText(Integer.valueOf(zone.x).toString());
+        textWidth.setText(Integer.valueOf(zone.width).toString());
+        textHeight.setText(Integer.valueOf(zone.height).toString());
 	}
 
 	private void initialize() {

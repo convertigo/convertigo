@@ -27,6 +27,6 @@ public class RowEditor extends TableEditor {
 
         dialogTitle = "Transaction variables";
         columnNames = new String[] { "Label", "Initial line", "Final line" };
-        templateData = new Object[] { "label", "", new Integer(0), new Integer(0) };
+        templateData = new Object[] { "label", "", Integer.valueOf(0), Integer.valueOf(0) };
     }
 }

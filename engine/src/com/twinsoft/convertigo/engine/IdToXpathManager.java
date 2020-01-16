@@ -49,7 +49,7 @@ public class IdToXpathManager {
 	}
 
 	public void setTransaction(String transaction) {
-		transactionRange.add(new Object[] { new Integer(cpt), transaction });
+		transactionRange.add(new Object[] { Integer.valueOf(cpt), transaction });
 	}
 
 	public String getTransaction(String id) {

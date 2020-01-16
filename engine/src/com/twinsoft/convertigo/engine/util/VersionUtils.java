@@ -30,7 +30,7 @@ public class VersionUtils {
 	private static Map<String, String> normalizedVersions = new WeakHashMap<String, String>();
     
     public static int compareProductVersion(String version1, String version2) {
-		boolean bProductVersionCheck = new Boolean(EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK)).booleanValue();
+		boolean bProductVersionCheck = Boolean.valueOf(EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK)).booleanValue();
     	
 		if (!bProductVersionCheck) {
 			Engine.logEngine.trace("The product version check has been ignored!");

@@ -93,6 +93,7 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 		return htmlConnector;
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		setCurrentXmlDocument(null);

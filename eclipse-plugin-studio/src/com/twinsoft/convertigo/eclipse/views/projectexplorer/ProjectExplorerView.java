@@ -638,7 +638,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	//		Object[] args;
 	//    	switch(Registration.keyType) {        
 	//			case Registration.KEY_TYPE_EVALUATION:
-	//				args = new Object[] { new Integer(Registration.remainingDays) };
+	//				args = new Object[] { Integer.valueOf(Registration.remainingDays) };
 	//				message = MessageFormat.format("Evaluation version (remaining {0} day(s)...)", args);
 	//				break;
 	//			case Registration.KEY_TYPE_COMMERCIAL:

@@ -446,7 +446,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof Variable)
     		ordered = orderedVariables.get(0);

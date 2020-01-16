@@ -344,7 +344,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 
 	protected boolean bDebug = false;
 	protected boolean bShowBlocks = false;
-	protected Boolean bDebugStepByStep = new Boolean(false);
+	protected Boolean bDebugStepByStep = Boolean.valueOf(false);
 	protected DatabaseObject debugDatabaseObject = new Project();
 
 	/**
@@ -373,7 +373,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 		});
-		toolItemsIds.put("Renew", new Integer(incr));
+		toolItemsIds.put("Renew", Integer.valueOf(incr));
 		incr++;
 
 		if (IConnectable.class.isAssignableFrom(compositeConnectorClass)) {
@@ -389,7 +389,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Connect", new Integer(incr));
+			toolItemsIds.put("Connect", Integer.valueOf(incr));
 			incr++;
 
 			toolItemDisconnect = new ToolItem(toolBar, SWT.PUSH);
@@ -404,7 +404,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Disconnect", new Integer(incr));
+			toolItemsIds.put("Disconnect", Integer.valueOf(incr));
 			incr++;
 		}
 
@@ -420,7 +420,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Refresh", new Integer(incr));
+			toolItemsIds.put("Refresh", Integer.valueOf(incr));
 			incr++;
 		}
 
@@ -436,7 +436,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Reset", new Integer(incr));
+			toolItemsIds.put("Reset", Integer.valueOf(incr));
 			incr++;
 		}
 
@@ -461,7 +461,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						}
 						// Studio.theApp.consolePanel.jTabbedPane.setSelectedComponent(Studio.theApp.consolePanel.jScrollPaneDebug);
 						bDebug = true;
-						bDebugStepByStep = new Boolean(true);
+						bDebugStepByStep = Boolean.valueOf(true);
 						toolItemRun.setEnabled(true);
 						toolItemPause.setEnabled(false);
 						toolItemStep.setEnabled(true);
@@ -473,7 +473,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						} catch (IOException ex) {
 						}
 						bDebug = false;
-						bDebugStepByStep = new Boolean(false);
+						bDebugStepByStep = Boolean.valueOf(false);
 						toolItemRun.setEnabled(false);
 						toolItemPause.setEnabled(false);
 						toolItemStep.setEnabled(false);
@@ -489,7 +489,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Debug", new Integer(incr));
+			toolItemsIds.put("Debug", Integer.valueOf(incr));
 			incr++;
 
 			toolItemRun = new ToolItem(toolBar, SWT.PUSH);
@@ -506,7 +506,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 									.write("Changing debug state to continuous\n");
 						} catch (IOException ex) {
 						}
-						bDebugStepByStep = new Boolean(false);
+						bDebugStepByStep = Boolean.valueOf(false);
 						toolItemRun.setEnabled(false);
 						toolItemStep.setEnabled(false);
 						toolItemPause.setEnabled(true);
@@ -519,7 +519,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Run", new Integer(incr));
+			toolItemsIds.put("Run", Integer.valueOf(incr));
 			incr++;
 
 			toolItemPause = new ToolItem(toolBar, SWT.PUSH);
@@ -536,7 +536,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 									.write("Changing debug state to step by step\n");
 						} catch (IOException ex) {
 						}
-						bDebugStepByStep = new Boolean(true);
+						bDebugStepByStep = Boolean.valueOf(true);
 						toolItemRun.setEnabled(true);
 						toolItemStep.setEnabled(true);
 						toolItemPause.setEnabled(false);
@@ -547,7 +547,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Pause", new Integer(incr));
+			toolItemsIds.put("Pause", Integer.valueOf(incr));
 			incr++;
 
 			toolItemStep = new ToolItem(toolBar, SWT.PUSH);
@@ -567,7 +567,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Step", new Integer(incr));
+			toolItemsIds.put("Step", Integer.valueOf(incr));
 			incr++;
 		}
 
@@ -585,7 +585,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 		});
-		toolItemsIds.put("GenerateXML", new Integer(incr));
+		toolItemsIds.put("GenerateXML", Integer.valueOf(incr));
 		incr++;
 
 		toolItemStopTransaction = new ToolItem(toolBar, SWT.PUSH);
@@ -624,7 +624,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 		});
-		toolItemsIds.put("StopTransaction", new Integer(incr));
+		toolItemsIds.put("StopTransaction", Integer.valueOf(incr));
 		incr++;
 
 		if (IScreenClassAware.class.isAssignableFrom(compositeConnectorClass)) {
@@ -644,7 +644,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 						}
 					});
-			toolItemsIds.put("GoToCurrentScreenClass", new Integer(incr));
+			toolItemsIds.put("GoToCurrentScreenClass", Integer.valueOf(incr));
 			incr++;
 
 			if (ILinkable.class.isAssignableFrom(compositeConnectorClass)) {
@@ -663,7 +663,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				});
 				// toolItemLink.setEnabled(false);
 				toolItemLink.setEnabled(true);
-				toolItemsIds.put("Link", new Integer(incr));
+				toolItemsIds.put("Link", Integer.valueOf(incr));
 				incr++;
 			}
 			if (IAddable.class.isAssignableFrom(compositeConnectorClass)) {
@@ -681,7 +681,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 					}
 				});
 				toolItemAdd.setEnabled(false);
-				toolItemsIds.put("Add", new Integer(incr));
+				toolItemsIds.put("Add", Integer.valueOf(incr));
 				incr++;
 			}
 		}
@@ -718,7 +718,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Test SQL Connection", new Integer(incr));
+			toolItemsIds.put("Test SQL Connection", Integer.valueOf(incr));
 			incr++;
 			
 		}
@@ -746,7 +746,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("ShowBlocks", new Integer(incr));
+			toolItemsIds.put("ShowBlocks", Integer.valueOf(incr));
 			incr++;
 		}
 
@@ -767,7 +767,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 						}
 					});
-			toolItemsIds.put("NewScreenClass", new Integer(incr));
+			toolItemsIds.put("NewScreenClass", Integer.valueOf(incr));
 			incr++;
 
 			tooItemNewTagNameFromSelectionZone = new ToolItem(toolBar, SWT.PUSH);
@@ -782,7 +782,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 						}
 					});
-			toolItemsIds.put("NewTagName", new Integer(incr));
+			toolItemsIds.put("NewTagName", Integer.valueOf(incr));
 			incr++;
 
 			tooItemNewWaitAtFromSelectionZone = new ToolItem(toolBar, SWT.PUSH);
@@ -801,7 +801,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 						}
 					});
-			toolItemsIds.put("NewWaitAt", new Integer(incr));
+			toolItemsIds.put("NewWaitAt", Integer.valueOf(incr));
 			incr++;
 
 		}
@@ -827,7 +827,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Record", new Integer(incr));
+			toolItemsIds.put("Record", Integer.valueOf(incr));
 			incr++;
 		}
 
@@ -855,7 +855,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Learn", new Integer(incr));
+			toolItemsIds.put("Learn", Integer.valueOf(incr));
 			incr++;
 
 			toolAccumulate = new ToolItem(toolBar, SWT.CHECK);
@@ -872,7 +872,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 				}
 			});
-			toolItemsIds.put("Accumulate", new Integer(incr));
+			toolItemsIds.put("Accumulate", Integer.valueOf(incr));
 			incr++;
 
 		}
@@ -973,7 +973,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			Constructor<?> constructor = compositeConnectorClass.getConstructor(new Class[] {
 					ConnectorEditorPart.class, Connector.class, Composite.class, int.class });
 			compositeConnector = (AbstractConnectorComposite) constructor.newInstance(new Object[] { this,
-					connector, sashForm, new Integer(connectorCompositeStyle) });
+					connector, sashForm, Integer.valueOf(connectorCompositeStyle) });
 
 			compositeConnector.setParent(sashForm);
 			compositeConnector.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));

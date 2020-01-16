@@ -42,17 +42,12 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLTable;
 import com.twinsoft.convertigo.beans.common.XMLTableRow;
 import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.eclipse.swt.KTable;
-import com.twinsoft.convertigo.eclipse.swt.KTableCellEditor;
-import com.twinsoft.convertigo.eclipse.swt.KTableCellRenderer;
-import com.twinsoft.convertigo.eclipse.swt.KTableModel;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 
 public class XMLTableWizardPage extends WizardPage {
 
 	private Table table = null;
-	private KTable ktable = null;
 	private Button checkBoxHeadersFromRow = null;
 	private Button checkBoxHeadersFromCol = null;
 	private Button pushRowDown = null;
@@ -248,20 +243,6 @@ public class XMLTableWizardPage extends WizardPage {
 		table.setLinesVisible(true);
 	}
 	
-//	private void createKTable(Composite parent) {
-//		GridData gridData = new GridData();
-//		gridData.horizontalSpan = numColumns;
-//		gridData.horizontalAlignment = GridData.FILL;
-//		gridData.grabExcessHorizontalSpace = true;
-//		gridData.grabExcessVerticalSpace = true;
-//		gridData.verticalAlignment = GridData.FILL;		
-//	    ktable = new KTable(parent, SWT.V_SCROLL | SWT.H_SCROLL);
-//	    ktable.setRowSelectionMode(true);
-//	    ktable.setModel(new XMLTableModel());
-//	    ktable.setLayoutData(gridData);
-//		
-//	}
-	
 	private void fillXMLTableDescription() {
 		
 		NodeList tables;
@@ -387,11 +368,8 @@ public class XMLTableWizardPage extends WizardPage {
 					data.add(row);
 				}
 				
-				if (table != null)
+				if (table != null) {
 					setTableData();
-				else if (ktable != null) {
-					((XMLTableModel)ktable.getModel()).setTableData(data, bHeadersFromCol, bHeadersFromRow);
-					ktable.redraw();
 				}
 			}
 		}
@@ -483,110 +461,6 @@ public class XMLTableWizardPage extends WizardPage {
 		}
 		catch (NullPointerException e) {
 			return;
-		}
-	}
-	
-	class XMLTableModel implements KTableModel {
-
-		private int rowHeight = 18;
-	
-		private int[] colWidths = new int[] {};
-		
-		private Vector<Vector<String>> data = null;
-		
-		private boolean fixedRow = false;
-		
-		private boolean fixedCol = false;
-		
-		public XMLTableModel() {
-			data = new Vector<Vector<String>>();
-		}
-		
-		synchronized public void setTableData(Vector<Vector<String>> v, boolean fixedCol, boolean fixedRow) {
-			if (v != null) {
-				data = new Vector<Vector<String>>(v);
-			    colWidths = new int[getColumnCount()];
-			    for (int i = 0; i < colWidths.length; i++) {
-			      colWidths[i] = 60;
-			    }
-			}
-			this.fixedRow = fixedRow;
-			this.fixedCol = fixedCol;
-		}
-		
-		public KTableCellEditor getCellEditor(int col, int row) {
-			return null;
-		}
-
-		public KTableCellRenderer getCellRenderer(int col, int row) {
-			return KTableCellRenderer.defaultRenderer;
-		}
-
-		public int getColumnCount() {
-			if (data.size() > 0) {
-				Vector<String> v = data.get(0);
-				if (v != null) {
-					return v.size();
-				}
-			}
-			return 0;
-		}
-
-		public int getColumnWidth(int col) {
-			if (colWidths.length > 0)
-				return colWidths[col];
-			return 0;
-		}
-
-		public Object getContentAt(int col, int row) {
-			Vector<String> v = data.get(row);
-			if (v != null) {
-				return v.get(col);
-			}
-			return "?";
-		}
-
-		public int getFirstRowHeight() {
-			return rowHeight;
-		}
-
-		public int getFixedColumnCount() {
-			return (fixedCol ? 1:0);
-		}
-
-		public int getFixedRowCount() {
-			return (fixedRow ? 1:0);
-		}
-
-		public int getRowCount() {
-			return data.size();
-		}
-
-		public int getRowHeight() {
-			return rowHeight;
-		}
-
-		public int getRowHeightMinimum() {
-			return 10;
-		}
-
-		public boolean isColumnResizable(int col) {
-			return true;
-		}
-
-		public boolean isRowResizable() {
-			return true;
-		}
-
-		public void setColumnWidth(int col, int value) {
-			colWidths[col] = value;
-		}
-
-		public void setContentAt(int col, int row, Object value) {
-		}
-
-		public void setRowHeight(int value) {
-			rowHeight = value;
 		}
 	}
 }

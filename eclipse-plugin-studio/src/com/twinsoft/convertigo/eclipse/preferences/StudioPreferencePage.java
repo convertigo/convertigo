@@ -197,7 +197,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		ConvertigoPlugin.setAutoOpenDefaultConnector(cbAutoOpenDefaultConnector.getBooleanValue());
 		ConvertigoPlugin.setShowEngineIntoConsole(cbShowEngineOnConsole.getBooleanValue());
 		try {
-			int ms = new Integer(mobileBuilderThreshold.getStringValue()).intValue();
+			int ms = Integer.valueOf(mobileBuilderThreshold.getStringValue()).intValue();
 			ConvertigoPlugin.setMobileBuilderThreshold(ms);
 			mobileBuilderThreshold.store();
 		} catch(NumberFormatException e) {

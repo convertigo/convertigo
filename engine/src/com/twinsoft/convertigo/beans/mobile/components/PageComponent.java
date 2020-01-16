@@ -97,7 +97,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		Element element = super.toXml(document);
 		
 		// Storing the page "isRoot" flag
-		element.setAttribute("isRoot", new Boolean(isRoot).toString());
+		element.setAttribute("isRoot", Boolean.valueOf(isRoot).toString());
         
 		return element;
 	}
@@ -107,7 +107,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		super.preconfigure(element);
 		
 		try {
-			long priority = new Long(element.getAttribute("priority")).longValue();
+			long priority = Long.valueOf(element.getAttribute("priority")).longValue();
 			if (priority == 0L) {
 				priority = getNewOrderValue();
 				element.setAttribute("priority", ""+priority);
@@ -142,7 +142,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		super.configure(element);
 		
 		try {
-			isRoot = new Boolean(element.getAttribute("isRoot")).booleanValue();
+			isRoot = Boolean.valueOf(element.getAttribute("isRoot")).booleanValue();
 		} catch(Exception e) {
 			throw new EngineException("Unable to configure the property 'isRoot' of the page \"" + getName() + "\".", e);
 		}
@@ -186,7 +186,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);

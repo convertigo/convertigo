@@ -247,7 +247,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
         Element element = super.toXml(document);
         
         // Storing the transaction "default" flag
-        element.setAttribute("default", new Boolean(isDefault).toString());
+        element.setAttribute("default", Boolean.valueOf(isDefault).toString());
         
         // Storing the transaction handlers
         try {
@@ -298,7 +298,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		}
 
 		try {
-            isDefault = new Boolean(element.getAttribute("default")).booleanValue();
+            isDefault = Boolean.valueOf(element.getAttribute("default")).booleanValue();
         }
         catch(Exception e) {
             throw new EngineException("Unable to configure the property 'By default' of the transaction \"" + getName() + "\".", e);

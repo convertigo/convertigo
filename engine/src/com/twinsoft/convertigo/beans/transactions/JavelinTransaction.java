@@ -425,11 +425,11 @@ public class JavelinTransaction extends TransactionWithVariables {
 		scope.put("javelin", scope, jsJavelin);
 		
 		// Insert the dataStableTimeout object in the script scope
-		Scriptable jsDataStableTimeout = org.mozilla.javascript.Context.toObject(new Integer(timeoutForDataStable), scope);
+		Scriptable jsDataStableTimeout = org.mozilla.javascript.Context.toObject(Integer.valueOf(timeoutForDataStable), scope);
 		scope.put("timeout", scope, jsDataStableTimeout);
 		
 		// Insert the dataStableThreshold object in the script scope
-		Scriptable jsDataStableThreshold = org.mozilla.javascript.Context.toObject(new Integer(dataStableThreshold), scope);
+		Scriptable jsDataStableThreshold = org.mozilla.javascript.Context.toObject(Integer.valueOf(dataStableThreshold), scope);
 		scope.put("threshold", scope, jsDataStableThreshold);
 	}
     

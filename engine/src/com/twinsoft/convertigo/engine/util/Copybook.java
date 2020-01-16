@@ -436,8 +436,8 @@ public class Copybook {
 			XMLVector<Object> v = new XMLVector<Object>();
 			
 			v.add(name);
-			v.add(new Integer(offset));
-			v.add(new Integer(bytes));
+			v.add(Integer.valueOf(offset));
+			v.add(Integer.valueOf(bytes));
 			v.add(format);
 			v.add(picture);
 			
@@ -461,7 +461,7 @@ public class Copybook {
 			else
 				v.add("");
 			//v.add(new Integer(offset));
-			v.add(new Integer(bytes));
+			v.add(Integer.valueOf(bytes));
 			v.add(format);
 			v.add(picture);
 			v.add(defvalue);

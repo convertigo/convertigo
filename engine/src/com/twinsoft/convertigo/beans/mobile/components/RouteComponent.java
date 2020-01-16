@@ -156,7 +156,7 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof RouteActionComponent)
     		ordered = orderedActions.get(0);

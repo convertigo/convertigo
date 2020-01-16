@@ -259,7 +259,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 						day = ((day == 8) ? 1:day);
 					}
 					if ((1 <= day) && (day <= 7)) {
-						v.add(new Integer(day));
+						v.add(Integer.valueOf(day));
 					}
 				}
 				
@@ -300,7 +300,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 					
 					while (c1.before(c2)) {
 						int i = c1.get(Calendar.DAY_OF_WEEK);
-						Integer day = new Integer(i);
+						Integer day = Integer.valueOf(i);
 						if (v.contains(day)) {
 							Element element = doc.createElement("date");
 							if (split) {

@@ -45,7 +45,7 @@ public enum HttpMethodType {
 	
 	public HttpRequestBase newInstance() {
 		try {
-			return methodClass.newInstance();
+			return methodClass.getConstructor().newInstance();
 		} catch (Exception e) {
 			return null;
 		}

@@ -268,7 +268,7 @@ public class BeansDoc {
 	private void createBeanElement(DboBean bean, boolean bEnable) throws Exception {
 		String databaseObjectClassName = bean.getClassName();
 		Class<?> databaseObjectClass = Class.forName(databaseObjectClassName);
-		DatabaseObject databaseObject = (DatabaseObject) databaseObjectClass.newInstance();
+		DatabaseObject databaseObject = (DatabaseObject) databaseObjectClass.getConstructor().newInstance();
 		BeanInfo beanInfo = Introspector.getBeanInfo(databaseObjectClass);
 		BeanDescriptor databaseObjectBeanDescriptor = beanInfo.getBeanDescriptor();
 		

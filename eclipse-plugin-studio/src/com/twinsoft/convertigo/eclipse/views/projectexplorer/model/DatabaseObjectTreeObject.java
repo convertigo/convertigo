@@ -735,7 +735,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	            if (done) {
 	            	// do nothing
 	            } else if (value instanceof Boolean) {
-	            	value = ((Boolean) value).booleanValue() ? new Integer(0) : new Integer(1); 
+	            	value = ((Boolean) value).booleanValue() ? Integer.valueOf(0) : Integer.valueOf(1); 
 	            }
 	            else if ((pec != null) && (PropertyWithTagsEditor.class.isAssignableFrom(pec) || Enum.class.isAssignableFrom(pec))) {
 	            	if (!(value instanceof Integer)) {
@@ -746,19 +746,19 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        				int i;
 	        				for (i = 0 ; i < tags.length ; i++) {
 	        					if (tags[i].equals(value)) {
-	        						value = new Integer(i);
+	        						value = Integer.valueOf(i);
 	        						break;
 	        					}
 	        				}
 	
 	        				// if we did not find our string in the tag list set value to index 0
 	        				if (i == tags.length) {
-	        					value = new Integer(0);
+	        					value = Integer.valueOf(0);
 	        					String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
 	        					ConvertigoPlugin.logWarning(message);
 	        				}
 		        		} else if (Enum.class.isAssignableFrom(pec)) {
-		        			value = new Integer(((Enum<?>) value).ordinal());
+		        			value = Integer.valueOf(((Enum<?>) value).ordinal());
 		        		} else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
 		        			// nothing to do: value is a string
 		        		}
@@ -769,7 +769,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        			
 		        		for (int i = 0 ; i < emulatorClassNames.length ; i++) {
 	        				if (emulatorClassNames[i].equals(value)) {
-	        					value = new Integer(i);
+	        					value = Integer.valueOf(i);
 	        					break;
 	        				}
 	        			}

@@ -572,8 +572,8 @@ public abstract class GenericServlet extends HttpServlet {
 		
 		request.setAttribute("convertigo.cacheControl", context.cacheControl);
 		request.setAttribute("convertigo.context.contextID", context.contextID);
-		request.setAttribute("convertigo.isErrorDocument", new Boolean(context.isErrorDocument));
-		request.setAttribute("convertigo.context.removalRequired", new Boolean(context.removalRequired()));
+		request.setAttribute("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
+		request.setAttribute("convertigo.context.removalRequired", Boolean.valueOf(context.removalRequired()));
 		if (request.getAttribute("convertigo.charset") == null) {
 			request.setAttribute("convertigo.charset", "UTF-8");
 		}
