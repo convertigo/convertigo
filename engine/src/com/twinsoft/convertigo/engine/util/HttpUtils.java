@@ -422,4 +422,10 @@ public class HttpUtils {
 			}
 		}
 	}
+
+	public static void terminateNewSession(HttpSession httpSession) {
+		if (httpSession != null && httpSession.isNew()) {
+			terminateSession(httpSession);
+		}
+	}
 }
