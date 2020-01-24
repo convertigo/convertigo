@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLAttributeStep extends Step implements IStepSourceContainer, ISchemaAttributeGenerator, ISimpleTypeAffectation {
@@ -86,9 +87,9 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	public String toString() {
 		String label = "";
 		try {
-			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":"";
+			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")" : (" = \""+nodeText+"\"");
 		} catch (EngineException e) {}
-		return "@"+ nodeName + label;
+		return "@"+ nodeName + StringUtils.reduce(label, 30);
 	}
 	
 	public String getNodeName() {
