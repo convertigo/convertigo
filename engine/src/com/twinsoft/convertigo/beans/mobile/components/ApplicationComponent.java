@@ -1620,6 +1620,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 	
 	public void checkFolder() {
+		if (Engine.isCliMode()) {
+			return;
+		}
 		File folder = new File(getProject().getDirPath() + "/Flashupdate");
 		if (!folder.exists()) {
 			try {

@@ -102,7 +102,16 @@ public class ReferencedProjectManager {
 				} else {
 					Engine.logEngine.info("(ReferencedProjectManager) folder hasn't remote " + parser.getGitUrl());
 					int i = 1;
-					while (i > 0 && (dir = new File(gitContainer, parser.getGitRepo() + "_" + i++)).exists()) {
+					String suffix = "_";
+					if (parser.getGitBranch() != null) {
+						suffix += parser.getGitBranch();
+						dir = new File(gitContainer, parser.getGitRepo() + suffix);
+						if (!dir.exists() || GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
+							i = 0;
+						}
+						suffix += "_";
+					}
+					while (i > 0 && (dir = new File(gitContainer, parser.getGitRepo() + suffix + i++)).exists()) {
 						if (GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
 							i = 0;
 						}

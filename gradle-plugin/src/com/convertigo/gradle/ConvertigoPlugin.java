@@ -27,6 +27,9 @@ import com.twinsoft.convertigo.engine.CLI;
 
 public class ConvertigoPlugin implements Plugin<Project> {	
 	ProjectLoad load;
+	ProjectExport export;
+	GenerateMobileBuilder generateMobileBuilder;
+	CompileMobileBuilder compileMobileBuilder;
 	ProjectCar car;
 	
 	CLI getCLI() throws Exception {
@@ -41,10 +44,28 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.setGroup("build");
 		});
 		
-		car = tasks.create("car", ProjectCar.class, (task) -> {
+		export = tasks.create("export", ProjectExport.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
 			task.dependsOn(load);
+		});
+		
+		generateMobileBuilder = tasks.create("generateMobileBuilder", GenerateMobileBuilder.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(export);
+		});
+		
+		compileMobileBuilder = tasks.create("compileMobileBuilder", CompileMobileBuilder.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(generateMobileBuilder);
+		});
+		
+		car = tasks.create("car", ProjectCar.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(export);
 		});
 	}
 }

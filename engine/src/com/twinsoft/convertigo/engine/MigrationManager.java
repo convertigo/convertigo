@@ -124,7 +124,7 @@ public class MigrationManager {
 	public static boolean isProjectMigrated(String projectName) {
 		MigrationJob job = jobs.get(projectName);
 		if (job != null) return job.isFinished;
-		return jobsAdded;
+		return jobsAdded || Engine.isCliMode();
 	}
 	
 	public static boolean isMigrationFinished() {
