@@ -163,6 +163,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
 	transient private DirClassLoader loader;
 	
+	transient private String minVersion;
+	
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
 			Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
@@ -499,6 +501,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		super.preconfigure(element);
 		
 		String version = element.getAttribute("version");
+		minVersion = version;
 		
 		if (VersionUtils.compare(version, "7.5.0") < 0) {
 			NodeList properties = element.getElementsByTagName("property");
@@ -865,5 +868,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
 	public Object get(String key) {
 		return Engine.theApp.getShareProjectMap(this).get(key);
+	}
+
+	public Object getMinVersion() {
+		return minVersion;
+	}
+
+	public void setMinVersion(String minVersion) {
+		this.minVersion = minVersion;
 	}
 }

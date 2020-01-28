@@ -131,6 +131,7 @@ public class BeansDefaultValues {
 		Element beans;
 		JSONObject ionObjects;
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
+		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
 		
 		ShrinkProject() throws Exception {
 			Document beansDoc;
@@ -178,7 +179,11 @@ public class BeansDefaultValues {
 				}
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
-				
+				String dBeanVersion = dBean.getAttribute("version");
+				if (hVersion.compareTo(dBeanVersion) < 0) {
+					hVersion = dBeanVersion;
+					Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+				}
 				for (Node pAttr: xpath.selectList(pBean, "@*")) {
 					String name = pAttr.getNodeName();
 					if (!name.equals("classname") &&
@@ -232,6 +237,10 @@ public class BeansDefaultValues {
 											lVersion = v;
 										}
 									}
+									if (hVersion.compareTo(lVersion) < 0) {
+										hVersion = lVersion;
+										Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+									}
 									dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");
 									JSONObject ionProps = (JSONObject) ion.remove("properties");
 									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
@@ -283,6 +292,9 @@ public class BeansDefaultValues {
 			
 			shrinkChildren(project.getDocumentElement(), nProject);
 			
+			String mod = eAttr.getTextContent().replaceFirst(".*(\\.m.*)", "$1");
+			String minVersion = hVersion.replaceFirst(".*(\\d+).*(\\d+).*(\\d+)", "$1.$2.$3" + mod);
+			eAttr.setTextContent(minVersion);
 			return nProjectDoc;
 		}
 	}

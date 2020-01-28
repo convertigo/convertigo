@@ -117,6 +117,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public static final String P_QNAME = "#qname";
 	public static final String P_NAME = "#name";
 	public static final String P_EXPORTED = "#exported";
+	public static final String P_MIN_VERSION = "#minversion";
 
 	public String objectClassName = null;
 	public boolean canPaste = false;
@@ -309,6 +310,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         vPropertyDescriptors.add(propertyDescriptor);
         
         propertyDescriptor = new PropertyDescriptor(P_EXPORTED, "Exported");
+        propertyDescriptor.setCategory("Information");
+        vPropertyDescriptors.add(propertyDescriptor);
+        
+        propertyDescriptor = new PropertyDescriptor(P_MIN_VERSION, "Min version");
         propertyDescriptor.setCategory("Information");
         vPropertyDescriptors.add(propertyDescriptor);
         
@@ -699,6 +704,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		else if (propertyName.equals(P_EXPORTED)) {
 			return databaseObject.getProject().getInfoForProperty("exported");
+		}
+		else if (propertyName.equals(P_MIN_VERSION)) {
+			return databaseObject.getProject().getMinVersion();
 		}
 		else {
 			try {
