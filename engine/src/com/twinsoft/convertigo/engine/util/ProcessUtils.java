@@ -36,7 +36,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.fileupload.ProgressListener;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.Level;
@@ -202,7 +201,6 @@ public class ProcessUtils {
 				}
 			}
 		}
-		System.out.println(versions);
 		
 		HttpGet get = new HttpGet("https://nodejs.org/dist/");
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
@@ -235,9 +233,6 @@ public class ProcessUtils {
 			FileUtils.deleteQuietly(archive);
 			archive.getParentFile().mkdirs();
 			if (progress != null) {
-				for (Header h : response.getAllHeaders()) {
-					System.out.println(h.getName() + " = " + h.getValue());
-				}
 				long length = response.getEntity().getContentLength();
 				try (FileOutputStream fos = new FileOutputStream(archive)) {
 					InputStream is = response.getEntity().getContent();
