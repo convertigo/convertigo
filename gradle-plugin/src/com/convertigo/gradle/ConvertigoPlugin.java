@@ -53,7 +53,7 @@ public class ConvertigoPlugin implements Plugin<Project> {
 		generateMobileBuilder = tasks.create("generateMobileBuilder", GenerateMobileBuilder.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
-			task.dependsOn(export);
+			task.dependsOn(load);
 		});
 		
 		compileMobileBuilder = tasks.create("compileMobileBuilder", CompileMobileBuilder.class, (task) -> {
