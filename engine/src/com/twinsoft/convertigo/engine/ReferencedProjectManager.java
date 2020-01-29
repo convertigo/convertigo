@@ -169,11 +169,10 @@ public class ReferencedProjectManager {
 		if (dir != null) {
 			//GitUtils.pull(dir);
 			if (project == null) {
-				Project prj = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"));
-				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + prj);
-				return prj;
+				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"));
+				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + project);
 			}
 		}
-		return null;
+		return project;
 	}
 }
