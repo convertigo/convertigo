@@ -222,13 +222,15 @@ public class ProcessUtils {
 	
 	public static File getNodeDir(String version, ProgressListener progress) throws Exception {
 		File dir = getLocalNodeDir(version);
-		Engine.logEngine.info("getLocalNodeDir " + dir);
+		Engine.logEngine.info("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
 		if (dir.exists()) {
 			return dir;
 		}
 		File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
-		Engine.logEngine.info("archive " + dir);
 		HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
+		
+		Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
+		
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 			FileUtils.deleteQuietly(archive);
 			archive.getParentFile().mkdirs();
@@ -258,9 +260,9 @@ public class ProcessUtils {
 			Level l = Engine.logEngine.getLevel();
 			try {
 				Engine.logEngine.setLevel(Level.OFF);
-				Engine.logStudio.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
 				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
-				Engine.logStudio.info("unzip terminated!");
+				Engine.logEngine.info("unzip terminated!");
 			} finally {
 				Engine.logEngine.setLevel(l);
 			}

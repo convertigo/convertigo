@@ -38,12 +38,10 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.Contributor;
 import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
@@ -52,7 +50,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
-import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
@@ -571,35 +568,10 @@ public class MobileBuilder {
 		
 		ApplicationComponent application = project.getMobileApplication().getApplicationComponent();
 		String tplName = application.getTplProjectName();
-		if (StringUtils.isNotBlank(tplName) && !tplName.equals(project.getName())) {
-			ProjectSchemaReference prjRef = null;
-			for (Reference ref: project.getReferenceList()) {
-				if (ref instanceof ProjectSchemaReference) {
-					prjRef = (ProjectSchemaReference) ref;
-					if (tplName.equals(prjRef.getParser().getProjectName())) {
-						break;
-					} else {
-						prjRef = null;
-					}
-				}
-			}
-			if (prjRef == null) {
-				prjRef = new ProjectSchemaReference();
-				if (tplName.startsWith("mobilebuilder_tpl_")) {
-					prjRef.setProjectName(tplName + "=git@github.com:convertigo/c8oprj-mobilebuilder-tpl.git:branch=" + tplName);
-				} else {
-					prjRef.setProjectName(tplName);
-				}
-				project.add(prjRef);
-				project.changed();
-				project.hasChanged = true;
-			}
-
-			try {
-				Engine.theApp.referencedProjectManager.importProject(prjRef.getParser());
-			} catch (Exception e) {
-				Engine.logEngine.warn("Failed to import referenced template: " + tplName, e);
-			}
+		try {
+			Engine.theApp.referencedProjectManager.importProjectFrom(project, tplName);
+		} catch (Exception e) {
+			Engine.logEngine.warn("Failed to import referenced template: " + tplName, e);
 		}
 		
 		ionicTplDir = application.getIonicTplDir();

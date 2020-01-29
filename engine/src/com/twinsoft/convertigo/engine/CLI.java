@@ -69,7 +69,7 @@ public class CLI {
 		Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 		Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
 		Engine.logSecurityFilter = Logger.getLogger("cems.SecurityFilter");
-		Engine.logStudio = Logger.getLogger("cems.Studio");
+		Engine.logConvertigo = Logger.getLogger("cems.Studio");
 		Engine.logAudit = Logger.getLogger("cems.Context.Audit");
 		
 		// Managers
@@ -90,6 +90,8 @@ public class CLI {
 		Engine.theApp.databaseObjectsManager.init();
 		
 		Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
+		
+		Engine.isStarted = true;
 	}
 	
 	public Project loadProject(File projectDir, String version, String mobileApplicationEndpoint) throws EngineException {
@@ -153,7 +155,7 @@ public class CLI {
 				
 				@Override
 				public void update(long pBytesRead, long pContentLength, int pItems) {
-					Engine.logStudio.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+					Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 				}
 			});
 			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
@@ -165,12 +167,12 @@ public class CLI {
 			while ((line = br.readLine()) != null) {
 				line = pRemoveEchap.matcher(line).replaceAll("");
 				if (StringUtils.isNotBlank(line)) {
-					Engine.logStudio.info(line);
+					Engine.logConvertigo.info(line);
 				}
 			}
-			Engine.logStudio.info(line);
+			Engine.logConvertigo.info(line);
 			int code = p.waitFor();
-			Engine.logStudio.info("npm install finished with exit: " + code);
+			Engine.logConvertigo.info("npm install finished with exit: " + code);
 			
 			if ("debug".equals(mode)) {
 				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", "build", "--nobrowser");
@@ -185,13 +187,13 @@ public class CLI {
 			while ((line = br.readLine()) != null) {
 				line = pRemoveEchap.matcher(line).replaceAll("");
 				if (StringUtils.isNotBlank(line)) {
-					Engine.logStudio.info(line);
+					Engine.logConvertigo.info(line);
 				}
 			}
-			Engine.logStudio.info(line);
+			Engine.logConvertigo.info(line);
 			code = p.waitFor();
 			
-			Engine.logStudio.info("npm run finished with exit: " + code);
+			Engine.logConvertigo.info("npm run finished with exit: " + code);
 		} catch (Exception e) {
 			Engine.logConvertigo.error("buildMobileBuilder failed", e);
 		}
@@ -200,12 +202,10 @@ public class CLI {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		System.out.println("" + (9804730 * 100.0f/16892891));
 		Options opts = new Options()
 			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("[dir] set the directory to load as project (default current folder)").build())
 			.addOption(Option.builder("g").longOpt("generate").desc("generate mobilebuilder code inside _private").build())
 			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: [mode] can be production (default) or debug").build())
-//			.addOption(Option.builder("b").longOpt("build").desc(buildDoc.toString()).build())
 			.addOption(Option.builder("c").longOpt("car").desc("export as [projectName].car file").build())
 			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded [project]").build())
 			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional [level] (default debug): error, info, warn, debug, trace").build())
@@ -249,7 +249,7 @@ public class CLI {
 				File file = cli.exportToCar(project, out);
 				System.out.println("Builded to: " + file);	
 			}
-			
+			System.out.println("Operations terminated!");
 		} finally {
 		}
 	}

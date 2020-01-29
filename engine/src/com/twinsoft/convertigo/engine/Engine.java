@@ -1750,6 +1750,9 @@ public class Engine {
 		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 		}
+		if (!file.exists() && file.getName().endsWith(".xml")) {
+			file = new File(file.getParentFile(), "c8oProject.yaml");
+		}
 		return file;
 	}
 	
