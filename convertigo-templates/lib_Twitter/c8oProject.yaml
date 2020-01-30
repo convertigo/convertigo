@@ -1,4 +1,4 @@
-↑convertigo: 7.7.1.m006
+↑convertigo: 7.6.0.m006
 ↓lib_Twitter [core.Project]: 
   bStrictMode: false
   comment: lib_Twitter Library to interact with twitter

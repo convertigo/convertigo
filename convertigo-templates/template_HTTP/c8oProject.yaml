@@ -1,4 +1,4 @@
-↑convertigo: 7.7.1.m006
+↑convertigo: 7.6.0.m006
 ↓template_HTTP [core.Project]: 
   comment: HTTP Connector project
   version: 7.7.1-beta

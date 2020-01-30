@@ -1,4 +1,4 @@
-↑convertigo: 7.7.1.m006
+↑convertigo: 7.7.0.m006
 ↓lib_AmazonLEX [core.Project]: 
   comment: This library  enables projects to interact with Amazon LEX chatbots.
   version: 7.7.1-beta
