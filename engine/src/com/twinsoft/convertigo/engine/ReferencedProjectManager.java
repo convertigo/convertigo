@@ -67,7 +67,9 @@ public class ReferencedProjectManager {
 		for (Entry<String, ProjectUrlParser> entry: refs.entrySet()) {
 			String projectName = entry.getKey();
 			try {
-				if (importProject(entry.getValue()) != null) {
+				ProjectUrlParser parser = entry.getValue();
+				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName(), false);
+				if (project == null && importProject(parser) != null) {
 					loaded.add(projectName);
 				}
 			} catch (Exception e) {

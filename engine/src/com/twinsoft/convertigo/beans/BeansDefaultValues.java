@@ -309,7 +309,7 @@ public class BeansDefaultValues {
 		JSONObject ionObjects;
 		String version;
 		String nVersion;
-		
+		boolean isMigrating = false;
 		
 		UnshrinkProject() throws Exception {
 			Document beansDoc;
@@ -340,6 +340,10 @@ public class BeansDefaultValues {
 			nProject.setAttribute("version", version);
 			nProject.removeAttribute("convertigo");
 			
+			if (isMigrating) {
+				nProjectDoc.setUserData("isMigrating", "true", null);
+			}
+			
 			return nProjectDoc;
 		}
 		
@@ -357,6 +361,9 @@ public class BeansDefaultValues {
 				String pPriority = matcherBeanName.group(3);
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
+				if (!isMigrating && "true".equals(dBean.getUserData("isMigrating"))) {
+					isMigrating = true;
+				}
 				
 				Element nBean = null;
 				try {
@@ -479,11 +486,17 @@ public class BeansDefaultValues {
 	}
 	
 	private static Element getBeanForVersion(TwsCachedXPathAPI xpath, Element beans, String classname, String version) {
+		boolean isMigrating = false;
 		for (Node n : xpath.selectList(beans, "*[@classname='" + classname + "']")) {
 			Element e = (Element) n;
 			String eVersion = e.getAttribute("version");
 			if (eVersion.compareTo(version) <= 0) {
+				if (isMigrating) {
+					e.setUserData("isMigrating", "true", null);
+				}
 				return e;
+			} else {
+				isMigrating = true;
 			}
 		}
 		return null;
