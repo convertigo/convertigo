@@ -306,7 +306,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			project = projects.get(projectName);
 		}
 		
-		if (project == null) {		
+		if (project == null) {
 			long t0 = Calendar.getInstance().getTime().getTime();
 
 			try {
@@ -474,7 +474,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public void clearCacheIfSymbolError(String projectName) throws Exception {
 		synchronized (projects) {
-			if(projects.containsKey(projectName)) {
+			if (projects.containsKey(projectName)) {
 				if (symbolsProjectCheckUndefined(projectName)) {
 					Project project = projects.remove(projectName);
 					RestApiManager.getInstance().removeUrlMapper(projectName);
@@ -484,6 +484,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	public Project getCachedProject(String projectName) {
+		synchronized (projects) {
+			return projects.get(projectName);
+		}
+	}
+	
 	public boolean existsProject(String projectName) {
 		File file = studioProjects.getProject(projectName);
 		if (file == null) {
@@ -507,13 +513,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 		boolean bUnloadOnly = DeleteProjectOption.unloadOnly.as(options);
 		try {
 			// Remove all pooled related contexts in server mode
-			if (Engine.isEngineMode()) {
+			if (Engine.isEngineMode() && !Engine.isCliMode()) {
 				// Bugfix #1659: do not call getProjectByName() if the migration
 				// process is ongoing!
 				if (!(Thread.currentThread() instanceof MigrationJob)) {
-					Project projectToDelete = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-					for (Connector connector : projectToDelete.getConnectorsList()) {
-						Engine.theApp.contextManager.removeDevicePool(connector.getQName());
+					Project projectToDelete = Engine.theApp.databaseObjectsManager.getCachedProject(projectName);
+					if (projectToDelete != null) {
+						for (Connector connector : projectToDelete.getConnectorsList()) {
+							Engine.theApp.contextManager.removeDevicePool(connector.getQName());
+						}
 					}
 					Engine.theApp.contextManager.removeAll("/" + projectName);
 				}
@@ -672,10 +680,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 					isArchive = true;
 				}
 
-				if (projectName != null && isArchive) {
-					// Deploy project (will backup project and perform the
-					// migration through import if necessary)
-					project = deployProject(projectFileName, needsMigration);
+				if (projectName != null) {
+					if (isArchive) {
+						// Deploy project (will backup project and perform the
+						// migration through import if necessary)
+						project = deployProject(projectFileName, needsMigration);
+					} else {
+						project = importProject(projectName);
+					}
 				}
 			} else {
 				//Added by julienda - 10/09/2012
