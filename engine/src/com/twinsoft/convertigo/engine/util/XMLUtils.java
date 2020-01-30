@@ -973,6 +973,32 @@ public class XMLUtils {
 		return StringEscapeUtils.escapeXml(getCDataText(s));
 	}
 
+	public static String readXmlText(Node node) {
+		String text = "";
+		try {
+	        if (node != null && node.hasChildNodes()) {
+	            NodeList childNodes = node.getChildNodes();
+	            int len = childNodes.getLength();
+	            
+	            for (int i = 0 ; i < len ; i++) {
+	            	Node item = childNodes.item(i);
+					switch (item.getNodeType()) {
+						case Node.CDATA_SECTION_NODE:
+						case Node.TEXT_NODE:
+							String nodevalue = item.getNodeValue();
+							nodevalue = (nodevalue == null) ? "":nodevalue;
+							text += nodevalue;
+							break;
+						default:
+							break;
+					}
+	            }
+	        }
+		}
+		catch (Exception e) {}
+		return text;
+	}
+	
 	public static int MAX_XML_SIZE_FOR_LOG_INFO = 5;
 
 	public static void logXml(Document document, Logger log, String message) {
