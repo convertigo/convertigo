@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
@@ -36,10 +38,13 @@ import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
+import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
+import com.twinsoft.convertigo.engine.util.RemoteAdmin;
 
 public class CLI {
 	public static final CLI instance = new CLI();
@@ -85,9 +90,13 @@ public class CLI {
 		Engine.logSecurityTokenManager = Logger.getLogger("cems.SecurityTokenManager");
 
 		Engine.theApp = new Engine();
+		Engine.theApp.eventManager = new EventManager();
+		Engine.theApp.eventManager.init();
 		Engine.theApp.referencedProjectManager = new ReferencedProjectManager();
 		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
 		Engine.theApp.databaseObjectsManager.init();
+		Engine.theApp.proxyManager = new ProxyManager();
+		Engine.theApp.proxyManager.init();
 		
 		Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
 		
@@ -133,82 +142,126 @@ public class CLI {
 		}
 	}
 	
-	public File exportToCar(Project project, File dest) throws Exception {
+	public File exportToCar(Project project, File dest, boolean includeTestCases, boolean includeStubs,
+			boolean includeMobileApp, boolean includeMobileAppAssets, boolean includeMobileDataset,
+			boolean includeMobilePlatformsAssets) throws Exception {
 		dest.mkdirs();
+		Set<ArchiveExportOption> options = new HashSet<>(ArchiveExportOption.all);
+		if (!includeTestCases) {
+			options.remove(ArchiveExportOption.includeTestCase);
+		}
+		if (!includeStubs) {
+			options.remove(ArchiveExportOption.includeStubs);
+		}
+		if (!includeMobileApp) {
+			options.remove(ArchiveExportOption.includeMobileApp);
+		}
+		if (!includeMobileAppAssets) {
+			options.remove(ArchiveExportOption.includeMobileAppAssets);
+		}
+		if (!includeMobileDataset) {
+			options.remove(ArchiveExportOption.includeMobileDataset);
+		}
+		if (!includeMobilePlatformsAssets) {
+			options.remove(ArchiveExportOption.includeMobilePlatformsAssets);
+		}
 		return CarUtils.makeArchive(dest.getAbsolutePath(), project);
 	}
 	
-	public void generateMobileBuilder(Project project) throws Exception {
-		MobileBuilder.initBuilder(project, true);
+	public void generateMobileBuilder(Project project, String mode) throws Exception {
+		MobileBuilder mb = project.getMobileBuilder();
+		MobileBuilderBuildMode bm = MobileBuilderBuildMode.production;
+		try {
+			bm = MobileBuilderBuildMode.valueOf(mode);
+		} catch (Exception e) { }
+		mb.setAppBuildMode(bm);
 		MobileBuilder.releaseBuilder(project, true);
 	}
 
-	public void compileMobileBuilder(Project project, String mode) {
+	public void compileMobileBuilder(Project project, String mode) throws Exception {
 		File ionicDir = new File(project.getDirPath() + "/_private/ionic");
 		if (!ionicDir.exists()) {
 			Engine.logConvertigo.warn("Failed to perform NodeJS build, no folder: " + ionicDir);
 			return;
 		}
 		String nodeVersion = "v8.9.1";
-		try {
-			File nodeDir = ProcessUtils.getNodeDir(nodeVersion, new ProgressListener() {
-				
-				@Override
-				public void update(long pBytesRead, long pContentLength, int pItems) {
-					Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
-				}
-			});
-			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
-			pb.redirectErrorStream(true);
-			pb.directory(ionicDir);
-			Process p = pb.start();
-			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line;
-			while ((line = br.readLine()) != null) {
-				line = pRemoveEchap.matcher(line).replaceAll("");
-				if (StringUtils.isNotBlank(line)) {
-					Engine.logConvertigo.info(line);
-				}
-			}
-			Engine.logConvertigo.info(line);
-			int code = p.waitFor();
-			Engine.logConvertigo.info("npm install finished with exit: " + code);
+		File nodeDir = ProcessUtils.getNodeDir(nodeVersion, new ProgressListener() {
 			
-			if ("debug".equals(mode)) {
-				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", "build", "--nobrowser");
-			} else {
-				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
-//				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
+			@Override
+			public void update(long pBytesRead, long pContentLength, int pItems) {
+				Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 			}
-			pb.redirectErrorStream(true);
-			pb.directory(ionicDir);
-			p = pb.start();
-			br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			while ((line = br.readLine()) != null) {
-				line = pRemoveEchap.matcher(line).replaceAll("");
-				if (StringUtils.isNotBlank(line)) {
-					Engine.logConvertigo.info(line);
-				}
+		});
+		ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+		pb.redirectErrorStream(true);
+		pb.directory(ionicDir);
+		Process p = pb.start();
+		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		String line;
+		while ((line = br.readLine()) != null) {
+			line = pRemoveEchap.matcher(line).replaceAll("");
+			if (StringUtils.isNotBlank(line)) {
+				Engine.logConvertigo.info(line);
 			}
-			Engine.logConvertigo.info(line);
-			code = p.waitFor();
-			
-			Engine.logConvertigo.info("npm run finished with exit: " + code);
-		} catch (Exception e) {
-			Engine.logConvertigo.error("buildMobileBuilder failed", e);
 		}
+		Engine.logConvertigo.info(line);
+		int code = p.waitFor();
+		Engine.logConvertigo.info("npm install finished with exit: " + code);
 		
-		
+		if ("debug".equals(mode)) {
+			pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", "build", "--nobrowser");
+		} else {
+			pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
+//				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
+		}
+		pb.redirectErrorStream(true);
+		pb.directory(ionicDir);
+		p = pb.start();
+		br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		while ((line = br.readLine()) != null) {
+			line = pRemoveEchap.matcher(line).replaceAll("");
+			if (StringUtils.isNotBlank(line)) {
+				Engine.logConvertigo.info(line);
+			}
+		}
+		Engine.logConvertigo.info(line);
+		code = p.waitFor();
+		if (code != 0) {
+			throw new EngineException("npm build return a '" + code + "' failure code, see --info logs for details");
+		}
+		Engine.logConvertigo.info("npm run finished with exit: " + code);
+	}
+	
+	public void deploy(File file, String server, String user, String password, boolean trustAllCertificates, boolean assembleXsl) throws EngineException {
+		boolean isHttps = server.startsWith("https://");
+		String convertigoServer = server.substring(isHttps ? 8 : 7);
+		RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
+		Engine.logEngine.debug("Trying to connect the user '" + user + "' to the Convertigo remote server: " + server);
+		remoteAdmin.login(user, password);
+		Engine.logEngine.debug("Deployement of '" + file + "' to the Convertigo remote server: " + server);
+		remoteAdmin.deployArchive(file, assembleXsl);
+		Engine.logEngine.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
 	}
 	
 	public static void main(String[] args) throws Exception {
 		Options opts = new Options()
-			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("[dir] set the directory to load as project (default current folder)").build())
-			.addOption(Option.builder("g").longOpt("generate").desc("generate mobilebuilder code inside _private").build())
-			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: [mode] can be production (default) or debug").build())
-			.addOption(Option.builder("c").longOpt("car").desc("export as [projectName].car file").build())
-			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded [project]").build())
-			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional [level] (default debug): error, info, warn, debug, trace").build())
+			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("<dir> set the directory to load as project (default current folder)").build())
+			.addOption(Option.builder("g").longOpt("generate").optionalArg(true).argName("mode").hasArg().desc("generate mobilebuilder code into _private/ionic: <mode> can be production (default) or debugplus, debug, fast. If omitted, build mode is used.").build())
+			.addOption(Option.builder("b").longOpt("build").optionalArg(true).desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").build())
+			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").build())
+			.addOption(Option.builder("noTC").longOpt("excludeTestCases").desc("when export or deploy, do not include TestCases").build())
+			.addOption(Option.builder("noS").longOpt("excludeStubs").desc("when export or deploy, do not include Stubs").build())
+			.addOption(Option.builder("noMA").longOpt("excludeMobileApp").desc("when export or deploy, do not include built MobileApp").build())
+			.addOption(Option.builder("noMAA").longOpt("excludeMobileAppAssets").desc("when export or deploy, do not include built MobileApp assets").build())
+			.addOption(Option.builder("noDS").longOpt("excludeDataset").desc("when export or deploy, do not include mobile dataset").build())
+			.addOption(Option.builder("noPA").longOpt("excludePlatformAssets").desc("when export or deploy, do not include mobile platform assets").build())
+			.addOption(Option.builder("d").longOpt("deploy").optionalArg(false).argName("server").hasArg().desc("deploy the current project to <server> using user/password credentials").build())
+			.addOption(Option.builder("u").longOpt("user").optionalArg(false).argName("user").hasArg().desc("<user> used by the deploy action, default is 'admin'").build())
+			.addOption(Option.builder("w").longOpt("password").optionalArg(false).argName("password").hasArg().desc("<password> used by the deploy action, default is 'admin'").build())
+			.addOption(Option.builder("trust").longOpt("trustAllCertificates").desc("deploy over an https <server> without checking certificates").build())
+			.addOption(Option.builder("xsl").longOpt("assembleXsl").desc("assemble XSL files on deploy").build())
+			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded <project>").build())
+			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional <level> (default debug): error, info, warn, debug, trace").build())
 			.addOption(new Option("h", "help", false, "show this help"));
 		
 		CommandLine cmd = new DefaultParser().parse(opts, args, true);
@@ -224,7 +277,8 @@ public class CLI {
 				level = Level.toLevel(cmd.getOptionValue("log", "debug"));
 			}
 			Logger.getRootLogger().setLevel(level);
-			Logger.getLogger("org.apache.http").setLevel(Level.WARN);
+			Logger.getLogger("org").setLevel(Level.WARN);
+			Logger.getLogger("httpclient").setLevel(Level.WARN);
 			
 			File projectDir = new File(cmd.hasOption("project") ? cmd.getOptionValue("project") : ".").getCanonicalFile();
 			
@@ -234,22 +288,44 @@ public class CLI {
 			String mobileApplicationEndpoint = cmd.getOptionValue("mobileApplicationEndpoint", null);
 			Project project = cli.loadProject(projectDir, version, mobileApplicationEndpoint);
 			
+			String gMode = cmd.getOptionValue("generate", null);
+			String bMode = cmd.getOptionValue("build", null);
 			if (cmd.hasOption("generate") || cmd.hasOption("build")) {
-				cli.generateMobileBuilder(project);
+				if (gMode == null && bMode != null) {
+					gMode = bMode;
+				}
+				cli.generateMobileBuilder(project, gMode);
 			}
 			
 			if (cmd.hasOption("build")) {
-				cli.compileMobileBuilder(project, cmd.getOptionValue("build", null));
+				if (bMode == null) {
+					bMode = (gMode == null || gMode.equals("production")) ? "production" : "debug";
+				}
+				cli.compileMobileBuilder(project, bMode);
 			}
 			
-			if (cmd.hasOption("car")) {
+			File file = null;
+			if (cmd.hasOption("car") || cmd.hasOption("deploy")) {
 				cli.export(project);
 				File out = new File(projectDir, "build");
-				System.out.println("Building  : " + projectDir);
-				File file = cli.exportToCar(project, out);
-				System.out.println("Builded to: " + file);	
+				Logger.getRootLogger().info("Building  : " + projectDir);
+				
+				file = cli.exportToCar(project, out, !cmd.hasOption("excludeTestCases"),
+						!cmd.hasOption("excludeStubs"), !cmd.hasOption("excludeMobileApp"),
+						!cmd.hasOption("excludeMobileAppAssets"), !cmd.hasOption("excludeDataset"),
+						!cmd.hasOption("excludePlatformAssets"));
+				Logger.getRootLogger().info("Builded to: " + file);	
 			}
-			System.out.println("Operations terminated!");
+			
+			if (cmd.hasOption("deploy")) {
+				String server = cmd.getOptionValue("deploy");
+				String user = cmd.getOptionValue("user", "admin");
+				String password = cmd.getOptionValue("password", "admin");
+				boolean trustAllCertificates = cmd.hasOption("trust");
+				boolean assembleXsl = cmd.hasOption("xsl");
+				cli.deploy(file, server, user, password, trustAllCertificates, assembleXsl);
+			}
+			Logger.getRootLogger().info("Operations terminated!");
 		} finally {
 		}
 	}

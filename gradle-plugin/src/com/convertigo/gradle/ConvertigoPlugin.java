@@ -31,6 +31,7 @@ public class ConvertigoPlugin implements Plugin<Project> {
 	GenerateMobileBuilder generateMobileBuilder;
 	CompileMobileBuilder compileMobileBuilder;
 	ProjectCar car;
+	ProjectDeploy deploy;
 	
 	CLI getCLI() throws Exception {
 		return CLI.instance;
@@ -66,6 +67,12 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
 			task.dependsOn(export);
+		});
+		
+		deploy = tasks.create("deploy", ProjectDeploy.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("publishing");
+			task.dependsOn(car);
 		});
 	}
 }

@@ -19,40 +19,18 @@
 
 package com.convertigo.gradle;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
 
 public class CompileMobileBuilder extends ConvertigoTask {
 	
-	private String mode;
+	private String mode = null;
 	
 	public CompileMobileBuilder() {
 		try {
 			mode = getProject().getProperties().get("convertigo.compileMobileBuilder.mode").toString();
 		} catch (Exception e) {}
-		
-		Project project = getProject();
-		
-		project.afterEvaluate(p -> {
-			Matcher filter = Pattern.compile("\\.gradle|\\.svn|\\.git|build|_private").matcher("");
-			getInputs().files((Object[]) project.getProjectDir().listFiles((f, s) -> !filter.reset(s).matches()));
-			
-//			File yaml = project.file("c8oProject.yaml");
-//			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
-//				br.readLine();
-//				Matcher m = Pattern.compile("↓(.*) \\[core\\.Project\\]:").matcher(br.readLine());
-//				if (m.find()) {
-//					String projectName = m.group(1);
-//					getOutputs().file(new File(destinationDir, projectName + ".car"));
-//				}
-//			} catch (Exception e) {
-//			}
-		});
 	}
 	
 	public String getMode() {
@@ -66,6 +44,12 @@ public class CompileMobileBuilder extends ConvertigoTask {
 	@TaskAction
 	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
+		
+		if (mode == null) {
+			String gMode = plugin.generateMobileBuilder.getMode();
+			mode = (gMode == null || gMode.equals("production")) ? "production" : "debug";
+		}
+		
 		cli.compileMobileBuilder(plugin.load.getConvertigoProject(), mode);
 	}
 }
