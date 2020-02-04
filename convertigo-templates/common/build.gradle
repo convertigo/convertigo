@@ -59,9 +59,9 @@ compileMobileBuilder {
 
 //// the 'car' task allow to build a <projectName>.car inside the <projectdir>/build folder
 car {
-	//// configure the destination of the <projectName>.car file
+	//// configure the destination of the <projectName>.car file (default 'build' folder)
 	//// can also be configured with a -Pconvertigo.car.destinationDir as Gradle parameter
-	// destinationDir '/deploymentPath/projects'
+	// destinationDir 'build'
 	
 	//// include TestCases (default true)
 	//// can also be configured with a -Pconvertigo.car.includeTestCases as Gradle parameter 
@@ -86,6 +86,10 @@ car {
 	//// include mobile platform assets (default true)
 	//// can also be configured with a -Pconvertigo.car.includeMobilePlatformsAssets as Gradle parameter
 	// includeMobilePlatformsAssets true
+	
+	doLast {
+		println "Saved Convertigo archive: $destinationFile"
+	}
 }
 
 //// the 'deploy' task depends on 'car' and allows to push the project to a Convertigo server
@@ -109,4 +113,61 @@ deploy {
 	//// assemble XSL files on deploy, default is false
 	//// can also be configured with a -Pconvertigo.deploy.assembleXsl as Gradle parameter
 	// assembleXsl false
+}
+
+//// the 'nativeBuild' task depends on 'load' and it's just a configurator for 'launchNativeBuild' and 'downloadNativeBuild'
+nativeBuild {
+	if (performsMobileBuild) {
+		dependsOn compileMobileBuilder
+	}
+	
+	//// set an array of platforms names to build, empty means all declared platforms
+	//// can also be configured with a -Pconvertigo.nativeBuild.platforms as Gradle parameter (names separated by comma)
+	// platforms = []
+	
+	//// set authenticationToken from your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.authenticationToken
+	// authenticationToken
+	
+	//// set the platform used to build application, default is https://build.convertigo.net
+	//// can also be configured with a -Pconvertigo.nativeBuild.mobileBuilderPlatformURL
+	// mobileBuilderPlatformURL ''
+	
+	//// set the iOS certificate title declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.iosCertificateTitle
+	// iosCertificateTitle ''
+	
+	//// set the iOS certificate password declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.iosCertificatePassword
+	// iosCertificatePassword ''
+	
+	//// set the Android certificate title declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificateTitle
+	// androidCertificateTitle ''
+	
+	//// set the Android certificate password declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificatePassword
+	// androidCertificatePassword ''
+	
+	//// set the Android certificate keystore password declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificateKeystorePassword
+	// androidCertificateKeystorePassword ''
+}
+
+//// the 'launchNativeBuild' task depends on 'nativeBuild' and upload the mobile source package to the Convertigo phonegapbuild gateway
+launchNativeBuild {
+
+}
+
+//// the 'downloadNativeBuild' task depends on 'launchNativeBuild' and wait the remote build end, then download the native package
+downloadNativeBuild {
+	//// configure the destination of built mobile application packages (default 'build' folder)
+	//// can also be configured with a -Pconvertigo.downloadNativeBuild.destinationDir as Gradle parameter
+	// destinationDir 'build'
+	
+	doLast {
+		destinationFiles.each {
+			println "Downloaded mobile application package: $it"
+		}
+	}
 }

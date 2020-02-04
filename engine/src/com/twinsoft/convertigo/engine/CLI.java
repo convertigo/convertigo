@@ -21,8 +21,14 @@ package com.twinsoft.convertigo.engine;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -32,12 +38,19 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.fileupload.ProgressListener;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.GetBuildStatus;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.GetPackage;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.LaunchBuild;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -99,6 +112,7 @@ public class CLI {
 		Engine.theApp.proxyManager.init();
 		
 		Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
+		Engine.theApp.httpClient = HttpUtils.makeHttpClient3(true);
 		
 		Engine.isStarted = true;
 	}
@@ -204,7 +218,6 @@ public class CLI {
 				Engine.logConvertigo.info(line);
 			}
 		}
-		Engine.logConvertigo.info(line);
 		int code = p.waitFor();
 		Engine.logConvertigo.info("npm install finished with exit: " + code);
 		
@@ -224,7 +237,6 @@ public class CLI {
 				Engine.logConvertigo.info(line);
 			}
 		}
-		Engine.logConvertigo.info(line);
 		code = p.waitFor();
 		if (code != 0) {
 			throw new EngineException("npm build return a '" + code + "' failure code, see --info logs for details");
@@ -243,25 +255,104 @@ public class CLI {
 		Engine.logEngine.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
 	}
 	
+	public void launchBuild(Project project, List<String> platforms) {
+		String buildFolder = "mobile/www";
+		MobileApplication mobileApplication = project.getMobileApplication();
+		for (MobilePlatform mobilePlatform : mobileApplication.getMobilePlatformList()) {
+			String platformName = mobilePlatform.getName();
+			try {
+				if (platforms.isEmpty() || platforms.contains(platformName)) {
+					MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(null, buildFolder, project.getName(), platformName);
+					String sResult = LaunchBuild.perform(mobileResourceHelper, null);
+					Engine.logEngine.info("build: " + sResult);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				Engine.logEngine.error("failed to launch build for " + platformName, e);
+			}
+		}
+	}
+	
+	public List<File> downloadBuild(Project project, List<String> platforms, File destinationDir) {
+		MobileApplication mobileApplication = project.getMobileApplication();
+		List<MobilePlatform> platformList = new ArrayList<>(mobileApplication.getMobilePlatformList());
+		List<File> files = new ArrayList<File>(platformList.size());
+		boolean hasMore = true;
+		while (hasMore) {
+			hasMore = false;
+			for (Iterator<MobilePlatform> it = platformList.iterator(); it.hasNext();) {
+				MobilePlatform platform = it.next();
+				HttpMethod method = null;
+				String platformName = platform.getName();
+				
+				if (!platforms.isEmpty() && !platforms.contains(platformName)) {
+					it.remove();
+					continue;
+				}
+				
+				try {
+					String sResult = GetBuildStatus.perform(mobileApplication, platformName, null);
+					Engine.logEngine.info("build status: " + sResult);
+
+					if (sResult.contains("status\": \"pending\"")) {
+						hasMore = true;
+					} else {
+						it.remove();
+					}
+
+					if (sResult.contains("status\": \"complete\"")) {
+						method = GetPackage.perform(mobileApplication, platformName, null);
+						String filename = mobileApplication.getComputedApplicationName() + "_" + platformName + "." + platform.getPackageType();
+//						try {
+//							Engine.logEngine.info("ContentDisposition : " + method.getResponseHeader(HeaderName.ContentDisposition.value()));
+//							filename = method.getResponseHeader(HeaderName.ContentDisposition.value()).getValue().replaceFirst(".*filename=\"(.*)\".*", "$1");
+//						} catch (Exception e) {}
+						File file = new File(destinationDir, filename);
+						try (FileOutputStream fos = new FileOutputStream(file)) {
+							IOUtils.copy(method.getResponseBodyAsStream(), fos);
+							files.add(file);
+						}
+					}
+				} catch (Exception e) {
+					it.remove();
+					Engine.logEngine.error("failed to retrive " + platformName, e);
+				} finally {
+					if (method != null) {
+						method.releaseConnection();
+					}
+				}
+			}
+			if (hasMore) {
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {}
+			}
+		}
+		return files;
+	}
+	
 	public static void main(String[] args) throws Exception {
 		Options opts = new Options()
-			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("<dir> set the directory to load as project (default current folder)").build())
+			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("<dir> set the directory to load as project (default current folder).").build())
 			.addOption(Option.builder("g").longOpt("generate").optionalArg(true).argName("mode").hasArg().desc("generate mobilebuilder code into _private/ionic: <mode> can be production (default) or debugplus, debug, fast. If omitted, build mode is used.").build())
-			.addOption(Option.builder("b").longOpt("build").optionalArg(true).desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").build())
+			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").build())
 			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").build())
-			.addOption(Option.builder("noTC").longOpt("excludeTestCases").desc("when export or deploy, do not include TestCases").build())
-			.addOption(Option.builder("noS").longOpt("excludeStubs").desc("when export or deploy, do not include Stubs").build())
-			.addOption(Option.builder("noMA").longOpt("excludeMobileApp").desc("when export or deploy, do not include built MobileApp").build())
-			.addOption(Option.builder("noMAA").longOpt("excludeMobileAppAssets").desc("when export or deploy, do not include built MobileApp assets").build())
-			.addOption(Option.builder("noDS").longOpt("excludeDataset").desc("when export or deploy, do not include mobile dataset").build())
-			.addOption(Option.builder("noPA").longOpt("excludePlatformAssets").desc("when export or deploy, do not include mobile platform assets").build())
-			.addOption(Option.builder("d").longOpt("deploy").optionalArg(false).argName("server").hasArg().desc("deploy the current project to <server> using user/password credentials").build())
-			.addOption(Option.builder("u").longOpt("user").optionalArg(false).argName("user").hasArg().desc("<user> used by the deploy action, default is 'admin'").build())
-			.addOption(Option.builder("w").longOpt("password").optionalArg(false).argName("password").hasArg().desc("<password> used by the deploy action, default is 'admin'").build())
-			.addOption(Option.builder("trust").longOpt("trustAllCertificates").desc("deploy over an https <server> without checking certificates").build())
-			.addOption(Option.builder("xsl").longOpt("assembleXsl").desc("assemble XSL files on deploy").build())
-			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded <project>").build())
-			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional <level> (default debug): error, info, warn, debug, trace").build())
+			.addOption(Option.builder("nb").longOpt("nativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform and download a remote cordova build of the application. Launch build and download for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
+			.addOption(Option.builder("lnb").longOpt("launchNativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform a remote cordova build of the application. Launch build for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
+			.addOption(Option.builder("dnb").longOpt("downloadNativeBuild").optionalArg(true).argName("platforms").hasArg().desc("download a remote cordova build of the application. Download from previous launch, all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
+			.addOption(Option.builder("noTC").longOpt("excludeTestCases").desc("when export or deploy, do not include TestCases.").build())
+			.addOption(Option.builder("noS").longOpt("excludeStubs").desc("when export or deploy, do not include Stubs.").build())
+			.addOption(Option.builder("noMA").longOpt("excludeMobileApp").desc("when export or deploy, do not include built MobileApp.").build())
+			.addOption(Option.builder("noMAA").longOpt("excludeMobileAppAssets").desc("when export or deploy, do not include built MobileApp assets.").build())
+			.addOption(Option.builder("noDS").longOpt("excludeDataset").desc("when export or deploy, do not include mobile dataset.").build())
+			.addOption(Option.builder("noPA").longOpt("excludePlatformAssets").desc("when export or deploy, do not include mobile platform assets.").build())
+			.addOption(Option.builder("d").longOpt("deploy").optionalArg(false).argName("server").hasArg().desc("deploy the current project to <server> using user/password credentials.").build())
+			.addOption(Option.builder("u").longOpt("user").optionalArg(false).argName("user").hasArg().desc("<user> used by the deploy action, default is 'admin'.").build())
+			.addOption(Option.builder("w").longOpt("password").optionalArg(false).argName("password").hasArg().desc("<password> used by the deploy action, default is 'admin'.").build())
+			.addOption(Option.builder("trust").longOpt("trustAllCertificates").desc("deploy over an https <server> without checking certificates.").build())
+			.addOption(Option.builder("xsl").longOpt("assembleXsl").desc("assemble XSL files on deploy.").build())
+			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded <project>.").build())
+			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional <level> (default debug): error, info, warn, debug, trace.").build())
 			.addOption(new Option("h", "help", false, "show this help"));
 		
 		CommandLine cmd = new DefaultParser().parse(opts, args, true);
@@ -324,6 +415,25 @@ public class CLI {
 				boolean trustAllCertificates = cmd.hasOption("trust");
 				boolean assembleXsl = cmd.hasOption("xsl");
 				cli.deploy(file, server, user, password, trustAllCertificates, assembleXsl);
+			}
+			
+			if (cmd.hasOption("launchNativeBuild") || cmd.hasOption("nativeBuild")) {
+				String opt = cmd.getOptionValue("nativeBuild");
+				if (opt == null) {
+					opt = cmd.getOptionValue("launchNativeBuild");
+				}
+				List<String> platforms = opt == null ? Collections.emptyList() : Arrays.asList(opt.split(","));
+				cli.launchBuild(project, platforms);
+			}
+			
+			if (cmd.hasOption("downloadNativeBuild") || cmd.hasOption("nativeBuild")) {
+				String opt = cmd.getOptionValue("nativeBuild");
+				if (opt == null) {
+					opt = cmd.getOptionValue("downloadNativeBuild");
+				}
+				List<String> platforms = opt == null ? Collections.emptyList() : Arrays.asList(opt.split(","));
+				List<File> files = cli.downloadBuild(project, platforms, new File(project.getDirFile(), "build"));
+				Logger.getRootLogger().info("Downloaded application: " + files);
 			}
 			Logger.getRootLogger().info("Operations terminated!");
 		} finally {

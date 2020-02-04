@@ -72,100 +72,107 @@ public class LaunchBuild extends XmlService {
 				}
 			}
 			
-			MobilePlatform mobilePlatform = mobileResourceHelper.mobilePlatform;
-			
-			String finalApplicationName = mobileApplication.getComputedApplicationName();
-			File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
-			
-			// Login to the mobile builder platform
-			String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-			
-			Map<String, String[]> params = new HashMap<String, String[]>();
-			
-			params.put("application", new String[]{finalApplicationName});
-			params.put("platformName", new String[]{mobilePlatform.getName()});
-			params.put("platformType", new String[]{mobilePlatform.getType()});
-			params.put("auth_token", new String[]{mobileApplication.getComputedAuthenticationToken()});
-			
-			//revision and endpoint params
-			params.put("revision", new String[]{mobileResourceHelper.getRevision()});
-			params.put("endpoint", new String[]{mobileApplication.getComputedEndpoint(request)});
-			params.put("appid", new String[]{mobileApplication.getComputedApplicationId()});
-						
-			//iOS
-			if (mobilePlatform instanceof IOs) {
-				IOs ios = (IOs) mobilePlatform;
-				
-				String pw, title = ios.getiOSCertificateTitle();
-				
-				if (!title.equals("")) {
-					pw = ios.getiOSCertificatePw();
-				} else {
-					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
-					pw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
-				}
-				
-				params.put("iOSCertificateTitle", new String[]{title});
-				params.put("iOSCertificatePw", new String[]{pw});
-			}
-			
-			//Android
-			if (mobilePlatform instanceof Android) {
-				Android android = (Android) mobilePlatform;
-				
-				String certificatePw, keystorePw, title = android.getAndroidCertificateTitle();
-				
-				if (!title.equals("")) {
-					certificatePw = android.getAndroidCertificatePw();
-					keystorePw = android.getAndroidKeystorePw();
-				} else {
-					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
-					certificatePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
-					keystorePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
-				}
-				
-				params.put("androidCertificateTitle", new String[]{title});
-				params.put("androidCertificatePw", new String[]{certificatePw});
-				params.put("androidKeystorePw", new String[]{keystorePw});
-			}
-			
-			//Windows Phone
-			if (mobilePlatform instanceof WindowsPhoneKeyProvider) { 
-				WindowsPhoneKeyProvider windowsPhone = (WindowsPhoneKeyProvider) mobilePlatform;
-				
-				String title = windowsPhone.getWinphonePublisherIdTitle();
-				
-				if (title.equals("")) {
-					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE);
-				}
-				
-				params.put("winphonePublisherIdTitle", new String[]{title});
-			}
-			
-			// Launch the mobile build
-			URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));
-			
-			HostConfiguration hostConfiguration = new HostConfiguration();
-			hostConfiguration.setHost(url.getHost());
-			HttpState httpState = new HttpState();
-			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
-			
-			PostMethod method = new PostMethod(url.toString());
-			
-			FileRequestEntity entity = new FileRequestEntity(mobileArchiveFile, null);
-			method.setRequestEntity(entity);
-
-			int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
-			String sResult = IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
-			
-			if (methodStatusCode != HttpStatus.SC_OK) {
-				throw new ServiceException("Unable to build application '" + finalApplicationName + "'.\n" + sResult);
-			}
+			String sResult = perform(mobileResourceHelper, request);
 			
 			JSONObject jsonObject = new JSONObject(sResult);
 			Element statusElement = document.createElement("application");
 			statusElement.setAttribute("id", jsonObject.getString("id"));
 			document.getDocumentElement().appendChild(statusElement);
 		}
+	}
+	
+	static public String perform(MobileResourceHelper mobileResourceHelper, HttpServletRequest request) throws Exception {
+		MobilePlatform mobilePlatform = mobileResourceHelper.mobilePlatform;
+		MobileApplication mobileApplication = mobileResourceHelper.mobileApplication;
+		
+		String finalApplicationName = mobileApplication.getComputedApplicationName();
+		File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
+		
+		// Login to the mobile builder platform
+		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
+		
+		Map<String, String[]> params = new HashMap<String, String[]>();
+		
+		params.put("application", new String[]{finalApplicationName});
+		params.put("platformName", new String[]{mobilePlatform.getName()});
+		params.put("platformType", new String[]{mobilePlatform.getType()});
+		params.put("auth_token", new String[]{mobileApplication.getComputedAuthenticationToken()});
+		
+		//revision and endpoint params
+		params.put("revision", new String[]{mobileResourceHelper.getRevision()});
+		params.put("endpoint", new String[]{mobileApplication.getComputedEndpoint(request)});
+		params.put("appid", new String[]{mobileApplication.getComputedApplicationId()});
+					
+		//iOS
+		if (mobilePlatform instanceof IOs) {
+			IOs ios = (IOs) mobilePlatform;
+			
+			String pw, title = ios.getiOSCertificateTitle();
+			
+			if (!title.equals("")) {
+				pw = ios.getiOSCertificatePw();
+			} else {
+				title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
+				pw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+			}
+			
+			params.put("iOSCertificateTitle", new String[]{title});
+			params.put("iOSCertificatePw", new String[]{pw});
+		}
+		
+		//Android
+		if (mobilePlatform instanceof Android) {
+			Android android = (Android) mobilePlatform;
+			
+			String certificatePw, keystorePw, title = android.getAndroidCertificateTitle();
+			
+			if (!title.equals("")) {
+				certificatePw = android.getAndroidCertificatePw();
+				keystorePw = android.getAndroidKeystorePw();
+			} else {
+				title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
+				certificatePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
+				keystorePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
+			}
+			
+			params.put("androidCertificateTitle", new String[]{title});
+			params.put("androidCertificatePw", new String[]{certificatePw});
+			params.put("androidKeystorePw", new String[]{keystorePw});
+		}
+		
+		//Windows Phone
+		if (mobilePlatform instanceof WindowsPhoneKeyProvider) { 
+			WindowsPhoneKeyProvider windowsPhone = (WindowsPhoneKeyProvider) mobilePlatform;
+			
+			String title = windowsPhone.getWinphonePublisherIdTitle();
+			
+			if (title.equals("")) {
+				title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE);
+			}
+			
+			params.put("winphonePublisherIdTitle", new String[]{title});
+		}
+		
+		// Launch the mobile build
+		URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));
+		
+		HostConfiguration hostConfiguration = new HostConfiguration();
+		hostConfiguration.setHost(url.getHost());
+		HttpState httpState = new HttpState();
+		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
+		
+		PostMethod method = new PostMethod(url.toString());
+		
+		FileRequestEntity entity = new FileRequestEntity(mobileArchiveFile, null);
+		method.setRequestEntity(entity);
+		
+		int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
+		String sResult = IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
+		
+		if (methodStatusCode != HttpStatus.SC_OK) {
+			throw new ServiceException("Unable to build application '" + finalApplicationName + "'.\n" + sResult);
+		}
+		
+		return sResult;
 	}
 }

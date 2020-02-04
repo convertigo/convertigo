@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
@@ -60,9 +61,9 @@ public class GetPackage extends DownloadService {
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws  Exception {
 		String project = Keys.project.value(request);
-		
+
 		MobileApplication mobileApplication = GetBuildStatus.getMobileApplication(project);
-		
+
 		if (mobileApplication == null) {
 			throw new ServiceException("no such mobile application");
 		} else {
@@ -73,10 +74,41 @@ public class GetPackage extends DownloadService {
 		}
 
 		String platformName = Keys.platform.value(request);
-		String finalApplicationName = mobileApplication.getComputedApplicationName();
-		
+		HttpMethod method = null;
+		try {
+			method = perform(mobileApplication, platformName, request);
+
+			try {
+				String contentDisposition = method.getResponseHeader(HeaderName.ContentDisposition.value()).getValue();
+				HeaderName.ContentDisposition.setHeader(response, contentDisposition);
+			} catch (Exception e) {
+				HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + project + "\"");
+			} 
+
+			try {
+				response.setContentType(method.getResponseHeader(HeaderName.ContentType.value()).getValue());
+			} catch (Exception e) {
+				response.setContentType(MimeType.OctetStream.value());
+			} 
+
+			OutputStream responseOutputStream = response.getOutputStream();
+			IOUtils.copy(method.getResponseBodyAsStream(), responseOutputStream);
+		} catch (IOException ioex) { // Fix for ticket #4698
+			if (!ioex.getClass().getSimpleName().equalsIgnoreCase("ClientAbortException")) {
+				// fix for #5042
+				throw ioex;
+			}
+		} finally {
+			if (method != null) {
+				method.releaseConnection();
+			}
+		}
+	}
+
+	public static HttpMethod perform(MobileApplication mobileApplication, String platformName, HttpServletRequest request) throws Exception {
+		String finalApplicationName = mobileApplication.getComputedApplicationName();		
 		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-		
+
 		PostMethod method;
 		int methodStatusCode;
 		InputStream methodBodyContentInputStream;
@@ -87,50 +119,24 @@ public class GetPackage extends DownloadService {
 		hostConfiguration.setHost(new URI(url.toString(), true));
 		HttpState httpState = new HttpState();
 		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
-		
-		method = new PostMethod(url.toString());
 
-		try {
-			HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
-			method.setRequestBody(new NameValuePair[] {
+		method = new PostMethod(url.toString());
+		HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
+		method.setRequestBody(new NameValuePair[] {
 				new NameValuePair("application", finalApplicationName),
 				new NameValuePair("platformName", platformName),
 				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken()),
 				new NameValuePair("endpoint", mobileApplication.getComputedEndpoint(request))
-			});
+		});
 
-			methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
-			methodBodyContentInputStream = method.getResponseBodyAsStream();
+		methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
+		methodBodyContentInputStream = method.getResponseBodyAsStream();
 
-			if (methodStatusCode != HttpStatus.SC_OK) {
-				byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
-				String sResult = new String(httpBytes, "UTF-8");
-				throw new ServiceException("Unable to get package for project '" + project + "' (final app name: '" + finalApplicationName + "').\n" + sResult);
-			}
-
-			try {
-				String contentDisposition = method.getResponseHeader(HeaderName.ContentDisposition.value()).getValue();
-				HeaderName.ContentDisposition.setHeader(response, contentDisposition);
-			} catch (Exception e) {
-				HeaderName.ContentDisposition.setHeader(response, "attachment; filename=\"" + project + "\"");
-			} 
-			
-			try {
-				response.setContentType(method.getResponseHeader(HeaderName.ContentType.value()).getValue());
-			} catch (Exception e) {
-				response.setContentType(MimeType.OctetStream.value());
-			} 
-			
-			OutputStream responseOutputStream = response.getOutputStream();
-			IOUtils.copy(methodBodyContentInputStream, responseOutputStream);
-		} catch (IOException ioex) { // Fix for ticket #4698
-			if (!ioex.getClass().getSimpleName().equalsIgnoreCase("ClientAbortException")) {
-				// fix for #5042
-				throw ioex;
-			}
-		} finally {
-			method.releaseConnection();
+		if (methodStatusCode != HttpStatus.SC_OK) {
+			byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
+			String sResult = new String(httpBytes, "UTF-8");
+			throw new ServiceException("Unable to get package for project '" + mobileApplication.getProject() + "' (final app name: '" + finalApplicationName + "').\n" + sResult);
 		}
+		return method;
 	}
-
 }

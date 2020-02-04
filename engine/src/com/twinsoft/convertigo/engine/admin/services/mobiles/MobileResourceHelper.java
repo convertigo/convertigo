@@ -265,7 +265,7 @@ public class MobileResourceHelper {
 									if (htmlFile.getAbsolutePath().startsWith(projectDir.getAbsolutePath())) {
 										uri = htmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
 									}
-									ResourceBundle resourceBundle = Engine.theApp.minificationManager.process(uri);
+									ResourceBundle resourceBundle = Engine.theApp.minificationManager != null ? Engine.theApp.minificationManager.process(uri) : null;
 									if (resourceBundle != null) {
 										synchronized (resourceBundle) {
 											String prepend = "";

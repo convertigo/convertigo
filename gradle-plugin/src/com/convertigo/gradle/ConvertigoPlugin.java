@@ -32,6 +32,9 @@ public class ConvertigoPlugin implements Plugin<Project> {
 	CompileMobileBuilder compileMobileBuilder;
 	ProjectCar car;
 	ProjectDeploy deploy;
+	NativeBuild nativeBuild;
+	NativeBuildLaunch launchNativeBuild;
+	NativeBuildDownload downloadNativeBuild;
 	
 	CLI getCLI() throws Exception {
 		return CLI.instance;
@@ -73,6 +76,24 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("publishing");
 			task.dependsOn(car);
+		});
+		
+		nativeBuild = tasks.create("nativeBuild", NativeBuild.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("configuration");
+			task.dependsOn(load);
+		});
+		
+		launchNativeBuild = tasks.create("launchNativeBuild", NativeBuildLaunch.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(nativeBuild);
+		});
+		
+		downloadNativeBuild = tasks.create("downloadNativeBuild", NativeBuildDownload.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(launchNativeBuild);
 		});
 	}
 }
