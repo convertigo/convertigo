@@ -1,6 +1,6 @@
 buildscript {
 	repositories {
-		mavenLocal()
+		// mavenLocal()
 		maven {
 			url "https://m2.convertigo.com"
 		}
@@ -15,7 +15,8 @@ apply plugin: 'convertigo'
 
 /** Convertigo Gradle Plugin DSL **/
 
-def performsMobileBuild = false
+//// determines if the projet need to perform a mobile build before 'deploy' or 'car' tasks
+def performsMobileBuild = file('_c8oProject/mobilePages').exists()
 
 //// the 'load' task load and migrate the project to the current plugin version
 load {
@@ -28,7 +29,7 @@ load {
 	// mobileApplicationEndpoint 'https://myserver.com/convertigo'
 	
 	doLast {
-		//// every aspect of the project can be changed here
+		//// any property of the project can be changed here
 		// convertigoProject.comment += ' edited by gradle'
 	}
 }
@@ -121,13 +122,13 @@ nativeBuild {
 		dependsOn compileMobileBuilder
 	}
 	
-	//// set an array of platforms names to build, empty means all declared platforms
+	//// set an array of platforms (Convertigo Platforms object) names to build, empty means all declared platforms
 	//// can also be configured with a -Pconvertigo.nativeBuild.platforms as Gradle parameter (names separated by comma)
 	// platforms = []
 	
 	//// set authenticationToken from your phonegapbuild account, default use Convertigo one
 	//// can also be configured with a -Pconvertigo.nativeBuild.authenticationToken
-	// authenticationToken
+	// authenticationToken ''
 	
 	//// set the platform used to build application, default is https://build.convertigo.net
 	//// can also be configured with a -Pconvertigo.nativeBuild.mobileBuilderPlatformURL
@@ -159,7 +160,7 @@ launchNativeBuild {
 
 }
 
-//// the 'downloadNativeBuild' task depends on 'launchNativeBuild' and wait the remote build end, then download the native package
+//// the 'downloadNativeBuild' task depends on 'launchNativeBuild' and wait the remote build ends, then download the native packages (iOS ipa or Android apk)
 downloadNativeBuild {
 	//// configure the destination of built mobile application packages (default 'build' folder)
 	//// can also be configured with a -Pconvertigo.downloadNativeBuild.destinationDir as Gradle parameter
