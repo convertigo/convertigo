@@ -16,7 +16,8 @@ apply plugin: 'convertigo'
 /** Convertigo Gradle Plugin DSL **/
 
 //// determines if the projet need to perform a mobile build before 'deploy' or 'car' tasks
-def performsMobileBuild = file('_c8oProject/mobilePages').exists()
+//// can also be configured with a -Pconvertigo.performsMobileBuild as Gradle parameter
+def performsMobileBuild = file('_c8oProject/mobilePages').exists() && !'false'.equals(project.properties['convertigo.performsMobileBuild'])
 
 //// the 'load' task load and migrate the project to the current plugin version
 load {

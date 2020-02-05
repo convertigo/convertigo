@@ -31,7 +31,8 @@ if (!rootProject.name.equals(name)) {
 		startParameter.projectProperties = [
 			'convertigo.plugin.version': version.replace('beta', 'SNAPSHOT'),
 			'convertigo.car.destinationDir': project(':eclipse-plugin-studio').file('tomcat/webapps/convertigo/templates/project'),
-			'convertigo.load.projectVersion': version
+			'convertigo.load.projectVersion': version,
+			'convertigo.performsMobileBuild': 'false'
 		]
 	}
 	
