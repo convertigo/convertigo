@@ -189,6 +189,7 @@ public class CLI {
 			bm = MobileBuilderBuildMode.valueOf(mode);
 		} catch (Exception e) { }
 		mb.setAppBuildMode(bm);
+		MobileBuilder.initBuilder(project, true);
 		MobileBuilder.releaseBuilder(project, true);
 	}
 
