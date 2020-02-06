@@ -545,7 +545,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 			
-			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT)) {
+			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT) && !Engine.isCliMode()) {
 				Engine.logDatabaseObjectManager.info("Making backup of project \"" + projectName + "\"");
 				makeProjectBackup(projectName, removeDir);
 			}
