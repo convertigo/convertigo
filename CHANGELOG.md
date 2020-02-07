@@ -19,7 +19,6 @@
 - [#312](https://github.com/convertigo/convertigo/issues/312) Fixed, wrong label for Icon 'icon name' property
 - [#313](https://github.com/convertigo/convertigo/issues/313) Fixed, HTTP 404 on documentation links for CallSequence Action and Fullsync Actions
 
-
 ---
 
 ## 7.7.0
