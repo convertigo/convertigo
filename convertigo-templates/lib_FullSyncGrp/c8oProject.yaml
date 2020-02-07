@@ -1,4 +1,4 @@
-↑convertigo: 7.8.0.m006
+↑convertigo: 7.7.0.m006
 ↓lib_FullSyncGrp [core.Project]: 
   comment: Library to define users and groups for fullsync replication filtering
   contextTimeout: 1800
