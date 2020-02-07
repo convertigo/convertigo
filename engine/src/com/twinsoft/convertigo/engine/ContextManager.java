@@ -915,7 +915,7 @@ public class ContextManager extends AbstractRunnableManager {
 		if (iDot < 1) {
 			return;
 		}
-		long nb = EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX);
+		long nb = EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX) + 1;
 		String prefix = Engine.LOG_ENGINE_NAME.substring(0, iDot + 1);
 		String[] files = new File(Engine.LOG_PATH).list();
 		Arrays.sort(files);
