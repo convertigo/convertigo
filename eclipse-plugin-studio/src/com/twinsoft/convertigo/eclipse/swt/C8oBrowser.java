@@ -30,13 +30,18 @@ import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 
 import com.teamdev.jxbrowser.chromium.Browser;
 import com.teamdev.jxbrowser.chromium.BrowserContext;
 import com.teamdev.jxbrowser.chromium.BrowserContextParams;
 import com.teamdev.jxbrowser.chromium.BrowserPreferences;
+import com.teamdev.jxbrowser.chromium.CertificateErrorParams;
 import com.teamdev.jxbrowser.chromium.JSValue;
+import com.teamdev.jxbrowser.chromium.LoadHandler;
+import com.teamdev.jxbrowser.chromium.LoadParams;
+import com.teamdev.jxbrowser.chromium.LoadParams.LoadType;
 import com.teamdev.jxbrowser.chromium.events.FailLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.FinishLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.FrameLoadEvent;
@@ -46,6 +51,7 @@ import com.teamdev.jxbrowser.chromium.events.ProvisionalLoadingEvent;
 import com.teamdev.jxbrowser.chromium.events.StartLoadingEvent;
 import com.teamdev.jxbrowser.chromium.swing.BrowserView;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class C8oBrowser extends Composite {
@@ -75,6 +81,26 @@ public class C8oBrowser extends Composite {
 				dispose();
 			}
 		});
+		if (browserContext.equals(browserContexts.get("default"))) {
+			getBrowser().setLoadHandler(new LoadHandler() {
+				
+				@Override
+				public boolean onLoad(LoadParams param) {
+					if (LoadType.LinkClicked == param.getType()) {
+						Engine.logStudio.info("Internal browser open link with the default browser: " + param.getURL());
+						Program.launch(param.getURL());
+						return true;
+					}
+					return false;
+				}
+				
+				@Override
+				public boolean onCertificateError(CertificateErrorParams arg0) {
+					// TODO Auto-generated method stub
+					return false;
+				}
+			});
+		}
 	}
 	
 	public C8oBrowser(Composite parent, int style) {
@@ -159,6 +185,7 @@ public class C8oBrowser extends Composite {
 	}
 	
 	public void setText(String html) {
+		html = html.replace("target='_blank'", "");
 		if (html.contains("$background$")) {
 			org.eclipse.swt.graphics.Color bg = getBackground();
 			String background = "rgb(" + bg.getRed() + ", " + bg.getGreen() + ", " + bg.getBlue() + ")";
