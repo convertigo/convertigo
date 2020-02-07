@@ -463,7 +463,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 						}
 						
 						if (smtpAuthType == SmtpAuthType.sslTls) {
-							Provider provider = (Provider) Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance();
+							Provider provider = (Provider) Class.forName("com.sun.net.ssl.internal.ssl.Provider").getConstructor().newInstance();
 							java.security.Security.addProvider(provider);
 							props.put("mail.transport.protocol", "smtps");
 							props.put("mail.smtps.host", smtpServer);

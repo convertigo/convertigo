@@ -440,30 +440,30 @@ public class XMLUtils {
 		try {
 			if (nodeName.equals("java.lang.Boolean")) {
 				if (nodeValue.equalsIgnoreCase("true") || nodeValue.equalsIgnoreCase("false")) {
-					return new Boolean(nodeValue);
+					return Boolean.valueOf(nodeValue);
 				} else {
 					return nodeValue;
 				}
 			} else if (nodeName.equals("java.lang.Byte")) {
-				return new Byte(nodeValue);
+				return Byte.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Character")) {
-				return new Character(nodeValue.charAt(0));
+				return Character.valueOf(nodeValue.charAt(0));
 			} else if (nodeName.equals("java.lang.Integer")) {
-				return new Integer(nodeValue);
+				return Integer.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Double")) {
-				return new Double(nodeValue);
+				return Double.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Float")) {
-				return new Float(nodeValue);
+				return Float.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Long")) {
-				return new Long(nodeValue);
+				return Long.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.Short")) {
-				return new Short(nodeValue);
+				return Short.valueOf(nodeValue);
 			} else if (nodeName.equals("java.lang.String")) {
 				return nodeValue;
 			} else if (nodeName.equals("array")) {
 				String className = node.getAttribute("classname");
 				String length = node.getAttribute("length");
-				int len = (new Integer(length)).intValue();
+				int len = (Integer.valueOf(length)).intValue();
 	
 				Object array;
 				if (className.equals("byte")) {
@@ -506,7 +506,7 @@ public class XMLUtils {
 				String className = node.getAttribute("classname");
 	
 				Node xmlNode = findChildNode(node, Node.ELEMENT_NODE);
-				Object xmlizable = Class.forName(className).newInstance();
+				Object xmlizable = Class.forName(className).getConstructor().newInstance();
 				((XMLizable) xmlizable).readXml(xmlNode);
 	
 				return xmlizable;
@@ -973,6 +973,32 @@ public class XMLUtils {
 		return StringEscapeUtils.escapeXml(getCDataText(s));
 	}
 
+	public static String readXmlText(Node node) {
+		String text = "";
+		try {
+	        if (node != null && node.hasChildNodes()) {
+	            NodeList childNodes = node.getChildNodes();
+	            int len = childNodes.getLength();
+	            
+	            for (int i = 0 ; i < len ; i++) {
+	            	Node item = childNodes.item(i);
+					switch (item.getNodeType()) {
+						case Node.CDATA_SECTION_NODE:
+						case Node.TEXT_NODE:
+							String nodevalue = item.getNodeValue();
+							nodevalue = (nodevalue == null) ? "":nodevalue;
+							text += nodevalue;
+							break;
+						default:
+							break;
+					}
+	            }
+	        }
+		}
+		catch (Exception e) {}
+		return text;
+	}
+	
 	public static int MAX_XML_SIZE_FOR_LOG_INFO = 5;
 
 	public static void logXml(Document document, Logger log, String message) {

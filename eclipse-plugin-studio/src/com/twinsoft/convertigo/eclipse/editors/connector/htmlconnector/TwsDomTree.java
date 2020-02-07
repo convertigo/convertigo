@@ -163,7 +163,7 @@ public class TwsDomTree extends TreeWrapper {
 		case Node.ELEMENT_NODE :
 			int dec = 0;
 			if (node.hasAttributes()) {// add a fake first node for 'Attributes' item
-				tItem.setData("dec", new Integer(dec = 1));
+				tItem.setData("dec", Integer.valueOf(dec = 1));
 			}
 			Node[] childs = XMLUtils.toNodeArray(node.getChildNodes());
 			tItem.setData("childs", childs);

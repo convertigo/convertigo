@@ -27,7 +27,14 @@ import com.twinsoft.convertigo.engine.CLI;
 
 public class ConvertigoPlugin implements Plugin<Project> {	
 	ProjectLoad load;
+	ProjectExport export;
+	GenerateMobileBuilder generateMobileBuilder;
+	CompileMobileBuilder compileMobileBuilder;
 	ProjectCar car;
+	ProjectDeploy deploy;
+	NativeBuild nativeBuild;
+	NativeBuildLaunch launchNativeBuild;
+	NativeBuildDownload downloadNativeBuild;
 	
 	CLI getCLI() throws Exception {
 		return CLI.instance;
@@ -41,10 +48,52 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.setGroup("build");
 		});
 		
-		car = tasks.create("car", ProjectCar.class, (task) -> {
+		export = tasks.create("export", ProjectExport.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
 			task.dependsOn(load);
+		});
+		
+		generateMobileBuilder = tasks.create("generateMobileBuilder", GenerateMobileBuilder.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(load);
+		});
+		
+		compileMobileBuilder = tasks.create("compileMobileBuilder", CompileMobileBuilder.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(generateMobileBuilder);
+		});
+		
+		car = tasks.create("car", ProjectCar.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(export);
+		});
+		
+		deploy = tasks.create("deploy", ProjectDeploy.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("publishing");
+			task.dependsOn(car);
+		});
+		
+		nativeBuild = tasks.create("nativeBuild", NativeBuild.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("configuration");
+			task.dependsOn(load);
+		});
+		
+		launchNativeBuild = tasks.create("launchNativeBuild", NativeBuildLaunch.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(nativeBuild);
+		});
+		
+		downloadNativeBuild = tasks.create("downloadNativeBuild", NativeBuildDownload.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(launchNativeBuild);
 		});
 	}
 }

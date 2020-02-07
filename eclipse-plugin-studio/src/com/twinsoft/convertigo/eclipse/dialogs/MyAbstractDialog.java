@@ -70,7 +70,7 @@ public class MyAbstractDialog extends Dialog {
 
 			GridData gridData = new GridData (GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_BOTH);
 			
-			dialogComposite = (MyAbstractDialogComposite) constructor.newInstance(new Object[] { composite, new Integer(SWT.NONE) });
+			dialogComposite = (MyAbstractDialogComposite) constructor.newInstance(new Object[] { composite, Integer.valueOf(SWT.NONE) });
 			dialogComposite.setLayoutData(gridData);
 			dialogComposite.initialize();
 			dialogComposite.setParentDialog(this);

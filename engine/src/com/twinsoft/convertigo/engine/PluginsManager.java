@@ -55,7 +55,7 @@ public class PluginsManager {
    		         		String pluginClassName = value;
    		         		Plugin plugin = null;
    		         		try {
-   		         			plugin = (Plugin) Class.forName(pluginClassName).newInstance();
+   		         			plugin = (Plugin) Class.forName(pluginClassName).getConstructor().newInstance();
    		         			plugin.init(properties);
    		         			plugins.put(key, plugin);
    		         		}

@@ -179,6 +179,7 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 			this.javelinConnectorComposite = javelinConnectorComposite;
 		}
 
+		@SuppressWarnings("deprecation")
 		public void run() {
 			JavelinConnector javelinConnector = (JavelinConnector) connector;
 			Javelin javelin = javelinConnector.javelin;

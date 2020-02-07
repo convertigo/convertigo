@@ -31,7 +31,7 @@ public class CicsOutputMapEditor extends TableEditor {
 
         dialogTitle = "CICS output map";
         columnNames = new String[] { "Level", "Variable", "Occurs", "Size", "Format", "Picture", "Default" };
-        templateData = new Object[] { "01", "Variable", "", new Integer(0), "", "", ""};
+        templateData = new Object[] { "01", "Variable", "", Integer.valueOf(0), "", "", ""};
     }
 
     public CellEditor[] getColumnEditors(Composite parent) {

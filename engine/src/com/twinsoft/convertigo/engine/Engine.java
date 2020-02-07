@@ -635,7 +635,7 @@ public class Engine {
 							.getProperty(PropertyName.CACHE_MANAGER_CLASS);
 					Engine.logEngine.debug("Cache manager class: " + cacheManagerClassName);
 					Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName)
-							.newInstance();
+							.getConstructor().newInstance();
 					Engine.theApp.cacheManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the cache manager.", e);
@@ -1381,7 +1381,7 @@ public class Engine {
 						try {
 							Engine.logContext.debug("Billing class name required: " + billingClassName);
 							AbstractBiller biller = (AbstractBiller) Class.forName(billingClassName)
-									.newInstance();
+									.getConstructor().newInstance();
 							Engine.logContext.debug("Executing the biller");
 							biller.insertBilling(context);
 						} catch (Throwable e) {
@@ -1749,6 +1749,9 @@ public class Engine {
 		}
 		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+		}
+		if (!file.exists() && file.getName().endsWith(".xml")) {
+			file = new File(file.getParentFile(), "c8oProject.yaml");
 		}
 		return file;
 	}

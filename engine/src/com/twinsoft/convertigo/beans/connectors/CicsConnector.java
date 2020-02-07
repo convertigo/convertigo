@@ -87,6 +87,7 @@ public class CicsConnector extends Connector {
 	/**
 	 * 
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		closeGateway();

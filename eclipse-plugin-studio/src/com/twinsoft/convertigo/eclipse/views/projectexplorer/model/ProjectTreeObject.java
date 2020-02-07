@@ -896,7 +896,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 									boolean loaded = false;
 									for (ProjectUrlParser parser: refToImport.values()) {
 										try {
-											loaded |= Engine.theApp.referencedProjectManager.importProject(parser);
+											loaded |= Engine.theApp.referencedProjectManager.importProject(parser) != null;
 										} catch (Exception e) {
 											Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
 										}

@@ -27,6 +27,6 @@ public class FieldListEditor extends TableEditor {
 
         dialogTitle = "Field list";
         columnNames = new String[] { "Line", "Column", "Text", "Field name" };
-        templateData = new Object[] { new Integer(-1), new Integer(-1), "text", "field_name" };
+        templateData = new Object[] { Integer.valueOf(-1), Integer.valueOf(-1), "text", "field_name" };
     }
 }

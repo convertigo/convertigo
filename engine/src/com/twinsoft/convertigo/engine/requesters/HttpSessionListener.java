@@ -68,26 +68,25 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 			Engine.logEngine.debug("HTTP session started [" + httpSessionID + "]");
 
 			if (Engine.isEngineMode() && !devices.contains(httpSessionID)) {
-				synchronized (dateFormat) {
-					KeyManager.start(com.twinsoft.api.Session.EmulIDSE);
+				int maxCV = KeyManager.getMaxCV(Session.EmulIDSE);
+				int currentCV = countSessions();
+				if (currentCV > maxCV) {
+					if (KeyManager.hasExpired(Session.EmulIDSE)) {
+						Engine.logEngine.warn("The Standard Edition key is expired");
+					} else if (KeyManager.isOverflow(Session.EmulIDSE)) {
+						String line = dateFormat.format(new Date()) + "\t" + maxCV + "\t" + currentCV + "\n";
+						try {
+							FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
+						} catch (IOException e1) {
+							Engine.logEngine.error("Failed to write the 'Session License exceeded.log' file", e1);
+						}
+						return;
+					}
+					Engine.logEngine.info("No more HTTP session available for this Standard Edition.");
+					SessionAttribute.exception.set(event.getSession(), new TASException("Max number of sessions exceeded for " + KeyManager.getEmulatorName(Session.EmulIDSE), false, currentCV, maxCV));
+					HttpUtils.terminateSession(event.getSession());
 				}
 			}
-		} catch(TASException e) {
-			if (KeyManager.hasExpired((long) Session.EmulIDSE)) {
-				Engine.logEngine.warn("The Standard Edition key is expired");
-			} else if (e.isOverflow()) {
-				String line = dateFormat.format(new Date()) + "\t" + e.getCvMax() + "\t" + e.getCvCurrent() + "\n";
-				try {
-					FileUtils.write(new File(Engine.LOG_PATH + "/Session License exceeded.log"), line, "UTF-8", true);
-				} catch (IOException e1) {
-					Engine.logEngine.error("Failed to write the 'Session License exceeded.log' file", e1);
-				}
-				return;
-			}
-			
-			Engine.logEngine.info("No more HTTP session available for this Standard Edition.");
-			SessionAttribute.exception.set(event.getSession(), e);
-			HttpUtils.terminateSession(event.getSession());
 		} catch(Exception e) {
 			Engine.logEngine.error("Exception during binding HTTP session listener", e);
 		}
@@ -116,11 +115,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	}
 
 	static public void removeSession(String httpSessionID) {
-		if (httpSessions.remove(httpSessionID) != null && Engine.isEngineMode() && !devices.remove(httpSessionID)) {
-			synchronized (dateFormat) {
-				KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
-			}
-		}
+		httpSessions.remove(httpSessionID);
 	}
 
 	static public HttpSession getHttpSession(String sessionID) {
@@ -137,11 +132,10 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		HttpSession httpSession = request.getSession(true);
 		SessionAttribute.clientIP.set(httpSession, request.getRemoteAddr());
 		String uuid = request.getParameter(Parameter.DeviceUUID.getName());
-		boolean newUUID = false;
 		if (StringUtils.isNotBlank(uuid)) {
 			SessionAttribute.deviceUUID.set(httpSession, uuid);
 			if (Engine.isCloudMode() && !uuid.startsWith("web-")) {
-				newUUID = devices.add(httpSession.getId());
+				devices.add(httpSession.getId());
 			}
 		}
 		if (!SessionAttribute.sessionListener.has(httpSession)) {
@@ -157,8 +151,6 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 					throw new RuntimeException((Throwable) t);
 				}
 			}
-		} else if (Engine.isCloudMode() && newUUID) {
-			KeyManager.stop(com.twinsoft.api.Session.EmulIDSE);
 		}
 	}
 
@@ -167,6 +159,6 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	}
 
 	static public int countSessions() {
-		return httpSessions.size();
+		return httpSessions.size() - devices.size();
 	}
 }

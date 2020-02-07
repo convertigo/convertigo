@@ -245,7 +245,7 @@ public class JavelinAttributeEditor extends AbstractDialogCellEditor {
     	int att = jTmp.javelin.getCharAttribute(zone.x, zone.y);
         
         try {
-        	propertySetter.invoke(databaseObject, new Object[] { new Integer(att) });
+        	propertySetter.invoke(databaseObject, new Object[] { Integer.valueOf(att) });
 		} catch (Throwable e) {
 			String message = "Error : "+e.getMessage(); 
             ConvertigoPlugin.logException(e, message);
@@ -277,6 +277,6 @@ public class JavelinAttributeEditor extends AbstractDialogCellEditor {
         
     	int att = jTmp.javelin.getCharAttribute(zone.x, zone.y);
         
-        return new Integer(att);
+        return Integer.valueOf(att);
     }
 }

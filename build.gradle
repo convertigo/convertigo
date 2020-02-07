@@ -300,7 +300,7 @@ task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group 'convertigo'
 }
 
-task ciFirstStep(dependsOn: [':convertigo-templates:buildTemplates', ':engine:jar']) {
+task ciFirstStep(dependsOn: [':convertigo-templates:buildTemplates', ':engine:jar', ':gradle-plugin:publish']) {
 	group 'convertigo'
 }
 

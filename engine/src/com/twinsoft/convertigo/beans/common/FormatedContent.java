@@ -24,7 +24,6 @@ import java.io.Serializable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -73,10 +72,11 @@ public class FormatedContent implements XMLizable, Serializable, Cloneable {
 
 	@Override
 	public void readXml(Node node) throws Exception {
-        Node cdata = XMLUtils.findChildNode(node, Node.CDATA_SECTION_NODE);
-        if (cdata != null) {
-        	this.content = cdata.getNodeValue();
-        }
+//        Node cdata = XMLUtils.findChildNode(node, Node.CDATA_SECTION_NODE);
+//        if (cdata != null) {
+//        	this.content = cdata.getNodeValue();
+//        }
+        this.content = XMLUtils.readXmlText(node); // fix #310
 	}
 
 }

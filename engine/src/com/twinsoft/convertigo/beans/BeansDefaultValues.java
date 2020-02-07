@@ -131,6 +131,7 @@ public class BeansDefaultValues {
 		Element beans;
 		JSONObject ionObjects;
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
+		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
 		
 		ShrinkProject() throws Exception {
 			Document beansDoc;
@@ -178,7 +179,11 @@ public class BeansDefaultValues {
 				}
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
-				
+				String dBeanVersion = dBean.getAttribute("version");
+				if (hVersion.compareTo(dBeanVersion) < 0) {
+					hVersion = dBeanVersion;
+					Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+				}
 				for (Node pAttr: xpath.selectList(pBean, "@*")) {
 					String name = pAttr.getNodeName();
 					if (!name.equals("classname") &&
@@ -232,6 +237,10 @@ public class BeansDefaultValues {
 											lVersion = v;
 										}
 									}
+									if (hVersion.compareTo(lVersion) < 0) {
+										hVersion = lVersion;
+										Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+									}
 									dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");
 									JSONObject ionProps = (JSONObject) ion.remove("properties");
 									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
@@ -283,6 +292,9 @@ public class BeansDefaultValues {
 			
 			shrinkChildren(project.getDocumentElement(), nProject);
 			
+			String mod = eAttr.getTextContent().replaceFirst(".*(\\.m.*)", "$1");
+			String minVersion = hVersion.replaceFirst(".*(\\d+).*(\\d+).*(\\d+)", "$1.$2.$3" + mod);
+			eAttr.setTextContent(minVersion);
 			return nProjectDoc;
 		}
 	}
@@ -297,7 +309,7 @@ public class BeansDefaultValues {
 		JSONObject ionObjects;
 		String version;
 		String nVersion;
-		
+		boolean isMigrating = false;
 		
 		UnshrinkProject() throws Exception {
 			Document beansDoc;
@@ -328,6 +340,10 @@ public class BeansDefaultValues {
 			nProject.setAttribute("version", version);
 			nProject.removeAttribute("convertigo");
 			
+			if (isMigrating) {
+				nProjectDoc.setUserData("isMigrating", "true", null);
+			}
+			
 			return nProjectDoc;
 		}
 		
@@ -345,6 +361,9 @@ public class BeansDefaultValues {
 				String pPriority = matcherBeanName.group(3);
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
+				if (!isMigrating && "true".equals(dBean.getUserData("isMigrating"))) {
+					isMigrating = true;
+				}
 				
 				Element nBean = null;
 				try {
@@ -467,11 +486,17 @@ public class BeansDefaultValues {
 	}
 	
 	private static Element getBeanForVersion(TwsCachedXPathAPI xpath, Element beans, String classname, String version) {
+		boolean isMigrating = false;
 		for (Node n : xpath.selectList(beans, "*[@classname='" + classname + "']")) {
 			Element e = (Element) n;
 			String eVersion = e.getAttribute("version");
 			if (eVersion.compareTo(version) <= 0) {
+				if (isMigrating) {
+					e.setUserData("isMigrating", "true", null);
+				}
 				return e;
+			} else {
+				isMigrating = true;
 			}
 		}
 		return null;
@@ -499,7 +524,7 @@ public class BeansDefaultValues {
 			
 			for (Node node: nodes) {
 				String classname = node.getNodeValue();
-				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).newInstance();
+				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).getConstructor().newInstance();
 				Element def = dbo.toXml(document);
 				if (def.hasAttribute("priority")) {
 					def.setAttribute("priority", "0");

@@ -50,12 +50,12 @@ public class EditField extends JavelinExtractionRule {
     }
     
     public void trimEndingDotsAndSpaces(Block block) {
-        block.setOptionalAttribute("size", (new Integer(block.length)).toString());
+        block.setOptionalAttribute("size", (Integer.valueOf(block.length)).toString());
         
         String blockText = block.getText();
         int index = blockText.indexOf('.');
         
-        block.setOptionalAttribute("nblines", (new Integer(numberOfLines)).toString());
+        block.setOptionalAttribute("nblines", (Integer.valueOf(numberOfLines)).toString());
         
         if (index == 0) {
             block.setText("");
@@ -88,7 +88,7 @@ public class EditField extends JavelinExtractionRule {
         }
         
         if (numberOfLines != 1)
-            curBlock.setOptionalAttribute("nblines", (new Integer(numberOfLines)).toString());
+            curBlock.setOptionalAttribute("nblines", (Integer.valueOf(numberOfLines)).toString());
     }
     
     public boolean isEmptySpace(Block block) {

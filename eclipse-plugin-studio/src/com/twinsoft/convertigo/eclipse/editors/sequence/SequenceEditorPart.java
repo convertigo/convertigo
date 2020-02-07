@@ -298,7 +298,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	
     protected boolean bDebug = false;
     protected boolean bShowBlocks = false;
-	protected Boolean bDebugStepByStep = new Boolean(false);
+	protected Boolean bDebugStepByStep = Boolean.valueOf(false);
 	protected DatabaseObject debugDatabaseObject = new Project();
 	
 	/**
@@ -329,7 +329,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 							} catch (IOException ex) {}								
 				            //Studio.theApp.consolePanel.jTabbedPane.setSelectedComponent(Studio.theApp.consolePanel.jScrollPaneDebug);
 				            bDebug = true;
-				            bDebugStepByStep = new Boolean(true);
+				            bDebugStepByStep = Boolean.valueOf(true);
 				            toolItemRun.setEnabled(true);
 				            toolItemPause.setEnabled(false);
 				            toolItemStep.setEnabled(true);
@@ -339,7 +339,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 								ConvertigoPlugin.getDefault().debugConsoleStream.write("Stopping debug mode.\n");
 							} catch (IOException ex) {}								
 				            bDebug = false;
-				            bDebugStepByStep = new Boolean(false);
+				            bDebugStepByStep = Boolean.valueOf(false);
 				            toolItemRun.setEnabled(false);
 				            toolItemPause.setEnabled(false);
 				            toolItemStep.setEnabled(false);
@@ -353,7 +353,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 							org.eclipse.swt.events.SelectionEvent e) {
 					}
 				});
-		toolItemsIds.put("Debug", new Integer(incr));
+		toolItemsIds.put("Debug", Integer.valueOf(incr));
 		incr ++;
 
 		toolItemRun = new ToolItem(toolBar, SWT.PUSH);
@@ -367,7 +367,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				        	try {
 								ConvertigoPlugin.getDefault().debugConsoleStream.write("Changing debug state to continuous\n");
 							} catch (IOException ex) {}								
-				            bDebugStepByStep = new Boolean(false);
+				            bDebugStepByStep = Boolean.valueOf(false);
 				            toolItemRun.setEnabled(false);
 				            toolItemStep.setEnabled(false);
 				            toolItemPause.setEnabled(true);
@@ -380,7 +380,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 							org.eclipse.swt.events.SelectionEvent e) {
 					}
 				});
-		toolItemsIds.put("Run", new Integer(incr));
+		toolItemsIds.put("Run", Integer.valueOf(incr));
 		incr ++;
 		
 		toolItemPause = new ToolItem(toolBar, SWT.PUSH);
@@ -394,7 +394,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				        	try {
 								ConvertigoPlugin.getDefault().debugConsoleStream.write("Changing debug state to step by step\n");
 							} catch (IOException ex) {}								
-				            bDebugStepByStep = new Boolean(true);
+				            bDebugStepByStep = Boolean.valueOf(true);
 				            toolItemRun.setEnabled(true);
 				            toolItemStep.setEnabled(true);
 				            toolItemPause.setEnabled(false);
@@ -405,7 +405,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 							org.eclipse.swt.events.SelectionEvent e) {
 					}
 				});
-		toolItemsIds.put("Pause", new Integer(incr));
+		toolItemsIds.put("Pause", Integer.valueOf(incr));
 		incr ++;
 		
 		toolItemStep = new ToolItem(toolBar, SWT.PUSH);
@@ -424,7 +424,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 							org.eclipse.swt.events.SelectionEvent e) {
 					}
 				});
-		toolItemsIds.put("Step", new Integer(incr));
+		toolItemsIds.put("Step", Integer.valueOf(incr));
 		incr ++;
 
 		new ToolItem(toolBar, SWT.SEPARATOR);
@@ -441,7 +441,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 					public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 					}
 				});
-		toolItemsIds.put("GenerateXML", new Integer(incr));
+		toolItemsIds.put("GenerateXML", Integer.valueOf(incr));
 		incr ++;
 
 		toolItemStopSequence = new ToolItem(toolBar, SWT.PUSH);
@@ -461,7 +461,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 					public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 					}
 				});
-		toolItemsIds.put("StopTransaction", new Integer(incr));
+		toolItemsIds.put("StopTransaction", Integer.valueOf(incr));
 		incr ++;
 	}
 
@@ -532,7 +532,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		try {
 			Constructor<?> constructor = compositeSequenceClass.getConstructor(new Class[] { SequenceEditorPart.class, Sequence.class, Composite.class, int.class});
-			compositeSequence = (AbstractSequenceComposite) constructor.newInstance(new Object[] {this, sequence, sashForm, new Integer(SWT.NONE) });
+			compositeSequence = (AbstractSequenceComposite) constructor.newInstance(new Object[] {this, sequence, sashForm, Integer.valueOf(SWT.NONE) });
 
 			compositeSequence.setParent(sashForm);
 			compositeSequence.setLayout(gridLayout2);

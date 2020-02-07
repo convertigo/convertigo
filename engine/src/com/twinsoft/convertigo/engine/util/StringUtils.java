@@ -46,7 +46,7 @@ public class StringUtils {
     	for (int j = 0 ; j < length ; j++) {
     		padZero += "0";
     	}
-		return java.text.MessageFormat.format("{0,number," + padZero + "}", new Object[] { new Integer(i) });
+		return java.text.MessageFormat.format("{0,number," + padZero + "}", new Object[] { Integer.valueOf(i) });
     }
     
     public static String escape(String str) {

@@ -27,6 +27,6 @@ public class ConnectionsParameterEditor extends TableEditor {
 
         dialogTitle = "Connections parameter";
         columnNames = new String[] { "Context  number", "Parameter Value" };
-        templateData = new Object[] { new Integer(0), "parameter value" };
+        templateData = new Object[] { Integer.valueOf(0), "parameter value" };
     }
 }

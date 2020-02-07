@@ -198,7 +198,7 @@ public class Statistics {
                 sums.put(taskID, duration);
             }
 
-            latestDuration.put(taskID, new Long(duration));
+            latestDuration.put(taskID, Long.valueOf(duration));
         }
         catch(Exception e) {
         	Engine.logEngine.warn("Unexpected error in EngineStatistics", e);

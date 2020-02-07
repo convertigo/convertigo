@@ -55,7 +55,7 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         
         dialogTitle = "Columns definition of the table";
         columnNames = new String[] { "Label", "Initial column", "Final column", "Line index" };
-        templateData = new Object[] { "label", new Integer(0), new Integer(0), new Integer(0) };
+        templateData = new Object[] { "label", Integer.valueOf(0), Integer.valueOf(0), Integer.valueOf(0) };
     }
     
     public void paintValue(Graphics gfx, Rectangle box) {
@@ -130,8 +130,8 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         if (i == -1) return;
         
         List<Object> v = data.get(i);
-        v.set(1, new Integer(zone.x));
-        v.set(2, new Integer(zone.width + zone.x - 1));
+        v.set(1, Integer.valueOf(zone.x));
+        v.set(2, Integer.valueOf(zone.width + zone.x - 1));
         
         updateComboBox();
 //        firePropertyChange();
@@ -225,9 +225,9 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         // TODO find the column is selected in the combo and update
         /*Vector v = new XMLVector();
         v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
-        v.add(new Integer(zone.x));
-        v.add(new Integer(zone.x + zone.width - 1));
-		v.add(new Integer(0));
+        v.add(Integer.valueOf(zone.x));
+        v.add(Integer.valueOf(zone.x + zone.width - 1));
+		v.add(Integer.valueOf(0));
         vTmp.add(v);
     	*/
     	try {
@@ -264,9 +264,9 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         // TODO find the column is selected in the combo and update
         /*Vector v = new XMLVector();
         v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
-        v.add(new Integer(zone.x));
-        v.add(new Integer(zone.x + zone.width - 1));
-		v.add(new Integer(0));
+        v.add(Integer.valueOf(zone.x));
+        v.add(Integer.valueOf(zone.x + zone.width - 1));
+		v.add(Integer.valueOf(0));
         vTmp.add(v);
     	*/
 
@@ -303,9 +303,9 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         
         XMLVector<Object> v = new XMLVector<Object>();
         v.add(jTmp.javelin.getString(zone.x, zone.y, zone.width).trim());
-        v.add(new Integer(zone.x));
-        v.add(new Integer(zone.x + zone.width - 1));
-		v.add(new Integer(0));
+        v.add(Integer.valueOf(zone.x));
+        v.add(Integer.valueOf(zone.x + zone.width - 1));
+		v.add(Integer.valueOf(0));
         vTmp.add(v);
     	
     	try {

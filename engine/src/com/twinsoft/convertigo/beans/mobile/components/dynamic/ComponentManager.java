@@ -26,6 +26,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -52,6 +54,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIAnimation;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
@@ -66,8 +69,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
-import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
@@ -80,6 +81,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
@@ -144,6 +146,7 @@ public class ComponentManager {
 		components = null;
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		clear();
@@ -400,6 +403,10 @@ public class ComponentManager {
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
 		
@@ -689,12 +696,12 @@ public class ComponentManager {
 		return true;
 	}
 	
-	protected static Component getDboComponent(final Class<? extends DatabaseObject> dboClass, final String group) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	protected static Component getDboComponent(final Class<? extends DatabaseObject> dboClass, final String group) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, SecurityException, IllegalArgumentException, InvocationTargetException {
 		String className = dboClass.getName();
 		String beanInfoClassName = className + "BeanInfo";
 		
 		Class<BeanInfo> beanInfoClass = GenericUtils.cast(Class.forName(beanInfoClassName));
-		final BeanInfo bi = beanInfoClass.newInstance();
+		final BeanInfo bi = beanInfoClass.getConstructor().newInstance();
 		final BeanDescriptor bd = bi.getBeanDescriptor();
 		
 		return new Component() {
@@ -778,7 +785,7 @@ public class ComponentManager {
 			@Override
 			protected DatabaseObject createBean() {
 				try {
-					DatabaseObject dbo = dboClass.newInstance();
+					DatabaseObject dbo = dboClass.getConstructor().newInstance();
 					dbo.bNew = true;
 					dbo.hasChanged = true;
 					return dbo;

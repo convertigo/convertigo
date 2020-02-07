@@ -113,7 +113,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 			
 			public void widgetSelected(SelectionEvent e) {
 				try {
-					Class.forName(getJdbcDriver()).newInstance();
+					Class.forName(getJdbcDriver()).getConstructor().newInstance();
 
 					DriverManager.getConnection( getJdbcURL(), 
 							getUsername(), getPassword());

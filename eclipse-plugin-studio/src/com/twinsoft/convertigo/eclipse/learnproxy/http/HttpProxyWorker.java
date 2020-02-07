@@ -168,12 +168,12 @@ class HttpProxyWorker extends Socket implements Runnable {
       int length = 0;
       while (!isInterrupted && !hasCompleted && (readInt = proxyInStream.read()) != -1) {
          b = (byte)readInt;
-         list.add(new Byte(b));
-         listToSend.add(new Byte(b));
+         list.add(Byte.valueOf(b));
+         listToSend.add(Byte.valueOf(b));
          if (b == 13) {
             // check for two line breaks without form feed
             if (list.size() > 1) {
-               if (list.get(list.size() - 2).equals(new Byte((byte)13))) {
+               if (list.get(list.size() - 2).equals(Byte.valueOf((byte)13))) {
                   hasCompleted = true;
                }
                else {
@@ -225,9 +225,9 @@ class HttpProxyWorker extends Socket implements Runnable {
 	                     String newLine = buff.toString();
 	                     byte[] newLineBytes = newLine.getBytes("ISO-8859-1");
 	                     for (int i = 0; i < newLineBytes.length; i++) {
-	                        listToSend.add(new Byte(newLineBytes[i]));
+	                        listToSend.add(Byte.valueOf(newLineBytes[i]));
 	                     }
-	                     listToSend.add(new Byte((byte)13));
+	                     listToSend.add(Byte.valueOf((byte)13));
                      }
                   }
                   if (previousLine.matches("^[Cc]ontent-[Ll]ength: .+")) {
@@ -253,9 +253,9 @@ class HttpProxyWorker extends Socket implements Runnable {
          }
          if (b == 10) {
             // check for two line breaks with form feed
-            if (list.get(list.size() - 2).equals(new Byte((byte)13)) &&
-               list.get(list.size() - 3).equals(new Byte((byte)10)) &&
-               list.get(list.size() - 4).equals(new Byte((byte)13))) {
+            if (list.get(list.size() - 2).equals(Byte.valueOf((byte)13)) &&
+               list.get(list.size() - 3).equals(Byte.valueOf((byte)10)) &&
+               list.get(list.size() - 4).equals(Byte.valueOf((byte)13))) {
                //logger.debug("length: " + length);
                if (length == 0) {
                   hasCompleted = true;
@@ -264,11 +264,11 @@ class HttpProxyWorker extends Socket implements Runnable {
                   for (int i = 0; i < length; i++) {
                      readInt = proxyInStream.read();
                      b = (byte)readInt;
-                     list.add(new Byte(b));
-                     listToSend.add(new Byte(b));
+                     list.add(Byte.valueOf(b));
+                     listToSend.add(Byte.valueOf(b));
                   }
-                  list.add(new Byte((byte)'\n'));
-                  listToSend.add(new Byte((byte)'\n'));
+                  list.add(Byte.valueOf((byte)'\n'));
+                  listToSend.add(Byte.valueOf((byte)'\n'));
                   hasCompleted = true;
                }
             }
@@ -297,9 +297,9 @@ class HttpProxyWorker extends Socket implements Runnable {
       int lastCRPos = 0;
       while (!isInterrupted && !hasCompleted && (readInt = responseInputStream.read()) != -1) {
          b = (byte)readInt;
-         list.add(new Byte(b));
+         list.add(Byte.valueOf(b));
          if (isContent) {
-             responseContentList.add(new Byte(b));
+             responseContentList.add(Byte.valueOf(b));
          }    
          proxyClientStream.write(readInt);
          if (b == 13) {
@@ -335,9 +335,9 @@ class HttpProxyWorker extends Socket implements Runnable {
          }
          if (b == 10) {
             // check for two line breaks with form feed
-            if (list.get(list.size() - 2).equals(new Byte((byte)13)) &&
-               list.get(list.size() - 3).equals(new Byte((byte)10)) &&
-               list.get(list.size() - 4).equals(new Byte((byte)13))) {
+            if (list.get(list.size() - 2).equals(Byte.valueOf((byte)13)) &&
+               list.get(list.size() - 3).equals(Byte.valueOf((byte)10)) &&
+               list.get(list.size() - 4).equals(Byte.valueOf((byte)13))) {
                // section 4.3 of the http-spec states:
                // All responses to the HEAD request method
                // MUST NOT include a message-body, even though 
@@ -370,7 +370,7 @@ class HttpProxyWorker extends Socket implements Runnable {
                   for (int i = 0; i < length; i++) {
                      readInt = responseInputStream.read();
                      b = (byte)readInt;
-                     list.add(new Byte(b));
+                     list.add(Byte.valueOf(b));
                      proxyClientStream.write(readInt);
                   }
                   hasCompleted = true;
@@ -428,7 +428,7 @@ class HttpProxyWorker extends Socket implements Runnable {
 	   // dirty hack:
 	   byte[] appendBytes = "0\r\n".getBytes("ISO-8859-1");
 	   for (int i = 0; i < appendBytes.length; i++) {
-		   retList.add(new Byte(appendBytes[i]));
+		   retList.add(Byte.valueOf(appendBytes[i]));
          proxyClientStream.write((int)appendBytes[i]);
 	   }
 	   return retList;
@@ -460,7 +460,7 @@ class HttpProxyWorker extends Socket implements Runnable {
        }
 	   byte[] appendBytes = chunkHeader.getBytes("ISO-8859-1");
 	   for (int i = 0; i < appendBytes.length; i++) {
-		   retList.add(new Byte(appendBytes[i]));
+		   retList.add(Byte.valueOf(appendBytes[i]));
          proxyClientStream.write((int)appendBytes[i]);
 	   }
        length = Integer.parseInt(lengthStr, 16);
@@ -469,14 +469,14 @@ class HttpProxyWorker extends Socket implements Runnable {
            //read bytes
            readInt = inStream.read();
            b = (byte)readInt;
-           retList.add(new Byte(b));
+           retList.add(Byte.valueOf(b));
            proxyClientStream.write(readInt);
        }
        // skip to EOL
        String chunkEndLine = getNextLine(inStream);
 	   appendBytes = chunkEndLine.getBytes("ISO-8859-1");
 	   for (int i = 0; i < appendBytes.length; i++) {
-		   retList.add(new Byte(appendBytes[i]));
+		   retList.add(Byte.valueOf(appendBytes[i]));
          proxyClientStream.write((int)appendBytes[i]);
 	   }
 	   return retList;

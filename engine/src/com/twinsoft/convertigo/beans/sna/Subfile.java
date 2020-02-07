@@ -589,15 +589,15 @@ public class Subfile extends Table {
 			// creation of the column vector
 			XMLVector<Object> col = new XMLVector<Object>();
 			col.add(new String(title));
-			col.add(new Integer(curBlock.column));
-			col.add(new Integer(columnDataLastCharEast));
-			col.add(new Integer(firstLine - 1));
-			col.add(new Integer(0));
+			col.add(Integer.valueOf(curBlock.column));
+			col.add(Integer.valueOf(columnDataLastCharEast));
+			col.add(Integer.valueOf(firstLine - 1));
+			col.add(Integer.valueOf(0));
 			columns.add(col);
 			
 			// Update the endColumn of the previous column
 			if (oldCol != null) {
-				oldCol.set(2, new Integer(curBlock.column - 1));
+				oldCol.set(2, Integer.valueOf(curBlock.column - 1));
 				Engine.logBeans.trace("Updating the endColumn of the previous column to: " + (curBlock.column - 1));
 			}
 			

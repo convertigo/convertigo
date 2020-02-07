@@ -33,6 +33,13 @@ import com.twinsoft.convertigo.engine.CLI;
 
 public class ProjectCar extends ConvertigoTask {
 	private File destinationDir;
+	private File destinationFile;
+	private boolean includeTestCases = true;
+	private boolean includeStubs = true;
+	private boolean includeMobileApp = true;
+	private boolean includeMobileAppAssets = true;
+	private boolean includeMobileDataset = true;
+	private boolean includeMobilePlatformsAssets = true;
 	
 	public File getDestinationDir() {
 		return destinationDir;
@@ -46,6 +53,62 @@ public class ProjectCar extends ConvertigoTask {
 		this.destinationDir = getProject().file(destinationDir);
 	}
 	
+	public File getDestinationFile() {
+		return destinationFile;
+	}
+	
+	public boolean isIncludeTestCases() {
+		return includeTestCases;
+	}
+
+	public void setIncludeTestCases(boolean includeTestCases) {
+		this.includeTestCases = includeTestCases;
+	}
+	
+	public boolean isIncludeStubs() {
+		return includeStubs;
+	}
+
+	public void setIncludeStubs(boolean includeStubs) {
+		this.includeStubs = includeStubs;
+	}
+
+	public boolean isIncludeMobileApp() {
+		return includeMobileApp;
+	}
+
+	public void setIncludeMobileApp(boolean includeMobileApp) {
+		this.includeMobileApp = includeMobileApp;
+	}
+
+	public boolean isIncludeMobileAppAssets() {
+		return includeMobileAppAssets;
+	}
+
+	public void setIncludeMobileAppAssets(boolean includeMobileAppAssets) {
+		this.includeMobileAppAssets = includeMobileAppAssets;
+	}
+
+	public boolean isIncludeMobileDataset() {
+		return includeMobileDataset;
+	}
+
+	public void setIncludeMobileDataset(boolean includeMobileDataset) {
+		this.includeMobileDataset = includeMobileDataset;
+	}
+
+	public boolean isIncludeMobilePlatformsAssets() {
+		return includeMobilePlatformsAssets;
+	}
+
+	public void setIncludeMobilePlatformsAssets(boolean includeMobilePlatformsAssets) {
+		this.includeMobilePlatformsAssets = includeMobilePlatformsAssets;
+	}
+
+	public void setDestinationFile(File destinationFile) {
+		this.destinationFile = destinationFile;
+	}
+
 	public ProjectCar() {
 		Project project = getProject();
 		try {
@@ -53,6 +116,24 @@ public class ProjectCar extends ConvertigoTask {
 		} catch (Exception e) {
 			destinationDir = project.getBuildDir();
 		}
+		try {
+			includeTestCases = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeTestCases").toString());
+		} catch (Exception e) {}
+		try {
+			includeStubs = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeStubs").toString());
+		} catch (Exception e) {}
+		try {
+			includeMobileApp = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeMobileApp").toString());
+		} catch (Exception e) {}
+		try {
+			includeMobileAppAssets = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeMobileAppAssets").toString());
+		} catch (Exception e) {}
+		try {
+			includeMobileDataset = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeMobileDataset").toString());
+		} catch (Exception e) {}
+		try {
+			includeMobilePlatformsAssets = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeMobilePlatformsAssets").toString());
+		} catch (Exception e) {}
 		
 		project.afterEvaluate(p -> {
 			Matcher filter = Pattern.compile("\\.gradle|\\.svn|\\.git|build|_private").matcher("");
@@ -74,6 +155,8 @@ public class ProjectCar extends ConvertigoTask {
 	@TaskAction
 	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
-		cli.exportToCar(plugin.load.getConvertigoProject(), destinationDir);
+		destinationFile = cli.exportToCar(
+				plugin.load.getConvertigoProject(), destinationDir, includeTestCases, includeStubs,
+				includeMobileApp, includeMobileAppAssets, includeMobileDataset, includeMobilePlatformsAssets);
 	}
 }

@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.http.HttpSession;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
@@ -305,10 +304,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Ba
 		}
 
 		if ("true".equals(response.getDocumentElement().getAttribute("fromcache")) && context.parentContext == null) {
-			HttpSession session = context.httpSession;
-			if (session != null && session.isNew()) {
-				HttpUtils.terminateSession(session);
-			}
+			HttpUtils.terminateNewSession(context.httpSession);
 		}
 		
 		return response;

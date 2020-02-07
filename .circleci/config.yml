@@ -109,9 +109,9 @@ jobs:
           source /tmp/build.env
           test -d ~/.gradle/caches && find ~/.gradle/caches -name "*-SNAPSHOT" -exec rm -rf {} +
           if [ "$CIRCLE_BRANCH" == "" ] ; then
-            sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
+            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :ciFirstStep
           else
-            sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :ciFirstStep
+            sh gradlew --info --stacktrace $M2_ARGS -PconvertigoRevision=$CONVERTIGO_BUILD_NAME -PdocumentationPath=$PWD/convertigo-doc :engine:generateDocumentationMd :ciFirstStep
           fi
         
     - run:

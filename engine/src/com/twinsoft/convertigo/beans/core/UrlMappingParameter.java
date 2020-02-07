@@ -115,7 +115,7 @@ public abstract class UrlMappingParameter extends DatabaseObject implements ITag
 		super.preconfigure(element);
 		
 		try {
-			long priority = new Long(element.getAttribute("priority")).longValue();
+			long priority = Long.valueOf(element.getAttribute("priority")).longValue();
 			if (priority == 0L) {
 				priority = getNewOrderValue();
 				element.setAttribute("priority", ""+priority);

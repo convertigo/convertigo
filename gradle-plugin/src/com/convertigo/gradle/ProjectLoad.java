@@ -19,8 +19,6 @@
 
 package com.convertigo.gradle;
 
-import java.io.File;
-
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
@@ -32,12 +30,13 @@ public class ProjectLoad extends ConvertigoTask {
 	private Project convertigoProject;
 	
 	private String projectVersion;
+	private String mobileApplicationEndpoint;
 
 	synchronized Project getConvertigoProject() throws Exception {
 		if (convertigoProject == null) {
 			CLI cli = plugin.getCLI();
 			
-			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion);
+			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion, mobileApplicationEndpoint);
 		}
 		return convertigoProject;
 	}
@@ -50,25 +49,21 @@ public class ProjectLoad extends ConvertigoTask {
 		this.projectVersion = projectVersion;
 	}
 	
+	public String getMobileApplicationEndpoint() {
+		return mobileApplicationEndpoint;
+	}
+
+	public void setMobileApplicationEndpoint(String mobileApplicationEndpoint) {
+		this.mobileApplicationEndpoint = mobileApplicationEndpoint;
+	}
+
 	public ProjectLoad() {
 		try {
 			projectVersion = getProject().getProperties().get("convertigo.load.projectVersion").toString();
-		} catch (Exception e) {
-		}
-		
-		getProject().afterEvaluate(p -> {
-			getInputs().getProperties().put("convertigo.load.projectVersion", projectVersion);
-			File f = p.file("c8oProject.yaml");
-			if (f.exists()) {
-				getInputs().file(f);
-			}
-			File d = p.file("_c8oProject");
-			if (d.exists()) {
-				getInputs().dir(d);
-			}
-			getOutputs().file("c8oProject.yaml");
-			getOutputs().dir("_c8oProject");
-		});
+		} catch (Exception e) {}
+		try {
+			mobileApplicationEndpoint = getProject().getProperties().get("convertigo.load.mobileApplicationEndpoint").toString();
+		} catch (Exception e) {}
 	}
 	
 	@TaskAction

@@ -19,7 +19,9 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -543,6 +545,7 @@ public class ContextManager extends AbstractRunnableManager {
 
                 removeExpiredContexts();
                 managePoolContexts();
+                clearOldLogs();
                 Engine.logContextManager.debug("Vulture task done");
             } catch(Throwable e) {
                 Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture.", e);
@@ -905,5 +908,41 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.warn("Zombie context detected! context: " + context.contextID);
 		}
 		return b;
+	}
+	
+	private void clearOldLogs() {
+		int iDot = Engine.LOG_ENGINE_NAME.indexOf('.');
+		if (iDot < 1) {
+			return;
+		}
+		long nb = EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX);
+		String prefix = Engine.LOG_ENGINE_NAME.substring(0, iDot + 1);
+		String[] files = new File(Engine.LOG_PATH).list();
+		Arrays.sort(files);
+		for (int i = files.length - 1; i >= 0; i--) {
+			if (files[i].startsWith(Engine.LOG_ENGINE_NAME)) {
+				nb--;
+			}
+		}
+		StringBuilder sb = null;
+		for (int i = files.length - 1; i >= 0; i--) {
+			if (files[i].startsWith(prefix) && !files[i].startsWith(Engine.LOG_ENGINE_NAME)) {
+				if (nb > 0) {
+					nb--;
+				} else {
+					File toDelete = new File(Engine.LOG_PATH, files[i]);
+					boolean deleted = toDelete.delete();
+					if (Engine.logEngine.isInfoEnabled()) {
+						if (sb == null) {
+							sb = new StringBuilder("Purging old log files:");
+						}
+						sb.append("\n - " + toDelete + " is deleted: " + deleted);
+					}
+				}
+			}
+		}
+		if (sb != null) {
+			Engine.logEngine.info(sb);
+		}
 	}
 }

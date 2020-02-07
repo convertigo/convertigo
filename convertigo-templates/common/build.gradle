@@ -1,6 +1,6 @@
 buildscript {
 	repositories {
-		mavenLocal()
+		// mavenLocal()
 		maven {
 			url "https://m2.convertigo.com"
 		}
@@ -13,20 +13,163 @@ buildscript {
 
 apply plugin: 'convertigo'
 
-/** Convertigo Gradle Plugin DSL **
+/** Convertigo Gradle Plugin DSL **/
 
-// the 'load' task load and migrate the project to the current plugin version
+//// determines if the projet need to perform a mobile build before 'deploy' or 'car' tasks
+//// can also be configured with a -Pconvertigo.performsMobileBuild as Gradle parameter
+def performsMobileBuild = file('_c8oProject/mobilePages').exists() && !'false'.equals(project.properties['convertigo.performsMobileBuild'])
+
+//// the 'load' task load and migrate the project to the current plugin version
 load {
-	// change the 'version' property of the project at loading
-	// can also be configured with a -Pconvertigo.load.projectVersion as Gradle parameter
-	projectVersion 'x.y.z-release'
+	//// change the 'version' property of the project at loading
+	//// can also be configured with a -Pconvertigo.load.projectVersion as Gradle parameter
+	// projectVersion '1.0.0-release'
+	
+	//// change the 'Convertigo server endpoint' property of the project's mobile application at loading
+	//// can also be configured with a -Pconvertigo.load.mobileApplicationEndpoint as Gradle parameter
+	// mobileApplicationEndpoint 'https://myserver.com/convertigo'
+	
+	doLast {
+		//// any property of the project can be changed here
+		// convertigoProject.comment += ' edited by gradle'
+	}
 }
 
-// the 'car' task allow to build a <projectName>.car inside the <projectdir>/build folder
+//// the 'export' task depends on 'load' and save the project at the current plugin version
+export {
+	//// mobile application can be builded before the 'export', then 'car' and 'deploy' can use build result
+	if (performsMobileBuild) {
+		dependsOn compileMobileBuilder
+	}
+}
+
+//// the 'generateMobileBuilder' task depends on 'load' and generate sources of the ionic application into _private/ionic
+generateMobileBuilder {
+	//// configure the generation mode, can be can be production (default) or debugplus, debug, fast
+	//// if omitted, compileMobileBuilder.mode is used
+	//// can also be configured with a -Pconvertigo.generateMobileBuilder.mode as Gradle parameter
+	// mode 'production'
+}
+
+//// the 'compileMobileBuilder' task depends on 'generateMobileBuilder' and compiles the ionic application with NPM into DisplayObject/mobile
+compileMobileBuilder {
+	//// configure the generation mode, can be can be production (default) or debug
+	//// if omitted, generateMobileBuilder.mode is used
+	//// can also be configured with a -Pconvertigo.compileMobileBuilder.mode as Gradle parameter
+	// mode 'production'
+}
+
+//// the 'car' task allow to build a <projectName>.car inside the <projectdir>/build folder
 car {
-	// configure the destination of the <projectName>.car file
-	// can also be configured with a -Pconvertigo.car.destinationDir as Gradle parameter
-	destinationDir '/deploymentPath/projects'
+	//// configure the destination of the <projectName>.car file (default 'build' folder)
+	//// can also be configured with a -Pconvertigo.car.destinationDir as Gradle parameter
+	// destinationDir 'build'
+	
+	//// include TestCases (default true)
+	//// can also be configured with a -Pconvertigo.car.includeTestCases as Gradle parameter 
+	// includeTestCases true
+	
+	//// include Stubs (default true)
+	//// can also be configured with a -Pconvertigo.car.includeStubs as Gradle parameter
+	// includeStubs true
+	
+	//// include  built MobileApp (default true)
+	//// can also be configured with a -Pconvertigo.car.includeMobileApp as Gradle parameter
+	// includeMobileApp true
+	
+	//// include  built MobileApp assets (default true)
+	//// can also be configured with a -Pconvertigo.car.includeMobileAppAssets as Gradle parameter
+	// includeMobileAppAssets true
+	
+	//// include mobile dataset (default true)
+	//// can also be configured with a -Pconvertigo.car.includeMobileDataset as Gradle parameter
+	// includeMobileDataset true
+	
+	//// include mobile platform assets (default true)
+	//// can also be configured with a -Pconvertigo.car.includeMobilePlatformsAssets as Gradle parameter
+	// includeMobilePlatformsAssets true
+	
+	doLast {
+		println "Saved Convertigo archive: $destinationFile"
+	}
 }
 
-**/
+//// the 'deploy' task depends on 'car' and allows to push the project to a Convertigo server
+deploy {
+	//// deploy the current project to <server> using user/password credentials
+	//// can also be configured with a -Pconvertigo.deploy.server as Gradle parameter
+	// server 'https://myserver.com/convertigo'
+	
+	//// user used by the deploy action, default is 'admin'
+	//// can also be configured with a -Pconvertigo.deploy.user as Gradle parameter
+	// user 'admin'
+	
+	//// password used by the deploy action, default is 'admin'
+	//// can also be configured with a -Pconvertigo.deploy.password as Gradle parameter
+	// user 'password'
+	
+	//// deploy over an https <server> without checking certificates, default is false
+	//// can also be configured with a -Pconvertigo.deploy.trustAllCertificates as Gradle parameter
+	// trustAllCertificates false
+	
+	//// assemble XSL files on deploy, default is false
+	//// can also be configured with a -Pconvertigo.deploy.assembleXsl as Gradle parameter
+	// assembleXsl false
+}
+
+//// the 'nativeBuild' task depends on 'load' and it's just a configurator for 'launchNativeBuild' and 'downloadNativeBuild'
+nativeBuild {
+	if (performsMobileBuild) {
+		dependsOn compileMobileBuilder
+	}
+	
+	//// set an array of platforms (Convertigo Platforms object) names to build, empty means all declared platforms
+	//// can also be configured with a -Pconvertigo.nativeBuild.platforms as Gradle parameter (names separated by comma)
+	// platforms = []
+	
+	//// set authenticationToken from your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.authenticationToken
+	// authenticationToken ''
+	
+	//// set the platform used to build application, default is https://build.convertigo.net
+	//// can also be configured with a -Pconvertigo.nativeBuild.mobileBuilderPlatformURL
+	// mobileBuilderPlatformURL ''
+	
+	//// set the iOS certificate title declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.iosCertificateTitle
+	// iosCertificateTitle ''
+	
+	//// set the iOS certificate password declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.iosCertificatePassword
+	// iosCertificatePassword ''
+	
+	//// set the Android certificate title declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificateTitle
+	// androidCertificateTitle ''
+	
+	//// set the Android certificate password declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificatePassword
+	// androidCertificatePassword ''
+	
+	//// set the Android certificate keystore password declared on your phonegapbuild account, default use Convertigo one
+	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificateKeystorePassword
+	// androidCertificateKeystorePassword ''
+}
+
+//// the 'launchNativeBuild' task depends on 'nativeBuild' and upload the mobile source package to the Convertigo phonegapbuild gateway
+launchNativeBuild {
+
+}
+
+//// the 'downloadNativeBuild' task depends on 'launchNativeBuild' and wait the remote build ends, then download the native packages (iOS ipa or Android apk)
+downloadNativeBuild {
+	//// configure the destination of built mobile application packages (default 'build' folder)
+	//// can also be configured with a -Pconvertigo.downloadNativeBuild.destinationDir as Gradle parameter
+	// destinationDir 'build'
+	
+	doLast {
+		destinationFiles.each {
+			println "Downloaded mobile application package: $it"
+		}
+	}
+}

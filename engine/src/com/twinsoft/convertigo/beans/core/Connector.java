@@ -501,7 +501,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		Element element = super.toXml(document);
         
 		// Storing the transaction "default" flag
-		element.setAttribute("default", new Boolean(isDefault).toString());
+		element.setAttribute("default", Boolean.valueOf(isDefault).toString());
         
 		return element;
 	}
@@ -510,7 +510,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 	public void configure(Element element) throws Exception {
 		super.configure(element);
 		try {
-			isDefault = new Boolean(element.getAttribute("default")).booleanValue();
+			isDefault = Boolean.valueOf(element.getAttribute("default")).booleanValue();
 		}catch(Exception e) {
 			throw new EngineException("Unable to configure the property 'By default' of the transaction \"" + getName() + "\".", e);
 		}

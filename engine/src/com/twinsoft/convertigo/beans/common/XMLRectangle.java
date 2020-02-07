@@ -67,19 +67,19 @@ public class XMLRectangle extends java.awt.Rectangle implements XMLizable {
         Element propertyElement;
         
         propertyElement = document.createElement("x");
-        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, new Integer(x)));
+        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, Integer.valueOf(x)));
         element.appendChild(propertyElement);
 
         propertyElement = document.createElement("y");
-        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, new Integer(y)));
+        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, Integer.valueOf(y)));
         element.appendChild(propertyElement);
 
         propertyElement = document.createElement("width");
-        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, new Integer(width)));
+        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, Integer.valueOf(width)));
         element.appendChild(propertyElement);
 
         propertyElement = document.createElement("height");
-        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, new Integer(height)));
+        propertyElement.appendChild(XMLUtils.writeObjectToXml(document, Integer.valueOf(height)));
         element.appendChild(propertyElement);
 
         return element;

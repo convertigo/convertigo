@@ -25,6 +25,7 @@ import java.io.IOException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
@@ -56,10 +57,18 @@ public class GitUtils {
 	public static boolean asRemoteAndBranch(File dir, String url, String branch) throws IOException {
 		try (Git git = Git.open(dir)) {
 			if (git != null && asRemote(git, url)) {
-				String br = git.getRepository().getBranch();
+				Repository repo = git.getRepository();
+				String br = repo.getBranch();
 				if (br != null && br.equals(branch)) {
 					return true;
 				}
+				try {
+					Ref ref = repo.findRef(branch);
+					Ref head = repo.findRef("HEAD");
+					if (head.getObjectId().equals(ref.getObjectId())) {
+						return true;
+					}
+				} catch (Exception e) {}
 			}
 			return false;
 		}

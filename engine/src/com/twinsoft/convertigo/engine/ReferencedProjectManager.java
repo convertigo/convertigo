@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
@@ -66,7 +67,9 @@ public class ReferencedProjectManager {
 		for (Entry<String, ProjectUrlParser> entry: refs.entrySet()) {
 			String projectName = entry.getKey();
 			try {
-				if (importProject(entry.getValue())) {
+				ProjectUrlParser parser = entry.getValue();
+				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName(), false);
+				if (project == null && importProject(parser) != null) {
 					loaded.add(projectName);
 				}
 			} catch (Exception e) {
@@ -80,7 +83,42 @@ public class ReferencedProjectManager {
 		return false;
 	}
 	
-	public boolean importProject(ProjectUrlParser parser) throws Exception {
+	public ProjectSchemaReference getReferenceFromProject(Project project, String projectName) throws EngineException {
+		ProjectSchemaReference prjRef = null;
+		for (Reference ref: project.getReferenceList()) {
+			if (ref instanceof ProjectSchemaReference) {
+				prjRef = (ProjectSchemaReference) ref;
+				if (projectName.equals(prjRef.getParser().getProjectName())) {
+					break;
+				} else {
+					prjRef = null;
+				}
+			}
+		}
+		
+		if (prjRef == null) {
+			prjRef = new ProjectSchemaReference();
+			if (projectName.startsWith("mobilebuilder_tpl_")) {
+				prjRef.setProjectName(projectName + "=git@github.com:convertigo/c8oprj-mobilebuilder-tpl.git:branch=" + projectName);
+			} else {
+				prjRef.setProjectName(projectName);
+			}
+			project.add(prjRef);
+			project.changed();
+			project.hasChanged = true;
+		}
+		
+		return prjRef;
+	}
+	
+	public Project importProjectFrom(Project project, String projectName) throws Exception {
+		if (project.getName().equals(projectName)) {
+			return project;
+		}
+		return importProject(getReferenceFromProject(project, projectName).getParser());
+	}
+	
+	public Project importProject(ProjectUrlParser parser) throws Exception {
 		String projectName = parser.getProjectName();
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 		File dir = null;
@@ -102,7 +140,16 @@ public class ReferencedProjectManager {
 				} else {
 					Engine.logEngine.info("(ReferencedProjectManager) folder hasn't remote " + parser.getGitUrl());
 					int i = 1;
-					while (i > 0 && (dir = new File(gitContainer, parser.getGitRepo() + "_" + i++)).exists()) {
+					String suffix = "_";
+					if (parser.getGitBranch() != null) {
+						suffix += parser.getGitBranch();
+						dir = new File(gitContainer, parser.getGitRepo() + suffix);
+						if (!dir.exists() || GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
+							i = 0;
+						}
+						suffix += "_";
+					}
+					while (i > 0 && (dir = new File(gitContainer, parser.getGitRepo() + suffix + i++)).exists()) {
 						if (GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
 							i = 0;
 						}
@@ -124,11 +171,10 @@ public class ReferencedProjectManager {
 		if (dir != null) {
 			//GitUtils.pull(dir);
 			if (project == null) {
-				Project prj = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"));
-				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + prj);
-				return true;
+				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"));
+				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + project);
 			}
 		}
-		return false;
+		return project;
 	}
 }

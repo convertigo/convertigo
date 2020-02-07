@@ -23,6 +23,8 @@ META-INF
 /convertigo-templates/*/.gitattributes
 !/convertigo-templates/common/.gitattributes
 /convertigo-templates/*/build
+/convertigo-templates/*/gradle*
+/convertigo-templates/*.zip
 /eclipse-feature/feature.xml
 /eclipse-feature/feature.xml.tmp
 /eclipse-plugin-product/about.ini

@@ -52,7 +52,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (fileChooserPage.getParser().isValid()) {
 			try {
-				if (Engine.theApp.referencedProjectManager.importProject(fileChooserPage.getParser())) {
+				if (Engine.theApp.referencedProjectManager.importProject(fileChooserPage.getParser()) != null) {
 					explorerView.refreshProjects();
 					return true;
 				}

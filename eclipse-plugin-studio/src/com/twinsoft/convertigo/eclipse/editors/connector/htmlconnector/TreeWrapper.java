@@ -298,6 +298,7 @@ public class TreeWrapper{
 		tree.showSelection();
 	}
 
+	@SuppressWarnings("deprecation")
 	public void changed(Control[] changed) {
 		
 		tree.changed(changed);

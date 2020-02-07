@@ -651,6 +651,7 @@ public class FullSyncServlet extends HttpServlet {
 		} catch (SecurityException e) {
 			Engine.logCouchDbManager.warn("(FullSyncServlet) Failed to process request due to a security exception:\n" + e.getMessage() + "\n" + debug);
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			HttpUtils.terminateNewSession(httpSession);
 		} catch (EngineException e) {
 			String message = e.getMessage();
 			if (message != null && message.contains("anonymous user")) {
@@ -658,12 +659,14 @@ public class FullSyncServlet extends HttpServlet {
 			} else {
 				Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
 			}
+			HttpUtils.terminateNewSession(httpSession);
 		} catch (Exception e) {
 			if ("ClientAbortException".equals(e.getClass().getSimpleName())) {
 				Engine.logCouchDbManager.info("(FullSyncServlet) Client disconnected:\n" + debug);
 			} else {
 				Engine.logCouchDbManager.error("(FullSyncServlet) Failed to process request:\n" + debug, e);
 			}
+			HttpUtils.terminateNewSession(httpSession);
 		} finally {
 			Log4jHelper.mdcClear();
 			synchronized (httpSession) {

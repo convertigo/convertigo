@@ -306,7 +306,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			project = projects.get(projectName);
 		}
 		
-		if (project == null) {		
+		if (project == null) {
 			long t0 = Calendar.getInstance().getTime().getTime();
 
 			try {
@@ -474,7 +474,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public void clearCacheIfSymbolError(String projectName) throws Exception {
 		synchronized (projects) {
-			if(projects.containsKey(projectName)) {
+			if (projects.containsKey(projectName)) {
 				if (symbolsProjectCheckUndefined(projectName)) {
 					Project project = projects.remove(projectName);
 					RestApiManager.getInstance().removeUrlMapper(projectName);
@@ -484,6 +484,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	public Project getCachedProject(String projectName) {
+		synchronized (projects) {
+			return projects.get(projectName);
+		}
+	}
+	
 	public boolean existsProject(String projectName) {
 		File file = studioProjects.getProject(projectName);
 		if (file == null) {
@@ -507,13 +513,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 		boolean bUnloadOnly = DeleteProjectOption.unloadOnly.as(options);
 		try {
 			// Remove all pooled related contexts in server mode
-			if (Engine.isEngineMode()) {
+			if (Engine.isEngineMode() && !Engine.isCliMode()) {
 				// Bugfix #1659: do not call getProjectByName() if the migration
 				// process is ongoing!
 				if (!(Thread.currentThread() instanceof MigrationJob)) {
-					Project projectToDelete = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-					for (Connector connector : projectToDelete.getConnectorsList()) {
-						Engine.theApp.contextManager.removeDevicePool(connector.getQName());
+					Project projectToDelete = Engine.theApp.databaseObjectsManager.getCachedProject(projectName);
+					if (projectToDelete != null) {
+						for (Connector connector : projectToDelete.getConnectorsList()) {
+							Engine.theApp.contextManager.removeDevicePool(connector.getQName());
+						}
 					}
 					Engine.theApp.contextManager.removeAll("/" + projectName);
 				}
@@ -537,7 +545,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 			
-			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT)) {
+			if (bCreateBackup && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ZIP_BACKUP_OLD_PROJECT) && !Engine.isCliMode()) {
 				Engine.logDatabaseObjectManager.info("Making backup of project \"" + projectName + "\"");
 				makeProjectBackup(projectName, removeDir);
 			}
@@ -678,41 +686,24 @@ public class DatabaseObjectsManager implements AbstractManager {
 						// migration through import if necessary)
 						project = deployProject(projectFileName, needsMigration);
 					} else {
-						needsMigration = needsMigration(projectFile);
-						if (needsMigration) {
-							Engine.logDatabaseObjectManager.debug("Project '" + projectName
-									+ "' needs to be migrated");
-
-							// Delete project's data only (will backup project)
-							deleteProject(projectName, true, true);
-
-							// Import project (will perform the migration)
-							project = importProject(projectFileName);
-
-							Engine.logDatabaseObjectManager.info("Project '" + projectName
-									+ "' has been migrated");
-						} else {
-							Engine.logDatabaseObjectManager.debug("Project '" + projectName
-									+ "' is up to date");
-						}
+						project = importProject(projectName);
 					}
 				}
-			} else{
+			} else {
 				//Added by julienda - 10/09/2012
-				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName :  "+projectFileName);
+				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName :  " + projectFileName);
 					//Get the correct archive file (path)
 					String archiveFileProject =  ZipUtils.getArchiveName(projectFileName);
 					
-					if(archiveFileProject == null)
+					if (archiveFileProject == null) {
 						throw new EngineException("File \"" + projectFileName + "\" is missing");
-					else
+					} else {
 						//Call method with the correct archive (path)
 						updateProject(new File(new File (projectFileName).getParent(), archiveFileProject).getPath());
+					}
 					
-					Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - archiveFileProject  :  "+archiveFileProject);		
+					Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - archiveFileProject  :  " + archiveFileProject);
 			}
-				
-	
 			return project;
 		} catch (Exception e) {
 			throw new EngineException("Unable to update the project from the file \"" + projectFileName
@@ -1061,21 +1052,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		return version[0];
 	}
-	
-	private boolean needsMigration(File projectFile) throws EngineException {
-		if (projectFile != null) {
-			String version = getProjectVersion(projectFile);
-			if (version == null) {
-				throw new EngineException("Unable to retrieve project's version from \"" + projectFile + "\".");
-			}
-			String currentVersion = com.twinsoft.convertigo.beans.Version.version;
-			if (VersionUtils.compare(version, currentVersion) < 0) {
-				Engine.logDatabaseObjectManager.warn("Project from '" + projectFile + "': migration to " + currentVersion + " beans version is required");
-				return true;
-			}
-		}
-		return false;
-	}
 
 	private Project importProject(String importFileName, Document document) throws EngineException {
 		try {
@@ -1094,7 +1070,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				Engine.logDatabaseObjectManager.info("Importing project a Document (DOM)");
 				importFile = null;
 			}
-
+			
 			// Performs necessary XML migration
 			Element projectNode = performXmlMigration(document);
 			
@@ -1109,6 +1085,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 			NodeList properties = projectElement.getElementsByTagName("property");
 			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
+			
+			boolean isMigrating = "true".equals(document.getUserData("isMigrating"));
+			if (isMigrating) {
+				Engine.logDatabaseObjectManager.debug("Project '" + projectName + "' needs to be migrated");
+				// Delete project's data only (will backup project)
+				deleteProject(projectName, true, true);
+			}
 			
 			studioProjects.declareProject(projectName, importFile);
 			
@@ -1140,8 +1123,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			performPostMigration(version, projectName);
 			
 			// Export the project (Since 4.6.0)
-			String currentVersion = com.twinsoft.convertigo.beans.Version.version;
-			if (VersionUtils.compare(version, currentVersion) < 0) {
+			if (isMigrating) {
 
 				// Since 4.6 export project to its xml file
 				// Only export project for versions older than 4.0.1

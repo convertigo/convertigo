@@ -146,7 +146,20 @@ public class IonProperty implements Cloneable {
 	}
 	public String getDescription() {
 		try {
-			return jsonProperty.getString(Key.description.name());
+			Object desc = jsonProperty.get(Key.description.name());
+			String description;
+			if (desc instanceof JSONArray) {
+				JSONArray descs = ((JSONArray) desc);
+				StringBuilder sb = new StringBuilder();
+				int len = descs.length();
+				for (int i = 0; i < len; i++) {
+					sb.append(descs.getString(i));
+				}
+				description = sb.toString();
+			} else {
+				description = desc.toString();
+			}
+			return description;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "description";

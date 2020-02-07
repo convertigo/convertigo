@@ -195,7 +195,7 @@ public class JavelinAttributeEditorComposite extends AbstractDialogComposite {
 			attribute |= (radioButtonUnderlinedOn.getSelection() ? iJavelin.AT_UNDERLINE : (radioButtonUnderlinedOff.getSelection() ? 0 : JavelinExtractionRule.DONT_CARE_UNDERLINED_ATTRIBUTE));
 			attribute |= (radioButtonBlinkOn.getSelection() ? iJavelin.AT_BLINK : (radioButtonBlinkOff.getSelection() ? 0 : JavelinExtractionRule.DONT_CARE_BLINK_ATTRIBUTE));
         }
-        return new Integer(attribute).toString();
+        return Integer.valueOf(attribute).toString();
 	}
 
 	/**

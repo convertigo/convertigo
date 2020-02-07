@@ -252,8 +252,9 @@ public class MobileBuilder {
 		return path == null ? false : path.indexOf(search) != -1;
 	}
 		
-	static public void initBuilder(Project project) {
-		if ((Engine.isStudioMode() || Engine.isCliMode()) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+	
+	static public void initBuilder(Project project, boolean force) {
+		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
@@ -267,14 +268,22 @@ public class MobileBuilder {
 		}
 	}
 	
-	static public void releaseBuilder(Project project) {
-		if (Engine.isStudioMode() && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+	static public void initBuilder(Project project) {
+		initBuilder(project, false);
+	}
+	
+	static public void releaseBuilder(Project project, boolean force) {
+		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().release();
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to release mobile builder for project \""+project.getName()+"\"", e);
 			}
 		}
+	}
+	
+	static public void releaseBuilder(Project project) {
+		releaseBuilder(project, false);
 	}
 	
 	public MobileBuilder(Project project) {
@@ -558,6 +567,12 @@ public class MobileBuilder {
 		}
 		
 		ApplicationComponent application = project.getMobileApplication().getApplicationComponent();
+		String tplName = application.getTplProjectName();
+		try {
+			Engine.theApp.referencedProjectManager.importProjectFrom(project, tplName);
+		} catch (Exception e) {
+			Engine.logEngine.warn("Failed to import referenced template: " + tplName, e);
+		}
 		
 		ionicTplDir = application.getIonicTplDir();
 		if (!ionicTplDir.exists()) {

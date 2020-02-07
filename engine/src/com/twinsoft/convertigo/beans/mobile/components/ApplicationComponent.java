@@ -380,7 +380,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof PageComponent)
     		ordered = orderedPages.get(0);
@@ -1620,6 +1620,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	}
 	
 	public void checkFolder() {
+		if (Engine.isCliMode()) {
+			return;
+		}
 		File folder = new File(getProject().getDirPath() + "/Flashupdate");
 		if (!folder.exists()) {
 			try {

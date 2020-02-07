@@ -221,8 +221,8 @@ public class TagName extends JavelinMashupEventExtractionRule {
         
         for(FieldDesc fd : fieldList) {
             List<Object> element = new ArrayList<Object>(4);
-            element.add(new Integer(fd.line));
-            element.add(new Integer(fd.colon));
+            element.add(Integer.valueOf(fd.line));
+            element.add(Integer.valueOf(fd.colon));
             element.add(new String(fd.literal));
             element.add(new String(fd.tagName));
             rows.add(element);

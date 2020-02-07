@@ -57,7 +57,7 @@ public class ArrayEditorCellModifier implements ICellModifier {
 		Object object = row.getValue(columnIndex);
 		if (isComboBoxEditor) {
 			int index = Arrays.asList(((ComboBoxCellEditor)cellEditor).getItems()).indexOf(object.toString());
-			object = new Integer(index);
+			object = Integer.valueOf(index);
 		}
 		
 		return object;
