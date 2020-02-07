@@ -1,5 +1,27 @@
 # Changelog
 
+## 7.7.1
+
+#### Improvements:
+
+- [#300](https://github.com/convertigo/convertigo/issues/300) Attribute / jAttribute Steps does not show value in tree view
+- [#304](https://github.com/convertigo/convertigo/issues/304) Gradle can now generate and compile MobileBuilder applications
+- [#307](https://github.com/convertigo/convertigo/issues/307) Set the project compatibility version to the highest bean version used
+- [#314](https://github.com/convertigo/convertigo/issues/314) Studio: opens link of documentation with the default external browser
+
+#### Bug Fixes:
+
+- [#296](https://github.com/convertigo/convertigo/issues/296) Fixed, new session that try to sync a non public database shouldn't be referenced in session count
+- [#298](https://github.com/convertigo/convertigo/issues/298) Fixed, TreeViewComponent does not build anymore in production mode
+- [#299](https://github.com/convertigo/convertigo/issues/299) Fixed, NullPointerException  while importing JSON WS reference
+- [#310](https://github.com/convertigo/convertigo/issues/310) Fixed, a copy/paste of a customAction fails to copy complete customs action's code
+- [#311](https://github.com/convertigo/convertigo/issues/311) Fixed, log files renamed by the log viewer aren't automatically removed
+- [#312](https://github.com/convertigo/convertigo/issues/312) Fixed, wrong label for Icon 'icon name' property
+- [#313](https://github.com/convertigo/convertigo/issues/313) Fixed, HTTP 404 on documentation links for CallSequence Action and Fullsync Actions
+
+
+---
+
 ## 7.7.0
 
 #### New Features:
@@ -22,7 +44,7 @@
 - [#155](https://github.com/convertigo/convertigo/issues/155) Use Tomcat 9 for Studio and Docker
 - [#162](https://github.com/convertigo/convertigo/issues/162) MobileBuilder, add an auto login event
 - [#172](https://github.com/convertigo/convertigo/issues/172) MobileBuilder, automatically enable the Angular ProdMode when building in production mode
-- [#181](https://github.com/convertigo/convertigo/issues/181) MobileBuilder, add the value “mini” in the Button size property
+- [#181](https://github.com/convertigo/convertigo/issues/181) MobileBuilder, add the value ?mini? in the Button size property
 - [#191](https://github.com/convertigo/convertigo/issues/191) MobileBuilder, add variables to SharedComponent
 - [#201](https://github.com/convertigo/convertigo/issues/201) Set the PWA App title to the MobileApplication's  'Application Name' property 
 - [#206](https://github.com/convertigo/convertigo/issues/206) CouchDB Connector, add query parameters for server Databases Transaction
@@ -32,13 +54,13 @@
 - [#247](https://github.com/convertigo/convertigo/issues/247) MobileBuilder, Signature component generates a PNG with transparent background
 - [#248](https://github.com/convertigo/convertigo/issues/248) MobileBuilder, can use "translate.instant()" in any pages
 - [#262](https://github.com/convertigo/convertigo/issues/262) MobileBuilder, modified default debug log for CustomAction component
-- [#266](https://github.com/convertigo/convertigo/issues/266) MobileBuilder, add new “Changes detection strategy”  property for Page bean
+- [#266](https://github.com/convertigo/convertigo/issues/266) MobileBuilder, add new ?Changes detection strategy?  property for Page bean
 
 #### Bug Fixes:
 
 - [#224](https://github.com/convertigo/convertigo/issues/224) Fixed, error when opening lib_AmazonLEX project.
 - [#225](https://github.com/convertigo/convertigo/issues/225) Fixed, bean Camera not working in web browser
-- [#237](https://github.com/convertigo/convertigo/issues/237) Fixed, MobileBuilder, “Post data” component posts extra data
+- [#237](https://github.com/convertigo/convertigo/issues/237) Fixed, MobileBuilder, ?Post data? component posts extra data
 - [#246](https://github.com/convertigo/convertigo/issues/246) Fixed, MobileBuilder, some issues with beans using latest TPL
 - [#265](https://github.com/convertigo/convertigo/issues/265) Fixed, MobileBuilder, renaming a Page name breaks Application build
 
@@ -49,7 +71,7 @@
 #### Improvements:
 
 - [#189](https://github.com/convertigo/convertigo/issues/189) Possibility to add a new palette component/action by drag and dropping on its folder
-- [#276](https://github.com/convertigo/convertigo/issues/276) Set Cookie �HttpOnly� and �Secure� (also via Docker setting)
+- [#276](https://github.com/convertigo/convertigo/issues/276) Set Cookie ?HttpOnly? and ?Secure? (also via Docker setting)
 - [#277](https://github.com/convertigo/convertigo/issues/277) Global symbols: Values with .secret suffix are stored ciphered and hidden
 - [#278](https://github.com/convertigo/convertigo/issues/278) Password policy for administration console account (via Reg. Exp.)
 - [#280](https://github.com/convertigo/convertigo/issues/280) Test Platform Convertigo header display : width too small
