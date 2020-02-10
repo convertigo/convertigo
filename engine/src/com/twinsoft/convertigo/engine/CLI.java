@@ -141,6 +141,9 @@ public class CLI {
 					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
 				}
 			}
+			if (!ok) {
+				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
+			}
 		}
 		
 		if (!ok) {
@@ -150,6 +153,9 @@ public class CLI {
 				if (ok) {
 					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
 				}
+			}
+			if (!ok) {
+				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
 			}
 		}
 		
@@ -161,6 +167,9 @@ public class CLI {
 			if (ok) {
 				EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
 				Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+			}
+			if (!ok) {
+				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
 			}
 		}
 		
@@ -176,6 +185,8 @@ public class CLI {
 				if (ok) {
 					EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
 					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+				} else {
+					Engine.logEngine.info("Cannot write to: " + testFile.getParent());
 				}
 			} catch (IOException e) {
 			}
@@ -190,6 +201,8 @@ public class CLI {
 			if (ok) {
 				EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
 				Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+			} else {
+				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
 			}
 		}
 		

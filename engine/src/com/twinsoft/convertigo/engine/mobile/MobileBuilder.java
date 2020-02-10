@@ -259,6 +259,9 @@ public class MobileBuilder {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
 				String message = e.getMessage();
+				if (Engine.isCliMode()) {
+					throw new RuntimeException("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message, e);
+				}
 				if (message.startsWith("Missing template project") || message.contains("is required for this")) {
 					Engine.logEngine.error("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message);
 				} else {
@@ -571,7 +574,7 @@ public class MobileBuilder {
 		try {
 			Engine.theApp.referencedProjectManager.importProjectFrom(project, tplName);
 		} catch (Exception e) {
-			Engine.logEngine.warn("Failed to import referenced template: " + tplName, e);
+			throw new EngineException("Failed to import referenced template: " + tplName + " :" + e.getMessage(), e);
 		}
 		
 		ionicTplDir = application.getIonicTplDir();
