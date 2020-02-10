@@ -39,7 +39,7 @@ public class ProjectLoad extends ConvertigoTask {
 		if (convertigoProject == null) {
 			CLI cli = plugin.getCLI();
 			
-			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion, mobileApplicationEndpoint, gitContainer.getAbsolutePath());
+			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion, mobileApplicationEndpoint, gitContainer == null ? null : gitContainer.getAbsolutePath());
 		}
 		return convertigoProject;
 	}
