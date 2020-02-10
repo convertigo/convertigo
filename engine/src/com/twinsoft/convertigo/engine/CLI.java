@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import org.apache.log4j.Logger;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.GetBuildStatus;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.GetPackage;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.LaunchBuild;
@@ -117,7 +119,7 @@ public class CLI {
 		Engine.isStarted = true;
 	}
 	
-	public Project loadProject(File projectDir, String version, String mobileApplicationEndpoint) throws EngineException {
+	public Project loadProject(File projectDir, String version, String mobileApplicationEndpoint, String gitContainer) throws EngineException {
 		File projectFile = new File(projectDir, "c8oProject.yaml");
 		if (!projectFile.exists()) {
 			throw new EngineException("No Convertigo project here: " + projectDir);
@@ -127,6 +129,70 @@ public class CLI {
 		
 		Project project;
 		Engine.PROJECTS_PATH = projectFile.getParentFile().getParent();
+		
+		File testFile;
+		boolean ok = false;
+		if (gitContainer != null) {
+			testFile = new File(gitContainer, "convertigoWriteTest");
+			if (ok = testFile.mkdirs()) {
+				ok = testFile.delete();
+				if (ok) {
+					EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
+					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+				}
+			}
+		}
+		
+		if (!ok) {
+			testFile = new File(EnginePropertiesManager.getProperty(PropertyName.GIT_CONTAINER), "convertigoWriteTest");
+			if (ok = testFile.mkdirs()) {
+				ok = testFile.delete();
+				if (ok) {
+					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+				}
+			}
+		}
+		
+		if (!ok) {
+			testFile = new File(Engine.PROJECTS_PATH, "convertigoWriteTest");
+			if (ok = testFile.mkdirs()) {
+				ok = testFile.delete();
+			}
+			if (ok) {
+				EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
+				Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+			}
+		}
+		
+		if (!ok) {
+			File tmpFile;
+			try {
+				tmpFile = File.createTempFile("convertigoWriteTest", "Tmp");
+				tmpFile.delete();
+				testFile = new File(tmpFile, "convertigoWriteTest");
+				if (ok = testFile.mkdirs()) {
+					ok = testFile.delete();
+				}
+				if (ok) {
+					EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
+					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+				}
+			} catch (IOException e) {
+			}
+		}
+		
+		if (!ok) {
+			File _private = new File(projectDir, "_private/gitContainer");
+			testFile = new File(_private, "convertigoWriteTest");
+			if (ok = testFile.mkdirs()) {
+				ok = testFile.delete();
+			}
+			if (ok) {
+				EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
+				Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+			}
+		}
+		
 		try {
 			project = Engine.theApp.databaseObjectsManager.importProject(projectFile);
 		} catch (Exception e) {
@@ -249,9 +315,9 @@ public class CLI {
 		boolean isHttps = server.startsWith("https://");
 		String convertigoServer = server.substring(isHttps ? 8 : 7);
 		RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
-		Engine.logEngine.debug("Trying to connect the user '" + user + "' to the Convertigo remote server: " + server);
+		Engine.logEngine.info("Trying to connect the user '" + user + "' to the Convertigo remote server: " + server);
 		remoteAdmin.login(user, password);
-		Engine.logEngine.debug("Deployement of '" + file + "' to the Convertigo remote server: " + server);
+		Engine.logEngine.info("Deployement of '" + file + "' to the Convertigo remote server: " + server);
 		remoteAdmin.deployArchive(file, assembleXsl);
 		Engine.logEngine.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
 	}
@@ -335,6 +401,7 @@ public class CLI {
 	public static void main(String[] args) throws Exception {
 		Options opts = new Options()
 			.addOption(Option.builder("p").longOpt("project").optionalArg(false).argName("dir").hasArg().desc("<dir> set the directory to load as project (default current folder).").build())
+			.addOption(Option.builder("gc").longOpt("gitContainer").optionalArg(true).argName("path").hasArg().desc("git dependencies can be extrated to the <gitContainer> folder instead of defaults.").build())
 			.addOption(Option.builder("g").longOpt("generate").optionalArg(true).argName("mode").hasArg().desc("generate mobilebuilder code into _private/ionic: <mode> can be production (default) or debugplus, debug, fast. If omitted, build mode is used.").build())
 			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").build())
 			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").build())
@@ -378,7 +445,7 @@ public class CLI {
 			
 			String version = cmd.getOptionValue("version", null);
 			String mobileApplicationEndpoint = cmd.getOptionValue("mobileApplicationEndpoint", null);
-			Project project = cli.loadProject(projectDir, version, mobileApplicationEndpoint);
+			Project project = cli.loadProject(projectDir, version, mobileApplicationEndpoint, cmd.getOptionValue("gitContainer"));
 			
 			String gMode = cmd.getOptionValue("generate", null);
 			String bMode = cmd.getOptionValue("build", null);

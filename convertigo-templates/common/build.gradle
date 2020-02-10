@@ -29,6 +29,10 @@ load {
 	//// can also be configured with a -Pconvertigo.load.mobileApplicationEndpoint as Gradle parameter
 	// mobileApplicationEndpoint 'https://myserver.com/convertigo'
 	
+	//// specify a folder where to auto-import git references
+	//// can also be configured with a -Pconvertigo.load.gitContainer as Gradle parameter
+	// gitContainer '..'
+	
 	doLast {
 		//// any property of the project can be changed here
 		// convertigoProject.comment += ' edited by gradle'
@@ -172,4 +176,9 @@ downloadNativeBuild {
 			println "Downloaded mobile application package: $it"
 		}
 	}
+}
+
+//// the 'wrapper' task is used to upgrade the gradlewrapper of the projet
+task wrapper(type: Wrapper) {
+	gradleVersion = '6.1.1'
 }
