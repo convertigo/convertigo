@@ -57,6 +57,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -87,6 +88,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceModel;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -116,8 +118,9 @@ public class MobilePickerComposite extends Composite {
 	private ToolItem btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
-	private Label label;
-	private Text text;
+	private Button b_custom;
+	private Label l_source;
+	private Text t_custom, t_prefix, t_data, t_suffix;
 	private Label message;
 	private String currentSource = null;
 	private MobileComponent currentMC = null;
@@ -272,6 +275,22 @@ public class MobilePickerComposite extends Composite {
 			}
 		};
 		
+		SelectionListener c_listener = new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean isCustom = b_custom.getSelection();
+				t_custom.setEnabled(isCustom);
+				t_prefix.setEnabled(!isCustom);
+				t_data.setEnabled(!isCustom);
+				t_suffix.setEnabled(!isCustom);
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				
+			}
+		};
+		
 		headerComposite = new Composite(parent, SWT.NONE);
 		headerComposite.setLayout(SwtUtils.newGridLayout(2, false, 0, 0, 0, 0));
 		headerComposite.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 1, 1));
@@ -393,17 +412,44 @@ public class MobilePickerComposite extends Composite {
 		
 		treesSashForm.setWeights(new int[] {1, 1});
 
-		Composite xpathComposite = new Composite(parent, SWT.NONE);
-		xpathComposite.setLayout(new GridLayout(2, false));
-		xpathComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Composite sourceComposite = new Composite(parent, SWT.NONE);
+		sourceComposite.setLayout(new GridLayout(2, false));
+		sourceComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		label = new Label(xpathComposite, SWT.NONE);
-		//label.setText("Path");
-		label.setText("Source");
-		label.setToolTipText("Drag me on a Mobile UI component in the project tree to bind this source to an UI component property");
+		l_source = new Label(sourceComposite, SWT.NONE);
+		l_source.setText(" SOURCE ");
+		l_source.setToolTipText("Drag me on a Mobile UI component in the project tree to bind this source to an UI component property");
 		
-		text = new Text(xpathComposite, SWT.BORDER);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Composite dataComposite = new Composite(sourceComposite, SWT.NONE);
+		dataComposite.setLayout(new GridLayout(2, false));
+		dataComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label l_prefix = new Label(dataComposite, SWT.NONE);
+		l_prefix.setText("Prefix");
+		
+		t_prefix = new Text(dataComposite, SWT.BORDER);
+		t_prefix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label l_data = new Label(dataComposite, SWT.NONE);
+		l_data.setText("Data");
+		
+		t_data = new Text(dataComposite, SWT.BORDER | SWT.READ_ONLY);
+		t_data.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		//t_data.setEnabled(false);
+		
+		Label l_suffix = new Label(dataComposite, SWT.NONE);
+		l_suffix.setText("Suffix");
+		
+		t_suffix = new Text(dataComposite, SWT.BORDER);
+		t_suffix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		b_custom = new Button(dataComposite, SWT.CHECK);
+		b_custom.setText("Custom");
+		b_custom.addSelectionListener(c_listener);
+		
+		t_custom = new Text(dataComposite, SWT.BORDER);
+		t_custom.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		t_custom.setEnabled(false);
 		
 		// Add DND support
 		boolean dragEnabled = !isParentDialog;
@@ -432,7 +478,7 @@ public class MobilePickerComposite extends Composite {
 			source.setTransfer(dragTransfers);
 			source.addDragListener(dragAdapter);
 			
-			source = new DragSource(label, operations);
+			source = new DragSource(l_source, operations);
 			source.setTransfer(dragTransfers);
 			source.addDragListener(dragAdapter);
 		}
@@ -451,10 +497,35 @@ public class MobilePickerComposite extends Composite {
 				filter = Filter.Form;
 			else if (btnGlobal.getSelection())
 				filter = Filter.Global;
+			
 			String projectName = currentMC.getProject().getName();
-			String input = text.getText();
-			MobileSmartSource cs = new MobileSmartSource(filter, projectName, input);
-			String jsonString = cs.toJsonString();
+			
+			MobileSmartSource cmss = MobileSmartSource.valueOf(currentSource);
+			String input = cmss == null ? "": cmss.getInput();
+			
+			String path = getModelPath();
+			String searchPath = "root";
+			int index = path.indexOf(searchPath);
+			if (index != -1) {
+				path = path.substring(index + searchPath.length());
+			}
+
+			SourceModel model = MobileSmartSource.emptyModel(filter);
+			model.setCustom(t_custom.getText());
+			model.setPrefix(t_prefix.getText());
+			model.setSuffix(t_suffix.getText());
+			model.setUseCustom(b_custom.getSelection());
+			model.setPath(path);
+			getSourceData().forEach(s -> {
+				s = (s.startsWith("'") && s.endsWith("'")) ? s.substring(1, s.length()-1) : s;
+				model.addSourceData(projectName, s);
+			});
+			
+			JSONObject jsonModel = model.toJson();
+			System.out.println(jsonModel.toString(1));
+			
+			MobileSmartSource nmss = new MobileSmartSource(filter, projectName, input, jsonModel);
+			String jsonString = nmss.toJsonString();
 			//System.out.println(jsonString);
 			return jsonString;
 		}
@@ -469,7 +540,10 @@ public class MobilePickerComposite extends Composite {
 		currentSource = null;
 		lastSelected = null;
 		checkedList.clear();
-		text.setText("");
+		t_prefix.setText("");
+		t_suffix.setText("");
+		t_data.setText("");
+		t_custom.setText("");
 	}
 	
 	private void setWidgetsEnabled(boolean enabled) {
@@ -556,7 +630,8 @@ public class MobilePickerComposite extends Composite {
 					checkedList.clear();
 					fillCheckedList(null, cs.getSources());
 					updateGrayChecked();
-					updateText(cs.getInput());
+					//updateText(cs.getInput());
+					updateTexts(cs);
 				} else {
 					updateText();
 				}
@@ -645,11 +720,33 @@ public class MobilePickerComposite extends Composite {
 		}
 		
 		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
-		text.setText(computedText);
+		//t_custom.setText(computedText);
+		t_data.setText(computedText);
+	}
+
+	private void updateText(String s) {
+		t_custom.setText(s);
 	}
 	
-	private void updateText(String s) {
-		text.setText(s);
+	private void updateTexts(MobileSmartSource cs) {
+		if (cs != null) {
+			SourceModel sm = cs.getModel();
+			if (sm != null) {
+				t_prefix.setText(sm.getPrefix());
+				t_data.setText(sm.getData());
+				t_suffix.setText(sm.getSuffix());
+				t_custom.setText(sm.getCustom());
+				if (sm.getUseCustom()) {
+					b_custom.setSelection(true);
+					b_custom.notifyListeners(SWT.Selection, null);
+				}
+			} else {
+				//t_custom.setText(cs.getInput());
+				t_custom.setText(cs.getValue());
+				b_custom.setSelection(true);
+				b_custom.notifyListeners(SWT.Selection, null);
+			}
+		}
 	}
 	
 	private Map<String, Object> lookupModelData(TVObject tvObject) {

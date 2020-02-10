@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.mobile.components;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -28,15 +29,26 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.InvalidSourceException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @DboCategoryInfo(
 		getCategoryId = "UIComponent",
@@ -76,6 +88,128 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		return cloned;
 	}
 	
+	@Override
+	public void preconfigure(Element element) throws Exception {
+		super.preconfigure(element);
+		
+		String version = element.getAttribute("version");
+		long priority = Long.valueOf(element.getAttribute("priority")).longValue();
+
+		if (VersionUtils.compare(version, "7.8.0") < 0) {
+			try {
+				NodeList properties = element.getElementsByTagName("property");
+				int len = properties.getLength();
+				Element propElement;
+				for (int i = 0; i < len; i++) {
+					propElement = (Element) properties.item(i);
+					if (propElement != null && propElement.getParentNode().equals(element)) {
+						String propertyName = propElement.getAttribute("name");
+						Element valueElement = (Element) XMLUtils.findChildNode(propElement, Node.ELEMENT_NODE);
+						if (valueElement != null) {
+							Document document = valueElement.getOwnerDocument();
+							Object content = XMLUtils.readObjectFromXml(valueElement);
+							
+							// This is data of the peusdo-bean
+							if ("beanData".equals(propertyName) && content instanceof String) {
+								try {
+									boolean needChange = false;
+									List<String> logList = new ArrayList<String>();
+									IonBean ionBean = new IonBean((String)content);
+									List<IonProperty> propertyList = new ArrayList<IonProperty>();
+									propertyList.addAll(ionBean.getProperties().values());
+									// Walk through properties
+									for (IonProperty ionProperty: propertyList) {
+										String ionPropertyName = ionProperty.getName();
+										String modeUpperCase = ionProperty.getMode().toUpperCase();
+										if (Mode.SOURCE.equals(Mode.valueOf(modeUpperCase))) {
+											MobileSmartSourceType msst = ionProperty.getSmartType();
+											String smartValue = msst.getSmartValue();
+											if (smartValue != null && !smartValue.isEmpty()) {
+												try {
+													MobileSmartSource mss = MobileSmartSource.migrate(smartValue);
+													if (mss != null) {
+														boolean migrated = !smartValue.equals(mss.toJsonString());
+														if (migrated) {
+															msst.setSmartValue(mss.toJsonString());
+															ionBean.setPropertyValue(ionPropertyName, msst);
+															needChange = true;
+															logList.add("Done migration of \""+ ionPropertyName + "\" property for the object \"" 
+																	+ getName() + "\" (priority: "+priority+")");
+														}
+													}
+												}
+												catch (Exception e) {
+													if (e instanceof InvalidSourceException) {
+														Engine.logBeans.error("Failed to migrate \""+ ionPropertyName + "\" property for the object \"" 
+																					+ getName() + "\" (priority: "+priority+"): " + e.getMessage());
+													} else {
+														Engine.logBeans.error("Failed to migrate \""+ ionPropertyName + "\" property for the object \"" 
+																+ getName() + "\" (priority: "+priority+")", e);
+													}
+												}
+											}
+										}
+									}
+									// Store new beandata property value
+									if (needChange) {
+										String beanData = ionBean.toBeanData();
+										Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, beanData);
+										propElement.replaceChild(newValueElement, valueElement);
+										hasChanged = true;
+										logList.forEach(s -> Engine.logBeans.warn(s));
+									}
+									
+								}
+								catch (Exception e) {
+									Engine.logBeans.error("Failed to migrate \""+ propertyName + "\" property for the object \"" 
+																	+ getName() + "\" (priority: "+priority+")", e);
+								}
+							}
+							// This is a MobileSmartSourceType property
+							else if (content instanceof MobileSmartSourceType) {
+								MobileSmartSourceType msst = (MobileSmartSourceType) content;
+								// Property is in 'SRC' mode
+								if (Mode.SOURCE.equals(msst.getMode())) {
+									try {
+										String smartValue = msst.getSmartValue();
+										if (smartValue != null && !smartValue.isEmpty()) {
+											MobileSmartSource mss = MobileSmartSource.migrate(smartValue);
+											if (mss != null) {
+												boolean migrated = !smartValue.equals(mss.toJsonString());
+												if (migrated) {
+													msst.setSmartValue(mss.toJsonString());
+													
+													// Store new property value
+													Element newValueElement = (Element)XMLUtils.writeObjectToXml(document, msst);
+													propElement.replaceChild(newValueElement, valueElement);
+													hasChanged = true;
+													Engine.logBeans.warn("Done migration of \""+ propertyName + "\" property for the object \"" 
+																				+ getName() + "\" (priority: "+priority+")");
+												}
+											}
+										}
+									}
+									catch (Exception e) {
+										if (e instanceof InvalidSourceException) {
+											Engine.logBeans.error("Failed to migrate \""+ propertyName + "\" property for the object \"" 
+																		+ getName() + "\" (priority: "+priority+"): " + e.getMessage());
+										} else {
+											Engine.logBeans.error("Failed to migrate \""+ propertyName + "\" property for the object \"" 
+																		+ getName() + "\" (priority: "+priority+")", e);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+	        catch(Exception e) {
+	            throw new EngineException("Unable to preconfigure the mobile uicomponent \"" + getName() + "\".", e);
+	        }
+		}
+	}
+
 	public XMLVector<XMLVector<Long>> getOrderedComponents() {
 		return orderedComponents;
 	}

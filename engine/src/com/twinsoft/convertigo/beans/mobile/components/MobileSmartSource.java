@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,14 +38,18 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.InvalidSourceException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 //	{
 //		"filter": "",
 //		"project": "",
+//		"input": "",
 //		"model": {
 //			"data": [{}],
 //			"path": "",
+//			"prefix": "",
+//			"suffix": ""
 //		}
 //	}
 
@@ -59,79 +64,116 @@ public class MobileSmartSource {
 	public static Pattern fsPattern = Pattern.compile("fs\\://(\\w+)\\.(\\w+)(#\\w+)?,?\\s*(\\{[^\\{\\}]*\\})?");
 	public static Pattern kvPattern = Pattern.compile("(\\w+)(?:=|\\:)('[^']+'|\\w+)");
 	
+	
+	static int findMatchingBracket(String input, int index) { 
+		char c = input.charAt(index);
+		char d = (c == '[' ? ']' : (c == '(' ? ')' : (c == '{' ? '}' : ' ')));
+		if (d != ' ') {
+			Stack<Integer> st = new Stack<>(); 
+			for (int i = index; i < input.length(); i++) { 
+				if (input.charAt(i) == c) { 
+					st.push((int) input.charAt(i)); 
+				} else if (input.charAt(i) == d) { 
+					st.pop(); 
+					if (st.empty()) { 
+						return i; 
+					} 
+				} 
+			} 
+
+		} 
+		return -1;
+	} 
+	
 	public enum Filter {
 		Sequence,
 		Database,
 		Iteration,
 		Form,
 		Global;
-
-		public SourceModel toSourceModel(String project, String input) {
+		
+		public SourceModel toSourceModel(String project, String input, String value) {
 			SourceModel sm = new MobileSmartSource().new SourceModel(this);
 			try {
-				if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
-					Matcher m = listenPattern.matcher(input);
-					if (m.find()) {
-						String sources = m.group(1);
-						if (sources != null) {
-							List<String> sourceList = Arrays.asList(sources.split("'\\s*,\\s*'"));
-							for (String source : sourceList) {
-								if (!source.isEmpty()) {
-									if (this.equals(Filter.Sequence)) {
-										sm.addSourceData(new MobileSmartSource().new SequenceData(project, source));
-									}
-									if (this.equals(Filter.Database)) {
-										sm.addSourceData(new MobileSmartSource().new DatabaseData(project, source));
-									}
-								}
-							}
-						}
-						String path = m.group(2);
-						if (path != null) {
-							sm.setPath(path);
+				String prefix = "", suffix = "", path = "";
+				
+				String keyword = keyword();
+				if (keyword != null) {
+					if (input != null && !input.isEmpty() && !input.startsWith(keyword)) {
+						int i = input.indexOf(keyword);
+						prefix = input.substring(0, i);
+						int j = findMatchingBracket(input, i-1);
+						suffix = j == -1 ? "": input.substring(j);
+						
+						input = j == -1 ? input.substring(i) : input.substring(i, j);
+					}
+				}
+				
+				Matcher m = matcher(input);
+				if (m.find()) {
+					String group1 = m.group(1);
+					String group2 = m.group(2);
+					
+					if (group1 != null) {
+						for (String source : Arrays.asList(group1.split("'\\s*,\\s*'"))) {
+							sm.addSourceData(project, source);
 						}
 					}
-				} else if (this.equals(Filter.Iteration)) {
-					Matcher m = directivePattern.matcher(input);
-					if (m.find()) {
-						String directive = m.group(1);
-						if (directive != null) {
-							sm.addSourceData(new MobileSmartSource().new IterationData(project, directive));
-						}
-						String path = m.group(2);
-						if (path != null) {
-							sm.setPath(path);
+					if (group2 != null) {
+						int k = group2.indexOf(' ');
+						if (k == -1) {
+							path = group2;
+						} else {
+							suffix = group2.substring(k) + suffix;
+							path = group2.substring(0, k);
 						}
 					}
-				} else if (this.equals(Filter.Form)) {
-					Matcher m = formPattern.matcher(input);
-					if (m.find()) {
-						String form = m.group(1);
-						if (form != null) {
-							sm.addSourceData(new MobileSmartSource().new FormData(project, form));
-						}
-						String path = m.group(2);
-						if (path != null) {
-							sm.setPath(path);
-						}
-					}
-				} else if (this.equals(Filter.Global)) {
-					Matcher m = globalPattern.matcher(input);
-					if (m.find()) {
-						String gbl = m.group(1);
-						if (gbl != null) {
-							sm.addSourceData(new MobileSmartSource().new GlobalData(project, gbl));
-						}
-						String path = m.group(2);
-						if (path != null) {
-							sm.setPath(path);
-						}
-					}
+
+					sm.setPath(path);
+					sm.setPrefix(prefix);
+					sm.setSuffix(suffix);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			String computedValue = sm.computeValue();
+			boolean useCustom = !computedValue.equals(value);
+			if (useCustom) {
+				//System.out.println("1:"+ computedValue);
+				//System.out.println("2:"+ value);
+				sm.setUseCustom(true);
+				sm.setCustom(value);
+			}
 			return sm;
+		}
+		
+		public String keyword() {
+			if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
+				return "listen";
+			} else if (this.equals(Filter.Iteration)) {
+				return "item";
+			} else if (this.equals(Filter.Form)) {
+				return "form";
+			} else if (this.equals(Filter.Global)) {
+				return "router";
+			}
+			return null;
+		}
+		
+		public Matcher matcher(String input) {
+			if (input != null) {
+				if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
+					return listenPattern.matcher(input);
+				} else if (this.equals(Filter.Iteration)) {
+					return directivePattern.matcher(input);
+				} else if (this.equals(Filter.Form)) {
+					return formPattern.matcher(input);
+				} else if (this.equals(Filter.Global)) {
+					return globalPattern.matcher(input);
+				}
+			}
+			return null;
 		}
 	}
 	
@@ -144,33 +186,47 @@ public class MobileSmartSource {
 	
 	public class SourceModel {
 		List<SourceData> data = new ArrayList<SourceData>();
-		String path = "";
+		String prefix = "", suffix = "", path = "", custom = "";
+		boolean useCustom = false;
 		Filter filter;
-
+		
 		public SourceModel(Filter filter) {
 			this.filter = filter;
 		}
 		
 		public SourceModel(Filter filter, JSONObject jsonModel) {
-			SourceModel sm = new SourceModel(filter);
+			super();
+			this.filter = filter;
 			try {
+				if (jsonModel.has("prefix")) {
+					setPrefix(jsonModel.getString("prefix"));
+				}
+				if (jsonModel.has("suffix")) {
+					setSuffix(jsonModel.getString("suffix"));
+				}
 				if (jsonModel.has("path")) {
-					sm.setPath(jsonModel.getString("path"));
+					setPath(jsonModel.getString("path"));
+				}
+				if (jsonModel.has("custom")) {
+					setCustom(jsonModel.getString("custom"));
+				}
+				if (jsonModel.has("useCustom")) {
+					setUseCustom(jsonModel.getBoolean("useCustom"));
 				}
 				if (jsonModel.has("data")) {
 					JSONArray jsonArray = jsonModel.getJSONArray("data");
 					for (int i = 0; i < jsonArray.length(); i++) {
 						JSONObject jsonSourceData = (JSONObject) jsonArray.get(i);
 						if (filter.equals(Filter.Sequence)) {
-							sm.addSourceData(new MobileSmartSource().new SequenceData(jsonSourceData));
+							addSourceData(new MobileSmartSource().new SequenceData(jsonSourceData));
 						} else if (filter.equals(Filter.Database)) {
-							sm.addSourceData(new MobileSmartSource().new DatabaseData(jsonSourceData));
+							addSourceData(new MobileSmartSource().new DatabaseData(jsonSourceData));
 						} else if (filter.equals(Filter.Iteration)) {
-							sm.addSourceData(new MobileSmartSource().new IterationData(jsonSourceData));
+							addSourceData(new MobileSmartSource().new IterationData(jsonSourceData));
 						} else if (filter.equals(Filter.Form)) {
-							sm.addSourceData(new MobileSmartSource().new FormData(jsonSourceData));
+							addSourceData(new MobileSmartSource().new FormData(jsonSourceData));
 						} else if (filter.equals(Filter.Global)) {
-							sm.addSourceData(new MobileSmartSource().new GlobalData(jsonSourceData));
+							addSourceData(new MobileSmartSource().new GlobalData(jsonSourceData));
 						}
 					}
 				}
@@ -193,14 +249,74 @@ public class MobileSmartSource {
 			}
 		}
 		
+		public void addSourceData(String project, String source) {
+			SourceData sd = null;
+			if (project != null && !project.isEmpty()) {
+				if (source != null && !source.isEmpty()) {
+					if (filter.equals(Filter.Sequence)) {
+						sd = new MobileSmartSource().new SequenceData(project, source);
+					} else if (filter.equals(Filter.Database)) {
+						sd = new MobileSmartSource().new DatabaseData(project, source);
+					} else if (filter.equals(Filter.Iteration)) {
+						sd = new MobileSmartSource().new IterationData(project, source);
+					} else if (filter.equals(Filter.Form)) {
+						sd = new MobileSmartSource().new FormData(project, source);
+					} else if (filter.equals(Filter.Global)) {
+						sd = new MobileSmartSource().new GlobalData(project, source);
+					}
+				}
+			}
+			addSourceData(sd);
+		}
+		
 		public String getPath() {
 			return path;
 		}
 		
 		public void setPath(String path) {
-			this.path = path;
+			if (path != null) {
+				this.path = path;
+			}
 		}
 
+		public String getPrefix() {
+			return prefix;
+		}
+
+		public void setPrefix(String prefix) {
+			if (prefix != null) {
+				this.prefix = prefix;
+			}
+		}
+
+		public String getSuffix() {
+			return suffix;
+		}
+
+		public void setSuffix(String suffix) {
+			if (suffix != null) {
+				this.suffix = suffix;
+			}
+		}
+
+		public String getCustom() {
+			return custom;
+		}
+
+		public void setCustom(String custom) {
+			if (custom != null) {
+				this.custom = custom;
+			}
+		}
+		
+		public boolean getUseCustom() {
+			return useCustom;
+		}
+		
+		public void setUseCustom(boolean useCustom) {
+			this.useCustom = useCustom;
+		}
+		
 		public List<String> getSources() {
 			List<String> sources = new ArrayList<String>();
 			for (SourceData sd: data) {
@@ -212,17 +328,38 @@ public class MobileSmartSource {
 			return sources;
 		}
 
-		public String getValue() {
+		public String getData() {
 			String buf = "";
 			for (SourceData sd: data) {
-				String sv = sd.getValue();
-				if (sv != null && !sv.isEmpty()) {
-					buf += (buf.isEmpty() ? "":",") + sv;
+				String sdv = sd.getValue();
+				if (sdv != null && !sdv.isEmpty()) {
+					buf += (buf.isEmpty() ? "":",") + sdv;
 				}
 			}
 			
 			boolean isCafListen = filter.equals(Filter.Sequence) || filter.equals(Filter.Database);
-			return isCafListen ? "listen(["+ buf +"])" : buf + getPath();
+			return buf.isEmpty() ? "" : (isCafListen ? "listen(["+ buf +"])" : buf) + path;
+		}
+		
+		public String computeValue() {
+			String buf = "";
+			for (SourceData sd: data) {
+				String sdv = sd.getValue();
+				if (sdv != null && !sdv.isEmpty()) {
+					buf += (buf.isEmpty() ? "":",") + sdv;
+				}
+			}
+			
+			boolean isCafListen = filter.equals(Filter.Sequence) || filter.equals(Filter.Database);
+			return buf.isEmpty() ? "" : prefix + (isCafListen ? "listen(["+ buf +"])" : buf) + path + suffix;
+		}
+		
+		public String getValue() {
+			if (useCustom) {
+				return custom;
+			} else {
+				return computeValue();
+			}
 		}
 		
 		public JSONObject toJson() {
@@ -234,6 +371,10 @@ public class MobileSmartSource {
 				}
 				jsonModel.put("data", jsonArray);
 				jsonModel.put("path", path);
+				jsonModel.put("prefix", prefix);
+				jsonModel.put("suffix", suffix);
+				jsonModel.put("custom", custom);
+				jsonModel.put("useCustom", useCustom);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -286,6 +427,9 @@ public class MobileSmartSource {
 			try {
 				//project.sequence#marker
 				if (source != null && !source.isEmpty()) {
+					if (source.indexOf(".") == -1) {
+						source = project + "." + source;
+					}
 					isExternal = !source.startsWith(project + ".");
 					int index = source.indexOf("#");
 					sequence = index < 0 ? source : source.substring(0, index);
@@ -314,8 +458,9 @@ public class MobileSmartSource {
 		public String getValue() {
 			String value = null;
 			if (!sequence.isEmpty()) {
-				int index = sequence.indexOf(".");
-				String target = isExternal ? sequence : (index < 0 ? sequence : sequence.substring(index+1));
+				//int index = sequence.indexOf(".");
+				//String target = isExternal ? sequence : (index < 0 ? sequence : sequence.substring(index+1));
+				String target = sequence;
 				value = "'"+ target + (!marker.isEmpty() ? "#":"") + marker + "'";
 			}
 			return value;
@@ -628,10 +773,11 @@ public class MobileSmartSource {
 		}
 	}
 
-	public MobileSmartSource(Filter filter, String projectName, JSONObject model) {
+	public MobileSmartSource(Filter filter, String projectName, String input, JSONObject model) {
 		try {
 			jsonObject.put(Key.filter.name(), filter.name());
 			jsonObject.put(Key.project.name(), projectName);
+			jsonObject.put(Key.input.name(), input);
 			jsonObject.put(Key.model.name(), model);
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -688,7 +834,7 @@ public class MobileSmartSource {
 			JSONObject jsonModel = jsonObject.getJSONObject(Key.model.name());
 			return new SourceModel(filter, jsonModel);
 		} catch (Exception e) {
-			//e.printStackTrace();
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -696,7 +842,7 @@ public class MobileSmartSource {
 	public String getValue() {
 		String value = null;
 		try {
-			if (hasModelKey()) {
+			if (hasModel()) {
 				value = getModel().getValue();
 			} else {
 				value = getInput();
@@ -742,7 +888,7 @@ public class MobileSmartSource {
 	}
 	
 	public List<String> getSources() {
-		if (hasModelKey()) {
+		if (hasModel()) {
 			return getModel().getSources();
 		} else {
 			return getSources(getInput());
@@ -751,7 +897,7 @@ public class MobileSmartSource {
 	
 	public List<String> getSources(String s) {
 		List<String> sources = new ArrayList<String>();
-		if (hasModelKey()) {
+		if (hasModel()) {
 			try {
 				SourceModel sm = new SourceModel(getFilter(), new JSONObject(s));
 				sources.addAll(sm.getSources());
@@ -807,13 +953,13 @@ public class MobileSmartSource {
 		return sources;
 	}
 	
-	private boolean hasModelKey() {
+	public boolean hasModel() {
 		return this.jsonObject.has(Key.model.name());
 	}
 
 	public String getModelPath() {
 		String modelPath = null;
-		if (hasModelKey()) {
+		if (hasModel()) {
 			try {
 				modelPath = getModel().getPath();
 			} catch (Exception e) {
@@ -845,20 +991,16 @@ public class MobileSmartSource {
 		return modelPath == null ? "" : modelPath;
 	}
 	
+	public static SourceModel emptyModel(Filter filter) {
+		return new MobileSmartSource().new SourceModel(filter);
+	}
+	
 	public static MobileSmartSource valueOf(String jsonString) {
 		if (jsonString != null && !jsonString.isEmpty()) {
 			try {
 				MobileSmartSource mss = new MobileSmartSource(jsonString);
-				if (!mss.hasModelKey()) {
-					// TODO: test for migration...
-					String project = mss.getProjectName();
-					Filter filter = mss.getFilter();
-					String input = mss.getInput();
-					SourceModel sm = filter.toSourceModel(project, input);
-					if (sm != null) {
-						System.out.println("For "+ input + ":");
-						System.out.println(sm.toJson().toString(1));
-					}
+				if (!mss.hasModel()) {
+					return migrate(jsonString);
 				}
 				return mss;
 			} catch (Exception e) {
@@ -866,6 +1008,43 @@ public class MobileSmartSource {
 			}
 		}
 		return null;
+	}
+	
+	public static MobileSmartSource migrate(String jsonString) throws Exception {
+		if (jsonString == null || jsonString.isEmpty() || jsonString.equals("{}")) {
+			throw new InvalidSourceException("Invalid null or empty value");
+		}
+		
+		MobileSmartSource mss = new MobileSmartSource(jsonString);
+		
+		// Migrate source : add a source model
+		if (!mss.hasModel()) {
+			String project = mss.getProjectName();
+			Filter filter = mss.getFilter();
+			String input = mss.getInput();
+			
+			if (filter == null) {
+				throw new InvalidSourceException("Missing filter");
+			}
+			if (project == null || project.isEmpty()) {
+				throw new InvalidSourceException("Missing project");
+			}
+			if (input == null || input.isEmpty()) {
+				throw new InvalidSourceException("Missing input");
+			}
+			
+			String value = mss.getValue();
+			SourceModel sm = filter.toSourceModel(project, input, value);
+			if (sm != null) {
+				MobileSmartSource mssn = new MobileSmartSource(filter, project, input, sm.toJson());
+				//System.out.println("Old source with input '"+ input + "' migrated to :");
+				//System.out.println(new JSONObject(mssn.toJsonString()).toString(1));
+				return mssn;
+			}
+		}
+		
+		// Nothing to migrate
+		return mss;
 	}
 	
 	public DatabaseObject getDatabaseObject(String dboName) {
