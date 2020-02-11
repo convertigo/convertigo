@@ -248,16 +248,26 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 	}
 
 	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
 		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIUseShared) {
+			if (uiComponent instanceof UIPageEvent) {
+				eventList.add((UIPageEvent)uiComponent);
+			} else {
 				uiComponent.addPageEvent(done, eventList);
 			}
 		}
 	}
 	
 	public void addEventSubscriber(Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
 		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIUseShared) {
+			if (uiComponent instanceof UIEventSubscriber) {
+				eventList.add((UIEventSubscriber)uiComponent);
+			} else {
 				uiComponent.addEventSubscriber(done, eventList);
 			}
 		}

@@ -30,6 +30,8 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class GitUtils {
 
@@ -117,7 +119,7 @@ public class GitUtils {
 	}
 	
 	public static File getGitContainer() {
-		return new File(System.getProperty("user.home"), "git");
+		return new File(EnginePropertiesManager.getProperty(PropertyName.GIT_CONTAINER));
 	}
 	
 	public static void clone(String url, String branch, File dir) throws Exception {
