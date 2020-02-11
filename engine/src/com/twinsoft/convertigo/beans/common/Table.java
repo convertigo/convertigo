@@ -662,7 +662,7 @@ public class Table extends JavelinMashupEventExtractionRule {
 					// this will handle the empty lines...
 					int skip = (curBlock.line - row.line) / (max_index +1);
 					for (int i=0; i< skip; i++) {
-						// we changed line, so write all the columns builded in the prevous row held in colonDispatch
+						// we changed line, so write all the columns built in the prevous row held in colonDispatch
 						writeColumns(row);
 
 						// clear the colonDispatch vector for next row
