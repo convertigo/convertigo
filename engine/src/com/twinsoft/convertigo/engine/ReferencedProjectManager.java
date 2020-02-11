@@ -99,7 +99,7 @@ public class ReferencedProjectManager {
 		if (prjRef == null) {
 			prjRef = new ProjectSchemaReference();
 			if (projectName.startsWith("mobilebuilder_tpl_")) {
-				prjRef.setProjectName(projectName + "=git@github.com:convertigo/c8oprj-mobilebuilder-tpl.git:branch=" + projectName);
+				prjRef.setProjectName(projectName + "=https://github.com/convertigo/c8oprj-mobilebuilder-tpl.git:branch=" + projectName);
 			} else {
 				prjRef.setProjectName(projectName);
 			}
