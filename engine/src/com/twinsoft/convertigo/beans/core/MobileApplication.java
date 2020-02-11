@@ -275,7 +275,11 @@ public class MobileApplication extends DatabaseObject {
 	public String getComputedEndpoint(HttpServletRequest request) {
 		String endpoint = getComputedEndpoint();
 		if ("".equals(endpoint)) {
-			endpoint = HttpUtils.convertigoRequestURL(request);
+			if  (request != null) {
+				endpoint = HttpUtils.convertigoRequestURL(request);
+			} else {
+				throw new RuntimeException("Mobile Application Endpoint cannot be empty, you must configure one.");
+			}
 		}
 		return endpoint;
 	}
