@@ -21,20 +21,21 @@ package com.convertigo.gradle;
 
 import java.io.File;
 
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.CLI;
 
 public class ProjectLoad extends ConvertigoTask {
-	@Internal
 	private Project convertigoProject;
-	
 	private String projectVersion;
 	private String mobileApplicationEndpoint;
 	private File gitContainer;
 
+	@Internal
 	synchronized Project getConvertigoProject() throws Exception {
 		if (convertigoProject == null) {
 			CLI cli = plugin.getCLI();
@@ -44,6 +45,7 @@ public class ProjectLoad extends ConvertigoTask {
 		return convertigoProject;
 	}
 	
+	@Input @Optional
 	public String getProjectVersion() {
 		return projectVersion;
 	}
@@ -52,6 +54,7 @@ public class ProjectLoad extends ConvertigoTask {
 		this.projectVersion = projectVersion;
 	}
 	
+	@Input @Optional
 	public String getMobileApplicationEndpoint() {
 		return mobileApplicationEndpoint;
 	}
@@ -60,6 +63,7 @@ public class ProjectLoad extends ConvertigoTask {
 		this.mobileApplicationEndpoint = mobileApplicationEndpoint;
 	}
 
+	@Internal
 	public File getGitContainer() {
 		return gitContainer;
 	}

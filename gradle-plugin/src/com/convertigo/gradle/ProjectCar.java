@@ -19,14 +19,13 @@
 
 package com.convertigo.gradle;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.gradle.api.Project;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
@@ -41,6 +40,7 @@ public class ProjectCar extends ConvertigoTask {
 	private boolean includeMobileDataset = true;
 	private boolean includeMobilePlatformsAssets = true;
 	
+	@OutputDirectory @Optional
 	public File getDestinationDir() {
 		return destinationDir;
 	}
@@ -53,10 +53,12 @@ public class ProjectCar extends ConvertigoTask {
 		this.destinationDir = getProject().file(destinationDir);
 	}
 	
+	@OutputFile @Optional
 	public File getDestinationFile() {
 		return destinationFile;
 	}
 	
+	@Input @Optional
 	public boolean isIncludeTestCases() {
 		return includeTestCases;
 	}
@@ -65,6 +67,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeTestCases = includeTestCases;
 	}
 	
+	@Input @Optional
 	public boolean isIncludeStubs() {
 		return includeStubs;
 	}
@@ -73,6 +76,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeStubs = includeStubs;
 	}
 
+	@Input @Optional
 	public boolean isIncludeMobileApp() {
 		return includeMobileApp;
 	}
@@ -81,6 +85,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileApp = includeMobileApp;
 	}
 
+	@Input @Optional
 	public boolean isIncludeMobileAppAssets() {
 		return includeMobileAppAssets;
 	}
@@ -89,6 +94,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileAppAssets = includeMobileAppAssets;
 	}
 
+	@Input @Optional
 	public boolean isIncludeMobileDataset() {
 		return includeMobileDataset;
 	}
@@ -97,6 +103,7 @@ public class ProjectCar extends ConvertigoTask {
 		this.includeMobileDataset = includeMobileDataset;
 	}
 
+	@Input @Optional
 	public boolean isIncludeMobilePlatformsAssets() {
 		return includeMobilePlatformsAssets;
 	}
@@ -135,21 +142,21 @@ public class ProjectCar extends ConvertigoTask {
 			includeMobilePlatformsAssets = Boolean.parseBoolean(project.getProperties().get("convertigo.car.includeMobilePlatformsAssets").toString());
 		} catch (Exception e) {}
 		
-		project.afterEvaluate(p -> {
-			Matcher filter = Pattern.compile("\\.gradle|\\.svn|\\.git|build|_private").matcher("");
-			getInputs().files((Object[]) project.getProjectDir().listFiles((f, s) -> !filter.reset(s).matches()));
-			
-			File yaml = project.file("c8oProject.yaml");
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
-				br.readLine();
-				Matcher m = Pattern.compile("↓(.*) \\[core\\.Project\\]:").matcher(br.readLine());
-				if (m.find()) {
-					String projectName = m.group(1);
-					getOutputs().file(new File(destinationDir, projectName + ".car"));
-				}
-			} catch (Exception e) {
-			}
-		});
+//		project.afterEvaluate(p -> {
+//			Matcher filter = Pattern.compile("\\.gradle|\\.svn|\\.git|build|_private").matcher("");
+//			getInputs().files((Object[]) project.getProjectDir().listFiles((f, s) -> !filter.reset(s).matches()));
+//			
+//			File yaml = project.file("c8oProject.yaml");
+//			try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(yaml), "UTF-8"))) {
+//				br.readLine();
+//				Matcher m = Pattern.compile("↓(.*) \\[core\\.Project\\]:").matcher(br.readLine());
+//				if (m.find()) {
+//					String projectName = m.group(1);
+//					getOutputs().file(new File(destinationDir, projectName + ".car"));
+//				}
+//			} catch (Exception e) {
+//			}
+//		});
 	}
 	
 	@TaskAction

@@ -23,6 +23,9 @@ import java.io.File;
 import java.util.List;
 
 import org.gradle.api.Project;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
@@ -32,6 +35,7 @@ public class NativeBuildDownload extends ConvertigoTask {
 	private File destinationDir;
 	private List<File> destinationFiles;
 
+	@OutputDirectory @Optional
 	public File getDestinationDir() {
 		return destinationDir;
 	}
@@ -44,6 +48,7 @@ public class NativeBuildDownload extends ConvertigoTask {
 		this.destinationDir = getProject().file(destinationDir);
 	}
 	
+	@OutputFiles @Optional
 	public List<File> getDestinationFiles() {
 		return destinationFiles;
 	}
