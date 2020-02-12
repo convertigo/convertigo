@@ -127,9 +127,9 @@ public class ReferencedProjectManager {
 			prjDir = project.getDirFile();
 			dir = GitUtils.getWorkingDir(project.getDirFile());
 			if (dir != null) {
-				Engine.logEngine.info("(ReferencedProjectManager) " + projectName + " has repo " + dir);
+				Engine.logEngine.debug("(ReferencedProjectManager) " + projectName + " has repo " + dir);
 			} else {
-				Engine.logEngine.info("(ReferencedProjectManager) " + projectName + " exists without repo");
+				Engine.logEngine.debug("(ReferencedProjectManager) " + projectName + " exists without repo");
 			}
 		} else {
 			File gitContainer = GitUtils.getGitContainer();

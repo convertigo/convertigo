@@ -263,7 +263,7 @@ public class MobileResourceHelper {
 								if (includeChar == null && includeBuf != null) {
 									String uri = includeBuf;
 									if (htmlFile.getAbsolutePath().startsWith(projectDir.getAbsolutePath())) {
-										uri = htmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
+										uri = htmlFile.getParentFile().getAbsolutePath().substring(projectDir.getParentFile().getAbsolutePath().length() + 1) + "/" + uri;
 									}
 									ResourceBundle resourceBundle = Engine.theApp.minificationManager != null ? Engine.theApp.minificationManager.process(uri) : null;
 									if (resourceBundle != null) {
