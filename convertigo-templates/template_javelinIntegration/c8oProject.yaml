@@ -1,5 +1,5 @@
 ↑convertigo: 7.6.0.m006
 ↓template_javelinIntegration [core.Project]: 
   comment: Legacy Integration project
-  version: 7.7.1-beta
+  version: 7.7.1
   ↓javelinIntegrationTemplateConnector [connectors.JavelinConnector]: 🗏 connectors/javelinIntegrationTemplateConnector.yaml
