@@ -395,7 +395,7 @@ public class CLI {
 					}
 				} catch (Exception e) {
 					it.remove();
-					Engine.logEngine.error("failed to retrive " + platformName, e);
+					Engine.logEngine.error("failed to retrieve " + platformName, e);
 				} finally {
 					if (method != null) {
 						method.releaseConnection();
