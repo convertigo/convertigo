@@ -19,6 +19,8 @@
 
 package com.convertigo.gradle;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
@@ -33,6 +35,7 @@ public class CompileMobileBuilder extends ConvertigoTask {
 		} catch (Exception e) {}
 	}
 	
+	@Input @Optional
 	public String getMode() {
 		return mode;
 	}

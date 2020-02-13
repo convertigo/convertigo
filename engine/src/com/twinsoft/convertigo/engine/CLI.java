@@ -395,7 +395,7 @@ public class CLI {
 					}
 				} catch (Exception e) {
 					it.remove();
-					Engine.logEngine.error("failed to retrive " + platformName, e);
+					Engine.logEngine.error("failed to retrieve " + platformName, e);
 				} finally {
 					if (method != null) {
 						method.releaseConnection();
@@ -486,7 +486,7 @@ public class CLI {
 						!cmd.hasOption("excludeStubs"), !cmd.hasOption("excludeMobileApp"),
 						!cmd.hasOption("excludeMobileAppAssets"), !cmd.hasOption("excludeDataset"),
 						!cmd.hasOption("excludePlatformAssets"));
-				Logger.getRootLogger().info("Builded to: " + file);	
+				Logger.getRootLogger().info("Built to: " + file);	
 			}
 			
 			if (cmd.hasOption("deploy")) {

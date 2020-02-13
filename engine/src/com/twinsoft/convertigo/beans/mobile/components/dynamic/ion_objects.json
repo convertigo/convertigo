@@ -7612,7 +7612,7 @@
         "label": "Unique ID",
         "description": [
 "The unique ID for this post.<br/>",
-"Posted data can be retreived later on with a <i>Get Data</i> action, providing the same ID, or using a <i>Query View</i> action providing a valid key for the view queried.<br/>",
+"Posted data can be retrieved later on with a <i>Get Data</i> action, providing the same ID, or using a <i>Query View</i> action providing a valid key for the view queried.<br/>",
 "Data will be automatically replicated to Convertigo server if a <i>Sync Data</i> action has been previously executed in <code>continuous</code> mode.<br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> If ID is not set, the system will compute automatically an UUID as unique ID for this post."],
         "category": "@Properties",

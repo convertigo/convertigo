@@ -1527,7 +1527,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		// If there is at least an environment variable
 		if (mFindEnv.find(0)) {
 			int start = 0;
-			// The symbol value re-builded
+			// The symbol value re-built
 			StringBuffer newValue = new StringBuffer();
 			do {
 				// Append the string between the last occurrence and the next one

@@ -15,11 +15,11 @@ apply plugin: 'convertigo'
 
 /** Convertigo Gradle Plugin DSL **/
 
-//// determines if the projet need to perform a mobile build before 'deploy' or 'car' tasks
+//// determines if the project needs to perform a mobile build before 'deploy' or 'car' tasks
 //// can also be configured with a -Pconvertigo.performsMobileBuild as Gradle parameter
 def performsMobileBuild = file('_c8oProject/mobilePages').exists() && !'false'.equals(project.properties['convertigo.performsMobileBuild'])
 
-//// the 'load' task load and migrate the project to the current plugin version
+//// the 'load' task loads and migrates the project to the current plugin version
 load {
 	//// change the 'version' property of the project at loading
 	//// can also be configured with a -Pconvertigo.load.projectVersion as Gradle parameter
@@ -39,15 +39,15 @@ load {
 	}
 }
 
-//// the 'export' task depends on 'load' and save the project at the current plugin version
+//// the 'export' task depends on 'load' and saves the project at the current plugin version
 export {
-	//// mobile application can be builded before the 'export', then 'car' and 'deploy' can use build result
+	//// mobile application can be built before the 'export', then 'car' and 'deploy' can use build result
 	if (performsMobileBuild) {
 		dependsOn compileMobileBuilder
 	}
 }
 
-//// the 'generateMobileBuilder' task depends on 'load' and generate sources of the ionic application into _private/ionic
+//// the 'generateMobileBuilder' task depends on 'load' and generates sources of the Ionic application into _private/ionic
 generateMobileBuilder {
 	//// configure the generation mode, can be can be production (default) or debugplus, debug, fast
 	//// if omitted, compileMobileBuilder.mode is used
@@ -55,7 +55,7 @@ generateMobileBuilder {
 	// mode 'production'
 }
 
-//// the 'compileMobileBuilder' task depends on 'generateMobileBuilder' and compiles the ionic application with NPM into DisplayObject/mobile
+//// the 'compileMobileBuilder' task depends on 'generateMobileBuilder' and compiles the Ionic application with NPM into DisplayObject/mobile
 compileMobileBuilder {
 	//// configure the generation mode, can be can be production (default) or debug
 	//// if omitted, generateMobileBuilder.mode is used
@@ -63,7 +63,7 @@ compileMobileBuilder {
 	// mode 'production'
 }
 
-//// the 'car' task allow to build a <projectName>.car inside the <projectdir>/build folder
+//// the 'car' task allows to build a <projectName>.car inside the <projectdir>/build folder
 car {
 	//// configure the destination of the <projectName>.car file (default 'build' folder)
 	//// can also be configured with a -Pconvertigo.car.destinationDir as Gradle parameter
@@ -160,12 +160,12 @@ nativeBuild {
 	// androidCertificateKeystorePassword ''
 }
 
-//// the 'launchNativeBuild' task depends on 'nativeBuild' and upload the mobile source package to the Convertigo phonegapbuild gateway
+//// the 'launchNativeBuild' task depends on 'nativeBuild' and uploads the mobile source package to the Convertigo Phonegap Build Gateway
 launchNativeBuild {
 
 }
 
-//// the 'downloadNativeBuild' task depends on 'launchNativeBuild' and wait the remote build ends, then download the native packages (iOS ipa or Android apk)
+//// the 'downloadNativeBuild' task depends on 'launchNativeBuild' and waits the remote build to finish, then download the native packages (iOS ipa or Android apk)
 downloadNativeBuild {
 	//// configure the destination of built mobile application packages (default 'build' folder)
 	//// can also be configured with a -Pconvertigo.downloadNativeBuild.destinationDir as Gradle parameter
@@ -178,7 +178,11 @@ downloadNativeBuild {
 	}
 }
 
-//// the 'wrapper' task is used to upgrade the gradlewrapper of the projet
-task wrapper(type: Wrapper) {
-	gradleVersion = '6.1.1'
+//// the 'wrapper' task is used to upgrade the Gradle wrapper of the projet
+if (!tasks.findByName('wrapper')) {
+	task wrapper(type: Wrapper) {
+		group 'build setup'
+		description 'Generates Gradle wrapper files.'
+	}
 }
+wrapper.gradleVersion = '6.1.1'

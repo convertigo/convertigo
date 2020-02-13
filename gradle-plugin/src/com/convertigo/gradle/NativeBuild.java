@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -39,6 +41,7 @@ public class NativeBuild extends ConvertigoTask {
 	String androidCertificatePassword = null;
 	String androidCertificateKeystorePassword = null;
 	
+	@Input @Optional
 	public List<String> getPlatforms() {
 		return platforms;
 	}
@@ -50,7 +53,8 @@ public class NativeBuild extends ConvertigoTask {
 	public void setPlatforms(String platforms) {
 		this.platforms = Arrays.asList(platforms.split(","));
 	}
-	
+
+	@Input @Optional
 	public String getAuthenticationToken() {
 		return authenticationToken;
 	}
@@ -59,6 +63,7 @@ public class NativeBuild extends ConvertigoTask {
 		this.authenticationToken = authenticationToken;
 	}
 
+	@Input @Optional
 	public String getPlatformURL() {
 		return platformURL;
 	}
@@ -67,6 +72,7 @@ public class NativeBuild extends ConvertigoTask {
 		this.platformURL = platformURL;
 	}
 
+	@Input @Optional
 	public String getIosCertificateTitle() {
 		return iosCertificateTitle;
 	}
@@ -75,6 +81,7 @@ public class NativeBuild extends ConvertigoTask {
 		this.iosCertificateTitle = iosCertificateTitle;
 	}
 
+	@Input @Optional
 	public String getIosCertificatePassword() {
 		return iosCertificatePassword;
 	}
@@ -83,6 +90,7 @@ public class NativeBuild extends ConvertigoTask {
 		this.iosCertificatePassword = iosCertificatePassword;
 	}
 
+	@Input @Optional
 	public String getAndroidCertificateTitle() {
 		return androidCertificateTitle;
 	}
@@ -91,6 +99,7 @@ public class NativeBuild extends ConvertigoTask {
 		this.androidCertificateTitle = androidCertificateTitle;
 	}
 
+	@Input @Optional
 	public String getAndroidCertificatePassword() {
 		return androidCertificatePassword;
 	}
@@ -99,6 +108,7 @@ public class NativeBuild extends ConvertigoTask {
 		this.androidCertificatePassword = androidCertificatePassword;
 	}
 
+	@Input @Optional
 	public String getAndroidCertificateKeystorePassword() {
 		return androidCertificateKeystorePassword;
 	}

@@ -18,6 +18,7 @@
 - [#311](https://github.com/convertigo/convertigo/issues/311) Fixed, log files renamed by the log viewer aren't automatically removed
 - [#312](https://github.com/convertigo/convertigo/issues/312) Fixed, wrong label for Icon 'icon name' property
 - [#313](https://github.com/convertigo/convertigo/issues/313) Fixed, HTTP 404 on documentation links for CallSequence Action and Fullsync Actions
+- [#315](https://github.com/convertigo/convertigo/issues/315) Fixed, PageEvent of a shared component may not be generated in calling page
 
 ---
 
@@ -29,7 +30,7 @@
 - [#117](https://github.com/convertigo/convertigo/issues/117) MobileBuilder, add Pause Action component
 - [#147](https://github.com/convertigo/convertigo/issues/147) Add support of PageEvent & SubscribeHandler for SharedComponent
 - [#166](https://github.com/convertigo/convertigo/issues/166) Global FullSync database name prefix
-- [#168](https://github.com/convertigo/convertigo/issues/168) Add a "Finally" handler in mobile builder
+- [#168](https://github.com/convertigo/convertigo/issues/168) Add a 'Finally' handler in mobile builder
 - [#169](https://github.com/convertigo/convertigo/issues/169) Mobile Builder, add the Ionic Lazy loading feature
 - [#184](https://github.com/convertigo/convertigo/issues/184) Import and reference projects by a GIT url
 - [#192](https://github.com/convertigo/convertigo/issues/192) Administration Console, integrate Fauxton (CouchDB console)
@@ -43,23 +44,23 @@
 - [#155](https://github.com/convertigo/convertigo/issues/155) Use Tomcat 9 for Studio and Docker
 - [#162](https://github.com/convertigo/convertigo/issues/162) MobileBuilder, add an auto login event
 - [#172](https://github.com/convertigo/convertigo/issues/172) MobileBuilder, automatically enable the Angular ProdMode when building in production mode
-- [#181](https://github.com/convertigo/convertigo/issues/181) MobileBuilder, add the value ?mini? in the Button size property
+- [#181](https://github.com/convertigo/convertigo/issues/181) MobileBuilder, add the value 'mini' in the Button size property
 - [#191](https://github.com/convertigo/convertigo/issues/191) MobileBuilder, add variables to SharedComponent
 - [#201](https://github.com/convertigo/convertigo/issues/201) Set the PWA App title to the MobileApplication's  'Application Name' property 
 - [#206](https://github.com/convertigo/convertigo/issues/206) CouchDB Connector, add query parameters for server Databases Transaction
 - [#212](https://github.com/convertigo/convertigo/issues/212) Save DesignDocument multi-lines into the YAML project
 - [#217](https://github.com/convertigo/convertigo/issues/217) MobileBuilder, add a new i18n property for text components
-- [#245](https://github.com/convertigo/convertigo/issues/245) MobileBuilder, add a "Disable auto login" property to the CallSequence Action
+- [#245](https://github.com/convertigo/convertigo/issues/245) MobileBuilder, add a 'Disable auto login' property to the CallSequence Action
 - [#247](https://github.com/convertigo/convertigo/issues/247) MobileBuilder, Signature component generates a PNG with transparent background
-- [#248](https://github.com/convertigo/convertigo/issues/248) MobileBuilder, can use "translate.instant()" in any pages
+- [#248](https://github.com/convertigo/convertigo/issues/248) MobileBuilder, can use 'translate.instant()' in any pages
 - [#262](https://github.com/convertigo/convertigo/issues/262) MobileBuilder, modified default debug log for CustomAction component
-- [#266](https://github.com/convertigo/convertigo/issues/266) MobileBuilder, add new ?Changes detection strategy?  property for Page bean
+- [#266](https://github.com/convertigo/convertigo/issues/266) MobileBuilder, add new 'Changes detection strategy'  property for Page bean
 
 #### Bug Fixes:
 
 - [#224](https://github.com/convertigo/convertigo/issues/224) Fixed, error when opening lib_AmazonLEX project.
 - [#225](https://github.com/convertigo/convertigo/issues/225) Fixed, bean Camera not working in web browser
-- [#237](https://github.com/convertigo/convertigo/issues/237) Fixed, MobileBuilder, ?Post data? component posts extra data
+- [#237](https://github.com/convertigo/convertigo/issues/237) Fixed, MobileBuilder, 'Post data' component posts extra data
 - [#246](https://github.com/convertigo/convertigo/issues/246) Fixed, MobileBuilder, some issues with beans using latest TPL
 - [#265](https://github.com/convertigo/convertigo/issues/265) Fixed, MobileBuilder, renaming a Page name breaks Application build
 
@@ -70,7 +71,7 @@
 #### Improvements:
 
 - [#189](https://github.com/convertigo/convertigo/issues/189) Possibility to add a new palette component/action by drag and dropping on its folder
-- [#276](https://github.com/convertigo/convertigo/issues/276) Set Cookie ?HttpOnly? and ?Secure? (also via Docker setting)
+- [#276](https://github.com/convertigo/convertigo/issues/276) Set Cookie 'HttpOnly' and 'Secure' (also via Docker setting)
 - [#277](https://github.com/convertigo/convertigo/issues/277) Global symbols: Values with .secret suffix are stored ciphered and hidden
 - [#278](https://github.com/convertigo/convertigo/issues/278) Password policy for administration console account (via Reg. Exp.)
 - [#280](https://github.com/convertigo/convertigo/issues/280) Test Platform Convertigo header display : width too small
@@ -100,7 +101,7 @@
 
 #### Bug Fixes:
 
-- [#202](https://github.com/convertigo/convertigo/issues/202) Fixed, SmtpStep failed with "no object DCH for MIME"
+- [#202](https://github.com/convertigo/convertigo/issues/202) Fixed, SmtpStep failed with 'no object DCH for MIME'
 - [#203](https://github.com/convertigo/convertigo/issues/203) Fixed, Mobile Builder, default value is now used when a boolean property is not set
 - [#208](https://github.com/convertigo/convertigo/issues/208) Fixed, removed unwanted standard output on XMLCopyStep execution
 - [#209](https://github.com/convertigo/convertigo/issues/209) Fixed, Studio Git Pull don't fail if there are only files to delete
@@ -129,7 +130,7 @@
 #### Improvements:
 
 - [#187](https://github.com/convertigo/convertigo/issues/187) MobileBuilder, improved assets files copy at build time
-- [#188](https://github.com/convertigo/convertigo/issues/188) UrlMapper, added a parameter "terminate session" to Operations that can be turned off
+- [#188](https://github.com/convertigo/convertigo/issues/188) UrlMapper, added a parameter 'terminate session' to Operations that can be turned off
 - [#193](https://github.com/convertigo/convertigo/issues/193) CouchDB and FullSync connectors, optimized PostBulk merge/override to do less requests
 - [#196](https://github.com/convertigo/convertigo/issues/196) MobileBuilder, prevent empty value for properties in TS or SC mode to avoid build failure
 
@@ -150,8 +151,8 @@
 
 #### Improvements:
 
-- [#178](https://github.com/convertigo/convertigo/issues/178) New 'Application' property "Use click for tap" to differently handle "(tap)" and "onTap" events
-- [#165](https://github.com/convertigo/convertigo/issues/165) Right-clicking a "SharedComponent" component from another project in Mobile App Viewer now focus element in treeview
+- [#178](https://github.com/convertigo/convertigo/issues/178) New 'Application' property 'Use click for tap' to differently handle '(tap)' and 'onTap' events
+- [#165](https://github.com/convertigo/convertigo/issues/165) Right-clicking a 'SharedComponent' component from another project in Mobile App Viewer now focus element in treeview
 
 #### Bug Fixes:
 
@@ -174,7 +175,7 @@
 - [#164](https://github.com/convertigo/convertigo/issues/164) Fixed, MobileBuilder Sliding Tabs compile and can by used
 - [#167](https://github.com/convertigo/convertigo/issues/167) Fixed, prevents deadlocks on calls for interdependent projects
 - [#170](https://github.com/convertigo/convertigo/issues/170) Fixed, MobileBuilder RootPage action can now pass data to rooted page
-- [#171](https://github.com/convertigo/convertigo/issues/171) Fixed, the javascript "use" function is now available instead of throwing a "ClassCastException"
+- [#171](https://github.com/convertigo/convertigo/issues/171) Fixed, the javascript 'use' function is now available instead of throwing a 'ClassCastException'
 - [#173](https://github.com/convertigo/convertigo/issues/173) Fixed, init admin password with Docker variable supported again
 
 ---
@@ -276,13 +277,13 @@
 - [#65](https://github.com/convertigo/convertigo/issues/65) Fixed the random disappearing of files from DisplayObjects/mobile/assets/i18n
 - [#68](https://github.com/convertigo/convertigo/issues/68) Fixed barcodescanner plugin build for Android
 - [#69](https://github.com/convertigo/convertigo/issues/69) Fixed all Mobile palette documentation links now to ionic3 documentation
-- [#75](https://github.com/convertigo/convertigo/issues/75) Fixed ?Null? error when deleting a project
+- [#75](https://github.com/convertigo/convertigo/issues/75) Fixed 'Null' error when deleting a project
 - [#80](https://github.com/convertigo/convertigo/issues/80) Fixed the popup error when no bean found with the search bar
 - [#85](https://github.com/convertigo/convertigo/issues/85) Fixed the Invalid Thread Exception when adding a Component that requiring additional packages
 - [#103](https://github.com/convertigo/convertigo/issues/103) Fixed Scheduler to count session and clear contexts
 - [#114](https://github.com/convertigo/convertigo/issues/114) Fixed Certificate Mappings configuration in administration
 - [#116](https://github.com/convertigo/convertigo/issues/116) Fixed NPE in the Studio stdout console when selecting the LogView
-- [#126](https://github.com/convertigo/convertigo/issues/126) Fixed "heap out of memory" for some Mobile Builder builds in production mode
+- [#126](https://github.com/convertigo/convertigo/issues/126) Fixed 'heap out of memory' for some Mobile Builder builds in production mode
 - [#128](https://github.com/convertigo/convertigo/issues/128) Fixed the transpilation failure for empty value in TS mode of Mobile Builder actions
 - [#129](https://github.com/convertigo/convertigo/issues/129) Fixed Mobile Builder missing rebuilds 
 - [#130](https://github.com/convertigo/convertigo/issues/130) Fixed Http response always in UTF-8 even if the Requestable defines an another Charset

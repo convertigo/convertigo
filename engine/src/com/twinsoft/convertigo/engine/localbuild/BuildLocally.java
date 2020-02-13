@@ -396,7 +396,7 @@ public abstract class BuildLocally {
 	}
 	
 	/***
-	 * Return the absolute path of builded application file
+	 * Return the absolute path of built application file
 	 * @param mobilePlatform
 	 * @param buildMode
 	 * @return
@@ -769,7 +769,7 @@ public abstract class BuildLocally {
     abstract protected String getLocalBuildAdditionalPath();
     abstract protected void logException(Throwable e, String message);
     /***
-	 * Show the dialog with builded application file 
+	 * Show the dialog with built application file 
 	 * @param mobilePlatform
 	 * @param exitValue
 	 * @param errorLines

@@ -19,6 +19,8 @@
 
 package com.convertigo.gradle;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
@@ -30,6 +32,7 @@ public class ProjectDeploy extends ConvertigoTask {
 	private boolean trustAllCertificates = false;
 	private boolean assembleXsl = false;
 	
+	@Input @Optional
 	public String getServer() {
 		return server;
 	}
@@ -38,6 +41,7 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.server = server;
 	}
 
+	@Input @Optional
 	public String getUser() {
 		return user;
 	}
@@ -46,6 +50,7 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.user = user;
 	}
 
+	@Input @Optional
 	public String getPassword() {
 		return password;
 	}
@@ -54,6 +59,7 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.password = password;
 	}
 
+	@Input @Optional
 	public boolean isTrustAllCertificates() {
 		return trustAllCertificates;
 	}
@@ -62,6 +68,7 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.trustAllCertificates = trustAllCertificates;
 	}
 
+	@Input @Optional
 	public boolean isAssembleXsl() {
 		return assembleXsl;
 	}
