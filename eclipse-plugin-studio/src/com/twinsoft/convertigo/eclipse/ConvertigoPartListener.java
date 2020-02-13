@@ -31,11 +31,12 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.views.properties.PropertySheet;
+
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -130,10 +131,9 @@ public class ConvertigoPartListener implements IPartListener {
 					e.printStackTrace();
 				}
 			}
-			if (input instanceof ComponentFileEditorInput) {
+			if (input instanceof FileEditorInput) {
 				try {
-					//((EditorPart)part).dispose();// added because html editor throw a ConcurentModificationException (bug)
-					((ComponentFileEditorInput)input).getFile().delete(true, null);
+					((FileEditorInput) input).getFile().delete(true, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -197,6 +197,9 @@ public class ConvertigoPartListener implements IPartListener {
 					e.printStackTrace();
 				}
 			}
+		}
+		if (part.getClass().getName().toLowerCase().contains("editor")) {
+			SwtUtils.refreshTheme();
 		}
 	}
 

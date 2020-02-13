@@ -3661,7 +3661,7 @@
       </initializer>
    </extension>
    
-   
+ <!--  
 	<extension
         point="org.eclipse.wst.jsdt.ui.javaCompletionProposalComputer"
         id="ConvertigoCompletionProposalComputer"
@@ -3673,7 +3673,7 @@
                 <partition type="__dftl_partition_content_type" />
         </javaCompletionProposalComputer>
     </extension>
-
+-->
 	<extension
 	     id="com.twinsoft.convertigo.ctfCompletionProposals"
 	     point="org.eclipse.wst.sse.ui.completionProposal">         

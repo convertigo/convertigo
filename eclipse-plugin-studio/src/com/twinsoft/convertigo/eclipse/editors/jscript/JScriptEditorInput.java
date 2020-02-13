@@ -20,33 +20,68 @@
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileInPlaceEditorInput;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IJScriptContainer;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.engine.Engine;
 
-public class JScriptEditorInput extends FileEditorInput {
+public class JScriptEditorInput extends FileInPlaceEditorInput implements IPropertyListener {
 	
 	static private IFile makeFile(IJScriptContainer jsContainer, IProject project) {
 		String fullname = jsContainer.getFullName();
 		IFile file = project.getFile("_private/editor." + fullname + ".js");
-		try {
-			if (!file.exists()) {
-				file.create(new ByteArrayInputStream(new byte[0]), false, null);
-			}
-		} catch (Exception e) {
-		}
+		fillFile(jsContainer, file);
 		return file;
 	}
 	
+	static private void fillFile(IJScriptContainer jsContainer, IFile file) {
+		try (InputStream is = new ByteArrayInputStream(jsContainer.getExpression().getBytes("UTF-8"))) {
+			if (!file.exists()) {
+				file.create(is, true, null);
+			} else {
+				file.setContents(is, true, false, null);
+			}
+		} catch (Exception e) {
+		}
+	}
+	
+	static public IEditorPart openJScriptEditor(DatabaseObjectTreeObject dboTree, IJScriptContainer jsContainer) throws PartInitException {
+		IWorkbenchPage activePage = PlatformUI
+				.getWorkbench()
+				.getActiveWorkbenchWindow()
+				.getActivePage();
+		if (activePage == null) {
+			return null;
+		}
+		JScriptEditorInput jsInput = new JScriptEditorInput(dboTree, jsContainer);
+		IEditorPart editor = activePage.openEditor(jsInput,	"org.eclipse.ui.genericeditor.GenericEditor");
+		editor.addPropertyListener(jsInput);
+		return editor;
+	}
+	
+	static public IEditorPart openJScriptEditor(DatabaseObjectTreeObject dboTree) throws PartInitException {
+		return openJScriptEditor(dboTree, (IJScriptContainer) dboTree.getObject());
+	}
+	
+	private DatabaseObjectTreeObject dboTree;
 	private IJScriptContainer jsContainer;
 		
-	public JScriptEditorInput(IJScriptContainer jsContainer, IProject project) {
-		super(makeFile(jsContainer, project));
+	private JScriptEditorInput(DatabaseObjectTreeObject dboTree, IJScriptContainer jsContainer) {
+		super(makeFile(jsContainer, dboTree.getProjectTreeObject().getIProject()));
+		this.dboTree = dboTree;
 		this.jsContainer = jsContainer;
 	}
 
@@ -65,7 +100,7 @@ public class JScriptEditorInput extends FileEditorInput {
 
 	@Override
 	public String getName() {
-		return jsContainer.getName();
+		return jsContainer.getName() + ".js";
 	}
 
 	@Override
@@ -76,11 +111,27 @@ public class JScriptEditorInput extends FileEditorInput {
 	public boolean is(DatabaseObject dbo) {
 		DatabaseObject d = this.jsContainer.getDatabaseObject();
 		do {
-			if (d == dbo) {
+			if (dbo.equals(d)) {
 				return true;
 			}
 			d = d.getParent();
 		} while (!(d instanceof Project));
 		return false;
+	}
+	
+	public void reload() {
+		fillFile(jsContainer, getFile());
+	}
+
+	@Override
+	public void propertyChanged(Object source, int propId) {
+		if (propId == IEditorPart.PROP_DIRTY && !((IEditorPart) source).isDirty()) {
+			try (InputStream is = getFile().getContents()) {
+				jsContainer.setExpression(IOUtils.toString(is, "UTF-8"));
+				dboTree.hasBeenModified(true);
+			} catch (Exception e) {
+				Engine.logStudio.error("Failed to save " + jsContainer.getEditorName(), e);
+			}
+		}
 	}
 }

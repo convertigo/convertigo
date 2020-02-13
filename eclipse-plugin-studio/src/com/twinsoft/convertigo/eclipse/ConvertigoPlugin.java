@@ -156,9 +156,6 @@ import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.util.Log;
 
-import ts.eclipse.ide.core.TypeScriptCorePlugin;
-import ts.eclipse.ide.core.nodejs.IEmbeddedNodejs;
-
 /**
  * The main plugin class to be used in the desktop.
  */
@@ -205,7 +202,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	private static Shell mainShell = null;
 	public static synchronized Shell getMainShell() {
 		if (mainShell == null || mainShell.isDisposed()) {
-			mainShell = getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+			mainShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 		}
 		return mainShell;
 	}
@@ -731,10 +728,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 		
-//		Engine.execute(() -> {
-//			new Browser(BrowserContext.defaultContext()).dispose();
-//		});
-		
 		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (activeWindow != null) {
 			IWorkbenchPage activePage = activeWindow.getActivePage();
@@ -952,6 +945,25 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 
 		runAtStartup(() -> {
+			Engine.execute(() -> {
+				String nodeVersion = "v10.19.0";
+				try {
+					File nodeDir = ProcessUtils.getNodeDir(nodeVersion, new org.apache.commons.fileupload.ProgressListener() {
+						
+						@Override
+						public void update(long pBytesRead, long pContentLength, int pItems) {
+							Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+						}
+					});
+					File nodeExe = new File(nodeDir, Engine.isWindows() ? "node.exe" : "node");
+					Engine.logStudio.warn("node ready: " + nodeExe.getAbsolutePath() + " exists ? " + nodeExe.exists());
+					System.setProperty("org.eclipse.wildwebdeveloper.nodeJSLocation", nodeExe.getAbsolutePath());
+					ProcessUtils.setNpmFolder(nodeDir);
+				} catch (Exception e) {
+					Engine.logStudio.error("Failed to init NPM: " + e.getMessage(), e);
+				}
+			});
+			
 			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
 			if (templates != null) {
 				for (File tpl: templates) {
@@ -970,10 +982,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				}
 			}
 		});
-		
-		for (IEmbeddedNodejs node :TypeScriptCorePlugin.getNodejsInstallManager().getNodejsInstalls()) {
-			ProcessUtils.setNpmFolder(node.getPath().getParentFile());
-		}
 		
 		studioLog.message("Convertigo studio started");
 	}
@@ -1516,36 +1524,26 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 		return mobileDebugView;
 	}
-
-	/**
-	 * Gets the jscript editor associated with given transaction.
-	 * !!MUST BE CALLED IN A UI-THREAD!!
-	 * @return IEditorPart : the found jscript editor or null
-	 */
-	public IEditorPart getJscriptTransactionEditor(Transaction transaction) {
-		IEditorPart editorPart = null;
+	
+	public JScriptEditorInput getJScriptEditorInput(Transaction transaction) {
+		JScriptEditorInput jScriptEditorInput = null;
 		IWorkbenchPage activePage = getActivePage();
-		if (activePage != null) {
-			if (transaction != null) {
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i=0;i<editorRefs.length;i++) {
-					IEditorReference editorRef = (IEditorReference)editorRefs[i];
-					try {
-						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof JScriptEditorInput)) {
-							if (transaction.equals(((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject())) {
-								editorPart = editorRef.getEditor(false);
-								break;
-							}
+		if (activePage != null && transaction != null) {
+			for (IEditorReference editorRef: activePage.getEditorReferences()) {
+				try {
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if (editorInput != null && editorInput instanceof JScriptEditorInput) {							
+						if (((JScriptEditorInput) editorInput).is(transaction)) {
+							jScriptEditorInput = (JScriptEditorInput) editorInput;
+							break;
 						}
 					}
-					catch(PartInitException e) {
-						//ConvertigoPlugin.logException(e, "Error while retrieving the jscript transaction editor '" + editorRef.getName() + "'");
-					}
+				} catch(PartInitException e) {
+					//ConvertigoPlugin.logException(e, "Error while retrieving the jscript transaction editor '" + editorRef.getName() + "'");
 				}
 			}
 		}
-		return editorPart;
+		return jScriptEditorInput;
 	}
 
 	public IEditorPart getApplicationComponentEditor() {

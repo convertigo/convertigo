@@ -24,39 +24,31 @@ to create mobile enterprise applications
 
    <requires>
       <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.ui.intro.universal"/>
+      <import plugin="org.eclipse.ui.intro"/>
+      <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.jface.text"/>
-      <import plugin="org.eclipse.swt"/>
-      <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.eclipse.ui.intro"/>
-      <import plugin="org.eclipse.ui.intro.universal"/>
       <import plugin="org.eclipse.ui.views"/>
-      <import plugin="org.eclipse.wst.jsdt.ui"/>
-      <import plugin="org.eclipse.wst.jsdt.core"/>
-      <import plugin="org.eclipse.wst.sse.core"/>
-      <import plugin="org.eclipse.wst.sse.ui"/>
       <import plugin="org.eclipse.wst.xml.ui"/>
+      <import plugin="org.eclipse.wst.sse.ui"/>
+      <import plugin="org.eclipse.wst.sse.core"/>
       <import feature="org.eclipse.egit"/>
       <import feature="org.eclipse.egit.gitflow.feature"/>
       <import feature="org.eclipse.jgit.lfs"/>
       <import feature="org.eclipse.platform"/>
       <import feature="org.eclipse.rcp"/>
-      <import feature="org.eclipse.wst.common_core.feature"/>
-      <import feature="org.eclipse.wst.jsdt.feature"/>
-      <import feature="org.eclipse.wst.json_core.feature"/>
-      <import feature="org.eclipse.wst.json_ui.feature"/>
-      <import feature="org.eclipse.wst.web_core.feature"/>
-      <import feature="org.eclipse.wst.web_ui.feature"/>
-      <import feature="org.eclipse.wst.xml_core.feature"/>
-      <import feature="org.eclipse.wst.xml_ui.feature"/>
-      <import feature="org.eclipse.wst.xsl.feature"/>
-      <import feature="ts-feature"/>
-      <import feature="ts-jsdt-feature"/>
-      <import feature="ts-json-feature"/>
-      <import feature="ts-nodejs.embed-feature"/>
-      <import feature="ts-validation-feature"/>
+      <import plugin="org.eclipse.core.expressions"/>
+      <import plugin="org.eclipse.egit.ui"/>
+      <import plugin="org.eclipse.jgit"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.ui.genericeditor"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+      <import plugin="org.eclipse.wildwebdeveloper"/>
+      <import plugin="com.twinsoft.convertigo.studio"/>
    </requires>
 
    <plugin

@@ -42,6 +42,7 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
@@ -64,7 +65,7 @@ import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -177,13 +178,15 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 	    							int _i = 0;
 	    							while (find != true && _i < editors.length) {
 	    								IEditorReference editor = editors[_i];
-	    								IEditorPart editorPart = page.findEditor(editor.getEditorInput());
-	    								if (editorPart != null && editorPart instanceof JScriptEditor) {
-	    									JScriptEditor jscriptEditor = (JScriptEditor) editorPart;
-	    									if (simpleStep.equals(jscriptEditor.getDatabaseObject())) {
-	 		    							   find = true;
-			    							   page.activate(editorPart);
-			    							   page.closeEditor(editorPart, false);
+	    								IEditorInput input = editor.getEditorInput();
+	    								if (input instanceof JScriptEditorInput) {
+	    									if (simpleStep.equals(((JScriptEditorInput) input).getDatabaseObject())) {
+	    										find = true;
+	    	    								IEditorPart editorPart = page.findEditor(input);
+	    	    								if (editorPart != null) {
+		    										page.activate(editorPart);
+		    										page.closeEditor(editorPart, false);
+	    	    								}
 	    									}
 	    								}
 	    								++_i;

@@ -21,8 +21,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IActionFilter;
 import org.eclipse.ui.IEditorInput;
@@ -107,21 +105,11 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	}
 	
 	@Override
-	public void launchEditor(String editorType) {
-		// Retrieve the project name
-		String projectName = getConnectorTreeObject().getObject().getProject().getName();	
-	
+	public void launchEditor(String editorType) {	
 		try {
-			// Refresh project resource
-			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			
-			// Open editor
-			if ((editorType == null) || ((editorType != null) && (editorType.equals("JscriptHandlerEditor")))) {
-				openJscriptHandlerEditor(project);
-			}
-		} 
-		catch (CoreException e) {
-			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
+			JScriptEditorInput.openJScriptEditor(getDesignDocumentTreeObject(), this); 
+		} catch (PartInitException e) {
+			ConvertigoPlugin.logException(e, "Error while loading the document editor '" + getName() + "'");
 		}
 	}
 	
@@ -144,22 +132,6 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 					
 				}
 			}
-		}
-	}
-	
-	public void openJscriptHandlerEditor(IProject project) {		
-		IWorkbenchPage activePage = PlatformUI
-								.getWorkbench()
-								.getActiveWorkbenchWindow()
-								.getActivePage();
-		
-		if (activePage != null) {
-			try {
-				activePage.openEditor(new JScriptEditorInput(this, project),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
-			} catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the document editor '" + getName() + "'");
-			} 
 		}
 	}
 

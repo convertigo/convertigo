@@ -4,29 +4,11 @@
 	<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
 		<unit id="org.eclipse.equinox.executable.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.equinox.p2.user.ui.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.jst.enterprise_ui.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.jst.web_ui.feature.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.platform.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.rcp.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.common_core.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.jsdt.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.json_core.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.json_ui.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.web_core.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.web_ui.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.xml_core.feature.feature.group" version="0.0.0"/>
+		<unit id="org.eclipse.wildwebdeveloper.feature.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.wst.xml_ui.feature.feature.group" version="0.0.0"/>
-		<unit id="org.eclipse.wst.xsl.feature.feature.group" version="0.0.0"/>
-		<repository location="http://download.eclipse.org/releases/2019-06/"/>
-	</location>
-	<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
-		<unit id="ts-feature.feature.group" version="0.0.0"/>
-		<unit id="ts-jsdt-feature.feature.group" version="0.0.0"/>
-		<unit id="ts-json-feature.feature.group" version="0.0.0"/>
-		<unit id="ts-validation-feature.feature.group" version="0.0.0"/>
-		<unit id="ts-nodejs.embed-feature.feature.group" version="0.0.0"/>
-		<unit id="ts-json-feature.feature.group" version="0.0.0"/>
-		<repository location="http://oss.opensagres.fr/typescript.ide/snapshots/"/>
+		<repository location="http://download.eclipse.org/releases/2019-12/"/>
 	</location>
 	<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
 		<unit id="org.eclipse.egit.feature.group" version="0.0.0"/>
