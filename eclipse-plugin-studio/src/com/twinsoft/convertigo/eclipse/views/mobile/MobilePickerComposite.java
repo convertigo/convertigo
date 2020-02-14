@@ -59,6 +59,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -88,6 +89,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceModel;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
@@ -119,7 +121,7 @@ public class MobilePickerComposite extends Composite {
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Button b_custom;
-	private Label l_source;
+	private Control l_source;
 	private Text t_custom, t_prefix, t_data, t_suffix;
 	private Label message;
 	private String currentSource = null;
@@ -279,6 +281,28 @@ public class MobilePickerComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean isCustom = b_custom.getSelection();
+				
+				boolean doSetCustomText = false;
+				if (isParentDialog) {
+					MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
+					if (cs != null && cs.getModel() != null && cs.getModel().getCustom().isEmpty()) {
+						doSetCustomText = true;
+					}
+				} else {
+					doSetCustomText = true;
+				}
+				
+				if (doSetCustomText) {
+					MobileSmartSource nmss = MobileSmartSource.valueOf(getSmartSourceString());
+					if (nmss != null) {
+						if (isCustom && !t_custom.getEnabled()) {
+							t_custom.setText(nmss.getModel().computeValue());
+						}
+						if (!isCustom && t_custom.getEnabled()) {
+							t_custom.setText("");
+						}
+					}
+				}
 				t_custom.setEnabled(isCustom);
 				t_prefix.setEnabled(!isCustom);
 				t_data.setEnabled(!isCustom);
@@ -374,7 +398,7 @@ public class MobilePickerComposite extends Composite {
 					else
 						checkedList.remove(tvoChecked);
 					updateGrayChecked();
-					updateText();
+					updateTexts();
 				}
 			}
 		});
@@ -391,7 +415,7 @@ public class MobilePickerComposite extends Composite {
 					modelTreeViewer.setInput(null);
 					updateModel(tvoSelected);
 					updateGrayChecked();
-					updateText();
+					updateTexts();
 				}
 			}
 		});
@@ -404,7 +428,7 @@ public class MobilePickerComposite extends Composite {
 			public void selectionChanged(SelectionChangedEvent event) {
 				Object selected = ((IStructuredSelection) event.getSelection()).getFirstElement();
 				if (selected instanceof TVObject) {
-					updateText();
+					updateTexts();
 				}
 			}
 			
@@ -416,9 +440,14 @@ public class MobilePickerComposite extends Composite {
 		sourceComposite.setLayout(new GridLayout(2, false));
 		sourceComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		l_source = new Label(sourceComposite, SWT.NONE);
-		l_source.setText(" SOURCE ");
-		l_source.setToolTipText("Drag me on a Mobile UI component in the project tree to bind this source to an UI component property");
+		if (isParentDialog) {
+			l_source = new Label(sourceComposite, SWT.NONE);
+			((Label) l_source).setText(" SOURCE ");
+		} else {
+			l_source = new Button(sourceComposite, SWT.NONE);
+			((Button) l_source).setText(" SOURCE ");
+			l_source.setToolTipText("Drag me on a Mobile UI component in the project tree to bind this source to an UI component property");
+		}
 		
 		Composite dataComposite = new Composite(sourceComposite, SWT.NONE);
 		dataComposite.setLayout(new GridLayout(2, false));
@@ -435,7 +464,6 @@ public class MobilePickerComposite extends Composite {
 		
 		t_data = new Text(dataComposite, SWT.BORDER | SWT.READ_ONLY);
 		t_data.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		//t_data.setEnabled(false);
 		
 		Label l_suffix = new Label(dataComposite, SWT.NONE);
 		l_suffix.setText("Suffix");
@@ -484,20 +512,24 @@ public class MobilePickerComposite extends Composite {
 		}
 	}
 	
+	private Filter getFilter() {
+		Filter filter = null;
+		if (btnSequence.getSelection())
+			filter = Filter.Sequence;
+		else if (btnDatabase.getSelection())
+			filter = Filter.Database;
+		else if (btnIteration.getSelection())
+			filter = Filter.Iteration;
+		else if (btnForm.getSelection())
+			filter = Filter.Form;
+		else if (btnGlobal.getSelection())
+			filter = Filter.Global;
+		return filter;
+	}
+	
 	public String getSmartSourceString() {
 		try {
-			Filter filter = null;
-			if (btnSequence.getSelection())
-				filter = Filter.Sequence;
-			else if (btnDatabase.getSelection())
-				filter = Filter.Database;
-			else if (btnIteration.getSelection())
-				filter = Filter.Iteration;
-			else if (btnForm.getSelection())
-				filter = Filter.Form;
-			else if (btnGlobal.getSelection())
-				filter = Filter.Global;
-			
+			Filter filter = getFilter();
 			String projectName = currentMC.getProject().getName();
 			
 			MobileSmartSource cmss = MobileSmartSource.valueOf(currentSource);
@@ -515,19 +547,15 @@ public class MobilePickerComposite extends Composite {
 			model.setPrefix(t_prefix.getText());
 			model.setSuffix(t_suffix.getText());
 			model.setUseCustom(b_custom.getSelection());
+			model.setSourceData(getModelData());
 			model.setPath(path);
-			getSourceData().forEach(s -> {
-				s = (s.startsWith("'") && s.endsWith("'")) ? s.substring(1, s.length()-1) : s;
-				model.addSourceData(projectName, s);
-			});
 			
 			JSONObject jsonModel = model.toJson();
-			System.out.println(jsonModel.toString(1));
+			//System.out.println(jsonModel.toString(1));
 			
 			MobileSmartSource nmss = new MobileSmartSource(filter, projectName, input, jsonModel);
-			String jsonString = nmss.toJsonString();
-			//System.out.println(jsonString);
-			return jsonString;
+			//System.out.println(nmss.toJsonString(1));
+			return nmss.toJsonString();
 		}
 		catch (Exception e) {
 			return "";
@@ -567,7 +595,7 @@ public class MobilePickerComposite extends Composite {
 		}
 		for (Object ob: checkboxTreeViewer.getGrayedElements()) {
 			checkboxTreeViewer.setChecked(ob, true);
-			if (ob instanceof TVObject && !((TVObject)ob).getSourceData().isEmpty()) {
+			if (ob instanceof TVObject && !((TVObject)ob).getSource().isEmpty()) {
 				if (btnIteration.getSelection() || btnForm.getSelection() || btnGlobal.getSelection()) {
 					checkboxTreeViewer.setGrayed(ob, !ob.equals(lastSelected));
 				} else {
@@ -633,10 +661,10 @@ public class MobilePickerComposite extends Composite {
 					//updateText(cs.getInput());
 					updateTexts(cs);
 				} else {
-					updateText();
+					updateTexts();
 				}
 			} else {
-				updateText();
+				updateTexts();
 			}
 		}
 	}
@@ -660,24 +688,47 @@ public class MobilePickerComposite extends Composite {
 		message.setText(msgTxt);
 	}
 	
-	private List<String> getSourceData() {
+//	private List<String> getSourceList() {
+//		TVObject tvoSelected = null;
+//		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
+//		if (selected != null && selected instanceof TVObject) {
+//			tvoSelected = (TVObject)selected;
+//		}
+//		
+//		List<String> sourceList =  new ArrayList<String>();
+//		List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
+//		for (TVObject tvo : tvoList) {
+//			if (tvo.equals(tvoSelected)) {
+//				sourceList.add(0, tvo.getSource());
+//			}
+//			else {
+//				sourceList.add(tvo.getSource());
+//			}
+//		}
+//		return sourceList;
+//	}
+	
+	private List<SourceData> getModelData() {
 		TVObject tvoSelected = null;
 		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
 		if (selected != null && selected instanceof TVObject) {
 			tvoSelected = (TVObject)selected;
 		}
 		
-		List<String> sourceData =  new ArrayList<String>();
+		List<SourceData> sourceList =  new ArrayList<SourceData>();
 		List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
 		for (TVObject tvo : tvoList) {
-			if (tvo.equals(tvoSelected)) {
-				sourceData.add(0, tvo.getSourceData());
-			}
-			else {
-				sourceData.add(tvo.getSourceData());
+			SourceData sd = tvo.getSourceData();
+			if (sd != null) {
+				if (tvo.equals(tvoSelected)) {
+					sourceList.add(0, sd);
+				}
+				else {
+					sourceList.add(sd);
+				}
 			}
 		}
-		return sourceData;
+		return sourceList;
 	}
 	
 	private String getModelPath() {
@@ -685,32 +736,50 @@ public class MobilePickerComposite extends Composite {
 		ITreeSelection selection = modelTreeViewer.getStructuredSelection();
 		if (selection != null && !selection.isEmpty()) {
 			TVObject tvo = (TVObject)selection.getFirstElement();
-			path = tvo.getSourcePath();
+			path = tvo.getPath();
 		}
 		return path;
 	}
 	
-	private void updateText() {
-		boolean isDirective = btnIteration.getSelection();
-		boolean isForm = btnForm.getSelection();
-		boolean isGlobal = btnGlobal.getSelection();
-		List<String> sourceData = getSourceData();
-		int size = sourceData.size();
-		
-		StringBuffer buf = new StringBuffer();
-		if ((isDirective || isForm || isGlobal) && size > 0) {
-			String data = sourceData.get(0);
-			if (!data.isEmpty()) {
-				buf.append(data);
-			}
-		}
-		else {
-			for (String data : sourceData) {
-				if (!data.isEmpty()) {
-					buf.append(buf.length() > 0 ? ", ":"").append(data);
-				}
-			}
-		}
+//	private void updateText() {
+//		boolean isDirective = btnIteration.getSelection();
+//		boolean isForm = btnForm.getSelection();
+//		boolean isGlobal = btnGlobal.getSelection();
+//		List<String> sourceData = getSourceList();
+//		int size = sourceData.size();
+//		
+//		StringBuffer buf = new StringBuffer();
+//		if ((isDirective || isForm || isGlobal) && size > 0) {
+//			String data = sourceData.get(0);
+//			if (!data.isEmpty()) {
+//				buf.append(data);
+//			}
+//		}
+//		else {
+//			for (String data : sourceData) {
+//				if (!data.isEmpty()) {
+//					buf.append(buf.length() > 0 ? ", ":"").append(data);
+//				}
+//			}
+//		}
+//		
+//		String path = getModelPath();
+//		String searchPath = "root";
+//		int index = path.indexOf(searchPath);
+//		if (index != -1) {
+//			path = path.substring(index + searchPath.length());
+//		}
+//		
+//		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
+//		t_data.setText(computedText);
+//	}
+
+//	private void updateText(String s) {
+//		t_custom.setText(s);
+//	}
+	
+	private void updateTexts() {
+		Filter filter = getFilter();
 		
 		String path = getModelPath();
 		String searchPath = "root";
@@ -719,13 +788,10 @@ public class MobilePickerComposite extends Composite {
 			path = path.substring(index + searchPath.length());
 		}
 		
-		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
-		//t_custom.setText(computedText);
-		t_data.setText(computedText);
-	}
-
-	private void updateText(String s) {
-		t_custom.setText(s);
+		SourceModel model = MobileSmartSource.emptyModel(filter);
+		model.setSourceData(getModelData());
+		model.setPath(path);
+		t_data.setText(model.computeValue());
 	}
 	
 	private void updateTexts(MobileSmartSource cs) {
@@ -829,29 +895,94 @@ public class MobilePickerComposite extends Composite {
 						Map<String, String> params = GenericUtils.cast(data.get("params"));
 						String dataPath = (String) data.get("searchPath");
 						
-						// case of requestable
-						if (dbo instanceof RequestableObject) {
-							RequestableObject ro = (RequestableObject)dbo;
-							
-							Project project = ro.getProject();
-							String responseEltName = ro.getXsdTypePrefix() + ro.getName() + "Response";
-							boolean isDocumentNode = JsonRoot.docNode.equals(project.getJsonRoot()) && dataPath.isEmpty();
-							
-							XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName());
-							XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, ro);
-							if (xso != null) {
-								Document document = XmlSchemaUtils.getDomInstance(xso);
-								//System.out.println(XMLUtils.prettyPrintDOM(document));
+						if (dbo != null) {
+							// case of requestable
+							if (dbo instanceof RequestableObject) {
+								RequestableObject ro = (RequestableObject)dbo;
 								
-								String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
-								JSONObject jsonObject = new JSONObject(jsonString);
+								Project project = ro.getProject();
+								String responseEltName = ro.getXsdTypePrefix() + ro.getName() + "Response";
+								boolean isDocumentNode = JsonRoot.docNode.equals(project.getJsonRoot()) && dataPath.isEmpty();
 								
-								String searchPath = "document."+ responseEltName +".response";
-								searchPath += isDocumentNode || !dataPath.startsWith(".document")? dataPath : dataPath.replaceFirst("\\.document", "");
+								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName());
+								XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, ro);
+								if (xso != null) {
+									Document document = XmlSchemaUtils.getDomInstance(xso);
+									//System.out.println(XMLUtils.prettyPrintDOM(document));
+									
+									String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
+									JSONObject jsonObject = new JSONObject(jsonString);
+									
+									String searchPath = "document."+ responseEltName +".response";
+									searchPath += isDocumentNode || !dataPath.startsWith(".document")? dataPath : dataPath.replaceFirst("\\.document", "");
+									
+									JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+									
+									JSONObject jsonResponse = isDocumentNode ? new JSONObject().put("document", jsonOutput) : jsonOutput;
+									
+									Display.getDefault().asyncExec(new Runnable() {
+										public void run() {
+											modelTreeViewer.setInput(jsonResponse);
+											initTreeSelection(modelTreeViewer, null);
+											setWidgetsEnabled(true);
+											updateMessage();
+										}
+									});
+								}
+							}
+							// case of design document
+							else if (dbo instanceof DesignDocument) {
+								DesignDocument dd = (DesignDocument)dbo;
+								Connector connector = dd.getConnector();
+								String ddoc = params.get("ddoc");
+								String view = params.get("view");
+								String viewName = ddoc + "/" + view;
+								String includeDocs = params.get("include_docs");
+								
+								Display.getDefault().asyncExec(new Runnable() {
+									public void run() {
+										IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+	
+										ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
+										if (connectorEditor == null) {
+											try {
+												connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
+																"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+											} catch (PartInitException e) {
+												ConvertigoPlugin.logException(e,
+														"Error while loading the connector editor '"
+																+ connector.getName() + "'");
+											}
+										}
+										
+					    				if (connectorEditor != null) {
+					    					// activate connector's editor
+					    					activePage.activate(connectorEditor);
+					    					
+					    					// set transaction's parameters
+					    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+					    					((GetViewTransaction)transaction).setViewname(viewName);
+					   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+					   										    					
+					    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+					   						view_reduce.setValueOrNull(false);
+					    					
+					    					// execute view transaction
+					    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
+					    				}
+									}
+								});
+							}
+							// case of UIForm
+							else if (dbo instanceof UIForm) {
+								//JSONObject jsonObject = new JSONObject("{\"controls\":{\"['area']\":{\"value\":\"\"}}}");
+								JSONObject jsonObject = new JSONObject(((UIForm)dbo).computeJsonModel());
+								
+								String searchPath = dataPath;
 								
 								JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
 								
-								JSONObject jsonResponse = isDocumentNode ? new JSONObject().put("document", jsonOutput) : jsonOutput;
+								JSONObject jsonResponse = jsonOutput;
 								
 								Display.getDefault().asyncExec(new Runnable() {
 									public void run() {
@@ -862,87 +993,33 @@ public class MobilePickerComposite extends Composite {
 									}
 								});
 							}
-						}
-						// case of design document
-						else if (dbo instanceof DesignDocument) {
-							DesignDocument dd = (DesignDocument)dbo;
-							Connector connector = dd.getConnector();
-							String ddoc = params.get("ddoc");
-							String view = params.get("view");
-							String viewName = ddoc + "/" + view;
-							String includeDocs = params.get("include_docs");
-							
-							Display.getDefault().asyncExec(new Runnable() {
-								public void run() {
-									IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-
-									ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
-									if (connectorEditor == null) {
-										try {
-											connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-															"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
-										} catch (PartInitException e) {
-											ConvertigoPlugin.logException(e,
-													"Error while loading the connector editor '"
-															+ connector.getName() + "'");
-										}
+							// case of ApplicationComponent
+							else if (dbo instanceof ApplicationComponent) {
+								String json = params.get("json");
+								JSONObject jsonModel = new JSONObject(json);
+								
+								Display.getDefault().asyncExec(new Runnable() {
+									public void run() {
+										modelTreeViewer.setInput(jsonModel);
+										initTreeSelection(modelTreeViewer, null);
+										setWidgetsEnabled(true);
+										updateMessage();
 									}
-									
-				    				if (connectorEditor != null) {
-				    					// activate connector's editor
-				    					activePage.activate(connectorEditor);
-				    					
-				    					// set transaction's parameters
-				    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-				    					((GetViewTransaction)transaction).setViewname(viewName);
-				   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
-				   										    					
-				    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-				   						view_reduce.setValueOrNull(false);
-				    					
-				    					// execute view transaction
-				    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
-				    				}
-								}
-							});
-						}
-						// case of UIForm
-						else if (dbo instanceof UIForm) {
-							//JSONObject jsonObject = new JSONObject("{\"controls\":{\"['area']\":{\"value\":\"\"}}}");
-							JSONObject jsonObject = new JSONObject(((UIForm)dbo).computeJsonModel());
-							
-							String searchPath = dataPath;
-							
-							JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-							
-							JSONObject jsonResponse = jsonOutput;
-							
+								});
+							}
+							// should not happened
+							else {
+								throw new Exception("DatabaseObject "+ dbo.getClass().getName() +" not supported!");
+							}
+						} else {
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
-									modelTreeViewer.setInput(jsonResponse);
+									modelTreeViewer.setInput(new JSONObject());
 									initTreeSelection(modelTreeViewer, null);
 									setWidgetsEnabled(true);
 									updateMessage();
 								}
 							});
-						}
-						// case of ApplicationComponent
-						else if (dbo instanceof ApplicationComponent) {
-							String json = params.get("json");
-							JSONObject jsonModel = new JSONObject(json);
-							
-							Display.getDefault().asyncExec(new Runnable() {
-								public void run() {
-									modelTreeViewer.setInput(jsonModel);
-									initTreeSelection(modelTreeViewer, null);
-									setWidgetsEnabled(true);
-									updateMessage();
-								}
-							});
-						}
-						// should not happened
-						else {
-							throw new Exception("DatabaseObject "+ dbo.getClass().getName() +" not supported!");
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -996,8 +1073,8 @@ public class MobilePickerComposite extends Composite {
 		return null;
 	}
 	
-	private void fillCheckedList(TreeItem parent, List<String> csSourceData) {
-		if (csSourceData != null && !csSourceData.isEmpty()) {
+	private void fillCheckedList(TreeItem parent, List<String> csSourceList) {
+		if (csSourceList != null && !csSourceList.isEmpty()) {
 			TreeItem[] items = null;
 			
 			if (parent == null) {
@@ -1007,9 +1084,9 @@ public class MobilePickerComposite extends Composite {
 				items = parent.getItems();
 				
 				TVObject tvo = (TVObject) parent.getData();
-				String tvoSourceData = tvo.getSourceData();
-				if (csSourceData.contains(tvoSourceData)) {
-					int index = csSourceData.indexOf(tvoSourceData);
+				String tvoSource = tvo.getSource();
+				if (csSourceList.contains(tvoSource)) {
+					int index = csSourceList.indexOf(tvoSource);
 					if (index == 0)
 						checkedList.add(0,tvo);
 					else
@@ -1018,7 +1095,7 @@ public class MobilePickerComposite extends Composite {
 			}
 			
 			for (int i=0; i<items.length; i++) {
-				fillCheckedList(items[i], csSourceData);
+				fillCheckedList(items[i], csSourceList);
 			}
 		}
 	}
@@ -1032,9 +1109,9 @@ public class MobilePickerComposite extends Composite {
 				TreeItem treeItem = items[i];
 				TVObject tvo = (TVObject) treeItem.getData();
 				if (tvo != null) {
-					String tvoSourcePath = tvo.getSourcePath().replaceAll("\\?\\.", ".");
-					if (modelPath.startsWith(tvoSourcePath.replaceFirst("root", ""))) {
-						if (modelPath.equals(tvoSourcePath.replaceFirst("root", ""))) {
+					String tvoPath = tvo.getPath().replaceAll("\\?\\.", ".");
+					if (modelPath.startsWith(tvoPath.replaceFirst("root", ""))) {
+						if (modelPath.equals(tvoPath.replaceFirst("root", ""))) {
 							return tvo;
 						}
 						return findModelItem(items[i], modelPath);

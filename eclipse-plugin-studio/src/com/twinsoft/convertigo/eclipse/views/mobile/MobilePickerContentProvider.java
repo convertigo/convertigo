@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -65,20 +66,26 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		private String name;
 		private Object object;
 		private TVObject parent;
+		private SourceData data;
 		private JSONObject infos;
 		private List<TVObject> children = new ArrayList<TVObject>();
 		
 		private TVObject(String name) {
-			this(name, null);
+			this(name, null, null);
 		}
 		
-		private TVObject (String name, Object object) {
-			this(name, object, null);
+//		private TVObject (String name, Object object) {
+//			this(name, object, null);
+//		}
+		
+		private TVObject (String name, Object object, SourceData sd) {
+			this(name, object, sd, null);
 		}
 		
-		private TVObject (String name, Object object, JSONObject infos) {
+		private TVObject (String name, Object object, SourceData data, JSONObject infos) {
 			this.name = name;
 			this.object = object;
+			this.data = data;
 			this.infos = infos == null ? new JSONObject(): infos;
 		}
 
@@ -86,17 +93,30 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			return name;
 		}
 		
-		public String getSourcePath() {
+		public String getPath() {
 			String path = INVALID_CHARACTERS.matcher(name).find() ?  "['"+name+"']":name;
 			if (parent != null) {
-				path = parent.getSourcePath() + (path.startsWith("[") ? "":"?.") + path;
+				path = parent.getPath() + (path.startsWith("[") ? "":"?.") + path;
 			}
 			return path;
 		}
 		
-		public String getSourceData() {
+		public SourceData getSourceData() {
+			return data;
+		}
+		
+		public String getSource() {
 			String param = "";
 			if (object != null) {
+				// New code
+				if (data != null) {
+					String source = data.getSource();
+					if (source != null) {
+						return source;
+					}
+				}
+				
+				// Old code
 				if (object instanceof Sequence) {
 					String marker = "";
 					try {
@@ -106,7 +126,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					param = "'"+ sequence.getQName() + (!marker.isEmpty() ? "#":"") + marker + "'";
 				} else if (object instanceof DesignDocument) {
 					DesignDocument dd = (DesignDocument)object;
-					String db = parent.parent.parent.getName();
+					String db = dd.getParent().getQName();//parent.parent.parent.getName();
 					String ddoc = dd.getName();
 					String dview = parent.getName();
 					String vm = name;
@@ -198,7 +218,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 
 			Map<String, Set<String>> map = mobileComponent.getApplication().getInfoMap();
 			
-			TVObject root = new TVObject("root", mobileComponent);
+			TVObject root = new TVObject("root", mobileComponent, null);
 			if (filter.equals(Filter.Sequence)) {
 				TVObject tvs = root.add(new TVObject("sequences"));
 				for (String projectName : projectNames) {
@@ -237,7 +257,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 		} else if (parentElement instanceof JSONObject) {
 			JSONObject jsonObject = (JSONObject)parentElement;
 			
-			TVObject root = new TVObject("root", jsonObject);
+			TVObject root = new TVObject("root", jsonObject, null);
 			addJsonObjects(root);
 			
 			return root.children.toArray();
@@ -264,8 +284,15 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 				Project project = (Project)object;
 				for (Sequence s : project.getSequencesList()) {
 					String label = isReferenced ? s.getQName():s.getName();
-
-					tvs.add(new TVObject(label, s));
+					
+					SourceData sd = null;
+					try {
+						sd = Filter.Sequence.toSourceData(new JSONObject()
+								.put("sequence", s.getQName()));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					tvs.add(new TVObject(label, s, sd));
 					
 					Set<String> infos = map.get(s.getQName());
 					if (infos != null) {
@@ -275,7 +302,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 								if (jsonInfo.has("marker")) {
 									String marker = jsonInfo.getString("marker");
 									if (!marker.isEmpty()) {
-										tvs.add(new TVObject(label + "#" + marker, s, jsonInfo));
+										sd = Filter.Sequence.toSourceData(new JSONObject()
+												.put("sequence", s.getQName())
+												.put("marker", marker));
+										tvs.add(new TVObject(label + "#" + marker, s, sd, jsonInfo));
 									}
 								}
 							} catch (JSONException e) {
@@ -295,10 +325,12 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 				for (Connector c : project.getConnectorsList()) {
 					if (c instanceof FullSyncConnector) {
 						String label = isReferenced ? c.getQName():c.getName();
+						
 						TVObject tvc = tvd.add(new TVObject(label));
 						
 						for (Document d : c.getDocumentsList()) {
 							if (d instanceof DesignDocument) {
+								
 								TVObject tdd = tvc.add(new TVObject(d.getName()));
 								JSONObject views = CouchKey.views.JSONObject(((DesignDocument)d).getJSONObject());
 								if (views != null) {
@@ -311,7 +343,19 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 											
 											TVObject tvv = tdd.add(new TVObject(view));
 											
-											tvv.add(new TVObject("get", d));
+											SourceData sd = null;
+											try {
+												sd = Filter.Database.toSourceData(new JSONObject()
+														.put("connector", c.getQName())
+														.put("document", d.getQName())
+														.put("queryview", view)
+														.put("verb", "get"));
+											} catch (JSONException e) {
+												e.printStackTrace();
+											}
+											
+											//tvv.add(new TVObject("get", d, null));
+											tvv.add(new TVObject("get", d, sd));
 											infos = map.get(key+ ".get");
 											if (infos == null) {
 												infos = map.get(c.getQName() + ".get");
@@ -320,11 +364,25 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 												for (String info: infos) {
 													try {
 														JSONObject jsonInfo = new JSONObject(info);
+														boolean includeDocs = false;
+														if (jsonInfo.has("include_docs")) {
+															includeDocs = Boolean.valueOf(jsonInfo
+																	.getString("include_docs")).booleanValue();
+														}
 														if (jsonInfo.has("marker")) {
 															String marker = jsonInfo.getString("marker");
 															if (!marker.isEmpty()) {
 																String name = "get" + "#" + marker;
-																tvv.add(new TVObject(name, d, jsonInfo));
+																
+																sd = Filter.Database.toSourceData(new JSONObject()
+																		.put("connector", c.getQName())
+																		.put("document", d.getQName())
+																		.put("queryview", view)
+																		.put("verb", "get")
+																		.put("marker", marker)
+																		.put("includeDocs", includeDocs));
+																//tvv.add(new TVObject(name, d, null, jsonInfo));
+																tvv.add(new TVObject(name, d, sd, jsonInfo));
 															}
 														}
 													} catch (JSONException e) {
@@ -333,17 +391,42 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 												}
 											}
 											
-											tvv.add(new TVObject("view", d));
+											try {
+												sd = Filter.Database.toSourceData(new JSONObject()
+														.put("connector", c.getQName())
+														.put("document", d.getQName())
+														.put("queryview", view)
+														.put("verb", "view"));
+											} catch (JSONException e) {
+												e.printStackTrace();
+											}
+											//tvv.add(new TVObject("view", d, null));
+											tvv.add(new TVObject("view", d, sd));
+											
 											infos = map.get(key+ ".view");
 											if (infos != null) {
 												for (String info: infos) {
 													try {
 														JSONObject jsonInfo = new JSONObject(info);
+														boolean includeDocs = false;
+														if (jsonInfo.has("include_docs")) {
+															includeDocs = Boolean.valueOf(jsonInfo
+																	.getString("include_docs")).booleanValue();
+														}
 														if (jsonInfo.has("marker")) {
 															String marker = jsonInfo.getString("marker");
 															if (!marker.isEmpty()) {
 																String name = "view" + "#" + marker;
-																tvv.add(new TVObject(name, d, jsonInfo));
+																
+																sd = Filter.Database.toSourceData(new JSONObject()
+																		.put("connector", c.getQName())
+																		.put("document", d.getQName())
+																		.put("queryview", view)
+																		.put("verb", "view")
+																		.put("marker", marker)
+																		.put("includeDocs", includeDocs));
+																//tvv.add(new TVObject(name, d, null, jsonInfo));
+																tvv.add(new TVObject(name, d, sd, jsonInfo));
 															}
 														}
 													} catch (JSONException e) {
@@ -385,7 +468,16 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						
 						UIControlDirective uicd = (UIControlDirective)uic;
 						if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
-							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic));
+							SourceData sd = null;
+							try {
+								sd = Filter.Iteration.toSourceData(new JSONObject()
+										.put("priority", uic.priority));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+							
+							//TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, null));
+							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
 							addIterations(tuic, uic);
 						} else {
 							addIterations(tvi, uic);
@@ -415,7 +507,16 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							return;
 						}
 						
-						TVObject tuic = tvi.add(new TVObject(uic.toString(), uic));
+						SourceData sd = null;
+						try {
+							sd = Filter.Form.toSourceData(new JSONObject()
+									.put("priority", uic.priority));
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						
+						//TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, null));
+						TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
 						addForms(tuic, uic);
 					} else {
 						addForms(tvi, uic);
@@ -496,8 +597,16 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							jsonInfos.put(key, "");
 						}
 					}
+
+					SourceData sd = null;
+					try {
+						sd = Filter.Global.toSourceData(new JSONObject());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					
-					tvi.add(new TVObject("sharedObject", object, jsonInfos));
+					//tvi.add(new TVObject("sharedObject", object, null, jsonInfos));
+					tvi.add(new TVObject("sharedObject", object, sd, jsonInfos));
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
@@ -514,21 +623,21 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					JSONObject jsonObject = (JSONObject)object;
 					for (Iterator<String> it = GenericUtils.cast(jsonObject.keys()); it.hasNext();) {
 						String key = it.next();
-						TVObject tvo = new TVObject(key, jsonObject.get(key));
+						TVObject tvo = new TVObject(key, jsonObject.get(key), null);
 						addJsonObjects(tvo);
 						tvp.add(tvo);
 					}
 				} else if (object instanceof JSONArray) {
 					JSONArray jsonArray = (JSONArray)object;
 					for (int i = 0; i < jsonArray.length(); i++) {
-						TVObject tvo = new TVObject("["+i+"]", jsonArray.get(i));
+						TVObject tvo = new TVObject("["+i+"]", jsonArray.get(i), null);
 						addJsonObjects(tvo);
 						tvp.add(tvo);
 					}
 				} else {
 					String key = object.toString();
 					if (!key.isEmpty()) {
-						TVObject tvo = new TVObject(key, object);
+						TVObject tvo = new TVObject(key, object, null);
 						tvp.add(tvo);
 					}
 				}
