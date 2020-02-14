@@ -95,6 +95,12 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		String version = element.getAttribute("version");
 		long priority = Long.valueOf(element.getAttribute("priority")).longValue();
 
+		//TODO: REMOVE BEFORE RELEASE !!!
+		boolean doMigration = false;
+		if (!doMigration) {
+			return;
+		}
+		
 		if (VersionUtils.compare(version, "7.8.0") < 0) {
 			try {
 				NodeList properties = element.getElementsByTagName("property");
@@ -140,7 +146,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 												}
 												catch (Exception e) {
 													if (e instanceof InvalidSourceException) {
-														Engine.logBeans.error("Failed to migrate \""+ ionPropertyName + "\" property for the object \"" 
+														Engine.logBeans.warn("Failed to migrate \""+ ionPropertyName + "\" property for the object \"" 
 																					+ getName() + "\" (priority: "+priority+"): " + e.getMessage());
 													} else {
 														Engine.logBeans.error("Failed to migrate \""+ ionPropertyName + "\" property for the object \"" 
@@ -191,7 +197,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 									}
 									catch (Exception e) {
 										if (e instanceof InvalidSourceException) {
-											Engine.logBeans.error("Failed to migrate \""+ propertyName + "\" property for the object \"" 
+											Engine.logBeans.warn("Failed to migrate \""+ propertyName + "\" property for the object \"" 
 																		+ getName() + "\" (priority: "+priority+"): " + e.getMessage());
 										} else {
 											Engine.logBeans.error("Failed to migrate \""+ propertyName + "\" property for the object \"" 
