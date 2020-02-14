@@ -34,22 +34,56 @@ import org.eclipse.ui.part.FileInPlaceEditorInput;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IJScriptContainer;
+import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.ConvertigoTypeScriptDefinition;
 
 public class JScriptEditorInput extends FileInPlaceEditorInput implements IPropertyListener {
 	
 	static private IFile makeFile(IJScriptContainer jsContainer, IProject project) {
 		String fullname = jsContainer.getFullName();
-		IFile file = project.getFile("_private/editor." + fullname + ".js");
-		fillFile(jsContainer, file);
+		if (jsContainer instanceof DatabaseObject) {
+			DatabaseObject dbo = (DatabaseObject) jsContainer;
+			if (dbo instanceof Step) {
+				dbo = ((Step) dbo).getSequence();
+			}
+			if (dbo instanceof IVariableContainer) {
+				IVariableContainer vc = (IVariableContainer) dbo;
+				StringBuilder sb = new StringBuilder();
+				for (Variable v: vc.getVariables()) {
+					sb.append("declare var ").append(v.getName()).append(v.isMultiValued() ? ": Array<string>" : ": string\n");
+				}
+				fillFile(project.getFile("_private/editor/" + fullname + "/variables.d.ts"), sb.toString());				
+			}
+			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
+			String conf = "{\"compilerOptions\": {\"module\": \"es6\", \"target\": \"es6\"},\n" + 
+					"  \"include\": [\"" + ConvertigoTypeScriptDefinition.getDeclarationFile().getAbsolutePath().replace('\\', '/') + "\", \"*\"]}";
+			fillFile(jsconfig, conf);
+		} else if (jsContainer instanceof DesignDocumentFunctionTreeObject) {
+			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
+			String conf = "{\"compilerOptions\": {\"module\": \"es5\", \"target\": \"es5\"}, \"include\": [\"*\"]}";
+			fillFile(jsconfig, conf);
+			fillFile(project.getFile("_private/editor/" + fullname + "/couchdb.d.ts"),
+					"declare function emit(key, value)\n"
+					+ "declare function sum(values)"
+					+ "declare function log(txt)\n");
+		}
+		IFile file = project.getFile("_private/editor/" + fullname + "/code.js");
+		fillFile(file, jsContainer.getExpression());
+		
 		return file;
 	}
 	
-	static private void fillFile(IJScriptContainer jsContainer, IFile file) {
-		try (InputStream is = new ByteArrayInputStream(jsContainer.getExpression().getBytes("UTF-8"))) {
+	static private void fillFile(IFile file, String text) {
+		try (InputStream is = new ByteArrayInputStream(text.getBytes("UTF-8"))) {
 			if (!file.exists()) {
+				SwtUtils.mkDirs(file);
 				file.create(is, true, null);
 			} else {
 				file.setContents(is, true, false, null);
@@ -120,7 +154,7 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 	}
 	
 	public void reload() {
-		fillFile(jsContainer, getFile());
+		fillFile(getFile(), jsContainer.getExpression());
 	}
 
 	@Override

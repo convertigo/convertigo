@@ -19,6 +19,10 @@
 
 package com.twinsoft.convertigo.eclipse.swt;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
@@ -61,6 +65,17 @@ public class SwtUtils {
 			themeEngine.setTheme(themeEngine.getActiveTheme(), true);
 		} catch (Exception e) {
 			//e.printStackTrace();
+		}
+	}
+	
+	public static void mkDirs(IResource res) throws CoreException {
+		if (res instanceof IFile) {
+			mkDirs(res.getParent());
+		} else if (res instanceof IFolder) {
+			if (!res.exists()) {
+				mkDirs(res.getParent());
+				((IFolder) res).create(true, true, null);
+			}
 		}
 	}
 }

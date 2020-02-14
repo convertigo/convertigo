@@ -35,6 +35,7 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.views.properties.PropertySheet;
 
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
@@ -131,7 +132,13 @@ public class ConvertigoPartListener implements IPartListener {
 					e.printStackTrace();
 				}
 			}
-			if (input instanceof FileEditorInput) {
+			if (input instanceof JScriptEditorInput) {
+				try {
+					((JScriptEditorInput) input).getFile().getParent().delete(true, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else if (input instanceof FileEditorInput) {
 				try {
 					((FileEditorInput) input).getFile().delete(true, null);
 				} catch (Exception e) {
