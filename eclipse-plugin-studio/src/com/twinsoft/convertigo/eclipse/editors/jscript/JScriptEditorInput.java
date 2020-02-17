@@ -48,8 +48,16 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 	
 	static private IFile makeFile(IJScriptContainer jsContainer, IProject project) {
 		String fullname = jsContainer.getFullName();
-		if (jsContainer instanceof DatabaseObject) {
-			DatabaseObject dbo = (DatabaseObject) jsContainer;
+		if (jsContainer instanceof DesignDocumentFunctionTreeObject) {
+			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
+			String conf = "{\"compilerOptions\": {\"module\": \"es5\", \"target\": \"es5\"}, \"include\": [\"*\"]}";
+			fillFile(jsconfig, conf);
+			fillFile(project.getFile("_private/editor/" + fullname + "/couchdb.d.ts"),
+					"declare function emit(key, value)\n"
+					+ "declare function sum(values)"
+					+ "declare function log(txt)\n");
+		} else {
+			DatabaseObject dbo = jsContainer.getDatabaseObject();
 			if (dbo instanceof Step) {
 				dbo = ((Step) dbo).getSequence();
 			}
@@ -65,14 +73,6 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 			String conf = "{\"compilerOptions\": {\"module\": \"es6\", \"target\": \"es6\"},\n" + 
 					"  \"include\": [\"" + ConvertigoTypeScriptDefinition.getDeclarationFile().getAbsolutePath().replace('\\', '/') + "\", \"*\"]}";
 			fillFile(jsconfig, conf);
-		} else if (jsContainer instanceof DesignDocumentFunctionTreeObject) {
-			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
-			String conf = "{\"compilerOptions\": {\"module\": \"es5\", \"target\": \"es5\"}, \"include\": [\"*\"]}";
-			fillFile(jsconfig, conf);
-			fillFile(project.getFile("_private/editor/" + fullname + "/couchdb.d.ts"),
-					"declare function emit(key, value)\n"
-					+ "declare function sum(values)"
-					+ "declare function log(txt)\n");
 		}
 		IFile file = project.getFile("_private/editor/" + fullname + "/code.js");
 		fillFile(file, jsContainer.getExpression());

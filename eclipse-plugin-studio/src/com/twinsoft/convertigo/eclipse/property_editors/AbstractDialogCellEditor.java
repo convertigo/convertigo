@@ -26,9 +26,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public abstract class AbstractDialogCellEditor extends DialogCellEditor {
@@ -61,7 +61,7 @@ public abstract class AbstractDialogCellEditor extends DialogCellEditor {
 	}
 
 	protected Object openDialogBox(Control cellEditorWindow) {
-		Shell parent = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+		Shell parent = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
     	EditorFrameworkDialog dialog = new EditorFrameworkDialog(parent, dialogCompositeClass, this);
 
 		int userResponse = dialog.open();

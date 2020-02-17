@@ -20,14 +20,50 @@
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.ui.PartInitException;
 
-public class JavascriptTextEditor extends AbstractDialogCellEditor {
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IJScriptContainer;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
+import com.twinsoft.convertigo.engine.Engine;
 
-    public JavascriptTextEditor(Composite parent) {
-        super(parent);
+public class JavascriptTextEditor extends AbstractDialogCellEditor implements IJScriptContainer {
 
-        dialogTitle = "Javascript expression";
-        dialogCompositeClass = TextEditorComposite.class;
-    }
+	public JavascriptTextEditor(Composite parent) {
+		super(parent);
 
+		dialogTitle = "Javascript expression";
+		dialogCompositeClass = TextEditorComposite.class;
+	}
+
+	@Override
+	protected Object openDialogBox(Control cellEditorWindow) {
+		try {
+			JScriptEditorInput.openJScriptEditor(databaseObjectTreeObject, this);
+		} catch (PartInitException e) {
+			Engine.logStudio.error("failed to open editor", e);
+		}
+		return null;
+	}
+
+	@Override
+	public String getExpression() {
+		return getValue().toString();
+	}
+
+	@Override
+	public void setExpression(String expression) {
+		databaseObjectTreeObject.setPropertyValue(propertyDescriptor.getId(), expression);
+	}
+
+	@Override
+	public String getName() {
+		return databaseObjectTreeObject.getName() + ":" + propertyDescriptor.getDisplayName();
+	}
+	
+	@Override
+	public DatabaseObject getDatabaseObject() {
+		return databaseObjectTreeObject.getObject();
+	}
 }
