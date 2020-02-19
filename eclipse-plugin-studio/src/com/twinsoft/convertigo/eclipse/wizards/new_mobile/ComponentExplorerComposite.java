@@ -406,6 +406,7 @@ public class ComponentExplorerComposite extends Composite {
 		});
 
 		helpBrowser = new C8oBrowser(this, SWT.MULTI | SWT.WRAP);
+		helpBrowser.setUseExternalBrowser(true);
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;

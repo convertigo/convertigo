@@ -22,7 +22,9 @@ ext.convertigoTag = 'beta'
 ext.convertigoCodename = 'platinum'
 ext.convertigoCode = 'Pt'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-ext.jxBrowserVersion = '6.24.2'
+//ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
+ext.jxBrowserGroup = 'com.convertigo.lib'
+ext.jxBrowserVersion = '7.6-b18-eap'
 ext.swaggerUiVersion = '3.19.3'
 ext.tomcatVersion = '9.0.30'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
@@ -178,11 +180,39 @@ publishing {
 			}
 		}
 		
-		jxBrowserLicense (MavenPublication) {
+		jxBrowser (MavenPublication) {
 			groupId 'com.convertigo.lib'
-			artifactId 'jxbrowser-license'
-			version '2019.04.02'
-			artifact 'resources/jxbrowser-license.jar'
+			artifactId 'jxbrowser'
+			version '7.6-b18-eap'
+			artifact 'resources/jxbrowser-7.6-b18-eap/jxbrowser-7.6-b18-eap.jar'
+		}
+		
+		jxBrowserLinux64 (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-linux64'
+			version '7.6-b18-eap'
+			artifact 'resources/jxbrowser-7.6-b18-eap/jxbrowser-linux64-7.6-b18-eap.jar'
+		}
+		
+		jxBrowserMac (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-mac'
+			version '7.6-b18-eap'
+			artifact 'resources/jxbrowser-7.6-b18-eap/jxbrowser-mac-7.6-b18-eap.jar'
+		}
+		
+		jxBrowserWin64 (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-win64'
+			version '7.6-b18-eap'
+			artifact 'resources/jxbrowser-7.6-b18-eap/jxbrowser-win64-7.6-b18-eap.jar'
+		}
+		
+		jxBrowserSwt (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-swt'
+			version '7.6-b18-eap'
+			artifact 'resources/jxbrowser-7.6-b18-eap/jxbrowser-swt-7.6-b18-eap.jar'
 		}
 		
 		ojdbc (MavenPublication) {

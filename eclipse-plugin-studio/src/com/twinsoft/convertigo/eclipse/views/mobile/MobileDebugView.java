@@ -24,13 +24,14 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jettison.json.JSONArray;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
-import com.teamdev.jxbrowser.chromium.Browser;
+import com.teamdev.jxbrowser.browser.Browser;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.Engine;
@@ -39,6 +40,8 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	
 	C8oBrowser c8oBrowser;
 	Browser browser;
+	String currentUrl = null;
+	
 	public MobileDebugView() {
 		
 	}
@@ -52,12 +55,17 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
+		c8oBrowser = new C8oBrowser(parent, SWT.MULTI | SWT.WRAP);
+		c8oBrowser.setLayout(new FillLayout());
 		c8oBrowser.setZoomEnabled(false);
-		c8oBrowser.setText("<head><style>color: $foreground$; background-color: $background$;</style></head>"
-				+ "<body>please select a mobile application editor</body>");
 		
-		onActivated(getSite().getPage().getActiveEditor());
+		if (!onActivated(getSite().getPage().getActiveEditor())) {
+			parent.getDisplay().asyncExec(() -> {
+				c8oBrowser.setText("<html><head><style>color: $foreground$; background-color: $background$;</style></head>"
+						+ "<body>please select a mobile application editor</body></html>");
+			});
+		}
+		
 		getSite().getPage().addPartListener(this);
 	}
 
@@ -66,21 +74,27 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		c8oBrowser.setFocus();
 	}
 
-	private void onActivated(IWorkbenchPart part) {
+	public boolean onActivated(IWorkbenchPart part) {
 		if (part instanceof ApplicationComponentEditor) {
 			String url = ((ApplicationComponentEditor) part).getDebugUrl();
 			if (url != null) {
-				Engine.execute(() -> {
-					String u = url;
-					try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(new HttpGet(url + "/json"))) {
-						JSONArray json = new JSONArray(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
-						u = json.getJSONObject(0).getString("devtoolsFrontendUrl");
-					} catch (Exception e) {
-					}
-					c8oBrowser.loadURL(u);
-				});
+				String key = part.toString() + ":" + url;
+				if (!key.equals(currentUrl)) {
+					currentUrl = key;
+					Engine.execute(() -> {
+						String u = url;
+						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(new HttpGet(u + "/json"))) {
+							JSONArray json = new JSONArray(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+							u = json.getJSONObject(0).getString("devtoolsFrontendUrl");
+						} catch (Exception e) {
+						}
+						c8oBrowser.loadURL(u);
+					});
+					return true;
+				}
 			}
 		}
+		return false;
 	}
 	
 	@Override
@@ -122,7 +136,6 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 	@Override
 	public void partVisible(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		partRef.toString();
 	}
 
 	@Override

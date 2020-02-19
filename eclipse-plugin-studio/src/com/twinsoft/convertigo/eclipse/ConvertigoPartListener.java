@@ -31,13 +31,13 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.part.EditorPart;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.views.properties.PropertySheet;
 
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -138,9 +138,9 @@ public class ConvertigoPartListener implements IPartListener {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			} else if (input instanceof FileEditorInput) {
+			} else if (input instanceof ComponentFileEditorInput) {
 				try {
-					((FileEditorInput) input).getFile().delete(true, null);
+					((ComponentFileEditorInput) input).getFile().delete(true, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

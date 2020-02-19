@@ -682,6 +682,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 				browser.addProgressListener(progressListener);
 				browser.setUrl(url);
+				browser.setUseExternalBrowser(true);
 				parent.layout(true, true);
 			} catch (Exception e) {
 				System.out.println("Could not instantiate Browser: " + e.getMessage());
@@ -1477,7 +1478,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 * @return SourcePickerView : the source picker view of Convertigo Plugin
 	 * @throws  
 	 */
-	public MobileDebugView getMobileDebugView() {
+	public MobileDebugView getMobileDebugView(boolean force) {
 		MobileDebugView mobileDebugView = null;
 		try {
 			IWorkbenchPage activePage = getActivePage();
@@ -1486,7 +1487,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				if (viewPart != null)
 					mobileDebugView = (MobileDebugView) viewPart;
 			}
-			if (mobileDebugView == null) {
+			if (mobileDebugView == null && force) {
 				mobileDebugView = (MobileDebugView) getActivePage().showView("com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView");
 			}
 		} catch (PartInitException e) {

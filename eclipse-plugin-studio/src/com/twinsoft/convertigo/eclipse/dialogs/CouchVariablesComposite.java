@@ -237,6 +237,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			
 			labelName.setText(label);
 			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP | SWT.BORDER);
+			browserDescription.setUseExternalBrowser(true);
 			if (SwtUtils.isDark()) {
 				browserDescription.setBackground(getParent().getBackground());
 			}
