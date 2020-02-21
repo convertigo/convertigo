@@ -1784,36 +1784,32 @@ public class Engine {
 	}
 	
 	public static String resolveProjectPath(String path) {
-		if (Engine.isStudioMode()) {
-			File file = new File(path);
-			file = resolveProjectPath(file);
-			try {
-				path = file.getCanonicalPath();
-			} catch (IOException e) {
-				path = file.getAbsolutePath();
-			}
+		File file = new File(path);
+		file = resolveProjectPath(file);
+		try {
+			path = file.getCanonicalPath();
+		} catch (IOException e) {
+			path = file.getAbsolutePath();
 		}
 		return path;
 	}
 	
 	public static File resolveProjectPath(File file) {
-		if (Engine.isStudioMode()) {
-			String path;
-			try {
-				path = file.getCanonicalPath();
-			} catch (IOException e) {
-				path = file.getAbsolutePath();
-			}
-			String projectPath = Engine.PROJECTS_PATH + File.separator;
-			if (path.startsWith(projectPath)) {
-				path = path.substring(projectPath.length());
-				Pattern reProject = Pattern.compile("(.*?)(" + Pattern.quote(File.separator) + ".*|$)");
-				Matcher mProject = reProject.matcher(path);
-				if (mProject.matches()) {
-					String projectName = mProject.group(1);
-					path = Engine.projectDir(projectName) + mProject.group(2);
-					file = new File(path);
-				}
+		String path;
+		try {
+			path = file.getCanonicalPath();
+		} catch (IOException e) {
+			path = file.getAbsolutePath();
+		}
+		String projectPath = Engine.PROJECTS_PATH + File.separator;
+		if (path.startsWith(projectPath)) {
+			path = path.substring(projectPath.length());
+			Pattern reProject = Pattern.compile("(.*?)(" + Pattern.quote(File.separator) + ".*|$)");
+			Matcher mProject = reProject.matcher(path);
+			if (mProject.matches()) {
+				String projectName = mProject.group(1);
+				path = Engine.projectDir(projectName) + mProject.group(2);
+				file = new File(path);
 			}
 		}
 		return file;
