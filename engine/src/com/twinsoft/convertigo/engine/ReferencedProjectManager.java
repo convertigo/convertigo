@@ -49,16 +49,18 @@ public class ReferencedProjectManager {
 		for (String name: names) {
 			try {
 				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, true);
-				project.getReferenceList().forEach(r -> {
-					if (r instanceof ProjectSchemaReference) {
-						ProjectSchemaReference ref = (ProjectSchemaReference) r;
-						String url = ref.getProjectName();
-						ProjectUrlParser parser = new ProjectUrlParser(url);
-						if (parser.isValid()) {
-							refs.put(parser.getProjectName(), parser);
+				if (project != null) {
+					project.getReferenceList().forEach(r -> {
+						if (r instanceof ProjectSchemaReference) {
+							ProjectSchemaReference ref = (ProjectSchemaReference) r;
+							String url = ref.getProjectName();
+							ProjectUrlParser parser = new ProjectUrlParser(url);
+							if (parser.isValid()) {
+								refs.put(parser.getProjectName(), parser);
+							}
 						}
-					}
-				});
+					});
+				}
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to load " + name, e);
 			}
@@ -172,6 +174,9 @@ public class ReferencedProjectManager {
 			//GitUtils.pull(dir);
 			if (project == null) {
 				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"));
+				if (!projectName.equals(project.getName())) {
+					throw new EngineException("Referenced name is '" + projectName + "' but loaded project is '" + project.getName() + "'");
+				}
 				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + project);
 			}
 		}
