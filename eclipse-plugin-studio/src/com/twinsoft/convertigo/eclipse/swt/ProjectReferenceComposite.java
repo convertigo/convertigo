@@ -20,8 +20,11 @@
 package com.twinsoft.convertigo.eclipse.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -111,6 +114,28 @@ public class ProjectReferenceComposite extends Composite {
 				onChange.run();
 			}
 		});
+
+		label = new Label(this, SWT.NONE);
+		label.setText("Auto reset/pull");
+		Button autoPull = new Button(this, SWT.CHECK);
+		autoPull.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		autoPull.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				parser.setAutoPull(autoPull.getSelection());
+				if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
+					completGitUrl.setText(parser.getProjectUrl());
+				}
+				if (onChange != null) {
+					onChange.run();
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 		
 		completGitUrl.addModifyListener(e -> {
 			parser.setUrl(completGitUrl.getText());
@@ -140,6 +165,7 @@ public class ProjectReferenceComposite extends Composite {
 			if (!gitBranch.getText().equals(txt)) {
 				gitBranch.setText(txt);
 			}
+			autoPull.setSelection(parser.isAutoPull());
 			if (onChange != null) {
 				onChange.run();
 			}

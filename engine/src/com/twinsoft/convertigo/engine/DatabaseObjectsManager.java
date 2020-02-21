@@ -1012,7 +1012,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 							if (m.group(1) != null) {
 								version[0] = m.group(2);
 							} else {
-								line = br.readLine();							
+								line = br.readLine();
 							}
 						} else {
 							line = null;
@@ -1114,6 +1114,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				projects.put(project.getName(), project);
 				RestApiManager.getInstance().putUrlMapper(project);
 				MobileBuilder.initBuilder(project);
+			}
+			
+			if (!Engine.isStudioMode()) {
+				Engine.theApp.referencedProjectManager.check(project);
 			}
 
 			// Creates xsd/wsdl files (Since 4.6.0)

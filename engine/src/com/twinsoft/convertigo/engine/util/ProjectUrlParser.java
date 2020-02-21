@@ -35,6 +35,7 @@ public class ProjectUrlParser {
 	private String projectPath;
 	private String gitBranch;
 	private String projectUrl;
+	private boolean autoPull = false;
 	
 	public ProjectUrlParser(String projectUrl) {
 		setUrl(projectUrl);
@@ -61,6 +62,7 @@ public class ProjectUrlParser {
 				switch (key) {
 				case "path": projectPath = value; break;
 				case "branch": gitBranch = value; break;
+				case "autoPull": autoPull = "true".equalsIgnoreCase(value); break;
 				}
 			}
 			this.projectUrl = projectUrl; 
@@ -93,12 +95,16 @@ public class ProjectUrlParser {
 		return projectUrl;
 	}
 	
+	public boolean isAutoPull() {
+		return autoPull;
+	}
+	
 	public String toString() {
 		return isValid() ? getProjectUrl() : getProjectName();
 	}
 	
 	public void setProjectName(String projectName) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch);
+		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
 		if (parser.isValid()) {
 			this.projectName = projectName;
 			setUrl(parser.getProjectUrl());
@@ -106,7 +112,7 @@ public class ProjectUrlParser {
 	}
 
 	public void setGitUrl(String gitUrl) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch);
+		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
 		if (parser.isValid()) {
 			this.gitUrl = gitUrl;
 			setUrl(parser.getProjectUrl());
@@ -114,7 +120,7 @@ public class ProjectUrlParser {
 	}
 
 	public void setProjectPath(String projectPath) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch);
+		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
 		if (parser.isValid()) {
 			this.projectPath = projectPath;
 			setUrl(parser.getProjectUrl());
@@ -122,28 +128,39 @@ public class ProjectUrlParser {
 	}
 
 	public void setGitBranch(String gitBranch) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch);
+		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
 		if (parser.isValid()) {
 			this.gitBranch = gitBranch;
 			setUrl(parser.getProjectUrl());
 		}
 	}
 
+	public void setAutoPull(boolean autoPull) {
+		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
+		if (parser.isValid()) {
+			this.autoPull = autoPull;
+			setUrl(parser.getProjectUrl());
+		}
+	}
+
 	public void setProjectUrl(String projectUrl) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch);
+		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
 		if (parser.isValid()) {
 			this.projectUrl = projectUrl;
 			setUrl(parser.getProjectUrl());
 		}
 	}
 	
-	static public ProjectUrlParser makeUrl(String projectName, String gitUrl, String projectPath, String gitBranch) {
+	static public ProjectUrlParser makeUrl(String projectName, String gitUrl, String projectPath, String gitBranch, boolean autoPull) {
 		StringBuilder url = new StringBuilder(projectName).append('=').append(gitUrl);
 		if (projectPath != null && !projectPath.isEmpty()) {
 			url.append(":path=").append(projectPath);
 		}
 		if (gitBranch != null && !gitBranch.isEmpty()) {
 			url.append(":branch=").append(gitBranch);
+		}
+		if (autoPull) {
+			url.append(":autoPull=true");
 		}
 		return new ProjectUrlParser(url.toString());
 	}
