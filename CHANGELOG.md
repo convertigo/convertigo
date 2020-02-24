@@ -8,6 +8,8 @@
 - [#304](https://github.com/convertigo/convertigo/issues/304) Gradle can now generate and compile MobileBuilder applications
 - [#307](https://github.com/convertigo/convertigo/issues/307) Set the project compatibility version to the highest bean version used
 - [#314](https://github.com/convertigo/convertigo/issues/314) Studio: opens link of documentation with the default external browser
+- [#322](https://github.com/convertigo/convertigo/issues/322) Add a property "Auto Pull" for Reference Project (git case)
+- [#323](https://github.com/convertigo/convertigo/issues/323) Engine "Git Container" property default to workspace/git (instead of <user>/git)
 
 #### Bug Fixes:
 
@@ -19,6 +21,7 @@
 - [#312](https://github.com/convertigo/convertigo/issues/312) Fixed, wrong label for Icon 'icon name' property
 - [#313](https://github.com/convertigo/convertigo/issues/313) Fixed, HTTP 404 on documentation links for CallSequence Action and Fullsync Actions
 - [#315](https://github.com/convertigo/convertigo/issues/315) Fixed, PageEvent of a shared component may not be generated in calling page
+- [#321](https://github.com/convertigo/convertigo/issues/321) Fixed, Server: file path properties with .// can now resolve projects outside of the project folder
 
 ---
 
