@@ -115,7 +115,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	 */
 	@Override
 	public boolean canFinish() {
-		return fileChooserPage.getParser().isValid() || getTargetProjectName() != null;
+		return fileChooserPage.getParser().isValid() || fileChooserPage.filePath.matches("https?://.+") || getTargetProjectName() != null;
 	}
 
 	//Modified by julienda - 13/09/2012

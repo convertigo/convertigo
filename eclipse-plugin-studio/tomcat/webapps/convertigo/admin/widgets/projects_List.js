@@ -26,7 +26,7 @@ function projects_List_init() {
 		icons : {
 			primary : "ui-icon-circle-plus"
 		}
-	}).click(function(){
+	}).click(function() {
 		projectsDeploy();
 	});
 	
@@ -34,11 +34,11 @@ function projects_List_init() {
 		icons : {
 			primary : "ui-icon-circle-arrow-s"
 		}
-	}).click(function(){
+	}).click(function() {
 		projectsImportURL();
 	});
 
-	$("#projectsListButtonDeleteAll").button({				
+	$("#projectsListButtonDeleteAll").button({
 		icons : {
 			primary : "ui-icon-closethick"
 		}
@@ -46,17 +46,17 @@ function projects_List_init() {
 		showConfirm("Are you sure you want to delete all the projects?", function() {
 			$("#project_Edit").hide();
 			startWait(50);
-			$("#projectsList tr:gt(0)").each(function(){			
+			$("#projectsList tr:gt(0)").each(function(){
 				callService("projects.Delete",function(){},{"projectName":$(this).attr('id')});
 			});
 			setTimeout(function() {
 				projects_List_init();
 				endWait();
 			}, 1000);
-		});					
+		});
 	});
 
-	$("#projectsCheckRemoteDependencies").button({				
+	$("#projectsCheckRemoteDependencies").button({
 		icons : {
 			primary : "ui-icon-arrowthickstop-1-s"
 		}
@@ -65,7 +65,7 @@ function projects_List_init() {
 			callService("projects.CheckDependencies", function(xml) {
 				projects_List_update();
 			});
-		});					
+		});
 	});
 
 	callService("projects.List", function(xml) {
@@ -203,7 +203,7 @@ function updateProjectsList(xml) {
 	}
 }
 
-function projectsDeploy(xml) {	
+function projectsDeploy(xml) {
 	
 		$("#dialog-deploy-project").dialog({
 			autoOpen : true,
@@ -222,9 +222,9 @@ function projectsDeploy(xml) {
 		});
 		
 		var ajaxUpload = new AjaxUpload("btn-browseAndDeploy", {
-			action : "services/projects.Deploy",			
-			responseType : "xml",		
-			onSubmit : function(file, ext) {			
+			action : "services/projects.Deploy",
+			responseType : "xml",
+			onSubmit : function(file, ext) {
 				this._settings.action = "services/projects.Deploy?bAssembleXsl=" + $("#projectsAssembleXsl").prop("checked");
 				var str = ".car";
 				if (file.match(str + "$") != str) {
@@ -251,7 +251,7 @@ function projectsDeploy(xml) {
 				}
 				projects_List_init();
 			}
-		});	
+		});
 
 }
 
@@ -345,7 +345,7 @@ function exportProject(projectName) {
 		var $div = $("<div/>");
 		$div.css({"text-align": "left"});
 		$(xml).find("option").each(function(x) {
-			var id = "exportOption_" + this.getAttribute("name"); 
+			var id = "exportOption_" + this.getAttribute("name");
 			$("<input/>").attr({
 				checked: "checked",
 				type: "checkbox",
@@ -382,7 +382,7 @@ function exportProject(projectName) {
 }
 
 function projectsImportURL() {
-	var $input = $("<div><p>Import a project from url like:<br/><b>&lt;project name&gt;=&lt;git URL&gt;[:path=&lt;optional subpath&gt;][:branch=&lt;optional branch&gt;]</b></p><p><input type=\"text\" size=\"70\"/></p><p style=\"color: red\" id=\"importError\"></p></div>");
+	var $input = $("<div><p>Import a project from url like:<br/><b>&lt;project name&gt;=&lt;git URL&gt;[:path=&lt;optional subpath&gt;][:branch=&lt;optional branch&gt;]</b></p><p>Or a Convertigo Archive HTTP(S) URL.</p><p><input type=\"text\" size=\"70\"/></p><p style=\"color: red\" id=\"importError\"></p></div>");
 	$input.dialog({
 		autoOpen : true,
 		title: "Import from a Remote Project URL",
@@ -393,16 +393,16 @@ function projectsImportURL() {
 				var url = $input.find("input").val();
 				callService("projects.ImportURL", function(xml) {
 					var error = $(xml).find("error").text();
-					if (error != "") {
+					if (error == "") {
+						$input.remove();
 						projects_List_update();
-						$input.dialog("close");
 					} else {
 						$input.find("#importError").text(error);
 					}
 				}, {url: url});
 			},
 			Cancel: function() {
-				$input.dialog("close");
+				$input.remove();
 			}
 		},
 		close : function () {

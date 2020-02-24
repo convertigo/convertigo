@@ -2990,13 +2990,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
-		TreeObject projectTreeObject = null;
+		TreeObject[] projectTreeObject = {null};
 		if (targetProjectName != null) {
-			projectTreeObject = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
+			projectTreeObject[0] = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
 		} 
 
 		// if project already exists, backup it and delete it after
-		if (projectTreeObject != null) {
+		if (projectTreeObject[0] != null) {
 			if (Engine.isProjectFile(filePath)) {
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_data"));
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_private"));
@@ -3007,31 +3007,54 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
 
-		Project importedProject = null;
+		boolean doImport;
 		if (Engine.isProjectFile(filePath)) {
 			ConvertigoPlugin.getDefault().createProjectPluginResource(targetProjectName, new File(filePath).getParent());
-			importedProject = Engine.theApp.databaseObjectsManager.importProject(filePath);
-		} else if ((filePath.endsWith(".car") || filePath.endsWith(".zip")) && (targetProjectName != null)) {
-			importedProject = Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
+			doImport = true;
+		} else if (((filePath.endsWith(".car") || filePath.endsWith(".zip")) && (targetProjectName != null)) ||
+				filePath.matches("https?://.+")) {
+			doImport = false;
+		} else {
+			return false;
 		}
-
-		if (importedProject != null) {
-			// project's name may have been changed because of non-normalized name (fix ticket #788 : Cannot import project 213.car)
-			targetProjectName = importedProject.getName();
-
-			// loads project into tree view
-			if (projectTreeObject == null) {
-				importProjectTreeObject(targetProjectName);
-			} else {
-				// recreate project resource
-				ConvertigoPlugin.getDefault().getProjectPluginResource(targetProjectName);
-				reloadProject(projectTreeObject);
+		
+		Engine.execute(() -> {
+			Exception[] exception = {null};
+			try {
+				Project importedProject = doImport ?
+						Engine.theApp.databaseObjectsManager.importProject(filePath) :
+							Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
+						viewer.getControl().getDisplay().syncExec(() -> {
+							try {
+								// project's name may have been changed because of non-normalized name (fix ticket #788 : Cannot import project 213.car)
+								String projectName = importedProject.getName();
+	
+								// loads project into tree view
+								if (projectTreeObject[0] == null) {
+									importProjectTreeObject(projectName);
+								} else {
+									// recreate project resource
+									ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+									reloadProject(projectTreeObject[0]);
+								}
+	
+								refreshTree();
+							} catch (Exception e) {
+								exception[0] = e;
+							}
+						});
+			} catch (Exception e) {
+				exception[0] = e;
 			}
-
-			refreshTree();
-			return true;
-		}
-		return false;
+			if (exception[0] != null) {
+				viewer.getControl().getDisplay().syncExec(() -> {
+					Engine.logStudio.error("Failed to import project", exception[0]);
+					ConvertigoPlugin.errorMessageBox("Failed to import project [" + exception[0].getClass().getSimpleName() + "]: " + exception[0].getMessage());
+				});
+			}
+		});
+		
+		return true;
 	}
 	
 	public Comparator<TreeObject> getViewerComparator() {

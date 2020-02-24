@@ -41,12 +41,17 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -59,6 +64,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
@@ -220,6 +227,17 @@ public class HttpUtils {
 			private synchronized CloseableHttpClient getHttpClient4() {
 				if (httpClient == null) {
 					HttpClientBuilder httpClientBuilder = HttpClients.custom();
+					if (Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
+						HttpHost proxy = new HttpHost(Engine.theApp.proxyManager.getProxyServer(), Engine.theApp.proxyManager.getProxyPort());
+						httpClientBuilder.setProxy(proxy);
+						if (Engine.theApp.proxyManager.proxyMethod == ProxyMethod.basic) {
+							CredentialsProvider credsProvider = new BasicCredentialsProvider();
+							credsProvider.setCredentials(
+									new AuthScope(proxy.getHostName(), proxy.getPort()),
+									new UsernamePasswordCredentials(Engine.theApp.proxyManager.getProxyUser(), Engine.theApp.proxyManager.getProxyPassword()));
+							httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
+						};
+					}
 					
 					@SuppressWarnings("deprecation")
 					String spec = CookieSpecs.BROWSER_COMPATIBILITY;
