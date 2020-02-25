@@ -310,10 +310,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		Set<UIComponent> done = new HashSet<>();
 		List<UIPageEvent> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIPageEvent) {
-				eventList.add((UIPageEvent) uiComponent);
-			} else {
-				uiComponent.addPageEvent(done, eventList);
+			if (uiComponent.isEnabled()) {
+				if (uiComponent instanceof UIPageEvent) {
+					eventList.add((UIPageEvent) uiComponent);
+				} else {
+					uiComponent.addPageEvent(done, eventList);
+				}
 			}
 		}
 		return eventList;
@@ -323,10 +325,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		Set<UIComponent> done = new HashSet<>();
 		List<UIEventSubscriber> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIEventSubscriber) {
-				eventList.add((UIEventSubscriber) uiComponent);
-			} else {
-				uiComponent.addEventSubscriber(done, eventList);
+			if (uiComponent.isEnabled()) {
+				if (uiComponent instanceof UIEventSubscriber) {
+					eventList.add((UIEventSubscriber) uiComponent);
+				} else {
+					uiComponent.addEventSubscriber(done, eventList);
+				}
 			}
 		}
 		return eventList;

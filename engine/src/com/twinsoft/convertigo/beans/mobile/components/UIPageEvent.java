@@ -56,12 +56,10 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			for (UIPageEvent pageEvent : eventList) {
 				if (pageEvent.getViewEvent().equals(this)) {
 					String computed = pageEvent.computeEvent();
-					computed = computed.replace("$event", "'"+this.event+"'");
-					if (children.length() > 0) {
-						children.append(",");
+					if (!computed.isEmpty()) {
+						children.append(children.length() > 0 ? "," : "");
+						children.append(computed.replace("$event", "'"+this.event+"'"));
 					}
-					children.append(computed);
-//					break;
 				}
 			}
 			
