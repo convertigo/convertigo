@@ -130,10 +130,14 @@ public class ReferencedProjectManager {
 	}
 	
 	public Project importProjectFrom(Project project, String projectName) throws Exception {
-		if (project.getName().equals(projectName)) {
-			return project;
+		Project targetProject = project.getName().equals(projectName) ? project : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		if (targetProject == null) {
+			ProjectSchemaReference ref = getReferenceFromProject(project, projectName);
+			if (ref != null) {
+				targetProject = importProject(ref.getParser());
+			}
 		}
-		return importProject(getReferenceFromProject(project, projectName).getParser());
+		return targetProject;
 	}
 	
 	public Project importProject(ProjectUrlParser parser) throws Exception {
@@ -189,7 +193,7 @@ public class ReferencedProjectManager {
 			}
 		}
 		if (dir != null) {
-			if (!cloneDone && parser.isAutoPull()) {
+			if (!cloneDone && parser.isAutoPull() && !Engine.isStudioMode()) {
 				String exRev = GitUtils.getRev(dir);
 				GitUtils.reset(dir);
 				GitUtils.pull(dir);
