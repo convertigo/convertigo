@@ -11,6 +11,8 @@ import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.twinsoft.convertigo.engine.Engine;
 
 public class ConvertigoTypeScriptDefinition {
@@ -121,7 +123,7 @@ public class ConvertigoTypeScriptDefinition {
 			String pkg = getPackageName(cls) + ".";
 			if (pkg.equals(exPkg)) {
 				String code = getCode(nPrepend, cls);
-				if (org.apache.commons.lang3.StringUtils.isNotBlank(code)) {
+				if (StringUtils.isNotBlank(code)) {
 					sb.append(prepend).append("declare class " + cls.getSimpleName());
 					Class<?> scls = cls.getSuperclass();
 					if (scls != null && !scls.equals(Object.class) && !scls.equals(Enum.class)) {
@@ -140,7 +142,7 @@ public class ConvertigoTypeScriptDefinition {
 				String namespace = pkg.substring(exPkg.length(), pkg.indexOf('.', exPkg.length()));
 				String nPkg = pkg.substring(0, pkg.indexOf('.', exPkg.length()));
 				String code = getCode(nPkg, nPrepend, classes);
-				if (!code.isBlank()) {
+				if (StringUtils.isNotBlank(code)) {
 					sb.append(prepend).append("declare namespace ").append(namespace).append(" {\n");
 					sb.append(code);
 					sb.append(prepend).append("}\n");
