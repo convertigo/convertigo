@@ -11,7 +11,6 @@ import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class ConvertigoTypeScriptDefinition {
@@ -119,10 +118,10 @@ public class ConvertigoTypeScriptDefinition {
 		}
 		Class<?> cls;
 		while ((cls = classes.peek()) != null) {
-			String pkg = cls.getPackageName() + ".";
+			String pkg = getPackageName(cls) + ".";
 			if (pkg.equals(exPkg)) {
 				String code = getCode(nPrepend, cls);
-				if (!code.isBlank()) {
+				if (org.apache.commons.lang3.StringUtils.isNotBlank(code)) {
 					sb.append(prepend).append("declare class " + cls.getSimpleName());
 					Class<?> scls = cls.getSuperclass();
 					if (scls != null && !scls.equals(Object.class) && !scls.equals(Enum.class)) {
@@ -165,9 +164,10 @@ public class ConvertigoTypeScriptDefinition {
 			if (file[0] == null) {
 				long ts = System.currentTimeMillis();
 				ConvertigoTypeScriptDefinition tsd = new ConvertigoTypeScriptDefinition();
-				tsd.handleCls(Context.class);
-				tsd.handleCls(LogWrapper.class);
-				tsd.handleCls(StringUtils.class);
+				tsd.handleCls(com.twinsoft.convertigo.engine.Context.class);
+				tsd.handleCls(com.twinsoft.convertigo.engine.util.LogWrapper.class);
+				tsd.handleCls(org.w3c.dom.Document.class);
+				tsd.handleCls(org.apache.commons.lang3.StringUtils.class);
 				tsd.append.append("declare var context: com.twinsoft.convertigo.engine.Context\n")
 					.append("declare var log: com.twinsoft.convertigo.engine.util.LogWrapper\n")
 					.append("declare var dom: org.w3c.dom.Document\n")
@@ -186,6 +186,21 @@ public class ConvertigoTypeScriptDefinition {
 		}
 		return file[0];
 	}
+	
+    static public String getPackageName(Class<?> c) {
+    	String pn;
+        while (c.isArray()) {
+            c = c.getComponentType();
+        }
+        if (c.isPrimitive()) {
+            pn = "java.lang";
+        } else {
+            String cn = c.getName();
+            int dot = cn.lastIndexOf('.');
+            pn = (dot != -1) ? cn.substring(0, dot).intern() : "";
+        }
+        return pn;
+    }
 	
 	public static void main(String[] args) throws IOException {
 //		System.out.println("Handle " + tsd.classes.size() + " classes.");
