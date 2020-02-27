@@ -872,8 +872,11 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		// Page events
 		List<UIPageEvent> eventList = getUIPageEventList();
 		if (!eventList.isEmpty()) {
+			//System.out.println("For page: "+ getName());
 			for (ViewEvent viewEvent: ViewEvent.values()) {
+				//System.out.println("Event :"+ viewEvent.name());
 				String computedEvent = viewEvent.computeEvent(eventList);
+				//System.out.println("Code :"+ computedEvent);
 				if (!computedEvent.isEmpty()) {
 					try {
 						String functions = jsonScripts.getString("functions");

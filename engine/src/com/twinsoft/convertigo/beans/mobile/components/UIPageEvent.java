@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -51,13 +50,14 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		}
 		
 		String computeEvent(List<UIPageEvent> eventList) {
-			
 			StringBuffer children = new StringBuffer();
 			for (UIPageEvent pageEvent : eventList) {
 				if (pageEvent.getViewEvent().equals(this)) {
 					String computed = pageEvent.computeEvent();
 					if (!computed.isEmpty()) {
-						children.append(children.length() > 0 ? "," : "");
+						if (this.equals(ViewEvent.onCanEnter) || this.equals(ViewEvent.onCanLeave)) {
+							children.append(children.length() > 0 ? "," : "");
+						}
 						children.append(computed.replace("$event", "'"+this.event+"'"));
 					}
 				}
