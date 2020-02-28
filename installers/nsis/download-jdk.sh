@@ -1,6 +1,6 @@
 #!/bin/sh
 # see https://adoptopenjdk.net
-JDK_URL=https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.5%2B10/OpenJDK11U-jdk_${JDK_ARCH}_windows_hotspot_11.0.5_10.zip
+JDK_URL=https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.6%2B10/OpenJDK11U-jdk_${JDK_ARCH}_windows_hotspot_11.0.6_10.zip
 JDK_NAME=$( echo $JDK_URL | sed "s,.*/\(.*\)\\.zip,\\1," )${JDK_ARCH}
 
 mkdir -p /tmp/${JDK_NAME} /tmp/c8o_jre
