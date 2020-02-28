@@ -122,7 +122,9 @@ public class ProxyManager {
 			this.pacUtils.start();
 		}
 
-		Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
+		if (Engine.theApp != null) {
+			Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
+		}
 	}
 	
 	public boolean isEnabled() {
