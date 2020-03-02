@@ -3663,6 +3663,7 @@
       "properties": {
         "FormControlName": false,
         "Disabled": false,
+        "IonColor": false,
     	"Checked": {
       	   "attr": "[ngModel]",
       	   "label": "Checked",
