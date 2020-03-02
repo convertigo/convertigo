@@ -5752,6 +5752,28 @@
         "package_dependencies": [
             {"package":"ion2-calendar", "version":"2.2.0"}
         ]
+      },
+      "events": {
+        "monthChange": {
+          "attr":"(monthChange)",
+          "description": "event fired for month change"
+        },
+        "onChange": {
+          "attr":"(onChange)",
+          "description": "event fired for model change"
+        },
+        "onSelect": {
+          "attr":"(onSelect)",
+          "description": "event fired for click day-button"
+        },
+        "onSelectStart": {
+          "attr":"(onSelectStart)",
+          "description": "event fired for click day-button"
+        },
+        "onSelectEnd": {
+          "attr":"(onSelectEnd)",
+          "description": "event fired for click day-button"
+        }
       }
     },
     
