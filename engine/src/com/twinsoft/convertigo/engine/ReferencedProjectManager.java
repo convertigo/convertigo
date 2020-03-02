@@ -146,6 +146,13 @@ public class ReferencedProjectManager {
 		File dir = null;
 		File prjDir = null;
 		boolean cloneDone = false;
+		if (parser.getGitRepo() == null) {
+			if (project != null) {
+				return project;
+			} else {
+				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), parser.getProjectName(), true);
+			}
+		}
 		if (project != null) {
 			prjDir = project.getDirFile();
 			dir = GitUtils.getWorkingDir(project.getDirFile());

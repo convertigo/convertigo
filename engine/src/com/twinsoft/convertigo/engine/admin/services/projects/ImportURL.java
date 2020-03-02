@@ -42,15 +42,11 @@ public class ImportURL extends XmlService {
 		String error = null;
 		try {
 			String url = request.getParameter("url");
-			if (url.matches("https?://.+")) {
-				Engine.theApp.databaseObjectsManager.deployProject(url, true);
+			ProjectUrlParser parser = new ProjectUrlParser(url);
+			if (parser.isValid()) {
+				Engine.theApp.referencedProjectManager.importProject(parser);
 			} else {
-				ProjectUrlParser parser = new ProjectUrlParser(url);
-				if (parser.isValid()) {
-					Engine.theApp.referencedProjectManager.importProject(parser);
-				} else {
-					error = "The format is invalid";
-				}
+				error = "The format is invalid";
 			}
 		} catch (Exception e) {
 			error = "Failed to import project from URL, " + e.getClass().getSimpleName() + ": " + e.getMessage();

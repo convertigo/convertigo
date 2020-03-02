@@ -382,7 +382,7 @@ function exportProject(projectName) {
 }
 
 function projectsImportURL() {
-	var $input = $("<div><p>Import a project from url like:<br/><b>&lt;project name&gt;=&lt;git URL&gt;[:path=&lt;optional subpath&gt;][:branch=&lt;optional branch&gt;]</b></p><p>Or a Convertigo Archive HTTP(S) URL.</p><p><input type=\"text\" size=\"70\"/></p><p style=\"color: red\" id=\"importError\"></p></div>");
+	var $input = $("<div><p>Import a project from url like:<br/><b>&lt;project name&gt;=&lt;git or http URL&gt;[:path=&lt;optional subpath&gt;][:branch=&lt;optional branch&gt;]</b></p><p>Or a Convertigo Archive HTTP(S) URL.</p><p><input type=\"text\" size=\"70\"/></p><p style=\"color: red\" id=\"importError\"></p></div>");
 	$input.dialog({
 		autoOpen : true,
 		title: "Import from a Remote Project URL",

@@ -57,7 +57,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
 					return true;
 				}
 			} catch (Exception e) {
-				Engine.logStudio.debug("Loading from GIT failed", e);
+				Engine.logStudio.debug("Loading from remote URL failed", e);
 				fileChooserPage.setErrorMessage("Loading failed due to a '" + e.getClass().getSimpleName() + "': " + e.getMessage());
 			}
 			return false;
@@ -115,7 +115,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	 */
 	@Override
 	public boolean canFinish() {
-		return fileChooserPage.getParser().isValid() || fileChooserPage.filePath.matches("https?://.+") || getTargetProjectName() != null;
+		return fileChooserPage.getParser().isValid() || getTargetProjectName() != null;
 	}
 
 	//Modified by julienda - 13/09/2012

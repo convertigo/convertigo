@@ -29,6 +29,9 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectUrlParser {
+	private static final Pattern patternGit = Pattern.compile("(.+?)=(.+/(?:(.*?)/\\.git)|(?:.*/(.*?)\\.git))(.*)");
+	private static final Pattern patternOpt = Pattern.compile(":(.+?)=([^:]*)");
+	private static final Pattern patternHttp = Pattern.compile("(?:(.+?)=)?(https?://.*/(.*?)\\.(?:zip|car).*?)(:.*)?");
 	private String projectName;
 	private String gitUrl;
 	private String gitRepo;
@@ -36,121 +39,123 @@ public class ProjectUrlParser {
 	private String gitBranch;
 	private String projectUrl;
 	private boolean autoPull = false;
-	
+	private Matcher matcherGit = patternGit.matcher("");
+	private Matcher matcherOpt = patternOpt.matcher("");
+	private Matcher matcherHttp = patternHttp.matcher("");
+
 	public ProjectUrlParser(String projectUrl) {
 		setUrl(projectUrl);
 	}
-	
+
 	public boolean isValid() {
 		return projectUrl != null;
 	}
-	
+
 	public void setUrl(String projectUrl) {
 		this.projectUrl = projectName = gitUrl = gitRepo = projectPath = gitBranch = null;
-		
-		Pattern p = Pattern.compile("(.*?)=(.*/(?:(.*?)/\\.git)|(?:.*/(.*?)\\.git))(.*)");
-		Pattern pOpt = Pattern.compile(":(.*?)=([^:]*)");
-		Matcher m = p.matcher(projectUrl);
-		if (m.matches()) {
-			projectName = m.group(1);
-			gitUrl = m.group(2);
-			gitRepo = m.group(3) != null ? m.group(3) : m.group(4);
-			Matcher mOpt = pOpt.matcher(m.group(5));
-			while (mOpt.find()) {
-				String key = mOpt.group(1);
-				String value = mOpt.group(2);
-				switch (key) {
-				case "path": projectPath = value; break;
-				case "branch": gitBranch = value; break;
-				case "autoPull": autoPull = "true".equalsIgnoreCase(value); break;
+
+		synchronized (matcherGit) {
+			matcherGit.reset(projectUrl);
+			if (matcherGit.matches()) {
+				projectName = matcherGit.group(1);
+				gitUrl = matcherGit.group(2);
+				gitRepo = matcherGit.group(3) != null ? matcherGit.group(3) : matcherGit.group(4);
+				matcherOpt.reset(matcherGit.group(5));
+				while (matcherOpt.find()) {
+					String key = matcherOpt.group(1);
+					String value = matcherOpt.group(2);
+					switch (key) {
+					case "path": projectPath = value; break;
+					case "branch": gitBranch = value; break;
+					case "autoPull": autoPull = "true".equalsIgnoreCase(value); break;
+					}
+				}
+				this.projectUrl = projectUrl; 
+			} else {
+				matcherHttp.reset(projectUrl);
+				if (matcherHttp.matches() && matcherHttp.group(4) == null) {
+					projectName = matcherHttp.group(1) != null ? matcherHttp.group(1) : matcherHttp.group(3);
+					gitUrl = matcherHttp.group(2);
+					this.projectUrl = projectUrl; 
+				} else {
+					projectName = projectUrl;
 				}
 			}
-			this.projectUrl = projectUrl; 
-		} else {
-			projectName = projectUrl;
 		}
 	}
-	
+
 	public String getProjectName() {
 		return projectName;
 	}
-	
+
 	public String getGitUrl() {
 		return gitUrl;
 	}
-	
+
 	public String getGitRepo() {
 		return gitRepo;
 	}
-	
+
 	public String getProjectPath() {
 		return projectPath;
 	}
-	
+
 	public String getGitBranch() {
 		return gitBranch;
 	}
-	
+
 	public String getProjectUrl() {
 		return projectUrl;
 	}
-	
+
 	public boolean isAutoPull() {
 		return autoPull;
 	}
-	
+
 	public String toString() {
 		return isValid() ? getProjectUrl() : getProjectName();
 	}
-	
+
 	public void setProjectName(String projectName) {
 		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
+		this.projectName = projectName;
 		if (parser.isValid()) {
-			this.projectName = projectName;
 			setUrl(parser.getProjectUrl());
 		}
 	}
 
 	public void setGitUrl(String gitUrl) {
 		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
+		this.gitUrl = gitUrl;
 		if (parser.isValid()) {
-			this.gitUrl = gitUrl;
 			setUrl(parser.getProjectUrl());
 		}
 	}
 
 	public void setProjectPath(String projectPath) {
 		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
+		this.projectPath = projectPath;
 		if (parser.isValid()) {
-			this.projectPath = projectPath;
 			setUrl(parser.getProjectUrl());
 		}
 	}
 
 	public void setGitBranch(String gitBranch) {
 		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
+		this.gitBranch = gitBranch;
 		if (parser.isValid()) {
-			this.gitBranch = gitBranch;
 			setUrl(parser.getProjectUrl());
 		}
 	}
 
 	public void setAutoPull(boolean autoPull) {
 		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
+		this.autoPull = autoPull;
 		if (parser.isValid()) {
-			this.autoPull = autoPull;
 			setUrl(parser.getProjectUrl());
 		}
 	}
 
-	public void setProjectUrl(String projectUrl) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
-		if (parser.isValid()) {
-			this.projectUrl = projectUrl;
-			setUrl(parser.getProjectUrl());
-		}
-	}
-	
 	static public ProjectUrlParser makeUrl(String projectName, String gitUrl, String projectPath, String gitBranch, boolean autoPull) {
 		StringBuilder url = new StringBuilder(projectName).append('=').append(gitUrl);
 		if (projectPath != null && !projectPath.isEmpty()) {
@@ -164,7 +169,7 @@ public class ProjectUrlParser {
 		}
 		return new ProjectUrlParser(url.toString());
 	}
-	
+
 	static public String getUrl(String projectName) {
 		try {
 			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
@@ -176,7 +181,7 @@ public class ProjectUrlParser {
 		}
 		return projectName;
 	}
-	
+
 	static public String getUrl(Project project) {
 		String projectName = project.getName();
 		try {

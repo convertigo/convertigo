@@ -62,7 +62,7 @@ public class ImportWizardPage extends WizardPage {
 		Composite fileSelectionArea = new Composite(page, SWT.NONE);
 		fileSelectionArea.setLayoutData(gd);
 		
-		editor = new ProjectFileFieldEditor("fileSelect","Select File or enter HTTP URL: ", fileSelectionArea);
+		editor = new ProjectFileFieldEditor("fileSelect","Select File: ", fileSelectionArea);
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				IPath path = new Path(ImportWizardPage.this.editor.getStringValue());
@@ -96,9 +96,7 @@ public class ImportWizardPage extends WizardPage {
 		if (parser != null) {
 			if (StringUtils.isEmpty(parser.getProjectUrl())) {
 				if (filePath.equals("")) {
-					message = "Please select a file or enter an HTTP URL";
-				} else if (filePath.matches("https?://.+")) {
-					setMessage("Project will be downloaded.");
+					message = "Please select a file";
 				} else if (!Engine.isProjectFile(filePath) && !filePath.endsWith(".car") && !filePath.endsWith(".zip")) {
 					message = "Please select a compatible file extension";
 				} else if (!new File(filePath).exists()) {
