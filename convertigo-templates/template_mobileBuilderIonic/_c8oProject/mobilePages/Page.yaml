@@ -33,12 +33,7 @@ title: First page
             - ↑classname: com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType
             - MobileSmartSourceType: plain:My First App
     ↓Button [mobile.components.UIDynamicElement-1491634442029]: 
-      beanData: |
-        '{
-         "ionBean": "Button",
-         "ButtonFormType": "plain:false",
-         "MenuMode": "plain:menuToggle"
-        }'
+      beanData: '{"ionBean":"Button","MenuMode":"plain:menuToggle"}'
       comment: A button to toggle the menu
       tagName: button
       ↓Icon [mobile.components.UIDynamicElement-1491634475867]: 
@@ -48,7 +43,7 @@ title: First page
       beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
       tagName: ion-buttons
       ↓Button [mobile.components.UIDynamicElement-1491634621907]: 
-        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        beanData: '{"ionBean":"Button"}'
         tagName: button
         ↓Icon [mobile.components.UIDynamicElement-1491634637555]: 
           beanData: '{"ionBean":"Icon","IconName":"plain:more"}'
@@ -68,7 +63,7 @@ title: First page
       beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:left"}'
       tagName: ion-buttons
       ↓Button [mobile.components.UIDynamicElement-1491634332730]: 
-        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        beanData: '{"ionBean":"Button"}'
         tagName: button
         ↓Text [mobile.components.UIText-1491634340354]: 
           textValue: 
@@ -79,7 +74,7 @@ title: First page
       beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
       tagName: ion-buttons
       ↓Button [mobile.components.UIDynamicElement-1491634376874]: 
-        beanData: '{"ionBean":"Button","ButtonFormType":"plain:false"}'
+        beanData: '{"ionBean":"Button"}'
         tagName: button
         ↓Text [mobile.components.UIText-1491634383107]: 
           textValue: 
