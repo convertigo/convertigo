@@ -139,15 +139,19 @@ public class ReferencedProjectManager {
 		}
 		return targetProject;
 	}
-	
+
 	public Project importProject(ProjectUrlParser parser) throws Exception {
+		return importProject(parser, false);
+	}
+	
+	public Project importProject(ProjectUrlParser parser, boolean force) throws Exception {
 		String projectName = parser.getProjectName();
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 		File dir = null;
 		File prjDir = null;
 		boolean cloneDone = false;
 		if (parser.getGitRepo() == null) {
-			if (project != null) {
+			if (!force && project != null) {
 				return project;
 			} else {
 				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), parser.getProjectName(), true);

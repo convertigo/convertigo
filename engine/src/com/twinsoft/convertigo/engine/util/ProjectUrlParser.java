@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.engine.Engine;
 public class ProjectUrlParser {
 	private static final Pattern patternGit = Pattern.compile("(.+?)=(.+/(?:(.*?)/\\.git)|(?:.*/(.*?)\\.git))(.*)");
 	private static final Pattern patternOpt = Pattern.compile(":(.+?)=([^:]*)");
-	private static final Pattern patternHttp = Pattern.compile("(?:(.+?)=)?(https?://.*/(.*?)\\.(?:zip|car).*?)(:.*)?");
+	private static final Pattern patternHttp = Pattern.compile("(?:(.+?)=)?(https?://.*/(.*?)\\.(?i:zip|car).*?)(:.*)?");
 	private String projectName;
 	private String gitUrl;
 	private String gitRepo;
