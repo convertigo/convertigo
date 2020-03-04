@@ -64,7 +64,7 @@ public class C8oBrowser extends Composite {
 		
 		getBrowser().navigation().on(NavigationStarted.class, event -> {
 			String url = event.url();
-			if (useExternalBrowser && !url.equals(lastUrl)) {
+			if (useExternalBrowser && !url.equals(lastUrl) && url.matches("https?://.*")) {
 				com.twinsoft.convertigo.engine.Engine.logStudio.info("Internal browser open link with the default browser: " + url);
 				Program.launch(url);
 				event.navigation().stop();
