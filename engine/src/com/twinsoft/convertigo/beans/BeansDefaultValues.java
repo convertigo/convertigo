@@ -249,7 +249,12 @@ public class BeansDefaultValues {
 											JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
 											JSONObject ionProp = ionProps.getJSONObject(keyProp);
 											if (!dIonProp.equals(ionProp)) {
-												ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
+												if (Boolean.FALSE.equals(ionProp.get("value"))) {
+													// <not set> case
+													ion.put(keyProp, ionProp.getString("mode"));
+												} else {
+													ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
+												}
 											}
 										}
 									}
@@ -448,7 +453,12 @@ public class BeansDefaultValues {
 										String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
 										JSONObject v = new JSONObject();
 										v.put("mode", smart[0]);
-										v.put("value", smart[1]);
+										if (smart.length == 1) {
+											// <not set> case
+											v.put("value", false);
+										} else {
+											v.put("value", smart[1]);
+										}
 										ionProps.put(keyProp, v);
 									}
 									ionProps.getJSONObject(keyProp).put("name", keyProp);
