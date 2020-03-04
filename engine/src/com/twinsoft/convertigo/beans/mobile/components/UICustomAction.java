@@ -663,7 +663,8 @@ public class UICustomAction extends UIComponent implements IAction {
 	
 			String tsCode = "";
 			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
+			//tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
+			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = stack[\""+ priority +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
 			if (getSharedAction() != null) {

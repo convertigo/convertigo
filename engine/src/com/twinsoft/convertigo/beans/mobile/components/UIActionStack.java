@@ -243,7 +243,8 @@ public class UIActionStack extends UIComponent implements IShared {
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tpage.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
-			computed += "\t\tparent = self = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+			//computed += "\t\tparent = self = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+			computed += "\t\tparent = self = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {};"+ System.lineSeparator();
 			computed += "\t\tself.in = {props: props, vars: params};"+ System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += ""+ computeStackContent();
