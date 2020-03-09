@@ -95,5 +95,19 @@ function getEncodedYamlUri(project) {
 
 $.ajaxSetup({
 	type : "POST",
-	dataType : "xml"
+	dataType : "xml",
+	complete: function (jqXHR) {
+		var token = jqXHR.getResponseHeader("X-XSRF-Token");
+		if (token != null) {
+			sessionStorage.setItem("X-XSRF-Token", token);
+		}
+	},
+	beforeSend: function (jqXHR) {
+		jqXHR.setRequestHeader("X-XSRF-Token", getXsrfToken());
+	}
 });
+
+function getXsrfToken() {
+	var token = sessionStorage.getItem("X-XSRF-Token");
+	return token == null ? "Fetch" : token;
+}

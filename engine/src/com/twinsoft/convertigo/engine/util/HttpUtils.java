@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -70,7 +71,9 @@ import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.tas.KeyManager;
 
@@ -444,6 +447,24 @@ public class HttpUtils {
 	public static void terminateNewSession(HttpSession httpSession) {
 		if (httpSession != null && httpSession.isNew()) {
 			terminateSession(httpSession);
+		}
+	}
+
+	public static void checkXSRF(HttpServletRequest request, HttpServletResponse response) throws EngineException {
+		HttpSession session = request.getSession(true);
+		String token = SessionAttribute.xsrfToken.get(session);
+		String header = HeaderName.XXsrfToken.getHeader(request);
+		if (header == null && request.getMethod().equalsIgnoreCase("POST")) {
+			header = request.getParameter(Parameter.XsrfToken.getName());
+		}
+		if (token == null && header != null) {
+			token = Base64.encodeBytes(DigestUtils.sha256(session.getId() + Engine.startStopDate)).replaceAll("[^\\w\\d]", "-");
+			SessionAttribute.xsrfToken.set(session, token);
+			HeaderName.XXsrfToken.setHeader(response, token);
+		} else if (token != null && !token.equals(header)) {
+			EngineException e = new EngineException("Invalid XSRF Token header for this session.");
+			e.setStackTrace(new StackTraceElement[0]);
+			throw e;
 		}
 	}
 }

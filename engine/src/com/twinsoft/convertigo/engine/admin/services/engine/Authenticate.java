@@ -219,10 +219,15 @@ public class Authenticate extends XmlService {
 				}
 			} else {
 				Authenticate.authenticationAttempts.remove(user);
+				String token = null;
 				if (httpSession != null) {
+					token = SessionAttribute.xsrfToken.string(httpSession);
 					httpSession.invalidate();
 				}
 				httpSession = request.getSession(true);
+				if (token != null) {
+					SessionAttribute.xsrfToken.set(httpSession, token);
+				}
 				httpSession.setAttribute(SessionKey.ADMIN_USER.toString(), user);
 				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, roles);
 

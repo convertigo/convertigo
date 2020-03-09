@@ -399,7 +399,7 @@ function initializeImportUser() {
 				showError("<p>The users file '" + file + "' is not a valid db file</p>");
 				return false;
 			} else {
-				this._settings.action = this._settings.action+"?"+ $("#dialog-import-users").serialize();
+				this._settings.action = this._settings.action+"?"+ $("#dialog-import-users").serialize() + "&__xsrfToken=" + encodeURIComponent(getXsrfToken());
 			}
 			startWait(50);
 		},

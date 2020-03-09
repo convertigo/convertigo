@@ -318,6 +318,10 @@ public class EnginePropertiesManager {
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximum number of worker threads", PropertyCategory.Main),
 		CONVERTIGO_MAX_CONTEXTS ("convertigo.max_context", "750", "Maximum number of contexts", PropertyCategory.Main),
 		GIT_CONTAINER ("convertigo.git.container", new File(Engine.USER_WORKSPACE_PATH, "git").getAbsolutePath(), "Git container (autoimport)", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		XSRF_ADMIN ("convertigo.xsrf.admin", "true", "Enable XSRF protection for Administration Console", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		XSRF_API ("convertigo.xsrf.projects", "false", "Enable XSRF protection for projects", PropertyCategory.Main),
 
 		/** MAIN ADVANCE */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)

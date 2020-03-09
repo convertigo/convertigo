@@ -394,7 +394,7 @@ function initializeImportSymbol() {
 	var actionForm = "services/global_symbols.Import";
 	
 	var ajaxUpload = new AjaxUpload("importSymbolUpload", {
-		action : actionForm,			
+		action : actionForm + "?__xsrfToken=" + encodeURIComponent(getXsrfToken()),
 		responseType : "xml",		
 		onSubmit : function(file, ext) {
 			$("#dialog-confirm-symbols").dialog("close");
