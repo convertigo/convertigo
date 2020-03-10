@@ -145,8 +145,12 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 		}
 		return null;
 	}
-			
+	
 	public String getValue() {
+		return getValue(false);
+	}
+	
+	public String getValue(boolean extended) {
 		if (Mode.PLAIN.equals(mode)) {
 			return plainValue.toString();
 		}
@@ -155,7 +159,14 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 		}
 		if (Mode.SOURCE.equals(mode)) {
 			MobileSmartSource cs = getSmartSource();
-			return cs != null ? cs.getValue():"";
+			String value = cs != null ? cs.getValue(extended):"";
+			if (extended) {
+				String keyThis = MobileSmartSource.keyThis;
+				value = value.replaceAll(keyThis + "\\.item", "scope.item");
+				value = value.replaceAll(keyThis + "\\.params", "scope.params");
+				value = value.replaceAll(keyThis + "\\.", "this.");
+			}
+			return value;
 		}
 		return "";
 	}

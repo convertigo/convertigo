@@ -64,6 +64,7 @@ public class MobileSmartSource {
 	public static Pattern fsPattern = Pattern.compile("fs\\://(\\w+\\.)?(\\w+)\\.(\\w+)(#\\w+)?,?\\s*(\\{[^\\{\\}]*\\})?");
 	public static Pattern kvPattern = Pattern.compile("(\\w+)(?:=|\\:)('[^']+'|\\w+)");
 	
+	public static String keyThis = "_this_";
 	
 	static int findMatchingBracket(String input, int index) { 
 		char c = input.charAt(index);
@@ -367,6 +368,7 @@ public class MobileSmartSource {
 			return buf.isEmpty() ? "" : (isCafListen ? "listen(["+ buf +"])" : buf) + path;
 		}
 		
+		// compute value without 'this' keyword
 		public String computeValue() {
 			boolean isCafListen = filter.equals(Filter.Sequence) || filter.equals(Filter.Database);
 			String buf = "";
@@ -384,11 +386,29 @@ public class MobileSmartSource {
 			return buf.isEmpty() ? "" : prefix + (isCafListen ? "listen(["+ buf +"])" : buf) + path + suffix;
 		}
 		
-		public String getValue() {
+		// compute value with 'this' keyword
+		public String computeValueEx() {
+			boolean isCafListen = filter.equals(Filter.Sequence) || filter.equals(Filter.Database);
+			String buf = "";
+			
+			for (SourceData sd: data) {
+				String sdv = sd.getValueEx();
+				if (sdv != null && !sdv.isEmpty()) {
+					buf += (buf.isEmpty() ? "":",") + sdv;
+					if (!isCafListen) {
+						break;
+					}
+				}
+			}
+			
+			return buf.isEmpty() ? "" : prefix + (isCafListen ? "this.listen(["+ buf +"])" : buf) + path + suffix;
+		}
+		
+		public String getValue(boolean extended) {
 			if (useCustom) {
 				return custom;
 			} else {
-				return computeValue();
+				return extended ? computeValueEx() : computeValue();
 			}
 		}
 		
@@ -427,6 +447,7 @@ public class MobileSmartSource {
 		
 		public abstract JSONObject toJson();
 		public abstract String getValue();
+		public abstract String getValueEx();
 		public abstract String getSource();
 	}
 	
@@ -483,6 +504,11 @@ public class MobileSmartSource {
 			return getSource();
 		}
 
+		@Override
+		public String getValueEx() {
+			return getValue();
+		}
+		
 		@Override
 		public String getSource() {
 			String source = null;
@@ -612,6 +638,11 @@ public class MobileSmartSource {
 		}
 
 		@Override
+		public String getValueEx() {
+			return getValue();
+		}
+		
+		@Override
 		public String getSource() {
 			String source = null;
 			if (!connector.isEmpty()) {
@@ -672,6 +703,15 @@ public class MobileSmartSource {
 		}
 
 		@Override
+		public String getValueEx() {
+			String valueEx = null;
+			if (priority != 0L) {
+				valueEx = keyThis + ".item"+ priority;
+			}
+			return valueEx;
+		}
+		
+		@Override
 		public String getSource() {
 			String source = null;
 			if (priority != 0L) {
@@ -726,6 +766,15 @@ public class MobileSmartSource {
 		}
 
 		@Override
+		public String getValueEx() {
+			String valueEx = null;
+			if (priority != 0L) {
+				valueEx = keyThis + ".form"+ priority;
+			}
+			return valueEx;
+		}
+		
+		@Override
 		public String getSource() {
 			String source = null;
 			if (priority != 0L) {
@@ -771,6 +820,11 @@ public class MobileSmartSource {
 			return getSource();
 		}
 
+		@Override
+		public String getValueEx() {
+			return keyThis + "."+ sharedObject;
+		}
+		
 		@Override
 		public String getSource() {
 			return sharedObject;
@@ -860,11 +914,11 @@ public class MobileSmartSource {
 		return null;
 	}
 	
-	public String getValue() {
+	public String getValue(boolean extended) {
 		String value = null;
 		try {
 			if (hasModel()) {
-				value = getModel().getValue();
+				value = getModel().getValue(extended);
 			} else {
 				value = getInput();
 				
@@ -1047,7 +1101,7 @@ public class MobileSmartSource {
 		
 		MobileSmartSource mss = new MobileSmartSource(jsonString);
 		
-		// Migrate source : add a source model
+		// Migrate source : add a source model (since 7.8.0)
 		if (!mss.hasModel()) {
 			String project = mss.getProjectName();
 			Filter filter = mss.getFilter();
@@ -1063,7 +1117,7 @@ public class MobileSmartSource {
 				throw new InvalidSourceException("Missing source's input. Please check your project.");
 			}
 			
-			String value = mss.getValue();
+			String value = mss.getValue(false);
 			SourceModel sm = filter.toSourceModel(project, input, value);
 			if (sm != null) {
 				MobileSmartSource mssn = new MobileSmartSource(filter, project, input, sm.toJson());

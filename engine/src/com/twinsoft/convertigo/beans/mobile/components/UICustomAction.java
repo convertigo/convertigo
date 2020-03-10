@@ -432,6 +432,8 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected String computeActionInputs(boolean forTemplate) {
+		boolean extended = !forTemplate;
+		
 		if (isEnabled()) {
 			StringBuilder sbProps = initProps(forTemplate);
 			
@@ -455,22 +457,11 @@ public class UICustomAction extends UIComponent implements IAction {
 						else {
 							MobileSmartSourceType msst = uicv.getVarSmartType();
 							
-							String smartValue = msst.getValue();
+							String smartValue = msst.getValue(extended);
 							if (Mode.PLAIN.equals(msst.getMode())) {
 								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 							}
 							
-							if (Mode.SOURCE.equals(msst.getMode())) {
-								MobileSmartSource mss = msst.getSmartSource();
-								if (mss != null) {
-									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-										smartValue = "scope."+ smartValue;
-									}
-									else {
-										smartValue = "this."+ smartValue;
-									}
-								}
-							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
 							if (paramsPattern.matcher(smartValue).lookingAt()) {

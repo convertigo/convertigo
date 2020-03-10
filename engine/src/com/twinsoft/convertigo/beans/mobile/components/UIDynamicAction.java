@@ -374,6 +374,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 	
 	protected String computeActionInputs(boolean forTemplate) {
+		boolean extended = !forTemplate;
+		
 		if (isEnabled()) {
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
@@ -387,7 +389,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					// case value is set
 					if (!p_value.equals(false)) {
 						MobileSmartSourceType msst = property.getSmartType();
-						String smartValue = msst.getValue();
+						String smartValue = msst.getValue(extended);
 						
 						// Case plain string
 						if (Mode.PLAIN.equals(msst.getMode())) {
@@ -403,7 +405,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								if (mss != null) {
-									smartValue = mss.getSources(msst.getValue()).toString();
+									smartValue = mss.getSources(msst.getValue(extended)).toString();
 								}
 							}
 						}
@@ -414,19 +416,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						}
 						// Case ts code in ActionBeans.service (stack of actions)
 						else {
-							if (Mode.SOURCE.equals(msst.getMode())) {
-								if (!"ClearDataSourceAction".equals(getActionName())) {
-									MobileSmartSource mss = msst.getSmartSource();
-									if (mss != null) {
-										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-											smartValue = "scope."+ smartValue;
-										}
-										else {
-											smartValue = "this."+ smartValue;
-										}
-									}
-								}
-							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
 							if (paramsPattern.matcher(smartValue).lookingAt()) {
@@ -464,26 +453,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							else {
 								MobileSmartSourceType msst = uicv.getVarSmartType();
 								
-								String smartValue = msst.getValue();
+								String smartValue = msst.getValue(extended);
 								if (Mode.PLAIN.equals(msst.getMode())) {
 									smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 								}
 								
-								if (Mode.SOURCE.equals(msst.getMode())) {
-									MobileSmartSource mss = msst.getSmartSource();
-									if (mss != null) {
-										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-											smartValue = "scope."+ smartValue;
-										}
-										else {
-											smartValue = "this."+ smartValue;
-										}
-									}
-								}
-								
 								smartValue = smartValue.replaceAll("\\?\\.", ".");
 								smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-								
 								if (paramsPattern.matcher(smartValue).lookingAt()) {
 									smartValue = "scope."+ smartValue;
 								}
