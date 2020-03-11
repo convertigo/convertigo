@@ -23,7 +23,10 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -158,6 +161,20 @@ public class GitUtils {
 		try (Git git = Git.open(dir)) {
 			boolean pulled = git.pull().call().isSuccessful();
 			Engine.logEngine.info("(ReferencedProjectManager) Pull from " + dir + " is " + pulled);
+		}
+	}
+
+	public static void reset(File dir) throws Exception {
+		try (Git git = Git.open(dir)) {
+			git.reset().setMode(ResetType.HARD).call();
+			Engine.logEngine.info("(ReferencedProjectManager) Reset from " + dir);
+		}
+	}
+	
+	public static String getRev(File dir) throws Exception {
+		try (Git git = Git.open(dir)) {
+			ObjectId o = git.getRepository().resolve(Constants.HEAD);
+			return o != null ? o.getName() : "";
 		}
 	}
 }

@@ -37,12 +37,12 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
+import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.InvalidSourceException;
@@ -391,11 +391,15 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		if (!done.add(this)) {
 			return;
 		}
-		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIPageEvent) {
-				eventList.add((UIPageEvent)uiComponent);
-			} else {
-				uiComponent.addPageEvent(done, eventList);
+		if (isEnabled()) {
+			for (UIComponent uiComponent : getUIComponentList()) {
+				if (uiComponent.isEnabled()) {
+					if (uiComponent instanceof UIPageEvent) {
+						eventList.add((UIPageEvent) uiComponent);
+					} else {
+						uiComponent.addPageEvent(done, eventList);
+					}
+				}
 			}
 		}
 	}
@@ -404,11 +408,15 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		if (!done.add(this)) {
 			return;
 		}
-		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIEventSubscriber) {
-				eventList.add((UIEventSubscriber)uiComponent);
-			} else {
-				uiComponent.addEventSubscriber(done, eventList);
+		if (isEnabled()) {
+			for (UIComponent uiComponent : getUIComponentList()) {
+				if (uiComponent.isEnabled()) {
+					if (uiComponent instanceof UIEventSubscriber) {
+						eventList.add((UIEventSubscriber)uiComponent);
+					} else {
+						uiComponent.addEventSubscriber(done, eventList);
+					}
+				}
 			}
 		}
 	}

@@ -134,6 +134,13 @@ public class AdminServlet extends HttpServlet {
 				}
 				
 				Service service = (Service) serviceClass.getConstructor().newInstance();
+				
+				boolean xsrfAdmin = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN);
+				if (xsrfAdmin) {
+					if (!serviceDefinition.allow_cors() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
+						HttpUtils.checkXSRF(request, response);	
+					}
+				}
 				service.run(serviceName, request, response);
 			}
 			catch (ClassNotFoundException e) {

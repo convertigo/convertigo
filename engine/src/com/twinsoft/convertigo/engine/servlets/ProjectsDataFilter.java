@@ -45,121 +45,114 @@ import com.twinsoft.convertigo.engine.util.ServletUtils;
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
 	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/(?:c8oProject\\.yaml|_c8oProject/.*|libs/.*|\\.git/.*))|(?:(?:.*?)/_private(?:$|(?!/mobile/flashupdate_).*)))$");
-	
-    public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
-    	boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
-    	Engine.logContext.debug("Entering projects data servlet filter");
+
+	public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
+		boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
+		Engine.logContext.debug("Entering projects data servlet filter");
 
 		HttpServletRequest request = (HttpServletRequest) _request;
-    	HttpServletResponse response = (HttpServletResponse) _response;
+		HttpServletResponse response = (HttpServletResponse) _response;
 
-    	if (SiteClipperConnector.handleRequest(request, response)) {
-    		return;
-    	}
-    	
+		if (SiteClipperConnector.handleRequest(request, response)) {
+			return;
+		}
+
 		boolean bProjectsDataCompatibilityMode = Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(PropertyName.PROJECTS_DATA_COMPATIBILITY_MODE));
 
-    	Engine.logContext.debug("bProjectsDataCompatibilityMode=" + bProjectsDataCompatibilityMode);
-    	
-    	if (bProjectsDataCompatibilityMode) {
-        	Engine.logContext.debug("Projects data compatibility mode => follow the normal filter chain");
-        	chain.doFilter(request, response);
-        	return;
-    	}
-    	    	
-    	String requestURI = request.getRequestURI();
-    	Engine.logContext.debug("requestURI=" + requestURI);
-    	
-    	// Get a canonicalized form of the request URL, i.e. resolve all ".", "..", "///"...
-    	URL url = new URL(request.getRequestURL().toString());
-    	
-    	try {
-    		requestURI = url.toURI().normalize().getPath();
-    	} catch (URISyntaxException e) {
-    		// should never occur
-    	}
-    	
-    	Matcher m_projects = p_projects.matcher(requestURI);
-    	String pathInfo = (m_projects.find()) ? m_projects.group(1) : "";
+		Engine.logContext.debug("bProjectsDataCompatibilityMode=" + bProjectsDataCompatibilityMode);
 
-    	String requestedObject = Engine.PROJECTS_PATH + pathInfo;
-    	requestedObject = Engine.resolveProjectPath(requestedObject);
-    	Engine.logContext.debug("requestedObject=" + requestedObject);
-    	
-    	Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
-    	if (m_forbidden.matches() && (m_forbidden.group(1) == null || !(new File(requestedObject).isDirectory()))) {
-    		if (hide_error == false) 
-    			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		if (bProjectsDataCompatibilityMode) {
+			Engine.logContext.debug("Projects data compatibility mode => follow the normal filter chain");
+			chain.doFilter(request, response);
 			return;
-    	}
-    	
-    	if (Pattern.matches(".*?[/\\\\]index\\.jsp", requestedObject)) {
-    		requestedObject = requestedObject.replaceAll("index.jsp", "index.html");
-        	Engine.logContext.debug("index.jsp remapped to '" + requestedObject + "'");
-    	}
-    	else if (requestedObject.endsWith(".jsp")) {
-    		if (hide_error == false) {
-    			Engine.logContext.error("JSP required, but not allowed! (" + requestURI + ")");
-    			response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": JSP is not allowed!");
-    		}
-    		return;
-    	}
-    	
-    	File file = new File(requestedObject);
-    	
-    	String s = file.getCanonicalPath();
-    	if (!Engine.isStudioMode() && !s.startsWith(Engine.PROJECTS_PATH)) {
-    		if (hide_error == false) {
-    			Engine.logContext.error(requestURI + ": access to directories outside the projects repository is not allowed!");
-    			response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": access to directories outside the projects repository is not allowed!");
-    		}
-    		return;
-    	}
-    	
-    	// Handle implicit document (index.html)
-    	if (file.exists() && file.isDirectory()) {
-    		// Handle ".../projects" requests
-    		s = file.getCanonicalPath();
-    		if (s.endsWith("projects") || s.equals(Engine.PROJECTS_PATH)) {
-    			if (requestURI.endsWith("/")) {
-			    	Engine.logContext.debug("Send redirect to: '../index.html'");
+		}
+
+		String requestURI = request.getRequestURI();
+		Engine.logContext.debug("requestURI=" + requestURI);
+
+		// Get a canonicalized form of the request URL, i.e. resolve all ".", "..", "///"...
+		URL url = new URL(request.getRequestURL().toString());
+
+		try {
+			requestURI = url.toURI().normalize().getPath();
+		} catch (URISyntaxException e) {
+			// should never occur
+		}
+
+		Matcher m_projects = p_projects.matcher(requestURI);
+		String pathInfo = (m_projects.find()) ? m_projects.group(1) : "";
+
+		String requestedObject = Engine.PROJECTS_PATH + pathInfo;
+		requestedObject = Engine.resolveProjectPath(requestedObject);
+		Engine.logContext.debug("requestedObject=" + requestedObject);
+
+		Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
+		if (m_forbidden.matches() && (m_forbidden.group(1) == null || !(new File(requestedObject).isDirectory()))) {
+			if (hide_error == false) 
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+			return;
+		}
+
+		if (Pattern.matches(".*?[/\\\\]index\\.jsp", requestedObject)) {
+			requestedObject = requestedObject.replaceAll("index.jsp", "index.html");
+			Engine.logContext.debug("index.jsp remapped to '" + requestedObject + "'");
+		}
+		else if (requestedObject.endsWith(".jsp")) {
+			if (hide_error == false) {
+				Engine.logContext.error("JSP required, but not allowed! (" + requestURI + ")");
+				response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": JSP is not allowed!");
+			}
+			return;
+		}
+
+		File file = new File(requestedObject);
+
+		String s = file.getCanonicalPath();
+
+		// Handle implicit document (index.html)
+		if (file.exists() && file.isDirectory()) {
+			// Handle ".../projects" requests
+			s = file.getCanonicalPath();
+			if (s.endsWith("projects") || s.equals(Engine.PROJECTS_PATH)) {
+				if (requestURI.endsWith("/")) {
+					Engine.logContext.debug("Send redirect to: '../index.html'");
 					response.sendRedirect("../index.html");
-    			} else {
-			    	Engine.logContext.debug("Send redirect to: 'index.html'");
+				} else {
+					Engine.logContext.debug("Send redirect to: 'index.html'");
 					response.sendRedirect("index.html");
-    			}
-    			return;
-    		}
-    		else {
-    			if (requestURI.endsWith("/"))
-	    			file = new File(requestedObject + "/index.html");
+				}
+				return;
+			}
+			else {
+				if (requestURI.endsWith("/"))
+					file = new File(requestedObject + "/index.html");
 				else {
 					String redirect = requestURI + "/index.html";
-			    	Engine.logContext.debug("Send redirect to: '" + redirect + "'");
+					Engine.logContext.debug("Send redirect to: '" + redirect + "'");
 					response.sendRedirect(redirect);
-    				return;
+					return;
 				}
-    		}
-    	}
-    	
-    	if (!file.exists() && Engine.theApp != null && Engine.theApp.minificationManager != null) {
-    		if (Engine.theApp.minificationManager.check(request, response)) {
-    			return;
-    		} else {
-    			File commonResource = MinificationManager.getCommonCssResource(request);
-    			if (commonResource != null) {
-    				file = commonResource;
-    			}
-    		}
-    	}
-    	
-    	ServletUtils.handleFileFilter(file, request, response, filterConfig, chain);
+			}
+		}
 
-    	Engine.logContext.debug("Exiting projects data filter");
-    }
+		if (!file.exists() && Engine.theApp != null && Engine.theApp.minificationManager != null) {
+			if (Engine.theApp.minificationManager.check(request, response)) {
+				return;
+			} else {
+				File commonResource = MinificationManager.getCommonCssResource(request);
+				if (commonResource != null) {
+					file = commonResource;
+				}
+			}
+		}
 
-    private FilterConfig filterConfig = null;
+		ServletUtils.handleFileFilter(file, request, response, filterConfig, chain);
+
+		Engine.logContext.debug("Exiting projects data filter");
+	}
+
+	private FilterConfig filterConfig = null;
 
 	public void destroy() {
 		this.filterConfig = null;

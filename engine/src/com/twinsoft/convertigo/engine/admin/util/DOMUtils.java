@@ -50,21 +50,24 @@ public class DOMUtils {
 	}
 	
 	public static Document handleError(Exception e) throws ParserConfigurationException {
-        Document document = handleError(e.getMessage());
+		Document document = handleError(e.getMessage());
 
-        Element error = (Element) document.getElementsByTagName("error").item(0);
+		Element error = (Element) document.getElementsByTagName("error").item(0);
 
-        Element exception = document.createElement("exception");
-        exception.appendChild(document.createTextNode(e.getClass().getName()));
-        error.appendChild(exception);
+		Element exception = document.createElement("exception");
+		exception.appendChild(document.createTextNode(e.getClass().getName()));
+		error.appendChild(exception);
 
-        Element stackTrace = document.createElement("stacktrace");
-        String jss = Log.getStackTrace(e);
-        jss = jss.replace('\r', ' ');
-        stackTrace.appendChild(document.createCDATASection(jss));
-        error.appendChild(stackTrace);
-        
-        return document;
+		StackTraceElement[] stack = e.getStackTrace();
+		if (stack != null && stack.length > 0) {
+			Element stackTrace = document.createElement("stacktrace");
+			String jss = Log.getStackTrace(e);
+			jss = jss.replace('\r', ' ');
+			stackTrace.appendChild(document.createCDATASection(jss));
+			error.appendChild(stackTrace);
+		}
+
+		return document;
 	}
 
 	public static Document handleError(String sMessage) throws ParserConfigurationException {

@@ -42,10 +42,12 @@ import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.RestApiManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -137,13 +139,15 @@ public class RestApiServlet extends GenericServlet {
 		if (request.getCharacterEncoding() == null) {
 			try {
 				request.setCharacterEncoding("UTF-8"); // Set encoding if needed
-    		}
-    		catch(Exception e) {
-    			throw new ServletException(e);
-    		}
+			} catch(Exception e) {
+				throw new ServletException(e);
+			}
 		}
 		
 		try {
+			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
+				HttpUtils.checkXSRF(request, response);
+			}
 			HttpSessionListener.checkSession(request);
 		} catch (Throwable e) {
 			throw new ServletException(e.getMessage(), e);

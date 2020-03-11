@@ -120,6 +120,10 @@ C8O = {
                 
                 var targetName = "tn_" + new Date().getTime() + "_" + Math.floor(Math.random() * 100);
                 var action = C8O._getCallUrl();
+                var token = C8O._getXsrfToken();
+                if (token.length > 0) {
+                    action += "&" + encodeURIComponent(token);
+                }
                 $form.attr({
                     method: "POST",
                     enctype: "multipart/form-data",
@@ -1018,6 +1022,11 @@ C8O = {
             C8O._define.pendingXhrCpt = 0;
         }
         
+        var token = jqXHR.getResponseHeader("X-XSRF-Token");
+        if (token != null) {
+            sessionStorage.setItem("X-XSRF-Token", token);
+        }
+        
         if (C8O._hook("call_complete", jqXHR, textStatus, jqXHR.C8O_data)) {
             if (!C8O._define.pendingXhrCpt) {
                 C8O.waitHide(jqXHR.C8O_data);
@@ -1197,13 +1206,21 @@ C8O = {
             C8O.log.trace("c8o.core: translate '" + str + "' in '" + value + "'");
         }
         return value;
+    },
+    
+    _getXsrfToken: function () {
+        var token = sessionStorage.getItem("X-XSRF-Token");
+        return token == null ? "Fetch" : token;
     }
 }
 
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
     type: C8O.vars.ajax_method,
-    dataType: "xml"
+    dataType: "xml",
+    beforeSend: function (jqXHR) {
+        jqXHR.setRequestHeader("X-XSRF-Token", C8O._getXsrfToken());
+    }
 });
 C8O.addRecallParameter("__uid", C8O._define.uid);
 

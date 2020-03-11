@@ -44,7 +44,9 @@ public class ImportURL extends XmlService {
 			String url = request.getParameter("url");
 			ProjectUrlParser parser = new ProjectUrlParser(url);
 			if (parser.isValid()) {
-				Engine.theApp.referencedProjectManager.importProject(parser);
+				if (Engine.theApp.referencedProjectManager.importProject(parser, true) == null) {
+					error = "No project loaded with: " + url;
+				}
 			} else {
 				error = "The format is invalid";
 			}

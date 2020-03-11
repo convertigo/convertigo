@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -144,10 +143,12 @@ public class URLUtils {
 			Class<?> fl = Class.forName("org.eclipse.core.runtime.FileLocator");
 			url = (URL) fl.getMethod("toFileURL", URL.class).invoke(null, url);
 		} catch (Exception e) {} // ENGINE MODE, getResource works directly
-		String f;
+		String f = null;
 		try {
 			f = url.toURI().getPath();
-		} catch (URISyntaxException e) {
+		} catch (Throwable e) {
+		}
+		if (f == null) {
 			f = url.getFile();
 		}
 		return f;

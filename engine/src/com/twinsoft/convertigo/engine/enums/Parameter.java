@@ -93,6 +93,7 @@ public enum Parameter {
 	LocalCachePriority("__localCache_priority"),
 	LocalCacheTimeToLive("__localCache_ttl"),
 	
+	XsrfToken("__xsrfToken")
 	;
 	
 	String param_name;

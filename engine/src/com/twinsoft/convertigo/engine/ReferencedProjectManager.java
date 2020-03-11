@@ -44,32 +44,35 @@ public class ReferencedProjectManager {
 		return loaded;
 	}
 	
-	private boolean check(List<String> names) {
+	public boolean check(Project project) {
 		Map<String, ProjectUrlParser> refs = new HashMap<>();
-		for (String name: names) {
-			try {
-				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, true);
-				project.getReferenceList().forEach(r -> {
-					if (r instanceof ProjectSchemaReference) {
-						ProjectSchemaReference ref = (ProjectSchemaReference) r;
-						String url = ref.getProjectName();
-						ProjectUrlParser parser = new ProjectUrlParser(url);
-						if (parser.isValid()) {
-							refs.put(parser.getProjectName(), parser);
-						}
-					}
-				});
-			} catch (Exception e) {
-				Engine.logEngine.error("Failed to load " + name, e);
+		check(project, refs);
+		return check(refs);
+	}
+	
+	private boolean check(Project project, Map<String, ProjectUrlParser> refs) {
+		project.getReferenceList().forEach(r -> {
+			if (r instanceof ProjectSchemaReference) {
+				ProjectSchemaReference ref = (ProjectSchemaReference) r;
+				String url = ref.getProjectName();
+				ProjectUrlParser parser = new ProjectUrlParser(url);
+				if (parser.isValid()) {
+					refs.put(parser.getProjectName(), parser);
+				}
 			}
-		}
+		});
+		return check(refs);
+	}
+	
+	private boolean check(Map<String, ProjectUrlParser> refs) {
 		List<String> loaded = new LinkedList<>();
 		for (Entry<String, ProjectUrlParser> entry: refs.entrySet()) {
 			String projectName = entry.getKey();
 			try {
 				ProjectUrlParser parser = entry.getValue();
 				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(parser.getProjectName(), false);
-				if (project == null && importProject(parser) != null) {
+				Project nProject = importProject(parser); 
+				if (nProject != null && nProject != project) {
 					loaded.add(projectName);
 				}
 			} catch (Exception e) {
@@ -81,6 +84,21 @@ public class ReferencedProjectManager {
 			return true;
 		}
 		return false;
+	}
+	
+	private boolean check(List<String> names) {
+		Map<String, ProjectUrlParser> refs = new HashMap<>();
+		for (String name: names) {
+			try {
+				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, true);
+				if (project != null) {
+					check(project, refs);
+				}
+			} catch (Exception e) {
+				Engine.logEngine.error("Failed to load " + name, e);
+			}
+		}
+		return check(refs);
 	}
 	
 	public ProjectSchemaReference getReferenceFromProject(Project project, String projectName) throws EngineException {
@@ -112,17 +130,33 @@ public class ReferencedProjectManager {
 	}
 	
 	public Project importProjectFrom(Project project, String projectName) throws Exception {
-		if (project.getName().equals(projectName)) {
-			return project;
+		Project targetProject = project.getName().equals(projectName) ? project : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		if (targetProject == null) {
+			ProjectSchemaReference ref = getReferenceFromProject(project, projectName);
+			if (ref != null) {
+				targetProject = importProject(ref.getParser());
+			}
 		}
-		return importProject(getReferenceFromProject(project, projectName).getParser());
+		return targetProject;
+	}
+
+	public Project importProject(ProjectUrlParser parser) throws Exception {
+		return importProject(parser, false);
 	}
 	
-	public Project importProject(ProjectUrlParser parser) throws Exception {
+	public Project importProject(ProjectUrlParser parser, boolean force) throws Exception {
 		String projectName = parser.getProjectName();
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 		File dir = null;
 		File prjDir = null;
+		boolean cloneDone = false;
+		if (parser.getGitRepo() == null) {
+			if (!force && project != null) {
+				return project;
+			} else {
+				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), parser.getProjectName(), true);
+			}
+		}
 		if (project != null) {
 			prjDir = project.getDirFile();
 			dir = GitUtils.getWorkingDir(project.getDirFile());
@@ -159,6 +193,7 @@ public class ReferencedProjectManager {
 			}
 			if (!dir.exists()) {
 				GitUtils.clone(parser.getGitUrl(), parser.getGitBranch(), dir);
+				cloneDone = true;
 			} else {
 				Engine.logEngine.info("(ReferencedProjectManager) Use repo " + dir);
 			}
@@ -169,9 +204,20 @@ public class ReferencedProjectManager {
 			}
 		}
 		if (dir != null) {
-			//GitUtils.pull(dir);
+			if (!cloneDone && parser.isAutoPull() && !Engine.isStudioMode()) {
+				String exRev = GitUtils.getRev(dir);
+				GitUtils.reset(dir);
+				GitUtils.pull(dir);
+				String newRev = GitUtils.getRev(dir);
+				if (!exRev.equals(newRev)) {
+					project = null;
+				}
+			}
 			if (project == null) {
 				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"));
+				if (!projectName.equals(project.getName())) {
+					throw new EngineException("Referenced name is '" + projectName + "' but loaded project is '" + project.getName() + "'");
+				}
 				Engine.logEngine.info("(ReferencedProjectManager) Referenced project is loaded: " + project);
 			}
 		}

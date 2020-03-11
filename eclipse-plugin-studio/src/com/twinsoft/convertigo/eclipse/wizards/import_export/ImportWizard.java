@@ -28,8 +28,10 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -52,12 +54,17 @@ public class ImportWizard extends Wizard implements IImportWizard {
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (fileChooserPage.getParser().isValid()) {
 			try {
-				if (Engine.theApp.referencedProjectManager.importProject(fileChooserPage.getParser()) != null) {
+				Project project = Engine.theApp.referencedProjectManager.importProject(fileChooserPage.getParser(), true); 
+				if (project != null) {
+					TreeObject tree = explorerView.getProjectRootObject(project.getName());
+					if (tree != null) {
+						explorerView.reloadProject(tree);
+					}
 					explorerView.refreshProjects();
 					return true;
 				}
 			} catch (Exception e) {
-				Engine.logStudio.debug("Loading from GIT failed", e);
+				Engine.logStudio.debug("Loading from remote URL failed", e);
 				fileChooserPage.setErrorMessage("Loading failed due to a '" + e.getClass().getSimpleName() + "': " + e.getMessage());
 			}
 			return false;

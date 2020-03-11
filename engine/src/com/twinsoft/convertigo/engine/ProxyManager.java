@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.parsers.AbstractXulWebViewer;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class ProxyManager {
 	
@@ -119,6 +120,10 @@ public class ProxyManager {
 		if (proxyMode == ProxyMode.auto) {
 			this.pacUtils = new PacManager(proxyUrl);
 			this.pacUtils.start();
+		}
+
+		if (Engine.theApp != null) {
+			Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
 		}
 	}
 	

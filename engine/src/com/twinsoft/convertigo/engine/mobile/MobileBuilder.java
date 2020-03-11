@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MobileBuilder {
 	class MbWorker implements Runnable {
@@ -1503,10 +1504,16 @@ public class MobileBuilder {
 		
 		for (String compbean : comp_beans_dirs.keySet()) {
 			File srcDir = comp_beans_dirs.get(compbean);
-			for (File f: srcDir.listFiles()) {
-				String fContent = FileUtils.readFileToString(f, "UTF-8");
-				File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
-				writeFile(destFile, fContent, "UTF-8");
+			File destDir = new File(ionicWorkDir, "src/components/"+ compbean+ "/");
+			Matcher m = Pattern.compile("file:(/.*?)!/(.*)").matcher(srcDir.getPath().replace('\\', '/'));
+			if (m.matches()) {
+				ZipUtils.expandZip(m.group(1), destDir.getAbsolutePath(), m.group(2));
+			} else {
+				for (File f: srcDir.listFiles()) {
+					String fContent = FileUtils.readFileToString(f, "UTF-8");
+					File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
+					writeFile(destFile, fContent, "UTF-8");
+				}
 			}
 		}
 		

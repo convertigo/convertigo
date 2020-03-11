@@ -23,8 +23,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,6 +51,8 @@ import java.util.regex.Pattern;
 import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -736,8 +741,49 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return deployProject(projectArchiveFilename, targetProjectName, bForce, false);
 	}
 	
+	public Project deployProject(URL projectUrl, String targetProjectName, boolean bForce, boolean keepOldReferences) throws Exception {
+		HttpGet get = new HttpGet(projectUrl.toURI());
+		File archive = File.createTempFile("convertigoImportFromHttp", ".car");
+		archive.deleteOnExit();
+		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+			FileUtils.deleteQuietly(archive);
+			archive.getParentFile().mkdirs();
+			if (Engine.logEngine.isDebugEnabled()) {
+				long length = response.getEntity().getContentLength();
+				try (FileOutputStream fos = new FileOutputStream(archive)) {
+					InputStream is = response.getEntity().getContent();
+					byte[] buf = new byte[1024 * 1024];
+					int n;
+					long t = 0, now, ts = 0;
+					while ((n = is.read(buf)) > -1) {
+						fos.write(buf, 0, n);
+						t += n;
+						now = System.currentTimeMillis();
+						if (now > ts) {
+							Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + length);
+							ts = now + 2000;
+						}
+					}
+					Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + length);
+				}
+			} else {
+				FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+			}
+			Engine.logEngine.info("Downloaded project " + projectUrl.toString() + " to " + archive.toString());
+			return deployProject(archive.getAbsolutePath(), targetProjectName, bForce, keepOldReferences);
+		} finally {
+			archive.delete();
+		}
+	}
+	
 	public Project deployProject(String projectArchiveFilename, String targetProjectName, boolean bForce, boolean keepOldReferences)
 			throws EngineException {
+		if (projectArchiveFilename.matches("https?://.+")) {
+			try {
+				return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
+			} catch (Exception e) {
+			}
+		}
 		String archiveProjectName, projectDirPath;
 		try {
 			archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);
@@ -1012,7 +1058,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 							if (m.group(1) != null) {
 								version[0] = m.group(2);
 							} else {
-								line = br.readLine();							
+								line = br.readLine();
 							}
 						} else {
 							line = null;
@@ -1114,6 +1160,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				projects.put(project.getName(), project);
 				RestApiManager.getInstance().putUrlMapper(project);
 				MobileBuilder.initBuilder(project);
+			}
+			
+			if (!Engine.isStudioMode()) {
+				Engine.theApp.referencedProjectManager.check(project);
 			}
 
 			// Creates xsd/wsdl files (Since 4.6.0)

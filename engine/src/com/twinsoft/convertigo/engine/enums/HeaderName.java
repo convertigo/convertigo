@@ -83,6 +83,7 @@ public enum HeaderName {
 	XConvertigoRequestHost("X-Convertigo-Request-Host"),
 	XConvertigoSDK("X-Convertigo-SDK"),
 	XConvertigoMB("X-Convertigo-MB"),
+	XXsrfToken("X-XSRF-Token"),
 	VOID("");
 	
 	String value;

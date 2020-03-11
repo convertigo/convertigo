@@ -20,8 +20,11 @@
 package com.twinsoft.convertigo.eclipse.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -44,7 +47,7 @@ public class ProjectReferenceComposite extends Composite {
 		gd.horizontalSpan = 2;
 		Label label = new Label(this , SWT.NONE);
 		label.setLayoutData(gd);
-		label.setText("<project name>=<git URL>[:path=<optional subpath>][:branch=<optional branch>]\n\n");
+		label.setText("<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]\n\n");
 		
 		label = new Label(this, SWT.NONE);
 		label.setText("Project remote URL");
@@ -70,7 +73,7 @@ public class ProjectReferenceComposite extends Composite {
 		});
 		
 		label = new Label(this, SWT.NONE);
-		label.setText("Git URL");
+		label.setText("Git or http URL");
 		Text gitUrl = new Text(this, SWT.NONE);
 		gitUrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		gitUrl.addModifyListener(e -> {
@@ -92,6 +95,10 @@ public class ProjectReferenceComposite extends Composite {
 			parser.setProjectPath(projectPath.getText());
 			if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
 				completGitUrl.setText(parser.getProjectUrl());
+			} else {
+				if (!projectPath.getText().isEmpty()) {
+					projectPath.setText("");
+				}
 			}
 			if (onChange != null) {
 				onChange.run();
@@ -106,9 +113,39 @@ public class ProjectReferenceComposite extends Composite {
 			parser.setGitBranch(gitBranch.getText());
 			if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
 				completGitUrl.setText(parser.getProjectUrl());
+			} else {
+				if (!gitBranch.getText().isEmpty()) {
+					gitBranch.setText("");
+				}
 			}
 			if (onChange != null) {
 				onChange.run();
+			}
+		});
+
+		label = new Label(this, SWT.NONE);
+		label.setText("Auto reset/pull");
+		Button autoPull = new Button(this, SWT.CHECK);
+		autoPull.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		autoPull.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				parser.setAutoPull(autoPull.getSelection());
+				if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
+					completGitUrl.setText(parser.getProjectUrl());
+				} else {
+					if (autoPull.getSelection()) {
+						autoPull.setSelection(false);
+					}
+				}
+				if (onChange != null) {
+					onChange.run();
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
 		
@@ -140,6 +177,7 @@ public class ProjectReferenceComposite extends Composite {
 			if (!gitBranch.getText().equals(txt)) {
 				gitBranch.setText(txt);
 			}
+			autoPull.setSelection(parser.isAutoPull());
 			if (onChange != null) {
 				onChange.run();
 			}

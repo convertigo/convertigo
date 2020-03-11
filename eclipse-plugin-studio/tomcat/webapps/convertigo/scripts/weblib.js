@@ -82,6 +82,10 @@ C8O = {
             if ($form.find("input[type=file]").length) {
                 var targetName = "tn_" + new Date().getTime() + "_" + Math.floor(Math.random() * 100);
                 var action = window.location.pathname.replace(new RegExp("^(.*/).*?$"), "$1") + C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml":".cxml");
+                var token = C8O._getXsrfToken();
+                if (token.length > 0) {
+                    action += "&" + encodeURIComponent(token);
+                }
                 $form.attr({
                     method : "POST",
                     enctype : "multipart/form-data",
@@ -645,13 +649,27 @@ C8O = {
                 C8O.waitHide();
             }
         }
+    },
+    
+    _getXsrfToken: function () {
+        var token = sessionStorage.getItem("X-XSRF-Token");
+        return token == null ? "Fetch" : token;
     }
 }
 
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
     type : C8O.vars.ajax_method,
-    dataType : "xml"
+    dataType: "xml",
+    complete: function (jqXHR) {
+        var token = jqXHR.getResponseHeader("X-XSRF-Token");
+        if (token != null) {
+            sessionStorage.setItem("X-XSRF-Token", token);
+        }
+    },
+    beforeSend: function (jqXHR) {
+        jqXHR.setRequestHeader("X-XSRF-Token", C8O._getXsrfToken());
+    }
 });
 
 try {
