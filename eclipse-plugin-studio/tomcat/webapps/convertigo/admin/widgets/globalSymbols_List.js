@@ -391,10 +391,10 @@ function editSymbolSecret(symbolName, symbolValue) {
 }
 
 function initializeImportSymbol() {
-	var actionForm = "services/global_symbols.Import";
+	var actionForm = "services/global_symbols.Import?__xsrfToken=" + encodeURIComponent(getXsrfToken());
 	
 	var ajaxUpload = new AjaxUpload("importSymbolUpload", {
-		action : actionForm + "?__xsrfToken=" + encodeURIComponent(getXsrfToken()),
+		action : actionForm,
 		responseType : "xml",		
 		onSubmit : function(file, ext) {
 			$("#dialog-confirm-symbols").dialog("close");
@@ -403,7 +403,7 @@ function initializeImportSymbol() {
 				showError("<p>The global symbols file '" + file + "' is not a valid properties file</p>");
 				return false;
 			} else {
-				this._settings.action = this._settings.action+"?"+ $("#dialog-import-symbols").serialize();
+				this._settings.action = this._settings.action + "&" + $("#dialog-import-symbols").serialize();
 			}
 			startWait(50);
 		},

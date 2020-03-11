@@ -387,10 +387,10 @@ function editUser(username) {
 }
 
 function initializeImportUser() {
-	var actionForm = "services/roles.Import";
+	var actionForm = "services/roles.Import?__xsrfToken=" + encodeURIComponent(getXsrfToken());
 	
 	var ajaxUpload = new AjaxUpload("importUserUpload", {
-		action : actionForm,			
+		action : actionForm,
 		responseType : "xml",		
 		onSubmit : function(file, ext) {
 			$("#dialog-confirm-users").dialog("close");
@@ -399,7 +399,7 @@ function initializeImportUser() {
 				showError("<p>The users file '" + file + "' is not a valid db file</p>");
 				return false;
 			} else {
-				this._settings.action = this._settings.action+"?"+ $("#dialog-import-users").serialize() + "&__xsrfToken=" + encodeURIComponent(getXsrfToken());
+				this._settings.action = this._settings.action + "&" + $("#dialog-import-users").serialize();
 			}
 			startWait(50);
 		},
@@ -456,6 +456,5 @@ function exportUserFile(){
 		userstoExport += "{ 'name' : "+$(this).prop('value')+" }";
 	});
 
-	window.open("services/roles.Export?users=" + 
-			userstoExport  );
+	window.open("services/roles.Export?__xsrfToken=" + encodeURIComponent(getXsrfToken()) + "&users=" + userstoExport);
 }
