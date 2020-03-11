@@ -809,7 +809,7 @@ public class MobilePickerComposite extends Composite {
 			} else {
 				//t_custom.setText(cs.getInput());
 				t_custom.setText(cs.getValue(false));
-				b_custom.setSelection(true);
+				b_custom.setSelection(false);
 				b_custom.notifyListeners(SWT.Selection, null);
 			}
 		}
