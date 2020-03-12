@@ -245,7 +245,7 @@ function onLogOptionsDownloadClick() {
 		endDate : endDate
 	}
 	var queryString = $.param(oQueryString);
-	window.open("services/logs.Download?" + queryString);
+	window.open("services/logs.Download?__xsrfToken=" + encodeURIComponent(getXsrfToken()) + "&" + queryString);
 }
 
 function onLogOptionsClearFilterClick() {

@@ -364,7 +364,7 @@ function exportProject(projectName) {
 					$div.find("input").each(function () {
 						options[this.getAttribute("name")] = this.checked;
 					});
-					location = "services/projects.Export?projectName=" + encodeURIComponent(projectName) + "&exportOptions=" + encodeURIComponent(JSON.stringify(options));
+					location = "services/projects.Export?__xsrfToken=" + encodeURIComponent(getXsrfToken()) + "&projectName=" + encodeURIComponent(projectName) + "&exportOptions=" + encodeURIComponent(JSON.stringify(options));
 					$div.dialog("close");
 				},
 				Cancel: function() {

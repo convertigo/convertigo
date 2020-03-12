@@ -109,7 +109,7 @@ function loadProject(projectName) {
 		
 		// create the project node
 		var htmlProjectEditDivTree = '<div class="projectEdit-selectableElement" qname="' + htmlEncode($(xml).find("project").first().attr('qname')) + '">'+
-			'<span id="projectTreeWidgetRoot"><img src="services/database_objects.GetIcon?className=com.twinsoft.convertigo.beans.core.Project" />'
+			'<span id="projectTreeWidgetRoot"><img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=com.twinsoft.convertigo.beans.core.Project" />'
 				+ htmlEncode($(xml).find("project").attr("name")) + '</span></div></div>';
 		htmlProjectEditDivTree += "<ul id=\"projectEditTree\"></ul>";				
 		$("#projectEditDivTree").html(htmlProjectEditDivTree);
@@ -170,7 +170,7 @@ function constructTree($xml, $tree) {
 
 		if (displayName != undefined) {
 			// add the element			
-			img = '<img src="services/database_objects.GetIcon?className=' + $(this).attr("classname") + '" />';
+			img = '<img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=' + $(this).attr("classname") + '" />';
 			$currentNode.append('<li class="projectEdit-selectableElement" qname="' + $(this).attr('qname') + '"><div>' + img + 
 					(accessibilityIcon != "" ? '<span class="accessibility-icon">' + accessibilityIcon + '</span>' : "" ) +
 					'<span>' + displayName + '</span></div><ul></ul></li>');

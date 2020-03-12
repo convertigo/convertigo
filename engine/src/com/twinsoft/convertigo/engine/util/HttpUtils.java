@@ -454,7 +454,7 @@ public class HttpUtils {
 		HttpSession session = request.getSession(true);
 		String token = SessionAttribute.xsrfToken.get(session);
 		String header = HeaderName.XXsrfToken.getHeader(request);
-		if (header == null && request.getMethod().equalsIgnoreCase("POST")) {
+		if (header == null) {
 			header = request.getParameter(Parameter.XsrfToken.getName());
 		}
 		if (token == null && header != null) {

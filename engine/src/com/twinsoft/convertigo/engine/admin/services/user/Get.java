@@ -38,7 +38,8 @@ import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager.FullSyncA
 		roles = { Role.ANONYMOUS },
 		parameters = {},
 		returnValue = "",
-		admin = false
+		admin = false,
+		allow_cors = true
 		)
 public class Get extends JSonService {
 
