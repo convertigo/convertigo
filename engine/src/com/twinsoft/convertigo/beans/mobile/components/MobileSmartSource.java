@@ -171,7 +171,8 @@ public class MobileSmartSource {
 					sm.setSuffix(suffix);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				//System.out.println("input: "+ input);
+				//e.printStackTrace();
 			}
 			
 			String computedValue = sm.computeValue();
