@@ -111,7 +111,7 @@ var F = {
 				complete: function (jqXHR) {
 					var token = jqXHR.getResponseHeader("X-XSRF-Token");
 					if (token != null) {
-						sessionStorage.setItem("X-XSRF-Token", token);
+						localStorage.setItem("X-XSRF-Token", token);
 					}
 				},
 				beforeSend: function (jqXHR) {
