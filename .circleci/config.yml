@@ -479,7 +479,7 @@ jobs:
                 TIMESTAMP=http://timestamp.verisign.com/scripts/timstamp.dll
                 if [ ! $(osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe) ]; then
                   TIMESTAMP=http://timestamp.globalsign.com/scripts/timstamp.dll
-                  $(osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe
+                  osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe
                 fi
               fi
               dir_w64_web=$(dirname ${dir_w64}/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
