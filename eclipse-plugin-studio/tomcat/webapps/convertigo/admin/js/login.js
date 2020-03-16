@@ -24,7 +24,7 @@ jQuery().ready(function() {
 		complete: function (jqXHR) {
 			var token = jqXHR.getResponseHeader("X-XSRF-Token");
 			if (token != null) {
-				sessionStorage.setItem("X-XSRF-Token", token);
+				localStorage.setItem("X-XSRF-Token", token);
 			}
 		},
 		beforeSend: function (jqXHR) {
@@ -98,6 +98,6 @@ function authenticate(data) {
 }
 
 function getXsrfToken() {
-	var token = sessionStorage.getItem("X-XSRF-Token");
+	var token = localStorage.getItem("X-XSRF-Token");
 	return token == null ? "Fetch" : token;
 }
