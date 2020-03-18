@@ -233,7 +233,7 @@ public class BeansDefaultValues {
 									String lVersion = keys.next().toString();
 									while (keys.hasNext()) {
 										String v = keys.next().toString();
-										if (v.compareTo(lVersion) > 1) {
+										if (v.compareTo(lVersion) > 0) {
 											lVersion = v;
 										}
 									}
@@ -245,9 +245,9 @@ public class BeansDefaultValues {
 									JSONObject ionProps = (JSONObject) ion.remove("properties");
 									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
 										String keyProp = (String) i.next();
+										JSONObject ionProp = ionProps.getJSONObject(keyProp);
 										if (dIonProps.has(keyProp)) {
 											JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
-											JSONObject ionProp = ionProps.getJSONObject(keyProp);
 											if (!dIonProp.equals(ionProp)) {
 												if (Boolean.FALSE.equals(ionProp.get("value"))) {
 													// <not set> case
@@ -255,6 +255,13 @@ public class BeansDefaultValues {
 												} else {
 													ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
 												}
+											}
+										} else {
+											if (Boolean.FALSE.equals(ionProp.get("value"))) {
+												// <not set> case
+												ion.put(keyProp, ionProp.getString("mode"));
+											} else {
+												ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
 											}
 										}
 									}
