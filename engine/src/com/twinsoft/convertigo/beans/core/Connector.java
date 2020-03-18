@@ -492,6 +492,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
 		clonedObject.vPools = new ArrayList<Pool>();
 		clonedObject.vDocuments = new ArrayList<com.twinsoft.convertigo.beans.core.Document>();
 		clonedObject.vListeners = new ArrayList<com.twinsoft.convertigo.beans.core.Listener>();
+		clonedObject.vIndexes = new ArrayList<com.twinsoft.convertigo.beans.core.Index>();
 		clonedObject.debugging = false;
 		return clonedObject;
 	}
