@@ -1020,7 +1020,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					// udi inside a page or menu
 					else {
 						try {
-							markMainAsDirty(udi);
+							//markMainAsDirty(udi);
+							markMainAsDirty(udi, done);
 						} catch (EngineException e) {
 							e.printStackTrace();
 						}
@@ -1045,11 +1046,29 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					// udu inside a page or menu
 					else {
 						try {
-							markMainAsDirty(udu);
+							//markMainAsDirty(udu);
+							markMainAsDirty(udu, done);
 						} catch (EngineException e) {
 							e.printStackTrace();
 						}
 					}
+				}
+			}
+		}
+	}
+	
+	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
+		if (uic != null) {
+			IScriptComponent main = uic.getMainScriptComponent();
+			if (main != null) {
+				if (!done.add(main)) {
+					return;
+				}
+				if (main instanceof ApplicationComponent) {
+					((ApplicationComponent)main).markApplicationAsDirty();
+				}
+				if (main instanceof PageComponent) {
+					((PageComponent)main).markPageAsDirty();
 				}
 			}
 		}
