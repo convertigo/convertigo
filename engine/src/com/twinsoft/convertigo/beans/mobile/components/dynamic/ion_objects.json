@@ -6704,7 +6704,6 @@
         "values": [
           "fatal",
           "error",
-          "fatal",
           "warn",
           "info",
           "debug",
