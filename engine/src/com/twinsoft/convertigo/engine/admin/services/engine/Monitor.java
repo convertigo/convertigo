@@ -23,13 +23,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "Monitor",
@@ -42,28 +41,35 @@ public class Monitor extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element rootElement = document.getDocumentElement();
 		Element objectElement;
-		Text objectText;
+		
+		Runtime runtime = Runtime.getRuntime();
+		objectElement = document.createElement("memoryMaximal");
+		rootElement.appendChild(objectElement);
+		objectElement.setTextContent("" + (runtime.maxMemory() / (1024 * 1024)));
+		
+		objectElement = document.createElement("memoryTotal");
+		rootElement.appendChild(objectElement);
+		objectElement.setTextContent("" + (runtime.totalMemory() / (1024 * 1024)));
+		
+		objectElement = document.createElement("memoryUsed");
+		rootElement.appendChild(objectElement);
+		objectElement.setTextContent("" + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)));
 
 		objectElement = document.createElement("threads");
 		rootElement.appendChild(objectElement);
-		objectText = document.createTextNode("" + com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads);
-		objectElement.appendChild(objectText);
+		objectElement.setTextContent("" + com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads);
 
 		objectElement = document.createElement("contexts");
 		rootElement.appendChild(objectElement);
 		try {
-			objectText = document.createTextNode(Engine.isStarted ? "" + Engine.theApp.contextManager.getNumberOfContexts() : "0");
+			objectElement.setTextContent(Engine.isStarted ? "" + Engine.theApp.contextManager.getNumberOfContexts() : "0");
 		} catch (Exception e) {
-			objectText = document.createTextNode("0");
+			objectElement.setTextContent("0");
 		}
-		objectElement.appendChild(objectText);
 
 		objectElement = document.createElement("requests");
 		rootElement.appendChild(objectElement);
-		long i = EngineStatistics.getAverage(EngineStatistics.REQUEST);
-		if (i == -1) i = 0;
-		objectText = document.createTextNode("" + i);
-		objectElement.appendChild(objectText);
+		objectElement.setTextContent("" + Math.max(EngineStatistics.getAverage(EngineStatistics.REQUEST), 0));
 	}
 
 }

@@ -36,6 +36,7 @@ function engine_GetSystemInformation_update() {
 		$("#sysinfoJavaVersion").text($(xml).find("java").attr("version"));
 		$("#sysinfoJavaClassVersion").text($(xml).find("java").attr("classVersion"));
 		$("#sysinfoMemoryTotal").text("" + parseInt(parseInt($(xml).find("memory").attr("total")) / 1024 / 1024));
+		$("#sysinfoMemoryUsed").text("" + parseInt((parseInt($(xml).find("memory").attr("total")) - parseInt($(xml).find("memory").attr("available"))) / 1024 / 1024));
 		$("#sysinfoMemoryAvailable").text("" + parseInt(parseInt($(xml).find("memory").attr("available")) / 1024 / 1024));
 		$("#sysinfoMemoryMaximal").text("" + parseInt(parseInt($(xml).find("memory").attr("maximal")) / 1024 / 1024));
 		$("#sysinfoBrowser").text($(xml).find("browser").text());
