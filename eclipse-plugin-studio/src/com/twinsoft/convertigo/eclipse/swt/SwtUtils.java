@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.swt;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -76,6 +79,18 @@ public class SwtUtils {
 				mkDirs(res.getParent());
 				((IFolder) res).create(true, true, null);
 			}
+		}
+	}
+	
+	public static void fillFile(IFile file, String text) {
+		try (InputStream is = new ByteArrayInputStream(text.getBytes("UTF-8"))) {
+			if (!file.exists()) {
+				mkDirs(file);
+				file.create(is, true, null);
+			} else {
+				file.setContents(is, true, false, null);
+			}
+		} catch (Exception e) {
 		}
 	}
 }

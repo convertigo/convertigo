@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -51,8 +50,8 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 		if (jsContainer instanceof DesignDocumentFunctionTreeObject) {
 			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
 			String conf = "{\"compilerOptions\": {\"module\": \"es5\", \"target\": \"es5\"}, \"include\": [\"*\"]}";
-			fillFile(jsconfig, conf);
-			fillFile(project.getFile("_private/editor/" + fullname + "/couchdb.d.ts"),
+			SwtUtils.fillFile(jsconfig, conf);
+			SwtUtils.fillFile(project.getFile("_private/editor/" + fullname + "/couchdb.d.ts"),
 					"declare function emit(key, value)\n"
 					+ "declare function sum(values)"
 					+ "declare function log(txt)\n");
@@ -67,29 +66,17 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 				for (Variable v: vc.getVariables()) {
 					sb.append("declare var ").append(v.getName()).append(v.isMultiValued() ? ": Array<string>" : ": string\n");
 				}
-				fillFile(project.getFile("_private/editor/" + fullname + "/variables.d.ts"), sb.toString());				
+				SwtUtils.fillFile(project.getFile("_private/editor/" + fullname + "/variables.d.ts"), sb.toString());				
 			}
 			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
 			String conf = "{\"compilerOptions\": {\"module\": \"es6\", \"target\": \"es6\"},\n" + 
 					"  \"include\": [\"" + ConvertigoTypeScriptDefinition.getDeclarationFile().getAbsolutePath().replace('\\', '/') + "\", \"*\"]}";
-			fillFile(jsconfig, conf);
+			SwtUtils.fillFile(jsconfig, conf);
 		}
 		IFile file = project.getFile("_private/editor/" + fullname + "/code.js");
-		fillFile(file, jsContainer.getExpression());
+		SwtUtils.fillFile(file, jsContainer.getExpression());
 		
 		return file;
-	}
-	
-	static private void fillFile(IFile file, String text) {
-		try (InputStream is = new ByteArrayInputStream(text.getBytes("UTF-8"))) {
-			if (!file.exists()) {
-				SwtUtils.mkDirs(file);
-				file.create(is, true, null);
-			} else {
-				file.setContents(is, true, false, null);
-			}
-		} catch (Exception e) {
-		}
 	}
 	
 	static public IEditorPart openJScriptEditor(DatabaseObjectTreeObject dboTree, IJScriptContainer jsContainer) throws PartInitException {
@@ -154,7 +141,7 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 	}
 	
 	public void reload() {
-		fillFile(getFile(), jsContainer.getExpression());
+		SwtUtils.fillFile(getFile(), jsContainer.getExpression());
 	}
 
 	@Override

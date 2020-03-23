@@ -60,6 +60,8 @@ import com.twinsoft.convertigo.beans.mobile.components.IScriptComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
+import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UICustom;
@@ -70,16 +72,14 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInfiniteScroll;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
-import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab;
-import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
 import com.twinsoft.convertigo.beans.mobile.components.UIText;
+import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -88,6 +88,7 @@ import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -309,8 +310,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	}
 	
 	private void openCssFileEditor() {
-		final UIStyle ms = (UIStyle)getObject();
-		String filePath = "/_private/" + ms.priority+".css";
+		final UIStyle ms = (UIStyle) getObject();
+		String filePath = "/_private/editor/" + ms.getParent().getQName() + "/" + ms.getName() + ".scss";
 		try {
 			// Refresh project resource
 			String projectName = ms.getProject().getName();
@@ -320,18 +321,8 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
 			
-			if (file.exists()) {
-				file.delete(true, null);
-			}
-			
 			// Write css file
-			try {
-				String content = formatStyleContent(ms);
-				InputStream is = new ByteArrayInputStream(content.getBytes("UTF-8"));
-				file.create(is, true, null);
-				file.setCharset("UTF-8", null);
-			} catch (UnsupportedEncodingException e) {}
-			file.refreshLocal(IResource.DEPTH_ZERO, null);
+			SwtUtils.fillFile(file, formatStyleContent(ms));
 			
 			// Open file in editor
 			if (file.exists()) {
