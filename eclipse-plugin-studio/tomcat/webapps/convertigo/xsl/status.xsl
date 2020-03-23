@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -50,7 +50,7 @@
 						<img border="0" src="../../images/convertigo.gif"/>
 					</a>
 					<br/>
-					<font size="-1">Copyright © 2001-2019 Convertigo SA. All rights reserved.</font>
+					<font size="-1">Copyright © 2001-2020 Convertigo SA. All rights reserved.</font>
 				</p>
 			</body>
 		</html>

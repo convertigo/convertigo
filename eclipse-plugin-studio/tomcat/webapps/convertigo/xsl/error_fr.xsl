@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -80,7 +80,7 @@
 					<xsl:value-of select="stacktrace"/>
 				</pre>
 				<hr/>
-				<p class="small center">Copyright @ 2001-2019 Convertigo SA. Tous droits réservés.</p>
+				<p class="small center">Copyright @ 2001-2020 Convertigo SA. Tous droits réservés.</p>
 			</div>
 		</div>
 	</xsl:template>

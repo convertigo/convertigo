@@ -4,24 +4,34 @@
 
 #### Improvements:
 
-- [#300](https://github.com/convertigo/convertigo/issues/300) Attribute / jAttribute Steps does not show value in tree view
+- [#300](https://github.com/convertigo/convertigo/issues/300) Attribute / jAttribute Steps now show value in tree view
 - [#304](https://github.com/convertigo/convertigo/issues/304) Gradle can now generate and compile MobileBuilder applications
-- [#307](https://github.com/convertigo/convertigo/issues/307) Set the project compatibility version to the highest bean version used
-- [#314](https://github.com/convertigo/convertigo/issues/314) Studio: opens link of documentation with the default external browser
-- [#322](https://github.com/convertigo/convertigo/issues/322) Add a property "Auto Pull" for Reference Project (git case)
-- [#323](https://github.com/convertigo/convertigo/issues/323) Engine "Git Container" property default to workspace/git (instead of <user>/git)
+- [#307](https://github.com/convertigo/convertigo/issues/307) Project compatibility version set to the highest used bean version
+- [#314](https://github.com/convertigo/convertigo/issues/314) Studio: Documentation links now open in default external browser
+- [#316](https://github.com/convertigo/convertigo/issues/316) Mobile Builder Calendar component now fires onChange event
+- [#317](https://github.com/convertigo/convertigo/issues/317) Mobile Builder Toggle button component now have a 'color' property
+- [#320](https://github.com/convertigo/convertigo/issues/320) Mobile Builder Badge component now has a 'item-end' value for the 'Item position' property
+- [#322](https://github.com/convertigo/convertigo/issues/322) Add an "Auto Pull" property for Reference Project (git case)
+- [#323](https://github.com/convertigo/convertigo/issues/323) Engine "Git Container" property defaults to workspace/git (instead of <user>/git)
+- [#330](https://github.com/convertigo/convertigo/issues/330) Enforce administration console security
 
 #### Bug Fixes:
 
-- [#296](https://github.com/convertigo/convertigo/issues/296) Fixed, new session that try to sync a non public database shouldn't be referenced in session count
+- [#296](https://github.com/convertigo/convertigo/issues/296) Fixed, new sessions that try to sync a non public database shouldn't be referenced in session count
 - [#298](https://github.com/convertigo/convertigo/issues/298) Fixed, TreeViewComponent does not build anymore in production mode
 - [#299](https://github.com/convertigo/convertigo/issues/299) Fixed, NullPointerException  while importing JSON WS reference
 - [#310](https://github.com/convertigo/convertigo/issues/310) Fixed, a copy/paste of a customAction fails to copy complete customs action's code
 - [#311](https://github.com/convertigo/convertigo/issues/311) Fixed, log files renamed by the log viewer aren't automatically removed
-- [#312](https://github.com/convertigo/convertigo/issues/312) Fixed, wrong label for Icon 'icon name' property
+- [#312](https://github.com/convertigo/convertigo/issues/312) Fixed, wrong labels for Icon 'icon name' property
 - [#313](https://github.com/convertigo/convertigo/issues/313) Fixed, HTTP 404 on documentation links for CallSequence Action and Fullsync Actions
 - [#315](https://github.com/convertigo/convertigo/issues/315) Fixed, PageEvent of a shared component may not be generated in calling page
 - [#321](https://github.com/convertigo/convertigo/issues/321) Fixed, Server: file path properties with .// can now resolve projects outside of the project folder
+- [#325](https://github.com/convertigo/convertigo/issues/325) Fixed, Mobile Builder PageEvent of a shared component is correctly generated in calling page
+- [#327](https://github.com/convertigo/convertigo/issues/327) Fixed, Mobile Builder Button component 'button form type' property is set to ‘false’ in template
+- [#328](https://github.com/convertigo/convertigo/issues/328) Fixed, Mobile Builder properties set with 'not set' value are correctly saved for all components
+- [#331](https://github.com/convertigo/convertigo/issues/331) Fixed, no more NullPointerException when importing symbols file
+- [#333](https://github.com/convertigo/convertigo/issues/333) Fixed, memory is well freed after a PostFind call (CouchDb/FullSync connector)
+- [#334](https://github.com/convertigo/convertigo/issues/334) Fixed, Mobile Builder CallSequence component "Disable auto login" property is correctly saved
 
 ---
 

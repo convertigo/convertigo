@@ -1,0 +1,10 @@
+{
+  "name": "MyApp",
+  "app_id": "",
+  "v2": true,
+  "documentRoot" : "../../DisplayObjects/mobile",
+  "watchPatterns": [
+    "../../DisplayObjects/mobile/build/*"
+  ],
+  "typescript": true
+}
