@@ -50,7 +50,8 @@ var graphOptions = {
 	grid : {
 		backgroundColor : {
 			colors : [ "#fff", "#fff" ]
-		}
+		},
+		hoverable: true
 	}
 };
 
@@ -100,6 +101,22 @@ function engine_Monitor_init() {
 	graphContextsPlot = $.plot(graphContexts, dataGraphContexts, graphOptions);
 	graphRequestsPlot = $.plot(graphRequests, dataGraphRequests, graphOptions);
 
+	graphMemory.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+
+	graphThreads.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+
+	graphContexts.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+
+	graphRequests.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+	
 	engine_Monitor_update();
 }
 
