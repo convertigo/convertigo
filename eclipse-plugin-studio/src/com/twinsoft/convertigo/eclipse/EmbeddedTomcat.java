@@ -29,6 +29,7 @@ import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.util.Log;
 
 public class EmbeddedTomcat implements Runnable {
@@ -59,7 +60,7 @@ public class EmbeddedTomcat implements Runnable {
 			System.out.println("(EmbeddedTomcat) Catalina home: " + tomcatHome);
 			System.setProperty("catalina.home", tomcatHome);
 			System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
-	        
+
 			// Create an embedded server
 			System.out.println("(EmbeddedTomcat) Creating a new instance of EmbeddedTomcat");
 			TomcatURLStreamHandlerFactory.disable();
@@ -67,7 +68,7 @@ public class EmbeddedTomcat implements Runnable {
 			embedded.setAddDefaultWebXmlToWebapp(false);
 			embedded.setBaseDir(tomcatHome);
 			embedded.enableNaming();
-			
+
 			// Assemble and install a default HTTP connector
 			int httpConnectorPort = 8080;
 
@@ -112,8 +113,14 @@ public class EmbeddedTomcat implements Runnable {
 			context = embedded.addWebapp("/convertigo", com.twinsoft.convertigo.engine.Engine.WEBAPP_PATH);
 			context.setParentClassLoader(this.getClass().getClassLoader());
 			
-			File configFile = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH + "/studio/context.xml");
+			File configFile = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "studio/context.xml");
 			if (configFile.exists()) {
+				String txt = FileUtils.readFileToString(configFile, "UTF-8");
+				if (!txt.contains("<CookieProcessor")) {
+					txt = txt.replace("</Context>", "\t<CookieProcessor sameSiteCookies=\"none\" />\n</Context>");
+					System.out.println("(EmbeddedTomcat) Add the SameSite=None for cookies for config file");
+					FileUtils.write(configFile, txt, "UTF-8");
+				}
 				System.out.println("(EmbeddedTomcat) Set convertigo webapp config file to " + configFile.getAbsolutePath());
 				context.setConfigFile(configFile.toURI().toURL());
 			}
