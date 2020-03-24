@@ -677,6 +677,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 					return;
 				}
 				try {
+					//System.out.println("---markPageAsDirty...");
 					JSONObject oldComputedContent = computedContents == null ? 
 							null :new JSONObject(computedContents.toString());
 					

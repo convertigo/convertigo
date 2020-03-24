@@ -23,6 +23,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
@@ -119,6 +120,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 		super.treeObjectPropertyChanged(treeObjectEvent);
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Set<Object> done = checkDone(treeObjectEvent);
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
@@ -131,13 +133,15 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
+				ApplicationComponent ac = getObject();
+				
 				// for Page or Menu or Route
-				if (getObject().equals(dbo.getParent())) {
-					markApplicationAsDirty();
+				if (ac.equals(dbo.getParent())) {
+					markApplicationAsDirty(done);
 				}
 				// for any component inside a route
-				else if (getObject().equals(dbo.getParent().getParent())) {
-					markApplicationAsDirty();
+				else if (ac.equals(dbo.getParent().getParent())) {
+					markApplicationAsDirty(done);
 				}
 				// for any UI component inside a menu or a stack
 				else if (dbo instanceof UIComponent) {
@@ -145,7 +149,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					
 					UIDynamicMenu menu = uic.getMenu();
 					if (menu != null) {
-						if (getObject().equals(menu.getParent())) {
+						if (ac.equals(menu.getParent())) {
 							if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
 								if (!newValue.equals(oldValue)) {
 									try {
@@ -161,7 +165,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 								}
 							}
 							
-							markApplicationAsDirty();
+							markApplicationAsDirty(done);
 						}
 					}
 				}
@@ -174,7 +178,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					} else if (propertyName.equals("componentScriptContent")) {
 						if (!newValue.equals(oldValue)) {
 							markComponentTsAsDirty();
-							markApplicationAsDirty();
+							markApplicationAsDirty(done);
 						}
 					} else if (propertyName.equals("useClickForTap")) {
 						for (TreeObject to: this.getChildren()) {
@@ -183,16 +187,16 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
 									for (TreeObject cto: ofto.getChildren()) {
 										if (cto instanceof MobilePageComponentTreeObject) {
-											((MobilePageComponentTreeObject)cto).markPageAsDirty();
+											((MobilePageComponentTreeObject)cto).markPageAsDirty(done);
 										}
 									}
 								}
 							}
 						}
-						markApplicationAsDirty();
+						markApplicationAsDirty(done);
 					} else if (propertyName.equals("tplProjectName")) {
 						// close app editor and reinitialize builder
-						Project project = getObject().getProject();
+						Project project = ac.getProject();
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);
@@ -207,13 +211,13 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 								if (ofto.folderType == ObjectsFolderTreeObject.FOLDER_TYPE_PAGES) {
 									for (TreeObject cto: ofto.getChildren()) {
 										if (cto instanceof MobilePageComponentTreeObject) {
-											((MobilePageComponentTreeObject)cto).markPageAsDirty();
+											((MobilePageComponentTreeObject)cto).markPageAsDirty(done);
 										}
 									}
 								}
 							}
 						}
-						markApplicationAsDirty();
+						markApplicationAsDirty(done);
 						
 						// delete node modules and alert user
 						final File nodeModules = new File(project.getDirPath(), "/_private/ionic/node_modules");
@@ -237,7 +241,7 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 						}
 						
 					} else {
-						markApplicationAsDirty();
+						markApplicationAsDirty(done);
 					}
 				}
 			} catch (Exception e) {}
@@ -258,8 +262,12 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 					"Error while writing the app.component.ts for application '" + ac.getName() + "'");	}
 	}
 	
-	protected void markApplicationAsDirty() {
+	protected void markApplicationAsDirty(Set<Object> done) {
 		ApplicationComponent ac = getObject();
+		if (!done.add(ac)) {
+			return;
+		}
+		//System.out.println("---markApplicationAsDirty, with done : '" + done + "'");
 		try {
 			ac.markApplicationAsDirty();
 		} catch (EngineException e) {

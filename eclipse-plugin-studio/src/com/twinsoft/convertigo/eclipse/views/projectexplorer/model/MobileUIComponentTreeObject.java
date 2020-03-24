@@ -972,7 +972,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			
 			try {
 				if (this.equals(treeObject)) {
-					markMainAsDirty(getObject());
+					markMainAsDirty(getObject(), done);
 					
 					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
 					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
@@ -1020,7 +1020,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					// udi inside a page or menu
 					else {
 						try {
-							//markMainAsDirty(udi);
 							markMainAsDirty(udi, done);
 						} catch (EngineException e) {
 							e.printStackTrace();
@@ -1046,7 +1045,6 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					// udu inside a page or menu
 					else {
 						try {
-							//markMainAsDirty(udu);
 							markMainAsDirty(udu, done);
 						} catch (EngineException e) {
 							e.printStackTrace();
@@ -1064,6 +1062,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				if (!done.add(main)) {
 					return;
 				}
+				//System.out.println("---markMainAsDirty for dbo@"+ uic.priority +" " + uic.toString() + ", with done : '" + done + "'");
 				if (main instanceof ApplicationComponent) {
 					((ApplicationComponent)main).markApplicationAsDirty();
 				}
@@ -1075,20 +1074,10 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	}
 	
 	protected void markMainAsDirty(UIComponent uic) throws EngineException {
-		if (uic != null) {
-			IScriptComponent main = uic.getMainScriptComponent();
-			if (main != null) {
-				if (main instanceof ApplicationComponent) {
-					((ApplicationComponent)main).markApplicationAsDirty();
-				}
-				if (main instanceof PageComponent) {
-					((PageComponent)main).markPageAsDirty();
-				}
-			}
-		}
+		markMainAsDirty(uic, new HashSet<Object>());
 	}
 
-	protected boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
+	protected static boolean hasSameScriptComponent(UIComponent uic1, UIComponent uic2) {
 		if (uic1 != null && uic2 != null) {
 			try {
 				return uic1.getMainScriptComponent().equals(uic2.getMainScriptComponent());

@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -184,6 +185,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 		super.treeObjectPropertyChanged(treeObjectEvent);
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		Set<Object> done = checkDone(treeObjectEvent);
 		
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
@@ -196,7 +198,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 				if (propertyName.equals("scriptContent")) {
 					if (!newValue.equals(oldValue)) {
 						markPageTsAsDirty();
-						markPageAsDirty();
+						markPageAsDirty(done);
 					}
 				} else if (propertyName.equals("isEnabled")) {
 					if (!newValue.equals(oldValue)) {
@@ -208,7 +210,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 							markAppModuleTsAsDirty();
 						} else {
 							markPageTsAsDirty();
-							markPageAsDirty();
+							markPageAsDirty(done);
 						}
 					}
 				} else if (propertyName.equals("preloadPriority")) {
@@ -217,25 +219,25 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 							markAppModuleTsAsDirty();
 						} else {
 							markPageTsAsDirty();
-							markPageAsDirty();
+							markPageAsDirty(done);
 						}
 					}
 				} else if (propertyName.equals("defaultHistory")) {
 					if (!newValue.equals(oldValue)) {
 						if (getObject().compareToTplVersion("7.7.0.8") < 0) {
-							markPageAsDirty();
+							markPageAsDirty(done);
 						} else {
 							markPageTsAsDirty();
-							markPageAsDirty();
+							markPageAsDirty(done);
 						}
 					}
 				} else if (propertyName.equals("changeDetection")) {
 					if (!newValue.equals(oldValue)) {
 						if (getObject().compareToTplVersion("7.7.0.14") < 0) {
-							markPageAsDirty();
+							markPageAsDirty(done);
 						} else {
 							markPageTsAsDirty();
-							markPageAsDirty();
+							markPageAsDirty(done);
 						}
 					}
 				} else if (propertyName.equals("title") || 
@@ -246,7 +248,7 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 						markAppComponentTsAsDirty();
 					}
 				} else {
-					markPageAsDirty();
+					markPageAsDirty(done);
 				}
 			}
 		} catch (Exception e) {
@@ -286,8 +288,12 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 					"Error while enabling/disabling page '" + page.getName() + "'");	}
 	}
 	
-	protected void markPageAsDirty() {
+	protected void markPageAsDirty(Set<Object> done) {
 		PageComponent page = getObject();
+		if (!done.add(page)) {
+			return;
+		}
+		//System.out.println("---markPageAsDirty, with done : '" + done + "'");
 		try {
 			page.markPageAsDirty();
 		} catch (EngineException e) {

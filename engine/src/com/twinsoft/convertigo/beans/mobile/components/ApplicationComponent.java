@@ -1155,6 +1155,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 					return;
 				}
 				try {
+					//System.out.println("---markApplicationAsDirty...");
 					JSONObject oldComputedContent = computedContents == null ? 
 							null :new JSONObject(computedContents.toString());
 					
