@@ -56,6 +56,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -916,31 +917,48 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 
 		runAtStartup(() -> {
-			Engine.execute(() -> {
-				String nodeVersion = "v10.19.0";
+			String nodeVersion = ProcessUtils.defaultNodeVersion;
+			Job job = Job.create("Retrieve default nodejs " + nodeVersion, monitor -> {
 				try {
+					monitor.beginTask("In progress", 120);
+					monitor.subTask("checking for existing nodejs");
+					monitor.worked(1);
+					boolean first[] = {true};
 					File nodeDir = ProcessUtils.getNodeDir(nodeVersion, new org.apache.commons.fileupload.ProgressListener() {
-						
+
 						@Override
 						public void update(long pBytesRead, long pContentLength, int pItems) {
+							if (first[0]) {
+								monitor.worked(10);
+								monitor.subTask("downloading nodejs [" + (pContentLength / (1024 * 1024)) + " MB]");
+								first[0] = false;
+							}
 							Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+							monitor.worked(10 + Math.round(100f * pBytesRead / pContentLength));
+							if (pBytesRead == pContentLength) {
+								monitor.subTask("installing nodejs");
+								monitor.worked(110);
+							}	
 						}
 					});
+					monitor.worked(120);
 					File nodeExe = new File(nodeDir, Engine.isWindows() ? "node.exe" : "node");
 					Engine.logStudio.warn("node ready: " + nodeExe.getAbsolutePath() + " exists ? " + nodeExe.exists());
 					System.setProperty("org.eclipse.wildwebdeveloper.nodeJSLocation", nodeExe.getAbsolutePath());
 					ProcessUtils.setNpmFolder(nodeDir);
+					monitor.done();
 				} catch (Exception e) {
 					Engine.logStudio.error("Failed to init NPM: " + e.getMessage(), e);
 				}
 			});
+			job.schedule();
 			
 			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
 			if (templates != null) {
 				for (File tpl: templates) {
 					try {
 						String name = tpl.getName();
-						name = name.substring(0, name.length() - 4);
+						name = name.substring(0, name.length() - 4); // remove .car
 						if (name.startsWith("mobilebuilder_tpl")) {
 							if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
 								Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);

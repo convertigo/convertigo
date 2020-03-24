@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 
 public class ProcessUtils {
+	public static final String defaultNodeVersion = "v10.19.0";
 	
 	public static void setNpmFolder(File npmFolder) {
 		if (new File(npmFolder, "npm").exists()) {
