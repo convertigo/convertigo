@@ -265,7 +265,9 @@ public class MobileSmartSource {
 					JSONArray jsonArray = jsonModel.getJSONArray("data");
 					for (int i = 0; i < jsonArray.length(); i++) {
 						JSONObject jsonSourceData = (JSONObject) jsonArray.get(i);
-						if (filter.equals(Filter.Sequence)) {
+						if (filter.equals(Filter.Action)) {
+							addSourceData(new MobileSmartSource().new ActionData(jsonSourceData));
+						} else if (filter.equals(Filter.Sequence)) {
 							addSourceData(new MobileSmartSource().new SequenceData(jsonSourceData));
 						} else if (filter.equals(Filter.Database)) {
 							addSourceData(new MobileSmartSource().new DatabaseData(jsonSourceData));
