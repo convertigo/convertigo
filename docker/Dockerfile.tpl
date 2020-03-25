@@ -82,7 +82,7 @@ RUN sed -i.bak \
         conf/server.xml \
     && sed -i.bak \
         -e 's,<Context>,<Context sessionCookiePath="/">,' \
-        -e 's,</Context>,<Manager pathname="" /><CookieProcessor sameSiteCookies="none" /></Context>,' \
+        -e 's,</Context>,<Manager pathname="" /><CookieProcessor sameSiteCookies="lax" /></Context>,' \
         conf/context.xml \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \
