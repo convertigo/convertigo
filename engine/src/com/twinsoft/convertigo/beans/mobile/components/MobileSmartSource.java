@@ -718,11 +718,7 @@ public class MobileSmartSource {
 
 		@Override
 		public String getValueEx() {
-			String valueEx = null;
-			if (priority != 0L) {
-				valueEx = keyThis + ".stack['"+ priority + "']";
-			}
-			return valueEx;
+			return getValue();
 		}
 		
 		@Override

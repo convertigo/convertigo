@@ -491,6 +491,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
 					JSONObject jsonProps = jsonModel.getJSONObject("in").getJSONObject("props");
+					jsonProps.put("tplVersion", "");
+					jsonProps.put("actionName", "");
+					jsonProps.put("actionFunction", "");
 					for (IonProperty property : ionBean.getProperties().values()) {
 						jsonProps.put(property.getName(), "");
 					}
