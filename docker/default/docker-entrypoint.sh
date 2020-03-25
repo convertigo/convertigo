@@ -92,6 +92,11 @@ if [ "$1" = "convertigo" ]; then
     fi
     unset COOKIE_SECURE
     
+    if [ "$COOKIE_SAMESITE" != "" ]; then
+        sed -i.bak -e "s,sameSiteCookies=\"[^\"]*\",sameSiteCookies=\"$COOKIE_SAMESITE\"," $CATALINA_HOME/conf/context.xml
+        unset COOKIE_SAMESITE
+    fi
+    
     
     
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run
