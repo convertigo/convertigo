@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -411,4 +414,29 @@ public class UIActionStack extends UIComponent implements IShared {
 		super.addContributors(done, contributors);
 	}
 
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		//if (isEnabled()) {
+			try {
+				jsonModel.put("in", new JSONObject()
+										.put("vars", new JSONObject()));
+				
+				JSONObject jsonVars = jsonModel.getJSONObject("in").getJSONObject("vars");
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIStackVariable) {
+						UIStackVariable var = (UIStackVariable)component;
+						jsonVars.put(var.getVariableName(), "");
+					}
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		//}
+		return jsonModel.toString();
+	}
 }

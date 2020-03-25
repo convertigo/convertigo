@@ -41,9 +41,11 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
@@ -219,6 +221,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			Map<String, Set<String>> map = mobileComponent.getApplication().getInfoMap();
 			
 			TVObject root = new TVObject("root", mobileComponent, null);
+			if (filter.equals(Filter.Action)) {
+				TVObject tvi = root.add(new TVObject("actions"));
+				addActions(tvi, mobileComponent);
+			}
 			if (filter.equals(Filter.Sequence)) {
 				TVObject tvs = root.add(new TVObject("sequences"));
 				for (String projectName : projectNames) {
@@ -484,6 +490,45 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						}
 					} else {
 						addIterations(tvi, uic);
+					}
+				}
+			}
+		}
+	}
+	
+	private void addActions(TVObject tvi, Object object) {
+		if (object != null) {
+			List<? extends UIComponent> list = null;
+			if (object instanceof ApplicationComponent) {
+				list = ((ApplicationComponent)object).getSharedActionList();
+			} else if (object instanceof UIActionStack) {
+				list = ((UIActionStack)object).getUIComponentList();
+			} else if (object instanceof PageComponent) {
+				list = ((PageComponent)object).getUIComponentList();
+			} else if (object instanceof UIComponent) {
+				list = ((UIComponent)object).getUIComponentList();
+			}
+			
+			if (list != null) {
+				for (UIComponent uic : list) {
+					if (uic instanceof IAction || uic instanceof UIActionStack) {
+						// do not add to prevent selection on itself or children
+						if (uic.equals(selected)) {
+							return;
+						}
+						
+						SourceData sd = null;
+						try {
+							sd = Filter.Action.toSourceData(new JSONObject()
+									.put("priority", uic.priority));
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						
+						TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
+						addActions(tuic, uic);
+					} else {
+						addActions(tvi, uic);
 					}
 				}
 			}

@@ -60,6 +60,7 @@ public class MobileSmartSource {
 	public static Pattern formPattern = Pattern.compile("(form\\d+)(.+)?");
 	public static Pattern cafPattern = Pattern.compile("'([^,]+)(,.+)?'");
 	public static Pattern globalPattern = Pattern.compile("(router\\.sharedObject)(.+)?");
+	public static Pattern actionPattern = Pattern.compile("(stack\\['(\\d+)'\\])(.+)?");
 
 	public static Pattern fsPattern = Pattern.compile("fs\\://(\\w+\\.)?(\\w+)\\.(\\w+)(#\\w+)?,?\\s*(\\{[^\\{\\}]*\\})?");
 	public static Pattern kvPattern = Pattern.compile("(\\w+)(?:=|\\:)('[^']+'|\\w+)");
@@ -87,6 +88,7 @@ public class MobileSmartSource {
 	} 
 	
 	public enum Filter {
+		Action,
 		Sequence,
 		Database,
 		Iteration,
@@ -96,7 +98,9 @@ public class MobileSmartSource {
 		public SourceData toSourceData(String project, String source) {
 			if (project != null && !project.isEmpty()) {
 				if (source != null && !source.isEmpty()) {
-					if (this.equals(Filter.Sequence)) {
+					if (this.equals(Filter.Action)) {
+						return new MobileSmartSource().new ActionData(project, source);
+					} else if (this.equals(Filter.Sequence)) {
 						return new MobileSmartSource().new SequenceData(project, source);
 					} else if (this.equals(Filter.Database)) {
 						return new MobileSmartSource().new DatabaseData(project, source);
@@ -114,7 +118,9 @@ public class MobileSmartSource {
 		
 		public SourceData toSourceData(JSONObject jsonObject) {
 			if (jsonObject != null) {
-				if (this.equals(Filter.Sequence)) {
+				if (this.equals(Filter.Action)) {
+					return new MobileSmartSource().new ActionData(jsonObject);
+				} else if (this.equals(Filter.Sequence)) {
 					return new MobileSmartSource().new SequenceData(jsonObject);
 				} else if (this.equals(Filter.Database)) {
 					return new MobileSmartSource().new DatabaseData(jsonObject);
@@ -187,7 +193,9 @@ public class MobileSmartSource {
 		}
 		
 		public String keyword() {
-			if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
+			if (this.equals(Filter.Action)) {
+				return "stack";
+			} else if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
 				return "listen";
 			} else if (this.equals(Filter.Iteration)) {
 				return "item";
@@ -201,7 +209,9 @@ public class MobileSmartSource {
 		
 		public Matcher matcher(String input) {
 			if (input != null) {
-				if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
+				if (this.equals(Filter.Action)) {
+					return actionPattern.matcher(input);
+				} else if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
 					return listenPattern.matcher(input);
 				} else if (this.equals(Filter.Iteration)) {
 					return directivePattern.matcher(input);
@@ -657,6 +667,72 @@ public class MobileSmartSource {
 		}
 	}
 	
+	public class ActionData extends SourceData {
+		private long priority = 0L;
+		
+		public ActionData(JSONObject jsonObject) {
+			super(jsonObject);
+			try {
+				if (jsonObject.has("priority")) {
+					priority = jsonObject.getLong("priority");
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		public ActionData(String project, String source) {
+			super();
+			try {
+				if (source != null && !source.isEmpty()) {
+					//stack['1111111111']
+					if (source.matches("stack\\[\\d+\\]")) {
+						String p = source.replaceFirst("stack\\[", "").replaceFirst("\\]", "");
+						priority = Long.parseLong(p);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JSONObject toJson() {
+			JSONObject jsonObject = new JSONObject();
+			try {
+				jsonObject.put("priority", priority);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return jsonObject;
+		}
+		
+		@Override
+		public String getValue() {
+			return getSource();
+		}
+
+		@Override
+		public String getValueEx() {
+			String valueEx = null;
+			if (priority != 0L) {
+				valueEx = keyThis + ".stack['"+ priority + "']";
+			}
+			return valueEx;
+		}
+		
+		@Override
+		public String getSource() {
+			String source = null;
+			if (priority != 0L) {
+				source = "stack['"+ priority + "']";
+			}
+			return source;
+		}
+	}
+	
 	public class IterationData extends SourceData {
 		private long priority = 0L;
 		
@@ -991,7 +1067,15 @@ public class MobileSmartSource {
 			}
 		} else {
 			String input = s;
-			if (Filter.Iteration.equals(getFilter())) {
+			if (Filter.Action.equals(getFilter())) {
+				Matcher m = actionPattern.matcher(input);
+				if (m.find()) {
+					String stack = m.group(1);
+					if (stack != null) {
+						sources.add(stack);
+					}
+				}
+			} else if (Filter.Iteration.equals(getFilter())) {
 				Matcher m = directivePattern.matcher(input);
 				if (m.find()) {
 					String directive = m.group(1);
@@ -1051,7 +1135,12 @@ public class MobileSmartSource {
 				e.printStackTrace();
 			}
 		} else {
-			if (Filter.Iteration.equals(getFilter())) {
+			if (Filter.Action.equals(getFilter())) {
+				Matcher m = actionPattern.matcher(getInput());
+				if (m.find()) {
+					modelPath = m.group(2);
+				}
+			} else if (Filter.Iteration.equals(getFilter())) {
 				Matcher m = directivePattern.matcher(getInput());
 				if (m.find()) {
 					modelPath = m.group(2);
@@ -1136,7 +1225,46 @@ public class MobileSmartSource {
 		List<String> sourceData = getSources();
 		String cafInput = sourceData.size() > 0 ? sourceData.get(0):null;
 		if (cafInput != null) {
-			if (Filter.Iteration.equals(getFilter())) {
+			if (Filter.Action.equals(getFilter())) {
+				Matcher m = actionPattern.matcher(cafInput);
+				if (m.find()) {
+					String stack = m.group(1);
+					try {
+						String p = stack.replaceFirst("stack\\[", "").replaceFirst("\\]", "");
+						p = p.substring(1, p.length()-2); // ignore quotes
+						final long priority = Long.valueOf(p, 10);
+						String projectName = getProjectName();
+						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						
+						DatabaseObject dbo = null;
+						try {
+							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
+						} catch (Exception e1) {
+							try {
+								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
+							} catch (Exception e2) {}
+						}
+						
+						final List<UIForm> formList = new ArrayList<UIForm>();
+						new WalkHelper() {
+							@Override
+							protected void walk(DatabaseObject databaseObject) throws Exception {
+								if (databaseObject instanceof UIForm && databaseObject.priority == priority) {
+									formList.add((UIForm)databaseObject);
+								}
+								if (formList.isEmpty()) {
+									super.walk(databaseObject);
+								}
+							}
+						}.init(dbo);
+						
+						return formList.isEmpty() ? null:formList.get(0);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				
+			} else if (Filter.Iteration.equals(getFilter())) {
 				Matcher m = directivePattern.matcher(cafInput);
 				if (m.find()) {
 					String item = m.group(1);
@@ -1280,7 +1408,9 @@ public class MobileSmartSource {
 		List<String> sourceData = getSources();
 		String source = sourceData.size() > 0 ? sourceData.get(0):null;
 		if (source != null) {
-			if (Filter.Iteration.equals(getFilter())) {
+			if (Filter.Action.equals(getFilter())) {
+				;
+			} else if (Filter.Iteration.equals(getFilter())) {
 				;
 			} else if (Filter.Form.equals(getFilter())) {
 				;

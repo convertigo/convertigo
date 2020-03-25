@@ -484,6 +484,33 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		//if (isEnabled()) {
+			try {
+				jsonModel.put("in", new JSONObject()
+										.put("props", new JSONObject())
+										.put("vars", new JSONObject()));
+				
+				JSONObject jsonVars = jsonModel.getJSONObject("in").getJSONObject("vars");
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIControlVariable) {
+						UIControlVariable var = (UIControlVariable)component;
+						jsonVars.put(var.getVarName(), "");
+					}
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		//}
+		return jsonModel.toString();
+	}
+	
+	@Override
 	public void computeScripts(JSONObject jsonScripts) {
 		IScriptComponent main = getMainScriptComponent();
 		if (main == null) {

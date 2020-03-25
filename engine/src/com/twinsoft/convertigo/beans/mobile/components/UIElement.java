@@ -156,7 +156,8 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		return sb;
 	}
 	
-	protected String computeJsonModel() {
+	@Override
+	public String computeJsonModel() {
 		if (isEnabled()) {
 			String formControlVarName = getFormControlName();
 			if (!formControlVarName.isEmpty()) {

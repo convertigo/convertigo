@@ -603,6 +603,10 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 		}
 	}
 	
+	public String computeJsonModel() {
+		return "";
+	}
+	
 	public void markAsDirty() throws EngineException {
     	PageComponent page = getPage();
     	if (page != null) {
