@@ -21,7 +21,9 @@ package com.twinsoft.convertigo.beans;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -46,6 +48,7 @@ import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.ProductVersion;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -504,6 +507,18 @@ public class BeansDefaultValues {
 	
 	private static Element getBeanForVersion(TwsCachedXPathAPI xpath, Element beans, String classname, String version) {
 		boolean isMigrating = false;
+		String key = classname + "@" + version;
+		Map<String, Element> cache = GenericUtils.cast(beans.getUserData("cache"));
+		if (cache == null) {
+			cache = new HashMap<String, Element>();
+			beans.setUserData("cache", cache, null);
+		} else {
+			Element cached = cache.get(key);
+			if (cached != null) {
+				return cached;
+			}
+		}
+		
 		for (Node n : xpath.selectList(beans, "*[@classname='" + classname + "']")) {
 			Element e = (Element) n;
 			String eVersion = e.getAttribute("version");
@@ -511,6 +526,7 @@ public class BeansDefaultValues {
 				if (isMigrating) {
 					e.setUserData("isMigrating", "true", null);
 				}
+				cache.put(key, e);
 				return e;
 			} else {
 				isMigrating = true;
