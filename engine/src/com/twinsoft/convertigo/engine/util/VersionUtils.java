@@ -59,7 +59,7 @@ public class VersionUtils {
 	}
 
 	public static String normalizeVersionString(String version, String sep, int maxWidth) {
-		String[] split = Pattern.compile(sep, Pattern.LITERAL).split(version);
+		String[] split = Pattern.compile(sep, Pattern.LITERAL).split(version.trim().toLowerCase());
 		StringBuilder sb = new StringBuilder();
 		for (String s : split) {
 			sb.append(String.format("%" + maxWidth + 's', s));
