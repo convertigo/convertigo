@@ -101,7 +101,7 @@ public abstract class UIComponent extends MobileComponent implements IScriptGene
 			return;
 		}
 		
-		if (VersionUtils.compare(version, "7.8.0") < 0) {
+		if (VersionUtils.compare(version, "7.9.0") < 0) {
 			try {
 				NodeList properties = element.getElementsByTagName("property");
 				int len = properties.getLength();
