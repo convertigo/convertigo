@@ -30,7 +30,7 @@ include 'mobilebuilder_tpl_7_5_6'
 include 'mobilebuilder_tpl_7_5_7'
 include 'mobilebuilder_tpl_7_6_0'
 include 'mobilebuilder_tpl_7_7_0'
-include 'mobilebuilder_tpl_7_7_1'
+include 'mobilebuilder_tpl_7_8_0'
 
 include 'FlightShare'
 include 'IonicConferenceApp'

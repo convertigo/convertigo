@@ -348,7 +348,6 @@ title: Title for MyFlightDetails
                 beanData: |
                   '{
                    "ionBean": "MapMarker",
-                   "IconUrl": "script:''''",
                    "Latitude": "source:{\"filter\":\"Iteration\",\"project\":\"FlightShare\",\"input\":\"item1510580345914?.doc?.airport?.latitude * 1\"}",
                    "Longitude": "source:{\"filter\":\"Iteration\",\"project\":\"FlightShare\",\"input\":\"item1510580345914?.doc?.airport?.longitude * 1\"}"
                   }'

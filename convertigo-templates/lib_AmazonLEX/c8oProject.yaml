@@ -1,7 +1,7 @@
 ↑convertigo: 7.7.0.m006
 ↓lib_AmazonLEX [core.Project]: 
   comment: This library  enables projects to interact with Amazon LEX chatbots.
-  version: 7.7.1
+  version: 7.8.0-beta
   ↓AmazonLEXEndpoint [connectors.HttpConnector]: 🗏 connectors/AmazonLEXEndpoint.yaml
   ↓Init [sequences.GenericSequence]: 🗏 sequences/Init.yaml
   ↓PostTextGetAudio [sequences.GenericSequence]: 🗏 sequences/PostTextGetAudio.yaml

@@ -1,6 +1,6 @@
 # Changelog
 
-## 7.7.1
+## 7.8.0
 
 #### Improvements:
 
