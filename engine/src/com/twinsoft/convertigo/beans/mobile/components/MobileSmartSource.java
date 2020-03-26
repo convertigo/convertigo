@@ -60,7 +60,7 @@ public class MobileSmartSource {
 	public static Pattern formPattern = Pattern.compile("(form\\d+)(.+)?");
 	public static Pattern cafPattern = Pattern.compile("'([^,]+)(,.+)?'");
 	public static Pattern globalPattern = Pattern.compile("(router\\.sharedObject)(.+)?");
-	public static Pattern actionPattern = Pattern.compile("(stack\\['(\\d+)'\\])(.+)?");
+	public static Pattern actionPattern = Pattern.compile("(stack\\[['\"]\\d+['\"]\\])(.+)?");
 
 	public static Pattern fsPattern = Pattern.compile("fs\\://(\\w+\\.)?(\\w+)\\.(\\w+)(#\\w+)?,?\\s*(\\{[^\\{\\}]*\\})?");
 	public static Pattern kvPattern = Pattern.compile("(\\w+)(?:=|\\:)('[^']+'|\\w+)");
@@ -688,9 +688,10 @@ public class MobileSmartSource {
 			super();
 			try {
 				if (source != null && !source.isEmpty()) {
-					//stack['1111111111']
-					if (source.matches("stack\\[\\d+\\]")) {
+					//stack['123456789'] or stack["123456789"]
+					if (source.matches("stack\\[['\"]\\d+['\"]\\]")) {
 						String p = source.replaceFirst("stack\\[", "").replaceFirst("\\]", "");
+						p = p.substring(1, p.length() - 1); // ignore quotes
 						priority = Long.parseLong(p);
 					}
 				}
@@ -1221,15 +1222,15 @@ public class MobileSmartSource {
 	
 	public DatabaseObject getDatabaseObject(String dboName) {
 		List<String> sourceData = getSources();
-		String cafInput = sourceData.size() > 0 ? sourceData.get(0):null;
-		if (cafInput != null) {
+		String sourceInput = sourceData.size() > 0 ? sourceData.get(0):null;
+		if (sourceInput != null) {
 			if (Filter.Action.equals(getFilter())) {
-				Matcher m = actionPattern.matcher(cafInput);
+				Matcher m = actionPattern.matcher(sourceInput);
 				if (m.find()) {
 					String stack = m.group(1);
 					try {
 						String p = stack.replaceFirst("stack\\[", "").replaceFirst("\\]", "");
-						p = p.substring(1, p.length()-2); // ignore quotes
+						p = p.substring(1, p.length()-1); // ignore quotes
 						final long priority = Long.valueOf(p, 10);
 						String projectName = getProjectName();
 						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
@@ -1243,27 +1244,27 @@ public class MobileSmartSource {
 							} catch (Exception e2) {}
 						}
 						
-						final List<UIForm> formList = new ArrayList<UIForm>();
+						final List<DatabaseObject> list = new ArrayList<DatabaseObject>();
 						new WalkHelper() {
 							@Override
 							protected void walk(DatabaseObject databaseObject) throws Exception {
-								if (databaseObject instanceof UIForm && databaseObject.priority == priority) {
-									formList.add((UIForm)databaseObject);
+								if (databaseObject.priority == priority) {
+									list.add(databaseObject);
 								}
-								if (formList.isEmpty()) {
+								if (list.isEmpty()) {
 									super.walk(databaseObject);
 								}
 							}
 						}.init(dbo);
 						
-						return formList.isEmpty() ? null:formList.get(0);
+						return list.isEmpty() ? null:list.get(0);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 				
 			} else if (Filter.Iteration.equals(getFilter())) {
-				Matcher m = directivePattern.matcher(cafInput);
+				Matcher m = directivePattern.matcher(sourceInput);
 				if (m.find()) {
 					String item = m.group(1);
 					try {
@@ -1299,7 +1300,7 @@ public class MobileSmartSource {
 					}
 				}
 			} else if (Filter.Form.equals(getFilter())) {
-				Matcher m = formPattern.matcher(cafInput);
+				Matcher m = formPattern.matcher(sourceInput);
 				if (m.find()) {
 					String form = m.group(1);
 					try {
@@ -1335,7 +1336,7 @@ public class MobileSmartSource {
 					}
 				}
 			} else if (Filter.Global.equals(getFilter())) {
-				Matcher m = formPattern.matcher(cafInput);
+				Matcher m = formPattern.matcher(sourceInput);
 				if (m.find()) {
 					try {
 						String projectName = getProjectName();
@@ -1349,7 +1350,7 @@ public class MobileSmartSource {
 				}
 
 			} else if (Filter.Database.equals(getFilter())) {
-				Matcher m = cafPattern.matcher(cafInput);
+				Matcher m = cafPattern.matcher(sourceInput);
 				if (m.find()) {
 					try {
 						String name = m.group(1);
@@ -1375,7 +1376,7 @@ public class MobileSmartSource {
 					}
 				}
 			} else if (Filter.Sequence.equals(getFilter())) {
-				Matcher m = cafPattern.matcher(cafInput);
+				Matcher m = cafPattern.matcher(sourceInput);
 				if (m.find()) {
 					try {
 						String name = m.group(1);
