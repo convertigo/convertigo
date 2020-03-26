@@ -59,7 +59,9 @@ databaseName: conferenceapp
         "_id": "_design\/map",
         "filters": {},
         "updates": {},
-        "views": {"all": {"map": "function (doc) {\r\n
+        "views": {
+          "all": {
+            "map": "function (doc) {\r\n
           try {\r\n
       \r\n
           if(doc._id.indexOf(\"_\") == -1){\r\n
@@ -69,7 +71,9 @@ databaseName: conferenceapp
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"}}
+      }"
+          }
+        }
       }'
 ↓schedule [couchdb.DesignDocument]: 
   docdata: 
@@ -97,7 +101,8 @@ databaseName: conferenceapp
           }\r\n
       }"
           },
-          "all": {"map": "function (doc) {\r\n
+          "all": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if(doc.group != null){\r\n
                   emit(doc._id, doc._rev, {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n
@@ -105,7 +110,8 @@ databaseName: conferenceapp
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
+      }"
+          },
           "favoritebygroup": {
             "map": "function (doc) {\r\n
           try {\r\n
@@ -124,7 +130,8 @@ databaseName: conferenceapp
           }\r\n
       }"
           },
-          "allbysearch": {"map": "function (doc) {\r\n
+          "allbysearch": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if(doc.group != null){\r\n
                   emit(doc.name.toLowerCase(), {name: doc.name, group: doc.group, location: doc.location, timeEnd: doc.timeEnd, timeStart: doc.timeStart, tracks: doc.tracks, favorite: doc.favorite});\r\n
@@ -132,7 +139,8 @@ databaseName: conferenceapp
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"}
+      }"
+          }
         }
       }'
 ↓speaker [couchdb.DesignDocument]: 
@@ -143,7 +151,8 @@ databaseName: conferenceapp
         "filters": {},
         "updates": {},
         "views": {
-          "all": {"map": "function (doc) {\r\n
+          "all": {
+            "map": "function (doc) {\r\n
           try {\r\n
           if(doc._id.indexOf(\"_speakers\") !== -1){\r\n
               emit(doc._id,{about: doc.about, email: doc.email, location: doc.location, name: doc.name, phone: doc.phone, profilePic: doc.ProfilePic, twitter: doc.twitter});\r\n
@@ -152,8 +161,10 @@ databaseName: conferenceapp
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "view": {"map": "function (doc) {\r\n
+      }"
+          },
+          "view": {
+            "map": "function (doc) {\r\n
           try {\r\n
               for (var i = 0, len = doc.speakerNames.length; i < len; i++) {\r\n
                   if(doc.speakerNames[i]){\r\n
@@ -164,8 +175,10 @@ databaseName: conferenceapp
               log(err.message);\r\n
           }\r\n
       }\r\n
-      "},
-          "sessionBySpeaker": {"map": "function (doc) {\r\n
+      "
+          },
+          "sessionBySpeaker": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if(doc.speakerNames){\r\n
                   emit(doc.speakerNames, {name: doc.name, id: doc._id});\r\n
@@ -173,7 +186,8 @@ databaseName: conferenceapp
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"}
+      }"
+          }
         }
       }'
 ↓tracks [couchdb.DesignDocument]: 
@@ -184,7 +198,8 @@ databaseName: conferenceapp
         "filters": {},
         "updates": {},
         "views": {
-          "all": {"map": "function (doc) {\r\n
+          "all": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if(doc.visible != null){\r\n
                   emit(doc._id, {value: doc.value, visible: doc.visible, rev: doc.rev});\r\n
@@ -192,8 +207,10 @@ databaseName: conferenceapp
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "allbyname": {"map": "function (doc) {\r\n
+      }"
+          },
+          "allbyname": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if(doc.visible != null){\r\n
                   emit(doc.value, {visible: doc.visible});\r\n
@@ -201,6 +218,7 @@ databaseName: conferenceapp
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"}
+      }"
+          }
         }
       }'

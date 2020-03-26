@@ -1,5 +1,5 @@
 ↑convertigo: 7.6.0.m006
 ↓template_SQL [core.Project]: 
   comment: SQL project
-  version: 7.8.0-beta
+  version: 7.9.0-beta
   ↓SqlConnector [connectors.SqlConnector]: 🗏 connectors/SqlConnector.yaml

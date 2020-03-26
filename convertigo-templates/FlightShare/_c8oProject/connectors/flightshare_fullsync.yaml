@@ -58,7 +58,8 @@ databaseName: flightshare_fullsync
         "filters": {},
         "updates": {},
         "views": {
-          "AirportsByIACO": {"map": "function (doc) {\r\n
+          "AirportsByIACO": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.airport)\r\n
                   if (doc.airport.iaco != \"\")\r\n
@@ -66,8 +67,10 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "AirportsByCountry": {"map": "function (doc) {\r\n
+      }"
+          },
+          "AirportsByCountry": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.airport)\r\n
                   if (doc.airport.country != \"\")\r\n
@@ -75,8 +78,10 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "AirportsByCity": {"map": "function (doc) {\r\n
+      }"
+          },
+          "AirportsByCity": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.airport)\r\n
                   if (doc.airport.city != \"\")\r\n
@@ -84,8 +89,10 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "PlanesByTag": {"map": "function (doc) {\r\n
+      }"
+          },
+          "PlanesByTag": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.plane)\r\n
                   if (doc.plane.tag != \"\")\r\n
@@ -93,8 +100,10 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "Flights": {"map": "function (doc) {\r\n
+      }"
+          },
+          "Flights": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.flight) {\r\n
                       idx = doc.flight.date + \"-\" + doc.flight.time,\r\n
@@ -106,8 +115,10 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "PublishedFlights": {"map": "function (doc) {\r\n
+      }"
+          },
+          "PublishedFlights": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.PublishedFlight)\r\n
                   emit(doc._id, doc.PublishedFlight);\r\n
@@ -115,8 +126,10 @@ databaseName: flightshare_fullsync
               log(err.message);\r\n
           }\r\n
       }\r\n
-      "},
-          "AirportsByIACOOrCity": {"map": "function (doc) {\r\n
+      "
+          },
+          "AirportsByIACOOrCity": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.airport)\r\n
                   if (doc.airport.iaco != \"\") {\r\n
@@ -128,8 +141,10 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "PublishRequests": {"map": "function (doc) {\r\n
+      }"
+          },
+          "PublishRequests": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.publish) {\r\n
                   emit(doc._id, doc);\r\n
@@ -137,8 +152,10 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "PublishedFlightsDetails": {"map": "function (doc) {\r\n
+      }"
+          },
+          "PublishedFlightsDetails": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.PublishedFlight) {\r\n
                   emit(doc._id, doc._id);\r\n
@@ -151,8 +168,10 @@ databaseName: flightshare_fullsync
           }\r\n
       }\r\n
       \r\n
-      "},
-          "RegisterRequests": {"map": "function (doc) {\r\n
+      "
+          },
+          "RegisterRequests": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.register) {\r\n
                   emit(doc._id, doc);\r\n
@@ -160,15 +179,18 @@ databaseName: flightshare_fullsync
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "users": {"map": "function (doc) {\r\n
+      }"
+          },
+          "users": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.userinfo)\r\n
                   emit(doc._id, doc);\r\n
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"}
+      }"
+          }
         }
       }'
 ↓PublishRequestsListener [couchdb.FullSyncListener]: 

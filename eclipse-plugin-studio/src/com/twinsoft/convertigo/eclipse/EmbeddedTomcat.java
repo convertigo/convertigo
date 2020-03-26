@@ -117,7 +117,7 @@ public class EmbeddedTomcat implements Runnable {
 			if (configFile.exists()) {
 				String txt = FileUtils.readFileToString(configFile, "UTF-8");
 				if (!txt.contains("<CookieProcessor")) {
-					txt = txt.replace("</Context>", "\t<CookieProcessor sameSiteCookies=\"none\" />\n</Context>");
+					txt = txt.replace("</Context>", "\t<CookieProcessor sameSiteCookies=\"lax\" />\n</Context>");
 					System.out.println("(EmbeddedTomcat) Add the SameSite=None for cookies for config file");
 					FileUtils.write(configFile, txt, "UTF-8");
 				}
@@ -134,7 +134,7 @@ public class EmbeddedTomcat implements Runnable {
 		catch(Throwable e) {
 			String stackTrace = Log.getStackTrace(e);
 			System.out.println("(EmbeddedTomcat) Unexpected exception while launching Tomcat:\n" + stackTrace);
-			Engine.isStartFailed = true;			
+			Engine.isStartFailed = true;
 		}
 	}
 	

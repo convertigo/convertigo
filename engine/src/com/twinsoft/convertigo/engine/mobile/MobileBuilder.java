@@ -764,9 +764,9 @@ public class MobileBuilder {
 	}
 	
 	static public int compareVersions(String v1, String v2) {
-		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
-		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
-		int cmp = s1.compareTo(s2);
+//		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
+//		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
+		int cmp = VersionUtils.compare(v1, v2);
 		return cmp;
 	}
 	

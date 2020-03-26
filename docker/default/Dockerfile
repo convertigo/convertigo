@@ -82,13 +82,14 @@ RUN sed -i.bak \
         conf/server.xml \
     && sed -i.bak \
         -e 's,<Context>,<Context sessionCookiePath="/">,' \
+        -e 's,</Context>,<Manager pathname="" /><CookieProcessor sameSiteCookies="lax" /></Context>,' \
         conf/context.xml \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
-ENV CONVERTIGO_VERSION 7.8.0
+ENV CONVERTIGO_VERSION 7.9.0
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 

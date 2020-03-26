@@ -92,7 +92,8 @@ databaseName: c8ofiletransfer
         "filters": {},
         "updates": {},
         "views": {
-          "creation": {"map": "function (doc) {\r\n
+          "creation": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.type == \"chunk\" && !doc.alias) {\r\n
                   emit(doc.creation, doc._rev);\r\n
@@ -100,7 +101,8 @@ databaseName: c8ofiletransfer
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
+      }"
+          },
           "count_by_uuid": {
             "map": "function (doc) {\r\n
           try {\r\n
@@ -113,7 +115,8 @@ databaseName: c8ofiletransfer
       }",
             "reduce": "_count"
           },
-          "alias": {"map": "function (doc) {\r\n
+          "alias": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.alias && doc._id.match(\"_0$\")) {\r\n
                   emit(doc.alias, {filename: doc.filename, uuid: doc.uuid});\r\n
@@ -121,8 +124,10 @@ databaseName: c8ofiletransfer
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"},
-          "no_alias": {"map": "function (doc) {\r\n
+      }"
+          },
+          "no_alias": {
+            "map": "function (doc) {\r\n
           try {\r\n
               if (doc.type == \"chunk\" && !doc.alias && doc.uuid && doc._id.match(\"_0$\")) {\r\n
                   emit(doc.uuid, null);\r\n
@@ -130,6 +135,7 @@ databaseName: c8ofiletransfer
           } catch (err) {\r\n
               log(err.message);\r\n
           }\r\n
-      }"}
+      }"
+          }
         }
       }'

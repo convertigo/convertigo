@@ -17,10 +17,10 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.8.0'
+ext.convertigoVersion = '7.9.0'
 ext.convertigoTag = 'beta'
-ext.convertigoCodename = 'platinum'
-ext.convertigoCode = 'Pt'
+ext.convertigoCodename = 'gold'
+ext.convertigoCode = 'Au'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 //ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserGroup = 'com.convertigo.lib'
@@ -29,7 +29,7 @@ ext.swaggerUiVersion = '3.19.3'
 ext.tomcatVersion = '9.0.33'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
-ext.convertigoEngineAPI = '7.8.0-SNAPSHOT'
+ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)

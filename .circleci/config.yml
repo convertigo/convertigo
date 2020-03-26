@@ -298,7 +298,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
+          git clone --depth 1 -b 7.8.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-1.git
           
     - run:
         name: Pull the docker aks image
@@ -340,7 +340,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
+          git clone --depth 1 -b 7.8.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
           
     - run:
         name: Pull the docker default image
@@ -382,7 +382,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
+          git clone --depth 1 -b 7.8.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
           
     - run:
         name: Pull the docker default image

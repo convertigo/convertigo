@@ -171,7 +171,9 @@ databaseName: retaildb
           }*\/\r\n
       }"
         },
-        "views": {"children_byFather": {"map": "function (doc) {\r\n
+        "views": {
+          "children_byFather": {
+            "map": "function (doc) {\r\n
           \/\/ Get Products AND Categories by levelIdFather\r\n
           if (doc.shopCode && doc.levelIdFather) {\r\n
               if (doc.levelId) { \/\/ Category\r\n
@@ -191,6 +193,8 @@ databaseName: retaildb
                   }\r\n
               }\r\n
           }\r\n
-      }"}},
+      }"
+          }
+        },
         "_id": "_design\/design"
       }'
