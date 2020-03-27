@@ -637,9 +637,9 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void release() throws EngineException {
-		/*if (!initDone) {
+		if (!initDone) {
 			return;
-		}*/
+		}
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();

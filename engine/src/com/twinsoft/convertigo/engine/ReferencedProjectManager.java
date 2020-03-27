@@ -130,7 +130,7 @@ public class ReferencedProjectManager {
 	}
 	
 	public Project importProjectFrom(Project project, String projectName) throws Exception {
-		Project targetProject = project.getName().equals(projectName) ? project : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		Project targetProject = project.getName().equals(projectName) ? project : Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 		if (targetProject == null) {
 			ProjectSchemaReference ref = getReferenceFromProject(project, projectName);
 			if (ref != null) {
