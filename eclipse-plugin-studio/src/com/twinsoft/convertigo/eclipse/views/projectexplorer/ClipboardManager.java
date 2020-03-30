@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
@@ -790,7 +791,8 @@ public class ClipboardManager {
 				pastedSteps.put(String.valueOf(oldPriority), (Step)databaseObject);
 			}
 			// For update of sources which reference this mobile component
-			if (databaseObject instanceof UIControlDirective || databaseObject instanceof UIForm) {
+			if (databaseObject instanceof IAction || databaseObject instanceof UIActionStack || 
+					databaseObject instanceof UIControlDirective || databaseObject instanceof UIForm) {
 				pastedComponents.put(String.valueOf(oldPriority), (UIComponent)databaseObject);
 			}
 			
