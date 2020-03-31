@@ -472,8 +472,18 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							return;
 						}
 						
+						// do not add if not parent of selected (popped picker only)
+						boolean showInPicker = true;
+						if (selected != null && selected instanceof UIComponent) {
+							String selectedQName = ((UIComponent)selected).getQName();
+							String uicQName = uic.getQName() + ".";
+							if (!selectedQName.startsWith(uicQName)) {
+								showInPicker = false;
+							}
+						}
+						
 						UIControlDirective uicd = (UIControlDirective)uic;
-						if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
+						if (showInPicker && AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
 							SourceData sd = null;
 							try {
 								sd = Filter.Iteration.toSourceData(new JSONObject()
@@ -481,7 +491,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							} catch (JSONException e) {
 								e.printStackTrace();
 							}
-							
 							//TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, null));
 							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
 							addIterations(tuic, uic);
@@ -517,16 +526,30 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							return;
 						}
 						
-						SourceData sd = null;
-						try {
-							sd = Filter.Action.toSourceData(new JSONObject()
-									.put("priority", uic.priority));
-						} catch (JSONException e) {
-							e.printStackTrace();
+						// do not add if not parent of selected (popped picker only)
+						boolean showInPicker = true;
+						if (selected != null && selected instanceof UIComponent) {
+							String selectedQName = ((UIComponent)selected).getQName();
+							String uicQName = uic.getQName() + ".";
+							if (!selectedQName.startsWith(uicQName)) {
+								showInPicker = false;
+							}
 						}
 						
-						TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
-						addActions(tuic, uic);
+						if (showInPicker) {
+							SourceData sd = null;
+							try {
+								sd = Filter.Action.toSourceData(new JSONObject()
+										.put("priority", uic.priority));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+							
+							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
+							addActions(tuic, uic);
+						} else {
+							addActions(tvi, uic);
+						}
 					} else {
 						addActions(tvi, uic);
 					}
