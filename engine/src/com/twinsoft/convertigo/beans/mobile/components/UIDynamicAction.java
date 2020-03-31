@@ -486,7 +486,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			try {
 				jsonModel.put("in", new JSONObject()
 										.put("props", new JSONObject())
-										.put("vars", new JSONObject()));
+										.put("vars", new JSONObject()))
+							.put("out", new JSONObject());
 				
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {

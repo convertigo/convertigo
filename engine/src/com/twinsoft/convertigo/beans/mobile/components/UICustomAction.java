@@ -490,7 +490,8 @@ public class UICustomAction extends UIComponent implements IAction {
 			try {
 				jsonModel.put("in", new JSONObject()
 										.put("props", new JSONObject())
-										.put("vars", new JSONObject()));
+										.put("vars", new JSONObject()))
+							.put("out", new JSONObject());
 				
 				JSONObject jsonProps = jsonModel.getJSONObject("in").getJSONObject("props");
 				jsonProps.put("tplVersion", "");
