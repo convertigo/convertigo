@@ -34,7 +34,6 @@ import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
@@ -1134,7 +1133,13 @@ public class MobilePickerComposite extends Composite {
 						jsonObject = (JSONObject)ob;
 					} else if (ob instanceof JSONArray) {
 						JSONArray jsonArray = (JSONArray)ob;
-						jsonObject = jsonArray.getJSONObject(0);
+						Object o0 = jsonArray.get(0);
+						if (o0 instanceof JSONObject) {
+							jsonObject = (JSONObject)o0;
+						} else {
+							jsonObject = new JSONObject();
+							break;
+						}
 					} else {
 						break;
 					}
@@ -1143,7 +1148,7 @@ public class MobilePickerComposite extends Composite {
 				}
 			}
 			return jsonObject;
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
