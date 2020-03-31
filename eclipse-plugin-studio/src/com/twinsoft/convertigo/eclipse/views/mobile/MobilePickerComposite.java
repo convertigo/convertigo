@@ -367,7 +367,7 @@ public class MobilePickerComposite extends Composite {
 		
 		btnShared = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uicustomaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uisharedcomponent_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnShared.setText("SH");
 		}
