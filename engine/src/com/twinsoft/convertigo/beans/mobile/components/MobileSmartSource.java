@@ -61,6 +61,7 @@ public class MobileSmartSource {
 	public static Pattern cafPattern = Pattern.compile("'([^,]+)(,.+)?'");
 	public static Pattern globalPattern = Pattern.compile("(router\\.sharedObject)(.+)?");
 	public static Pattern actionPattern = Pattern.compile("(stack\\[['\"]\\d+['\"]\\])(.+)?");
+	public static Pattern sharedPattern = Pattern.compile("(params\\d+)(.+)?");
 
 	public static Pattern fsPattern = Pattern.compile("fs\\://(\\w+\\.)?(\\w+)\\.(\\w+)(#\\w+)?,?\\s*(\\{[^\\{\\}]*\\})?");
 	public static Pattern kvPattern = Pattern.compile("(\\w+)(?:=|\\:)('[^']+'|\\w+)");
@@ -89,6 +90,7 @@ public class MobileSmartSource {
 	
 	public enum Filter {
 		Action,
+		Shared,
 		Sequence,
 		Database,
 		Iteration,
@@ -100,6 +102,8 @@ public class MobileSmartSource {
 				if (source != null && !source.isEmpty()) {
 					if (this.equals(Filter.Action)) {
 						return new MobileSmartSource().new ActionData(project, source);
+					} else if (this.equals(Filter.Shared)) {
+						return new MobileSmartSource().new SharedData(project, source);
 					} else if (this.equals(Filter.Sequence)) {
 						return new MobileSmartSource().new SequenceData(project, source);
 					} else if (this.equals(Filter.Database)) {
@@ -120,6 +124,8 @@ public class MobileSmartSource {
 			if (jsonObject != null) {
 				if (this.equals(Filter.Action)) {
 					return new MobileSmartSource().new ActionData(jsonObject);
+				} else if (this.equals(Filter.Shared)) {
+					return new MobileSmartSource().new SharedData(jsonObject);
 				} else if (this.equals(Filter.Sequence)) {
 					return new MobileSmartSource().new SequenceData(jsonObject);
 				} else if (this.equals(Filter.Database)) {
@@ -195,6 +201,8 @@ public class MobileSmartSource {
 		public String keyword() {
 			if (this.equals(Filter.Action)) {
 				return "stack";
+			} else if (this.equals(Filter.Shared)) {
+				return "params";
 			} else if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
 				return "listen";
 			} else if (this.equals(Filter.Iteration)) {
@@ -211,6 +219,8 @@ public class MobileSmartSource {
 			if (input != null) {
 				if (this.equals(Filter.Action)) {
 					return actionPattern.matcher(input);
+				} else if (this.equals(Filter.Shared)) {
+					return sharedPattern.matcher(input);
 				} else if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
 					return listenPattern.matcher(input);
 				} else if (this.equals(Filter.Iteration)) {
@@ -267,6 +277,8 @@ public class MobileSmartSource {
 						JSONObject jsonSourceData = (JSONObject) jsonArray.get(i);
 						if (filter.equals(Filter.Action)) {
 							addSourceData(new MobileSmartSource().new ActionData(jsonSourceData));
+						} else if (filter.equals(Filter.Shared)) {
+							addSourceData(new MobileSmartSource().new SharedData(jsonSourceData));
 						} else if (filter.equals(Filter.Sequence)) {
 							addSourceData(new MobileSmartSource().new SequenceData(jsonSourceData));
 						} else if (filter.equals(Filter.Database)) {
@@ -732,6 +744,71 @@ public class MobileSmartSource {
 		}
 	}
 	
+	public class SharedData extends SourceData {
+		private long priority = 0L;
+		
+		public SharedData(JSONObject jsonObject) {
+			super(jsonObject);
+			try {
+				if (jsonObject.has("priority")) {
+					priority = jsonObject.getLong("priority");
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		public SharedData(String project, String source) {
+			super();
+			try {
+				if (source != null && !source.isEmpty()) {
+					//itemXXXXXXX
+					if (source.matches("params\\d+")) {
+						priority = Long.parseLong(source.replaceFirst("params", ""));
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JSONObject toJson() {
+			JSONObject jsonObject = new JSONObject();
+			try {
+				jsonObject.put("priority", priority);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return jsonObject;
+		}
+		
+		@Override
+		public String getValue() {
+			return getSource();
+		}
+
+		@Override
+		public String getValueEx() {
+			String valueEx = null;
+			if (priority != 0L) {
+				valueEx = keyThis + ".params"+ priority;
+			}
+			return valueEx;
+		}
+		
+		@Override
+		public String getSource() {
+			String source = null;
+			if (priority != 0L) {
+				source = "params"+ priority;
+			}
+			return source;
+		}
+	}
+	
 	public class IterationData extends SourceData {
 		private long priority = 0L;
 		
@@ -981,9 +1058,11 @@ public class MobileSmartSource {
 
 	public SourceModel getModel() {
 		try {
-			Filter filter = Filter.valueOf(jsonObject.getString(Key.filter.name()));
-			JSONObject jsonModel = jsonObject.getJSONObject(Key.model.name());
-			return new SourceModel(filter, jsonModel);
+			if (hasModel()) {
+				Filter filter = Filter.valueOf(jsonObject.getString(Key.filter.name()));
+				JSONObject jsonModel = jsonObject.getJSONObject(Key.model.name());
+				return new SourceModel(filter, jsonModel);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1074,6 +1153,14 @@ public class MobileSmartSource {
 						sources.add(stack);
 					}
 				}
+			} else if (Filter.Shared.equals(getFilter())) {
+				Matcher m = sharedPattern.matcher(input);
+				if (m.find()) {
+					String shared = m.group(1);
+					if (shared != null) {
+						sources.add(shared);
+					}
+				}
 			} else if (Filter.Iteration.equals(getFilter())) {
 				Matcher m = directivePattern.matcher(input);
 				if (m.find()) {
@@ -1139,6 +1226,11 @@ public class MobileSmartSource {
 				if (m.find()) {
 					modelPath = m.group(2);
 				}
+			} else if (Filter.Shared.equals(getFilter())) {
+				Matcher m = sharedPattern.matcher(getInput());
+				if (m.find()) {
+					modelPath = m.group(2);
+				}
 			} else if (Filter.Iteration.equals(getFilter())) {
 				Matcher m = directivePattern.matcher(getInput());
 				if (m.find()) {
@@ -1176,7 +1268,7 @@ public class MobileSmartSource {
 					return migrate(jsonString);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 			return mss;
 		}
@@ -1262,7 +1354,42 @@ public class MobileSmartSource {
 						e.printStackTrace();
 					}
 				}
-				
+			} else if (Filter.Shared.equals(getFilter())) {
+				Matcher m = sharedPattern.matcher(sourceInput);
+				if (m.find()) {
+					String shared = m.group(1);
+					try {
+						final long priority = Long.valueOf(shared.replaceFirst("params", ""), 10);
+						String projectName = getProjectName();
+						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						
+						DatabaseObject dbo = null;
+						try {
+							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
+						} catch (Exception e1) {
+							try {
+								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
+							} catch (Exception e2) {}
+						}
+						
+						final List<DatabaseObject> list = new ArrayList<DatabaseObject>();
+						new WalkHelper() {
+							@Override
+							protected void walk(DatabaseObject databaseObject) throws Exception {
+								if (databaseObject.priority == priority) {
+									list.add(databaseObject);
+								}
+								if (list.isEmpty()) {
+									super.walk(databaseObject);
+								}
+							}
+						}.init(dbo);
+						
+						return list.isEmpty() ? null:list.get(0);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			} else if (Filter.Iteration.equals(getFilter())) {
 				Matcher m = directivePattern.matcher(sourceInput);
 				if (m.find()) {
@@ -1408,6 +1535,8 @@ public class MobileSmartSource {
 		String source = sourceData.size() > 0 ? sourceData.get(0):null;
 		if (source != null) {
 			if (Filter.Action.equals(getFilter())) {
+				;
+			} else if (Filter.Shared.equals(getFilter())) {
 				;
 			} else if (Filter.Iteration.equals(getFilter())) {
 				;

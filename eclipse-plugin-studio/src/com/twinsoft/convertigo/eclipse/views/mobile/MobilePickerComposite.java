@@ -91,6 +91,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceModel;
@@ -120,7 +121,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class MobilePickerComposite extends Composite {
 
 	Composite content, headerComposite;
-	private ToolItem btnAction, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
+	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Button b_custom;
@@ -251,6 +252,7 @@ public class MobilePickerComposite extends Composite {
 					btnSequence.setSelection(false);
 					btnDatabase.setSelection(false);
 					btnAction.setSelection(false);
+					btnShared.setSelection(false);
 					btnIteration.setSelection(false);
 					btnForm.setSelection(false);
 					btnGlobal.setSelection(false);
@@ -264,6 +266,8 @@ public class MobilePickerComposite extends Composite {
 						contentProvider.setFilterBy(Filter.Database);
 					} else if (btnAction.getSelection()) {
 						contentProvider.setFilterBy(Filter.Action);
+					} else if (btnShared.getSelection()) {
+						contentProvider.setFilterBy(Filter.Shared);
 					} else if (btnIteration.getSelection()) {
 						contentProvider.setFilterBy(Filter.Iteration);
 					} else if (btnForm.getSelection()) {
@@ -361,6 +365,16 @@ public class MobilePickerComposite extends Composite {
 		btnAction.setToolTipText("Show Action Sources");
 		btnAction.addSelectionListener(listener);
 		
+		btnShared = new ToolItem(toolbar, btnStyle);
+		try {
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/mobile/components/images/uicustomaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+		} catch (Exception e) {
+			btnShared.setText("SH");
+		}
+		btnShared.setImage(image);
+		btnShared.setToolTipText("Show Shared Components");
+		btnShared.addSelectionListener(listener);
+
 		btnIteration = new ToolItem(toolbar, btnStyle);
 		try {
 			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/steps/images/iterator_16x16.png", BeanInfo.ICON_COLOR_16x16);
@@ -536,6 +550,8 @@ public class MobilePickerComposite extends Composite {
 			filter = Filter.Database;
 		else if (btnAction.getSelection())
 			filter = Filter.Action;
+		else if (btnShared.getSelection())
+			filter = Filter.Shared;
 		else if (btnIteration.getSelection())
 			filter = Filter.Iteration;
 		else if (btnForm.getSelection())
@@ -597,6 +613,7 @@ public class MobilePickerComposite extends Composite {
 			btnSequence.setEnabled(enabled);
 			btnDatabase.setEnabled(enabled);
 			btnAction.setEnabled(enabled);
+			btnShared.setEnabled(enabled);
 			btnIteration.setEnabled(enabled);
 			btnForm.setEnabled(enabled);
 			btnGlobal.setEnabled(enabled);
@@ -894,6 +911,9 @@ public class MobilePickerComposite extends Composite {
 						dbo = (UICustomAction)object;
 						searchPath = "";
 					}
+				} else if (object instanceof UISharedComponent) {
+					dbo = (UISharedComponent)object;
+					searchPath = "";
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1052,6 +1072,25 @@ public class MobilePickerComposite extends Composite {
 								if (dbo instanceof UICustomAction) {
 									jsonObject = new JSONObject(((UICustomAction)dbo).computeJsonModel());
 								}
+								
+								String searchPath = dataPath;
+								
+								JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+								
+								JSONObject jsonResponse = jsonOutput;
+								
+								Display.getDefault().asyncExec(new Runnable() {
+									public void run() {
+										modelTreeViewer.setInput(jsonResponse);
+										initTreeSelection(modelTreeViewer, null);
+										setWidgetsEnabled(true);
+										updateMessage();
+									}
+								});
+							}
+							// case of UISharedComponent
+							else if (dbo instanceof UISharedComponent) {
+								JSONObject jsonObject = new JSONObject(((UISharedComponent)dbo).computeJsonModel());
 								
 								String searchPath = dataPath;
 								
@@ -1250,6 +1289,9 @@ public class MobilePickerComposite extends Composite {
 					}
 					if (Filter.Action.equals(filter)) {
 						buttonToSelect = btnAction;
+					}
+					if (Filter.Shared.equals(filter)) {
+						buttonToSelect = btnShared;
 					}
 					if (Filter.Iteration.equals(filter)) {
 						buttonToSelect = btnIteration;

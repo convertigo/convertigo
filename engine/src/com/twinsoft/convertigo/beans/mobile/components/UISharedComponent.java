@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -54,6 +55,28 @@ public class UISharedComponent extends UIComponent implements IShared {
 			}
 		}
 		return Collections.unmodifiableList(list);
+	}
+	
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		//if (isEnabled()) {
+			try {
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UICompVariable) {
+						UICompVariable var = (UICompVariable)component;
+						jsonModel.put(var.getVariableName(), "");
+					}
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		//}
+		return jsonModel.toString();
 	}
 	
 	@Override

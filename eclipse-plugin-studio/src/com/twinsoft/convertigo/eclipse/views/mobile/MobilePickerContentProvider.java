@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
@@ -224,6 +225,10 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			if (filter.equals(Filter.Action)) {
 				TVObject tvi = root.add(new TVObject("actions"));
 				addActions(tvi, mobileComponent);
+			}
+			if (filter.equals(Filter.Shared)) {
+				TVObject tvi = root.add(new TVObject("shared"));
+				addSharedComponents(tvi, mobileComponent);
 			}
 			if (filter.equals(Filter.Sequence)) {
 				TVObject tvs = root.add(new TVObject("sequences"));
@@ -552,6 +557,57 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						}
 					} else {
 						addActions(tvi, uic);
+					}
+				}
+			}
+		}
+	}
+	
+	private void addSharedComponents(TVObject tvi, Object object) {
+		if (object != null) {
+			List<? extends UIComponent> list = null;
+			if (object instanceof ApplicationComponent) {
+				list = ((ApplicationComponent)object).getSharedComponentList();
+			} else if (object instanceof PageComponent) {
+				list = ((PageComponent)object).getUIComponentList();
+			} else if (object instanceof UIComponent) {
+				list = ((UIComponent)object).getUIComponentList();
+			}
+			
+			if (list != null) {
+				for (UIComponent uic : list) {
+					if (uic instanceof UISharedComponent) {
+						// do not add to prevent selection on itself or children
+						if (uic.equals(selected)) {
+							return;
+						}
+						
+						// do not add if not parent of selected (popped picker only)
+						boolean showInPicker = true;
+						if (selected != null && selected instanceof UIComponent) {
+							String selectedQName = ((UIComponent)selected).getQName();
+							String uicQName = uic.getQName() + ".";
+							if (!selectedQName.startsWith(uicQName)) {
+								showInPicker = false;
+							}
+						}
+						
+						if (showInPicker) {
+							SourceData sd = null;
+							try {
+								sd = Filter.Shared.toSourceData(new JSONObject()
+										.put("priority", uic.priority));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+							
+							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
+							addSharedComponents(tuic, uic);
+						} else {
+							addSharedComponents(tvi, uic);
+						}
+					} else {
+						addSharedComponents(tvi, uic);
 					}
 				}
 			}
