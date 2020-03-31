@@ -1257,6 +1257,12 @@ $.ajaxSetup({
     cache: false,
     type: C8O.vars.ajax_method,
     dataType: "xml",
+    complete: function (jqXHR) {
+        var token = jqXHR.getResponseHeader("X-XSRF-Token");
+        if (token != null) {
+            localStorage.setItem("X-XSRF-Token", token);
+        }
+    },
     beforeSend: function (jqXHR) {
         jqXHR.setRequestHeader("X-XSRF-Token", C8O._getXsrfToken());
     }
@@ -1264,8 +1270,8 @@ $.ajaxSetup({
 C8O.addRecallParameter("__uid", C8O._define.uid);
 
 C8O._init.tasks.push(function (params) {
-	var value = C8O._remove(params, "__enc");
-	
+    var value = C8O._remove(params, "__enc");
+    
     if (C8O.isDefined(value)) {
         C8O.log.trace("c8o.core: switch request encryption " + value);
         C8O.init_vars.enc = value;

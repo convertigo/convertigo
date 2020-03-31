@@ -98,6 +98,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.StreamUtils;
 
@@ -561,6 +562,7 @@ public class FullSyncServlet extends HttpServlet {
 						debug.append("skip response Header: " + header.getName() + "=" + header.getValue() + "\n");
 					}
 				}
+				ServletUtils.applyCustomHeaders(request, response);
 			}
 			
 			HttpEntity responseEntity = newResponse.getEntity();
@@ -692,7 +694,7 @@ public class FullSyncServlet extends HttpServlet {
 			String contextPath = request.getContextPath();
 			requestURI = requestURI.substring(contextPath.length());
 			
-			String servletPath = request.getServletPath();			
+			String servletPath = request.getServletPath();
 			String request_path = requestURI.substring(requestURI.indexOf(servletPath) + servletPath.length());
 			
 			request_path = replace2F.matcher(request_path).replaceFirst("$1/");

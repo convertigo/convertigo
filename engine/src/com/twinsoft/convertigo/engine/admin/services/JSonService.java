@@ -25,24 +25,32 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public abstract class JSonService implements Service {
 
 	public void run(String serviceName, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
-        try {
-        	response.setContentType(MimeType.JavascriptDeprecated.value());
-        	response.setCharacterEncoding("UTF-8");
-        	
+		try {
+			response.setContentType(MimeType.JavascriptDeprecated.value());
+			response.setCharacterEncoding("UTF-8");
+
 			JSONObject json = new JSONObject();
-			
-            getServiceResult(request, json);
-            String sJSON = json.toString();
-            response.getWriter().write(sJSON);
-            
+
+			getServiceResult(request, json);
+
+			ServiceDefinition serviceDefinition = getClass().getAnnotation(ServiceDefinition.class);
+			if (serviceDefinition.allow_cors()) {
+				ServletUtils.applyCustomHeaders(request, response);
+			}
+
+			String sJSON = json.toString();
+			response.getWriter().write(sJSON);
+
 			Engine.logAdmin.debug("JSON generated:\n" + sJSON);
-        } catch (Throwable t) {
+		} catch (Throwable t) {
 			ServiceUtils.handleError(t, request, response);
 		}
 	}

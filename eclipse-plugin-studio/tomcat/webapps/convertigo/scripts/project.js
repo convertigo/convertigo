@@ -236,6 +236,10 @@ function setLinkForRequestable(a) {
 			params[variable_name] = [$(this).val()];
 		}
 	});
+	var token = localStorage.getItem("X-XSRF-Token");
+	if (token) {
+		params["__xsrfToken"] = token;
+	}
 	setLink($a, params);
 }
 
