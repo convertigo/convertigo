@@ -126,7 +126,7 @@ public class ProcessUtils {
 	
 	public static void setDefaultNodeDir(File nodeDir) {
 		String version = getNodeVersion(nodeDir);
-		if (version != null && !version.equals(defaultNodeVersion)) {
+		if (version != null && (!version.equals(defaultNodeVersion) || defaultNodeDir == null)) {
 			defaultNodeVersion = version;
 			defaultNodeDir = nodeDir;
 		}
