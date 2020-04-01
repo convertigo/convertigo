@@ -972,7 +972,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		});
 		
 		for (IEmbeddedNodejs node :TypeScriptCorePlugin.getNodejsInstallManager().getNodejsInstalls()) {
-			ProcessUtils.setNpmFolder(node.getPath().getParentFile());
+			ProcessUtils.setDefaultNodeDir(node.getPath().getParentFile());
 		}
 		
 		studioLog.message("Convertigo studio started");
