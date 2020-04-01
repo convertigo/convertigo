@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 //	{
 //		"filter": "",
 //		"project": "",
-//		"input": "",
+//		"input": "",	// old input string for cems < 7.9.0
 //		"model": {
 //			"data": [{}],
 //			"path": "",
@@ -1312,7 +1312,70 @@ public class MobileSmartSource {
 		return mss;
 	}
 	
-	public DatabaseObject getDatabaseObject(String dboName) {
+	private DatabaseObject findDatabaseObject(final String dboName, final long priority) throws Exception {
+		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(getProjectName());
+		
+		DatabaseObject root = null;
+		if (dboName != null) {
+			try {
+				root = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
+			} catch (Exception e1) {
+				try {
+					root = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
+				} catch (Exception e2) {
+					try {
+						root = project.getMobileApplication().getApplicationComponent();
+					} catch (Exception e3) {
+						;
+					}
+				}
+			}
+		}
+		
+		if (root == null) {
+			root = project;
+		}
+
+		final List<DatabaseObject> list = new ArrayList<DatabaseObject>();
+		new WalkHelper() {
+			@Override
+			protected void walk(DatabaseObject databaseObject) throws Exception {
+				if (databaseObject.priority == priority) {
+					list.add(databaseObject);
+				}
+				if (list.isEmpty()) {
+					super.walk(databaseObject);
+				}
+			}
+		}.init(root);
+		
+		return list.isEmpty() ? null:list.get(0);
+	}
+	
+	public boolean isDroppableInto(DatabaseObject targetDbo) {
+		DatabaseObject dbo = getDatabaseObject();
+		if (dbo == null) {
+			return false;
+		}
+		if (targetDbo == null) {
+			return false;
+		}
+		
+		boolean isDroppable = true;
+		String qname = dbo.getQName() + ".";
+		if (Filter.Action.equals(getFilter()) || 
+				Filter.Shared.equals(getFilter()) || 
+					Filter.Iteration.equals(getFilter())) {
+			isDroppable = targetDbo.getQName().startsWith(qname);
+		}
+		return isDroppable;
+	}
+	
+	public DatabaseObject getDatabaseObject() {
+		return getDatabaseObject(null);
+	}
+	
+	public DatabaseObject getDatabaseObject(String rootDboName) {
 		List<String> sourceData = getSources();
 		String sourceInput = sourceData.size() > 0 ? sourceData.get(0):null;
 		if (sourceInput != null) {
@@ -1323,33 +1386,8 @@ public class MobileSmartSource {
 					try {
 						String p = stack.replaceFirst("stack\\[", "").replaceFirst("\\]", "");
 						p = p.substring(1, p.length()-1); // ignore quotes
-						final long priority = Long.valueOf(p, 10);
-						String projectName = getProjectName();
-						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-						
-						DatabaseObject dbo = null;
-						try {
-							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
-						} catch (Exception e1) {
-							try {
-								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
-							} catch (Exception e2) {}
-						}
-						
-						final List<DatabaseObject> list = new ArrayList<DatabaseObject>();
-						new WalkHelper() {
-							@Override
-							protected void walk(DatabaseObject databaseObject) throws Exception {
-								if (databaseObject.priority == priority) {
-									list.add(databaseObject);
-								}
-								if (list.isEmpty()) {
-									super.walk(databaseObject);
-								}
-							}
-						}.init(dbo);
-						
-						return list.isEmpty() ? null:list.get(0);
+						long priority = Long.valueOf(p, 10);
+						return findDatabaseObject(rootDboName, priority);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -1359,33 +1397,8 @@ public class MobileSmartSource {
 				if (m.find()) {
 					String shared = m.group(1);
 					try {
-						final long priority = Long.valueOf(shared.replaceFirst("params", ""), 10);
-						String projectName = getProjectName();
-						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-						
-						DatabaseObject dbo = null;
-						try {
-							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
-						} catch (Exception e1) {
-							try {
-								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
-							} catch (Exception e2) {}
-						}
-						
-						final List<DatabaseObject> list = new ArrayList<DatabaseObject>();
-						new WalkHelper() {
-							@Override
-							protected void walk(DatabaseObject databaseObject) throws Exception {
-								if (databaseObject.priority == priority) {
-									list.add(databaseObject);
-								}
-								if (list.isEmpty()) {
-									super.walk(databaseObject);
-								}
-							}
-						}.init(dbo);
-						
-						return list.isEmpty() ? null:list.get(0);
+						long priority = Long.valueOf(shared.replaceFirst("params", ""), 10);
+						return findDatabaseObject(rootDboName, priority);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -1395,33 +1408,8 @@ public class MobileSmartSource {
 				if (m.find()) {
 					String item = m.group(1);
 					try {
-						final long priority = Long.valueOf(item.replaceFirst("item", ""), 10);
-						String projectName = getProjectName();
-						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-						
-						DatabaseObject dbo = null;
-						try {
-							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
-						} catch (Exception e1) {
-							try {
-								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
-							} catch (Exception e2) {}
-						}
-						
-						final List<UIControlDirective> directiveList = new ArrayList<UIControlDirective>();
-						new WalkHelper() {
-							@Override
-							protected void walk(DatabaseObject databaseObject) throws Exception {
-								if (databaseObject instanceof UIControlDirective && databaseObject.priority == priority) {
-									directiveList.add((UIControlDirective)databaseObject);
-								}
-								if (directiveList.isEmpty()) {
-									super.walk(databaseObject);
-								}
-							}
-						}.init(dbo);
-						
-						return directiveList.isEmpty() ? null:directiveList.get(0);
+						long priority = Long.valueOf(item.replaceFirst("item", ""), 10);
+						return findDatabaseObject(rootDboName, priority);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -1431,39 +1419,14 @@ public class MobileSmartSource {
 				if (m.find()) {
 					String form = m.group(1);
 					try {
-						final long priority = Long.valueOf(form.replaceFirst("form", ""), 10);
-						String projectName = getProjectName();
-						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-						
-						DatabaseObject dbo = null;
-						try {
-							dbo = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
-						} catch (Exception e1) {
-							try {
-								dbo = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
-							} catch (Exception e2) {}
-						}
-						
-						final List<UIForm> formList = new ArrayList<UIForm>();
-						new WalkHelper() {
-							@Override
-							protected void walk(DatabaseObject databaseObject) throws Exception {
-								if (databaseObject instanceof UIForm && databaseObject.priority == priority) {
-									formList.add((UIForm)databaseObject);
-								}
-								if (formList.isEmpty()) {
-									super.walk(databaseObject);
-								}
-							}
-						}.init(dbo);
-						
-						return formList.isEmpty() ? null:formList.get(0);
+						long priority = Long.valueOf(form.replaceFirst("form", ""), 10);
+						return findDatabaseObject(rootDboName, priority);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 			} else if (Filter.Global.equals(getFilter())) {
-				Matcher m = formPattern.matcher(sourceInput);
+				Matcher m = globalPattern.matcher(sourceInput);
 				if (m.find()) {
 					try {
 						String projectName = getProjectName();

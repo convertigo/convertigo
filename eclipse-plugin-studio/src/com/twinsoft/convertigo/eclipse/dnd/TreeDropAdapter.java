@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
+import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
@@ -923,15 +924,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							targetTreeObject = folderTreeObject.getParent();
 						}
 						if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-							DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)targetTreeObject).getObject();
-							if (parentDatabaseObject != null) {
-								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+							DatabaseObject targetDatabaseObject = ((DatabaseObjectTreeObject)targetTreeObject).getObject();
+							if (targetDatabaseObject != null) {
+								if (!DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
 									return false;
 								}
-								if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+								if (!ComponentManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
 									return false;
 								}
-								if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
+								if (!ComponentManager.isTplCompatible(targetDatabaseObject, databaseObject)) {
 									return false;
 								}
 								return true;
@@ -944,12 +945,21 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		}
 		if (MobileSourceTransfer.getInstance().isSupportedType(transferType)) {
-			if (target instanceof MobileUIComponentTreeObject) {
-				MobileUIComponentTreeObject mcto = (MobileUIComponentTreeObject)target;
-				for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
-					if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
-						if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
-							return true;
+			MobileSource mobileSource = MobileSourceTransfer.getInstance().getMobileSource();
+			if (mobileSource != null) {
+				if (target instanceof MobileUIComponentTreeObject) {
+					MobileUIComponentTreeObject mcto = (MobileUIComponentTreeObject)target;
+					
+					MobileSmartSource mss = MobileSmartSource.valueOf(mobileSource.getJsonString());
+					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
+						return false;
+					}
+					
+					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
+							if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
+								return true;
+							}
 						}
 					}
 				}

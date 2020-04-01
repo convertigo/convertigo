@@ -876,19 +876,19 @@ public class MobilePickerComposite extends Composite {
 					do {
 						UIControlDirective directive = (UIControlDirective)dbo;					
 						
-						String dboName = "";
+						String rootDboName = "";
 						if (directive.getPage() != null) {
-							dboName = directive.getPage().getName();
+							rootDboName = directive.getPage().getName();
 						} else if (directive.getMenu() != null) {
-							dboName = directive.getMenu().getName();
+							rootDboName = directive.getMenu().getName();
 						}
 						
 						MobileSmartSourceType msst = directive.getSourceSmartType();
 						MobileSmartSource mss = msst.getSmartSource();
 						if (mss != null) {
-						dbo = mss.getDatabaseObject(dboName);
-						params.putAll(mss.getParameters());
-						searchPath = mss.getModelPath().replaceAll("\\?\\.", ".") + searchPath;
+							dbo = mss.getDatabaseObject(rootDboName);
+							params.putAll(mss.getParameters());
+							searchPath = mss.getModelPath().replaceAll("\\?\\.", ".") + searchPath;
 						} else {
 							dbo = null;
 						}
