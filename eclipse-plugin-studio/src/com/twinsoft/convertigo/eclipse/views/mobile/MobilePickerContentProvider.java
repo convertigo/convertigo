@@ -35,6 +35,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -46,13 +47,10 @@ import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
-import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
-import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -651,41 +649,32 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 	}
 	
 	private void getGlobalActions(Object object, Map<String, UIDynamicAction> globals) {
-		List<UIComponent> list = new ArrayList<>();
+		List<DatabaseObject> list = new ArrayList<>();
 		if (object instanceof ApplicationComponent) {
-			for (UIDynamicMenu menu: ((ApplicationComponent)object).getMenuComponentList()) {
-				list.addAll(menu.getUIComponentList());
-			}
-			for (UIEventSubscriber suscriber :  ((ApplicationComponent)object).getUIEventSubscriberList()) {
-				list.addAll(suscriber.getUIComponentList());
-			}
-			for (UIAppEvent event: ((ApplicationComponent)object).getUIAppEventList()) {
-				list.addAll(event.getUIComponentList());
-			}
-			for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
-				list.addAll(page.getUIComponentList());
-			}
+			list.addAll(((ApplicationComponent)object).getAllChildren());
+		} else if (object instanceof PageComponent) {
+			list.addAll(((PageComponent)object).getAllChildren());
 		} else if (object instanceof UIComponent) {
-			list.addAll(((UIComponent)object).getUIComponentList());
+			list.addAll(((UIComponent)object).getAllChildren());
 		}
 		
-		for (UIComponent uic : list) {
-			if (uic instanceof UIDynamicAction) {
-				UIDynamicAction uida = (UIDynamicAction)uic;
-				if (((UIDynamicAction)uic).isSetGlobalAction()) {
+		for (DatabaseObject dbo : list) {
+			if (dbo instanceof UIDynamicAction) {
+				UIDynamicAction uida = (UIDynamicAction)dbo;
+				if (uida.isSetGlobalAction()) {
 					String key = uida.getSetGlobalActionKeyName();
 					if (key != null && !key.isEmpty() && !globals.containsKey(key)) {
 						globals.put(key, uida);
 					}
 				}
-				if (((UIDynamicAction)uic).isFullSyncSyncAction()) {
+				if (uida.isFullSyncSyncAction()) {
 					String key = "FullSyncSyncAction";
 					if (!globals.containsKey(key)) {
 						globals.put(key, uida);
 					}
 				}
 			}
-			getGlobalActions(uic, globals);
+			getGlobalActions(dbo, globals);
 		}
 	}
 	
