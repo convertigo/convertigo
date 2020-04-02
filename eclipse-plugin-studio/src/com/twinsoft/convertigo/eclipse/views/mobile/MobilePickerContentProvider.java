@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.views.mobile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,12 +47,16 @@ import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceData;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
+import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
+import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -178,7 +183,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			}
 			return child;
 		}
-		
 	}
 	
 	private Filter filter = Filter.Sequence;
@@ -510,11 +514,14 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 	
 	private void addActions(TVObject tvi, Object object) {
 		if (object != null) {
+			TVObject tvEvents = null, tvControls = null;
 			List<? extends UIComponent> list = null;
 			if (object instanceof ApplicationComponent) {
 				list = ((ApplicationComponent)object).getSharedActionList();
 			} else if (object instanceof UIActionStack) {
 				list = ((UIActionStack)object).getUIComponentList();
+			} else if (object instanceof UISharedComponent) {
+				list = ((UISharedComponent)object).getUIComponentList();
 			} else if (object instanceof PageComponent) {
 				list = ((PageComponent)object).getUIComponentList();
 			} else if (object instanceof UIComponent) {
@@ -522,24 +529,44 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			}
 			
 			if (list != null) {
+				if (tvi != null && "actions".equals(tvi.getName())) {
+					if (tvi.children.isEmpty()) {
+						tvEvents = tvi.add(new TVObject("events"));
+						tvControls = tvi.add(new TVObject("controls"));
+					} else {
+						tvEvents = tvi.children.get(0);
+						tvControls = tvi.children.get(1);
+					}
+				}
+				
 				for (UIComponent uic : list) {
-					if (uic instanceof IAction || uic instanceof UIActionStack) {
-						// do not add to prevent selection on itself or children
-						if (uic.equals(selected)) {
-							return;
+					// do not add to prevent selection on itself or children
+					if (uic.equals(selected)) {
+						return;
+					}
+					
+					// do not add if not parent of selected (popped picker only)
+					boolean showInPicker = true;
+					if (selected != null && selected instanceof UIComponent) {
+						String selectedQName = ((UIComponent)selected).getQName();
+						String uicQName = uic.getQName() + ".";
+						if (!selectedQName.startsWith(uicQName)) {
+							showInPicker = false;
 						}
-						
-						// do not add if not parent of selected (popped picker only)
-						boolean showInPicker = true;
-						if (selected != null && selected instanceof UIComponent) {
-							String selectedQName = ((UIComponent)selected).getQName();
-							String uicQName = uic.getQName() + ".";
-							if (!selectedQName.startsWith(uicQName)) {
-								showInPicker = false;
-							}
-						}
-						
-						if (showInPicker) {
+					}
+					
+					if (showInPicker) {
+						if (uic instanceof UIPageEvent || uic instanceof UIEventSubscriber) {
+							TVObject tve = tvEvents == null ?
+									tvi.add(new TVObject(uic.toString(), uic, null)) :
+										tvEvents.add(new TVObject(uic.toString(), uic, null));
+							addActions(tve, uic);
+						} else if (uic instanceof UIActionEvent || uic instanceof UIControlEvent) {
+							TVObject tve = tvControls == null ?
+									tvi.add(new TVObject(uic.toString(), uic, null)) :
+										tvControls.add(new TVObject(uic.toString(), uic, null));
+							addActions(tve, uic);
+						} else if (uic instanceof IAction || uic instanceof UIActionStack) {
 							SourceData sd = null;
 							try {
 								sd = Filter.Action.toSourceData(new JSONObject()
@@ -557,6 +584,7 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						addActions(tvi, uic);
 					}
 				}
+				
 			}
 		}
 	}
@@ -566,10 +594,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			List<? extends UIComponent> list = null;
 			if (object instanceof ApplicationComponent) {
 				list = ((ApplicationComponent)object).getSharedComponentList();
-			} else if (object instanceof PageComponent) {
-				list = ((PageComponent)object).getUIComponentList();
-			} else if (object instanceof UIComponent) {
-				list = ((UIComponent)object).getUIComponentList();
+			} else if (object instanceof UISharedComponent) {
+				list = new ArrayList<>(Arrays.asList((UISharedComponent)object));
 			}
 			
 			if (list != null) {
@@ -599,13 +625,8 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 								e.printStackTrace();
 							}
 							
-							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
-							addSharedComponents(tuic, uic);
-						} else {
-							addSharedComponents(tvi, uic);
+							tvi.add(new TVObject(uic.toString(), uic, sd));
 						}
-					} else {
-						addSharedComponents(tvi, uic);
 					}
 				}
 			}

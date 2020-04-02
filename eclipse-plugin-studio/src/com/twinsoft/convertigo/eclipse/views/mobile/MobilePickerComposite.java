@@ -1259,7 +1259,12 @@ public class MobilePickerComposite extends Composite {
 				currentMC = ((MobilePageComponentTreeObject) selected).getObject();
 			} else if (selected instanceof MobileUIComponentTreeObject) {
 				uic = ((MobileUIComponentTreeObject) selected).getObject();
-				currentMC = uic.getPage() != null ? uic.getPage() : (uic.getMenu() != null ?  uic.getMenu() : uic.getApplication());
+				//currentMC = uic.getPage() != null ? uic.getPage() : (uic.getMenu() != null ?  uic.getMenu() : uic.getApplication());
+				currentMC = currentMC == null ? uic.getPage() : currentMC;
+				currentMC = currentMC == null ? uic.getMenu() : currentMC;
+				currentMC = currentMC == null ? uic.getSharedAction() : currentMC;
+				currentMC = currentMC == null ? uic.getSharedComponent() : currentMC;
+				currentMC = currentMC == null ? uic.getApplication() : currentMC;
 			}
 			
 			if (currentMC == null) {
