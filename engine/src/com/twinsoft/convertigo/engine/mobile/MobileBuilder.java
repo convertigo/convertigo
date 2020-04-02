@@ -1630,6 +1630,18 @@ public class MobileBuilder {
 					}
 				}
 				
+				boolean addNode = !jsonDependencies.has("@types/node");
+				if (addNode) {
+					try {
+						String version = new JSONObject(FileUtils.readFileToString(new File(ionicTplDir, "version.json"), "utf-8")).getString("version");
+						addNode = version.matches("7\\.[0-7]\\..*");
+					} catch (Exception e) {
+					}
+					if (addNode) {
+						jsonDependencies.put("@types/node", "12.0.10");
+					}
+				}
+				
 				File appPkgJson = new File(ionicWorkDir, "package.json");
 				writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 				
