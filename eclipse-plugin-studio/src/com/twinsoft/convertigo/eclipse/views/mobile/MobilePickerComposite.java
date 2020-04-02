@@ -372,7 +372,7 @@ public class MobilePickerComposite extends Composite {
 			btnShared.setText("SH");
 		}
 		btnShared.setImage(image);
-		btnShared.setToolTipText("Show Shared Components");
+		btnShared.setToolTipText("Show Shared component Sources");
 		btnShared.addSelectionListener(listener);
 
 		btnIteration = new ToolItem(toolbar, btnStyle);
