@@ -183,6 +183,23 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			}
 			return child;
 		}
+		
+		private boolean remove(TVObject child) {
+			if (child != null) {
+				if (children.contains(child)) {
+					boolean removed = children.remove(child);
+					if (removed) {
+						child.parent = null;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		
+		public boolean isEmpty() {
+			return children.isEmpty();
+		}
 	}
 	
 	private Filter filter = Filter.Sequence;
@@ -226,7 +243,18 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			TVObject root = new TVObject("root", mobileComponent, null);
 			if (filter.equals(Filter.Action)) {
 				TVObject tvi = root.add(new TVObject("actions"));
+				TVObject tvEvents = tvi.add(new TVObject("events"));
+				TVObject tvControls = tvi.add(new TVObject("controls"));
+				
 				addActions(tvi, mobileComponent);
+				
+				if (tvEvents.isEmpty()) {
+					tvi.remove(tvEvents);
+				}
+				if (tvControls.isEmpty()) {
+					tvi.remove(tvControls);
+				}
+				
 			}
 			if (filter.equals(Filter.Shared)) {
 				TVObject tvi = root.add(new TVObject("shared"));
@@ -367,7 +395,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 												e.printStackTrace();
 											}
 											
-											//tvv.add(new TVObject("get", d, null));
 											tvv.add(new TVObject("get", d, sd));
 											infos = map.get(key+ ".get");
 											if (infos == null) {
@@ -394,7 +421,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 																		.put("verb", "get")
 																		.put("marker", marker)
 																		.put("includeDocs", includeDocs));
-																//tvv.add(new TVObject(name, d, null, jsonInfo));
 																tvv.add(new TVObject(name, d, sd, jsonInfo));
 															}
 														}
@@ -413,7 +439,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 											} catch (JSONException e) {
 												e.printStackTrace();
 											}
-											//tvv.add(new TVObject("view", d, null));
 											tvv.add(new TVObject("view", d, sd));
 											
 											infos = map.get(key+ ".view");
@@ -438,7 +463,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 																		.put("verb", "view")
 																		.put("marker", marker)
 																		.put("includeDocs", includeDocs));
-																//tvv.add(new TVObject(name, d, null, jsonInfo));
 																tvv.add(new TVObject(name, d, sd, jsonInfo));
 															}
 														}
@@ -498,7 +522,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							} catch (JSONException e) {
 								e.printStackTrace();
 							}
-							//TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, null));
 							TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
 							addIterations(tuic, uic);
 						} else {
@@ -514,12 +537,15 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 	
 	private void addActions(TVObject tvi, Object object) {
 		if (object != null) {
-			TVObject tvEvents = null, tvControls = null;
 			List<? extends UIComponent> list = null;
 			if (object instanceof ApplicationComponent) {
 				list = ((ApplicationComponent)object).getSharedActionList();
 			} else if (object instanceof UIActionStack) {
-				list = ((UIActionStack)object).getUIComponentList();
+				if (tvi != null && "actions".equals(tvi.getName())) {
+					list = new ArrayList<>(Arrays.asList((UIActionStack)object));
+				} else {
+					list = ((UIActionStack)object).getUIComponentList();
+				}
 			} else if (object instanceof UISharedComponent) {
 				list = ((UISharedComponent)object).getUIComponentList();
 			} else if (object instanceof PageComponent) {
@@ -529,16 +555,11 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 			}
 			
 			if (list != null) {
+				TVObject tvEvents = null, tvControls = null;
 				if (tvi != null && "actions".equals(tvi.getName())) {
-					if (tvi.children.isEmpty()) {
-						tvEvents = tvi.add(new TVObject("events"));
-						tvControls = tvi.add(new TVObject("controls"));
-					} else {
-						tvEvents = tvi.children.get(0);
-						tvControls = tvi.children.get(1);
-					}
+					tvEvents = tvi.children.get(0);
+					tvControls = tvi.children.get(1);
 				}
-				
 				for (UIComponent uic : list) {
 					// do not add to prevent selection on itself or children
 					if (uic.equals(selected)) {
@@ -658,7 +679,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 							e.printStackTrace();
 						}
 						
-						//TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, null));
 						TVObject tuic = tvi.add(new TVObject(uic.toString(), uic, sd));
 						addForms(tuic, uic);
 					} else {
@@ -724,7 +744,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 					
 					JSONObject jsonInfos = new JSONObject();
 					for (String key: globals.keySet()) {
-						//UIDynamicAction uida = globals.get(key);
 						if ("FullSyncSyncAction".equals(key)) {
 							jsonInfos.put(key, jsonFSSA.get(key));
 						} else {
@@ -739,7 +758,6 @@ public class MobilePickerContentProvider implements ITreeContentProvider {
 						e.printStackTrace();
 					}
 					
-					//tvi.add(new TVObject("sharedObject", object, null, jsonInfos));
 					tvi.add(new TVObject("sharedObject", object, sd, jsonInfos));
 				} catch (JSONException e) {
 					e.printStackTrace();
