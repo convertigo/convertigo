@@ -1,5 +1,5 @@
 import { NgModule, ErrorHandler }		                                      from '@angular/core';
-import { HttpClient, HttpClientModule }                                       from '@angular/common/http';
+import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS }                    from '@angular/common/http';
 import { BrowserModule }                                                      from '@angular/platform-browser';
 import { BrowserAnimationsModule }                                            from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule }   								  from '@angular/forms';
@@ -10,7 +10,7 @@ import { TranslateModule, TranslateLoader }                                   fr
 import { TranslateHttpLoader }                                                from '@ngx-translate/http-loader';
 /*=c8o_ModuleTsImports*/
 
-import { C8o }                                                                from "c8osdkangular";
+import { C8o, HttpXsrfInterceptor }                                           from "c8osdkangular";
 import { C8oRouter } 			                                              from 'c8ocaf';
 import { ActionBeans }                                                        from '../services/actionbeans.service';
 
@@ -63,6 +63,11 @@ export function createTranslateLoader(http: HttpClient) {
     C8o,
     C8oRouter,
     ActionBeans,
+    {
+        provide: HTTP_INTERCEPTORS,
+        useClass: HttpXsrfInterceptor,
+        multi: true
+    },
     {provide: ErrorHandler, useClass: IonicErrorHandler}
   /*End_c8o_NgProviders*/]
 })
