@@ -236,7 +236,7 @@ function setLinkForRequestable(a) {
 			params[variable_name] = [$(this).val()];
 		}
 	});
-	var token = localStorage.getItem("X-XSRF-Token");
+	var token = localStorage.getItem("x-xsrf-token");
 	if (token) {
 		params["__xsrfToken"] = token;
 	}

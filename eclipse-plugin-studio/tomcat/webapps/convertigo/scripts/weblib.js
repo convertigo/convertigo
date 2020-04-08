@@ -652,7 +652,7 @@ C8O = {
     },
     
     _getXsrfToken: function () {
-        var token = localStorage.getItem("X-XSRF-Token");
+        var token = localStorage.getItem("x-xsrf-token");
         return token == null ? "Fetch" : token;
     }
 }
@@ -662,13 +662,13 @@ $.ajaxSetup({
     type : C8O.vars.ajax_method,
     dataType: "xml",
     complete: function (jqXHR) {
-        var token = jqXHR.getResponseHeader("X-XSRF-Token");
+        var token = jqXHR.getResponseHeader("x-xsrf-token");
         if (token != null) {
-            localStorage.setItem("X-XSRF-Token", token);
+            localStorage.setItem("x-xsrf-token", token);
         }
     },
     beforeSend: function (jqXHR) {
-        jqXHR.setRequestHeader("X-XSRF-Token", C8O._getXsrfToken());
+        jqXHR.setRequestHeader("x-xsrf-token", C8O._getXsrfToken());
     }
 });
 
