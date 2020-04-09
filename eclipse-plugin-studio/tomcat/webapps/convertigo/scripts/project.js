@@ -227,11 +227,7 @@ function setScale(scale) {
 }
 
 function setLink($a, params) {
-	if ($a.hasClass("btn_gen_gadget")) {
-		$a.attr("href", "widgets/" + vars.projectName + "?__widget_type=gadget&__widget_name=" + vars.projectName + '&' + toUrl(params));
-	} else {
-		$a.attr("href", "projects/" + vars.projectName + "/" + getRequester() + "?" + toUrl(params));
-	}
+	$a.attr("href", "projects/" + vars.projectName + "/" + getRequester() + "?" + toUrl(params));
 }
 
 function setLinkForRequestable(a) {
@@ -640,7 +636,6 @@ $(document).ready(function() {
 			}
 			
 			$("#main .btn_exe_link").button({ icons : { primary : "ui-icon-play" }});
-			$("#main .btn_gen_gadget").button({ icons : { primary : "ui-icon-gear" }});
 			$("#main .btn_edit_testcase").button({ icons : { primary : "ui-icon-copy" }});
 			$("#main .btn_build").button({ icons : { primary : "ui-icon-wrench" }});
 			$("#main .btn_get_source").button({ icons : { primary : "ui-icon-arrowthickstop-1-s" }});
@@ -848,25 +843,6 @@ $(document).ready(function() {
 				$(".acc>li>h6.acc-selected").click();
 			});
 			
-			$("a.btn_gen_gadget").click(function () {
-				var url = window.location.href.replace(new RegExp("(.*/).*$"), "$1") + $(this).attr("href");
-				$("#main .window_exe_generated_url").css("display", "none");
-				var $message = $("#templates .gadget_message").clone();
-				$message.find(".gadget_url").text(url);
-				$("#window_exe_content, #window_exe_content_mobile").empty();
-				$("#window_exe_content").append($message).show();
-				$("#window_exe_device").hide();
-				$.ajax({
-					dataType : "text",
-					url : url,
-					success: function (data) {
-						$message.find(".gadget_xml").text(data);
-					}
-				});
-	
-				return false;
-			});
-	
 			$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);
 			
 			if (typeof parameters.launch != "undefined") {
