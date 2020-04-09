@@ -227,6 +227,10 @@ function setScale(scale) {
 }
 
 function setLink($a, params) {
+	var token = localStorage.getItem("x-xsrf-token");
+	if (token) {
+		params["__xsrfToken"] = token;
+	}
 	$a.attr("href", "projects/" + vars.projectName + "/" + getRequester() + "?" + toUrl(params));
 }
 
@@ -241,10 +245,6 @@ function setLinkForRequestable(a) {
 			params[variable_name] = [$(this).val()];
 		}
 	});
-	var token = localStorage.getItem("x-xsrf-token");
-	if (token) {
-		params["__xsrfToken"] = token;
-	}
 	setLink($a, params);
 }
 
