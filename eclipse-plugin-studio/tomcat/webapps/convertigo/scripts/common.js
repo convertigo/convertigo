@@ -21,13 +21,15 @@ define = {
 	service : "admin/services/"
 }
 
-function call(service, data, callback){
-	$.ajax({
-		cache : false,
-		data : data,
-		success : callback,
-		url : define.service + service
-	});
+function call(service, data, callback) {
+	window.setTimeout(function () {
+		$.ajax({
+			cache : false,
+			data : data,
+			success : callback,
+			url : define.service + service
+		});
+	}, 1);
 }
 
 function initCommon(callback) {

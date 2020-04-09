@@ -36,6 +36,11 @@ function addMobilePlatform($platform, $parent) {
 		platform: $platform.attr("name")
 	});
 	
+	var token = localStorage.getItem("x-xsrf-token");
+	if (token) {
+		params += "&__xsrfToken=" + token;
+	}
+	
 	$platform_div.find(".btn_get_source").attr("href", vars.base_url + "admin/services/mobiles.GetSourcePackage?" + params);
 	$platform_div.find(".btn_build").attr("href", vars.base_url + "admin/services/mobiles.LaunchBuild?" + params);
 	$parent.append($platform_div);
@@ -171,6 +176,10 @@ function showQRCode($td) {
 	var target_url = (build_url === "") ? vars.base_url + href : build_url;
 	if (build_url != "") {
 		href = build_url;
+		var token = localStorage.getItem("x-xsrf-token");
+		if (token) {
+			href += "&__xsrfToken=" + token;
+		}
 	}
 	
 	var img_url = vars.base_url + "qrcode?" + $.param({
