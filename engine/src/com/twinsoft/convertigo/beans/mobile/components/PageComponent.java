@@ -786,6 +786,14 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				String constructor = subscriber.computeConstructor();
 				computed += constructor.isEmpty() ? "": "\t" + constructor;
 			}
+			//computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\t} else {"+ System.lineSeparator();
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String desctructor = subscriber.computeDestructor();
+				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
+				String constructor = subscriber.computeConstructor();
+				computed += constructor.isEmpty() ? "": "\t" + constructor;
+			}
 			computed += "\t\t}"+ System.lineSeparator();
 			computed += "\t\t";
 		}
