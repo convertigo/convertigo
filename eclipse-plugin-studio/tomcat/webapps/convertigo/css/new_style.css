@@ -1015,6 +1015,15 @@ ul.connectors .acc {
 	margin-right: 10px;	
 }
 
+.mobile_platform .btn_exe_link.ui-button {
+	float: none;
+}
+
+.btn_edit_testcase.ui-button, .btn_exe_link.ui-button {
+	float: right;	
+	margin-right: 10px;	
+}
+
 .logo_c8o {
 	display: none;	
 }
