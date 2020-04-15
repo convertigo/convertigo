@@ -637,6 +637,14 @@ public class FullSyncServlet extends HttpServlet {
 						byte[] b = sb.toString().getBytes("UTF-8");
 						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
 						os.write(b);
+					} else if (requestParser.docId == null && requestParser.special == null && !fsClient.getPrefix().isEmpty()) {
+						String content = IOUtils.toString(is, "UTF-8");
+						content = content.replace("\"db_name\":\"" + fsClient.getPrefix(), "\"db_name\":\"");
+						byte[] bytes = content.getBytes("UTF-8");
+						HeaderName.ContentLength.addHeader(response, Integer.toString(bytes.length));
+						debug.append("response Header: " + HeaderName.ContentLength.value() + "=" + bytes.length + "\n");
+						Engine.logCouchDbManager.info("(FullSyncServlet) Remove prefix from response:\n" + debug);
+						os.write(bytes);
 					} else {
 						String contentLength = HeaderName.ContentLength.getHeader(newResponse);
 						if (contentLength != null) {
