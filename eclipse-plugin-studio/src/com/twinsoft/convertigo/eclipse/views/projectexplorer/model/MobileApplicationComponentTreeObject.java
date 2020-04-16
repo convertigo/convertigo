@@ -293,12 +293,12 @@ public class MobileApplicationComponentTreeObject extends MobileComponentTreeObj
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor
-			String filePath = application.getProject().getMobileBuilder().getTempTsRelativePath(application);
+			String filePath = application.getProject().getMobileBuilder().doGetTempTsRelativePath(application);
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
 			
 			// Write temporary file
-			application.getProject().getMobileBuilder().writeAppComponentTempTs(application);
+			application.getProject().getMobileBuilder().doWriteAppComponentTempTs(application);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 			
 			// Open file in editor

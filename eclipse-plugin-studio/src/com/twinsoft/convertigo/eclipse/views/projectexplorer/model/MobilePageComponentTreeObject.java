@@ -110,12 +110,12 @@ public class MobilePageComponentTreeObject extends MobileComponentTreeObject imp
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
 			
 			// Close editor
-			String filePath = page.getProject().getMobileBuilder().getTempTsRelativePath(page);
+			String filePath = page.getProject().getMobileBuilder().doGetTempTsRelativePath(page);
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
 			
 			// Write temporary file
-			page.getProject().getMobileBuilder().writePageTempTs(page);
+			page.getProject().getMobileBuilder().doWritePageTempTs(page);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
 
 			// Open file in editor
