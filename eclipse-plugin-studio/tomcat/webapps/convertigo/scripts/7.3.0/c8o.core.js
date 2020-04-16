@@ -1022,9 +1022,9 @@ C8O = {
             C8O._define.pendingXhrCpt = 0;
         }
         
-        var token = jqXHR.getResponseHeader("X-XSRF-Token");
+        var token = jqXHR.getResponseHeader("x-xsrf-token");
         if (token != null) {
-            localStorage.setItem("X-XSRF-Token", token);
+            localStorage.setItem("x-xsrf-token", token);
         }
         
         if (C8O._hook("call_complete", jqXHR, textStatus, jqXHR.C8O_data)) {
@@ -1209,7 +1209,7 @@ C8O = {
     },
     
     _getXsrfToken: function () {
-        var token = localStorage.getItem("X-XSRF-Token");
+        var token = localStorage.getItem("x-xsrf-token");
         return token == null ? "Fetch" : token;
     }
 }
@@ -1219,7 +1219,7 @@ $.ajaxSetup({
     type: C8O.vars.ajax_method,
     dataType: "xml",
     beforeSend: function (jqXHR) {
-        jqXHR.setRequestHeader("X-XSRF-Token", C8O._getXsrfToken());
+        jqXHR.setRequestHeader("x-xsrf-token", C8O._getXsrfToken());
     }
 });
 C8O.addRecallParameter("__uid", C8O._define.uid);

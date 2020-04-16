@@ -648,11 +648,6 @@ img {
 	display: none;
 }
 
-.btn_exe_link, .btn_gen_gadget {
-	position: relative;
-	top:0px;
-}
-
 .btn_build {
 	position: relative;
 	top: -5px;
@@ -746,10 +741,6 @@ ul li.accordeon > a {
 }
 ul li.accordeon > a:hover {
 	color:#727272;
-}
-.gadget_message {
-	word-wrap: break-word;
-	word-break: break-all;
 }
 
 .gen_url {
@@ -1019,14 +1010,18 @@ ul.connectors .acc {
 	right: -57px;
 }
 
-.btn_gen_gadget {
-	float: right;
-	margin-left: 5px;	
+.btn_edit_testcase.ui-button, .btn_exe_link.ui-button {
+	float: right;	
+	margin-right: 10px;	
 }
 
-.btn_edit_testcase {
+.mobile_platform .btn_exe_link.ui-button {
+	float: none;
+}
+
+.btn_edit_testcase.ui-button, .btn_exe_link.ui-button {
 	float: right;	
-	margin-left: 5px;	
+	margin-right: 10px;	
 }
 
 .logo_c8o {

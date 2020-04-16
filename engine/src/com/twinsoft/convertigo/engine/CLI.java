@@ -278,7 +278,8 @@ public class CLI {
 			Engine.logConvertigo.warn("Failed to perform NodeJS build, no folder: " + ionicDir);
 			return;
 		}
-		String nodeVersion = "v8.9.1";
+		String nodeVersion = ProcessUtils.getNodeVersion(project);
+		Engine.logConvertigo.info("Requested nodeVersion: " + nodeVersion);
 		File nodeDir = ProcessUtils.getNodeDir(nodeVersion, new ProgressListener() {
 			
 			@Override
@@ -286,7 +287,8 @@ public class CLI {
 				Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 			}
 		});
-		ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+		String nodePath = nodeDir.getAbsolutePath();
+		ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
 		Process p = pb.start();
@@ -302,9 +304,9 @@ public class CLI {
 		Engine.logConvertigo.info("npm install finished with exit: " + code);
 		
 		if ("debug".equals(mode)) {
-			pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", "build", "--nobrowser");
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--nobrowser");
 		} else {
-			pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
 //				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
 		}
 		pb.redirectErrorStream(true);

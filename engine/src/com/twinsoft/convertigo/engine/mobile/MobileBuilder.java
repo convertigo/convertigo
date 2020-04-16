@@ -34,6 +34,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.codehaus.jettison.json.JSONObject;
@@ -1191,6 +1193,18 @@ public class MobileBuilder {
 						}
 					}
 					
+					boolean addNode = !jsonDependencies.has("@types/node");
+					if (addNode) {
+						try {
+							String version = new JSONObject(FileUtils.readFileToString(new File(ionicTplDir, "version.json"), "utf-8")).getString("version");
+							addNode = version.matches("7\\.[0-7]\\..*");
+						} catch (Exception e) {
+						}
+						if (addNode) {
+							jsonDependencies.put("@types/node", "12.0.10");
+						}
+					}
+					
 					File appPkgJson = new File(ionicWorkDir, "package.json");
 					writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 					
@@ -1709,8 +1723,25 @@ public class MobileBuilder {
 
 		@Override
 		protected void removeUselessPages(ApplicationComponent application) {
-			// TODO Auto-generated method stub
-			
+			if (application != null) {
+				File ionicPagesDir = new File(ionicWorkDir,"src/pages");
+				List<String> pageDirectories = new ArrayList<String>();
+				pageDirectories.add(ionicPagesDir.getAbsolutePath());
+				
+				List<PageComponent> pages = application.getPageComponentList();
+				for (PageComponent page : pages) {
+					File pageDir = new File(ionicPagesDir, page.getName());
+					pageDirectories.add(pageDir.getAbsolutePath());
+				}
+				for (File dir: FileUtils.listFilesAndDirs(ionicPagesDir, FalseFileFilter.INSTANCE, DirectoryFileFilter.DIRECTORY)) {
+					if (!pageDirectories.contains(dir.getAbsolutePath())) {
+						try {
+							FileUtils.deleteDirectory(dir);
+						}
+						catch(Exception e) {}
+					}
+				}
+			}
 		}
 		
 	}
@@ -2609,6 +2640,18 @@ public class MobileBuilder {
 						}
 					}
 					
+					boolean addNode = !jsonDependencies.has("@types/node");
+					if (addNode) {
+						try {
+							String version = new JSONObject(FileUtils.readFileToString(new File(ionicTplDir, "version.json"), "utf-8")).getString("version");
+							addNode = version.matches("7\\.[0-7]\\..*");
+						} catch (Exception e) {
+						}
+						if (addNode) {
+							jsonDependencies.put("@types/node", "12.0.10");
+						}
+					}
+					
 					File appPkgJson = new File(ionicWorkDir, "package.json");
 					writeFile(appPkgJson, jsonPackage.toString(2), "UTF-8");
 					
@@ -3127,8 +3170,25 @@ public class MobileBuilder {
 
 		@Override
 		protected void removeUselessPages(ApplicationComponent application) {
-			// TODO Auto-generated method stub
-			
+			if (application != null) {
+				File ionicPagesDir = new File(ionicWorkDir,"src/pages");
+				List<String> pageDirectories = new ArrayList<String>();
+				pageDirectories.add(ionicPagesDir.getAbsolutePath());
+				
+				List<PageComponent> pages = application.getPageComponentList();
+				for (PageComponent page : pages) {
+					File pageDir = new File(ionicPagesDir, page.getName());
+					pageDirectories.add(pageDir.getAbsolutePath());
+				}
+				for (File dir: FileUtils.listFilesAndDirs(ionicPagesDir, FalseFileFilter.INSTANCE, DirectoryFileFilter.DIRECTORY)) {
+					if (!pageDirectories.contains(dir.getAbsolutePath())) {
+						try {
+							FileUtils.deleteDirectory(dir);
+						}
+						catch(Exception e) {}
+					}
+				}
+			}
 		}
 		
 	}
@@ -3588,9 +3648,9 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void release() throws EngineException {
-		/*if (!initDone) {
+		if (!initDone) {
 			return;
-		}*/
+		}
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();

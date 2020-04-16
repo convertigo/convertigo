@@ -534,23 +534,28 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.warn("Studio context => pools won't be initialized!");
 		}
 
-        while (isRunning) {
-            Engine.logContextManager.debug("Vulture task in progress");
-        	long sleepTime = System.currentTimeMillis() + 30000;
-            try {
+		while (isRunning) {
+			Engine.logContextManager.debug("Vulture task in progress");
+			long sleepTime = System.currentTimeMillis() + 30000;
+			try {
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] Number", contexts.size());
 				int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] In use", com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads + " (" + 100 * com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads / maxNbCurrentWorkerThreads + "%)");
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] Max", maxNbCurrentWorkerThreads);
 
-                removeExpiredContexts();
-                managePoolContexts();
-                clearOldLogs();
-                Engine.logContextManager.debug("Vulture task done");
-            } catch(Throwable e) {
-                Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture.", e);
-            } finally {
-            	if ((sleepTime -= System.currentTimeMillis()) > 0) {
+				removeExpiredContexts();
+				managePoolContexts();
+				clearOldLogs();
+
+				if (com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads < 3 && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.AUTO_GC)) {
+					Runtime.getRuntime().gc();
+				}
+
+				Engine.logContextManager.debug("Vulture task done");
+			} catch(Throwable e) {
+				Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture.", e);
+			} finally {
+				if ((sleepTime -= System.currentTimeMillis()) > 0) {
 					try {
 						Thread.sleep(sleepTime);
 					} catch (InterruptedException e) {
@@ -558,8 +563,8 @@ public class ContextManager extends AbstractRunnableManager {
 						Engine.logContextManager.debug("InterruptedException received: probably a request for stopping the vulture.");
 					}
 				}
-            }
-        }
+			}
+		}
 
 		Engine.logContextManager.info("The vulture thread has been stopped.");
     }

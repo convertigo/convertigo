@@ -21,13 +21,15 @@ define = {
 	service : "admin/services/"
 }
 
-function call(service, data, callback){
-	$.ajax({
-		cache : false,
-		data : data,
-		success : callback,
-		url : define.service + service
-	});
+function call(service, data, callback) {
+	window.setTimeout(function () {
+		$.ajax({
+			cache : false,
+			data : data,
+			success : callback,
+			url : define.service + service
+		});
+	}, 1);
 }
 
 function initCommon(callback) {
@@ -97,17 +99,17 @@ $.ajaxSetup({
 	type : "POST",
 	dataType : "xml",
 	complete: function (jqXHR) {
-		var token = jqXHR.getResponseHeader("X-XSRF-Token");
+		var token = jqXHR.getResponseHeader("x-xsrf-token");
 		if (token != null) {
-			localStorage.setItem("X-XSRF-Token", token);
+			localStorage.setItem("x-xsrf-token", token);
 		}
 	},
 	beforeSend: function (jqXHR) {
-		jqXHR.setRequestHeader("X-XSRF-Token", getXsrfToken());
+		jqXHR.setRequestHeader("x-xsrf-token", getXsrfToken());
 	}
 });
 
 function getXsrfToken() {
-	var token = localStorage.getItem("X-XSRF-Token");
+	var token = localStorage.getItem("x-xsrf-token");
 	return token == null ? "Fetch" : token;
 }

@@ -360,6 +360,8 @@ public class EnginePropertiesManager {
 		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin': use client 'Origin' header\n• 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
+		AUTO_GC ("auto.gc", "true", "Automatically GC on low usage", PropertyCategory.Main),
 		
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
