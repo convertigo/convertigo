@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MinificationManager.ResourceBundle;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MobileResourceHelper {
@@ -568,7 +569,10 @@ public class MobileResourceHelper {
 			if (!Files.exists(resourcePath.resolve("build"))) {
 				return;
 			}
-			mobileApplication.getProject().getMobileBuilder().waitBuildFinished();
+			MobileBuilder mb = mobileApplication.getProject().getMobileBuilder();
+			if (mb != null) {
+				mb.waitBuildFinished();
+			}
 			Path fuPath = Paths.get(project.getDirPath(), "Flashupdate");
 			Files.createDirectories(fuPath);
 			Path pathMD5 = fuPath.resolve("md5.json");
@@ -612,7 +616,7 @@ public class MobileResourceHelper {
 						}
 					}
 				} catch (Exception e) {
-					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e);
+					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e, e);
 				}
 				if (!f.getName().equals("service-worker.js")) {
 					latest[0] = Math.max(latest[0], f.lastModified());
@@ -630,7 +634,7 @@ public class MobileResourceHelper {
 			
 			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), "UTF-8");
 		} catch (Exception e) {
-			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e);
+			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e, e);
 		}
 	}
 }

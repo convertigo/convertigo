@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,22 +41,95 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.Level;
+import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 
 public class ProcessUtils {
-	public static final String defaultNodeVersion = "v10.19.0";
+	private static String defaultNodeVersion = "v10.19.0";
+	private static File defaultNodeDir;
 	
-	public static void setNpmFolder(File npmFolder) {
-		if (new File(npmFolder, "npm").exists()) {
-			npmPath = npmFolder.getAbsolutePath();
-		}
+	public static String getDefaultNodeVersion() {
+		return defaultNodeVersion;
 	}
 	
-	private static String npmPath = null;
+	public static File getDefaultNodeDir() {
+		if (defaultNodeDir == null) {
+			defaultNodeDir = getLocalNodeDir(defaultNodeVersion);
+		}
+		return defaultNodeDir;
+	}
+	
+	public static String getNodeVersion(Project project) {
+		File ionicDir = new File(project.getDirPath(), "_private/ionic");
+		File versionFile = new File(ionicDir, "version.json");
+		try {
+			if (versionFile.exists()) {
+				String versionContent = FileUtils.readFileToString(versionFile, "utf-8");
+				JSONObject json = new JSONObject(versionContent);
+				if (json.has("nodeJsVersion")) {
+					String version = json.getString("nodeJsVersion");
+					if (version.matches("v\\d+\\.\\d+\\.\\d+.*")) {
+						return version;
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logConvertigo.warn("Failed to retreive the nodeVersion from '" + versionFile + "': [" + e.getClass() + "] " + e.getMessage());
+		}
+		return defaultNodeVersion;
+	}
+	
+	public static String getNodeVersion(File nodeDir) {
+		File nodeFile = new File(nodeDir, Engine.isWindows() ? "node.exe" : "node");
+		String version = defaultNodeVersion; 
+		try {
+			if (nodeFile.exists()) {
+				Process p = new ProcessBuilder(nodeFile.getAbsolutePath(), "--version").start();
+				if (p.waitFor(5, TimeUnit.SECONDS)) {
+					try (InputStream is = p.getInputStream()) {
+						version = IOUtils.toString(is, Charset.defaultCharset()).trim();
+					}
+				}
+			} else {
+				Engine.logConvertigo.info("Node doesn't exist here: " + nodeFile.getAbsolutePath());
+			}
+		} catch (Exception e) {
+			Engine.logConvertigo.warn("Failed to retreive the nodeVersion from '" + nodeFile + "': [" + e.getClass() + "] " + e.getMessage());
+		}
+		return version;
+	}
+	public static String getNpmVersion(File nodeDir) {
+		String version = "n/a";
+		File npmFile = new File(nodeDir, Engine.isWindows() ? "npm.cmd" : "npm");
+		try {
+			if (npmFile.exists()) {
+				Process p = new ProcessBuilder(npmFile.getAbsolutePath(), "-version").start();
+				if (p.waitFor(5, TimeUnit.SECONDS)) {
+					try (InputStream is = p.getInputStream()) {
+						version = IOUtils.toString(is, Charset.defaultCharset()).trim();
+					}
+				}
+			} else {
+				Engine.logConvertigo.info("npm doesn't exist here: " + npmFile.getAbsolutePath());
+			}
+		} catch (Exception e) {
+			Engine.logConvertigo.warn("Failed to retreive the npmVersion from '" + npmFile + "': [" + e.getClass() + "] " + e.getMessage());
+		}
+		return version;
+	}
+	
+	public static void setDefaultNodeDir(File nodeDir) {
+		String version = getNodeVersion(nodeDir);
+		if (version != null && (!version.equals(defaultNodeVersion) || defaultNodeDir == null)) {
+			defaultNodeVersion = version;
+			defaultNodeDir = nodeDir;
+		}
+	}
 	
 	public static String searchFullPath(String paths, String command) throws IOException {
 		String shellFullpath = null;
@@ -124,18 +199,12 @@ public class ProcessUtils {
 	}
 	
 	public static ProcessBuilder getNpmProcessBuilder(String paths, List<String> command) throws IOException {
-		if (command == null || command.size() == 0 || !(command.get(0).equals("npm") || command.get(0).equals("node"))) {
+		if (command == null || command.size() == 0 || !(command.get(0).equals("npm"))) {
 			throw new IOException("not a npm command");
 		}
 		
 		if (Engine.isWindows()) {
 			command.set(0, "npm.cmd");
-		}
-		
-		if (StringUtils.isBlank(paths)) {
-			paths = npmPath;
-		} else if (npmPath != null) {
-			paths = npmPath + File.pathSeparator + paths;
 		}
 		
 		ProcessBuilder pb = getProcessBuilder(paths, command);
@@ -178,6 +247,9 @@ public class ProcessUtils {
 	}
 	
 	public static File getLocalNodeDir(String version) {
+		if (version.equals(defaultNodeVersion) && defaultNodeDir != null) {
+			return defaultNodeDir;
+		}
 		return new File(Engine.USER_WORKSPACE_PATH, "nodes/node-" + version + "-" + getNodeOs());
 	}
 	

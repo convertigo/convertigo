@@ -440,16 +440,10 @@ public abstract class GenericServlet extends HttpServlet {
 				throw new ServletException(e);
 		} else {
 			try {
-				if (hide_error) 
-					response.addHeader("Convertigo-Exception", "");
-				else
-					response.addHeader("Convertigo-Exception", e.getClass().getName());
+				HeaderName.XConvertigoException.addHeader(response, hide_error ? "" : e.getClass().getName());
 				response.setContentType(MimeType.Plain.value());
 				PrintWriter out = response.getWriter();
-				if (hide_error) 
-					out.println("Convertigo error:");
-				else
-					out.println("Convertigo error: " + e.getMessage());
+				out.println("Convertigo error:" + (hide_error ? "" : e.getMessage()));
 			} catch (IOException e1) {
 				Engine.logEngine.error("Unexpected exception", e1);
 				if (hide_error) 

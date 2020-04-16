@@ -917,7 +917,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 
 		runAtStartup(() -> {
-			String nodeVersion = ProcessUtils.defaultNodeVersion;
+			String nodeVersion = ProcessUtils.getDefaultNodeVersion();
 			Job job = Job.create("Retrieve default nodejs " + nodeVersion, monitor -> {
 				try {
 					monitor.beginTask("In progress", 120);
@@ -945,7 +945,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					File nodeExe = new File(nodeDir, Engine.isWindows() ? "node.exe" : "node");
 					Engine.logStudio.warn("node ready: " + nodeExe.getAbsolutePath() + " exists ? " + nodeExe.exists());
 					System.setProperty("org.eclipse.wildwebdeveloper.nodeJSLocation", nodeExe.getAbsolutePath());
-					ProcessUtils.setNpmFolder(nodeDir);
+					ProcessUtils.setDefaultNodeDir(nodeDir);
 					monitor.done();
 				} catch (Exception e) {
 					Engine.logStudio.error("Failed to init NPM: " + e.getMessage(), e);

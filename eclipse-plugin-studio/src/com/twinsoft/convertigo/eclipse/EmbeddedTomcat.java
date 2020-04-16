@@ -117,8 +117,7 @@ public class EmbeddedTomcat implements Runnable {
 			if (configFile.exists()) {
 				String txt = FileUtils.readFileToString(configFile, "UTF-8");
 				if (!txt.contains("<CookieProcessor")) {
-					txt = txt.replace("</Context>", "\t<CookieProcessor sameSiteCookies=\"lax\" />\n</Context>");
-					System.out.println("(EmbeddedTomcat) Add the SameSite=None for cookies for config file");
+					txt = txt.replace("</Context>", "\t<CookieProcessor sameSiteCookies=\"\" />\n</Context>");
 					FileUtils.write(configFile, txt, "UTF-8");
 				}
 				System.out.println("(EmbeddedTomcat) Set convertigo webapp config file to " + configFile.getAbsolutePath());

@@ -98,6 +98,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 import com.twinsoft.convertigo.engine.util.StreamUtils;
 
@@ -561,6 +562,7 @@ public class FullSyncServlet extends HttpServlet {
 						debug.append("skip response Header: " + header.getName() + "=" + header.getValue() + "\n");
 					}
 				}
+				ServletUtils.applyCustomHeaders(request, response);
 			}
 			
 			HttpEntity responseEntity = newResponse.getEntity();
@@ -635,6 +637,14 @@ public class FullSyncServlet extends HttpServlet {
 						byte[] b = sb.toString().getBytes("UTF-8");
 						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
 						os.write(b);
+					} else if (requestParser.docId == null && requestParser.special == null && !fsClient.getPrefix().isEmpty()) {
+						String content = IOUtils.toString(is, "UTF-8");
+						content = content.replace("\"db_name\":\"" + fsClient.getPrefix(), "\"db_name\":\"");
+						byte[] bytes = content.getBytes("UTF-8");
+						HeaderName.ContentLength.addHeader(response, Integer.toString(bytes.length));
+						debug.append("response Header: " + HeaderName.ContentLength.value() + "=" + bytes.length + "\n");
+						Engine.logCouchDbManager.info("(FullSyncServlet) Remove prefix from response:\n" + debug);
+						os.write(bytes);
 					} else {
 						String contentLength = HeaderName.ContentLength.getHeader(newResponse);
 						if (contentLength != null) {
@@ -692,7 +702,7 @@ public class FullSyncServlet extends HttpServlet {
 			String contextPath = request.getContextPath();
 			requestURI = requestURI.substring(contextPath.length());
 			
-			String servletPath = request.getServletPath();			
+			String servletPath = request.getServletPath();
 			String request_path = requestURI.substring(requestURI.indexOf(servletPath) + servletPath.length());
 			
 			request_path = replace2F.matcher(request_path).replaceFirst("$1/");

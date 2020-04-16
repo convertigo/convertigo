@@ -77,7 +77,8 @@ public class UIDynamicAnimate extends UIDynamicAction {
 			if (project != null) {
 				Project p = null;
 				try {
-					p = p_name.equals(project.getName()) ? project: Engine.theApp.databaseObjectsManager.getOriginalProjectByName(p_name);
+					//p = p_name.equals(project.getName()) ? project: Engine.theApp.databaseObjectsManager.getOriginalProjectByName(p_name);
+					p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
 				} catch (Exception e) {
 					Engine.logBeans.warn("(UIDynamicAnimate) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 				}

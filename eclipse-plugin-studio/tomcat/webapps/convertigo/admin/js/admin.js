@@ -35,14 +35,14 @@ $(window).ready(function() {
 	$.ajaxSetup({
 		traditional : true,
 		complete: function (jqXHR) {
-			var token = jqXHR.getResponseHeader("X-XSRF-Token");
+			var token = jqXHR.getResponseHeader("x-xsrf-token");
 			if (token != null) {
-				localStorage.setItem("X-XSRF-Token", token);
+				localStorage.setItem("x-xsrf-token", token);
 			}
 		},
 		beforeSend: function (jqXHR) {
 			jqXHR.setRequestHeader("Admin-Instance", instanceid);
-			jqXHR.setRequestHeader("X-XSRF-Token", getXsrfToken());
+			jqXHR.setRequestHeader("x-xsrf-token", getXsrfToken());
 		}
 	});
 	
@@ -664,6 +664,6 @@ function toast(msg) {
 }
 
 function getXsrfToken() {
-	var token = localStorage.getItem("X-XSRF-Token");
+	var token = localStorage.getItem("x-xsrf-token");
 	return token == null ? "Fetch" : token;
 }

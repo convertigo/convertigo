@@ -94,13 +94,26 @@ public class ServletUtils {
 		if (user != null) {
 			user = Base64.encodeBase64String(DigestUtils.sha1(request.getSession().getId() + user));
 			HeaderName.XConvertigoAuthenticated.addHeader(response, user);
-			HeaderName.AccessControlExposeHeaders.addHeader(response, HeaderName.XConvertigoAuthenticated.value());
 		}
 		if (headers != null) {
 			Engine.logContext.debug("Setting custom response headers (" + headers.size() + ")");
 			for (Entry<String, String> header : headers.entrySet()) {
 				Engine.logContext.debug("Setting custom response header: " + header.getKey() + "=" + header.getValue());
 				response.setHeader(header.getKey(), header.getValue());
+			}
+		}
+		if (HeaderName.Origin.has(request)) {
+			StringBuilder sb = new StringBuilder();
+			for (String header: response.getHeaderNames()) {
+				if (header.toLowerCase().startsWith("x-")) {
+					if (sb.length() > 0) {
+						sb.append(", ");
+					}
+					sb.append(header);
+				}
+			}
+			if (sb.length() > 0) {
+				HeaderName.AccessControlExposeHeaders.addHeader(response, sb.toString());
 			}
 		}
 	}

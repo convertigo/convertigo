@@ -200,7 +200,7 @@ jobs:
         name: Sync WARs to S3
         command: |
           source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
+          aws s3 sync --acl public-read ~/s3 s3://convertigo-ci/
           for folder in $(aws s3 ls s3://convertigo-ci/ | grep convertigo- | head -n -36 | sed "s/ *PRE //"); do
             aws s3 rm s3://convertigo-ci/${folder} --recursive
           done

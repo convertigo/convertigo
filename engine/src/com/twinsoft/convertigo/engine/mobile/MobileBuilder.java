@@ -637,9 +637,9 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void release() throws EngineException {
-		/*if (!initDone) {
+		if (!initDone) {
 			return;
-		}*/
+		}
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
@@ -1627,6 +1627,18 @@ public class MobileBuilder {
 					jsonDependencies.put(pkg, pkg_dependencies.get(pkg));
 					if (!existPackage(pkg)) {
 						setNeedPkgUpdate(true);
+					}
+				}
+				
+				boolean addNode = !jsonDependencies.has("@types/node");
+				if (addNode) {
+					try {
+						String version = new JSONObject(FileUtils.readFileToString(new File(ionicTplDir, "version.json"), "utf-8")).getString("version");
+						addNode = version.matches("7\\.[0-7]\\..*");
+					} catch (Exception e) {
+					}
+					if (addNode) {
+						jsonDependencies.put("@types/node", "12.0.10");
 					}
 				}
 				
