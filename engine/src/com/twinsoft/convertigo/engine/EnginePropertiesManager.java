@@ -310,7 +310,7 @@ public class EnginePropertiesManager {
     public enum PropertyName {
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
-		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:18080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
+		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:" + (Engine.isStudioMode() ? "1" : "2")+ "8080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_ENDPOINT ("application_server.convertigo.endpoint", "", "Convertigo Server endpoint URL", PropertyCategory.Main),
 		@PropertyOptions(visibility = Visibility.HIDDEN)

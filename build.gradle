@@ -26,7 +26,7 @@ ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision 
 ext.jxBrowserGroup = 'com.convertigo.lib'
 ext.jxBrowserVersion = '7.6-b27-eap'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.33'
+ext.tomcatVersion = '9.0.34'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"

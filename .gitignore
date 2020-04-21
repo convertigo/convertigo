@@ -39,5 +39,6 @@ META-INF
 /eclipse-repository/category.xml
 /eclipse-repository/Convertigo.product
 /eclipse-repository/Convertigo.product.tmp
+/engine/src/com/twinsoft/convertigo/engine/admin/services/mobiles/res
 /resources
 /workspace

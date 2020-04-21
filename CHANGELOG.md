@@ -2,10 +2,16 @@
 
 ## 7.8.0
 
+#### New Features:
+
+- [#304](https://github.com/convertigo/convertigo/issues/304) Gradle can now generate and compile MobileBuilder applications
+- [#335](https://github.com/convertigo/convertigo/issues/335) Add a JVM memory Graph to the Administration console Home page
+- [#341](https://github.com/convertigo/convertigo/issues/341) Docker add a COOKIE_SAMESITE environment variable to set the policy
+- [#350](https://github.com/convertigo/convertigo/issues/350) Added new Engine property "Automatically GC on low usage" to administration console
+
 #### Improvements:
 
 - [#300](https://github.com/convertigo/convertigo/issues/300) Attribute / jAttribute Steps now show value in tree view
-- [#304](https://github.com/convertigo/convertigo/issues/304) Gradle can now generate and compile MobileBuilder applications
 - [#307](https://github.com/convertigo/convertigo/issues/307) Project compatibility version set to the highest used bean version
 - [#314](https://github.com/convertigo/convertigo/issues/314) Studio: Documentation links now open in default external browser
 - [#316](https://github.com/convertigo/convertigo/issues/316) Mobile Builder Calendar component now fires onChange event
@@ -14,6 +20,7 @@
 - [#322](https://github.com/convertigo/convertigo/issues/322) Add an "Auto Pull" property for Reference Project (git case)
 - [#323](https://github.com/convertigo/convertigo/issues/323) Engine "Git Container" property defaults to workspace/git (instead of <user>/git)
 - [#330](https://github.com/convertigo/convertigo/issues/330) Enforce administration console security
+- [#342](https://github.com/convertigo/convertigo/issues/342) Studio: Speed up project load/save
 
 #### Bug Fixes:
 
@@ -27,11 +34,16 @@
 - [#315](https://github.com/convertigo/convertigo/issues/315) Fixed, PageEvent of a shared component may not be generated in calling page
 - [#321](https://github.com/convertigo/convertigo/issues/321) Fixed, Server: file path properties with .// can now resolve projects outside of the project folder
 - [#325](https://github.com/convertigo/convertigo/issues/325) Fixed, Mobile Builder PageEvent of a shared component is correctly generated in calling page
-- [#327](https://github.com/convertigo/convertigo/issues/327) Fixed, Mobile Builder Button component 'button form type' property is set to ‘false’ in template
+- [#327](https://github.com/convertigo/convertigo/issues/327) Fixed, Mobile Builder Button component 'button form type' property is set to "false" in template
 - [#328](https://github.com/convertigo/convertigo/issues/328) Fixed, Mobile Builder properties set with 'not set' value are correctly saved for all components
 - [#331](https://github.com/convertigo/convertigo/issues/331) Fixed, no more NullPointerException when importing symbols file
 - [#333](https://github.com/convertigo/convertigo/issues/333) Fixed, memory is well freed after a PostFind call (CouchDb/FullSync connector)
 - [#334](https://github.com/convertigo/convertigo/issues/334) Fixed, Mobile Builder CallSequence component "Disable auto login" property is correctly saved
+- [#337](https://github.com/convertigo/convertigo/issues/337) Fixed, Mobile builder Log component has twice the fatal level in "Level" property
+- [#338](https://github.com/convertigo/convertigo/issues/338) Fixed, Studio speed up modifying shared objects' properties
+- [#355](https://github.com/convertigo/convertigo/issues/355) Fixed, Mobile builder subscribe handler is properly removed 
+- [#356](https://github.com/convertigo/convertigo/issues/356) Fixed, when DB prefix for FullSync is used, databases document count and size columns are now filled properly
+- [#357](https://github.com/convertigo/convertigo/issues/357) Fixed, server "Convertigo Server local URL" property default to 28080 port
 
 ---
 
