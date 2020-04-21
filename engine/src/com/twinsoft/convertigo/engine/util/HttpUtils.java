@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -41,12 +42,17 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -59,11 +65,15 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.tas.KeyManager;
 
@@ -220,6 +230,17 @@ public class HttpUtils {
 			private synchronized CloseableHttpClient getHttpClient4() {
 				if (httpClient == null) {
 					HttpClientBuilder httpClientBuilder = HttpClients.custom();
+					if (Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
+						HttpHost proxy = new HttpHost(Engine.theApp.proxyManager.getProxyServer(), Engine.theApp.proxyManager.getProxyPort());
+						httpClientBuilder.setProxy(proxy);
+						if (Engine.theApp.proxyManager.proxyMethod == ProxyMethod.basic) {
+							CredentialsProvider credsProvider = new BasicCredentialsProvider();
+							credsProvider.setCredentials(
+									new AuthScope(proxy.getHostName(), proxy.getPort()),
+									new UsernamePasswordCredentials(Engine.theApp.proxyManager.getProxyUser(), Engine.theApp.proxyManager.getProxyPassword()));
+							httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
+						};
+					}
 					
 					@SuppressWarnings("deprecation")
 					String spec = CookieSpecs.BROWSER_COMPATIBILITY;
@@ -419,6 +440,32 @@ public class HttpUtils {
 					Engine.logEngine.error(msg = "No key for the Convertigo SDK.");
 					throw new MaxCvsExceededException(msg);
 				}
+			}
+		}
+	}
+
+	public static void terminateNewSession(HttpSession httpSession) {
+		if (httpSession != null && httpSession.isNew()) {
+			terminateSession(httpSession);
+		}
+	}
+
+	public static void checkXSRF(HttpServletRequest request, HttpServletResponse response) throws EngineException {
+		HttpSession session = request.getSession(true);
+		String token = SessionAttribute.xsrfToken.get(session);
+		String header = HeaderName.XXsrfToken.getHeader(request);
+		if (token == null && header != null) {
+			token = Base64.encodeBytes(DigestUtils.sha256(session.getId() + Engine.startStopDate)).replaceAll("[^\\w\\d]", "-");
+			SessionAttribute.xsrfToken.set(session, token);
+			HeaderName.XXsrfToken.setHeader(response, token);
+		} else {
+			if (header == null) {
+				header = request.getParameter(Parameter.XsrfToken.getName());
+			}
+			if (token != null && !token.equals(header)) {
+				EngineException e = new EngineException("Invalid XSRF Token header for this session.");
+				e.setStackTrace(new StackTraceElement[0]);
+				throw e;
 			}
 		}
 	}

@@ -107,7 +107,16 @@ var F = {
 			F.redirectApp();
 		} else {
 			$.ajaxSetup({
-				cache: false
+				cache: false,
+				complete: function (jqXHR) {
+					var token = jqXHR.getResponseHeader("x-xsrf-token");
+					if (token != null) {
+						localStorage.setItem("x-xsrf-token", token);
+					}
+				},
+				beforeSend: function (jqXHR) {
+					jqXHR.setRequestHeader("x-xsrf-token", getXsrfToken());
+				}
 			});
 			
 			var url = window.location.href.replace(F.reTailUrl, "$1/files.json");

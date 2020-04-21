@@ -11,13 +11,20 @@ if (!rootProject.name.equals(name)) {
 		if (!it.name.startsWith('.') && it.name != 'common') {
 			def pdir = it
 			copyTemplatesCommons.dependsOn task("copyCommonsFor${it.name.capitalize()}", type: Copy) {
-				from 'common'
+				from('common') {
+					exclude '**/*.jar'
+					filter { it.replace('((CURRENT_VERSION))', version.replace('beta', 'SNAPSHOT')) }
+				}
+				
+				from('common') {
+					include '**/*.jar'
+				}
 				
 				inputs.properties(
 					'version': version
 				)
 				
-				filter { it.replace('((CURRENT_VERSION))', version.replace('beta', 'SNAPSHOT')) }
+				
 				into pdir
 			}
 		}
@@ -31,7 +38,8 @@ if (!rootProject.name.equals(name)) {
 		startParameter.projectProperties = [
 			'convertigo.plugin.version': version.replace('beta', 'SNAPSHOT'),
 			'convertigo.car.destinationDir': project(':eclipse-plugin-studio').file('tomcat/webapps/convertigo/templates/project'),
-			'convertigo.load.projectVersion': version
+			'convertigo.load.projectVersion': version,
+			'convertigo.performsMobileBuild': 'false'
 		]
 	}
 	

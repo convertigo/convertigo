@@ -39,6 +39,7 @@ gradlePlugin {
 }
 
 tasks['publishToMavenLocal'].dependsOn(tasks.getByPath(':engine:publishToMavenLocal'))
+tasks['publish'].dependsOn(tasks.getByPath(':engine:publish'))
 tasks['eclipse'].doLast {
 	mkdir 'build/pluginUnderTestMetadata'
 }

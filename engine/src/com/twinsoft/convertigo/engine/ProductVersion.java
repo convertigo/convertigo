@@ -23,7 +23,7 @@ package com.twinsoft.convertigo.engine;
 public class ProductVersion {
 
     public static String majorProductVersion = "7";
-    public static String minorProductVersion = "7";
+    public static String minorProductVersion = "8";
     public static String servicePack = "0";
     public static String tag = null;
     public static String revision = null;

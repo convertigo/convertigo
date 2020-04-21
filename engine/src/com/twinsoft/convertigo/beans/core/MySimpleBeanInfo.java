@@ -128,9 +128,12 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
      * gets a reference to a editor, if the class is found or null if the class is not in the class path. This is used
      * to be able to have Convertigo Engine having no references to the Convertigo Plugin.
      */
-    public Class<?> getEditorClass(String className) {
-   		try {
-   			//Engine.logBeans.trace("Try to get the property editor");
+	public Class<?> getEditorClass(String className) {
+		if (Engine.isEngineMode()) {
+			return null;
+		}
+		try {
+			//Engine.logBeans.trace("Try to get the property editor");
 			Class<?> c = Class.forName("com.twinsoft.convertigo.eclipse.property_editors." + className);
 			return c;
 		} catch (ClassNotFoundException e) {

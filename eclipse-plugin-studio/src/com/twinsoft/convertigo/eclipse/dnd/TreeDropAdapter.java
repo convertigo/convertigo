@@ -75,6 +75,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
@@ -760,8 +761,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					UISharedComponent usc = (UISharedComponent)databaseObject;
 					
 					// Add a UseShared component
-					if (parent instanceof UISharedComponent || parent instanceof UIElement && !(parent instanceof UIUseShared)) {
-						UIComponent uiComponent = (UIComponent) parent;
+					if (parent instanceof  PageComponent || parent instanceof UISharedComponent || parent instanceof UIElement && !(parent instanceof UIUseShared)) {
+						MobileComponent mc = (MobileComponent) parent;
 						
 						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
 						String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
@@ -773,8 +774,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							use.bNew = true;
 							use.hasChanged = true;
 							
-							uiComponent.add(use);
-							uiComponent.hasChanged = true;
+							mc.add(use);
+							mc.hasChanged = true;
 						}
 						return true;
 					}

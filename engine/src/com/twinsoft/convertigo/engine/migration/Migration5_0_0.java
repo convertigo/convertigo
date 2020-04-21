@@ -516,7 +516,7 @@ public class Migration5_0_0 {
     				try {
     					variable = newVariable(elementClassName, row, j);
     					newChild = variable.toXml(document);
-    					ordered.add(new Long(variable.priority));
+    					ordered.add(Long.valueOf(variable.priority));
     					element.appendChild(newChild);
     					Engine.logDatabaseObjectManager.info("[Migration 4.6.0] Added variable \""+ variable.getName() +"\" for object \""+ elementName + "\" ("+ elementClassName +")");
     				} catch (EngineException e) {

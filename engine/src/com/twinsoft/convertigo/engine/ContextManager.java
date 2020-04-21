@@ -19,7 +19,9 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -532,22 +534,28 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.warn("Studio context => pools won't be initialized!");
 		}
 
-        while (isRunning) {
-            Engine.logContextManager.debug("Vulture task in progress");
-        	long sleepTime = System.currentTimeMillis() + 30000;
-            try {
+		while (isRunning) {
+			Engine.logContextManager.debug("Vulture task in progress");
+			long sleepTime = System.currentTimeMillis() + 30000;
+			try {
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] Number", contexts.size());
 				int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] In use", com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads + " (" + 100 * com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads / maxNbCurrentWorkerThreads + "%)");
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] Max", maxNbCurrentWorkerThreads);
 
-                removeExpiredContexts();
-                managePoolContexts();
-                Engine.logContextManager.debug("Vulture task done");
-            } catch(Throwable e) {
-                Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture.", e);
-            } finally {
-            	if ((sleepTime -= System.currentTimeMillis()) > 0) {
+				removeExpiredContexts();
+				managePoolContexts();
+				clearOldLogs();
+
+				if (com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads < 3 && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.AUTO_GC)) {
+					Runtime.getRuntime().gc();
+				}
+
+				Engine.logContextManager.debug("Vulture task done");
+			} catch(Throwable e) {
+				Engine.logContextManager.error("An unexpected error has occured in the ContextManager vulture.", e);
+			} finally {
+				if ((sleepTime -= System.currentTimeMillis()) > 0) {
 					try {
 						Thread.sleep(sleepTime);
 					} catch (InterruptedException e) {
@@ -555,8 +563,8 @@ public class ContextManager extends AbstractRunnableManager {
 						Engine.logContextManager.debug("InterruptedException received: probably a request for stopping the vulture.");
 					}
 				}
-            }
-        }
+			}
+		}
 
 		Engine.logContextManager.info("The vulture thread has been stopped.");
     }
@@ -905,5 +913,41 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.warn("Zombie context detected! context: " + context.contextID);
 		}
 		return b;
+	}
+	
+	private void clearOldLogs() {
+		int iDot = Engine.LOG_ENGINE_NAME.indexOf('.');
+		if (iDot < 1) {
+			return;
+		}
+		long nb = EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX) + 1;
+		String prefix = Engine.LOG_ENGINE_NAME.substring(0, iDot + 1);
+		String[] files = new File(Engine.LOG_PATH).list();
+		Arrays.sort(files);
+		for (int i = files.length - 1; i >= 0; i--) {
+			if (files[i].startsWith(Engine.LOG_ENGINE_NAME)) {
+				nb--;
+			}
+		}
+		StringBuilder sb = null;
+		for (int i = files.length - 1; i >= 0; i--) {
+			if (files[i].startsWith(prefix) && !files[i].startsWith(Engine.LOG_ENGINE_NAME)) {
+				if (nb > 0) {
+					nb--;
+				} else {
+					File toDelete = new File(Engine.LOG_PATH, files[i]);
+					boolean deleted = toDelete.delete();
+					if (Engine.logEngine.isInfoEnabled()) {
+						if (sb == null) {
+							sb = new StringBuilder("Purging old log files:");
+						}
+						sb.append("\n - " + toDelete + " is deleted: " + deleted);
+					}
+				}
+			}
+		}
+		if (sb != null) {
+			Engine.logEngine.info(sb);
+		}
 	}
 }

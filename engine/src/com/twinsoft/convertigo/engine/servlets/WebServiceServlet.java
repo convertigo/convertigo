@@ -634,7 +634,7 @@ public class WebServiceServlet extends GenericServlet {
 		
 		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(REQUEST_MESSAGE_ATTRIBUTE);
 		if (requestMessage == null) {
-			boolean bAddXmlEncodingCharSet = new Boolean(EnginePropertiesManager.getProperty(PropertyName.SOAP_REQUEST_ADD_XML_ENCODING_CHARSET)).booleanValue();
+			boolean bAddXmlEncodingCharSet = Boolean.valueOf(EnginePropertiesManager.getProperty(PropertyName.SOAP_REQUEST_ADD_XML_ENCODING_CHARSET)).booleanValue();
 
 			String contentType = request.getContentType();
 			

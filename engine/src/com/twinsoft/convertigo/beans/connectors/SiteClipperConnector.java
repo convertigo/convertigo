@@ -1047,7 +1047,6 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				
 				Engine.logSiteClipper.debug("(SiteClipperConnector) CertificateManager has changed: " + certificateManager.hasChanged);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) Using MySSLSocketFactory for creating the SSL socket");
-				@SuppressWarnings("deprecation")
 				Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
 					certificateManager.keyStore, certificateManager.keyStorePassword,
 					certificateManager.trustStore, certificateManager.trustStorePassword,

@@ -131,6 +131,10 @@ C8O = {
                 
                 var targetName = "tn_" + new Date().getTime() + "_" + Math.floor(Math.random() * 100);
                 var action = C8O._getCallUrl();
+                var token = C8O._getXsrfToken();
+                if (token.length > 0) {
+                    action += "&" + encodeURIComponent(token);
+                }
                 $form.attr({
                     method: "POST",
                     enctype: "multipart/form-data",
@@ -1056,6 +1060,11 @@ C8O = {
             C8O._define.pendingXhrCpt = 0;
         }
         
+        var token = jqXHR.getResponseHeader("x-xsrf-token");
+        if (token != null) {
+            localStorage.setItem("x-xsrf-token", token);
+        }
+        
         if (C8O._hook("call_complete", jqXHR, textStatus, jqXHR.C8O_data)) {
             if (!C8O._define.pendingXhrCpt) {
                 C8O.waitHide(jqXHR.C8O_data);
@@ -1235,20 +1244,34 @@ C8O = {
             C8O.log.trace("c8o.core: translate '" + str + "' in '" + value + "'");
         }
         return value;
+    },
+    
+    _getXsrfToken: function () {
+        var token = localStorage.getItem("x-xsrf-token");
+        return token == null ? "Fetch" : token;
     }
 }
 
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
     cache: false,
+    type: C8O.vars.ajax_method,
     dataType: "xml",
-    type: C8O.vars.ajax_method
+    complete: function (jqXHR) {
+        var token = jqXHR.getResponseHeader("x-xsrf-token");
+        if (token != null) {
+            localStorage.setItem("x-xsrf-token", token);
+        }
+    },
+    beforeSend: function (jqXHR) {
+        jqXHR.setRequestHeader("x-xsrf-token", C8O._getXsrfToken());
+    }
 });
 C8O.addRecallParameter("__uid", C8O._define.uid);
 
 C8O._init.tasks.push(function (params) {
-	var value = C8O._remove(params, "__enc");
-	
+    var value = C8O._remove(params, "__enc");
+    
     if (C8O.isDefined(value)) {
         C8O.log.trace("c8o.core: switch request encryption " + value);
         C8O.init_vars.enc = value;

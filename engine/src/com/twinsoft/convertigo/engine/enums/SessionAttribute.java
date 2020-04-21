@@ -33,7 +33,8 @@ public enum SessionAttribute {
 	isNew,
 	httpClient3("__httpClient3__"),
 	httpClient4("__httpClient4__"),
-	sessionListener;
+	sessionListener,
+	xsrfToken;
 	
 	String value;
 	

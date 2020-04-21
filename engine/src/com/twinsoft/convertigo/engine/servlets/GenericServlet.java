@@ -108,27 +108,27 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
 
 	@Override
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
 
 	@Override
-	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
 
 	@Override
-	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 		if (corsOrigin != null) {
 			Engine.logEngine.trace("Add CORS header for OPTIONS: " + corsOrigin);
@@ -137,16 +137,16 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
 
 	@Override
-	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
 
-	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
 		request = wrapped_request;
 
@@ -156,6 +156,9 @@ public abstract class GenericServlet extends HttpServlet {
 		if ((isProject = baseUrl.contains("/projects/")) || baseUrl.contains("/webclipper/")) {
 			long t0 = System.currentTimeMillis();
 			try {
+				if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
+					HttpUtils.checkXSRF(request, response);
+				}
 				String encoded = request.getParameter(Parameter.RsaEncoded.getName());
 				if (encoded != null) {
 					String query = Engine.theApp.rsaManager.decrypt(encoded, request.getSession());
@@ -437,16 +440,10 @@ public abstract class GenericServlet extends HttpServlet {
 				throw new ServletException(e);
 		} else {
 			try {
-				if (hide_error) 
-					response.addHeader("Convertigo-Exception", "");
-				else
-					response.addHeader("Convertigo-Exception", e.getClass().getName());
+				HeaderName.XConvertigoException.addHeader(response, hide_error ? "" : e.getClass().getName());
 				response.setContentType(MimeType.Plain.value());
 				PrintWriter out = response.getWriter();
-				if (hide_error) 
-					out.println("Convertigo error:");
-				else
-					out.println("Convertigo error: " + e.getMessage());
+				out.println("Convertigo error:" + (hide_error ? "" : e.getMessage()));
 			} catch (IOException e1) {
 				Engine.logEngine.error("Unexpected exception", e1);
 				if (hide_error) 
@@ -572,8 +569,8 @@ public abstract class GenericServlet extends HttpServlet {
 		
 		request.setAttribute("convertigo.cacheControl", context.cacheControl);
 		request.setAttribute("convertigo.context.contextID", context.contextID);
-		request.setAttribute("convertigo.isErrorDocument", new Boolean(context.isErrorDocument));
-		request.setAttribute("convertigo.context.removalRequired", new Boolean(context.removalRequired()));
+		request.setAttribute("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
+		request.setAttribute("convertigo.context.removalRequired", Boolean.valueOf(context.removalRequired()));
 		if (request.getAttribute("convertigo.charset") == null) {
 			request.setAttribute("convertigo.charset", "UTF-8");
 		}

@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class AttributeStep extends Step implements ISchemaAttributeGenerator, ISimpleTypeAffectation {
@@ -85,7 +86,11 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 
 	@Override
 	public String toString() {
-		return "@" + nodeName;
+		String label = "";
+		try {
+			label += !expression.isEmpty() ? " @("+ expression +")" : (" = \""+nodeText+"\"");
+		} catch (Exception e) {}
+		return "@"+ nodeName + StringUtils.reduce(label, 30);
 	}
 
 	@Override

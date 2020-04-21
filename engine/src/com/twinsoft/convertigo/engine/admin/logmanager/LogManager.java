@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -281,7 +282,12 @@ public class LogManager {
 		if (br != null) {
 			br.close();
 		}
-		is.reset();
+		try {
+			is.reset();
+		} catch (NoSuchFileException e) {
+			renew();
+			return;
+		}
 		br = new BufferedReader(new InputStreamReader(is, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING)));
 		has_more_results = true;
 		candidate = null;

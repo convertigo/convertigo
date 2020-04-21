@@ -15,7 +15,6 @@ META-INF
 
 **/.gradle
 /build
-/pom.xml
 /convertigo-splash/splash.bmp
 /convertigo-templates/*/*.gradle
 !/convertigo-templates/common/*.gradle
@@ -24,6 +23,8 @@ META-INF
 /convertigo-templates/*/.gitattributes
 !/convertigo-templates/common/.gitattributes
 /convertigo-templates/*/build
+/convertigo-templates/*/gradle*
+/convertigo-templates/*.zip
 /eclipse-feature/feature.xml
 /eclipse-feature/feature.xml.tmp
 /eclipse-plugin-product/about.ini
@@ -35,9 +36,9 @@ META-INF
 /eclipse-plugin-studio/tomcat/webapps/convertigo/templates/project/*
 /eclipse-plugin-studio/tomcat/webapps/convertigo/swagger/dist
 /eclipse-plugin-studio/tomcat/work
-/eclipse-plugin-xulrunner-win32/xulrunner
 /eclipse-repository/category.xml
 /eclipse-repository/Convertigo.product
 /eclipse-repository/Convertigo.product.tmp
+/engine/src/com/twinsoft/convertigo/engine/admin/services/mobiles/res
 /resources
 /workspace

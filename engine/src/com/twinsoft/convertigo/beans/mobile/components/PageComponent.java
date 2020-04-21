@@ -97,7 +97,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		Element element = super.toXml(document);
 		
 		// Storing the page "isRoot" flag
-		element.setAttribute("isRoot", new Boolean(isRoot).toString());
+		element.setAttribute("isRoot", Boolean.valueOf(isRoot).toString());
         
 		return element;
 	}
@@ -107,7 +107,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		super.preconfigure(element);
 		
 		try {
-			long priority = new Long(element.getAttribute("priority")).longValue();
+			long priority = Long.valueOf(element.getAttribute("priority")).longValue();
 			if (priority == 0L) {
 				priority = getNewOrderValue();
 				element.setAttribute("priority", ""+priority);
@@ -142,7 +142,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		super.configure(element);
 		
 		try {
-			isRoot = new Boolean(element.getAttribute("isRoot")).booleanValue();
+			isRoot = Boolean.valueOf(element.getAttribute("isRoot")).booleanValue();
 		} catch(Exception e) {
 			throw new EngineException("Unable to configure the property 'isRoot' of the page \"" + getName() + "\".", e);
 		}
@@ -186,7 +186,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
     
     private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	List<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof UIComponent)
     		ordered = orderedComponents.get(0);
@@ -310,10 +310,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		Set<UIComponent> done = new HashSet<>();
 		List<UIPageEvent> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIPageEvent) {
-				eventList.add((UIPageEvent) uiComponent);
-			} else {
-				uiComponent.addPageEvent(done, eventList);
+			if (uiComponent.isEnabled()) {
+				if (uiComponent instanceof UIPageEvent) {
+					eventList.add((UIPageEvent) uiComponent);
+				} else {
+					uiComponent.addPageEvent(done, eventList);
+				}
 			}
 		}
 		return eventList;
@@ -323,10 +325,12 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		Set<UIComponent> done = new HashSet<>();
 		List<UIEventSubscriber> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
-			if (uiComponent instanceof UIEventSubscriber) {
-				eventList.add((UIEventSubscriber) uiComponent);
-			} else {
-				uiComponent.addEventSubscriber(done, eventList);
+			if (uiComponent.isEnabled()) {
+				if (uiComponent instanceof UIEventSubscriber) {
+					eventList.add((UIEventSubscriber) uiComponent);
+				} else {
+					uiComponent.addEventSubscriber(done, eventList);
+				}
 			}
 		}
 		return eventList;
@@ -673,6 +677,7 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 					return;
 				}
 				try {
+					//System.out.println("---markPageAsDirty...");
 					JSONObject oldComputedContent = computedContents == null ? 
 							null :new JSONObject(computedContents.toString());
 					
@@ -781,6 +786,14 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 				String constructor = subscriber.computeConstructor();
 				computed += constructor.isEmpty() ? "": "\t" + constructor;
 			}
+			//computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\t} else {"+ System.lineSeparator();
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String desctructor = subscriber.computeDestructor();
+				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
+				String constructor = subscriber.computeConstructor();
+				computed += constructor.isEmpty() ? "": "\t" + constructor;
+			}
 			computed += "\t\t}"+ System.lineSeparator();
 			computed += "\t\t";
 		}
@@ -868,8 +881,11 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		// Page events
 		List<UIPageEvent> eventList = getUIPageEventList();
 		if (!eventList.isEmpty()) {
+			//System.out.println("For page: "+ getName());
 			for (ViewEvent viewEvent: ViewEvent.values()) {
+				//System.out.println("Event :"+ viewEvent.name());
 				String computedEvent = viewEvent.computeEvent(eventList);
+				//System.out.println("Code :"+ computedEvent);
 				if (!computedEvent.isEmpty()) {
 					try {
 						String functions = jsonScripts.getString("functions");

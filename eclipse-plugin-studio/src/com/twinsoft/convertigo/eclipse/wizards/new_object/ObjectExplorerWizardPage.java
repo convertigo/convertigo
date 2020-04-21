@@ -147,7 +147,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		BeanInfo bi = getCurrentSelectedBeanInfo();
 		if (bi != null) {
 			try {
-				newBean = (DatabaseObject) bi.getBeanDescriptor().getBeanClass().newInstance();
+				newBean = (DatabaseObject) bi.getBeanDescriptor().getBeanClass().getConstructor().newInstance();
 				if (parentObject instanceof DatabaseObject) {
 					newBean.setParent((DatabaseObject) parentObject);
 				}

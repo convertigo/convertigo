@@ -64,6 +64,7 @@ public abstract class CacheManager {
 		return cacheEntry;
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	public void removeCacheEntry(CacheEntry cacheEntry) {
 		cacheIndex.remove(cacheEntry);
 	}

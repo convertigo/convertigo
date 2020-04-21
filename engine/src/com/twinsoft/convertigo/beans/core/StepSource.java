@@ -89,7 +89,7 @@ public class StepSource {
 	public Step getStep() throws EngineException {
 		if (definition.size() > 0) {
 			if (sourceStep == null) {
-				Long key = new Long(getPriority());
+				Long key = Long.valueOf(getPriority());
 				Step step = null;
 				String sourceExecuteTimeID = null;
 				if (owner.executedSteps != null)
@@ -179,7 +179,7 @@ public class StepSource {
 	public String getLabel() throws EngineException {
 		String label = "";
 		if (definition.size() > 0) {
-			Step step = (Step)owner.getParentSequence().loadedSteps.get(new Long(getPriority()));
+			Step step = (Step)owner.getParentSequence().loadedSteps.get(Long.valueOf(getPriority()));
 			if (step != null) {
 				label = step.getContextXpath(getXpath());
 				if (label.equals(".")) {
@@ -205,6 +205,6 @@ public class StepSource {
 	}
 
 	public boolean isBroken() {
-		return owner.getParentSequence().loadedSteps.get(new Long(getPriority())) == null;
+		return owner.getParentSequence().loadedSteps.get(Long.valueOf(getPriority())) == null;
 	}
 }

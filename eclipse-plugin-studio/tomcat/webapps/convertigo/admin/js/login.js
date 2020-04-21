@@ -18,6 +18,20 @@
  */
 
 jQuery().ready(function() {
+	$.ajaxSetup({
+		type : "POST",
+		dataType : "xml",
+		complete: function (jqXHR) {
+			var token = jqXHR.getResponseHeader("x-xsrf-token");
+			if (token != null) {
+				localStorage.setItem("x-xsrf-token", token);
+			}
+		},
+		beforeSend: function (jqXHR) {
+			jqXHR.setRequestHeader("x-xsrf-token", getXsrfToken());
+		}
+	});
+	
 	var authToken = location.hash.match(new RegExp("#authToken=(.*)"));
 	
 	if (authToken != null) {
@@ -53,9 +67,7 @@ jQuery().ready(function() {
 
 function checkAuthentication() {
 	$.ajax( {
-		type : "POST",
 		url : "services/engine.CheckAuthentication",
-		dataType : "xml",
 		data : {},
 		success : function(xml) {
 			var $xml = $(xml);
@@ -71,10 +83,8 @@ function authenticate(data) {
 	data.authType = "login";
 	
 	request = $.ajax( {
-		type : "POST",
 		url : "services/engine.Authenticate",
 		data : data,
-		dataType : "xml",
 		success : function(xml) {
 			var $xml = $(xml);
 			if ($xml.find("success").length > 0) {
@@ -85,4 +95,9 @@ function authenticate(data) {
 			};
 		}
 	});
+}
+
+function getXsrfToken() {
+	var token = localStorage.getItem("x-xsrf-token");
+	return token == null ? "Fetch" : token;
 }

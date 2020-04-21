@@ -21,13 +21,15 @@ define = {
 	service : "admin/services/"
 }
 
-function call(service, data, callback){
-	$.ajax({
-		cache : false,
-		data : data,
-		success : callback,
-		url : define.service + service
-	});
+function call(service, data, callback) {
+	window.setTimeout(function () {
+		$.ajax({
+			cache : false,
+			data : data,
+			success : callback,
+			url : define.service + service
+		});
+	}, 1);
 }
 
 function initCommon(callback) {
@@ -95,5 +97,19 @@ function getEncodedYamlUri(project) {
 
 $.ajaxSetup({
 	type : "POST",
-	dataType : "xml"
+	dataType : "xml",
+	complete: function (jqXHR) {
+		var token = jqXHR.getResponseHeader("x-xsrf-token");
+		if (token != null) {
+			localStorage.setItem("x-xsrf-token", token);
+		}
+	},
+	beforeSend: function (jqXHR) {
+		jqXHR.setRequestHeader("x-xsrf-token", getXsrfToken());
+	}
 });
+
+function getXsrfToken() {
+	var token = localStorage.getItem("x-xsrf-token");
+	return token == null ? "Fetch" : token;
+}

@@ -1,4 +1,4 @@
-# Copyright (c) 2001-2019 Convertigo SA.
+# Copyright (c) 2001-2020 Convertigo SA.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Affero General Public License
@@ -82,6 +82,7 @@ RUN sed -i.bak \
         conf/server.xml \
     && sed -i.bak \
         -e 's,<Context>,<Context sessionCookiePath="/">,' \
+        -e 's,</Context>,<Manager pathname="" /><CookieProcessor sameSiteCookies="" /></Context>,' \
         conf/context.xml \
     && rm -rf webapps/* bin/*.bat conf/server.xml.bak /tmp/* \
     && mkdir webapps/ROOT \

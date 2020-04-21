@@ -194,8 +194,8 @@ dependencies {
 	compileFlat 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat 'com.convertigo.lib:soapui:3.5.1'
 	compile     'com.convertigo.provider:convertigo-provider-couchdb:7.7.0-SNAPSHOT'
-	compile     'com.convertigo.provider:convertigo-provider-plugins:7.6.0-SNAPSHOT'
-	compile     'com.convertigo.provider:convertigo-provider-sap:7.6.5-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-plugins:7.6.6-SNAPSHOT'
+	compile     'com.convertigo.provider:convertigo-provider-sap:7.6.7-SNAPSHOT'
 	compile     'com.convertigo.provider:convertigo-provider-xul:7.6.0-SNAPSHOT'
 	compileFlat 'com.convertigo.twinsoft.lib:aviva:2017.09.04'
 	compileFlat 'com.convertigo.twinsoft.lib:comm:1998.11.15'
@@ -453,6 +453,20 @@ task copyLicense(type: Copy) {
 	into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
 }
 
+task copyFlashUpdateDependencies(type: Copy) {
+	group 'convertigo'
+	
+	from '../eclipse-plugin-studio/tomcat/webapps/convertigo/scripts/jquery2.min.js'
+	from('../eclipse-plugin-studio/tomcat/webapps/convertigo/css') {
+		include 'flashupdate.css'
+		include 'flashupdate_android.css'
+		include 'flashupdate_ios.css'
+		include 'flashupdate_fonts/**'
+		include 'flashupdate_images/**'
+	}
+	into 'src/com/twinsoft/convertigo/engine/admin/services/mobiles/res'
+}
+
 task engineDependenciesClasspathJar(type: Jar, dependsOn: dependenciesJar) {
 	group 'convertigo'
 	
@@ -502,5 +516,5 @@ task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClassp
 	}
 }
 
-compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
+compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
 jar.dependsOn(['patchJar', 'updateBeansDefaultValues'])

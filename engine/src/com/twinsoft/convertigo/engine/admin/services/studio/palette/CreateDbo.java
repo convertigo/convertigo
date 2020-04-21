@@ -63,7 +63,7 @@ public class CreateDbo extends XmlService {
                 databaseObjectClass
         );
         if (canCreate) {
-            DatabaseObject newBean = (DatabaseObject) Class.forName(beanClassNameToCreate).newInstance();
+            DatabaseObject newBean = (DatabaseObject) Class.forName(beanClassNameToCreate).getConstructor().newInstance();
 
             try {
                 String beanName = newBean.getName();
@@ -81,7 +81,7 @@ public class CreateDbo extends XmlService {
                     String afterPriority = request.getParameter("afterPriority");
                     Long after = null;
                     try {
-                        after = new Long(afterPriority);
+                        after = Long.valueOf(afterPriority);
                     }
                     catch (NumberFormatException e) {
                         after = null;

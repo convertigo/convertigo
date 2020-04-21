@@ -635,7 +635,7 @@ public class Engine {
 							.getProperty(PropertyName.CACHE_MANAGER_CLASS);
 					Engine.logEngine.debug("Cache manager class: " + cacheManagerClassName);
 					Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName)
-							.newInstance();
+							.getConstructor().newInstance();
 					Engine.theApp.cacheManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the cache manager.", e);
@@ -1381,7 +1381,7 @@ public class Engine {
 						try {
 							Engine.logContext.debug("Billing class name required: " + billingClassName);
 							AbstractBiller biller = (AbstractBiller) Class.forName(billingClassName)
-									.newInstance();
+									.getConstructor().newInstance();
 							Engine.logContext.debug("Executing the biller");
 							biller.insertBilling(context);
 						} catch (Throwable e) {
@@ -1750,6 +1750,9 @@ public class Engine {
 		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 		}
+		if (!file.exists() && file.getName().endsWith(".xml")) {
+			file = new File(file.getParentFile(), "c8oProject.yaml");
+		}
 		return file;
 	}
 	
@@ -1781,36 +1784,32 @@ public class Engine {
 	}
 	
 	public static String resolveProjectPath(String path) {
-		if (Engine.isStudioMode()) {
-			File file = new File(path);
-			file = resolveProjectPath(file);
-			try {
-				path = file.getCanonicalPath();
-			} catch (IOException e) {
-				path = file.getAbsolutePath();
-			}
+		File file = new File(path);
+		file = resolveProjectPath(file);
+		try {
+			path = file.getCanonicalPath();
+		} catch (IOException e) {
+			path = file.getAbsolutePath();
 		}
 		return path;
 	}
 	
 	public static File resolveProjectPath(File file) {
-		if (Engine.isStudioMode()) {
-			String path;
-			try {
-				path = file.getCanonicalPath();
-			} catch (IOException e) {
-				path = file.getAbsolutePath();
-			}
-			String projectPath = Engine.PROJECTS_PATH + File.separator;
-			if (path.startsWith(projectPath)) {
-				path = path.substring(projectPath.length());
-				Pattern reProject = Pattern.compile("(.*?)(" + Pattern.quote(File.separator) + ".*|$)");
-				Matcher mProject = reProject.matcher(path);
-				if (mProject.matches()) {
-					String projectName = mProject.group(1);
-					path = Engine.projectDir(projectName) + mProject.group(2);
-					file = new File(path);
-				}
+		String path;
+		try {
+			path = file.getCanonicalPath();
+		} catch (IOException e) {
+			path = file.getAbsolutePath();
+		}
+		String projectPath = Engine.PROJECTS_PATH + File.separator;
+		if (path.startsWith(projectPath)) {
+			path = path.substring(projectPath.length());
+			Pattern reProject = Pattern.compile("(.*?)(" + Pattern.quote(File.separator) + ".*|$)");
+			Matcher mProject = reProject.matcher(path);
+			if (mProject.matches()) {
+				String projectName = mProject.group(1);
+				path = Engine.projectDir(projectName) + mProject.group(2);
+				file = new File(path);
 			}
 		}
 		return file;

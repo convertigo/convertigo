@@ -526,11 +526,11 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 			scope.put("javelin", scope, jsJavelin);
 			
 			// Insert the dataStableTimeout object in the script scope
-			Scriptable jsDataStableTimeout = org.mozilla.javascript.Context.toObject(new Integer(timeout), scope);
+			Scriptable jsDataStableTimeout = org.mozilla.javascript.Context.toObject(Integer.valueOf(timeout), scope);
 			scope.put("timeout", scope, jsDataStableTimeout);
 			
 			// Insert the dataStableThreshold object in the script scope
-			Scriptable jsDataStableThreshold = org.mozilla.javascript.Context.toObject(new Integer(threshold), scope);
+			Scriptable jsDataStableThreshold = org.mozilla.javascript.Context.toObject(Integer.valueOf(threshold), scope);
 			scope.put("threshold", scope, jsDataStableThreshold);
 			
 			RhinoUtils.evalCachedJavascript(javascriptContext, scope, connectionSyncCode, getName() + " - Connection synchronization code", 1, null);

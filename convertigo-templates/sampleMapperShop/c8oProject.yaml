@@ -2,7 +2,7 @@
 ↓sampleMapperShop [core.Project]: 
   comment: A project with an HSQLDB database to demonstrate how to expose as a REST service through the URLMapper.
   corsOrigin: 
-  version: 7.7.0
+  version: 7.8.0
   ↓hsqldb [connectors.SqlConnector]: 🗏 connectors/hsqldb.yaml
   ↓_FillDatabase [sequences.GenericSequence]: 🗏 sequences/_FillDatabase.yaml
   ↓AddProductB [sequences.GenericSequence]: 🗏 sequences/AddProductB.yaml

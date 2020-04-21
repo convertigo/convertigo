@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.wizards.new_statement;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -122,28 +123,40 @@ public class StatementGeneratorComposite extends ObjectsExplorerComposite {
 		        } catch (ClassCastException e) {
 		        	ConvertigoPlugin.logException(e,"Wizard page instantiating \"StatementGeneratorComposite\" is not from \"StatementGeneratorWizardPage\" class.");
 		        } catch (ClassNotFoundException e) {
-		        	String message = java.text.MessageFormat.format("Unable to find the \"{0}\" class.", new Object[] {beanInfoClassName});
-                    ConvertigoPlugin.logWarning(message);
-				} catch (IntrospectionException e) {
-					String message = java.text.MessageFormat.format("Unable to find the bean info linked to the \"{0}\" class.", new Object[] {beanInfoClassName});
-                    ConvertigoPlugin.logWarning(message);
-				} catch (InstantiationException e) {
-					String message = java.text.MessageFormat.format("Unable to instantiate the bean info linked to the \"{0}\" class.", new Object[] {beanInfoClassName});
-                    ConvertigoPlugin.logException(e,message);
-				} catch (IllegalAccessException e) {
-					String message = java.text.MessageFormat.format("Unable to retrieve the bean info image linked to the \"{0}\" class.", new Object[] {beanInfoClassName});
-                    ConvertigoPlugin.logException(e,message);
-				}
+		        	String message = java.text.MessageFormat.format("Unable to find the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logWarning(message);
+		        } catch (IntrospectionException e) {
+		        	String message = java.text.MessageFormat.format("Unable to find the bean info linked to the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logWarning(message);
+		        } catch (InstantiationException e) {
+		        	String message = java.text.MessageFormat.format("Unable to instantiate the bean info linked to the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logException(e,message);
+		        } catch (IllegalAccessException e) {
+		        	String message = java.text.MessageFormat.format("Unable to retrieve the bean info image linked to the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logException(e,message);
+		        } catch (IllegalArgumentException e) {
+		        	String message = java.text.MessageFormat.format("Unable to retrieve the bean info image linked to the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logException(e,message);
+		        } catch (InvocationTargetException e) {
+		        	String message = java.text.MessageFormat.format("Unable to retrieve the bean info image linked to the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logException(e,message);
+		        } catch (NoSuchMethodException e) {
+		        	String message = java.text.MessageFormat.format("Unable to retrieve the bean info image linked to the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logException(e,message);
+		        } catch (SecurityException e) {
+		        	String message = java.text.MessageFormat.format("Unable to retrieve the bean info image linked to the \"{0}\" class.", beanInfoClassName);
+		        	ConvertigoPlugin.logException(e,message);
+		        }
 	    	}
     	}
     }
 	
 	private void getImageAndAddLabel(String name, String shortDescription, String beanInfoClassName, int index) 
-	throws ClassNotFoundException, InstantiationException, IllegalAccessException, IntrospectionException {
+	throws ClassNotFoundException, InstantiationException, IllegalAccessException, IntrospectionException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Class<?> beanInfoClass = Class.forName(beanInfoClassName);
-        Image image = (ConvertigoPlugin.getDefault().getBeanIcon((BeanInfo)beanInfoClass.newInstance(), BeanInfo.ICON_COLOR_32x32));
+        Image image = (ConvertigoPlugin.getDefault().getBeanIcon((BeanInfo)beanInfoClass.getConstructor().newInstance(), BeanInfo.ICON_COLOR_32x32));
         
-        addLabelEx(image, name, shortDescription, false, new Integer(index));
+        addLabelEx(image, name, shortDescription, false, Integer.valueOf(index));
 	}
 	
 	public int getCurrentSelectedOption() {

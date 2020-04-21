@@ -101,7 +101,7 @@ public abstract class BuildLocally {
 		}
 		parameters.add(0, command);
 		ProcessBuilder pb = command.equals("npm") ?
-				ProcessUtils.getNpmProcessBuilder(getLocalBuildAdditionalPath(), parameters)
+				ProcessUtils.getNpmProcessBuilder(String.join(File.pathSeparator, ProcessUtils.getDefaultNodeDir().getAbsolutePath(), getLocalBuildAdditionalPath()), parameters)
 				: ProcessUtils.getProcessBuilder(getLocalBuildAdditionalPath(), parameters);
 		// Set the directory from where the command will be executed
 		pb.directory(launchDir.getCanonicalFile());
@@ -116,7 +116,7 @@ public abstract class BuildLocally {
 		// Logs the output
 		Engine.execute(new Runnable() {
 			@Override
-	        public void run() {
+			public void run() {
 				try {
 					String line;
 					processCanceled = false;
@@ -136,7 +136,7 @@ public abstract class BuildLocally {
 			// Logs the error output
 			new Thread(new Runnable() {
 				@Override
-		        public void run() {
+				public void run() {
 					try {
 						String line;
 						processCanceled = false;
@@ -396,7 +396,7 @@ public abstract class BuildLocally {
 	}
 	
 	/***
-	 * Return the absolute path of builded application file
+	 * Return the absolute path of built application file
 	 * @param mobilePlatform
 	 * @param buildMode
 	 * @return
@@ -769,7 +769,7 @@ public abstract class BuildLocally {
     abstract protected String getLocalBuildAdditionalPath();
     abstract protected void logException(Throwable e, String message);
     /***
-	 * Show the dialog with builded application file 
+	 * Show the dialog with built application file 
 	 * @param mobilePlatform
 	 * @param exitValue
 	 * @param errorLines

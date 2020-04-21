@@ -115,7 +115,7 @@ public class VisibilityEditorComposite extends AbstractDialogComposite {
 			if (checkboxPlatform.getSelection()) visibility |= Visibility.Platform.getMask();
 			if (checkboxXml.getSelection()) visibility |= Visibility.XmlFile.getMask();
 		}
-		return new Integer(visibility).toString();
+		return Integer.valueOf(visibility).toString();
 	}
 
 }

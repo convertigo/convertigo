@@ -140,6 +140,7 @@ public class SapJcoConnector extends Connector {
 		
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();

@@ -109,7 +109,7 @@ public class CreateScheduledElements extends XmlService {
 					ab = null;
 				}
 			} else {
-				ab = type.c.newInstance();
+				ab = type.c.getConstructor().newInstance();
 			}
 			
 			if (ab != null) {

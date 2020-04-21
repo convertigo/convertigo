@@ -253,8 +253,8 @@ public class Radio extends JavelinExtractionRule {
 		XMLVector<Object> tmpOption = new XMLVector<Object>(); 
 		tmpOption.add( block.getText().substring( 0, block.getText().indexOf(separatorChars) ) );
 		tmpOption.add( block.getText().substring( block.getText().indexOf(separatorChars) + separatorChars.length() ) );
-		tmpOption.add(new Integer(block.column));
-		tmpOption.add(new Integer(block.line));
+		tmpOption.add(Integer.valueOf(block.column));
+		tmpOption.add(Integer.valueOf(block.line));
 		return tmpOption;
 	}
 	

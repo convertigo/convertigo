@@ -255,7 +255,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     	XMLVector<Long> ordered = orderedVariables.get(0);
     	int size = ordered.size();
     	
-    	Long value = new Long(variable.priority);
+    	Long value = Long.valueOf(variable.priority);
     	
     	if (ordered.contains(value))
     		return;
@@ -277,7 +277,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     	vVariables.remove(variable);
     	variable.setParent(null);
     	
-    	Long value = new Long(variable.priority);
+    	Long value = Long.valueOf(variable.priority);
         removeOrderedVariable(value);
     	
     }
@@ -294,7 +294,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 
 	private void increaseOrder(DatabaseObject databaseObject, Long before) throws EngineException {
     	XMLVector<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof Variable)
     		ordered = orderedVariables.get(0);
@@ -316,7 +316,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     
     private void decreaseOrder(DatabaseObject databaseObject, Long after) throws EngineException {
     	XMLVector<Long> ordered = null;
-    	Long value = new Long(databaseObject.priority);
+    	Long value = Long.valueOf(databaseObject.priority);
     	
     	if (databaseObject instanceof Variable)
     		ordered = orderedVariables.get(0);

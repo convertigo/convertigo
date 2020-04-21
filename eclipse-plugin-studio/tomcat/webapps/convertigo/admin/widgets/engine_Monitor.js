@@ -17,6 +17,7 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
+var dataGraphMemory = [];
 var dataGraphThreads = [];
 var dataGraphContexts = [];
 var dataGraphRequests = [];
@@ -25,6 +26,7 @@ var currentTick = 0;
 var nbSecondsOfHistory = 60;
 var samplingMilliseconds = 1000;
 
+var graphMemoryPlot;
 var graphThreadsPlot;
 var graphContextsPlot;
 var graphRequestsPlot;
@@ -48,11 +50,13 @@ var graphOptions = {
 	grid : {
 		backgroundColor : {
 			colors : [ "#fff", "#fff" ]
-		}
+		},
+		hoverable: true
 	}
 };
 
 function engine_Monitor_init() {
+	var graphMemory = $("#graphMemory");
 	var graphThreads = $("#graphThreads");
 	var graphContexts = $("#graphContexts");
 	var graphRequests = $("#graphRequests");
@@ -63,6 +67,19 @@ function engine_Monitor_init() {
 		data.push( [ i, 0 ]);
 	}
 	currentTick = dataSize;
+	dataGraphMemory = [ {
+	    label: 'Maximum memory',
+	    color: "rgb(255, 174, 0)",
+	    data: data.slice()
+	}, {
+	    label: 'Total memory',
+	    color: "rgb(147, 213, 13)",
+	    data: data.slice()
+	}, {
+	    label: 'Used memory',
+	    color: "rgb(0, 202, 255)",
+	    data: data.slice()
+	} ];
 	dataGraphThreads = [ {
 	    label: 'Number of threads',
 	    color: "rgb(0, 202, 255)",
@@ -79,33 +96,54 @@ function engine_Monitor_init() {
 	    data: data.slice()
 	} ];
 
+	graphMemoryPlot = $.plot(graphMemory, dataGraphMemory, graphOptions);
 	graphThreadsPlot = $.plot(graphThreads, dataGraphThreads, graphOptions);
 	graphContextsPlot = $.plot(graphContexts, dataGraphContexts, graphOptions);
 	graphRequestsPlot = $.plot(graphRequests, dataGraphRequests, graphOptions);
 
+	graphMemory.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+
+	graphThreads.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+
+	graphContexts.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+
+	graphRequests.on("plothover", function (event, pos, item) {
+		this.title = item ? item.datapoint[1] : "";
+	});
+	
 	engine_Monitor_update();
 }
 
 function updateGraphData(graphPlot, graphData, lastValueToAdd) {
-	var data = graphData[0].data;
-	if (graphData) {
+	for (i = 0; i < graphData.length; i++) {
+		var data = graphData[i].data;
 		if (data.length >= nbSecondsOfHistory * 1000 / samplingMilliseconds) {
 			data.shift();
 		}
-		data.push( [ currentTick, lastValueToAdd ]);
-
-		graphPlot.setData(graphData);
-		graphPlot.setupGrid();
-		graphPlot.draw();
+		data.push([ currentTick, lastValueToAdd[i] ]);
 	}
+	graphPlot.setData(graphData);
+	graphPlot.setupGrid();
+	graphPlot.draw();
 }
 
 function engine_Monitor_update() {
 	callService("engine.Monitor", function(xml) {
 		if ($("#graphThreads:visible").length > 0) {
-			updateGraphData(graphThreadsPlot, dataGraphThreads, $(xml).find("threads").text());
-			updateGraphData(graphContextsPlot, dataGraphContexts, $(xml).find("contexts").text());
-			updateGraphData(graphRequestsPlot, dataGraphRequests, $(xml).find("requests").text());
+			updateGraphData(graphMemoryPlot, dataGraphMemory, [
+				$(xml).find("memoryMaximal").text(),
+				$(xml).find("memoryTotal").text(),
+				$(xml).find("memoryUsed").text()
+			]);
+			updateGraphData(graphThreadsPlot, dataGraphThreads, [$(xml).find("threads").text()]);
+			updateGraphData(graphContextsPlot, dataGraphContexts, [$(xml).find("contexts").text()]);
+			updateGraphData(graphRequestsPlot, dataGraphRequests, [$(xml).find("requests").text()]);
 			currentTick++;
 
 			setTimeout(engine_Monitor_update, samplingMilliseconds);

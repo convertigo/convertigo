@@ -602,6 +602,9 @@ public class SwaggerUtils {
 						}
 						
 						String comment = summary;
+						if (comment == null)
+							comment ="";
+						
 						if (comment.isEmpty()) {
 							comment = description;
 						}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!--
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2020 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License

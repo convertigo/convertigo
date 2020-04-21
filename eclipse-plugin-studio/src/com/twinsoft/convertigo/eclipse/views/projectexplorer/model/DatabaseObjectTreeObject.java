@@ -25,9 +25,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -117,6 +119,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public static final String P_QNAME = "#qname";
 	public static final String P_NAME = "#name";
 	public static final String P_EXPORTED = "#exported";
+	public static final String P_MIN_VERSION = "#minversion";
 
 	public String objectClassName = null;
 	public boolean canPaste = false;
@@ -309,6 +312,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         vPropertyDescriptors.add(propertyDescriptor);
         
         propertyDescriptor = new PropertyDescriptor(P_EXPORTED, "Exported");
+        propertyDescriptor.setCategory("Information");
+        vPropertyDescriptors.add(propertyDescriptor);
+        
+        propertyDescriptor = new PropertyDescriptor(P_MIN_VERSION, "Min version");
         propertyDescriptor.setCategory("Information");
         vPropertyDescriptors.add(propertyDescriptor);
         
@@ -586,37 +593,39 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					return labelProvider.getImage(element);
 				}
 			});
-            String beanDescription =  databaseObjectPropertyDescriptor.getShortDescription();
-            String[] beanDescriptions = beanDescription.split("\\|");
-            String beanShortDescription = beanDescriptions[0];
+			String beanDescription = databaseObjectPropertyDescriptor.getShortDescription();
+			int id = beanDescription.indexOf("|");
+			if (id != -1) {
+				beanDescription = beanDescription.substring(0, id);
+			}
 
-            if (isExtractionRule) {
+			if (isExtractionRule) {
 				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Selection" : "Configuration");
-            } else {
+			} else {
 				Object categoryValue = databaseObjectPropertyDescriptor.getValue("category");
 				String category = categoryValue == null ? "Base properties" : String.valueOf(categoryValue);
-				
+
 				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Expert" : category);
 			}
-            
-            beanShortDescription = cleanDescription(beanShortDescription);
-            propertyDescriptor.setDescription(beanShortDescription);
-    	}
-        return propertyDescriptor;
-    }
-    
-    protected String cleanDescription(String description) {
-		String cleanDescription = description;
-		// Replace first space
-		if (cleanDescription.charAt(0) == ' ') cleanDescription = cleanDescription.substring(1);
-		// Replace all <span...>
-		cleanDescription = cleanDescription.replaceAll("</?\\w+?.*?>", "");
-		// Replace all \s\n
-		cleanDescription = cleanDescription.replaceAll("\\s\\\n", "\n\n");
-		// Replace all \n\s
-		cleanDescription = cleanDescription.replaceAll("\\\n\\s", "\n\n");
-		// Then replace all ***
-		cleanDescription = cleanDescription.replaceAll("\\*+", "\n * ");
+
+			beanDescription = cleanDescription(beanDescription);
+			propertyDescriptor.setDescription(beanDescription);
+		}
+		return propertyDescriptor;
+	}
+
+	static final private Pattern pNoTag = Pattern.compile("</?\\w+?.*?>");
+	static final private Map<String, String> cachedDescriptions = new HashMap<String, String>();
+
+	protected String cleanDescription(String description) {
+		String cleanDescription = cachedDescriptions.get(description);
+		if (cleanDescription == null) {
+			cleanDescription = description.replace("\n", " | ");
+			cleanDescription = pNoTag.matcher(cleanDescription).replaceAll("");
+			cleanDescription = cleanDescription.trim();
+			cachedDescriptions.put(description, cleanDescription);
+		}
+		
 		return cleanDescription;
 	}
 
@@ -700,6 +709,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		else if (propertyName.equals(P_EXPORTED)) {
 			return databaseObject.getProject().getInfoForProperty("exported");
 		}
+		else if (propertyName.equals(P_MIN_VERSION)) {
+			return databaseObject.getProject().getMinVersion();
+		}
 		else {
 			try {
 				java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
@@ -735,7 +747,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	            if (done) {
 	            	// do nothing
 	            } else if (value instanceof Boolean) {
-	            	value = ((Boolean) value).booleanValue() ? new Integer(0) : new Integer(1); 
+	            	value = ((Boolean) value).booleanValue() ? Integer.valueOf(0) : Integer.valueOf(1); 
 	            }
 	            else if ((pec != null) && (PropertyWithTagsEditor.class.isAssignableFrom(pec) || Enum.class.isAssignableFrom(pec))) {
 	            	if (!(value instanceof Integer)) {
@@ -746,19 +758,19 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        				int i;
 	        				for (i = 0 ; i < tags.length ; i++) {
 	        					if (tags[i].equals(value)) {
-	        						value = new Integer(i);
+	        						value = Integer.valueOf(i);
 	        						break;
 	        					}
 	        				}
 	
 	        				// if we did not find our string in the tag list set value to index 0
 	        				if (i == tags.length) {
-	        					value = new Integer(0);
+	        					value = Integer.valueOf(0);
 	        					String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
 	        					ConvertigoPlugin.logWarning(message);
 	        				}
 		        		} else if (Enum.class.isAssignableFrom(pec)) {
-		        			value = new Integer(((Enum<?>) value).ordinal());
+		        			value = Integer.valueOf(((Enum<?>) value).ordinal());
 		        		} else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
 		        			// nothing to do: value is a string
 		        		}
@@ -769,7 +781,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        			
 		        		for (int i = 0 ; i < emulatorClassNames.length ; i++) {
 	        				if (emulatorClassNames[i].equals(value)) {
-	        					value = new Integer(i);
+	        					value = Integer.valueOf(i);
 	        					break;
 	        				}
 	        			}

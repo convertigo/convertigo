@@ -46,7 +46,7 @@ public class Import extends UploadService {
 	@Override
 	protected void doUpload(HttpServletRequest request, Document document, FileItem item) throws Exception {
 		String actionImport = request.getParameter("action-import");
-		if (actionImport.equals("on")){
+		if ("on".equals(actionImport)) {
 			actionImport = request.getParameter("priority");
 		}
 		

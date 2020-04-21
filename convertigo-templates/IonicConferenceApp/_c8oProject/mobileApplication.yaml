@@ -17,7 +17,7 @@ componentScriptContent:
         /*Begin_c8o_AppFunction*/
         	/*End_c8o_AppFunction*/
         
-tplProjectName: mobilebuilder_tpl_7_7_0
+tplProjectName: mobilebuilder_tpl_7_8_0
 ↓NavRouteSessionDetail [mobile.components.RouteComponent-1504624303318]: 
   comment: Navigation route concerning detail of sessions
   ↓FullSyncEvent [mobile.components.RouteFullsyncEvent-1504624338005]: 

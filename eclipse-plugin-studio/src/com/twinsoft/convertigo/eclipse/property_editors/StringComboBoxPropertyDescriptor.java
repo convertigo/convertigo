@@ -168,6 +168,7 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 			});
 			return comboBox;		}
 		
+		@SuppressWarnings("deprecation")
 		public LayoutData getLayoutData() {
 			LayoutData layoutData = super.getLayoutData();
 			if ((comboBox == null) || comboBox.isDisposed()) {

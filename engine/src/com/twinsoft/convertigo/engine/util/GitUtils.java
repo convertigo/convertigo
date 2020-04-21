@@ -23,12 +23,18 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class GitUtils {
 
@@ -56,10 +62,18 @@ public class GitUtils {
 	public static boolean asRemoteAndBranch(File dir, String url, String branch) throws IOException {
 		try (Git git = Git.open(dir)) {
 			if (git != null && asRemote(git, url)) {
-				String br = git.getRepository().getBranch();
+				Repository repo = git.getRepository();
+				String br = repo.getBranch();
 				if (br != null && br.equals(branch)) {
 					return true;
 				}
+				try {
+					Ref ref = repo.findRef(branch);
+					Ref head = repo.findRef("HEAD");
+					if (head.getObjectId().equals(ref.getObjectId())) {
+						return true;
+					}
+				} catch (Exception e) {}
 			}
 			return false;
 		}
@@ -108,7 +122,7 @@ public class GitUtils {
 	}
 	
 	public static File getGitContainer() {
-		return new File(System.getProperty("user.home"), "git");
+		return new File(EnginePropertiesManager.getProperty(PropertyName.GIT_CONTAINER));
 	}
 	
 	public static void clone(String url, String branch, File dir) throws Exception {
@@ -147,6 +161,20 @@ public class GitUtils {
 		try (Git git = Git.open(dir)) {
 			boolean pulled = git.pull().call().isSuccessful();
 			Engine.logEngine.info("(ReferencedProjectManager) Pull from " + dir + " is " + pulled);
+		}
+	}
+
+	public static void reset(File dir) throws Exception {
+		try (Git git = Git.open(dir)) {
+			git.reset().setMode(ResetType.HARD).call();
+			Engine.logEngine.info("(ReferencedProjectManager) Reset from " + dir);
+		}
+	}
+	
+	public static String getRev(File dir) throws Exception {
+		try (Git git = Git.open(dir)) {
+			ObjectId o = git.getRepository().resolve(Constants.HEAD);
+			return o != null ? o.getName() : "";
 		}
 	}
 }

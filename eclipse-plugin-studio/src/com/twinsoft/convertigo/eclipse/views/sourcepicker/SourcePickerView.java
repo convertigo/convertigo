@@ -286,7 +286,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener {
 		if (showSource) {
 			XMLVector<String> sourceDefinition = ((IStepSourceContainer) dbo).getSourceDefinition();
 			if (!sourceDefinition.isEmpty()) {
-				Long key = new Long(sourceDefinition.firstElement());
+				Long key = Long.valueOf(sourceDefinition.firstElement());
 				priority = ""+key;
 				xpath = sourceDefinition.lastElement();
 				Step step = dbo instanceof Step ? (Step)dbo:(Step)dbo.getParent();

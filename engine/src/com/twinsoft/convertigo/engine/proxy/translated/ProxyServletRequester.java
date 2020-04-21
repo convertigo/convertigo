@@ -262,7 +262,7 @@ public class ProxyServletRequester extends ServletRequester {
 		    		if (billingClassName != null) {
 						try {
 							Engine.logContext.debug("Billing class name required: " + billingClassName);
-							AbstractBiller biller = (AbstractBiller) Class.forName(billingClassName).newInstance();
+							AbstractBiller biller = (AbstractBiller) Class.forName(billingClassName).getConstructor().newInstance();
 							Engine.logContext.debug("Executing the biller");
 							biller.insertBilling(context);
 						}

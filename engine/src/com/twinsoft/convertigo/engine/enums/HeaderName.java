@@ -77,12 +77,14 @@ public enum HeaderName {
 	TransferEncoding("Transfer-Encoding"),
 	UserAgent("User-Agent"),
 	XConvertigoAuthenticated("X-Convertigo-Authenticated"),
+	XConvertigoException("X-Convertigo-Exception"),
 	XConvertigoFrontal("X-Convertigo-Frontal"),
 	XConvertigoHttpsState("X-Convertigo-Https-State"),
 	XConvertigoRequestURI("X-Convertigo-Request-URI"),
 	XConvertigoRequestHost("X-Convertigo-Request-Host"),
 	XConvertigoSDK("X-Convertigo-SDK"),
 	XConvertigoMB("X-Convertigo-MB"),
+	XXsrfToken("X-XSRF-Token"),
 	VOID("");
 	
 	String value;
@@ -144,6 +146,10 @@ public enum HeaderName {
 	public boolean has(HttpRequestBase request) {
 		Header[] headers = request.getHeaders(value);
 		return headers != null && headers.length > 0;
+	}
+
+	public boolean has(HttpServletRequest request) {
+		return request.getHeader(value) != null;
 	}
 
 	public boolean has(HttpServletResponse response) {

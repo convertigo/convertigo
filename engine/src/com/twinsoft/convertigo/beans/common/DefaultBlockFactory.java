@@ -258,7 +258,7 @@ public class DefaultBlockFactory extends BlockFactoryWithVector {
     }
     
     private void setupFieldBlock(Block block, int attribute) {
-        block.setOptionalAttribute("size", (new Integer(block.length)).toString());
+        block.setOptionalAttribute("size", (Integer.valueOf(block.length)).toString());
         
 		if ((javelin.getCurrentLine() == block.line ) && (javelin.getCurrentColumn() == block.column)) {
 			block.setOptionalAttribute("hasFocus", "true");

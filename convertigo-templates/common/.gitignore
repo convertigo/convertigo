@@ -4,15 +4,5 @@
 /DisplayObjects/mobile/*
 !/DisplayObjects/mobile/assets
 
-# disable this for custom Flashupdate
-/Flashupdate
-
-# enable this to share md5 of built files
-# !/Flashupdate/md5.json
-
-# disable this for custom config.xml
-/DisplayObjects/platforms/iOS/config.xml
-/DisplayObjects/platforms/Android/config.xml
-
 /oas2/
 /oas3/

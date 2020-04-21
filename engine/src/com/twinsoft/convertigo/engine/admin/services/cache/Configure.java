@@ -214,7 +214,7 @@ public class Configure extends XmlService {
 			Engine.theApp.cacheManager.destroy();	
 			String cacheManagerClassName = EnginePropertiesManager.getProperty(PropertyName.CACHE_MANAGER_CLASS);
 			Engine.logAdmin.debug("Cache manager class: " + cacheManagerClassName);
-			Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName).newInstance();
+			Engine.theApp.cacheManager = (CacheManager) Class.forName(cacheManagerClassName).getConstructor().newInstance();
 			Engine.theApp.cacheManager.init();
 		}
 		catch(Exception e) {

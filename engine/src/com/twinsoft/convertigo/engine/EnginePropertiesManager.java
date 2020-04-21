@@ -310,13 +310,18 @@ public class EnginePropertiesManager {
     public enum PropertyName {
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
-		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:18080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
+		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:" + (Engine.isStudioMode() ? "1" : "2")+ "8080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_ENDPOINT ("application_server.convertigo.endpoint", "", "Convertigo Server endpoint URL", PropertyCategory.Main),
 		@PropertyOptions(visibility = Visibility.HIDDEN)
 		APPLICATION_SERVER_MASHUP_URL ("application_server.mashup.url", "http://localhost:18080/convertigo", "Mashup composer server base URL", PropertyCategory.Main),
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximum number of worker threads", PropertyCategory.Main),
 		CONVERTIGO_MAX_CONTEXTS ("convertigo.max_context", "750", "Maximum number of contexts", PropertyCategory.Main),
+		GIT_CONTAINER ("convertigo.git.container", new File(Engine.USER_WORKSPACE_PATH, "git").getAbsolutePath(), "Git container (autoimport)", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		XSRF_ADMIN ("convertigo.xsrf.admin", "true", "Enable XSRF protection for Administration Console", PropertyCategory.Main),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		XSRF_API ("convertigo.xsrf.projects", "false", "Enable XSRF protection for projects", PropertyCategory.Main),
 
 		/** MAIN ADVANCE */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
@@ -355,6 +360,8 @@ public class EnginePropertiesManager {
 		CORS_POLICY ("cors.policy", "=Origin", "CORS Policy\n• empty: disallow all\n• '=Origin': use client 'Origin' header\n• 'url1#url2#url3': allow if 'Origin' one of 'url'", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
+		AUTO_GC ("auto.gc", "true", "Automatically GC on low usage", PropertyCategory.Main),
 		
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)

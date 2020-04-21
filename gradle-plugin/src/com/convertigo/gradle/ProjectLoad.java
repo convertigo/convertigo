@@ -21,27 +21,31 @@ package com.convertigo.gradle;
 
 import java.io.File;
 
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.CLI;
 
 public class ProjectLoad extends ConvertigoTask {
-	@Internal
 	private Project convertigoProject;
-	
 	private String projectVersion;
+	private String mobileApplicationEndpoint;
+	private File gitContainer;
 
+	@Internal
 	synchronized Project getConvertigoProject() throws Exception {
 		if (convertigoProject == null) {
 			CLI cli = plugin.getCLI();
 			
-			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion);
+			convertigoProject = cli.loadProject(getProject().getProjectDir(), projectVersion, mobileApplicationEndpoint, gitContainer == null ? null : gitContainer.getAbsolutePath());
 		}
 		return convertigoProject;
 	}
 	
+	@Input @Optional
 	public String getProjectVersion() {
 		return projectVersion;
 	}
@@ -50,25 +54,38 @@ public class ProjectLoad extends ConvertigoTask {
 		this.projectVersion = projectVersion;
 	}
 	
+	@Input @Optional
+	public String getMobileApplicationEndpoint() {
+		return mobileApplicationEndpoint;
+	}
+
+	public void setMobileApplicationEndpoint(String mobileApplicationEndpoint) {
+		this.mobileApplicationEndpoint = mobileApplicationEndpoint;
+	}
+
+	@Internal
+	public File getGitContainer() {
+		return gitContainer;
+	}
+
+	public void setGitContainer(File gitContainer) {
+		this.gitContainer = gitContainer;
+	}
+
+	public void setGitContainer(String gitContainer) {
+		this.gitContainer = new File(gitContainer);
+	}
+
 	public ProjectLoad() {
 		try {
 			projectVersion = getProject().getProperties().get("convertigo.load.projectVersion").toString();
-		} catch (Exception e) {
-		}
-		
-		getProject().afterEvaluate(p -> {
-			getInputs().getProperties().put("convertigo.load.projectVersion", projectVersion);
-			File f = p.file("c8oProject.yaml");
-			if (f.exists()) {
-				getInputs().file(f);
-			}
-			File d = p.file("_c8oProject");
-			if (d.exists()) {
-				getInputs().dir(d);
-			}
-			getOutputs().file("c8oProject.yaml");
-			getOutputs().dir("_c8oProject");
-		});
+		} catch (Exception e) {}
+		try {
+			mobileApplicationEndpoint = getProject().getProperties().get("convertigo.load.mobileApplicationEndpoint").toString();
+		} catch (Exception e) {}
+		try {
+			gitContainer = new File(getProject().getProperties().get("convertigo.load.gitContainer").toString());
+		} catch (Exception e) {}
 	}
 	
 	@TaskAction

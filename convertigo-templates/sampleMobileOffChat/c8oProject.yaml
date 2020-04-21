@@ -1,7 +1,7 @@
 ↑convertigo: 7.7.0.m006
 ↓sampleMobileOffChat [core.Project]: 
   comment: Mobile application sample of a chat that can be use offline using the FullSync
-  version: 7.7.0
+  version: 7.8.0
   ↓offchat_fullsync [connectors.FullSyncConnector]: 🗏 connectors/offchat_fullsync.yaml
   ↓Login [sequences.GenericSequence]: 🗏 sequences/Login.yaml
   ↓OnChat [sequences.GenericSequence]: 🗏 sequences/OnChat.yaml

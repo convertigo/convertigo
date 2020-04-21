@@ -20,10 +20,16 @@
 package com.convertigo.gradle;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.Internal;
 
 public abstract class ConvertigoTask extends DefaultTask {
 	ConvertigoPlugin plugin;
 	
+	protected ConvertigoTask() {
+		getOutputs().upToDateWhen(Task -> false);
+	}
+	
+	@Internal
 	protected ConvertigoPlugin getPlugin() {
 		return plugin;
 	}

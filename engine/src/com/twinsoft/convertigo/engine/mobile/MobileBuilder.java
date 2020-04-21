@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MobileBuilder {
 	class MbWorker implements Runnable {
@@ -252,12 +253,16 @@ public class MobileBuilder {
 		return path == null ? false : path.indexOf(search) != -1;
 	}
 		
-	static public void initBuilder(Project project) {
-		if ((Engine.isStudioMode() || Engine.isCliMode()) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+	
+	static public void initBuilder(Project project, boolean force) {
+		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().init();
 			} catch (Exception e) {
 				String message = e.getMessage();
+				if (Engine.isCliMode()) {
+					throw new RuntimeException("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message, e);
+				}
 				if (message.startsWith("Missing template project") || message.contains("is required for this")) {
 					Engine.logEngine.error("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message);
 				} else {
@@ -267,14 +272,22 @@ public class MobileBuilder {
 		}
 	}
 	
-	static public void releaseBuilder(Project project) {
-		if (Engine.isStudioMode() && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
+	static public void initBuilder(Project project) {
+		initBuilder(project, false);
+	}
+	
+	static public void releaseBuilder(Project project, boolean force) {
+		if ((Engine.isStudioMode() || force) && project != null && project.getMobileApplication() != null && project.getMobileApplication().getApplicationComponent() != null) {
 			try {
 				project.getMobileBuilder().release();
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to release mobile builder for project \""+project.getName()+"\"", e);
 			}
 		}
+	}
+	
+	static public void releaseBuilder(Project project) {
+		releaseBuilder(project, false);
 	}
 	
 	public MobileBuilder(Project project) {
@@ -558,6 +571,12 @@ public class MobileBuilder {
 		}
 		
 		ApplicationComponent application = project.getMobileApplication().getApplicationComponent();
+		String tplName = application.getTplProjectName();
+		try {
+			Engine.theApp.referencedProjectManager.importProjectFrom(project, tplName);
+		} catch (Exception e) {
+			throw new EngineException("Failed to import referenced template: " + tplName + " :" + e.getMessage(), e);
+		}
 		
 		ionicTplDir = application.getIonicTplDir();
 		if (!ionicTplDir.exists()) {
@@ -618,9 +637,9 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void release() throws EngineException {
-		/*if (!initDone) {
+		if (!initDone) {
 			return;
-		}*/
+		}
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
@@ -745,9 +764,9 @@ public class MobileBuilder {
 	}
 	
 	static public int compareVersions(String v1, String v2) {
-		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
-		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
-		int cmp = s1.compareTo(s2);
+//		String s1 = VersionUtils.normalizeVersionString(v1.trim().toLowerCase(), ".", 4);
+//		String s2 = VersionUtils.normalizeVersionString(v2.trim().toLowerCase(), ".", 4);
+		int cmp = VersionUtils.compare(v1, v2);
 		return cmp;
 	}
 	
@@ -1485,10 +1504,16 @@ public class MobileBuilder {
 		
 		for (String compbean : comp_beans_dirs.keySet()) {
 			File srcDir = comp_beans_dirs.get(compbean);
-			for (File f: srcDir.listFiles()) {
-				String fContent = FileUtils.readFileToString(f, "UTF-8");
-				File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
-				writeFile(destFile, fContent, "UTF-8");
+			File destDir = new File(ionicWorkDir, "src/components/"+ compbean+ "/");
+			Matcher m = Pattern.compile("file:(/.*?)!/(.*)").matcher(srcDir.getPath().replace('\\', '/'));
+			if (m.matches()) {
+				ZipUtils.expandZip(m.group(1), destDir.getAbsolutePath(), m.group(2));
+			} else {
+				for (File f: srcDir.listFiles()) {
+					String fContent = FileUtils.readFileToString(f, "UTF-8");
+					File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
+					writeFile(destFile, fContent, "UTF-8");
+				}
 			}
 		}
 		
@@ -1602,6 +1627,18 @@ public class MobileBuilder {
 					jsonDependencies.put(pkg, pkg_dependencies.get(pkg));
 					if (!existPackage(pkg)) {
 						setNeedPkgUpdate(true);
+					}
+				}
+				
+				boolean addNode = !jsonDependencies.has("@types/node");
+				if (addNode) {
+					try {
+						String version = new JSONObject(FileUtils.readFileToString(new File(ionicTplDir, "version.json"), "utf-8")).getString("version");
+						addNode = version.matches("7\\.[0-7]\\..*");
+					} catch (Exception e) {
+					}
+					if (addNode) {
+						jsonDependencies.put("@types/node", "12.0.10");
 					}
 				}
 				

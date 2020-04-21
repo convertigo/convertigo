@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URLDecoder;
 import java.nio.file.Files;
@@ -39,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.text.StringEscapeUtils;
@@ -54,6 +56,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MinificationManager.ResourceBundle;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MobileResourceHelper {
@@ -134,7 +137,7 @@ public class MobileResourceHelper {
 						+ "'.\nThe only valid characters are upper and lower letters (A-Z, a-z), "
 						+ "digits (0-9), a period (.) and a hyphen (-).");
 			}
-			
+
 			// Delete no existing files
 			FileUtils.deleteQuietly(destDir);
 			for (File directory: mobileDir) {
@@ -145,68 +148,41 @@ public class MobileResourceHelper {
 			}
 			currentMobileDir = null;
 
-			File serverJsFile = new File(destDir, "sources/server.js");
-			
-			if (serverJsFile.exists()) {
-				// Sencha 1 case
-				
-				File indexHtmlFile = new File(destDir, "index.html");
-				String sIndexHtml = FileUtils.readFileToString(indexHtmlFile, "UTF-8");
-				
-				String sServerJsHtml = FileUtils.readFileToString(serverJsFile, "UTF-8");
-				sServerJsHtml = sServerJsHtml.replaceAll("/\\* DO NOT REMOVE THIS LINE endpoint \\: '' \\*/", "endpoint : '" + endPoint + "'");
-				writeStringToFile(serverJsFile, sServerJsHtml);
-				
-				// Update sencha script reference (to non debug version)
-				
-				sIndexHtml = sIndexHtml.replaceAll("js/senchatouchdebugwcomments\\.js", "js/senchatouch.js");
-				// "js/mobilelib.js" "../../../../scripts/mobilelib.js"
-				File debugSenchaJsLibFile = new File(destDir, "js/senchatouchdebugwcomments.js");
-				debugSenchaJsLibFile.delete();
-				
-				// Update mobilelib script reference and copy from commom scripts if needed
-				
-				File destFile = new File(destDir, "js/mobilelib.js");
-				if (!destFile.exists()) {
-					String origin = "/scripts/mobilelib.js";
-					FileUtils.copyFile(new File(Engine.WEBAPP_PATH + origin), destFile, true);
-					sIndexHtml = sIndexHtml.replaceAll(Pattern.quote("../../../.." + origin), "js/mobilelib.js");
-				}
-				
-				writeStringToFile(indexHtmlFile, sIndexHtml);
-			} else {
-				// jQuery Mobile case
-				
-				List<File> filesToDelete = new LinkedList<File>();
-				
-				for (File htmlFile : FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
-					String htmlContent = FileUtils.readFileToString(htmlFile, "UTF-8");
-					StringBuffer sbIndexHtml = new StringBuffer();
-					BufferedReader br = new BufferedReader(new StringReader(htmlContent));
-					String includeChar = null;
-					String includeBuf = null;
-					for(String line = br.readLine(); line != null; line = br.readLine()) {
-						if (!line.contains("<!--")) {
-							if (includeChar == null && line.contains("\"../../../../")) {
-								String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
-								
-								if (file.endsWith("c8o.cordova.js")) {
-									file = file.replace("c8o.cordova.js", "c8o.cordova.device.js");
-								}
-								
-								File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
-								
-								if (inFile.exists()) {
+			List<File> filesToDelete = new LinkedList<File>();
+
+			for (File htmlFile : FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
+				String htmlContent = FileUtils.readFileToString(htmlFile, "UTF-8");
+				StringBuffer sbIndexHtml = new StringBuffer();
+				BufferedReader br = new BufferedReader(new StringReader(htmlContent));
+				String includeChar = null;
+				String includeBuf = null;
+				for (String line = br.readLine(); line != null; line = br.readLine()) {
+					if (!line.contains("<!--")) {
+						if (includeChar == null && line.contains("\"../../../../")) {
+							String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
+
+							if (file.endsWith("c8o.cordova.js")) {
+								file = file.replace("c8o.cordova.js", "c8o.cordova.device.js");
+							}
+
+							File inFile = new File(Engine.WEBAPP_PATH + "/f" + file);
+
+							try (InputStream is = inFile.exists() ? new FileInputStream(inFile) : getClass().getResourceAsStream("res/" + inFile.getName())) {
+								if (is != null) {
 									file = file.replace("scripts/", "js/");
 									File outFile = new File(destDir, file);
 									if (!outFile.exists()) {
-										outFile.getParentFile().mkdirs();
-										FileUtils.copyFile(inFile, outFile, true);
+										FileUtils.copyInputStreamToFile(is, outFile);
+										if (!inFile.exists()) {
+											outFile.setLastModified(0);
+										}
 									}
 									line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
-									
-									handleJQMcssFolder(inFile, outFile);
-									
+
+									if (inFile.exists()) {
+										handleJQMcssFolder(inFile, outFile);
+									}
+
 									if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
 										String sJs = FileUtils.readFileToString(outFile, "UTF-8");
 										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "\"");
@@ -215,115 +191,112 @@ public class MobileResourceHelper {
 										String sJs = FileUtils.readFileToString(outFile, "UTF-8");
 										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
-//									} else if (file.matches(".*/c8o\\.fullsync\\..*?js")) {
-//										String fsDatabase = mobileApplication.getFsDefaultDatabase();
-//										String fsDesignDocument = mobileApplication.getFsDefaultDesignDocument();
-//										
-//										if (StringUtils.isNotEmpty(fsDatabase) || StringUtils.isNotEmpty(fsDesignDocument)) {
-//											String sJs = FileUtils.readFileToString(outFile);
-//											if (StringUtils.isNotEmpty(fsDatabase)) {
-//												sJs = sJs.replaceAll(Pattern.quote("fs_default_db: null"), "fs_default_db: \"" + fsDatabase + "\"");
-//											}
-//											if (StringUtils.isNotEmpty(fsDesignDocument)) {
-//												sJs = sJs.replaceAll(Pattern.quote("fs_default_design: null"), "fs_default_design: \"" + fsDesignDocument + "\"");
-//											}
-//											writeStringToFile(outFile, sJs);
-//										}
 									}
-									
-									if (file.matches(".*/flashupdate_.*?\\.css")) {
-										FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_fonts"), new File(outFile.getParentFile(), "flashupdate_fonts"), defaultFilter, true);
-										FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_images"), new File(outFile.getParentFile(), "flashupdate_images"), defaultFilter, true);
-									}
-								}
-							} else {
-								/** Handle multilines <script> and <link> urls for the resourceCompressorManager */
-								if (includeChar == null) {
-									Matcher mStart = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))\\s*=\\s*(\"|')(.*?)(\\1|$)").matcher(line);
 
-									if (mStart.find()) {
-										String end = mStart.group(3);
-										if (end.length() == 0) {
-											includeChar = mStart.group(1);
-										}
-										includeBuf = mStart.group(2);
-									} else {
-										includeBuf = null;
-									}
-								} else {
-									int index = line.indexOf(includeChar);
-									if (index != -1) {
-										includeBuf += line.substring(0, index);
-										includeChar = null;
-									} else {
-										includeBuf += line;
-									}
-								}
-								
-								if (includeChar == null && includeBuf != null) {
-									String uri = includeBuf;
-									if (htmlFile.getAbsolutePath().startsWith(projectDir.getAbsolutePath())) {
-										uri = htmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
-									}
-									ResourceBundle resourceBundle = Engine.theApp.minificationManager.process(uri);
-									if (resourceBundle != null) {
-										synchronized (resourceBundle) {
-											String prepend = "";
-											for (File file: resourceBundle.getFiles()) {
-												String filename = file.getName();
-												if (filename.matches("c8o\\.core\\..*?js")) {
-													prepend += "C8O.vars.endpoint_url=\"" + endPoint + "\";";
-//												} else if (filename.matches("c8o\\.fullsync\\..*?js")) {
-//													String fsDatabase = mobileApplication.getFsDefaultDatabase();
-//													String fsDesignDocument = mobileApplication.getFsDefaultDesignDocument();
-//													
-//													if (StringUtils.isNotEmpty(fsDatabase) || StringUtils.isNotEmpty(fsDesignDocument)) {
-//														if (StringUtils.isNotEmpty(fsDatabase)) {
-//															prepend += "if (C8O.vars.fs_default_db == null) C8O.vars.fs_default_db=\"" + fsDatabase + "\";";
-//														}
-//														if (StringUtils.isNotEmpty(fsDesignDocument)) {
-//															prepend += "if (C8O.vars.fs_default_design == null) C8O.vars.fs_default_design=\"" + fsDesignDocument + "\";";
-//														}
-//													}
-												} else if (handleJQMcssFolder(file, resourceBundle.getVirtualFile())) {
-												}
+									if (file.matches(".*/flashupdate_.*?\\.css")) {
+										if (inFile.exists()) {
+											FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_fonts"), new File(outFile.getParentFile(), "flashupdate_fonts"), defaultFilter, true);
+											FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_images"), new File(outFile.getParentFile(), "flashupdate_images"), defaultFilter, true);
+										} else {
+											for (String path: Arrays.asList(
+													"flashupdate_fonts/fontfaceROBOTO.css",
+													"flashupdate_fonts/GoogleAndroidLicense.txt",
+													"flashupdate_fonts/Roboto-Bold-webfont.eot",
+													"flashupdate_fonts/Roboto-Bold-webfont.svg",
+													"flashupdate_fonts/Roboto-Bold-webfont.ttf",
+													"flashupdate_fonts/Roboto-Bold-webfont.woff",
+													"flashupdate_fonts/Roboto-Regular-webfont.eot",
+													"flashupdate_fonts/Roboto-Regular-webfont.svg",
+													"flashupdate_fonts/Roboto-Regular-webfont.ttf",
+													"flashupdate_fonts/Roboto-Regular-webfont.woff",
+													"flashupdate_images/bg_ios.jpg"
+												)) {
+												File outRes = new File(outFile.getParentFile(), path);
+												FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("res/" + path), outRes);
+												outRes.setLastModified(0);
 											}
-											if (prepend.isEmpty()) {
-												resourceBundle.writeFile();
-											} else {
-												resourceBundle.writeFile(prepend);
-											}
-											for (File file: resourceBundle.getFiles()) {
-												if (file.getPath().indexOf(projectDir.getPath()) == 0) {
-													filesToDelete.add(file);
-												}
-											}											
 										}
 									}
 								}
 							}
-						}
-						
-						sbIndexHtml.append(line + "\n");
-					}
-					
-					htmlContent = sbIndexHtml.toString();
+						} else {
+							/** Handle multilines <script> and <link> urls for the resourceCompressorManager */
+							if (includeChar == null) {
+								Matcher mStart = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))\\s*=\\s*(\"|')(.*?)(\\1|$)").matcher(line);
 
-					writeStringToFile(htmlFile, htmlContent);
+								if (mStart.find()) {
+									String end = mStart.group(3);
+									if (end.length() == 0) {
+										includeChar = mStart.group(1);
+									}
+									includeBuf = mStart.group(2);
+								} else {
+									includeBuf = null;
+								}
+							} else {
+								int index = line.indexOf(includeChar);
+								if (index != -1) {
+									includeBuf += line.substring(0, index);
+									includeChar = null;
+								} else {
+									includeBuf += line;
+								}
+							}
+
+							if (includeChar == null && includeBuf != null) {
+								String uri = includeBuf;
+								if (htmlFile.getAbsolutePath().startsWith(projectDir.getAbsolutePath())) {
+									uri = htmlFile.getParentFile().getAbsolutePath().substring(projectDir.getParentFile().getAbsolutePath().length() + 1) + "/" + uri;
+								}
+								ResourceBundle resourceBundle = Engine.theApp.minificationManager != null ? Engine.theApp.minificationManager.process(uri) : null;
+								if (resourceBundle != null) {
+									synchronized (resourceBundle) {
+										String prepend = "";
+										for (File file: resourceBundle.getFiles()) {
+											String filename = file.getName();
+											if (filename.matches("c8o\\.core\\..*?js")) {
+												prepend += "C8O.vars.endpoint_url=\"" + endPoint + "\";";
+											} else if (handleJQMcssFolder(file, resourceBundle.getVirtualFile())) {
+											}
+										}
+										if (prepend.isEmpty()) {
+											resourceBundle.writeFile();
+										} else {
+											resourceBundle.writeFile(prepend);
+										}
+										for (File file: resourceBundle.getFiles()) {
+											if (file.getPath().indexOf(projectDir.getPath()) == 0) {
+												filesToDelete.add(file);
+											}
+										}											
+									}
+								}
+							}
+						}
+					}
+
+					sbIndexHtml.append(line + "\n");
 				}
-				
-				for (File file: filesToDelete) {
-					FileUtils.deleteQuietly(file);
-				}
+
+				htmlContent = sbIndexHtml.toString();
+
+				writeStringToFile(htmlFile, htmlContent);
 			}
-			
+
+			for (File file: filesToDelete) {
+				FileUtils.deleteQuietly(file);
+			}
+
 			long latestFile = 0;
 			File lastFile = null;
-			for (File file: FileUtils.listFiles(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
-				long curFile = file.lastModified();
-				if (latestFile < curFile) {
-					latestFile = curFile;
-					lastFile = file;
+			for (File file: FileUtils.listFiles(destDir, TrueFileFilter.INSTANCE, FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter("res")))) {
+				if (!file.getName().equals("config.xml")
+						&& !file.getName().equals("env.json")) {
+					long curFile = file.lastModified();
+					if (latestFile < curFile) {
+						latestFile = curFile;
+						lastFile = file;
+					}
 				}
 			}
 			Engine.logEngine.info("(MobileResourceHelper) prepareFiles, lastestFile is '" + latestFile + "' for " + lastFile);
@@ -423,6 +396,8 @@ public class MobileResourceHelper {
 		}
 		
 		FileUtils.write(configFile, configText, "UTF-8");
+		configFile.setLastModified(revision);
+		destDir.setLastModified(revision);
 		
 		listFiles(json);
 		write("files.json", json.toString());
@@ -568,7 +543,10 @@ public class MobileResourceHelper {
 			if (!Files.exists(resourcePath.resolve("build"))) {
 				return;
 			}
-			mobileApplication.getProject().getMobileBuilder().waitBuildFinished();
+			MobileBuilder mb = mobileApplication.getProject().getMobileBuilder();
+			if (mb != null) {
+				mb.waitBuildFinished();
+			}
 			Path fuPath = Paths.get(project.getDirPath(), "Flashupdate");
 			Files.createDirectories(fuPath);
 			Path pathMD5 = fuPath.resolve("md5.json");
@@ -612,7 +590,7 @@ public class MobileResourceHelper {
 						}
 					}
 				} catch (Exception e) {
-					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e);
+					Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed to handle '" + f + "' : " + e, e);
 				}
 				if (!f.getName().equals("service-worker.js")) {
 					latest[0] = Math.max(latest[0], f.lastModified());
@@ -630,7 +608,7 @@ public class MobileResourceHelper {
 			
 			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), "UTF-8");
 		} catch (Exception e) {
-			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e);
+			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e, e);
 		}
 	}
 }

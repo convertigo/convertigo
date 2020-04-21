@@ -21,7 +21,9 @@ package com.twinsoft.convertigo.beans;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -46,6 +48,7 @@ import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.ProductVersion;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -131,6 +134,7 @@ public class BeansDefaultValues {
 		Element beans;
 		JSONObject ionObjects;
 		String nVersion = VersionUtils.normalizeVersionString(ProductVersion.productVersion);
+		String hVersion = VersionUtils.normalizeVersionString("1.0.0");
 		
 		ShrinkProject() throws Exception {
 			Document beansDoc;
@@ -178,7 +182,11 @@ public class BeansDefaultValues {
 				}
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
-				
+				String dBeanVersion = dBean.getAttribute("version");
+				if (hVersion.compareTo(dBeanVersion) < 0) {
+					hVersion = dBeanVersion;
+					Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+				}
 				for (Node pAttr: xpath.selectList(pBean, "@*")) {
 					String name = pAttr.getNodeName();
 					if (!name.equals("classname") &&
@@ -228,18 +236,34 @@ public class BeansDefaultValues {
 									String lVersion = keys.next().toString();
 									while (keys.hasNext()) {
 										String v = keys.next().toString();
-										if (v.compareTo(lVersion) > 1) {
+										if (v.compareTo(lVersion) > 0) {
 											lVersion = v;
 										}
+									}
+									if (hVersion.compareTo(lVersion) < 0) {
+										hVersion = lVersion;
+										Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
 									}
 									dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");
 									JSONObject ionProps = (JSONObject) ion.remove("properties");
 									for (Iterator<?> i = ionProps.keys(); i.hasNext();) {
 										String keyProp = (String) i.next();
+										JSONObject ionProp = ionProps.getJSONObject(keyProp);
 										if (dIonProps.has(keyProp)) {
 											JSONObject dIonProp = dIonProps.getJSONObject(keyProp);
-											JSONObject ionProp = ionProps.getJSONObject(keyProp);
 											if (!dIonProp.equals(ionProp)) {
+												if (Boolean.FALSE.equals(ionProp.get("value"))) {
+													// <not set> case
+													ion.put(keyProp, ionProp.getString("mode"));
+												} else {
+													ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
+												}
+											}
+										} else {
+											if (Boolean.FALSE.equals(ionProp.get("value"))) {
+												// <not set> case
+												ion.put(keyProp, ionProp.getString("mode"));
+											} else {
 												ion.put(keyProp, ionProp.getString("mode") + ":" + ionProp.getString("value"));
 											}
 										}
@@ -283,6 +307,9 @@ public class BeansDefaultValues {
 			
 			shrinkChildren(project.getDocumentElement(), nProject);
 			
+			String mod = eAttr.getTextContent().replaceFirst(".*(\\.m.*)", "$1");
+			String minVersion = hVersion.replaceFirst(".*(\\d+).*(\\d+).*(\\d+)", "$1.$2.$3" + mod);
+			eAttr.setTextContent(minVersion);
 			return nProjectDoc;
 		}
 	}
@@ -297,7 +324,7 @@ public class BeansDefaultValues {
 		JSONObject ionObjects;
 		String version;
 		String nVersion;
-		
+		boolean isMigrating = false;
 		
 		UnshrinkProject() throws Exception {
 			Document beansDoc;
@@ -328,6 +355,10 @@ public class BeansDefaultValues {
 			nProject.setAttribute("version", version);
 			nProject.removeAttribute("convertigo");
 			
+			if (isMigrating) {
+				nProjectDoc.setUserData("isMigrating", "true", null);
+			}
+			
 			return nProjectDoc;
 		}
 		
@@ -345,6 +376,9 @@ public class BeansDefaultValues {
 				String pPriority = matcherBeanName.group(3);
 				
 				Element dBean = getBeanForVersion(xpath, beans, classname, nVersion);
+				if (!isMigrating && "true".equals(dBean.getUserData("isMigrating"))) {
+					isMigrating = true;
+				}
 				
 				Element nBean = null;
 				try {
@@ -429,7 +463,12 @@ public class BeansDefaultValues {
 										String[] smart = ((String) ion.remove(keyProp)).split(":", 2);
 										JSONObject v = new JSONObject();
 										v.put("mode", smart[0]);
-										v.put("value", smart[1]);
+										if (smart.length == 1) {
+											// <not set> case
+											v.put("value", false);
+										} else {
+											v.put("value", smart[1]);
+										}
 										ionProps.put(keyProp, v);
 									}
 									ionProps.getJSONObject(keyProp).put("name", keyProp);
@@ -467,11 +506,30 @@ public class BeansDefaultValues {
 	}
 	
 	private static Element getBeanForVersion(TwsCachedXPathAPI xpath, Element beans, String classname, String version) {
+		boolean isMigrating = false;
+		String key = classname + "@" + version;
+		Map<String, Element> cache = GenericUtils.cast(beans.getUserData("cache"));
+		if (cache == null) {
+			cache = new HashMap<String, Element>();
+			beans.setUserData("cache", cache, null);
+		} else {
+			Element cached = cache.get(key);
+			if (cached != null) {
+				return cached;
+			}
+		}
+		
 		for (Node n : xpath.selectList(beans, "*[@classname='" + classname + "']")) {
 			Element e = (Element) n;
 			String eVersion = e.getAttribute("version");
 			if (eVersion.compareTo(version) <= 0) {
+				if (isMigrating) {
+					e.setUserData("isMigrating", "true", null);
+				}
+				cache.put(key, e);
 				return e;
+			} else {
+				isMigrating = true;
 			}
 		}
 		return null;
@@ -499,7 +557,7 @@ public class BeansDefaultValues {
 			
 			for (Node node: nodes) {
 				String classname = node.getNodeValue();
-				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).newInstance();
+				DatabaseObject dbo = (DatabaseObject) Class.forName(classname).getConstructor().newInstance();
 				Element def = dbo.toXml(document);
 				if (def.hasAttribute("priority")) {
 					def.setAttribute("priority", "0");

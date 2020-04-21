@@ -33,7 +33,17 @@ var toasts = {};
 
 $(window).ready(function() {
 	$.ajaxSetup({
-		traditional : true
+		traditional : true,
+		complete: function (jqXHR) {
+			var token = jqXHR.getResponseHeader("x-xsrf-token");
+			if (token != null) {
+				localStorage.setItem("x-xsrf-token", token);
+			}
+		},
+		beforeSend: function (jqXHR) {
+			jqXHR.setRequestHeader("Admin-Instance", instanceid);
+			jqXHR.setRequestHeader("x-xsrf-token", getXsrfToken());
+		}
 	});
 	
 	$(document).ajaxStart(function () {
@@ -486,9 +496,6 @@ function ajaxCall(httpMethod, url, dataType, data, successFunction, errorFunctio
 			}else{
 				genericError(XMLHttpRequest, typeError, extra, errorFunction);
 			}			
-		},
-		beforeSend : function (XMLHttpRequest) {
-			XMLHttpRequest.setRequestHeader("Admin-Instance", instanceid);
 		}
 	};
 	if (typeof(extra) !== undefined) {
@@ -654,4 +661,9 @@ function toast(msg) {
 			$(this).remove();
 		});
 	}
+}
+
+function getXsrfToken() {
+	var token = localStorage.getItem("x-xsrf-token");
+	return token == null ? "Fetch" : token;
 }

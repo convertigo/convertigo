@@ -353,6 +353,6 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	
     //Create an ADBBean and provide it as the test object
 	public org.apache.axis2.databinding.ADBBean getTestObject(Class<?> type) throws java.lang.Exception {
-	   return (org.apache.axis2.databinding.ADBBean) type.newInstance();
+	   return (org.apache.axis2.databinding.ADBBean) type.getConstructor().newInstance();
 	}
 }

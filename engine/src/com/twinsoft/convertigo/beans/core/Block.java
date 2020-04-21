@@ -162,8 +162,8 @@ public class Block implements Cloneable {
 
         if (attributes[Transaction.ATTRIBUTE_NAME]) item.setAttribute("name", name);
         if (attributes[Transaction.ATTRIBUTE_TYPE]) item.setAttribute("type", type);
-        if (attributes[Transaction.ATTRIBUTE_COLUMN]) item.setAttribute("column", new Integer(column).toString());
-        if (attributes[Transaction.ATTRIBUTE_LINE]) item.setAttribute("line", new Integer(line).toString());
+        if (attributes[Transaction.ATTRIBUTE_COLUMN]) item.setAttribute("column", Integer.valueOf(column).toString());
+        if (attributes[Transaction.ATTRIBUTE_LINE]) item.setAttribute("line", Integer.valueOf(line).toString());
         if ((attribute & iJavelin.AT_INVERT) == 0) {
             if (attributes[Transaction.ATTRIBUTE_REVERSE]) item.setAttribute("reverse", "false");
             if (attributes[Transaction.ATTRIBUTE_FOREGROUND]) item.setAttribute("foreground", colors[attribute & iJavelin.AT_INK]);

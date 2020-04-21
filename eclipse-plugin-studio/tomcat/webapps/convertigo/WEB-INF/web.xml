@@ -197,16 +197,6 @@
         <url-pattern>/webclipper/*</url-pattern>
     </servlet-mapping>
     
-    <!-- Widgets entry point -->
-    <servlet>
-        <servlet-name>WidgetsServlet</servlet-name>
-        <servlet-class>com.twinsoft.convertigo.engine.servlets.WidgetsServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>WidgetsServlet</servlet-name>
-        <url-pattern>/widgets/*</url-pattern>
-    </servlet-mapping>
-    
     <servlet>
 		<servlet-name>RsaPublicKeyServlet</servlet-name>
 		<servlet-class>com.twinsoft.convertigo.engine.servlets.RsaPublicKeyServlet</servlet-class>

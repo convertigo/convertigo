@@ -49,6 +49,7 @@ public class JsseSecureSocketImpl extends SecureSocket implements HandshakeCompl
 		
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		if (secureSocket != null) {
@@ -85,7 +86,7 @@ public class JsseSecureSocketImpl extends SecureSocket implements HandshakeCompl
 			
 			SSLSocket socket = (SSLSocket) MySSLSocketFactory.getSSLSocketFactory(cm.keyStore, cm.keyStorePassword, 
     			cm.trustStore, cm.trustStorePassword, bTrustAllServerCertificates).
-    				createSocket(adr.getHostAddress(), new Integer(port));
+    				createSocket(adr.getHostAddress(), Integer.valueOf(port));
     	
 			if (socket != null) {
 		        String[] supportedProtocols = socket.getSupportedProtocols();

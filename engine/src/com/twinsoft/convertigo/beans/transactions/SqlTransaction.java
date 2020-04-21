@@ -344,6 +344,7 @@ public class SqlTransaction extends TransactionWithVariables {
         return clonedObject;
     }
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() throws Throwable {
 		if (preparedStatement != null)
@@ -739,7 +740,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			int numberOfColumns = rsmd.getColumnCount();
 			for (int i=1; i <= numberOfColumns; i++) {
 				List<List<Object>> columns = null;
-				Integer columnIndex = new Integer(i);
+				Integer columnIndex = Integer.valueOf(i);
 				String columnName = rsmd.getColumnLabel(i);
 				columnName = columnName.isEmpty() ? getColumnTagname()+i:columnName;
 				String columnClassName = rsmd.getColumnClassName(i);

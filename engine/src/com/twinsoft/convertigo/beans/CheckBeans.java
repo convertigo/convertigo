@@ -218,7 +218,7 @@ public class CheckBeans {
 			String dboBeanInfoClassName = javaClassName + "BeanInfo";
 			MySimpleBeanInfo dboBeanInfo = null;
 			try {
-				dboBeanInfo = (MySimpleBeanInfo) (Class.forName(dboBeanInfoClassName)).newInstance();
+				dboBeanInfo = (MySimpleBeanInfo) Class.forName(dboBeanInfoClassName).getConstructor().newInstance();
 			} catch (ClassNotFoundException e) {
 				if (!Modifier.isAbstract(javaClass.getModifiers())) {
 					Error.MISSING_BEAN_INFO.add(javaClassName + " (expected bean info: " + dboBeanInfoClassName + ")");

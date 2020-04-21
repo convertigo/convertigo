@@ -72,7 +72,7 @@ function certificates_List_init(){
 	});			
 
 	new AjaxUpload("certificatesInstall", {
-		action: "services/certificates.Install",
+		action: "services/certificates.Install?__xsrfToken=" + encodeURIComponent(getXsrfToken()),
 		responseType: "xml",
 		onSubmit : function(file , ext){		
 			startWait(50);

@@ -4028,26 +4028,53 @@
    }
   }
  },
- "Toggle": {"   7   6   0": {
-  "name": "Toggle",
-  "properties": {
-   "FormControlName": {
-    "name": "FormControlName",
-    "mode": "plain",
-    "value": false
-   },
-   "Disabled": {
-    "name": "Disabled",
-    "mode": "plain",
-    "value": false
-   },
-   "Checked": {
-    "name": "Checked",
-    "mode": "plain",
-    "value": false
+ "Toggle": {
+  "   7   6   0": {
+   "name": "Toggle",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   7   7   1": {
+   "name": "Toggle",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": false
+    }
    }
   }
- }},
+ },
  "ToolBar": {"   7   6   0": {
   "name": "ToolBar",
   "properties": {

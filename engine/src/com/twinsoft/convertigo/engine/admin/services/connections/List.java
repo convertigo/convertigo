@@ -96,10 +96,8 @@ public class List extends XmlService{
         contextsNumberElement.setTextContent("" + EnginePropertiesManager.getProperty(PropertyName.CONVERTIGO_MAX_CONTEXTS));
         rootElement.appendChild(contextsNumberElement);
         
-        int maxIDSE = Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE));
-        
         Element sessionsInUseElement = document.createElement("sessionsInUse");
-        sessionsInUseElement.setTextContent("" + (maxIDSE - KeyManager.getCV(com.twinsoft.api.Session.EmulIDSE)));
+        sessionsInUseElement.setTextContent("" + HttpSessionListener.countSessions());
         rootElement.appendChild(sessionsInUseElement);
         
         Element sessionsIsOverflowElement = document.createElement("sessionsIsOverflow");
@@ -107,7 +105,7 @@ public class List extends XmlService{
         rootElement.appendChild(sessionsIsOverflowElement);
         
         Element sessionsNumberElement = document.createElement("sessionsNumber");
-        sessionsNumberElement.setTextContent("" + maxIDSE);
+        sessionsNumberElement.setTextContent("" + Math.max(0, KeyManager.getMaxCV(Session.EmulIDSE)));
         rootElement.appendChild(sessionsNumberElement);
         
         Element threadsInUseElement = document.createElement("threadsInUse");

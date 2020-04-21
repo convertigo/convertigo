@@ -17,7 +17,7 @@ componentScriptContent:
         /*Begin_c8o_AppFunction*/
         	/*End_c8o_AppFunction*/
         
-tplProjectName: mobilebuilder_tpl_7_5_2
+tplProjectName: mobilebuilder_tpl_7_8_0
 ↓Sync [mobile.components.PageComponent-1513589320518]: 🗏 mobilePages/Sync.yaml
 ↓Init [mobile.components.PageComponent-1513331579533]: 🗏 mobilePages/Init.yaml
 ↓Optimize [mobile.components.PageComponent-1513588905087]: 🗏 mobilePages/Optimize.yaml

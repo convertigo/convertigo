@@ -66,7 +66,7 @@ public class XMLRecord extends AbstractXMLReferer implements ITablesProperty {
 		XMLVector<Object> v = new XMLVector<Object>();
 		v.add(eltName);
 		v.add(eltXpath);
-		v.add(new Boolean(bExtractChilds));
+		v.add(Boolean.valueOf(bExtractChilds));
 		description.add(v);
 		return v;
 	}

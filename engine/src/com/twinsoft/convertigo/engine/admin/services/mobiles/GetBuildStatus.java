@@ -68,45 +68,11 @@ public class GetBuildStatus extends XmlService {
 		}
 		
 		String platformName = Keys.platform.value(request);
-
-		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-
-		URL url = new URL(mobileBuilderPlatformURL + "/getstatus");
 		
-		HostConfiguration hostConfiguration = new HostConfiguration();
-		hostConfiguration.setHost(url.getHost());
-		HttpState httpState = new HttpState();
-		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
+		String sResult = perform(mobileApplication, platformName, request);
 		
-		PostMethod method = new PostMethod(url.toString());
-
-		JSONObject jsonResult;
-		try {
-			HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
-			method.setRequestBody(new NameValuePair[] {
-				new NameValuePair("application", mobileApplication.getComputedApplicationName()),
-				new NameValuePair("platformName", platformName),
-				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken()),
-				new NameValuePair("endpoint", mobileApplication.getComputedEndpoint(request))
-			});
-			
-			
-			int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
-
-			InputStream methodBodyContentInputStream = method.getResponseBodyAsStream();
-			byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
-			String sResult = new String(httpBytes, "UTF-8");
-
-			if (methodStatusCode != HttpStatus.SC_OK) {
-				throw new ServiceException("Unable to get building status for application '" + project
-						+ "' (final app name: '" + mobileApplication.getComputedApplicationName() + "').\n" + sResult);
-			}
-
-			jsonResult = new JSONObject(sResult);
-		} finally {
-			method.releaseConnection();
-		}
-
+		JSONObject jsonResult = new JSONObject(sResult);
+		
 		Element statusElement = document.createElement("build");
 		statusElement.setAttribute(Keys.project.name(), project);
 		statusElement.setAttribute(Keys.platform.name(), platformName);
@@ -137,5 +103,44 @@ public class GetBuildStatus extends XmlService {
 
 	static public MobileApplication getMobileApplication(String projectName) throws EngineException {
 		return Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName).getMobileApplication();
+	}
+	
+	static public String perform(MobileApplication mobileApplication, String platformName, HttpServletRequest request) throws Exception {
+		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
+
+		URL url = new URL(mobileBuilderPlatformURL + "/getstatus");
+		
+		HostConfiguration hostConfiguration = new HostConfiguration();
+		hostConfiguration.setHost(url.getHost());
+		HttpState httpState = new HttpState();
+		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
+		
+		PostMethod method = new PostMethod(url.toString());
+		
+		try {
+			HeaderName.ContentType.setRequestHeader(method, MimeType.WwwForm.value());
+			method.setRequestBody(new NameValuePair[] {
+				new NameValuePair("application", mobileApplication.getComputedApplicationName()),
+				new NameValuePair("platformName", platformName),
+				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken()),
+				new NameValuePair("endpoint", mobileApplication.getComputedEndpoint(request))
+			});
+			
+			
+			int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
+
+			InputStream methodBodyContentInputStream = method.getResponseBodyAsStream();
+			byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
+			String sResult = new String(httpBytes, "UTF-8");
+
+			if (methodStatusCode != HttpStatus.SC_OK) {
+				throw new ServiceException("Unable to get building status for application '" + mobileApplication.getProject()
+						+ "' (final app name: '" + mobileApplication.getComputedApplicationName() + "').\n" + sResult);
+			}
+			
+			return sResult;
+		} finally {
+			method.releaseConnection();
+		}
 	}
 }

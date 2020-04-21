@@ -351,22 +351,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	@Override
 	public void createPartControl(Composite parent) {
-		try {
-			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "-version");
-			pb.redirectError(pb.redirectInput());
-			Process process = pb.start();
-			int code = process.waitFor();
-			String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
-			Engine.logStudio.info("npm -version: [" + code + "] " + output);
-			int major = Integer.parseInt(output.replaceAll("^(\\d+)\\.[\\d\\D]*", "$1")); 
-			if (major < 5) {
-				throw new Exception();
-			};
-		} catch (Exception e1) {
-			new InstallNpmComposite(parent, SWT.NONE);
-			return;
-		}
-		
 		DeviceOS.init(parent.getDisplay());
 		
 		Composite editor = new Composite(parent, SWT.NONE);
@@ -1267,8 +1251,25 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 			Project project = applicationEditorInput.application.getProject();
-			File ionicDir = new File(project.getDirPath() + "/_private/ionic");
+			File ionicDir = new File(project.getDirPath(), "_private/ionic");
 			File nodeModules = new File(ionicDir, "node_modules");
+			
+			String nodeVersion = ProcessUtils.getNodeVersion(project);
+			File nodeDir = ProcessUtils.getDefaultNodeDir();
+			try {
+				nodeDir = ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
+					appendOutput("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
+				});
+			} catch (Exception e1) {
+			}
+			
+			{
+				String versions = "Will use nodejs " + ProcessUtils.getNodeVersion(nodeDir) + " and npm " + ProcessUtils.getNpmVersion(nodeDir);
+				appendOutput(versions);
+				Engine.logStudio.info(versions);
+			}
+			
+			String path = nodeDir.getAbsolutePath();
 			
 			terminateNode();
 			
@@ -1288,7 +1289,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
 					long start = System.currentTimeMillis();
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
@@ -1372,7 +1373,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					FileUtils.copyDirectory(assets, privAssets);
 				}
 				
-				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
+				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command(), "--nobrowser");
 				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
 					List<String> cmd = pb.command();
 					synchronized (usedPort) {

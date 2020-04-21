@@ -27,7 +27,14 @@ import com.twinsoft.convertigo.engine.CLI;
 
 public class ConvertigoPlugin implements Plugin<Project> {	
 	ProjectLoad load;
+	ProjectExport export;
+	GenerateMobileBuilder generateMobileBuilder;
+	CompileMobileBuilder compileMobileBuilder;
 	ProjectCar car;
+	ProjectDeploy deploy;
+	NativeBuild nativeBuild;
+	NativeBuildLaunch launchNativeBuild;
+	NativeBuildDownload downloadNativeBuild;
 	
 	CLI getCLI() throws Exception {
 		return CLI.instance;
@@ -39,12 +46,63 @@ public class ConvertigoPlugin implements Plugin<Project> {
 		load = tasks.create("load", ProjectLoad.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
+			task.setDescription("Load and migrate the project to the current plugin version.");
+		});
+		
+		export = tasks.create("export", ProjectExport.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(load);
+			task.setDescription("Save the project at the current plugin version.");
+		});
+		
+		generateMobileBuilder = tasks.create("generateMobileBuilder", GenerateMobileBuilder.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(load);
+			task.setDescription("Generate sources of the Ionic application into _private/ionic.");
+		});
+		
+		compileMobileBuilder = tasks.create("compileMobileBuilder", CompileMobileBuilder.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(generateMobileBuilder);
+			task.setDescription("Compile the Ionic application with NPM into DisplayObject/mobile.");
 		});
 		
 		car = tasks.create("car", ProjectCar.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
+			task.dependsOn(export);
+			task.setDescription("Build a <projectName>.car file.");
+		});
+		
+		deploy = tasks.create("deploy", ProjectDeploy.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("publishing");
+			task.dependsOn(car);
+			task.setDescription("Push the project to a Convertigo server.");
+		});
+		
+		nativeBuild = tasks.create("nativeBuild", NativeBuild.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("configuration");
 			task.dependsOn(load);
+			task.setDescription("Configurator task for 'launchNativeBuild' and 'downloadNativeBuild'.");
+		});
+		
+		launchNativeBuild = tasks.create("launchNativeBuild", NativeBuildLaunch.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(nativeBuild);
+			task.setDescription("Upload the mobile source package to the Convertigo Phonegap Build Gateway.");
+		});
+		
+		downloadNativeBuild = tasks.create("downloadNativeBuild", NativeBuildDownload.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(launchNativeBuild);
+			task.setDescription("Wait the remote build to finish, then download the native packages (iOS ipa or Android apk).");
 		});
 	}
 }
