@@ -453,6 +453,20 @@ task copyLicense(type: Copy) {
 	into '../eclipse-plugin-studio/tomcat/webapps/convertigo/licenses'
 }
 
+task copyFlashUpdateDependencies(type: Copy) {
+	group 'convertigo'
+	
+	from '../eclipse-plugin-studio/tomcat/webapps/convertigo/scripts/jquery2.min.js'
+	from('../eclipse-plugin-studio/tomcat/webapps/convertigo/css') {
+		include 'flashupdate.css'
+		include 'flashupdate_android.css'
+		include 'flashupdate_ios.css'
+		include 'flashupdate_fonts/**'
+		include 'flashupdate_images/**'
+	}
+	into 'src/com/twinsoft/convertigo/engine/admin/services/mobiles/res'
+}
+
 task engineDependenciesClasspathJar(type: Jar, dependsOn: dependenciesJar) {
 	group 'convertigo'
 	
@@ -502,5 +516,5 @@ task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClassp
 	}
 }
 
-compileJava.dependsOn(['copyLicense', 'updateProductVersion'])
+compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
 jar.dependsOn(['patchJar', 'updateBeansDefaultValues'])

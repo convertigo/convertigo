@@ -454,17 +454,19 @@ public class HttpUtils {
 		HttpSession session = request.getSession(true);
 		String token = SessionAttribute.xsrfToken.get(session);
 		String header = HeaderName.XXsrfToken.getHeader(request);
-		if (header == null) {
-			header = request.getParameter(Parameter.XsrfToken.getName());
-		}
 		if (token == null && header != null) {
 			token = Base64.encodeBytes(DigestUtils.sha256(session.getId() + Engine.startStopDate)).replaceAll("[^\\w\\d]", "-");
 			SessionAttribute.xsrfToken.set(session, token);
 			HeaderName.XXsrfToken.setHeader(response, token);
-		} else if (token != null && !token.equals(header)) {
-			EngineException e = new EngineException("Invalid XSRF Token header for this session.");
-			e.setStackTrace(new StackTraceElement[0]);
-			throw e;
+		} else {
+			if (header == null) {
+				header = request.getParameter(Parameter.XsrfToken.getName());
+			}
+			if (token != null && !token.equals(header)) {
+				EngineException e = new EngineException("Invalid XSRF Token header for this session.");
+				e.setStackTrace(new StackTraceElement[0]);
+				throw e;
+			}
 		}
 	}
 }
