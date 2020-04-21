@@ -323,7 +323,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		ApplicationComponent application = applicationEditorInput.application;
 		Project project = application.getProject();
 
-		datasetDir = new File(project.getDirPath() + "/dataset");
+		datasetDir = new File(project.getDirPath(), "dataset");
 		datasetDir.mkdirs();
 		
 		devicePref = new File(Engine.USER_WORKSPACE_PATH, "studio/device-" + project.getName() + ".json");
@@ -1285,7 +1285,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	private void build(final String path, final MobileBuilderBuildMode buildMode, final int buildCount, final MobileBuilder mb) {
 		Project project = applicationEditorInput.application.getProject();
-		File ionicDir = new File(project.getDirPath() + "/_private/ionic");
+		File ionicDir = new File(project.getDirPath(), "_private/ionic");
 		
 		boolean isIonic3 = !new File(ionicDir, "angular.json").exists();
 		

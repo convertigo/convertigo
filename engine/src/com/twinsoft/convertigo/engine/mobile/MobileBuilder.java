@@ -215,7 +215,7 @@ public class MobileBuilder {
 	
 	abstract class IonicGenerator {
 		abstract GeneratorType getType();
-
+		
 		protected void updateSourceFiles() throws EngineException {
 			try {
 				MobileApplication mobileApplication = project.getMobileApplication();
@@ -1747,7 +1747,29 @@ public class MobileBuilder {
 	}
 	
 	class AngularGenerator extends IonicGenerator {
-
+		File appDir, pagesDir, interfacesDir, servicesDir, providersDir, componentsDir;
+		File assetsDir, envDir, themeDir;
+		File srcDir;
+		
+		AngularGenerator() {
+			initDirs("src");
+		}
+		
+		private void initDirs(String src) {
+			srcDir = new File(ionicWorkDir, src);
+			
+			assetsDir = new File(srcDir, "assets");
+			envDir = new File(srcDir, "environments");
+			themeDir = new File(srcDir, "theme");
+			appDir = new File(srcDir, "app");
+			
+			componentsDir = new File(appDir, "components");
+			interfacesDir = new File(appDir, "interfaces");
+			providersDir = new File(appDir, "providers");
+			servicesDir = new File(appDir, "services");
+			pagesDir = new File(appDir, "pages");
+		}
+		
 		@Override
 		GeneratorType getType() {
 			return GeneratorType.angular;
@@ -1756,12 +1778,24 @@ public class MobileBuilder {
 		@Override
 		protected void updateSourceFiles() throws EngineException {
 			// TODO : to be removed when done !!
-			//super.updateSourceFiles();
+			try {
+				FileUtils.copyDirectory(srcDir, new File(ionicWorkDir, "src5"));
+				initDirs("src5");
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			super.updateSourceFiles();
 		}
 
-
+		private File pageDir(PageComponent page) {
+			return new File(pagesDir, page.getName().toLowerCase());
+		}
+		
 		private void deleteUselessPageDir(String pageName) {
-			File pageDir = new File(ionicWorkDir,"src/pages/"+ pageName);
+			File pageDir = new File(pagesDir, pageName.toLowerCase());
 			deleteDir(pageDir);
 		}
 
@@ -1926,14 +1960,14 @@ public class MobileBuilder {
 			
 			for (String compbean : comp_beans_dirs.keySet()) {
 				File srcDir = comp_beans_dirs.get(compbean);
-				File destDir = new File(ionicWorkDir, "src/components/"+ compbean+ "/");
+				File destDir = new File(componentsDir, compbean);
 				Matcher m = Pattern.compile("file:(/.*?)!/(.*)").matcher(srcDir.getPath().replace('\\', '/'));
 				if (m.matches()) {
 					ZipUtils.expandZip(m.group(1), destDir.getAbsolutePath(), m.group(2));
 				} else {
 					for (File f: srcDir.listFiles()) {
 						String fContent = FileUtils.readFileToString(f, "UTF-8");
-						File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
+						File destFile = new File(componentsDir, compbean+ "/"+ f.getName());
 						writeFile(destFile, fContent, "UTF-8");
 					}
 				}
@@ -1955,11 +1989,11 @@ public class MobileBuilder {
 						sharedAction = uic.getSharedAction();
 						sharedComp = uic.getSharedComponent();
 						
-						tempTsDir = sharedAction == null ? new File(ionicWorkDir, "src/app") : new File(ionicWorkDir, "src/services");
+						tempTsDir = sharedAction == null ? appDir : servicesDir;
 						tempTsFileName = sharedAction == null ? "app.component.function.temp.ts" : "actionbeans.service.function.temp.ts";
 						
-						File appTsFile = sharedAction == null ? new File(ionicWorkDir, "src/app/app.component.ts") : 
-															new File(ionicWorkDir, "src/services/actionbeans.service.ts");
+						File appTsFile = sharedAction == null ? new File(appDir, "app.component.ts") : 
+																new File(servicesDir, "actionbeans.service.ts");
 						synchronized (writtenFiles) {
 							if (writtenFiles.contains(appTsFile)) {
 								File appTsFileTmp = toTmpFile(appTsFile);
@@ -1974,7 +2008,7 @@ public class MobileBuilder {
 					if (main instanceof PageComponent) {
 						PageComponent page = (PageComponent)main;
 						String pageName = page.getName();
-						tempTsDir = new File(ionicWorkDir, "src/pages/"+pageName);
+						tempTsDir = new File(pagesDir, pageName);
 						tempTsFileName = pageName.toLowerCase() + ".function.temp.ts";
 						
 						if (page.isEnabled()) {
@@ -2058,7 +2092,7 @@ public class MobileBuilder {
 			try {
 				if (app != null) {
 					
-					File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
+					File appComponentTsFile = new File(appDir, "app.component.ts");
 					writeFile(appComponentTsFile, getAppComponentTsContent(app), "UTF-8");
 					
 					if (initDone) {
@@ -2068,6 +2102,45 @@ public class MobileBuilder {
 			}
 			catch (Exception e) {
 				throw new EngineException("Unable to write ionic app component ts file",e);
+			}
+		}
+		
+		private void writeAppRoutingTs(ApplicationComponent app) throws EngineException {
+			try {
+				if (app != null) {
+					String c8o_AppRoutes = "";
+					int i=1;
+					
+					//Pages contributors
+					List<PageComponent> pages = generator.getEnabledPages(app);
+					for (PageComponent page : pages) {
+						String pageDirName = pageDir(page).getName();
+						String pageModuleName =  page.getName() + "Module";
+						String pageModulePath = "./pages/" + pageDirName + "/" + page.getName().toLowerCase() + ".module";
+						String pageSegment = page.getSegment();
+						boolean isLastPage = i == pages.size();
+						if (page.isRoot) {
+							c8o_AppRoutes += "{ path: '', redirectTo: '"+ pageSegment +"', pathMatch: 'full' }," + System.lineSeparator();
+						}
+						c8o_AppRoutes += " { path: '"+pageSegment+"', loadChildren: () => import('"+pageModulePath+"').then( m => m."+ pageModuleName +")}" + (isLastPage ? "":",");
+					}
+					
+					File appRoutingTpl = new File(ionicTplDir, "src/app-routing.module.tpl");
+					String mContent = FileUtils.readFileToString(appRoutingTpl, "UTF-8");
+					mContent = mContent.replaceAll("/\\*\\=c8o_AppRoutes\\*/", c8o_AppRoutes);
+					
+					File appRoutingTsFile = new File(appDir, "app-routing.module.ts");
+					writeFile(appRoutingTsFile, mContent, "UTF-8");
+					
+					
+					if (initDone) {
+						Engine.logEngine.trace("(MobileBuilder) Ionic routing module ts file generated for 'app'");
+					}
+					
+				}
+			}
+			catch (Exception e) {
+				throw new EngineException("Unable to write ionic app routing ts file",e);
 			}
 		}
 		
@@ -2221,14 +2294,14 @@ public class MobileBuilder {
 					mContent = mContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
 					mContent = mContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
 					
-					File appModuleTsFile = new File(ionicWorkDir, "src/app/app.module.ts");
+					File appModuleTsFile = new File(appDir, "app.module.ts");
 					writeFile(appModuleTsFile, mContent, "UTF-8");
 					
 					for (String compbean : comp_beans_dirs.keySet()) {
 						File srcDir = comp_beans_dirs.get(compbean);
 						for (File f: srcDir.listFiles()) {
 							String fContent = FileUtils.readFileToString(f, "UTF-8");
-							File destFile = new File(ionicWorkDir, "src/components/"+ compbean+ "/"+ f.getName());
+							File destFile = new File(componentsDir, compbean+ "/"+ f.getName());
 							writeFile(destFile, fContent, "UTF-8");
 						}
 					}
@@ -2354,7 +2427,7 @@ public class MobileBuilder {
 		private void writeAppComponentTempTs(ApplicationComponent app) throws EngineException {
 			try {
 				if (app != null) {
-					File appTsFile = new File(ionicWorkDir, "src/app/app.component.ts");
+					File appTsFile = new File(appDir, "app.component.ts");
 					synchronized (writtenFiles) {
 						if (writtenFiles.contains(appTsFile)) {
 							File appTsFileTmp = toTmpFile(appTsFile);
@@ -2364,7 +2437,7 @@ public class MobileBuilder {
 						}
 					}
 					
-					File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+					File tempTsFile = new File(appDir, "app.component.temp.ts");
 					
 					// Write file (do not need delay)
 					FileUtils.copyFile(appTsFile, tempTsFile);
@@ -2379,7 +2452,7 @@ public class MobileBuilder {
 			try {
 				if (app != null) {
 					String appName = app.getName();
-					File appHtmlFile = new File(ionicWorkDir, "src/app/app.html");
+					File appHtmlFile = new File(appDir, "app.component.html");
 					String computedTemplate = app.getComputedTemplate();
 					writeFile(appHtmlFile, computedTemplate, "UTF-8");
 					
@@ -2397,7 +2470,7 @@ public class MobileBuilder {
 			try {
 				if (app != null) {
 					String appName = app.getName();
-					File appScssFile = new File(ionicWorkDir, "src/app/app.scss");
+					File appScssFile = new File(appDir, "app.component.scss");
 					String computedScss = app.getComputedStyle();
 					writeFile(appScssFile, computedScss, "UTF-8");
 					
@@ -2415,7 +2488,7 @@ public class MobileBuilder {
 			try {
 				if (app != null) {
 					String appName = app.getName();
-					File themeScssFile = new File(ionicWorkDir, "src/theme/variables.scss");
+					File themeScssFile = new File(themeDir, "variables.scss");
 					String tContent = app.getComputedTheme();
 					writeFile(themeScssFile, tContent, "UTF-8");
 					
@@ -2468,11 +2541,11 @@ public class MobileBuilder {
 						c8o_ActionTsFunctions += function + System.lineSeparator();
 					}
 					
-					File appServiceTpl = new File(ionicTplDir, "src/services/actionbeans.service.ts");
+					File appServiceTpl = new File(ionicTplDir, "src/app/services/actionbeans.service.ts");
 					String mContent = FileUtils.readFileToString(appServiceTpl, "UTF-8");
 					mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsImports\\*/",Matcher.quoteReplacement(c8o_ActionTsImports));
 					mContent = mContent.replaceAll("/\\*\\=c8o_ActionTsFunctions\\*/",Matcher.quoteReplacement(c8o_ActionTsFunctions));
-					File appServiceTsFile = new File(ionicWorkDir, "src/services/actionbeans.service.ts");
+					File appServiceTsFile = new File(servicesDir, "actionbeans.service.ts");
 					writeFile(appServiceTsFile, mContent, "UTF-8");
 					
 					if (initDone) {
@@ -2488,7 +2561,7 @@ public class MobileBuilder {
 			try {
 				if (page != null && page.isEnabled()) {
 					String pageName = page.getName();
-					File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+					File pageDir = pageDir(page);
 					File pageHtmlFile = new File(pageDir, pageName.toLowerCase() + ".html");
 					String computedTemplate = page.getComputedTemplate();
 					writeFile(pageHtmlFile, computedTemplate, "UTF-8");
@@ -2507,7 +2580,7 @@ public class MobileBuilder {
 			try {
 				if (page != null && page.isEnabled()) {
 					String pageName = page.getName();
-					File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+					File pageDir = pageDir(page);
 					File pageScssFile = new File(pageDir, pageName.toLowerCase() + ".scss");
 					String computedScss = page.getComputedStyle();
 					writeFile(pageScssFile, computedScss, "UTF-8");
@@ -2527,7 +2600,7 @@ public class MobileBuilder {
 				if (page != null && page.isEnabled()) {
 					if (page.compareToTplVersion("7.7.0.2") >= 0) {
 						String pageName = page.getName();
-						File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+						File pageDir = pageDir(page);
 						File pageModuleTsFile = new File(pageDir, pageName.toLowerCase() + ".module.ts");
 						writeFile(pageModuleTsFile, getPageModuleTsContent(page), "UTF-8");
 						
@@ -2545,7 +2618,7 @@ public class MobileBuilder {
 		private boolean existPackage(String pkg) {
 			File nodeModules = new File(ionicWorkDir, "node_modules");
 			if (pkg != null && !pkg.isEmpty()) {
-				File pkgDir = new File(nodeModules,pkg);
+				File pkgDir = new File(nodeModules, pkg);
 				return pkgDir.exists() && pkgDir.isDirectory();
 			}
 			return true;
@@ -2594,7 +2667,7 @@ public class MobileBuilder {
 						} catch (Exception e) {}
 					}
 					
-					File appPlgConfig = new File(ionicWorkDir, "src/plugins.txt");
+					File appPlgConfig = new File(srcDir, "plugins.txt");
 					writeFile(appPlgConfig, mandatoryPlugins, "UTF-8");
 					
 					if (initDone) {
@@ -2668,7 +2741,7 @@ public class MobileBuilder {
 			try {
 				if (page != null) {
 					String pageName = page.getName();
-					File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+					File pageDir = pageDir(page);
 					
 					String tsContent;
 					if (page.isEnabled()) {
@@ -2721,7 +2794,7 @@ public class MobileBuilder {
 			try {
 				if (page != null && page.isEnabled()) {
 					String pageName = page.getName();
-					File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
+					File pageDir = pageDir(page);
 					File pageTsFile = new File(pageDir, pageName.toLowerCase() + ".ts");
 					writeFile(pageTsFile, getPageTsContent(page), "UTF-8");
 					
@@ -2740,7 +2813,7 @@ public class MobileBuilder {
 			writeAppComponentTs(app);
 			//moveFiles();
 			
-			File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+			File appComponentTsFile = new File(appDir, "app.component.temp.ts");
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
@@ -2751,7 +2824,7 @@ public class MobileBuilder {
 			writeAppComponentTs(app);
 			//moveFiles();
 			
-			File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+			File appComponentTsFile = new File(appDir, "app.component.temp.ts");
 			if (appComponentTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
@@ -2775,7 +2848,7 @@ public class MobileBuilder {
 			writeAppComponentTs(app);
 			//moveFiles();
 			
-			File tempTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+			File tempTsFile = new File(appDir, "app.component.temp.ts");
 			if (forceTemp && tempTsFile.exists()) {
 				writeAppComponentTempTs(app);
 			}
@@ -2863,9 +2936,8 @@ public class MobileBuilder {
 			writePageTs(page);
 			//moveFiles();
 			
-			String pageName = page.getName();
-			File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
-			File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+			File pageDir = pageDir(page);
+			File tempTsFile = new File(pageDir, page.getName().toLowerCase() + ".temp.ts");
 			if (forceTemp && tempTsFile.exists()) {
 				writePageTempTs(page);
 			}
@@ -2897,15 +2969,14 @@ public class MobileBuilder {
 				IScriptComponent main = uic.getMainScriptComponent();
 				if (main instanceof ApplicationComponent) {
 					UIActionStack stack = uic.getSharedAction();
-					File tempTsFile = stack == null ? new File(ionicWorkDir, "src/app/app.component.function.temp.ts") :
-														new File(ionicWorkDir, "src/services/actionbeans.service.function.temp.ts");
+					File tempTsFile = stack == null ? new File(appDir, "app.component.function.temp.ts") :
+														new File(servicesDir, "actionbeans.service.function.temp.ts");
 					return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				}
 				else if (main instanceof PageComponent) {
 					PageComponent page = (PageComponent)main;
-					String pageName = page.getName();
-					File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
-					File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
+					File pageDir = pageDir(page);
+					File tempTsFile = new File(pageDir, page.getName().toLowerCase() + ".function.temp.ts");
 					return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				} else {
 					throw new EngineException("Invalid main script component");
@@ -2919,7 +2990,7 @@ public class MobileBuilder {
 		@Override
 		protected String doGetTempTsRelativePath(ApplicationComponent app) throws EngineException {
 			try {
-				File appComponentTsFile = new File(ionicWorkDir, "src/app/app.component.temp.ts");
+				File appComponentTsFile = new File(appDir, "app.component.temp.ts");
 				String filePath = appComponentTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				return filePath;
 			}
@@ -2931,9 +3002,8 @@ public class MobileBuilder {
 		@Override
 		protected String doGetTempTsRelativePath(PageComponent page) throws EngineException {
 			try {
-				String pageName = page.getName();
-				File pageDir = new File(ionicWorkDir, "src/pages/"+pageName);
-				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".temp.ts");
+				File pageDir = pageDir(page);
+				File tempTsFile = new File(pageDir, page.getName().toLowerCase() + ".temp.ts");
 				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				return filePath;
 			}
@@ -3118,7 +3188,7 @@ public class MobileBuilder {
 		
 		private Map<String,String> getTplServiceActionTsImports() {
 			if (tpl_serviceActionTsImports == null) {
-				tpl_serviceActionTsImports = initTplImports(new File(ionicTplDir, "src/services/actionbeans.service.ts"));
+				tpl_serviceActionTsImports = initTplImports(new File(ionicTplDir, "src/app/services/actionbeans.service.ts"));
 			}
 			return tpl_serviceActionTsImports;
 		}
@@ -3126,7 +3196,7 @@ public class MobileBuilder {
 		protected void writeAppSourceFiles(ApplicationComponent application) throws EngineException {
 			try {
 				if (application != null) {
-					FileUtils.deleteQuietly(new File(ionicWorkDir, "src/app/app.component.temp.ts"));
+					FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
 					
 					writeAppPackageJson(application);
 					writeAppPluginsConfig(application);
@@ -3136,6 +3206,7 @@ public class MobileBuilder {
 					writeAppTemplate(application);
 					writeAppStyle(application);
 					writeAppTheme(application);
+					writeAppRoutingTs(application);
 
 					Engine.logEngine.trace("(MobileBuilder) Application source files generated for ionic project '"+ project.getName() +"'");
 				}
@@ -3149,7 +3220,7 @@ public class MobileBuilder {
 		protected void writePageSourceFiles(PageComponent page) throws EngineException {
 			String pageName = page.getName();
 			try {
-				File pageDir = new File(ionicWorkDir,"src/pages/"+pageName);
+				File pageDir = pageDir(page);
 				pageDir.mkdirs();
 				
 				FileUtils.deleteQuietly(new File(pageDir, pageName.toLowerCase() + ".temp.ts"));
@@ -3171,14 +3242,13 @@ public class MobileBuilder {
 		@Override
 		protected void removeUselessPages(ApplicationComponent application) {
 			if (application != null) {
-				File ionicPagesDir = new File(ionicWorkDir,"src/pages");
+				File ionicPagesDir = pagesDir;
 				List<String> pageDirectories = new ArrayList<String>();
 				pageDirectories.add(ionicPagesDir.getAbsolutePath());
 				
 				List<PageComponent> pages = application.getPageComponentList();
 				for (PageComponent page : pages) {
-					File pageDir = new File(ionicPagesDir, page.getName());
-					pageDirectories.add(pageDir.getAbsolutePath());
+					pageDirectories.add(pageDir(page).getAbsolutePath());
 				}
 				for (File dir: FileUtils.listFilesAndDirs(ionicPagesDir, FalseFileFilter.INSTANCE, DirectoryFileFilter.DIRECTORY)) {
 					if (!pageDirectories.contains(dir.getAbsolutePath())) {
@@ -3572,6 +3642,8 @@ public class MobileBuilder {
 	}
 	
 	private synchronized void init() throws EngineException {
+		long t1 = System.currentTimeMillis();
+		
 		if (initDone) {
 			return;
 		}
@@ -3595,8 +3667,8 @@ public class MobileBuilder {
 			}
 			
 			if (generator == null) {
-				boolean isIonic4 = new File(ionicTplDir, "angular.json").exists();
-				generator = GeneratorType.getIonicGenerator(this, isIonic4 ? GeneratorType.angular : GeneratorType.ionic3);
+				boolean isIonic3 = !(new File(ionicTplDir, "angular.json").exists());
+				generator = GeneratorType.getIonicGenerator(this, isIonic3 ? GeneratorType.ionic3 : GeneratorType.angular);
 			}
 			
 			setNeedPkgUpdate(false);
@@ -3643,11 +3715,14 @@ public class MobileBuilder {
 			}
 						
 			initDone = true;
-			Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"'");
+			long t2 = System.currentTimeMillis();
+			Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"' in "+ (t2 - t1) + " ms");
 		}
 	}
 	
 	private synchronized void release() throws EngineException {
+		long t1 = System.currentTimeMillis();
+		
 		if (!initDone) {
 			return;
 		}
@@ -3715,7 +3790,8 @@ public class MobileBuilder {
 			setNeedPkgUpdate(false);
 			
 			initDone = false;
-			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
+			long t2 = System.currentTimeMillis();
+			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName()  +"' in "+ (t2 - t1) + " ms");
 		}
 	}
 	
@@ -3844,7 +3920,6 @@ public class MobileBuilder {
 	public String getTplVersion() {
 		return tplVersion;
 	}
-	
 	
 	public boolean hasTplAppCompTsImport(String name) {
 		return generator.getTplAppCompTsImports().containsKey(name);
