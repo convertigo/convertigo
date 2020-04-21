@@ -2,7 +2,7 @@
 ↓sampleMobileRetailStore [core.Project]: 
   comment: FullSync "Retail store" mobile sample
   contextTimeout: 7000
-  version: 7.8.0-beta
+  version: 7.8.0
   ↓retaildb [connectors.FullSyncConnector]: 🗏 connectors/retaildb.yaml
   ↓fill_server_database [sequences.GenericSequence]: 🗏 sequences/fill_server_database.yaml
   ↓select_shop [sequences.GenericSequence]: 🗏 sequences/select_shop.yaml

@@ -1,6 +1,6 @@
 ↑convertigo: 7.6.0.m006
 ↓template_sequence [core.Project]: 
   comment: Mashup Sequencer project
-  version: 7.8.0-beta
+  version: 7.8.0
   ↓void [connectors.SqlConnector]: 🗏 connectors/void.yaml
   ↓NewSequence [sequences.GenericSequence]: 🗏 sequences/NewSequence.yaml
