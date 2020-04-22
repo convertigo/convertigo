@@ -24,7 +24,7 @@ ext.convertigoCode = 'Au'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 //ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserGroup = 'com.convertigo.lib'
-ext.jxBrowserVersion = '7.6-b27-eap'
+ext.jxBrowserVersion = '7.7-b3-eap'
 ext.swaggerUiVersion = '3.19.3'
 ext.tomcatVersion = '9.0.34'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
@@ -183,36 +183,36 @@ publishing {
 		jxBrowser (MavenPublication) {
 			groupId 'com.convertigo.lib'
 			artifactId 'jxbrowser'
-			version '7.6-b27-eap'
-			artifact 'resources/jxbrowser-7.6-b27-eap/jxbrowser-7.6-b27-eap.jar'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-${jxBrowserVersion}.jar"
 		}
 		
 		jxBrowserLinux64 (MavenPublication) {
 			groupId 'com.convertigo.lib'
 			artifactId 'jxbrowser-linux64'
-			version '7.6-b27-eap'
-			artifact 'resources/jxbrowser-7.6-b27-eap/jxbrowser-linux64-7.6-b27-eap.jar'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-linux64-${jxBrowserVersion}.jar"
 		}
 		
 		jxBrowserMac (MavenPublication) {
 			groupId 'com.convertigo.lib'
 			artifactId 'jxbrowser-mac'
-			version '7.6-b27-eap'
-			artifact 'resources/jxbrowser-7.6-b27-eap/jxbrowser-mac-7.6-b27-eap.jar'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-mac-${jxBrowserVersion}.jar"
 		}
 		
 		jxBrowserWin64 (MavenPublication) {
 			groupId 'com.convertigo.lib'
 			artifactId 'jxbrowser-win64'
-			version '7.6-b27-eap'
-			artifact 'resources/jxbrowser-7.6-b27-eap/jxbrowser-win64-7.6-b27-eap.jar'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-win64-${jxBrowserVersion}.jar"
 		}
 		
 		jxBrowserSwt (MavenPublication) {
 			groupId 'com.convertigo.lib'
 			artifactId 'jxbrowser-swt'
-			version '7.6-b27-eap'
-			artifact 'resources/jxbrowser-7.6-b27-eap/jxbrowser-swt-7.6-b27-eap.jar'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-swt-${jxBrowserVersion}.jar"
 		}
 		
 		ojdbc (MavenPublication) {

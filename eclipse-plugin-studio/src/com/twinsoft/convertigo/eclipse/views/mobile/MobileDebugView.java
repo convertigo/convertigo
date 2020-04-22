@@ -85,7 +85,7 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 						String u = url;
 						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(new HttpGet(u + "/json"))) {
 							JSONArray json = new JSONArray(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
-							u = json.getJSONObject(0).getString("devtoolsFrontendUrl");
+							u += json.getJSONObject(0).getString("devtoolsFrontendUrl");
 						} catch (Exception e) {
 						}
 						c8oBrowser.loadURL(u);
