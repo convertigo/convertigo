@@ -230,7 +230,7 @@ afterEvaluate {
 			'Bundle-ManifestVersion': '2',
 			'Bundle-Vendor': 'Convertigo',
 			'Bundle-Version': "${convertigoVersion}.qualifier",
-			'Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8',
+			'Bundle-RequiredExecutionEnvironment': 'JavaSE-11',
 		)
 	}
 }

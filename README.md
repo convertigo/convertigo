@@ -1,4 +1,4 @@
-# Convertigo Low Code mobile & Web  Platform
+# Convertigo Low Code mobile & Web Platform
 > Convertigo is an open source Low code platform for mobile & web application development and back-end.
 
 [![CircleCI][ci-image]][ci-url]
