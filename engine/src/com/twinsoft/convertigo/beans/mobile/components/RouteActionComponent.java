@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 @DboCategoryInfo(

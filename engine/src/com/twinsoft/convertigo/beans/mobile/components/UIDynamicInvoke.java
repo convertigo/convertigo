@@ -89,7 +89,8 @@ public class UIDynamicInvoke extends UIDynamicAction {
 				//Project p = p_name.equals(project.getName()) ? project: Engine.theApp.databaseObjectsManager.getOriginalProjectByName(p_name);
 				Project p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
 				if (p != null) {
-					for (UIActionStack uias: p.getMobileApplication().getApplicationComponent().getSharedActionList()) {
+					ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+					for (UIActionStack uias: app.getSharedActionList()) {
 						if (uias.getQName().equals(qname)) {
 							return uias;
 						}

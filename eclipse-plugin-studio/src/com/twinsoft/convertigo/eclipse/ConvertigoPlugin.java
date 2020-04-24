@@ -126,7 +126,6 @@ import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
@@ -1544,7 +1543,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				IEditorReference editorRef = (IEditorReference)editorRefs[i];
 				try {
 					IEditorInput editorInput = editorRef.getEditorInput();
-					if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
+					if ((editorInput != null) && 
+							(editorInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput ||
+									editorInput instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput)) {
 						editorPart = editorRef.getEditor(false);
 						break;
 					}

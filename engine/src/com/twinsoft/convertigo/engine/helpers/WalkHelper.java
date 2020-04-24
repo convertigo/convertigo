@@ -25,6 +25,7 @@ import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Document;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Index;
 import com.twinsoft.convertigo.beans.core.Listener;
@@ -51,20 +52,12 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
-import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class WalkHelper {
 	protected boolean walkInheritance = false;
@@ -121,106 +114,215 @@ public class WalkHelper {
 				}
 			}
 			
-			if (before(databaseObject, ApplicationComponent.class)) {
-				ApplicationComponent component = mobileApplication.getApplicationComponent();
-				if (component != null) {
-					walk(component);
+			IApplicationComponent applicationComponent = mobileApplication.getApplicationComponent();
+			if (applicationComponent instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+				com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent app = GenericUtils.cast(applicationComponent);
+				if (before(mobileApplication, com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent.class)) {
+					walk(app);
 				}
 			}
-		} else if (databaseObject instanceof ApplicationComponent) {
-			ApplicationComponent applicationComponent = (ApplicationComponent) databaseObject;
+			else if (applicationComponent instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+				com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app = GenericUtils.cast(applicationComponent);
+				if (before(mobileApplication, com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent.class)) {
+					walk(app);
+				}
+			}
+		}
+		/*****************************************************************************************************************************/
+		/**           com.twinsoft.convertigo.beans.mobile.components                                                                */
+		/*****************************************************************************************************************************/
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+			com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent applicationComponent = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, RouteComponent.class)) {
-				for (RouteComponent route : applicationComponent.getRouteComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.RouteComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.RouteComponent route : applicationComponent.getRouteComponentList()) {
 					walk(route);
 				}
 			}
 			
-			if (before(databaseObject, UIDynamicMenu.class)) {
-				for (UIDynamicMenu menu : applicationComponent.getMenuComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu : applicationComponent.getMenuComponentList()) {
 					walk(menu);
 				}
 			}
 			
-			if (before(databaseObject, UIActionStack.class)) {
-				for (UIActionStack uisa : applicationComponent.getSharedActionList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIActionStack.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIActionStack uisa : applicationComponent.getSharedActionList()) {
 					walk(uisa);
 				}
 			}
 			
-			if (before(databaseObject, UISharedComponent.class)) {
-				for (UISharedComponent uisc : applicationComponent.getSharedComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UISharedComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UISharedComponent uisc : applicationComponent.getSharedComponentList()) {
 					walk(uisc);
 				}
 			}
 			
-			if (before(databaseObject, PageComponent.class)) {
-				for (PageComponent page : applicationComponent.getPageComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.PageComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.PageComponent page : applicationComponent.getPageComponentList()) {
 					walk(page);
 				}
 			}
 			
-			if (before(databaseObject, UIComponent.class)) {
-				for (UIComponent ui : applicationComponent.getUIComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIComponent ui : applicationComponent.getUIComponentList()) {
 					walk(ui);
 				}
 			}
 			
-		} else if (databaseObject instanceof RouteComponent) {
-			RouteComponent routingListenerComponent = (RouteComponent) databaseObject;
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent) {
+			com.twinsoft.convertigo.beans.mobile.components.RouteComponent routingListenerComponent = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, RouteEventComponent.class)) {
-				for (RouteEventComponent event : routingListenerComponent.getRouteEventComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent event : routingListenerComponent.getRouteEventComponentList()) {
 					walk(event);
 				}
 			}
 			
-			if (before(databaseObject, RouteActionComponent.class)) {
-				for (RouteActionComponent action : routingListenerComponent.getRouteActionComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent action : routingListenerComponent.getRouteActionComponentList()) {
 					walk(action);
 				}
 			}
-		} else if (databaseObject instanceof PageComponent) {
-			PageComponent pageComponent = (PageComponent) databaseObject;
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+			com.twinsoft.convertigo.beans.mobile.components.PageComponent pageComponent = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, UIComponent.class)) {
-				for (UIComponent ui : pageComponent.getUIComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIComponent ui : pageComponent.getUIComponentList()) {
 					walk(ui);
 				}
 			}
-		} else if (databaseObject instanceof UIActionStack) {
-			UIActionStack uisa = (UIActionStack)databaseObject;
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack) {
+			com.twinsoft.convertigo.beans.mobile.components.UIActionStack uisa = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, UIComponent.class)) {
-				for (UIComponent ui : uisa.getUIComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIComponent ui : uisa.getUIComponentList()) {
 					walk(ui);
 				}
 			}
-		} else if (databaseObject instanceof UISharedComponent) {
-			UISharedComponent uisc = (UISharedComponent)databaseObject;
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent) {
+			com.twinsoft.convertigo.beans.mobile.components.UISharedComponent uisc = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, UIComponent.class)) {
-				for (UIComponent ui : uisc.getUIComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIComponent ui : uisc.getUIComponentList()) {
 					walk(ui);
 				}
 			}
-		} else if (databaseObject instanceof UIDynamicMenu) {
-			UIDynamicMenu uiMenu = (UIDynamicMenu) databaseObject;
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
+			com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu uiMenu = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, UIComponent.class)) {
-				for (UIComponent ui : uiMenu.getUIComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIComponent ui : uiMenu.getUIComponentList()) {
 					walk(ui);
 				}
 			}
-		} else if (databaseObject instanceof UIComponent) {
-			UIComponent uiComponent = (UIComponent) databaseObject;
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+			com.twinsoft.convertigo.beans.mobile.components.UIComponent uiComponent = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, UIComponent.class)) {
-				for (UIComponent ui : uiComponent.getUIComponentList()) {
+			if (before(databaseObject, com.twinsoft.convertigo.beans.mobile.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.mobile.components.UIComponent ui : uiComponent.getUIComponentList()) {
 					walk(ui);
 				}
 			}
-		} else if (databaseObject instanceof UrlMapper) {
+		}
+		/*****************************************************************************************************************************/
+		/**           com.twinsoft.convertigo.beans.ngx.components                                                                   */
+		/*****************************************************************************************************************************/
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+			com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent applicationComponent = GenericUtils.cast(databaseObject);
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.RouteComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.RouteComponent route : applicationComponent.getRouteComponentList()) {
+					walk(route);
+				}
+			}
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu : applicationComponent.getMenuComponentList()) {
+					walk(menu);
+				}
+			}
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIActionStack.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIActionStack uisa : applicationComponent.getSharedActionList()) {
+					walk(uisa);
+				}
+			}
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UISharedComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UISharedComponent uisc : applicationComponent.getSharedComponentList()) {
+					walk(uisc);
+				}
+			}
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.PageComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.PageComponent page : applicationComponent.getPageComponentList()) {
+					walk(page);
+				}
+			}
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIComponent ui : applicationComponent.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+			
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent) {
+			com.twinsoft.convertigo.beans.ngx.components.RouteComponent routingListenerComponent = GenericUtils.cast(databaseObject);
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent event : routingListenerComponent.getRouteEventComponentList()) {
+					walk(event);
+				}
+			}
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent action : routingListenerComponent.getRouteActionComponentList()) {
+					walk(action);
+				}
+			}
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+			com.twinsoft.convertigo.beans.ngx.components.PageComponent pageComponent = GenericUtils.cast(databaseObject);
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIComponent ui : pageComponent.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
+			com.twinsoft.convertigo.beans.ngx.components.UIActionStack uisa = GenericUtils.cast(databaseObject);
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIComponent ui : uisa.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent) {
+			com.twinsoft.convertigo.beans.ngx.components.UISharedComponent uisc = GenericUtils.cast(databaseObject);
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIComponent ui : uisc.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
+			com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu uiMenu = GenericUtils.cast(databaseObject);
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIComponent ui : uiMenu.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+			com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(databaseObject);
+			
+			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIComponent.class)) {
+				for (com.twinsoft.convertigo.beans.ngx.components.UIComponent ui : uiComponent.getUIComponentList()) {
+					walk(ui);
+				}
+			}
+		}
+		else if (databaseObject instanceof UrlMapper) {
 			UrlMapper urlMapper = (UrlMapper) databaseObject;
 
 			if (before(databaseObject, UrlAuthentication.class)) {

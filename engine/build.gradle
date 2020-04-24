@@ -485,6 +485,7 @@ task updateBeansDefaultValues(type: JavaExec, dependsOn: engineDependenciesClass
 	inputs.files fileTree('src/com/twinsoft/convertigo/beans')
 	outputs.file 'src/com/twinsoft/convertigo/beans/database_objects_default.xml'
 	outputs.file 'src/com/twinsoft/convertigo/beans/mobile/components/dynamic/ion_objects_default.json'
+	outputs.file 'src/com/twinsoft/convertigo/beans/ngx/components/dynamic/ion_objects_default.json'
 	
 	classpath sourceSets.main.output
 	classpath engineDependenciesClasspathJar.archivePath

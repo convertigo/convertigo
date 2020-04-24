@@ -25,10 +25,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
@@ -54,7 +54,12 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
     			if (treeObject instanceof MobileComponentTreeObject) {
     				if (treeObject instanceof MobileApplicationComponentTreeObject) {
     					MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject) treeObject;
-    					ApplicationComponentEditor editor = mpcto.activeEditor(false);
+    					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor editor = mpcto.activeEditor(false);
+    					editor.launchBuilder(forceInstall, forceClean);
+    				}
+    				else if (treeObject instanceof NgxApplicationComponentTreeObject) {
+    					NgxApplicationComponentTreeObject mpcto = (NgxApplicationComponentTreeObject) treeObject;
+    					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor editor = mpcto.activeEditor(false);
     					editor.launchBuilder(forceInstall, forceClean);
     				}
     			}

@@ -72,7 +72,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.text.TraceFileEditorInput;
@@ -88,6 +87,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 
@@ -704,8 +704,15 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								closeEditor(activePage, editorRef);
 							}
 						}
-						else if (editorInput instanceof ApplicationComponentEditorInput) {
-							if (((ApplicationComponentEditorInput)editorInput).getApplication().getProject().equals(project)) {
+						else if (editorInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
+							com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput acei = GenericUtils.cast(editorInput);
+							if (acei.getApplication().getProject().equals(project)) {
+								closeEditor(activePage, editorRef);
+							}
+						}
+						else if (editorInput instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+							com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(editorInput);
+							if (acei.getApplication().getProject().equals(project)) {
 								closeEditor(activePage, editorRef);
 							}
 						}

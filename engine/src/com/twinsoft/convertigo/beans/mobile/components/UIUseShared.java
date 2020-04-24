@@ -328,7 +328,8 @@ public class UIUseShared extends UIElement {
 						Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 					}
 					if (p != null) {
-						for (UISharedComponent uisc: p.getMobileApplication().getApplicationComponent().getSharedComponentList()) {
+						ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+						for (UISharedComponent uisc: app.getSharedComponentList()) {
 							if (uisc.getQName().equals(qname)) {
 								target = uisc;
 							}

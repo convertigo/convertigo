@@ -32,9 +32,9 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
 import com.teamdev.jxbrowser.browser.Browser;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class MobileDebugView extends ViewPart implements IPartListener2 {
 	
@@ -74,24 +74,33 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		c8oBrowser.setFocus();
 	}
 
+	private String getDebugUrl(IWorkbenchPart part) {
+		if (part instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor) {
+			com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor editorPart = GenericUtils.cast(part);
+			return editorPart.getDebugUrl();
+		} else if (part instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor) {
+			com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor editorPart = GenericUtils.cast(part);
+			return editorPart.getDebugUrl();
+		}
+		return null;
+	}
+	
 	public boolean onActivated(IWorkbenchPart part) {
-		if (part instanceof ApplicationComponentEditor) {
-			String url = ((ApplicationComponentEditor) part).getDebugUrl();
-			if (url != null) {
-				String key = part.toString() + ":" + url;
-				if (!key.equals(currentUrl)) {
-					currentUrl = key;
-					Engine.execute(() -> {
-						String u = url;
-						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(new HttpGet(u + "/json"))) {
-							JSONArray json = new JSONArray(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
-							u = json.getJSONObject(0).getString("devtoolsFrontendUrl");
-						} catch (Exception e) {
-						}
-						c8oBrowser.loadURL(u);
-					});
-					return true;
-				}
+		String url = getDebugUrl(part);
+		if (url != null) {
+			String key = part.toString() + ":" + url;
+			if (!key.equals(currentUrl)) {
+				currentUrl = key;
+				Engine.execute(() -> {
+					String u = url;
+					try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(new HttpGet(u + "/json"))) {
+						JSONArray json = new JSONArray(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+						u = json.getJSONObject(0).getString("devtoolsFrontendUrl");
+					} catch (Exception e) {
+					}
+					c8oBrowser.loadURL(u);
+				});
+				return true;
 			}
 		}
 		return false;

@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 
 @DboCategoryInfo(
 		getCategoryId = "RouteEventComponent",

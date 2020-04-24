@@ -22,34 +22,34 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.part.FileEditorInput;
 
-import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.MobileObject;
 
 public class ComponentFileEditorInput extends FileEditorInput {
 
-	private MobileComponent component = null;
+	private MobileObject component = null;
 	
 	public ComponentFileEditorInput(IFile file) {
 		super(file);
 	}
 	
-	public ComponentFileEditorInput(IFile file, MobileComponent component) {
+	public ComponentFileEditorInput(IFile file, MobileObject component) {
 		super(file);
 		this.component = component;
 	}
 
-	public MobileComponent getComponent() {
+	public MobileObject getComponent() {
 		return component;
 	}
 
-	public void setComponent(MobileComponent component) {
+	public void setComponent(MobileObject component) {
 		this.component = component;
 	}
 
-	public boolean is(MobileComponent component) {
+	public boolean is(MobileObject component) {
 		return component.equals(this.component) && component.getQName().equals(this.component.getQName());
 	}
 	
-	public boolean isChildOf(MobileComponent component) {
+	public boolean isChildOf(MobileObject component) {
 		return this.component.getQName().startsWith(component.getQName());
 	}
 }

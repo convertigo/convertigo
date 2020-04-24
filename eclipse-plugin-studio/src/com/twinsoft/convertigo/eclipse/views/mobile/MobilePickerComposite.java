@@ -74,7 +74,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.MobileObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -129,7 +129,8 @@ public class MobilePickerComposite extends Composite {
 	private Text t_custom, t_prefix, t_data, t_suffix;
 	private Label message;
 	private String currentSource = null;
-	private MobileComponent currentMC = null;
+	//private MobileComponent currentMC = null;
+	private MobileObject currentMC = null;
 	private Object lastSelected;
 	private List<TVObject> checkedList = new ArrayList<TVObject>();
 	private boolean isParentDialog = false;

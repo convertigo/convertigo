@@ -1,0 +1,73 @@
+[
+    {
+		"name"  : "No canvas",
+		"width" : -1,
+		"height": -1,
+		"zoom"  : 100,
+		"os"    : "android"
+	}, {
+		"name"  : "Android Phone (common)",
+		"desc"  : "Galaxy S4-S7\nNexus 5\nLG G3, G4\nHTC One\nSony Xperia Z, S, P",
+		"width" : 360,
+		"height": 640,
+		"zoom"  : 90,
+		"os"    : "android"
+	}, {
+		"name"  : "Android Phone (bigger)",
+		"desc"  : "Nexus 5X, 6P",
+		"width" : 412,
+		"height": 732,
+		"zoom"  : 90,
+		"os"    : "android"
+	}, {
+		"name"  : "Android Phone (18:9)",
+		"desc"  : "OnePlus 5T",
+		"width" : 455,
+		"height": 910,
+		"zoom"  : 80,
+		"os"    : "android"
+	}, {
+		"name"  : "iPhone X",
+		"width" : 375,
+		"height": 812,
+		"zoom"  : 90,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPhone 8+, 7+",
+		"width" : 414,
+		"height": 736,
+		"zoom"  : 90,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPhone 8, 7, 6, 6s",
+		"width" : 375,
+		"height": 667,
+		"zoom"  : 90,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPads",
+		"desc"  : "iPad 1-4, Air, Air2, mini 1-3",
+		"width" : 768,
+		"height": 1024,
+		"zoom"  : 50,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPad Pro",
+		"width" : 1024,
+		"height": 1366,
+		"zoom"  : 33,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPhone 5",
+		"width" : 320,
+		"height": 568,
+		"zoom"  : 100,
+		"os"    : "ios"
+	}, {
+		"name"  : "iPhone 4, 3",
+		"width" : 320,
+		"height": 480,
+		"zoom"  : 100,
+		"os"    : "ios"
+	}
+]

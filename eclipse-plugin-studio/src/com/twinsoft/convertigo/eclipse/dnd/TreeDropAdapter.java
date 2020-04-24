@@ -61,7 +61,6 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -74,6 +73,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
+import com.twinsoft.convertigo.beans.mobile.components.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
@@ -109,7 +109,6 @@ import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
@@ -268,7 +267,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
 			if (editorPart != null) {
 				IEditorInput input = editorPart.getEditorInput();
-				mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+				if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
+					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+					mb = editorInput.getApplication().getProject().getMobileBuilder();
+				}
+				if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+					mb = editorInput.getApplication().getProject().getMobileBuilder();
+				}
 			}
 			if (mb != null) {
 				autoBuild = mb.isAutoBuild();

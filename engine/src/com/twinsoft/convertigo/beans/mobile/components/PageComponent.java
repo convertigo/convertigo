@@ -42,8 +42,8 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
+import com.twinsoft.convertigo.beans.core.IPageComponent;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -56,7 +56,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
-public class PageComponent extends MobileComponent implements ITagsProperty, IScriptComponent, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
+public class PageComponent extends MobileComponent implements IPageComponent, ITagsProperty, IScriptComponent, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	

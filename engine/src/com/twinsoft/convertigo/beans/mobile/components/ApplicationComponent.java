@@ -43,11 +43,11 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -59,7 +59,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Application",
 		getIconClassCSS = "convertigo-action-newApplicationComponent"
 	)
-public class ApplicationComponent extends MobileComponent implements IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
+public class ApplicationComponent extends MobileComponent implements IApplicationComponent, IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 

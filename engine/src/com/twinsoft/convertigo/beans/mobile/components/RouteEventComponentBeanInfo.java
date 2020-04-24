@@ -28,7 +28,7 @@ public class RouteEventComponentBeanInfo extends MySimpleBeanInfo {
 	public RouteEventComponentBeanInfo() {
 		try {
 			beanClass = RouteEventComponent.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobileComponent.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.mobile.components.MobileComponent.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/mobile/components/images/routeeventcomponent_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/mobile/components/images/routeeventcomponent_color_32x32.png";

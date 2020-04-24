@@ -68,6 +68,13 @@
             id="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"
             name="Application Editor">
       </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor"
+            default="false"
+            icon="icons/convertigo_doc_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor"
+            name="Application Editor">
+      </editor>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">

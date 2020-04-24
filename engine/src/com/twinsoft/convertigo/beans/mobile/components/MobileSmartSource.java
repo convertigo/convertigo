@@ -1317,14 +1317,15 @@ public class MobileSmartSource {
 		
 		DatabaseObject root = null;
 		if (dboName != null) {
+			ApplicationComponent app = (ApplicationComponent) project.getMobileApplication().getApplicationComponent();
 			try {
-				root = project.getMobileApplication().getApplicationComponent().getPageComponentByName(dboName);
+				root = app.getPageComponentByName(dboName);
 			} catch (Exception e1) {
 				try {
-					root = project.getMobileApplication().getApplicationComponent().getMenuComponentByName(dboName);
+					root = app.getMenuComponentByName(dboName);
 				} catch (Exception e2) {
 					try {
-						root = project.getMobileApplication().getApplicationComponent();
+						root = app;
 					} catch (Exception e3) {
 						;
 					}
@@ -1432,7 +1433,7 @@ public class MobileSmartSource {
 						String projectName = getProjectName();
 						Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 						
-						DatabaseObject dbo = project.getMobileApplication().getApplicationComponent();
+						DatabaseObject dbo = (ApplicationComponent)project.getMobileApplication().getApplicationComponent();
 						return dbo;
 					} catch (Exception e) {
 						e.printStackTrace();

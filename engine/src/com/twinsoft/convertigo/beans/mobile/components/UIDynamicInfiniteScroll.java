@@ -27,7 +27,6 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -64,7 +63,7 @@ public class UIDynamicInfiniteScroll extends UIDynamicComponent {
 		try {
 			String qname =  getScrollAction();
 			if (qname != null && qname.indexOf('.') != -1) {
-				ApplicationComponent app  = getProject().getMobileApplication().getApplicationComponent();
+				ApplicationComponent app  = getApplication();
 				
 				StringTokenizer strTkn = new StringTokenizer(qname, ".");
 				if (strTkn.hasMoreElements()) {

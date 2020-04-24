@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.core.IUIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
@@ -55,7 +55,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "UI Component",
 		getIconClassCSS = "convertigo-action-newUIComponent"
 	)
-public abstract class UIComponent extends MobileComponent implements IScriptGenerator, ITemplateGenerator, IContainerOrdered, IEnableAble {
+public abstract class UIComponent extends MobileComponent implements IUIComponent, IScriptGenerator, ITemplateGenerator, IContainerOrdered, IEnableAble {
 	
 	private static final long serialVersionUID = -1872010547443624681L;
 

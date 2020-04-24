@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Composite;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Document;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Listener;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -155,7 +156,7 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						}
 					}
 					else if (object instanceof MobileApplication) {
-						ApplicationComponent ac = ((MobileApplication)object).getApplicationComponent();
+						IApplicationComponent ac = ((MobileApplication)object).getApplicationComponent();
 						if (ac != null) {
 							tvObject.addObject(ac);
 						}

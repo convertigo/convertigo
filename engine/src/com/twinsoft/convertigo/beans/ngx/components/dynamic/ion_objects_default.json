@@ -1,0 +1,3870 @@
+{
+ "ActionSheetAction": {
+  "   7   9   0": {
+   "name": "ActionSheetAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "script",
+     "value": 0
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "subtitle": {
+     "name": "subtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "buttonLabels": {
+     "name": "buttonLabels",
+     "mode": "script",
+     "value": "['']"
+    },
+    "androidTheme": {
+     "name": "androidTheme",
+     "mode": "plain",
+     "value": false
+    },
+    "androidEnableCancelButton": {
+     "name": "androidEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "winphoneEnableCancelButton": {
+     "name": "winphoneEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "addCancelButtonWithLabel": {
+     "name": "addCancelButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "addDestructiveButtonWithLabel": {
+     "name": "addDestructiveButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": false
+    },
+    "destructiveButtonLast": {
+     "name": "destructiveButtonLast",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "AlertAction": {
+  "   7   9   0": {
+   "name": "AlertAction",
+   "properties": {
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "subTitle": {
+     "name": "subTitle",
+     "mode": "plain",
+     "value": false
+    },
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": false
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    },
+    "button1": {
+     "name": "button1",
+     "mode": "plain",
+     "value": false
+    },
+    "button2": {
+     "name": "button2",
+     "mode": "plain",
+     "value": false
+    },
+    "button3": {
+     "name": "button3",
+     "mode": "plain",
+     "value": false
+    },
+    "value1": {
+     "name": "value1",
+     "mode": "plain",
+     "value": false
+    },
+    "value2": {
+     "name": "value2",
+     "mode": "plain",
+     "value": false
+    },
+    "value3": {
+     "name": "value3",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel1": {
+     "name": "cancel1",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel2": {
+     "name": "cancel2",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel3": {
+     "name": "cancel3",
+     "mode": "plain",
+     "value": false
+    },
+    "css1": {
+     "name": "css1",
+     "mode": "plain",
+     "value": false
+    },
+    "css2": {
+     "name": "css2",
+     "mode": "plain",
+     "value": false
+    },
+    "css3": {
+     "name": "css3",
+     "mode": "plain",
+     "value": false
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    }
+   }
+  }
+ },
+ "AnimateAction": {
+  "   7   9   0": {
+   "name": "AnimateAction",
+   "properties": {
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": false
+    },
+    "timingFunction": {
+     "name": "timingFunction",
+     "mode": "plain",
+     "value": false
+    },
+    "playState": {
+     "name": "playState",
+     "mode": "plain",
+     "value": false
+    },
+    "direction": {
+     "name": "direction",
+     "mode": "plain",
+     "value": false
+    },
+    "fillMode": {
+     "name": "fillMode",
+     "mode": "plain",
+     "value": false
+    },
+    "iterationCount": {
+     "name": "iterationCount",
+     "mode": "plain",
+     "value": false
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": 1000
+    },
+    "delay": {
+     "name": "delay",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Avatar": {
+  "   7   9   0": {
+   "name": "Avatar",
+   "properties": {
+    "ItemPosition": {
+     "name": "ItemPosition",
+     "mode": "plain",
+     "value": "item-left"
+    }
+   }
+  }
+ },
+ "Badge": {
+  "   7   9   0": {
+   "name": "Badge",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "ItemPosition": {
+     "name": "ItemPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "BarTitle": {
+  "   7   9   0": {
+   "name": "BarTitle",
+   "properties": {}
+  }
+ },
+ "BarcodeAction": {
+  "   7   9   0": {
+   "name": "BarcodeAction",
+   "properties": {
+    "mockedFormat": {
+     "name": "mockedFormat",
+     "mode": "plain",
+     "value": "QR_CODE"
+    },
+    "mockedCancel": {
+     "name": "mockedCancel",
+     "mode": "plain",
+     "value": "false"
+    },
+    "mockedText": {
+     "name": "mockedText",
+     "mode": "plain",
+     "value": "http:\/\/www.convertigo.com\/"
+    },
+    "preferFrontCamera": {
+     "name": "preferFrontCamera",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showFlipCameraButton": {
+     "name": "showFlipCameraButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showTorchButton": {
+     "name": "showTorchButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableAnimations": {
+     "name": "disableAnimations",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableSuccessBeep": {
+     "name": "disableSuccessBeep",
+     "mode": "plain",
+     "value": "false"
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "formats": {
+     "name": "formats",
+     "mode": "plain",
+     "value": "QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF417,RSS_EXPANDED,MSI,AZTEC"
+    },
+    "orientation": {
+     "name": "orientation",
+     "mode": "plain",
+     "value": false
+    },
+    "torchOn": {
+     "name": "torchOn",
+     "mode": "plain",
+     "value": "false"
+    },
+    "resultDisplayDuration": {
+     "name": "resultDisplayDuration",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Break": {
+  "   7   9   0": {
+   "name": "Break",
+   "properties": {}
+  }
+ },
+ "Button": {
+  "   7   9   0": {
+   "name": "Button",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "ButtonType": {
+     "name": "ButtonType",
+     "mode": "plain",
+     "value": "ion-button"
+    },
+    "MenuMode": {
+     "name": "MenuMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonShape": {
+     "name": "IonShape",
+     "mode": "plain",
+     "value": false
+    },
+    "IonOutline": {
+     "name": "IonOutline",
+     "mode": "plain",
+     "value": false
+    },
+    "IonClear": {
+     "name": "IonClear",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    },
+    "IconPosition": {
+     "name": "IconPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "IconOnly": {
+     "name": "IconOnly",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ButtonSet": {
+  "   7   9   0": {
+   "name": "ButtonSet",
+   "properties": {
+    "SetPosition": {
+     "name": "SetPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Calendar": {
+  "   7   9   0": {
+   "name": "Calendar",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": "string"
+    },
+    "format": {
+     "name": "format",
+     "mode": "plain",
+     "value": "'YYYY-MM-DD'"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "primary"
+    },
+    "pickMode": {
+     "name": "pickMode",
+     "mode": "plain",
+     "value": "single"
+    },
+    "from": {
+     "name": "from",
+     "mode": "script",
+     "value": "undefined"
+    },
+    "to": {
+     "name": "to",
+     "mode": "script",
+     "value": "undefined"
+    },
+    "showToggleButtons": {
+     "name": "showToggleButtons",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showMonthPicker": {
+     "name": "showMonthPicker",
+     "mode": "plain",
+     "value": "false"
+    },
+    "defaultTitle": {
+     "name": "defaultTitle",
+     "mode": "plain",
+     "value": ""
+    },
+    "defaultSubtitle": {
+     "name": "defaultSubtitle",
+     "mode": "plain",
+     "value": ""
+    },
+    "disableWeeks": {
+     "name": "disableWeeks",
+     "mode": "script",
+     "value": "[]"
+    },
+    "monthFormat": {
+     "name": "monthFormat",
+     "mode": "plain",
+     "value": "MMM YYYY"
+    },
+    "monthPickerFormat": {
+     "name": "monthPickerFormat",
+     "mode": "script",
+     "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
+    },
+    "weekdays": {
+     "name": "weekdays",
+     "mode": "script",
+     "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+    },
+    "weekStart": {
+     "name": "weekStart",
+     "mode": "plain",
+     "value": 0
+    },
+    "daysConfig": {
+     "name": "daysConfig",
+     "mode": "script",
+     "value": "[]"
+    },
+    "options": {
+     "name": "options",
+     "mode": "script",
+     "value": "{pickMode: $[pickMode], from: $[from], to: $[to], color: $[IonColor], showToggleButtons: $[showToggleButtons], showMonthPicker: $[showMonthPicker], monthPickerFormat: $[monthPickerFormat], defaultTitle: $[defaultTitle], defaultSubtitle: $[defaultSubtitle], disableWeeks: $[disableWeeks], monthFormat: $[monthFormat], weekdays: $[weekdays], weekStart: $[weekStart], daysConfig: $[daysConfig] }"
+    }
+   }
+  }
+ },
+ "CalendarPickerAction": {
+  "   7   9   0": {
+   "name": "CalendarPickerAction",
+   "properties": {
+    "defaultDate": {
+     "name": "defaultDate",
+     "mode": "script",
+     "value": "Date()"
+    },
+    "defaultDates": {
+     "name": "defaultDates",
+     "mode": "script",
+     "value": "[Date(),Date()]"
+    },
+    "defaultDateRange": {
+     "name": "defaultDateRange",
+     "mode": "script",
+     "value": "{from: Date(), to: Date()}"
+    },
+    "from": {
+     "name": "from",
+     "mode": "plain",
+     "value": false
+    },
+    "to": {
+     "name": "to",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "primary"
+    },
+    "pickMode": {
+     "name": "pickMode",
+     "mode": "plain",
+     "value": "single"
+    },
+    "closeLabel": {
+     "name": "closeLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "doneLabel": {
+     "name": "doneLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "canBackwardsSelected": {
+     "name": "canBackwardsSelected",
+     "mode": "plain",
+     "value": "false"
+    },
+    "closeIcon": {
+     "name": "closeIcon",
+     "mode": "plain",
+     "value": "false"
+    },
+    "doneIcon": {
+     "name": "doneIcon",
+     "mode": "plain",
+     "value": "false"
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "defaultTitle": {
+     "name": "defaultTitle",
+     "mode": "plain",
+     "value": false
+    },
+    "defaultSubtitle": {
+     "name": "defaultSubtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "disableWeeks": {
+     "name": "disableWeeks",
+     "mode": "script",
+     "value": "[]"
+    },
+    "monthFormat": {
+     "name": "monthFormat",
+     "mode": "plain",
+     "value": "MMM YYYY"
+    },
+    "weekdays": {
+     "name": "weekdays",
+     "mode": "script",
+     "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+    },
+    "weekStart": {
+     "name": "weekStart",
+     "mode": "plain",
+     "value": 0
+    },
+    "daysConfig": {
+     "name": "daysConfig",
+     "mode": "script",
+     "value": "[]"
+    }
+   }
+  }
+ },
+ "CallFullSyncAction": {
+  "   7   9   0": {
+   "name": "CallFullSyncAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "verb": {
+     "name": "verb",
+     "mode": "plain",
+     "value": "get"
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "CallSequenceAction": {
+  "   7   9   0": {
+   "name": "CallSequenceAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "cachePolicy": {
+     "name": "cachePolicy",
+     "mode": "plain",
+     "value": false
+    },
+    "cacheTtl": {
+     "name": "cacheTtl",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "timeout": {
+     "name": "timeout",
+     "mode": "plain",
+     "value": false
+    },
+    "threshold": {
+     "name": "threshold",
+     "mode": "plain",
+     "value": false
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "noAutoLogin": {
+     "name": "noAutoLogin",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "CameraAction": {
+  "   7   9   0": {
+   "name": "CameraAction",
+   "properties": {
+    "quality": {
+     "name": "quality",
+     "mode": "script",
+     "value": 80
+    },
+    "destinationType": {
+     "name": "destinationType",
+     "mode": "plain",
+     "value": "FILE_URL"
+    },
+    "sourceType": {
+     "name": "sourceType",
+     "mode": "plain",
+     "value": "CAMERA"
+    },
+    "allowEdit": {
+     "name": "allowEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "encodingType": {
+     "name": "encodingType",
+     "mode": "plain",
+     "value": "JPEG"
+    },
+    "targetWidth": {
+     "name": "targetWidth",
+     "mode": "script",
+     "value": 800
+    },
+    "targetHeight": {
+     "name": "targetHeight",
+     "mode": "script",
+     "value": 800
+    },
+    "mediaType": {
+     "name": "mediaType",
+     "mode": "plain",
+     "value": false
+    },
+    "correctOrientation": {
+     "name": "correctOrientation",
+     "mode": "plain",
+     "value": "true"
+    },
+    "saveToPhotoAlbum": {
+     "name": "saveToPhotoAlbum",
+     "mode": "plain",
+     "value": "false"
+    },
+    "cameraDirection": {
+     "name": "cameraDirection",
+     "mode": "plain",
+     "value": "BACK"
+    },
+    "x": {
+     "name": "x",
+     "mode": "script",
+     "value": false
+    },
+    "y": {
+     "name": "y",
+     "mode": "script",
+     "value": false
+    },
+    "width": {
+     "name": "width",
+     "mode": "script",
+     "value": false
+    },
+    "height": {
+     "name": "height",
+     "mode": "script",
+     "value": false
+    },
+    "arrowDir": {
+     "name": "arrowDir",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Card": {
+  "   7   9   0": {
+   "name": "Card",
+   "properties": {}
+  }
+ },
+ "CardContent": {
+  "   7   9   0": {
+   "name": "CardContent",
+   "properties": {}
+  }
+ },
+ "CardHeader": {
+  "   7   9   0": {
+   "name": "CardHeader",
+   "properties": {}
+  }
+ },
+ "Charts": {
+  "   7   9   0": {
+   "name": "Charts",
+   "properties": {
+    "BaseChart": {
+     "name": "BaseChart",
+     "mode": "plain",
+     "value": "baseChart"
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": false
+    },
+    "datasets": {
+     "name": "datasets",
+     "mode": "script",
+     "value": "[{'label': 'My first dataset','data': [0, 10, 5, 2, 20, 30, 45]},{'label': 'My second dataset','data': [15, 45, 10, 20, 65, 38, 88]}]"
+    },
+    "labels": {
+     "name": "labels",
+     "mode": "script",
+     "value": "['January', 'February', 'March', 'April', 'May', 'June', 'July']"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": false
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }"
+    },
+    "Colors": {
+     "name": "Colors",
+     "mode": "script",
+     "value": "[{'backgroundColor': 'rgb(0, 127, 255)','borderColor': 'rgb(0, 0, 255)'},{'backgroundColor': 'rgb(136, 77, 167)','borderColor': 'rgb(102,0, 153)'}]"
+    },
+    "ChartType": {
+     "name": "ChartType",
+     "mode": "plain",
+     "value": "bar"
+    }
+   }
+  }
+ },
+ "CheckBox": {
+  "   7   9   0": {
+   "name": "CheckBox",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CheckInstallAction": {
+  "   7   9   0": {
+   "name": "CheckInstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "ChooserAction": {
+  "   7   9   0": {
+   "name": "ChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    },
+    "mimeType": {
+     "name": "mimeType",
+     "mode": "script",
+     "value": false
+    }
+   }
+  }
+ },
+ "ClearDataSourceAction": {
+  "   7   9   0": {
+   "name": "ClearDataSourceAction",
+   "properties": {
+    "requestables": {
+     "name": "requestables",
+     "mode": "script",
+     "value": "[]"
+    }
+   }
+  }
+ },
+ "CloseLoadingAction": {
+  "   7   9   0": {
+   "name": "CloseLoadingAction",
+   "properties": {}
+  }
+ },
+ "CloseModalAction": {
+  "   7   9   0": {
+   "name": "CloseModalAction",
+   "properties": {}
+  }
+ },
+ "ClosePopoverAction": {
+  "   7   9   0": {
+   "name": "ClosePopoverAction",
+   "properties": {}
+  }
+ },
+ "Content": {
+  "   7   9   0": {
+   "name": "Content",
+   "properties": {
+    "IonPadding": {
+     "name": "IonPadding",
+     "mode": "plain",
+     "value": "padding"
+    },
+    "Fullscreen": {
+     "name": "Fullscreen",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "DateTime": {
+  "   7   9   0": {
+   "name": "DateTime",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "displayFormat": {
+     "name": "displayFormat",
+     "mode": "plain",
+     "value": false
+    },
+    "displayPicker": {
+     "name": "displayPicker",
+     "mode": "plain",
+     "value": false
+    },
+    "monthNames": {
+     "name": "monthNames",
+     "mode": "plain",
+     "value": false
+    },
+    "monthShortNames": {
+     "name": "monthShortNames",
+     "mode": "plain",
+     "value": false
+    },
+    "monthValues": {
+     "name": "monthValues",
+     "mode": "plain",
+     "value": false
+    },
+    "minuteValues": {
+     "name": "minuteValues",
+     "mode": "plain",
+     "value": false
+    },
+    "dayNames": {
+     "name": "dayNames",
+     "mode": "plain",
+     "value": false
+    },
+    "dayShortNames": {
+     "name": "dayShortNames",
+     "mode": "plain",
+     "value": false
+    },
+    "dayValues": {
+     "name": "dayValues",
+     "mode": "plain",
+     "value": false
+    },
+    "hourValues": {
+     "name": "hourValues",
+     "mode": "plain",
+     "value": false
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "min": {
+     "name": "min",
+     "mode": "plain",
+     "value": false
+    },
+    "max": {
+     "name": "max",
+     "mode": "plain",
+     "value": false
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    },
+    "cancelText": {
+     "name": "cancelText",
+     "mode": "plain",
+     "value": false
+    },
+    "doneText": {
+     "name": "doneText",
+     "mode": "plain",
+     "value": false
+    },
+    "pickerOptions": {
+     "name": "pickerOptions",
+     "mode": "plain",
+     "value": false
+    },
+    "yearValues": {
+     "name": "yearValues",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "DivTag": {
+  "   7   9   0": {
+   "name": "DivTag",
+   "properties": {}
+  }
+ },
+ "ErrorAction": {
+  "   7   9   0": {
+   "name": "ErrorAction",
+   "properties": {
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some error"
+    }
+   }
+  }
+ },
+ "FSImage": {
+  "   7   9   0": {
+   "name": "FSImage",
+   "properties": {
+    "url": {
+     "name": "url",
+     "mode": "script",
+     "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "attachment": {
+     "name": "attachment",
+     "mode": "plain",
+     "value": false
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "alt": {
+     "name": "alt",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FabButton": {
+  "   7   9   0": {
+   "name": "FabButton",
+   "properties": {
+    "ButtonType": {
+     "name": "ButtonType",
+     "mode": "plain",
+     "value": "ion-fab"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Size": {
+     "name": "Size",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FabContainer": {
+  "   7   9   0": {
+   "name": "FabContainer",
+   "properties": {
+    "HorzPosition": {
+     "name": "HorzPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "VertPosition": {
+     "name": "VertPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "Edge": {
+     "name": "Edge",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FabList": {
+  "   7   9   0": {
+   "name": "FabList",
+   "properties": {
+    "side": {
+     "name": "side",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FileChooserAction": {
+  "   7   9   0": {
+   "name": "FileChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    }
+   }
+  }
+ },
+ "FileOpenerAction": {
+  "   7   9   0": {
+   "name": "FileOpenerAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "filePath": {
+     "name": "filePath",
+     "mode": "plain",
+     "value": true
+    }
+   }
+  }
+ },
+ "Footer": {
+  "   7   9   0": {
+   "name": "Footer",
+   "properties": {}
+  }
+ },
+ "FormItem": {
+  "   7   9   0": {
+   "name": "FormItem",
+   "properties": {
+    "ItemPosition": {
+     "name": "ItemPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncDeleteAction": {
+  "   7   9   0": {
+   "name": "FullSyncDeleteAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "rev": {
+     "name": "rev",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncDeleteAttachmentAction": {
+  "   7   9   0": {
+   "name": "FullSyncDeleteAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncGetAction": {
+  "   7   9   0": {
+   "name": "FullSyncGetAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncPostAction": {
+  "   7   9   0": {
+   "name": "FullSyncPostAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "_use_policy": {
+     "name": "_use_policy",
+     "mode": "plain",
+     "value": "override"
+    },
+    "RootKey": {
+     "name": "RootKey",
+     "mode": "plain",
+     "value": false
+    },
+    "c8oGrp": {
+     "name": "c8oGrp",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncPutAttachmentAction": {
+  "   7   9   0": {
+   "name": "FullSyncPutAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    },
+    "content_type": {
+     "name": "content_type",
+     "mode": "plain",
+     "value": false
+    },
+    "content": {
+     "name": "content",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncSyncAction": {
+  "   7   9   0": {
+   "name": "FullSyncSyncAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "Direction": {
+     "name": "Direction",
+     "mode": "plain",
+     "value": "bi-directional"
+    },
+    "Mode": {
+     "name": "Mode",
+     "mode": "plain",
+     "value": "continuous"
+    },
+    "Retry": {
+     "name": "Retry",
+     "mode": "plain",
+     "value": "true"
+    },
+    "BatchSize": {
+     "name": "BatchSize",
+     "mode": "script",
+     "value": "100"
+    },
+    "BatchesLimit": {
+     "name": "BatchesLimit",
+     "mode": "script",
+     "value": "10"
+    }
+   }
+  }
+ },
+ "FullSyncViewAction": {
+  "   7   9   0": {
+   "name": "FullSyncViewAction",
+   "properties": {
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "fsview": {
+     "name": "fsview",
+     "mode": "plain",
+     "value": ""
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    },
+    "include_docs": {
+     "name": "include_docs",
+     "mode": "plain",
+     "value": "false"
+    },
+    "conflicts": {
+     "name": "conflicts",
+     "mode": "plain",
+     "value": false
+    },
+    "reduce": {
+     "name": "reduce",
+     "mode": "plain",
+     "value": "false"
+    },
+    "attachments": {
+     "name": "attachments",
+     "mode": "plain",
+     "value": false
+    },
+    "binary": {
+     "name": "binary",
+     "mode": "plain",
+     "value": false
+    },
+    "startkey": {
+     "name": "startkey",
+     "mode": "plain",
+     "value": false
+    },
+    "endkey": {
+     "name": "endkey",
+     "mode": "plain",
+     "value": false
+    },
+    "inclusive_end": {
+     "name": "inclusive_end",
+     "mode": "plain",
+     "value": false
+    },
+    "limit": {
+     "name": "limit",
+     "mode": "script",
+     "value": "500"
+    },
+    "skip": {
+     "name": "skip",
+     "mode": "script",
+     "value": false
+    },
+    "descending": {
+     "name": "descending",
+     "mode": "plain",
+     "value": false
+    },
+    "key": {
+     "name": "key",
+     "mode": "plain",
+     "value": false
+    },
+    "keys": {
+     "name": "keys",
+     "mode": "plain",
+     "value": false
+    },
+    "group": {
+     "name": "group",
+     "mode": "plain",
+     "value": false
+    },
+    "group_level": {
+     "name": "group_level",
+     "mode": "plain",
+     "value": false
+    },
+    "stale": {
+     "name": "stale",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "GenericItem": {
+  "   7   9   0": {
+   "name": "GenericItem",
+   "properties": {
+    "ItemPosition": {
+     "name": "ItemPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "GoogleMap": {
+  "   7   9   0": {
+   "name": "GoogleMap",
+   "properties": {
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "script",
+     "value": "'100%'"
+    },
+    "Zoom": {
+     "name": "Zoom",
+     "mode": "script",
+     "value": "12"
+    }
+   }
+  }
+ },
+ "GooglePlusLoginAction": {
+  "   7   9   0": {
+   "name": "GooglePlusLoginAction",
+   "properties": {
+    "mockedResponseE": {
+     "name": "mockedResponseE",
+     "mode": "plain",
+     "value": "user@convertigo.com"
+    },
+    "mockedResponseU": {
+     "name": "mockedResponseU",
+     "mode": "plain",
+     "value": "my_id"
+    },
+    "mockedResponseD": {
+     "name": "mockedResponseD",
+     "mode": "plain",
+     "value": "John Doe"
+    },
+    "mockedResponseF": {
+     "name": "mockedResponseF",
+     "mode": "plain",
+     "value": "Doe"
+    },
+    "mockedResponseG": {
+     "name": "mockedResponseG",
+     "mode": "plain",
+     "value": "John"
+    },
+    "mockedResponseImg": {
+     "name": "mockedResponseImg",
+     "mode": "plain",
+     "value": "http:\/\/saffroninteractive.com\/wp-content\/uploads\/2017\/10\/empty-avatar2.png"
+    },
+    "mockedResponseId": {
+     "name": "mockedResponseId",
+     "mode": "plain",
+     "value": "my_id_token"
+    },
+    "mockedResponseS": {
+     "name": "mockedResponseS",
+     "mode": "plain",
+     "value": "12"
+    },
+    "mockedResponseA": {
+     "name": "mockedResponseA",
+     "mode": "plain",
+     "value": "my_access_token"
+    },
+    "mockedResponseLogout": {
+     "name": "mockedResponseLogout",
+     "mode": "plain",
+     "value": "true"
+    },
+    "actionGoogle": {
+     "name": "actionGoogle",
+     "mode": "plain",
+     "value": "Login"
+    },
+    "webClientId": {
+     "name": "webClientId",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Grid": {
+  "   7   9   0": {
+   "name": "Grid",
+   "properties": {
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": false
+    },
+    "NoPadding": {
+     "name": "NoPadding",
+     "mode": "plain",
+     "value": false
+    },
+    "Fixed": {
+     "name": "Fixed",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "GridCol": {
+  "   7   9   0": {
+   "name": "GridCol",
+   "properties": {
+    "AlignItemsStart": {
+     "name": "AlignItemsStart",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsCenter": {
+     "name": "AlignItemsCenter",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsEnd": {
+     "name": "AlignItemsEnd",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsStrech": {
+     "name": "AlignItemsStrech",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsBaseline": {
+     "name": "AlignItemsBaseline",
+     "mode": "plain",
+     "value": false
+    },
+    "Columns": {
+     "name": "Columns",
+     "mode": "plain",
+     "value": false
+    },
+    "ColumnsXSmall": {
+     "name": "ColumnsXSmall",
+     "mode": "plain",
+     "value": false
+    },
+    "ColumnsSmall": {
+     "name": "ColumnsSmall",
+     "mode": "plain",
+     "value": false
+    },
+    "ColumnsMedium": {
+     "name": "ColumnsMedium",
+     "mode": "plain",
+     "value": false
+    },
+    "ColumnsLarge": {
+     "name": "ColumnsLarge",
+     "mode": "plain",
+     "value": false
+    },
+    "ColumnsXLarge": {
+     "name": "ColumnsXLarge",
+     "mode": "plain",
+     "value": false
+    },
+    "Offset": {
+     "name": "Offset",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetXSmall": {
+     "name": "OffsetXSmall",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetSmall": {
+     "name": "OffsetSmall",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetMedium": {
+     "name": "OffsetMedium",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetLarge": {
+     "name": "OffsetLarge",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetXLarge": {
+     "name": "OffsetXLarge",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "GridRow": {
+  "   7   9   0": {
+   "name": "GridRow",
+   "properties": {
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": false
+    },
+    "Nowrap": {
+     "name": "Nowrap",
+     "mode": "plain",
+     "value": false
+    },
+    "WrapReverse": {
+     "name": "WrapReverse",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsStart": {
+     "name": "AlignItemsStart",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsCenter": {
+     "name": "AlignItemsCenter",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsEnd": {
+     "name": "AlignItemsEnd",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsStrech": {
+     "name": "AlignItemsStrech",
+     "mode": "plain",
+     "value": false
+    },
+    "AlignItemsBaseline": {
+     "name": "AlignItemsBaseline",
+     "mode": "plain",
+     "value": false
+    },
+    "JustifyContentStart": {
+     "name": "JustifyContentStart",
+     "mode": "plain",
+     "value": false
+    },
+    "JustifyContentCenter": {
+     "name": "JustifyContentCenter",
+     "mode": "plain",
+     "value": false
+    },
+    "JustifyContentEnd": {
+     "name": "JustifyContentEnd",
+     "mode": "plain",
+     "value": false
+    },
+    "JustifyContentAround": {
+     "name": "JustifyContentAround",
+     "mode": "plain",
+     "value": false
+    },
+    "JustifyContentBeteween": {
+     "name": "JustifyContentBeteween",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Header": {
+  "   7   9   0": {
+   "name": "Header",
+   "properties": {
+    "NoBorder": {
+     "name": "NoBorder",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Heading": {
+  "   7   9   0": {
+   "name": "Heading",
+   "properties": {
+    "ionText": {
+     "name": "ionText",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Heading1": {
+  "   7   9   0": {
+   "name": "Heading1",
+   "properties": {
+    "ionText": {
+     "name": "ionText",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Heading2": {
+  "   7   9   0": {
+   "name": "Heading2",
+   "properties": {
+    "ionText": {
+     "name": "ionText",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Heading3": {
+  "   7   9   0": {
+   "name": "Heading3",
+   "properties": {
+    "ionText": {
+     "name": "ionText",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Heading4": {
+  "   7   9   0": {
+   "name": "Heading4",
+   "properties": {
+    "ionText": {
+     "name": "ionText",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Heading5": {
+  "   7   9   0": {
+   "name": "Heading5",
+   "properties": {
+    "ionText": {
+     "name": "ionText",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Heading6": {
+  "   7   9   0": {
+   "name": "Heading6",
+   "properties": {
+    "ionText": {
+     "name": "ionText",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Icon": {
+  "   7   9   0": {
+   "name": "Icon",
+   "properties": {
+    "IconName": {
+     "name": "IconName",
+     "mode": "plain",
+     "value": "add"
+    },
+    "ItemPosition": {
+     "name": "ItemPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "RangeLeft": {
+     "name": "RangeLeft",
+     "mode": "plain",
+     "value": false
+    },
+    "RangeRight": {
+     "name": "RangeRight",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "IfAction": {
+  "   7   9   0": {
+   "name": "IfAction",
+   "properties": {
+    "condition": {
+     "name": "condition",
+     "mode": "script",
+     "value": "parent.out"
+    },
+    "negate": {
+     "name": "negate",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "IfElseAction": {
+  "   7   9   0": {
+   "name": "IfElseAction",
+   "properties": {
+    "condition": {
+     "name": "condition",
+     "mode": "script",
+     "value": "parent.out"
+    },
+    "negate": {
+     "name": "negate",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Image": {
+  "   7   9   0": {
+   "name": "Image",
+   "properties": {
+    "url": {
+     "name": "url",
+     "mode": "script",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "alt": {
+     "name": "alt",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "InfiniteScroll": {
+  "   7   9   0": {
+   "name": "InfiniteScroll",
+   "properties": {
+    "Enabled": {
+     "name": "Enabled",
+     "mode": "plain",
+     "value": "true"
+    },
+    "Position": {
+     "name": "Position",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "Threshold": {
+     "name": "Threshold",
+     "mode": "plain",
+     "value": "15%"
+    }
+   }
+  }
+ },
+ "InfiniteScrollContent": {
+  "   7   9   0": {
+   "name": "InfiniteScrollContent",
+   "properties": {
+    "LoadingSpinner": {
+     "name": "LoadingSpinner",
+     "mode": "plain",
+     "value": "bubbles"
+    },
+    "LoadingText": {
+     "name": "LoadingText",
+     "mode": "plain",
+     "value": "Loading more data..."
+    }
+   }
+  }
+ },
+ "Input": {
+  "   7   9   0": {
+   "name": "Input",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "ClearInput": {
+     "name": "ClearInput",
+     "mode": "plain",
+     "value": false
+    },
+    "ClearOnEdit": {
+     "name": "ClearOnEdit",
+     "mode": "plain",
+     "value": false
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": false
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": false
+    },
+    "Mode": {
+     "name": "Mode",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": false
+    },
+    "Step": {
+     "name": "Step",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlign": {
+     "name": "TextAlign",
+     "mode": "plain",
+     "value": false
+    },
+    "Type": {
+     "name": "Type",
+     "mode": "plain",
+     "value": false
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "InvokeAction": {
+  "   7   9   0": {
+   "name": "InvokeAction",
+   "properties": {}
+  }
+ },
+ "IterateAction": {
+  "   7   9   0": {
+   "name": "IterateAction",
+   "properties": {
+    "items": {
+     "name": "items",
+     "mode": "script",
+     "value": "[]"
+    }
+   }
+  }
+ },
+ "Label": {
+  "   7   9   0": {
+   "name": "Label",
+   "properties": {
+    "Fixed": {
+     "name": "Fixed",
+     "mode": "plain",
+     "value": false
+    },
+    "Floating": {
+     "name": "Floating",
+     "mode": "plain",
+     "value": false
+    },
+    "Stacked": {
+     "name": "Stacked",
+     "mode": "plain",
+     "value": false
+    },
+    "RangeLeft": {
+     "name": "RangeLeft",
+     "mode": "plain",
+     "value": false
+    },
+    "RangeRight": {
+     "name": "RangeRight",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "List": {
+  "   7   9   0": {
+   "name": "List",
+   "properties": {
+    "Nolines": {
+     "name": "Nolines",
+     "mode": "plain",
+     "value": false
+    },
+    "Inset": {
+     "name": "Inset",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ListItem": {
+  "   7   9   0": {
+   "name": "ListItem",
+   "properties": {
+    "ItemPosition": {
+     "name": "ItemPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Listdivider": {
+  "   7   9   0": {
+   "name": "Listdivider",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Listgroup": {
+  "   7   9   0": {
+   "name": "Listgroup",
+   "properties": {}
+  }
+ },
+ "Listheader": {
+  "   7   9   0": {
+   "name": "Listheader",
+   "properties": {}
+  }
+ },
+ "LogAction": {
+  "   7   9   0": {
+   "name": "LogAction",
+   "properties": {
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some log"
+    },
+    "level": {
+     "name": "level",
+     "mode": "plain",
+     "value": "info"
+    }
+   }
+  }
+ },
+ "MapCircle": {
+  "   7   9   0": {
+   "name": "MapCircle",
+   "properties": {
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Radius": {
+     "name": "Radius",
+     "mode": "script",
+     "value": "3000"
+    },
+    "Draggable": {
+     "name": "Draggable",
+     "mode": "script",
+     "value": "false"
+    },
+    "Clickable": {
+     "name": "Clickable",
+     "mode": "script",
+     "value": "true"
+    },
+    "FillColor": {
+     "name": "FillColor",
+     "mode": "script",
+     "value": "'#004de8'"
+    },
+    "FillOpacity": {
+     "name": "FillOpacity",
+     "mode": "script",
+     "value": "0.15"
+    },
+    "StrokeColor": {
+     "name": "StrokeColor",
+     "mode": "script",
+     "value": "'#004de8'"
+    },
+    "StrokePosition": {
+     "name": "StrokePosition",
+     "mode": "script",
+     "value": "0"
+    },
+    "StrokeOpacity": {
+     "name": "StrokeOpacity",
+     "mode": "script",
+     "value": "0.60"
+    },
+    "StrokeWeight": {
+     "name": "StrokeWeight",
+     "mode": "script",
+     "value": "1"
+    },
+    "Visible": {
+     "name": "Visible",
+     "mode": "script",
+     "value": "true"
+    }
+   }
+  }
+ },
+ "MapInfoWindow": {
+  "   7   9   0": {
+   "name": "MapInfoWindow",
+   "properties": {}
+  }
+ },
+ "MapMarker": {
+  "   7   9   0": {
+   "name": "MapMarker",
+   "properties": {
+    "IconUrl": {
+     "name": "IconUrl",
+     "mode": "script",
+     "value": "''"
+    },
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Title": {
+     "name": "Title",
+     "mode": "script",
+     "value": "'Convertigo'"
+    }
+   }
+  }
+ },
+ "Menu": {
+  "   7   9   0": {
+   "name": "Menu",
+   "properties": {
+    "MenuType": {
+     "name": "MenuType",
+     "mode": "plain",
+     "value": false
+    },
+    "MenuSide": {
+     "name": "MenuSide",
+     "mode": "plain",
+     "value": false
+    },
+    "MenuPersistent": {
+     "name": "MenuPersistent",
+     "mode": "plain",
+     "value": false
+    },
+    "MenuSwipeEnabled": {
+     "name": "MenuSwipeEnabled",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "MenuAutoItems": {
+  "   7   9   0": {
+   "name": "MenuAutoItems",
+   "properties": {}
+  }
+ },
+ "MenuItem": {
+  "   7   9   0": {
+   "name": "MenuItem",
+   "properties": {}
+  }
+ },
+ "ModalAction": {
+  "   7   9   0": {
+   "name": "ModalAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "blockWhileDisplayed": {
+     "name": "blockWhileDisplayed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "NavBar": {
+  "   7   9   0": {
+   "name": "NavBar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "BarMode": {
+     "name": "BarMode",
+     "mode": "plain",
+     "value": false
+    },
+    "BackButtonHidden": {
+     "name": "BackButtonHidden",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "OAuthLoginAction": {
+  "   7   9   0": {
+   "name": "OAuthLoginAction",
+   "properties": {
+    "provider": {
+     "name": "provider",
+     "mode": "plain",
+     "value": "azure"
+    },
+    "clientid": {
+     "name": "clientid",
+     "mode": "plain",
+     "value": false
+    },
+    "tenantid": {
+     "name": "tenantid",
+     "mode": "plain",
+     "value": false
+    },
+    "scope": {
+     "name": "scope",
+     "mode": "plain",
+     "value": false
+    },
+    "response_type": {
+     "name": "response_type",
+     "mode": "plain",
+     "value": false
+    },
+    "loginRequestable": {
+     "name": "loginRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "checkAccessTokenRequestable": {
+     "name": "checkAccessTokenRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "authorization_endpoint": {
+     "name": "authorization_endpoint",
+     "mode": "plain",
+     "value": false
+    },
+    "callbackurl": {
+     "name": "callbackurl",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Option": {
+  "   7   9   0": {
+   "name": "Option",
+   "properties": {
+    "value": {
+     "name": "value",
+     "mode": "plain",
+     "value": false
+    },
+    "disabled": {
+     "name": "disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "selected": {
+     "name": "selected",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Paragraph": {
+  "   7   9   0": {
+   "name": "Paragraph",
+   "properties": {}
+  }
+ },
+ "PauseAction": {
+  "   7   9   0": {
+   "name": "PauseAction",
+   "properties": {
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "1000"
+    }
+   }
+  }
+ },
+ "PopPageAction": {
+  "   7   9   0": {
+   "name": "PopPageAction",
+   "properties": {}
+  }
+ },
+ "PopoverAction": {
+  "   7   9   0": {
+   "name": "PopoverAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "event": {
+     "name": "event",
+     "mode": "script",
+     "value": "(event == undefined ? $event : event)"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ProgressBar": {
+  "   7   9   0": {
+   "name": "ProgressBar",
+   "properties": {
+    "progress": {
+     "name": "progress",
+     "mode": "script",
+     "value": "0"
+    },
+    "color": {
+     "name": "color",
+     "mode": "script",
+     "value": "'#488aff'"
+    }
+   }
+  }
+ },
+ "PublishEventAction": {
+  "   7   9   0": {
+   "name": "PublishEventAction",
+   "properties": {
+    "topic": {
+     "name": "topic",
+     "mode": "plain",
+     "value": false
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": false
+    }
+   }
+  }
+ },
+ "PushPageAction": {
+  "   7   9   0": {
+   "name": "PushPageAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "animate": {
+     "name": "animate",
+     "mode": "plain",
+     "value": "true"
+    },
+    "animate_duration": {
+     "name": "animate_duration",
+     "mode": "script",
+     "value": "250"
+    }
+   }
+  }
+ },
+ "RadioButton": {
+  "   7   9   0": {
+   "name": "RadioButton",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "RadioList": {
+  "   7   9   0": {
+   "name": "RadioList",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "ListType": {
+     "name": "ListType",
+     "mode": "plain",
+     "value": "radio-group"
+    },
+    "DefaultValue": {
+     "name": "DefaultValue",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Range": {
+  "   7   9   0": {
+   "name": "Range",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "DefaultValue": {
+     "name": "DefaultValue",
+     "mode": "plain",
+     "value": false
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": false
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": false
+    },
+    "Step": {
+     "name": "Step",
+     "mode": "plain",
+     "value": false
+    },
+    "Debounce": {
+     "name": "Debounce",
+     "mode": "plain",
+     "value": false
+    },
+    "Pin": {
+     "name": "Pin",
+     "mode": "plain",
+     "value": false
+    },
+    "Snaps": {
+     "name": "Snaps",
+     "mode": "plain",
+     "value": false
+    },
+    "DualKnobs": {
+     "name": "DualKnobs",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Refresher": {
+  "   7   9   0": {
+   "name": "Refresher",
+   "properties": {}
+  }
+ },
+ "RefresherContent": {
+  "   7   9   0": {
+   "name": "RefresherContent",
+   "properties": {
+    "closeDuration": {
+     "name": "closeDuration",
+     "mode": "plain",
+     "value": 280
+    },
+    "enabled": {
+     "name": "enabled",
+     "mode": "plain",
+     "value": true
+    },
+    "pullMax": {
+     "name": "pullMax",
+     "mode": "plain",
+     "value": false
+    },
+    "pullMin": {
+     "name": "pullMin",
+     "mode": "plain",
+     "value": 60
+    },
+    "snapbackDuration": {
+     "name": "snapbackDuration",
+     "mode": "plain",
+     "value": 280
+    }
+   }
+  }
+ },
+ "ResetButton": {
+  "   7   9   0": {
+   "name": "ResetButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "reset"
+    },
+    "ButtonType": {
+     "name": "ButtonType",
+     "mode": "plain",
+     "value": "ion-button"
+    },
+    "MenuMode": {
+     "name": "MenuMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonShape": {
+     "name": "IonShape",
+     "mode": "plain",
+     "value": false
+    },
+    "IonOutline": {
+     "name": "IonOutline",
+     "mode": "plain",
+     "value": false
+    },
+    "IonClear": {
+     "name": "IonClear",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    },
+    "IconPosition": {
+     "name": "IconPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "IconOnly": {
+     "name": "IconOnly",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "RootPageAction": {
+  "   7   9   0": {
+   "name": "RootPageAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "animate": {
+     "name": "animate",
+     "mode": "plain",
+     "value": "true"
+    },
+    "animate_duration": {
+     "name": "animate_duration",
+     "mode": "script",
+     "value": "250"
+    }
+   }
+  }
+ },
+ "Scroll": {
+  "   7   9   0": {
+   "name": "Scroll",
+   "properties": {
+    "ScrollX": {
+     "name": "ScrollX",
+     "mode": "plain",
+     "value": false
+    },
+    "ScrollY": {
+     "name": "ScrollY",
+     "mode": "plain",
+     "value": false
+    },
+    "Zoom": {
+     "name": "Zoom",
+     "mode": "plain",
+     "value": false
+    },
+    "MaxZoom": {
+     "name": "MaxZoom",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Searchbar": {
+  "   7   9   0": {
+   "name": "Searchbar",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": false
+    },
+    "autocomplete": {
+     "name": "autocomplete",
+     "mode": "plain",
+     "value": "off"
+    },
+    "autocorrect": {
+     "name": "autocorrect",
+     "mode": "plain",
+     "value": "off"
+    },
+    "cancelButtonText": {
+     "name": "cancelButtonText",
+     "mode": "plain",
+     "value": "Cancel"
+    },
+    "debounce": {
+     "name": "debounce",
+     "mode": "plain",
+     "value": "250"
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": "Search"
+    },
+    "showCancelButton": {
+     "name": "showCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "spellcheck": {
+     "name": "spellcheck",
+     "mode": "plain",
+     "value": "false"
+    },
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": "search"
+    }
+   }
+  }
+ },
+ "Segment": {
+  "   7   9   0": {
+   "name": "Segment",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Name": {
+     "name": "Name",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SegmentButton": {
+  "   7   9   0": {
+   "name": "SegmentButton",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Name": {
+     "name": "Name",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "Select": {
+  "   7   9   0": {
+   "name": "Select",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "DefaultValue": {
+     "name": "DefaultValue",
+     "mode": "plain",
+     "value": false
+    },
+    "interface": {
+     "name": "interface",
+     "mode": "plain",
+     "value": false
+    },
+    "cancelText": {
+     "name": "cancelText",
+     "mode": "plain",
+     "value": false
+    },
+    "okText": {
+     "name": "okText",
+     "mode": "plain",
+     "value": false
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "selectedText": {
+     "name": "selectedText",
+     "mode": "plain",
+     "value": false
+    },
+    "multiple": {
+     "name": "multiple",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SetGlobalAction": {
+  "   7   9   0": {
+   "name": "SetGlobalAction",
+   "properties": {
+    "Property": {
+     "name": "Property",
+     "mode": "plain",
+     "value": "myProperty"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "script",
+     "value": ""
+    }
+   }
+  }
+ },
+ "ShowLoadingAction": {
+  "   7   9   0": {
+   "name": "ShowLoadingAction",
+   "properties": {
+    "content": {
+     "name": "content",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "SignatureComponent": {
+  "   7   9   0": {
+   "name": "SignatureComponent",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "DotSize": {
+     "name": "DotSize",
+     "mode": "plain",
+     "value": false
+    },
+    "LineMinWidth": {
+     "name": "LineMinWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "LineMaxWidth": {
+     "name": "LineMaxWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "CanvasWidth": {
+     "name": "CanvasWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "CanvasHeight": {
+     "name": "CanvasHeight",
+     "mode": "plain",
+     "value": false
+    },
+    "Throttle": {
+     "name": "Throttle",
+     "mode": "plain",
+     "value": false
+    },
+    "VelocityFilterWeight": {
+     "name": "VelocityFilterWeight",
+     "mode": "plain",
+     "value": false
+    },
+    "BackgroundColor": {
+     "name": "BackgroundColor",
+     "mode": "plain",
+     "value": false
+    },
+    "PenColor": {
+     "name": "PenColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{dotSize: $[DotSize], minWidth: $[LineMinWidth], maxWidth: $[LineMaxWidth], canvasWidth: $[CanvasWidth], canvasHeight: $[CanvasHeight], throttle: $[Throttle], backgroundColor: $[BackgroundColor], penColor: $[PenColor], velocityFilterWeight: $[VelocityFilterWeight]}"
+    }
+   }
+  }
+ },
+ "Slide": {
+  "   7   9   0": {
+   "name": "Slide",
+   "properties": {}
+  }
+ },
+ "Slides": {
+  "   7   9   0": {
+   "name": "Slides",
+   "properties": {
+    "AutoPlay": {
+     "name": "AutoPlay",
+     "mode": "plain",
+     "value": false
+    },
+    "Direction": {
+     "name": "Direction",
+     "mode": "plain",
+     "value": "horizontal"
+    },
+    "Pager": {
+     "name": "Pager",
+     "mode": "plain",
+     "value": "true"
+    },
+    "PaginationType": {
+     "name": "PaginationType",
+     "mode": "plain",
+     "value": "bullets"
+    },
+    "parallax": {
+     "name": "parallax",
+     "mode": "plain",
+     "value": "false"
+    },
+    "SlidesPerView": {
+     "name": "SlidesPerView",
+     "mode": "plain",
+     "value": "1"
+    },
+    "SpaceBetween": {
+     "name": "SpaceBetween",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Speed": {
+     "name": "Speed",
+     "mode": "plain",
+     "value": "300"
+    },
+    "Zoom": {
+     "name": "Zoom",
+     "mode": "plain",
+     "value": "false"
+    },
+    "InitialSlide": {
+     "name": "InitialSlide",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Effect": {
+     "name": "Effect",
+     "mode": "plain",
+     "value": "slide"
+    },
+    "Loop": {
+     "name": "Loop",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Sliding": {
+  "   7   9   0": {
+   "name": "Sliding",
+   "properties": {}
+  }
+ },
+ "SlidingOption": {
+  "   7   9   0": {
+   "name": "SlidingOption",
+   "properties": {
+    "side": {
+     "name": "side",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SlidingTab": {
+  "   7   9   0": {
+   "name": "SlidingTab",
+   "properties": {
+    "Title": {
+     "name": "Title",
+     "mode": "plain",
+     "value": "Tab"
+    },
+    "Icon": {
+     "name": "Icon",
+     "mode": "plain",
+     "value": false
+    },
+    "Badge": {
+     "name": "Badge",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SlidingTabs": {
+  "   7   9   0": {
+   "name": "SlidingTabs",
+   "properties": {
+    "SelectedTabIndex": {
+     "name": "SelectedTabIndex",
+     "mode": "script",
+     "value": "0"
+    },
+    "ToolbarBackground": {
+     "name": "ToolbarBackground",
+     "mode": "plain",
+     "value": false
+    },
+    "ToolbarColor": {
+     "name": "ToolbarColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IndicatorColor": {
+     "name": "IndicatorColor",
+     "mode": "plain",
+     "value": false
+    },
+    "BadgeColor": {
+     "name": "BadgeColor",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsPlacement": {
+     "name": "TabsPlacement",
+     "mode": "plain",
+     "value": false
+    },
+    "scrollTabs": {
+     "name": "scrollTabs",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SpanTag": {
+  "   7   9   0": {
+   "name": "SpanTag",
+   "properties": {}
+  }
+ },
+ "SpeechToTextAction": {
+  "   7   9   0": {
+   "name": "SpeechToTextAction",
+   "properties": {
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "matches": {
+     "name": "matches",
+     "mode": "plain",
+     "value": false
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "showPopup": {
+     "name": "showPopup",
+     "mode": "plain",
+     "value": "true"
+    },
+    "showPartial": {
+     "name": "showPartial",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Spinner": {
+  "   7   9   0": {
+   "name": "Spinner",
+   "properties": {
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": "ios"
+    },
+    "paused": {
+     "name": "paused",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SubmitButton": {
+  "   7   9   0": {
+   "name": "SubmitButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "submit"
+    },
+    "ButtonType": {
+     "name": "ButtonType",
+     "mode": "plain",
+     "value": "ion-button"
+    },
+    "MenuMode": {
+     "name": "MenuMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonShape": {
+     "name": "IonShape",
+     "mode": "plain",
+     "value": false
+    },
+    "IonOutline": {
+     "name": "IonOutline",
+     "mode": "plain",
+     "value": false
+    },
+    "IonClear": {
+     "name": "IonClear",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    },
+    "IconPosition": {
+     "name": "IconPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "IconOnly": {
+     "name": "IconOnly",
+     "mode": "plain",
+     "value": false
+    },
+    "AutoDisable": {
+     "name": "AutoDisable",
+     "mode": "plain",
+     "value": "true"
+    }
+   }
+  }
+ },
+ "Tab": {
+  "   7   9   0": {
+   "name": "Tab",
+   "properties": {
+    "TabTitle": {
+     "name": "TabTitle",
+     "mode": "plain",
+     "value": "Tab"
+    },
+    "TabBadge": {
+     "name": "TabBadge",
+     "mode": "plain",
+     "value": false
+    },
+    "TabBadgeStyle": {
+     "name": "TabBadgeStyle",
+     "mode": "plain",
+     "value": false
+    },
+    "TabIcon": {
+     "name": "TabIcon",
+     "mode": "plain",
+     "value": "bookmark"
+    }
+   }
+  }
+ },
+ "Tabs": {
+  "   7   9   0": {
+   "name": "Tabs",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "light"
+    },
+    "SelectedIndex": {
+     "name": "SelectedIndex",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsHighlight": {
+     "name": "TabsHighlight",
+     "mode": "plain",
+     "value": "false"
+    },
+    "TabsLayout": {
+     "name": "TabsLayout",
+     "mode": "plain",
+     "value": false
+    },
+    "TabsPlacement": {
+     "name": "TabsPlacement",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TextArea": {
+  "   7   9   0": {
+   "name": "TextArea",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "ClearInput": {
+     "name": "ClearInput",
+     "mode": "plain",
+     "value": false
+    },
+    "ClearOnEdit": {
+     "name": "ClearOnEdit",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": false
+    },
+    "AreaRows": {
+     "name": "AreaRows",
+     "mode": "plain",
+     "value": "3"
+    },
+    "AreaCols": {
+     "name": "AreaCols",
+     "mode": "plain",
+     "value": "40"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TextFormat": {
+  "   7   9   0": {
+   "name": "TextFormat",
+   "properties": {
+    "TextLeft": {
+     "name": "TextLeft",
+     "mode": "plain",
+     "value": false
+    },
+    "TextRight": {
+     "name": "TextRight",
+     "mode": "plain",
+     "value": false
+    },
+    "TextCenter": {
+     "name": "TextCenter",
+     "mode": "plain",
+     "value": false
+    },
+    "TextJustify": {
+     "name": "TextJustify",
+     "mode": "plain",
+     "value": false
+    },
+    "TextWrap": {
+     "name": "TextWrap",
+     "mode": "plain",
+     "value": false
+    },
+    "TextNoWrap": {
+     "name": "TextNoWrap",
+     "mode": "plain",
+     "value": false
+    },
+    "TextUpperCase": {
+     "name": "TextUpperCase",
+     "mode": "plain",
+     "value": false
+    },
+    "TextLowerCase": {
+     "name": "TextLowerCase",
+     "mode": "plain",
+     "value": false
+    },
+    "TextCapitalize": {
+     "name": "TextCapitalize",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TextToSpeechAction": {
+  "   7   9   0": {
+   "name": "TextToSpeechAction",
+   "properties": {
+    "text": {
+     "name": "text",
+     "mode": "plain",
+     "value": false
+    },
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "volume": {
+     "name": "volume",
+     "mode": "script",
+     "value": "1"
+    },
+    "pitch": {
+     "name": "pitch",
+     "mode": "script",
+     "value": "0"
+    },
+    "rate": {
+     "name": "rate",
+     "mode": "script",
+     "value": "1"
+    }
+   }
+  }
+ },
+ "Thumbnail": {
+  "   7   9   0": {
+   "name": "Thumbnail",
+   "properties": {
+    "ItemPosition": {
+     "name": "ItemPosition",
+     "mode": "plain",
+     "value": "item-left"
+    }
+   }
+  }
+ },
+ "ToastAction": {
+  "   7   9   0": {
+   "name": "ToastAction",
+   "properties": {
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some message"
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": false
+    },
+    "showCloseButton": {
+     "name": "showCloseButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "closeButtonText": {
+     "name": "closeButtonText",
+     "mode": "plain",
+     "value": false
+    },
+    "dismissOnPageChange": {
+     "name": "dismissOnPageChange",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Toggle": {
+  "   7   9   0": {
+   "name": "Toggle",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ToolBar": {
+  "   7   9   0": {
+   "name": "ToolBar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "BarMode": {
+     "name": "BarMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Tooltips": {
+  "   7   9   0": {
+   "name": "Tooltips",
+   "properties": {
+    "tooltip": {
+     "name": "tooltip",
+     "mode": "plain",
+     "value": "a tooltip to display"
+    },
+    "navTooltip": {
+     "name": "navTooltip",
+     "mode": "plain",
+     "value": false
+    },
+    "event": {
+     "name": "event",
+     "mode": "plain",
+     "value": "hover"
+    },
+    "arrow": {
+     "name": "arrow",
+     "mode": "plain",
+     "value": "arrow"
+    },
+    "positionH": {
+     "name": "positionH",
+     "mode": "plain",
+     "value": "right"
+    },
+    "positionV": {
+     "name": "positionV",
+     "mode": "plain",
+     "value": "top"
+    },
+    "topOffset": {
+     "name": "topOffset",
+     "mode": "plain",
+     "value": "0"
+    },
+    "leftOffset": {
+     "name": "leftOffset",
+     "mode": "plain",
+     "value": "0"
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "script",
+     "value": "3000"
+    }
+   }
+  }
+ },
+ "TreeviewComponent": {
+  "   7   9   0": {
+   "name": "TreeviewComponent",
+   "properties": {
+    "FormControlName": {
+     "name": "FormControlName",
+     "mode": "plain",
+     "value": false
+    },
+    "treenodes": {
+     "name": "treenodes",
+     "mode": "script",
+     "value": "[{'id': 1,'name': 'root1','children': [{'id': 2,'name': 'child1'}, {'id': 3,'name': 'child2'}]}]"
+    },
+    "displayField": {
+     "name": "displayField",
+     "mode": "plain",
+     "value": "name"
+    },
+    "childrenField": {
+     "name": "childrenField",
+     "mode": "plain",
+     "value": "children"
+    },
+    "hasChildrenField": {
+     "name": "hasChildrenField",
+     "mode": "plain",
+     "value": "hasChildren"
+    },
+    "idField": {
+     "name": "idField",
+     "mode": "plain",
+     "value": "id"
+    },
+    "isExpandedField": {
+     "name": "isExpandedField",
+     "mode": "plain",
+     "value": "expanded"
+    },
+    "RTL": {
+     "name": "RTL",
+     "mode": "plain",
+     "value": "false"
+    },
+    "scrollOnSelect": {
+     "name": "scrollOnSelect",
+     "mode": "plain",
+     "value": "true"
+    },
+    "useCheckbox": {
+     "name": "useCheckbox",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{childrenField: $[childrenField], displayField: $[displayField], idField:$[idField], hasChildrenField:$[hasChildrenField], isExpandedField:$[isExpandedField], rtl:$[RTL], scrollOnSelect:$[scrollOnSelect], useCheckbox:$[useCheckbox]}"
+    }
+   }
+  }
+ },
+ "UninstallAction": {
+  "   7   9   0": {
+   "name": "UninstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "Video": {
+  "   7   9   0": {
+   "name": "Video",
+   "properties": {
+    "src": {
+     "name": "src",
+     "mode": "script",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "control": {
+     "name": "control",
+     "mode": "plain",
+     "value": false
+    },
+    "autoplay": {
+     "name": "autoplay",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ }
+}
