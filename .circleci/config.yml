@@ -449,10 +449,7 @@ jobs:
         name: Download JDKs
         command: |
           if [ ! -d /tmp/c8o_jre ] ; then
-              JDK_ARCH=x64 sh installers/nsis/download-jdk.sh &
-              for job in $(jobs -p); do
-                  wait $job
-              done
+              sh installers/nsis/download-jdk.sh
           fi
           du -sh /tmp/c8o_jre/*
           
