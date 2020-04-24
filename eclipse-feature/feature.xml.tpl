@@ -38,7 +38,6 @@ to create mobile enterprise applications
       <import plugin="org.eclipse.wst.sse.core"/>
       <import feature="org.eclipse.egit"/>
       <import feature="org.eclipse.egit.gitflow.feature"/>
-      <import feature="org.eclipse.jgit.lfs"/>
       <import feature="org.eclipse.platform"/>
       <import feature="org.eclipse.rcp"/>
       <import plugin="org.eclipse.core.expressions"/>
