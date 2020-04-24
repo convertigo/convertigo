@@ -61,6 +61,7 @@
       <feature id="org.eclipse.ecf.filetransfer.feature"/>
       <feature id="org.eclipse.ecf.filetransfer.httpclient45.feature"/>
       <feature id="org.eclipse.help"/>
+      <feature id="org.eclipse.jgit"/>
       <feature id="org.eclipse.jgit.ssh.apache"/>
       <feature id="org.eclipse.ecf.filetransfer.ssl.feature"/>
       <feature id="org.eclipse.egit"/>
@@ -78,7 +79,6 @@
       <feature id="org.eclipse.wst.xml_core.feature"/>
       <feature id="org.eclipse.wst.xml_ui.feature"/>
       <feature id="org.eclipse.wst.xml_userdoc.feature"/>
-      <feature id="org.eclipse.jgit.lfs"/>
    </features>
 
    <configurations>
