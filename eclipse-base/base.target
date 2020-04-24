@@ -4,6 +4,8 @@
 	<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
 		<unit id="org.eclipse.equinox.executable.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.equinox.p2.user.ui.feature.group" version="0.0.0"/>
+		<unit id="org.eclipse.egit.feature.group" version="0.0.0"/>
+		<unit id="org.eclipse.egit.gitflow.feature.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.platform.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.rcp.feature.group" version="0.0.0"/>
 		<unit id="org.eclipse.wildwebdeveloper.feature.feature.group" version="0.0.0"/>
