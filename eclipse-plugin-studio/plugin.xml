@@ -565,6 +565,12 @@
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
          </view>
          <view
+               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
+         <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
                minimized="false"
                relationship="stack"
@@ -3443,6 +3449,14 @@
             icon="icons/palette_16x16.png"
             id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
             name="Mobile Palette"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
+            icon="icons/palette_16x16.png"
+            id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
+            name="Ngx Palette"
             restorable="true">
       </view>
       <view
