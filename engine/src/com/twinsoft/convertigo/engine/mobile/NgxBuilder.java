@@ -1808,7 +1808,7 @@ public class NgxBuilder extends MobileBuilder {
 		for (PageComponent page : pages) {
 			String pageName = page.getName();
 			String pageIcon = page.getIcon();
-			String pageIconPos = page.getIconPosition();
+			String pageIconPos = page.getIconPosition(); // =>  TODO: replace with iconSlot (slot: start/end)
 			String pageTitle = page.getTitle();
 			String pageSegment = page.getSegment();
 			String pageTitleKey = TranslateUtils.getComputedKey(project, page.getTitle());
