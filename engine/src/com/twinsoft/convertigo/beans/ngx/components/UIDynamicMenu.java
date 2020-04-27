@@ -47,7 +47,10 @@ public class UIDynamicMenu extends UIDynamicElement {
 	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
-		attributes.append(" id=\""+ getId() +"\" [content]=\"content\"");
+		//attributes.append(" id=\""+ getId() +"\" [content]=\"content\"");
+		attributes.append(" menuId=\""+ getId() + "\"");
+		attributes.append(" contentId=\"main-content\"");
+		attributes.append(" type=\"overlay\"");
 		return attributes;
 	}
 	

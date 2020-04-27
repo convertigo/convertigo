@@ -69,31 +69,19 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();
-			if (compareToTplVersion("7.5.2.1") < 0) {
-				sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\" >")
+			if (compareToTplVersion("7.9.0.2") >= 0) {
+				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"false\" *ngFor=\"let p of appPages; let i = index\">")
 				.append(System.lineSeparator())
-				.append("<ion-icon name=\"{{p.icon}}\" ></ion-icon>")
+				.append("<ion-item (click)=\"selectedIndex = i\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedIndex == i\">")
 				.append(System.lineSeparator())
-				.append("{{p.title}}")
+				.append("<ion-icon slot=\"start\" [ios]=\"p.icon + '-outline'\" [md]=\"p.icon + '-sharp'\"></ion-icon>")
 				.append(System.lineSeparator())
-				.append("</button>")
+				.append("<ion-label>{{ p.titleKey | translate }}</ion-label>")
+				.append(System.lineSeparator())
+				.append("</ion-item>")
+				.append(System.lineSeparator())
+				.append("</ion-menu-toggle>")
 				.append(System.lineSeparator());
-				
-			} else {
-				sb.append("<button"+attrclass+ " ion-item menuClose=\""+menuId+"\" *ngFor=\"let p of getPagesIncludedInAutoMenu()\" (click)=\"openPage(p)\" [ngSwitch]=\"p.iconPos\">")
-					.append(System.lineSeparator())
-					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchCase=\"'item-start'\" item-start></ion-icon>")
-					.append(System.lineSeparator())
-					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchCase=\"'item-end'\" item-end></ion-icon>")
-					.append(System.lineSeparator())
-					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchCase=\"'item-right'\" item-right></ion-icon>")
-					.append(System.lineSeparator())
-					.append("<ion-icon name=\"{{p.icon}}\" *ngSwitchDefault item-left></ion-icon>")
-					.append(System.lineSeparator())
-					.append(compareToTplVersion("7.7.0.6") < 0 ? "{{p.title}}":"{{p.titleKey | translate}}")
-					.append(System.lineSeparator())
-					.append("</button>")
-					.append(System.lineSeparator());
 			}
 			return sb.toString();
 		}

@@ -708,17 +708,6 @@ public class NgxBuilder extends MobileBuilder {
 	
 	private void updateSourceFiles() throws EngineException {
 		try {
-			
-			// TODO : to be removed when done !!
-			try {
-				FileUtils.copyDirectory(srcDir, new File(ionicWorkDir, "src5"));
-				initDirs("src5");
-				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
 			MobileApplication mobileApplication = project.getMobileApplication();
 			if (mobileApplication != null) {
 				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
@@ -1801,7 +1790,7 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_PagesVariables = "";
 		String c8o_PagesVariablesKeyValue = "";
 		String c8o_RootPage = "null";
-		String c8o_PageArrayDef = "";
+		String c8o_PageArrayDef = "Array<>";
 		String c8o_Version = app.getC8oVersion();
 		String c8o_AppComponentMarkers = app.getComponentScriptContent().getString();
 		String c8o_AppImports = app.getComputedImports();
@@ -1810,10 +1799,9 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_AppFunctions = app.getComputedFunctions();
 		int i=1;
 		
-		if (app.compareToTplVersion("7.7.0.6") < 0) {
-			c8o_PageArrayDef = "Array<{title: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>";
-		} else {
-			c8o_PageArrayDef = "Array<{title: string, titleKey: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>";
+		if (app.compareToTplVersion("7.9.0.2") >= 0) {
+			//c8o_PageArrayDef = "Array<{title: string, titleKey: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>";
+			c8o_PageArrayDef = "Array<{title: string, titleKey: string, url: string, icon: string}>";
 		}
 		
 		List<PageComponent> pages = getEnabledPages(app);
@@ -1822,6 +1810,7 @@ public class NgxBuilder extends MobileBuilder {
 			String pageIcon = page.getIcon();
 			String pageIconPos = page.getIconPosition();
 			String pageTitle = page.getTitle();
+			String pageSegment = page.getSegment();
 			String pageTitleKey = TranslateUtils.getComputedKey(project, page.getTitle());
 			boolean isRootPage = page.isRoot;
 			boolean isMenuPage = page.isInAutoMenu();
@@ -1831,36 +1820,16 @@ public class NgxBuilder extends MobileBuilder {
 				c8o_RootPage = pageName;
 			}
 			
-			if (app.compareToTplVersion("7.7.0.2") < 0) {
-				c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
-				if (app.compareToTplVersion("7.5.2.1") < 0) {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-				} else {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-				}
-				c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
-			} else if (app.compareToTplVersion("7.7.0.6") < 0) {
+			if (app.compareToTplVersion("7.9.0.2") >= 0) {
 				if (isRootPage) {
 					c8o_RootPage = "'"+ c8o_RootPage + "'";
-					
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
-				} else {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
 				}
-			} else {
-				if (isRootPage) {
-					c8o_RootPage = "'"+ c8o_RootPage + "'";
-					
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
-				} else {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
+				if (isMenuPage) {
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", url: \""+ pageSegment +"\", icon: \""+ pageIcon +"\"}" + (isLastPage ? "":",");
 				}
+				
+				c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
 			}
-			
 			
 			i++;
 		}

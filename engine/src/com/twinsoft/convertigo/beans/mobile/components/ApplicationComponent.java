@@ -1265,12 +1265,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			}
 		}
 		
-	//sb.append("<ion-nav [root]=\"rootPage\" main #content swipeBackEnabled=\"false\"></ion-nav>");
-	if (compareToTplVersion("7.9.0.2") < 0) {
 		sb.append("<ion-nav [root]=\"rootPage\" main #content swipeBackEnabled=\"false\"></ion-nav>");
-	} else {
-		sb.append("<ion-router-outlet id=\"main-content\"></ion-router-outlet>");
-	}
 		sb.append(System.lineSeparator());
 		
 		if (hasSplitPane) {

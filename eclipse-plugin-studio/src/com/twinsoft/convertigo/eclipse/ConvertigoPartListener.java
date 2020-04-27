@@ -210,7 +210,7 @@ public class ConvertigoPartListener implements IPartListener {
 				try {
 					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
 					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
-					mb.addMobileEventListener((ApplicationComponentEditor)part);
+					mb.addMobileEventListener((com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor)part);
 					mb.setAutoBuild(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -220,7 +220,7 @@ public class ConvertigoPartListener implements IPartListener {
 				try {
 					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
 					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
-					mb.addMobileEventListener((ApplicationComponentEditor)part);
+					mb.addMobileEventListener((com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor)part);
 					mb.setAutoBuild(true);
 				} catch (Exception e) {
 					e.printStackTrace();
