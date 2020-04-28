@@ -97,6 +97,10 @@ if [ "$1" = "convertigo" ]; then
         unset COOKIE_SAMESITE
     fi
     
+    if [ "$SESSION_TIMEOUT" != "" ]; then
+        sed -i.bak -e "s,<.*session-timeout.*,<session-timeout>$SESSION_TIMEOUT</session-timeout>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    fi
+    
     
     
     exec gosu convertigo $CATALINA_HOME/bin/catalina.sh run

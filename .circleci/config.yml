@@ -421,8 +421,8 @@ jobs:
         
     - restore_cache:
         keys:
-        - v2-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v2-m2-
+        - v3-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v3-m2-
         
     - run:
         name: Build Studio
@@ -433,7 +433,7 @@ jobs:
     - save_cache:
         paths:
         - ~/.m2
-        key: v2-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v3-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:
@@ -449,10 +449,7 @@ jobs:
         name: Download JDKs
         command: |
           if [ ! -d /tmp/c8o_jre ] ; then
-              JDK_ARCH=x64 sh installers/nsis/download-jdk.sh &
-              for job in $(jobs -p); do
-                  wait $job
-              done
+              sh installers/nsis/download-jdk.sh
           fi
           du -sh /tmp/c8o_jre/*
           
