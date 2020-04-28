@@ -41,10 +41,6 @@ title: First page
   beanData: '{"ionBean":"Content"}'
   comment: Page content
   tagName: ion-content
-  ↓H1 [ngx.components.UIDynamicElement-1588000165635]: 
-    beanData: '{"ionBean":"Heading1"}'
-    tagName: h1
-    ↓Text [ngx.components.UIText-1588000080756]: 
 ↓Footer [ngx.components.UIDynamicElement-1491634242460]: 
   beanData: '{"ionBean":"Footer"}'
   comment: Page footer
