@@ -23,6 +23,7 @@ include 'lib_UserManager'
 
 include 'mobilebuilder_tpl_7_8_0'
 include 'mobilebuilder_tpl_7_9_0'
+include 'mobilebuilder_tpl_7_9_0_Ionic5'
 
 include 'FlightShare'
 include 'IonicConferenceApp'
