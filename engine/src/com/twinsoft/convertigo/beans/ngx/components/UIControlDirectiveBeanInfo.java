@@ -54,7 +54,7 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
             properties[2] = new PropertyDescriptor("directiveSource", beanClass, "getSourceSmartType", "setSourceSmartType");
             properties[2].setDisplayName(getExternalizedString("property.directiveSource.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.directiveSource.short_description"));
-            properties[2].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
+            properties[2].setPropertyEditorClass(getEditorClass("NgxSmartSourcePropertyDescriptor"));
             properties[2].setExpert(true);
 			
             properties[3] = new PropertyDescriptor("directiveItemName", beanClass, "getDirectiveItemName", "setDirectiveItemName");

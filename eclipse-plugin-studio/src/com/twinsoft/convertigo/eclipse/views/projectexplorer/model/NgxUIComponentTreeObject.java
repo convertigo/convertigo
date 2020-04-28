@@ -86,7 +86,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
-import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -408,8 +408,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		        				tags[i] = value.equals(false) ? "not set":value.toString();
 		        			}
 		        			//propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
-		        			propertyDescriptor = new MobileSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
-		        			((MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
+		        			propertyDescriptor = new NgxSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
+		        			((NgxSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
 		    	        }
 					} else {
 						if (editor.equals("StringComboBoxPropertyDescriptor")) {

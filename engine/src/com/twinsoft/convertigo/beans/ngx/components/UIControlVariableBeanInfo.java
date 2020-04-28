@@ -43,7 +43,7 @@ public class UIControlVariableBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("varValue", beanClass, "getVarSmartType", "setVarSmartType");
 			properties[0].setDisplayName(getExternalizedString("property.varValue.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.varValue.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
+			properties[0].setPropertyEditorClass(getEditorClass("NgxSmartSourcePropertyDescriptor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

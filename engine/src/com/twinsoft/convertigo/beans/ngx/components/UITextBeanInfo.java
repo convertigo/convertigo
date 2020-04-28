@@ -43,7 +43,7 @@ public class UITextBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("textValue", beanClass, "getTextSmartType", "setTextSmartType");
 			properties[0].setDisplayName(getExternalizedString("property.textValue.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.textValue.short_description"));
-            properties[0].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
+            properties[0].setPropertyEditorClass(getEditorClass("NgxSmartSourcePropertyDescriptor"));
 			
 			properties[1] = new PropertyDescriptor("i18n", beanClass, "isI18n", "setI18n");
 			properties[1].setDisplayName(getExternalizedString("property.i18n.display_name"));

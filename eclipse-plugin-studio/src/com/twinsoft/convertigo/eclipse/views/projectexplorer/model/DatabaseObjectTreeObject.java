@@ -76,7 +76,6 @@ import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScDefaultHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
@@ -87,7 +86,6 @@ import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescri
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicInfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.EmulatorTechnologyEditor;
-import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicInfoEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
@@ -410,8 +408,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			String val = null;
 			if (value instanceof String) {
 				val = String.valueOf(value);
-			} else if (value instanceof MobileSmartSourceType) {
-				val = ((MobileSmartSourceType)value).getValue();
+			} else if (value instanceof com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType) {
+				val = ((com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType)value).getValue();
+			} else if (value instanceof com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType) {
+				val = ((com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType)value).getValue();
 			}
 			if (val != null) {
 				Pattern pattern = Pattern.compile("\\$\\{(.*)\\}");
@@ -472,11 +472,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
 				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, tags, false);
         	}
-        	else if (MobileSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
+        	else if (com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-				propertyDescriptor = new MobileSmartSourcePropertyDescriptor(name, displayName, tags, false);
-				((MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
+				propertyDescriptor = new com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor(name, displayName, tags, false);
+				((com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
+        	}
+        	else if (com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
+				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
+				propertyDescriptor = new com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor(name, displayName, tags, false);
+				((com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
         	}
         	else if (PropertyWithDynamicInfoEditor.class.isAssignableFrom(pec)) {
         		Method getInfo = pec.getMethod("getInfo", new Class[] { DatabaseObjectTreeObject.class, String.class });

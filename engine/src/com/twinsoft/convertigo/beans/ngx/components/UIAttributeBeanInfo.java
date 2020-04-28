@@ -47,7 +47,7 @@ public class UIAttributeBeanInfo extends MySimpleBeanInfo {
 			properties[1] = new PropertyDescriptor("attrValue", beanClass, "getAttrSmartType", "setAttrSmartType");
 			properties[1].setDisplayName(getExternalizedString("property.attrValue.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.attrValue.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("MobileSmartSourcePropertyDescriptor"));
+			properties[1].setPropertyEditorClass(getEditorClass("NgxSmartSourcePropertyDescriptor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
