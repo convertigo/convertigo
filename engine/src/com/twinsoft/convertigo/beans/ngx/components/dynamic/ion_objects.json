@@ -935,7 +935,7 @@
     },
 
     "Heading": {
-      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTag",
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicTag",
       "tag": "h1",
       "tags": ["h1","h2","h3","h4","h5","h6"],
 	  "displayName": "Heading",
@@ -1672,7 +1672,7 @@
   },
 
   "SlidingTab": {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab",
       "tag": "super-tab",
 	  "displayName": "SlidingTab",
       "label": "Sliding Tab Item",
@@ -2133,7 +2133,7 @@
 	},
 	
 	"Tab": {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicTab",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab",
       "tag": "ion-tab",
 	  "displayName": "TabItem",
       "label": "Tab Item",
@@ -2536,7 +2536,7 @@
 	},
 	
 	"Menu": {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu",
       "tag": "ion-menu",
 	  "displayName": "Menu",
       "label": "Menu",
@@ -2561,7 +2561,7 @@
 	},
 	
 	"MenuItem": {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem",
       "tag": "button",
 	  "displayName": "MenuItem",
       "label": "Menu Item",
@@ -2578,7 +2578,7 @@
 	},
 	
 	"MenuAutoItems": {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItems",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems",
       "tag": "button",
 	  "displayName": "MenuAutoItems",
       "label": "Menu AutoItems",
@@ -5896,7 +5896,7 @@
      */
 /*
     "AutoInfiniteScroll" : {
-      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicInfiniteScroll",
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicInfiniteScroll",
       "tag": "c8o-scroll-infinite",
       "displayName": "AutoInfiniteScroll",
       "label": "AutoInfiniteScroll",
@@ -5977,7 +5977,7 @@
      * SignatureComponent
      */
     "SignatureComponent" : {
-      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
       "tag": "c8o-signature",
       "displayName": "Signature",
       "label": "Signature",
@@ -6146,7 +6146,7 @@
      */
     "TreeviewComponent" : {
       "enabled": true,
-      "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicComponent",
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
       "tag": "c8o-treeview",
       "displayName": "Treeview",
       "label": "Treeview",
@@ -6317,7 +6317,7 @@
   
 
   "ModalAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ModalPage",
       "label": "Modal Page",
       "description": [
@@ -6398,7 +6398,7 @@
 	},
 
     "ClosePopoverAction" : {
-    	"classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    	"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     	"displayName" : "ClosePopover",
       	"label" : "Close Popover",
       	"description" : [
@@ -6415,7 +6415,7 @@
     },
 
   "PopoverAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Popover",
       "label": "Popover Page",
       "description": [
@@ -6492,7 +6492,7 @@
 
 
     "ToastAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Toast",
       "label": "Toast",
       "description": [
@@ -6580,7 +6580,7 @@
 	},
 	
     "ErrorAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Error",
       "label": "Error",
       "description": "Defines an <i>Error</i> action component. | This component helps generating an error with a given message.",
@@ -6603,7 +6603,7 @@
   },
   
   "IfAction": {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "If",
     "label": "If",
     "description": [
@@ -6642,7 +6642,7 @@
   },
 
   "IfElseAction": {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf",
     "displayName": "IfElse",
     "label": "IfElse",
     "description": [
@@ -6676,7 +6676,7 @@
   },
   
   "LogAction": {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "Log",
     "label": "Log",
     "description": "Defines an <i>Log</i> action component. | You can use logs actions to display some information in the device logs. These logs will also be automatically sent to the Convertigo Server and will be threaded within the backend sequence execution so that you can follow a full client interaction thread.",
@@ -6713,7 +6713,7 @@
     }
   },
     "CloseLoadingAction":{
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Close Loading",
       "label": "Close Loading",
       "description": "Defines a <i>Close Loading</i> action component. | This component closes a loading opened by 'Show Loading'",
@@ -6722,7 +6722,7 @@
       "icon32": "closeloadingaction_color_32x32.png"
     },
     "ShowLoadingAction":{
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Show Loading",
       "label": "Show Loading",
       "description": "Defines a <i>Show Loading</i> action component. | This component show a loading",
@@ -6740,7 +6740,7 @@
        }
     },
 	"CallSequenceAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CallSequence",
       "label": "CallSequence",
       "description": [
@@ -6849,7 +6849,7 @@
 	},
 	
     "CallFullSyncAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CallFullSync",
       "label": "CallFullSync",
       "description": [
@@ -6923,7 +6923,7 @@
 },
 
     "ClearDataSourceAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ClearDataSource",
       "label": "ClearDataSource",
       "description": "Defines a <i>ClearDataSource</i> action component. | Use the <i>ClearDataSource</i> to delete data stored from a previous fullsync query or sequence call.",
@@ -6943,7 +6943,7 @@
 	},
 	
     "CloseModalAction" : {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName" : "CloseModal",
       "label" : "Close Modal",
       "description" : [
@@ -6955,7 +6955,7 @@
     },
 
     "PushPageAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PushPage",
       "label": "PushPage",
       "description": [
@@ -7007,7 +7007,7 @@
 	},
 	
 	"RootPageAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "RootPage",
       "label": "RootPage",
       "description": [
@@ -7059,7 +7059,7 @@
 	},
 
   "PopPageAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PopPage",
       "label": "PopPage",
       "description": [
@@ -7074,7 +7074,7 @@
 
 
   "SetGlobalAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SetGlobal",
       "label": "SetGlobal",
       "description": [
@@ -7111,7 +7111,7 @@
  
   "CalendarPickerAction" : {
       "tplVersion": "1.0.98",
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CalendarPicker",
       "label": "Calendar Picker",
       "description": [
@@ -7339,7 +7339,7 @@
 
 
   "GooglePlusLoginAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "GoogleLogin",
       "label": "Google Login",
       "description": [
@@ -7484,7 +7484,7 @@
   },
   
   "FullSyncSyncAction" : {
-	    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	    "displayName": "SyncData",
       "label": "Sync Data",
       "description": [
@@ -7590,7 +7590,7 @@
   },
   
   "FullSyncPostAction" : {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "PostData",
     "label": "Post Data",
     "description": [
@@ -7673,7 +7673,7 @@
     }
 },
 "FullSyncPutAttachmentAction" : {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "PutAttachment",
     "label": "Put Attachment",
     "description": [
@@ -7764,7 +7764,7 @@
 },
 
 "FullSyncDeleteAttachmentAction" : {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "DeleteAttachment",
     "label": "Delete Attachment",
     "description": [
@@ -7822,7 +7822,7 @@
 
 
 "FullSyncGetAction" : {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "GetData",
     "label": "Get Data",
     "description": [
@@ -7891,7 +7891,7 @@
    }
 },
 "FullSyncDeleteAction" : {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "DeleteData",
     "label": "Delete Data",
     "description": [
@@ -7952,7 +7952,7 @@
 },
 
   "FullSyncViewAction": {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "QueryView",
     "label": "Query View",
     "description": [
@@ -8193,7 +8193,7 @@
   },
   
   "FileChooserAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileChooser",
       "label": "File Chooser",
       "description": [
@@ -8254,7 +8254,7 @@
   },
   
   "ChooserAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Chooser",
       "label": "Chooser",
       "description": [
@@ -8316,7 +8316,7 @@
   
 /*
   "SpeechToEventAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SpeechToEvent",
       "label": "SpeechToEvent",
       "description": [
@@ -8392,7 +8392,7 @@
 */
   
   "SpeechToTextAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SpeechToText",
       "label": "SpeechToText",
       "description": [
@@ -8491,7 +8491,7 @@
     }
   },
   "TextToSpeechAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "TextToSpeech",
       "label": "TextToSpeech",
       "description": [
@@ -8573,7 +8573,7 @@
   
   
    "ActionSheetAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ActionSheet",
       "label": "Action Sheet",
       "description": [
@@ -8721,7 +8721,7 @@
   
   
   "AlertAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Alert",
       "label": "Alert",
       "description": [
@@ -8880,7 +8880,7 @@
   },
   
   "FileOpenerAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileOpener",
       "label": "File Opener",
       "description": [
@@ -8941,7 +8941,7 @@
   },
   
   "CameraAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Camera",
       "label": "Camera",
       "description": [
@@ -9156,7 +9156,7 @@
   },
 
   "BarcodeAction": {
-    "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "BarcodeScanner",
     "label": "Barcode Scanner",
     "description": [
@@ -9352,7 +9352,7 @@
 
   
     "UninstallAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Uninstaller",
       "label": "Uninstaller",
       "description": [
@@ -9414,7 +9414,7 @@
   },
   
   "OAuthLoginAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "OAuthLogin",
       "label": "OAuth / OpenID",
       "description": [
@@ -9551,7 +9551,7 @@
   },
 
     "CheckInstallAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CheckInstall",
       "label": "Check Install",
       "description": [
@@ -9616,7 +9616,7 @@
   
     "PublishEventAction" : {
       "tplVersion": "7.5.2.0",
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
       "description": [
@@ -9653,7 +9653,7 @@
     
     "AnimateAction" : {
       "tplVersion": "7.5.2.0",
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAnimate",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate",
 	  "displayName": "Animate",
       "label": "Animate",
       "description": [
@@ -9840,7 +9840,7 @@
     },
     
     "InvokeAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke",
 	  "displayName": "InvokeSharedAction",
       "label": "Invoke SharedAction",
       "description": [
@@ -9858,7 +9858,7 @@
     },
     
     "IterateAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate",
 	  "displayName": "IterateAction",
       "label": "IterateAction",
       "description": [
@@ -9882,7 +9882,7 @@
     },
     
     "PauseAction" : {
-	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PauseAction",
       "label": "PauseAction",
       "description": [
