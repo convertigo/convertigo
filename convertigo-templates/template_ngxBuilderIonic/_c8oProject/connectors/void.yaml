@@ -1,0 +1,27 @@
+↑default: true
+comment: void connector, replace or don't use it
+jdbcDriverClassName: org.hsqldb.jdbcDriver
+jdbcURL: jdbc:hsqldb:file:.//hsqldb
+jdbcUserName: SA
+↓void [transactions.SqlTransaction]: 
+  ↑default: true
+  comment: does nothing
+  xmlGrouping: true
+  xmlOutput: 0
+  handlers: 
+    →: |
+      '
+      // Handles the transaction start event.
+      function onTransactionStarted() {
+          // TODO: add your code here
+      	
+          // TODO: customize the returned value (if you omit returned value, the 
+          // algorithm will continue its process).
+          // Possible values are:
+          //    cancel - means the algorithm cancels the transaction core process.
+      
+          log.message("This transaction does nothing as it has a return \"cancel\" statement in the \"onTransactionStarted\" handler.");
+      
+          return "cancel";
+      }
+      '

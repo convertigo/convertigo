@@ -180,10 +180,20 @@
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewMobileBuilderWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewMobileBuilderWizard"
-            name="Mobile Builder application project"
+            name="Ionic3 Mobile Builder application project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile Builder application project based on ionic and Convertigo Angular frameworks.</description> 
+            <description>Creates a Mobile Builder application project based on ionic3 and Convertigo Angular frameworks.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewNgxBuilderWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"
+            name="Ngx Mobile Builder application project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a Mobile Builder application project based on ionic5 and Convertigo Angular frameworks.</description> 
             </wizard>
 <!-- Legacy publishing projects -->
       <wizard

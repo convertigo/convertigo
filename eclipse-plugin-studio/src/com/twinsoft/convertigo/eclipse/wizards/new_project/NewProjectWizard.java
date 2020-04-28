@@ -109,6 +109,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	static final int TEMPLATE_SITE_CLIPPER = 1100;
 	static final int TEMPLATE_SAP_CONNECTOR = 1200;
 	static final int TEMPLATE_MOBILE_BUILDER = 1400;
+	static final int TEMPLATE_NGX_BUILDER = 1500;
 	
 	// documentation samples
 	static final int SAMPLE_DOCUMENTATION_CLI = 600;
@@ -165,6 +166,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	private static final String SAP_TEMPLATE_PROJECT_FILE_NAME = "template_SAP.car";
 	private static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
 	private static final String MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME = "template_mobileBuilderIonic.car";
+	private static final String NGX_BUILDER_TEMPLATE_PROJECT_FILE_NAME = "template_ngxBuilderIonic.car";
+	
 	// documentation samples
 	private static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
 	private static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
@@ -321,6 +324,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			break;
 			
 		case TEMPLATE_MOBILE_BUILDER:
+		case TEMPLATE_NGX_BUILDER:
 		case TEMPLATE_SEQUENCE_CONNECTOR:
 			page1 = new NewProjectWizardPage1(selection);
 			addPage(page1);
@@ -416,6 +420,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_SAP_CONNECTOR:
 			case TEMPLATE_SITE_CLIPPER:
 			case TEMPLATE_MOBILE_BUILDER:
+			case TEMPLATE_NGX_BUILDER:
 			case TEMPLATE_WEB_SERVICE_REST_REFERENCE:
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
@@ -600,6 +605,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			oldProjectName = MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					MOBILE_BUILDER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
+		case TEMPLATE_NGX_BUILDER:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
+					+ NGX_BUILDER_TEMPLATE_PROJECT_FILE_NAME;
+			oldProjectName = NGX_BUILDER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
+					NGX_BUILDER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
 		default:
 			return null;
 		}
@@ -662,6 +673,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			String newConnectorName = "NewConnector";
 			switch (templateId) {
 			case TEMPLATE_MOBILE_BUILDER:
+			case TEMPLATE_NGX_BUILDER:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 				newConnectorName = "void";
 				break;
