@@ -325,7 +325,7 @@
     "ButtonType": {
      "name": "ButtonType",
      "mode": "plain",
-     "value": "ion-button"
+     "value": "button"
     },
     "MenuMode": {
      "name": "MenuMode",
@@ -2801,7 +2801,7 @@
     "ButtonType": {
      "name": "ButtonType",
      "mode": "plain",
-     "value": "ion-button"
+     "value": "button"
     },
     "MenuMode": {
      "name": "MenuMode",
@@ -3361,7 +3361,7 @@
     "ButtonType": {
      "name": "ButtonType",
      "mode": "plain",
-     "value": "ion-button"
+     "value": "button"
     },
     "MenuMode": {
      "name": "MenuMode",

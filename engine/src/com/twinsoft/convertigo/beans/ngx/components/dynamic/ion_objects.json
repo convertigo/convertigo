@@ -101,10 +101,10 @@
       "label": "button type",
       "description": "Specifies ionic button style.",
       "category": "Attributes",
-      "value": "ion-button", // optional value (default is false)
+      "value": "button", // optional value (default is false)
       "values": [ // possible values (false means do no set)
         false,
-        "ion-button",
+        "button",
         "ion-fab",
         "ion-item"
       ]
@@ -614,11 +614,11 @@
      buttons
     */
     "Button": {
-      "tag": "button",
+      "tag": "ion-button",
 	  "displayName": "Button",
       "label": "Button",
       "description": [
-"button| Defines a <i>Button</i> component.<br/>",
+"ion-button| Defines a <i>Button</i> component.<br/>",
 "Buttons are an essential way to interact with and navigate through a mobile application, and should clearly communicate what action will occur after the user taps them.<br/>",
 "<i>Button</i> can consist of <i>Text</i> and/or <i>Icon</i>, and can be enhanced with a wide variety of properties/attributes.<br/>",
 "You can add <i>Event</i> component with chained <i>Actions</i> to a <i>Button</i> to handle button click.<br/>",
@@ -628,7 +628,7 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
-        "ButtonType": "ion-button",
+        "ButtonType": "button",
         "MenuMode": false,
         "IonColor": false,
         "IonShape": false,
@@ -641,11 +641,11 @@
     },
 
     "SubmitButton": {
-      "tag": "button",
+      "tag": "ion-button",
 	  "displayName": "SubmitButton",
       "label": "Submit Button",
       "description": [
-"button| Defines a <i>Submit Button</i> component.<br/>",
+"ion-button| Defines a <i>Submit Button</i> component.<br/>",
 "A <i>Submit Button</i> works with a <i>Form</i> component.<br/>",
 "Add an <code>onSubmit</code> <i>Event</i> with chained <i>Actions</i> to the <i>Form</i> component to handle the form submission when the button is taped.<br/>",
 "<br/>",
@@ -655,7 +655,7 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "submit",
-        "ButtonType": "ion-button",
+        "ButtonType": "button",
         "MenuMode": false,
         "IonColor": false,
         "IonShape": false,
@@ -678,18 +678,18 @@
     },
 
     "ResetButton": {
-      "tag": "button",
+      "tag": "ion-button",
 	  "displayName": "ResetButton",
       "label": "Reset Button",
       "description": [
-"button| Defines a <i>Reset Button</i> component.<br/>",
+"ion-button| Defines a <i>Reset Button</i> component.<br/>",
 "A <i>Reset Button</i> works with a <i>Form</i> component. It will clear all fields of the form when taped."],
       "group": "Forms",
       "icon16": "button_color_16x16.png",
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "reset",
-        "ButtonType": "ion-button",
+        "ButtonType": "button",
         "MenuMode": false,
         "IonColor": false,
         "IonShape": false,
