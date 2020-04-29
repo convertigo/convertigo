@@ -28,37 +28,7 @@ title: First page
       beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:start"}'
       tagName: ion-buttons
       ↓MenuButton [ngx.components.UIDynamicElement-1588172846908]: 
-        beanData: |
-          '{
-           "name": "MenuButton",
-           "properties": {
-            "ButtonFormType": {
-             "name": "ButtonFormType",
-             "mode": "plain",
-             "value": "button"
-            },
-            "Disabled": {
-             "name": "Disabled",
-             "mode": "plain",
-             "value": false
-            },
-            "IonColor": {
-             "name": "IonColor",
-             "mode": "plain",
-             "value": false
-            },
-            "AutoHide": {
-             "name": "AutoHide",
-             "mode": "plain",
-             "value": false
-            },
-            "MenuId": {
-             "name": "MenuId",
-             "mode": "plain",
-             "value": false
-            }
-           }
-          }'
+        beanData: '{"ionBean":"MenuButton"}'
         tagName: ion-menu-button
     ↓BarTitle [ngx.components.UIDynamicElement-1491634265317]: 
       beanData: '{"ionBean":"BarTitle"}'
