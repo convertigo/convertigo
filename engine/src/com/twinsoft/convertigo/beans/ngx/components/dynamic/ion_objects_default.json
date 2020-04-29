@@ -322,13 +322,8 @@
      "mode": "plain",
      "value": "button"
     },
-    "ButtonType": {
-     "name": "ButtonType",
-     "mode": "plain",
-     "value": "button"
-    },
-    "MenuMode": {
-     "name": "MenuMode",
+    "Disabled": {
+     "name": "Disabled",
      "mode": "plain",
      "value": false
     },
@@ -337,18 +332,18 @@
      "mode": "plain",
      "value": false
     },
+    "IonExpand": {
+     "name": "IonExpand",
+     "mode": "plain",
+     "value": false
+    },
     "IonShape": {
      "name": "IonShape",
      "mode": "plain",
      "value": false
     },
-    "IonOutline": {
-     "name": "IonOutline",
-     "mode": "plain",
-     "value": false
-    },
-    "IonClear": {
-     "name": "IonClear",
+    "IonFill": {
+     "name": "IonFill",
      "mode": "plain",
      "value": false
     },
@@ -357,13 +352,43 @@
      "mode": "plain",
      "value": false
     },
-    "IconPosition": {
-     "name": "IconPosition",
+    "IonSlot": {
+     "name": "IonSlot",
      "mode": "plain",
      "value": false
     },
-    "IconOnly": {
-     "name": "IconOnly",
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonStrong": {
+     "name": "IonStrong",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
      "mode": "plain",
      "value": false
     }
@@ -376,6 +401,11 @@
    "properties": {
     "SetPosition": {
      "name": "SetPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "Collapse": {
+     "name": "Collapse",
      "mode": "plain",
      "value": false
     }
@@ -2798,13 +2828,8 @@
      "mode": "plain",
      "value": "reset"
     },
-    "ButtonType": {
-     "name": "ButtonType",
-     "mode": "plain",
-     "value": "button"
-    },
-    "MenuMode": {
-     "name": "MenuMode",
+    "Disabled": {
+     "name": "Disabled",
      "mode": "plain",
      "value": false
     },
@@ -2813,18 +2838,18 @@
      "mode": "plain",
      "value": false
     },
+    "IonExpand": {
+     "name": "IonExpand",
+     "mode": "plain",
+     "value": false
+    },
     "IonShape": {
      "name": "IonShape",
      "mode": "plain",
      "value": false
     },
-    "IonOutline": {
-     "name": "IonOutline",
-     "mode": "plain",
-     "value": false
-    },
-    "IonClear": {
-     "name": "IonClear",
+    "IonFill": {
+     "name": "IonFill",
      "mode": "plain",
      "value": false
     },
@@ -2833,13 +2858,43 @@
      "mode": "plain",
      "value": false
     },
-    "IconPosition": {
-     "name": "IconPosition",
+    "IonSlot": {
+     "name": "IonSlot",
      "mode": "plain",
      "value": false
     },
-    "IconOnly": {
-     "name": "IconOnly",
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonStrong": {
+     "name": "IonStrong",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
      "mode": "plain",
      "value": false
     }
@@ -3358,13 +3413,8 @@
      "mode": "plain",
      "value": "submit"
     },
-    "ButtonType": {
-     "name": "ButtonType",
-     "mode": "plain",
-     "value": "button"
-    },
-    "MenuMode": {
-     "name": "MenuMode",
+    "Disabled": {
+     "name": "Disabled",
      "mode": "plain",
      "value": false
     },
@@ -3373,18 +3423,18 @@
      "mode": "plain",
      "value": false
     },
+    "IonExpand": {
+     "name": "IonExpand",
+     "mode": "plain",
+     "value": false
+    },
     "IonShape": {
      "name": "IonShape",
      "mode": "plain",
      "value": false
     },
-    "IonOutline": {
-     "name": "IonOutline",
-     "mode": "plain",
-     "value": false
-    },
-    "IonClear": {
-     "name": "IonClear",
+    "IonFill": {
+     "name": "IonFill",
      "mode": "plain",
      "value": false
     },
@@ -3393,13 +3443,43 @@
      "mode": "plain",
      "value": false
     },
-    "IconPosition": {
-     "name": "IconPosition",
+    "IonSlot": {
+     "name": "IonSlot",
      "mode": "plain",
      "value": false
     },
-    "IconOnly": {
-     "name": "IconOnly",
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonStrong": {
+     "name": "IonStrong",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
      "mode": "plain",
      "value": false
     },
@@ -3861,6 +3941,38 @@
     },
     "autoplay": {
      "name": "autoplay",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "MenuButton": {
+  "   7   9   0": {
+   "name": "MenuButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "AutoHide": {
+     "name": "AutoHide",
+     "mode": "plain",
+     "value": false
+    },
+    "MenuId": {
+     "name": "MenuId",
      "mode": "plain",
      "value": false
     }

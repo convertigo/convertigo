@@ -98,23 +98,22 @@
     },
 
     "ButtonType": {
-      "label": "button type",
+      "attr": "button-type",
+      "label": "Button type",
       "description": "Specifies ionic button style.",
       "category": "Attributes",
       "value": "button", // optional value (default is false)
       "values": [ // possible values (false means do no set)
         false,
-        "button",
-        "ion-fab",
-        "ion-item"
+        "button"
       ]
     },
     
     "ButtonFormType": {
-      "label": "button form type",
+      "attr": "type",
+      "label": "Button form type",
       "description": "Specifies form's button type.",
       "category": "@Forms",
-      "attr": "type",
       "values": [
         false,
         "reset",
@@ -134,7 +133,7 @@
     },
     
     "MenuMode": {
-      "label": "menu mode",
+      "label": "Menu mode",
       "description": "Specifies menu mode.",
       "category": "Attributes",
       "values": [ // possible values (false means do no set)
@@ -143,8 +142,9 @@
         "menuToggle"
       ]
     },
+    
     "BarMode": {
-      "label": "mode",
+      "label": "Mode",
       "description": "Specifies ionic bar mode.",
       "category": "Attributes",
       "attr": "mode",
@@ -155,8 +155,21 @@
         "md"
       ]
     },
+    
+    "IonMode": {
+      "label": "Mode",
+      "description": "Specifies ionic mode.",
+      "category": "Attributes",
+      "attr": "mode",
+      "values": [
+        false,
+        "ios",
+        "md"
+      ]
+    },
+    
     "IonPadding": {
-      "label": "padding",
+      "label": "Padding",
       "description": "Specifies ionic padding mode.",
       "category": "Attributes",
       "values": [
@@ -166,34 +179,91 @@
     },
     
     "IonColor": {
-      "label": "color",
+      "attr": "color",
+      "label": "Color",
       "description": "Specifies ionic color.",
       "category": "Attributes",
-      "attr": "color",
       "values": [
         false,
         "danger",
         "dark",
         "light",
+        "medium",
         "primary",
         "secondary",
+        "success",
+        "tertiary",
+        "warning",
         true
       ]
     },
 
-    "IonShape": {
-      "label": "shape",
-      "description": "Specifies ionic shape.",
+    "IonExpand": {
+      "attr": "expand",
+      "label": "Expand",
+      "description": "Specifies ionic expand.",
       "category": "Attributes",
       "values": [
         false,
         "block",
-        "full",
+        "full"
+      ]
+    },
+    
+    "IonShape": {
+      "attr": "shape",
+      "label": "Shape",
+      "description": "Specifies ionic shape.",
+      "category": "Attributes",
+      "values": [
+        false,
         "round"
       ]
     },
+    
+    "IonFill": {
+      "attr": "fill",
+      "label": "Fill",
+      "description": "Specifies ionic fill mode.",
+      "category": "Attributes",
+      "values": [
+        false,
+        "clear",
+        "default",
+        "outline",
+        "solid"
+      ]
+    },
+    
+    "IonSlot": {
+      "attr": "slot",
+      "label": "Slot",
+      "description": "Specifies ionic slot mode.",
+      "category": "Attributes",
+      "values": [
+        false,
+        "start",
+        "icon-only",
+        "end"
+      ]
+    },
+    
+    "IonStrong": {
+      "attr": "strong",
+      "label": "Strong",
+      "description": "Specifies whether to activate a heavier font weight.",
+      "category": "Attributes",
+      "type": "boolean",
+      "value": false,
+      "values": [
+      	false,
+        "false",
+        "true"
+      ]
+    },
+    
     "IonOutline": {
-      "label": "outline",
+      "label": "Outline",
       "description": "Specifies ionic outline mode.",
       "category": "Attributes",
       "values": [
@@ -201,8 +271,9 @@
         "outline"
       ]
     },
+    
     "IonClear": {
-      "label": "clear",
+      "label": "Clear",
       "description": "If set make a 'clear' component.",
       "category": "Attributes",
       "value": false,
@@ -211,19 +282,22 @@
         "clear"
       ]
     },
+    
     "IonSize": {
-      "label": "size",
+      "attr": "size",
+      "label": "Size",
       "description": "Specifies ionic size.",
       "category": "Attributes",
       "values": [
         false,
+        "default",
         "large",
-        "small",
-        "mini"
+        "small"
       ]
     },
+    
     "IconPosition": {
-      "label": "icon position",
+      "label": "Icon position",
       "description": "Specifies ionic icon position.",
       "category": "Attributes",
       "values": [
@@ -235,6 +309,7 @@
         "icon-only"
       ]
     },
+    
     "ItemPosition": {
       "label": "Item position",
       "description": "Specifies item position.",
@@ -248,9 +323,58 @@
         "item-end"
       ]
     },
+    
+    "LinkDownload": {
+      "attr": "download",
+      "label": "Link filename",
+      "description": "Specifies the file name of the linked URL.",
+      "category": "@Properties"
+    },
+    
+    "LinkUrl": {
+      "attr": "href",
+      "label": "Link URL",
+      "description": "Specifies the URL to navigate to or be downloaded.",
+      "category": "@Properties"
+    },
+    
+    "LinkRouterDirection": {
+      "attr": "routerDirection",
+      "label": "Link router direction",
+      "description": "Specifies the transition direction when navigating to another page using a LinkUrl.",
+      "category": "@Properties",
+      "values": [
+        false,
+        "back",
+        "forward",
+        "root"
+      ]
+    },
+    
+    "LinkTarget": {
+      "attr": "target",
+      "label": "Link target",
+      "description": "Specifies where to display the linked URL.",
+      "category": "@Properties",
+      "values": [
+        false,
+        "_blank",
+        "_parent",
+        "_self",
+        "_top"
+      ]
+    },
+    
+    "LinkRel": {
+      "attr": "rel",
+      "label": "Link rel",
+      "description": "Specifies the relationship of the target object to the linked URL. The value is a space-separated list of HTML link types.",
+      "category": "@Properties"
+    },
+    
     "IconName": {
       "attr": "name",
-      "label": "icon name",
+      "label": "Icon name",
       "description": "Specifies ionic icon name.",
       "category": "Attributes",
       "values": [ 
@@ -610,6 +734,7 @@
 
   /*  Beans models  */
   "Beans": {
+  
     /*
      buttons
     */
@@ -628,18 +753,77 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
-        "ButtonType": "button",
-        "MenuMode": false,
+        "Disabled": false,
         "IonColor": false,
+        "IonExpand": false,
         "IonShape": false,
-        "IonOutline": false,
-		"IonClear": false,
+        "IonFill": false,
         "IonSize": false,
-        "IconPosition": false,
-        "IconOnly": false
+        "IonSlot": false,
+        "IonMode": false,
+        "IonStrong": false,
+        "LinkUrl": false,
+        "LinkDownload": false,
+        "LinkTarget": false,
+        "LinkRel": false,
+        "LinkRouterDirection": false
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus"
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus"
+        }
       }
     },
 
+    "MenuButton": {
+      "tag": "ion-menu-button",
+	  "displayName": "MenuButton",
+      "label": "Menu Button",
+      "description": [
+"ion-menu-button| Defines a <i>Menu Button</i> component.<br/>",
+"A <i>Menu Button</i> component automatically creates the icon and functionality to open a menu on a page."],
+      "group": "Buttons",
+      "icon16": "menu-button_color_16x16.png",
+      "icon32": "menu-button_color_32x32.png",
+      "properties": {
+        "ButtonFormType" : "button",
+        "Disabled": false,
+        "IonColor": false,
+        "AutoHide": {
+          "attr": "auto-hide",
+          "label": "Auto hide",
+          "description": "Specifies whether to automatically hides the menu button when the corresponding menu is not active.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": false,
+          "values": [
+            false,
+            "true",
+            "false"
+          ]
+        },
+        "MenuId": {
+          "attr": "menu",
+          "label": "Menu id",
+          "description": "Specifies the menu's' id to map. Can also be start or end for the menu side.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false,
+          "values": [
+            false,
+            "start",
+            "end",
+            true
+          ]
+        }        
+      }
+    },
+    
     "SubmitButton": {
       "tag": "ion-button",
 	  "displayName": "SubmitButton",
@@ -655,16 +839,21 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "submit",
-        "ButtonType": "button",
-        "MenuMode": false,
+        "Disabled": false,
         "IonColor": false,
+        "IonExpand": false,
         "IonShape": false,
-        "IonOutline": false,
-		"IonClear": false,
+        "IonFill": false,
         "IonSize": false,
-        "IconPosition": false,
-        "IconOnly": false,
-		    "AutoDisable": {
+        "IonSlot": false,
+        "IonMode": false,
+        "IonStrong": false,
+        "LinkUrl": false,
+        "LinkDownload": false,
+        "LinkTarget": false,
+        "LinkRel": false,
+        "LinkRouterDirection": false,
+		"AutoDisable": {
       		"label": "Auto disable",
       		"description": "Disable button if it's associated form is not valid.",
       		"category": "@Forms",
@@ -674,6 +863,16 @@
         		"true"
       		]
 		}
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus"
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus"
+        }
       }
     },
 
@@ -689,15 +888,30 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "reset",
-        "ButtonType": "button",
-        "MenuMode": false,
+        "Disabled": false,
         "IonColor": false,
+        "IonExpand": false,
         "IonShape": false,
-        "IonOutline": false,
-		"IonClear": false,
+        "IonFill": false,
         "IonSize": false,
-        "IconPosition": false,
-        "IconOnly": false
+        "IonSlot": false,
+        "IonMode": false,
+        "IonStrong": false,
+        "LinkUrl": false,
+        "LinkDownload": false,
+        "LinkTarget": false,
+        "LinkRel": false,
+        "LinkRouterDirection": false
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus"
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus"
+        }
       }
     },
     
@@ -815,6 +1029,7 @@
       "icon32": "buttonset_color_32x32.png",
       "properties": {
         "SetPosition": {
+          "attr": "slot",
           "label": "position",
           "description": "Specifies the position.",
           "category": "Attributes",
@@ -823,8 +1038,21 @@
             false,
             "start",
             "end",
-            "left",
-            "right"
+            "secondary",
+            "primary"
+          ]
+        },
+        "Collapse": {
+          "attr": "collapse",
+          "label": "collapse",
+          "description": "Specifies whether to collapse buttons of toolbar. Only applies in ios mode with collapse set to true on ion-header.",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": false,
+          "values": [
+            false,
+            "false",
+            "true"
           ]
         }
       }
