@@ -35,8 +35,6 @@ import org.eclipse.ui.views.properties.PropertySheet;
 
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -127,7 +125,7 @@ public class ConvertigoPartListener implements IPartListener {
 				try {
 					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
 					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
-					mb.removeMobileEventListener((ApplicationComponentEditor)part);
+					mb.removeMobileEventListener((com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor)part);
 					mb.setAutoBuild(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -137,21 +135,28 @@ public class ConvertigoPartListener implements IPartListener {
 				try {
 					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
 					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
-					mb.removeMobileEventListener((ApplicationComponentEditor)part);
+					mb.removeMobileEventListener((com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor)part);
 					mb.setAutoBuild(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
+			
 			if (input instanceof JScriptEditorInput) {
 				try {
 					((JScriptEditorInput) input).getFile().getParent().delete(true, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			} else if (input instanceof ComponentFileEditorInput) {
+			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) {
 				try {
-					((ComponentFileEditorInput) input).getFile().delete(true, null);
+					((com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) input).getFile().delete(true, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) {
+				try {
+					((com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) input).getFile().delete(true, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
