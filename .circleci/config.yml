@@ -15,7 +15,7 @@ jobs:
     <<: *defaults
     
     docker:
-    - image: circleci/openjdk:11-stretch
+    - image: circleci/openjdk:11-buster
     
     steps:
     
