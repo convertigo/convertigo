@@ -24,11 +24,42 @@ title: First page
   ↓ToolBar [ngx.components.UIDynamicElement-1491634231108]: 
     beanData: '{"ionBean":"ToolBar"}'
     tagName: ion-toolbar
-    ↓Fragment [ngx.components.UICustom-1587992066648]: 
-      htmlTemplate: |
-            <ion-buttons slot="start">
-              <ion-menu-button></ion-menu-button>
-            </ion-buttons>
+    ↓ButtonSet1 [ngx.components.UIDynamicElement-1588171103814]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:start"}'
+      tagName: ion-buttons
+      ↓MenuButton [ngx.components.UIDynamicElement-1588172846908]: 
+        beanData: |
+          '{
+           "name": "MenuButton",
+           "properties": {
+            "ButtonFormType": {
+             "name": "ButtonFormType",
+             "mode": "plain",
+             "value": "button"
+            },
+            "Disabled": {
+             "name": "Disabled",
+             "mode": "plain",
+             "value": false
+            },
+            "IonColor": {
+             "name": "IonColor",
+             "mode": "plain",
+             "value": false
+            },
+            "AutoHide": {
+             "name": "AutoHide",
+             "mode": "plain",
+             "value": false
+            },
+            "MenuId": {
+             "name": "MenuId",
+             "mode": "plain",
+             "value": false
+            }
+           }
+          }'
+        tagName: ion-menu-button
     ↓BarTitle [ngx.components.UIDynamicElement-1491634265317]: 
       beanData: '{"ionBean":"BarTitle"}'
       tagName: ion-title
@@ -36,7 +67,16 @@ title: First page
         textValue: 
           - xmlizable: 
             - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
-            - MobileSmartSourceType: plain:My First App
+            - MobileSmartSourceType: plain:Page
+    ↓ButtonSet2 [ngx.components.UIDynamicElement-1588170811054]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:end"}'
+      tagName: ion-buttons
+      ↓Button [ngx.components.UIDynamicElement-1588170817806]: 
+        beanData: '{"ionBean":"Button","IonSlot":"plain:icon-only"}'
+        tagName: ion-button
+        ↓Icon [ngx.components.UIDynamicElement-1588170831166]: 
+          beanData: '{"ionBean":"Icon","IconName":"plain:ellipsis-vertical"}'
+          tagName: ion-icon
 ↓Content [ngx.components.UIDynamicElement-1489674805352]: 
   beanData: '{"ionBean":"Content"}'
   comment: Page content
@@ -48,23 +88,23 @@ title: First page
   ↓ToolBar [ngx.components.UIDynamicElement-1491634317538]: 
     beanData: '{"ionBean":"ToolBar"}'
     tagName: ion-toolbar
-    ↓ButtonSet [ngx.components.UIDynamicElement-1491634325595]: 
-      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:left"}'
+    ↓ButtonSet [ngx.components.UIDynamicElement-1588170246138]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:start"}'
       tagName: ion-buttons
-      ↓Button [ngx.components.UIDynamicElement-1491634332730]: 
+      ↓Button1 [ngx.components.UIDynamicElement-1491634332730]: 
         beanData: '{"ionBean":"Button"}'
-        tagName: button
+        tagName: ion-button
         ↓Text [ngx.components.UIText-1491634340354]: 
           textValue: 
             - xmlizable: 
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: plain:Action 1
-    ↓ButtonSet1 [ngx.components.UIDynamicElement-1491634373539]: 
-      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:right"}'
+    ↓ButtonSet1 [ngx.components.UIDynamicElement-1588170269871]: 
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:end"}'
       tagName: ion-buttons
-      ↓Button [ngx.components.UIDynamicElement-1491634376874]: 
+      ↓Button2 [ngx.components.UIDynamicElement-1491634376874]: 
         beanData: '{"ionBean":"Button"}'
-        tagName: button
+        tagName: ion-button
         ↓Text [ngx.components.UIText-1491634383107]: 
           textValue: 
             - xmlizable: 
