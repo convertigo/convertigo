@@ -42,7 +42,7 @@ SetCompressor /FINAL zlib
 !include include\func.nsh
 
 # Reserved Files
-ReserveFile "${NSISDIR}\Plugins\AdvSplash.dll"
+ReserveFile "${NSISDIR}\Plugins\amd64-unicode\AdvSplash.dll"
 ;ReserveFile "${NSISDIR}\Plugins\x86-ansi\AdvSplash.dll"
 
 # Variables
