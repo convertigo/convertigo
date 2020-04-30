@@ -7,7 +7,7 @@ defaults: &defaults
   - MAVEN_OPTS: -Xmx2800m
   
   docker:
-  - image: convertigo/builder-ci:circleci-4
+  - image: convertigo/builder-ci:circleci-5
   
 version: 2
 jobs:
