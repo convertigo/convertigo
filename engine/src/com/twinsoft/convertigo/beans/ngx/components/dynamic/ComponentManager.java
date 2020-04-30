@@ -359,7 +359,7 @@ public class ComponentManager {
 			group = GROUP_CUSTOMS;
 			components.add(getDboComponent(UIElement.class,group));
 			components.add(getDboComponent(UIAttribute.class,group));
-			components.add(getDboComponent(UIAnimation.class,group));
+//			components.add(getDboComponent(UIAnimation.class,group));
 			components.add(getDboComponent(UICustom.class,group));
 			components.add(getDboComponent(UIText.class,group));
 			components.add(getDboComponent(UIStyle.class,group));
@@ -373,26 +373,26 @@ public class ComponentManager {
 			
 			// Add shared actions
 			group = GROUP_SHARED_ACTIONS;
-			components.add(getDboComponent(UIActionStack.class,group));
-			components.add(getDboComponent(UIStackVariable.class,group));
+//			components.add(getDboComponent(UIActionStack.class,group));
+//			components.add(getDboComponent(UIStackVariable.class,group));
 			
 			// Add Controls
 			group = GROUP_CONTROLS;
-			components.add(getDboComponent(UIControlEvent.class,group));
-			components.add(getDboComponent(UIAppEvent.class,group));
-			components.add(getDboComponent(UIPageEvent.class,group));
-			components.add(getDboComponent(UIEventSubscriber.class,group));
-			components.add(getDboComponent(UIActionErrorEvent.class,group));
-			components.add(getDboComponent(UIActionFailureEvent.class,group));
-			components.add(getDboComponent(UIActionFinallyEvent.class,group));
-			components.add(getDboComponent(UIActionLoopEvent.class,group));
-			components.add(getDboComponent(UIActionElseEvent.class,group));
+//			components.add(getDboComponent(UIControlEvent.class,group));
+//			components.add(getDboComponent(UIAppEvent.class,group));
+//			components.add(getDboComponent(UIPageEvent.class,group));
+//			components.add(getDboComponent(UIEventSubscriber.class,group));
+//			components.add(getDboComponent(UIActionErrorEvent.class,group));
+//			components.add(getDboComponent(UIActionFailureEvent.class,group));
+//			components.add(getDboComponent(UIActionFinallyEvent.class,group));
+//			components.add(getDboComponent(UIActionLoopEvent.class,group));
+//			components.add(getDboComponent(UIActionElseEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
 			// Add Actions
 			group = GROUP_ACTIONS;
-			components.add(getDboComponent(UIControlVariable.class,group));
-			components.add(getDboComponent(UICustomAction.class,group));
+//			components.add(getDboComponent(UIControlVariable.class,group));
+//			components.add(getDboComponent(UICustomAction.class,group));
 			
 			components.add(getDboComponent(UIForm.class,"Forms"));
 			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));

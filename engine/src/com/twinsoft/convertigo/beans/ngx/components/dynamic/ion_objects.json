@@ -914,7 +914,8 @@
         }
       }
     },
-    
+
+/*    
     "FabButton": {
       "tag": "button",
 	  "displayName": "FabButton",
@@ -944,8 +945,8 @@
         }
       }
     },
-
-
+*/
+/*
     "FabContainer": {
       "tag": "ion-fab",
 	  "displayName": "FabContainer",
@@ -991,6 +992,7 @@
         }
       }
     },
+*/
 
     "Icon": {
       "tag": "ion-icon",
@@ -1146,6 +1148,7 @@
       "properties": {
       }
     },
+    
     "SpanTag": {
       "tag": "span",
 	  "displayName": "Span",
@@ -1454,6 +1457,7 @@
       }
     },
 
+/*
     "Tooltips" : {
       "tag": "span",
         "displayName": "Tooltips",
@@ -1580,6 +1584,8 @@
         ]
       }         
     },
+*/
+/*
     "ProgressBar" : {
       "tag": "progress-bar",
         "displayName": "ProgressBar",
@@ -1621,6 +1627,8 @@
         ]
       }         
     },
+*/
+/*
     "Spinner": {
       "tag": "ion-spinner",
 	  "displayName": "Spinner",
@@ -1667,7 +1675,8 @@
         }
       }
     },  
-    
+*/
+/*
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
@@ -1774,8 +1783,9 @@
         }
       }
     },
-
-  /* Super tabs : Sliding tabs */  
+*/
+  /* Super tabs : Sliding tabs */
+/*  
   "SlidingTabs": {
       "tag": "super-tabs",
 	  "displayName": "SlidingTabs",
@@ -1898,7 +1908,8 @@
         ]
       }
   },
-
+*/
+/*
   "SlidingTab": {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab",
       "tag": "super-tab",
@@ -2291,8 +2302,10 @@
           }
       }
   },
+*/
 
   /* Standard Tabs */
+/*
 	"Tabs": {
       "tag": "ion-tabs",
 	  "displayName": "TabsContainer",
@@ -2359,7 +2372,8 @@
         }
 	  }
 	},
-	
+*/
+/*	
 	"Tab": {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab",
       "tag": "ion-tab",
@@ -2762,6 +2776,7 @@
           }
 	  }	
 	},
+*/
 	
 	"Menu": {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu",
@@ -2822,7 +2837,8 @@
       "properties": {
       }
 	},
-	
+
+/*	
     "NavBar": {
       "tag": "ion-navbar",
 	  "displayName": "NavBar",
@@ -2853,7 +2869,8 @@
         }
       }
     },
-
+*/
+/*
     "Scroll": {
       "tag": "ion-scroll",
 	  "displayName": "ScrollArea",
@@ -2912,7 +2929,8 @@
         }
       }
     },
-
+*/
+/*
     "FabList": {
       "tag": "ion-fab-list",
 	  "displayName": "FabList",
@@ -2938,6 +2956,7 @@
     			}	
     		}
     },
+*/
 
     "ToolBar": {
       "tag": "ion-toolbar",
@@ -2957,6 +2976,7 @@
       }
     },
 
+/*
     "Refresher":{
   		"tag": "ion-refresher",
 		  "displayName": "Refresher",
@@ -2972,10 +2992,11 @@
     	"icon16": "refresher_color_16x16.png",
     	"icon32": "refresher_color_32x32.png"
     },
-      
+*/
+/*      
 	  "RefresherContent":{
-		  "tag": "ion-refresher-content",
-		  "displayName": "RefresherContent",
+		"tag": "ion-refresher-content",
+		"displayName": "RefresherContent",
     	"label": "Content Refresher",
         "description": [
 "ion-refresher-content| Defines a <i>Content Refresher</i> component.<br/>",
@@ -3025,6 +3046,8 @@
     		}
 		  }			
 	  },
+*/
+/*
     "Searchbar": {
     	"tag": "ion-searchbar",
 		"displayName": "SearchBar",
@@ -3132,6 +3155,7 @@
     		}
     	}
     },
+*/
     
     "BarTitle": {
       "tag": "ion-title",
@@ -3148,6 +3172,7 @@
       }
     },
 
+/*
     "Badge": {
       "tag": "ion-badge",
 	  "displayName": "Badge",
@@ -3165,9 +3190,9 @@
         "ItemPosition": false
       }
     },
-
+*/
     /* Slides */
-
+/*
     "Slides": {
       "tag": "ion-slides",
 	  "displayName": "SlidesContainer",
@@ -3319,7 +3344,8 @@
         }
       }
     },
-
+*/
+/*
     "Slide": {
       "tag": "ion-slide",
 	  "displayName": "SlideItem",
@@ -3332,9 +3358,10 @@
       "icon16": "slide_color_16x16.png",
       "icon32": "slide_color_32x32.png"
     },
+*/
 
     /* Segments */
-
+/*
     "Segment": {
       "tag": "ion-segment",
 	  "displayName": "SegmentContainer",
@@ -3366,7 +3393,8 @@
         }
       }
     },
-
+*/
+/*
     "SegmentButton": {
       "tag": "ion-segment-button",
 	  "displayName": "SegmentButton",
@@ -3393,7 +3421,7 @@
         }
       }
     },
-
+*/
     /* Lists */
     "List": {
       "tag": "ion-list",
@@ -3481,6 +3509,7 @@
       }
     },
 
+/*
     "Avatar": {
       "tag": "ion-avatar",
 	  "displayName": "AvatarItem",
@@ -3497,7 +3526,8 @@
         "ItemPosition": "item-left"
       }
     },
-
+*/
+/*
     "Thumbnail": {
       "tag": "ion-thumbnail",
 	  "displayName": "Thumbnail",
@@ -3514,7 +3544,8 @@
         "ItemPosition": "item-left"
       }
     },
-
+*/
+/*
     "Sliding": {
       "tag": "ion-item-sliding",
 	  "displayName": "SlidingItem",
@@ -3531,7 +3562,8 @@
       "properties": {
       }
     },
-
+*/
+/*
     "SlidingOption": {
       "tag": "ion-item-options",
 	  "displayName": "SlidingOption",
@@ -3558,6 +3590,7 @@
         }
       }
     },
+*/
 
     "GenericItem": {
       "tag": "ion-item",
@@ -3594,6 +3627,7 @@
     },
 
     /* Forms */
+/*
     "FormItem": {
       "tag": "ion-item",
 	  "displayName": "FormItem",
@@ -3609,7 +3643,7 @@
         "ItemPosition": false
       }
     },
-    
+*/   
     "Label": {
       "tag": "ion-label",
 	  "displayName": "Label",
@@ -3663,6 +3697,7 @@
     /**************************************************/
     /* Form select / option  				          */
     /**************************************************/
+/*
     "Option": {
       "tag": "ion-option",
 	  "displayName": "SelectOption",
@@ -3710,7 +3745,8 @@
         }
       }
     },
-
+*/
+/*
     "Select": {
       "tag": "ion-select",
 	  "displayName": "SelectContainer",
@@ -3792,10 +3828,11 @@
         }
       }
     },
-
+*/
     /**************************************************/
     /* Form RadioButton	/ RadioGroup				  */
     /**************************************************/
+/*
     "RadioList": {
       "tag": "ion-list",
 	  "displayName": "RadioList",
@@ -3832,7 +3869,8 @@
         }
       }
     },
-    
+*/
+/*   
     "RadioButton": {
       "tag": "ion-radio",
 	  "displayName": "RadioButton",
@@ -3870,11 +3908,12 @@
         }
       }
     },
-	
+*/	
 	
     /**************************************************/
     /* Form Toggle 									  */
     /**************************************************/
+/*
     "Toggle": {
       "tag": "ion-toggle",
 	  "displayName": "ToggleButton",
@@ -3908,10 +3947,12 @@
     	 }
       }
     },
+*/
 
     /**************************************************/
     /* Form Input 									                  */
     /**************************************************/
+/*
     "Input": {
       "tag": "ion-input",
 	  "displayName": "TextInput",
@@ -4069,7 +4110,8 @@
         }
       }
     },
-
+*/
+/*
     "TextArea": {
       "tag": "ion-textarea",
 	  "displayName": "TextArea",
@@ -4169,7 +4211,8 @@
         }
       }
     },
-    
+*/
+/*    
     "CheckBox": {
       "tag": "ion-checkbox",
 	  "displayName": "CheckBox",
@@ -4205,7 +4248,8 @@
     	 }
       }
     },
-
+*/
+/*
     "DateTime": {
       "tag": "ion-datetime",
 	  "displayName": "DateTime",
@@ -4411,7 +4455,8 @@
         }
       }
     },
-	
+*/
+/*	
     "Range": {
       "tag": "ion-range",
 	  "displayName": "RangeSlider",
@@ -4507,8 +4552,10 @@
         "IonColor": false
       }
     },
+*/
     
     /*    Grid System     */
+/*
     "Grid": {
       "tag": "ion-grid",
 	  "displayName": "Grid",
@@ -4560,7 +4607,8 @@
         }
       }
     },
-
+*/
+/*
     "GridRow": {
       "tag": "ion-row",
 	  "displayName": "GridRow",
@@ -4708,7 +4756,8 @@
         }
       }
     },
-
+*/
+/*
     "GridCol": {
       "tag": "ion-col",
 	  "displayName": "GridCol",
@@ -5044,9 +5093,9 @@
         }
       }
     },
-
+*/
     /* Cards */
-
+/*
     "Card": {
       "tag": "ion-card",
 	  "displayName": "CardContainer",
@@ -5063,7 +5112,8 @@
       "properties": {
       }
     },
-
+*/
+/*
     "CardHeader": {
       "tag": "ion-card-header",
 	  "displayName": "CardHeader",
@@ -5079,7 +5129,8 @@
       "properties": {
       }
     },
-
+*/
+/*
     "CardContent": {
       "tag": "ion-card-content",
 	  "displayName": "CardContent",
@@ -5095,7 +5146,8 @@
       "properties": {
       }
     },
-
+*/
+/*
     "TextFormat": {
       "tag": "div",
 	  "displayName": "TextFormat",
@@ -5201,11 +5253,11 @@
         }
       }
     },
-
+*/
     /*
      * Google Maps AGM
      */
-
+/*
     "GoogleMap" : {
       "tag": "agm-map",
 	  "displayName": "GoogleMap",
@@ -5303,7 +5355,8 @@
         ]
       }
     },
-    
+*/
+/*   
     "MapMarker" : {
       "tag": "agm-marker",
 	  "displayName": "MapMarker",
@@ -5369,7 +5422,8 @@
         }
       }
     },
-    
+*/
+/*    
     "MapInfoWindow" : {
       "tag": "agm-info-window",
 	  "displayName": "MapInfoWindow",
@@ -5386,7 +5440,8 @@
       "properties": {
       }
     },
-
+*/
+/*
 	"MapCircle" : {
        "tag": "agm-circle",
 	   "displayName": "MapCircle",
@@ -5572,11 +5627,12 @@
         }
       }
     },
-
+*/
     
     /*
      * Video
      */
+/*
     "Video" : {
       "tag": "video",
 	  "displayName": "Video",
@@ -5634,11 +5690,12 @@
         }
       }
     },
+*/
 
     /*
      * Charts
      */
-
+/*
     "Charts" : {
       "tag": "canvas",
 	  "displayName": "Chart",
@@ -5774,12 +5831,12 @@
         ]
       }
     },
-    
-
+*/    
 
     /*
      * Calendar
      */
+/*
     "Calendar" : {
       "tag": "ion-calendar",
       "displayName": "Calendar",
@@ -6004,10 +6061,12 @@
         }
       }
     },
+*/
     
     /*
      * InfiniteScroll
      */
+/*
     "InfiniteScroll" : {
       "tag": "ion-infinite-scroll",
       "displayName": "InfiniteScroll",
@@ -6072,10 +6131,11 @@
         }
       }
     },
-        
+*/        
     /*
      * InfiniteScrollContent
      */
+/*
     "InfiniteScrollContent" : {
       "tag": "ion-infinite-scroll-content",
       "displayName": "InfiniteScrollContent",
@@ -6118,11 +6178,11 @@
         }
       }
     },
-    
+*/    
     /*
      * AutoInfiniteScroll
      */
-/*
+/* also commented in 7.8
     "AutoInfiniteScroll" : {
       "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicInfiniteScroll",
       "tag": "c8o-scroll-infinite",
@@ -6204,6 +6264,7 @@
     /*
      * SignatureComponent
      */
+/*
     "SignatureComponent" : {
       "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
       "tag": "c8o-signature",
@@ -6369,9 +6430,11 @@
       }
       
     },
+*/
     /*
      * TreeviewComponent
      */
+/*
     "TreeviewComponent" : {
       "enabled": true,
       "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
@@ -6536,14 +6599,16 @@
             {"package":"angular-tree-component", "version":"7.0.2"}
         ]
       }	        
-    },
-	
+    }
+*/
+   
+//	,
 	
 	/*
-	* Actions
-  */
+	 * Actions
+  	*/
   
-
+/*
   "ModalAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ModalPage",
@@ -6624,7 +6689,8 @@
         }
 	  }
 	},
-
+*/
+/*
     "ClosePopoverAction" : {
     	"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     	"displayName" : "ClosePopover",
@@ -6641,7 +6707,8 @@
         	]
       	}
     },
-
+*/
+/*
   "PopoverAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Popover",
@@ -6717,8 +6784,8 @@
         }
 	  }
 	},
-
-
+*/
+/*
     "ToastAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Toast",
@@ -6806,7 +6873,8 @@
         }
 	  }
 	},
-	
+*/
+/*	
     "ErrorAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Error",
@@ -6829,7 +6897,8 @@
         }
 	  }
   },
-  
+*/
+/* 
   "IfAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "If",
@@ -6868,7 +6937,8 @@
       }
     }
   },
-
+*/
+/*
   "IfElseAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf",
     "displayName": "IfElse",
@@ -6902,7 +6972,8 @@
       }
     }
   },
-  
+*/
+/*
   "LogAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "Log",
@@ -6940,6 +7011,8 @@
       }
     }
   },
+ */
+ /*
     "CloseLoadingAction":{
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Close Loading",
@@ -6949,6 +7022,8 @@
       "icon16": "closeloadingaction_color_16x16.png",
       "icon32": "closeloadingaction_color_32x32.png"
     },
+*/
+/*
     "ShowLoadingAction":{
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Show Loading",
@@ -6967,6 +7042,8 @@
         }
        }
     },
+*/
+/*
 	"CallSequenceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CallSequence",
@@ -7075,7 +7152,8 @@
 		}
 	  }
 	},
-	
+*/
+/*
     "CallFullSyncAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CallFullSync",
@@ -7149,7 +7227,8 @@
 		}
   }
 },
-
+*/
+/*
     "ClearDataSourceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ClearDataSource",
@@ -7169,7 +7248,8 @@
 		}
 	  }
 	},
-	
+*/
+/*
     "CloseModalAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName" : "CloseModal",
@@ -7181,7 +7261,8 @@
       "icon16": "closemodalaction_color_16x16.png",
       "icon32": "closemodalaction_color_32x32.png"
     },
-
+*/
+/*
     "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PushPage",
@@ -7233,7 +7314,8 @@
         }
 	  }
 	},
-	
+*/
+/*
 	"RootPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "RootPage",
@@ -7285,7 +7367,8 @@
         }
 	  }
 	},
-
+*/
+/*
   "PopPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PopPage",
@@ -7299,8 +7382,8 @@
       "properties": {
       }
 	},
-
-
+*/
+/*
   "SetGlobalAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SetGlobal",
@@ -7335,8 +7418,8 @@
         }
 	  }
 	},
-
- 
+*/
+/*
   "CalendarPickerAction" : {
       "tplVersion": "1.0.98",
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -7563,9 +7646,8 @@
         ]
     }
   },
-
-
-
+*/
+/*
   "GooglePlusLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "GoogleLogin",
@@ -7710,7 +7792,8 @@
       ]
     }
   },
-  
+*/
+/* 
   "FullSyncSyncAction" : {
 	    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	    "displayName": "SyncData",
@@ -7816,7 +7899,8 @@
         }
       }
   },
-  
+*/
+/*  
   "FullSyncPostAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "PostData",
@@ -7900,6 +7984,8 @@
       }
     }
 },
+*/
+/*
 "FullSyncPutAttachmentAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "PutAttachment",
@@ -7990,7 +8076,8 @@
       ]
     }
 },
-
+*/
+/*
 "FullSyncDeleteAttachmentAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "DeleteAttachment",
@@ -8045,10 +8132,8 @@
       }
     }
 },
-
-
-
-
+*/
+/*
 "FullSyncGetAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "GetData",
@@ -8118,6 +8203,8 @@
       }
    }
 },
+*/
+/*
 "FullSyncDeleteAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "DeleteData",
@@ -8178,7 +8265,8 @@
       }
    }
 },
-
+*/
+/*
   "FullSyncViewAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "QueryView",
@@ -8419,7 +8507,8 @@
       }
     }
   },
-  
+*/
+/* 
   "FileChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileChooser",
@@ -8480,7 +8569,8 @@
       ]
     }
   },
-  
+*/
+/*  
   "ChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Chooser",
@@ -8541,8 +8631,8 @@
       ]
     }
   },
-  
-/*
+*/ 
+/* also commented in 7.8
   "SpeechToEventAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SpeechToEvent",
@@ -8618,7 +8708,7 @@
     }
   },
 */
-  
+/*
   "SpeechToTextAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SpeechToText",
@@ -8718,6 +8808,8 @@
         ]
     }
   },
+*/
+/*
   "TextToSpeechAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "TextToSpeech",
@@ -8798,8 +8890,8 @@
       ]
     }
   },
-  
-  
+*/
+/*
    "ActionSheetAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ActionSheet",
@@ -8946,8 +9038,8 @@
       ]
     }
   },
-  
-  
+*/ 
+/*
   "AlertAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Alert",
@@ -9106,7 +9198,8 @@
         
     }
   },
-  
+*/
+/*  
   "FileOpenerAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileOpener",
@@ -9167,7 +9260,8 @@
       ]
     }
   },
-  
+*/
+/*
   "CameraAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Camera",
@@ -9382,7 +9476,8 @@
       ]
     }
   },
-
+*/
+/*
   "BarcodeAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "BarcodeScanner",
@@ -9577,8 +9672,8 @@
       ]
     }
   },
-
-  
+*/
+/*
     "UninstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Uninstaller",
@@ -9640,7 +9735,8 @@
       ]
     }
   },
-  
+*/
+/* 
   "OAuthLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "OAuthLogin",
@@ -9777,7 +9873,8 @@
 	      ]
       	}
   },
-
+*/
+/*
     "CheckInstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CheckInstall",
@@ -9841,7 +9938,8 @@
       ]
     }
   },
-  
+*/
+/*
     "PublishEventAction" : {
       "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -9878,7 +9976,8 @@
         ]
       }
     },
-    
+*/
+/*
     "AnimateAction" : {
       "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate",
@@ -10066,7 +10165,8 @@
 	      }
       }
     },
-    
+*/
+/*
     "InvokeAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke",
 	  "displayName": "InvokeSharedAction",
@@ -10084,7 +10184,8 @@
       "properties": {
       }
     },
-    
+*/
+/*    
     "IterateAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate",
 	  "displayName": "IterateAction",
@@ -10108,7 +10209,8 @@
 	      }
       }
     },
-    
+*/
+/*    
     "PauseAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PauseAction",
@@ -10130,6 +10232,6 @@
 	      }
       }
     }
-    
+*/   
   }
 }
