@@ -1283,7 +1283,11 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			sharedTemplates += System.lineSeparator();
 		}
 		
-		return sharedTemplates + sb.toString();
+		String computedTemplate = "";
+		computedTemplate += "<ion-app>"+ System.lineSeparator();
+		computedTemplate += sharedTemplates + sb.toString();
+		computedTemplate += "</ion-app>"+ System.lineSeparator();
+		return computedTemplate;
 	}
 
 	private String computeEventConstructors() {
