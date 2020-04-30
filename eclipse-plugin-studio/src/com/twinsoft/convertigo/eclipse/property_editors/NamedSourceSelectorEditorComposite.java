@@ -51,14 +51,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncFilterListener;
 import com.twinsoft.convertigo.beans.couchdb.AbstractFullSyncViewListener;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
-import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
-import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
@@ -161,33 +153,76 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 							tvObject.addObject(ac);
 						}
 					}
-					else if (object instanceof ApplicationComponent) {
-						for (UIDynamicMenu menu: ((ApplicationComponent)object).getMenuComponentList()) {
-							tvObject.addObject(menu);
+					// MOBILE COMPONENTS
+					else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+						if (object instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+							com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent app = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu: app.getMenuComponentList()) {
+								tvObject.addObject(menu);
+							}
+							for (com.twinsoft.convertigo.beans.mobile.components.PageComponent page: app.getPageComponentList()) {
+								tvObject.addObject(page);
+							}
+							for (com.twinsoft.convertigo.beans.mobile.components.UIActionStack uisa: app.getSharedActionList()) {
+								tvObject.addObject(uisa);
+							}
+							for (com.twinsoft.convertigo.beans.mobile.components.UISharedComponent uisc: app.getSharedComponentList()) {
+								tvObject.addObject(uisc);
+							}
 						}
-						for (PageComponent page: ((ApplicationComponent)object).getPageComponentList()) {
-							tvObject.addObject(page);
+						else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
+							com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.mobile.components.UIComponent uic: menu.getUIComponentList()) {
+								tvObject.addObject(uic);
+							}
 						}
-						for (UIActionStack uisa: ((ApplicationComponent)object).getSharedActionList()) {
-							tvObject.addObject(uisa);
+						else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+							com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.mobile.components.UIComponent uic: page.getUIComponentList()) {
+								tvObject.addObject(uic);
+							}
 						}
-						for (UISharedComponent uisc: ((ApplicationComponent)object).getSharedComponentList()) {
-							tvObject.addObject(uisc);
+						else if (object instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+							com.twinsoft.convertigo.beans.mobile.components.UIComponent comp = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.mobile.components.UIComponent uic: comp.getUIComponentList()) {
+								tvObject.addObject(uic);
+							}
 						}
 					}
-					else if (object instanceof UIDynamicMenu) {
-						for (UIComponent uic: ((UIDynamicMenu)object).getUIComponentList()) {
-							tvObject.addObject(uic);
+					// NGX COMPONENTS
+					else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+						if (object instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+							com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu: app.getMenuComponentList()) {
+								tvObject.addObject(menu);
+							}
+							for (com.twinsoft.convertigo.beans.ngx.components.PageComponent page: app.getPageComponentList()) {
+								tvObject.addObject(page);
+							}
+							for (com.twinsoft.convertigo.beans.ngx.components.UIActionStack uisa: app.getSharedActionList()) {
+								tvObject.addObject(uisa);
+							}
+							for (com.twinsoft.convertigo.beans.ngx.components.UISharedComponent uisc: app.getSharedComponentList()) {
+								tvObject.addObject(uisc);
+							}
 						}
-					}
-					else if (object instanceof PageComponent) {
-						for (UIComponent uic: ((PageComponent)object).getUIComponentList()) {
-							tvObject.addObject(uic);
+						else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
+							com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.ngx.components.UIComponent uic: menu.getUIComponentList()) {
+								tvObject.addObject(uic);
+							}
 						}
-					}
-					else if (object instanceof UIComponent) {
-						for (UIComponent uic: ((UIComponent)object).getUIComponentList()) {
-							tvObject.addObject(uic);
+						else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+							com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.ngx.components.UIComponent uic: page.getUIComponentList()) {
+								tvObject.addObject(uic);
+							}
+						}
+						else if (object instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+							com.twinsoft.convertigo.beans.ngx.components.UIComponent comp = GenericUtils.cast(object);
+							for (com.twinsoft.convertigo.beans.ngx.components.UIComponent uic: comp.getUIComponentList()) {
+								tvObject.addObject(uic);
+							}
 						}
 					}
 					else if (object instanceof Connector) {
@@ -214,7 +249,9 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 						if (object instanceof DesignDocument) {
 							JSONObject json = ((DesignDocument)object).getJSONObject();
 							DatabaseObject dboo = dboto.getObject();
-							if (dboo instanceof AbstractFullSyncViewListener || dboo instanceof UIDynamicElement) {
+							if (dboo instanceof AbstractFullSyncViewListener || 
+									dboo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement || 
+									dboo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
 								JSONObject views = CouchKey.views.JSONObject(json);
 								if (views != null) {
 									for (Iterator<String> it = GenericUtils.cast(views.keys()); it.hasNext(); ) {
@@ -292,8 +329,10 @@ public class NamedSourceSelectorEditorComposite extends AbstractDialogComposite 
 		dboto =  cellEditor.databaseObjectTreeObject;
 		propertyName = (String) cellEditor.propertyDescriptor.getId();
 		Object pValue = dboto.getPropertyValue(propertyName);
-		if (pValue instanceof MobileSmartSourceType) {
-			sourcedObjectName = ((MobileSmartSourceType)pValue).getSmartValue();
+		if (pValue instanceof com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType) {
+			sourcedObjectName = ((com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType)pValue).getSmartValue();
+		} else if (pValue instanceof com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType) {
+			sourcedObjectName = ((com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType)pValue).getSmartValue();
 		} else {
 			sourcedObjectName = (String)pValue;
 		}
