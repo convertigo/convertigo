@@ -34,13 +34,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIAttribute;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlAttr;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
-import com.twinsoft.convertigo.beans.mobile.components.UIStyle;
-import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.rest.BodyParameter;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
@@ -56,6 +49,7 @@ import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DatabaseObjectsAction {
 	
@@ -196,21 +190,34 @@ public class DatabaseObjectsAction {
 			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileUIComponentAction": {
-				actionModel.isEnabled = !(dbo instanceof UIText ||
-					    dbo instanceof UIAttribute || dbo instanceof UIStyle || dbo instanceof UIControlVariable);
-				if (!actionModel.isEnabled && dbo instanceof UIControlAttr) {
+				actionModel.isEnabled = !(dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIText ||
+					    dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIAttribute || 
+					    dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIStyle || 
+					    dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlVariable);
+				if (!actionModel.isEnabled && dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlAttr) {
+				    actionModel.isEnabled = true;
+				}
+			}
+			break;
+			
+			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxUIComponentAction": {
+				actionModel.isEnabled = !(dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIText ||
+					    dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIAttribute || 
+					    dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIStyle || 
+					    dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlVariable);
+				if (!actionModel.isEnabled && dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlAttr) {
 				    actionModel.isEnabled = true;
 				}
 			}
 			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteActionComponentAction": {
-				actionModel.isEnabled = dbo instanceof RouteComponent;
+				actionModel.isEnabled = dbo instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 			}
 			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileRouteEventComponentAction": {
-				actionModel.isEnabled = dbo instanceof RouteComponent;
+				actionModel.isEnabled = dbo instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
 			}
 			break;
 			
@@ -282,7 +289,13 @@ public class DatabaseObjectsAction {
 			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.SetMobileRootPageAction": {
-				PageComponent page = (PageComponent) dbo;
+				com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(dbo);
+				actionModel.isChecked = page.isRoot;
+			}
+			break;
+			
+			case "com.twinsoft.convertigo.eclipse.popup.actions.SetNgxRootPageAction": {
+				com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(dbo);
 				actionModel.isChecked = page.isRoot;
 			}
 			break;
@@ -311,12 +324,23 @@ public class DatabaseObjectsAction {
 //			break;
 			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.EnableMobilePageComponentAction": {
-				PageComponent page = (PageComponent)dbo;
+				com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(dbo);
 				actionModel.isEnabled = !page.isRoot && !page.isEnabled();
 			}
 			break;
+			case "com.twinsoft.convertigo.eclipse.popup.actions.EnableNgxPageComponentAction": {
+				com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(dbo);
+				actionModel.isEnabled = !page.isRoot && !page.isEnabled();
+			}
+			break;
+			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.DisableMobilePageComponentAction": {
-				PageComponent page = (PageComponent)dbo;
+				com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(dbo);
+				actionModel.isEnabled = !page.isRoot && page.isEnabled();
+			}
+			break;
+			case "com.twinsoft.convertigo.eclipse.popup.actions.DisableNgxPageComponentAction": {
+				com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(dbo);
 				actionModel.isEnabled = !page.isRoot && page.isEnabled();
 			}
 			break;

@@ -26,18 +26,15 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
+public class EditNgxComponentClassAction extends MyAbstractAction {
 
-	protected boolean forceInstall = false;
-	protected boolean forceClean = false;
-
-	public ExecuteMobileBuilderClassAction() {
+	public EditNgxComponentClassAction() {
 		super();
 	}
 
@@ -52,23 +49,20 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			if (treeObject instanceof MobileComponentTreeObject) {
-    				if (treeObject instanceof MobileApplicationComponentTreeObject) {
-    					MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject) treeObject;
-    					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor editor = mpcto.activeEditor(false);
-    					editor.launchBuilder(forceInstall, forceClean);
-    				}
-    			} else if (treeObject instanceof NgxComponentTreeObject) {
+    			if (treeObject instanceof NgxComponentTreeObject) {
     				if (treeObject instanceof NgxApplicationComponentTreeObject) {
-    					NgxApplicationComponentTreeObject mpcto = (NgxApplicationComponentTreeObject) treeObject;
-    					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor editor = mpcto.activeEditor(false);
-    					editor.launchBuilder(forceInstall, forceClean);
+    					NgxApplicationComponentTreeObject mpcto = GenericUtils.cast(treeObject);
+    					mpcto.editAppComponentTsFile();
+    				}
+    				else if (treeObject instanceof NgxPageComponentTreeObject) {
+    					NgxPageComponentTreeObject mpcto = GenericUtils.cast(treeObject);
+    					mpcto.editPageTsFile();
     				}
     			}
     		}
         }
         catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to open the mobile builder!");
+        	ConvertigoPlugin.logException(e, "Unable to edit ngx component class!");
         }
         finally {
 			shell.setCursor(null);

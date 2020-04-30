@@ -24,20 +24,18 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
+public class EnableNgxUIComponentAction extends MyAbstractAction {
 
-	protected boolean forceInstall = false;
-	protected boolean forceClean = false;
-
-	public ExecuteMobileBuilderClassAction() {
+	public EnableNgxUIComponentAction() {
 		super();
 	}
 
@@ -51,28 +49,34 @@ public class ExecuteMobileBuilderClassAction extends MyAbstractAction {
         try {
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			if (treeObject instanceof MobileComponentTreeObject) {
-    				if (treeObject instanceof MobileApplicationComponentTreeObject) {
-    					MobileApplicationComponentTreeObject mpcto = (MobileApplicationComponentTreeObject) treeObject;
-    					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor editor = mpcto.activeEditor(false);
-    					editor.launchBuilder(forceInstall, forceClean);
-    				}
-    			} else if (treeObject instanceof NgxComponentTreeObject) {
-    				if (treeObject instanceof NgxApplicationComponentTreeObject) {
-    					NgxApplicationComponentTreeObject mpcto = (NgxApplicationComponentTreeObject) treeObject;
-    					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor editor = mpcto.activeEditor(false);
-    					editor.launchBuilder(forceInstall, forceClean);
-    				}
-    			}
+    			DatabaseObjectTreeObject treeObject = null;
+    			UIComponent component = null;
+    			
+    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+				for (int i = treeObjects.length-1 ; i>=0  ; i--) {
+					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
+					if (treeObject instanceof NgxUIComponentTreeObject) {
+						NgxUIComponentTreeObject componentTreeObject = GenericUtils.cast(treeObject);
+						component = (UIComponent)componentTreeObject.getObject();
+						component.setEnabled(true);
+						
+						componentTreeObject.setEnabled(true);
+						componentTreeObject.hasBeenModified(true);
+		                
+		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnabled", false, true);
+		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+					}
+				}
+				
+				explorerView.refreshSelectedTreeObjects();
     		}
         }
         catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to open the mobile builder!");
+        	ConvertigoPlugin.logException(e, "Unable to enable component!");
         }
         finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
         }
-	}
+	}	
 }

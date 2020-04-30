@@ -702,8 +702,16 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/applicationcomponent_color_16x16.png"
-               id="convertigo.action.newApplicationComponent"
-               label="Application"
+               id="convertigo.action.newMobileApplicationComponent"
+               label="Ionic3 Application"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxApplicationComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/applicationcomponent_color_16x16.png"
+               id="convertigo.action.newNgxApplicationComponent"
+               label="Ngx Application"
                menubarPath="convertigo.menu.new/content">
          </action>
       </objectContribution>
@@ -745,6 +753,64 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationTranslationsFileAction"
                enablesFor="1"
                id="convertigo.action.createMobileApplicationTranslationsFile"
+               label="Create or update translations file"
+               menubarPath="translate">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderReInstallClassAction"
+               enablesFor="1"
+               id="convertigo.action.openMobileBuilderReIntall"
+               label="Re-install packages and Execute"
+               icon="icons/studio/transaction_execute_selected.gif"
+               menubarPath="execute">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderUpdateClassAction"
+               enablesFor="1"
+               id="convertigo.action.openMobileBuilderUpdate"
+               label="Update packages and Execute"
+               icon="icons/studio/transaction_execute_selected.gif"
+               menubarPath="execute">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ExecuteMobileBuilderClassAction"
+               enablesFor="1"
+               id="convertigo.action.openMobileBuilder"
+               label="Execute"
+               icon="icons/studio/transaction_execute_selected.gif"
+               menubarPath="execute">
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.ngxApplicationComponentContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/uicomponent_color_16x16.png"
+               id="convertigo.action.newNgxUIComponent"
+               label="UI Component"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxPageComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/pagecomponent_color_16x16.png"
+               id="convertigo.action.newNgxPageComponent"
+               label="Page"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.EditNgxComponentClassAction"
+               enablesFor="1"
+               id="convertigo.action.editNgxAppComponentClass"
+               label="Edit application class"
+               menubarPath="default">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxApplicationTranslationsFileAction"
+               enablesFor="1"
+               id="convertigo.action.createNgxApplicationTranslationsFile"
                label="Create or update translations file"
                menubarPath="translate">
          </action>
@@ -938,6 +1004,64 @@
 	       </action>
       </objectContribution>
       <objectContribution
+            id="convertigo.ngxPageComponentContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/uicomponent_color_16x16.png"
+               id="convertigo.action.newNgxUIComponent"
+               label="UI Component"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.SetNgxRootPageAction"
+               enablesFor="1"
+               id="convertigo.action.setNgxRootPage"
+               label="Root page"
+               menubarPath="default"
+               style="toggle">
+            <enablement>
+               <objectState
+                     name="isRoot"
+                     value="false"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.EditNgxComponentClassAction"
+               enablesFor="1"
+               id="convertigo.action.editNgxPageClass"
+               label="Edit page class"
+               menubarPath="default">
+         </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.EnableNgxPageComponentAction"
+	             enablesFor="+"
+	             id="convertigo.action.enableNgxPageComponent"
+	             label="Enable"
+	             menubarPath="enable">
+	          <enablement>
+	             <objectState
+	                   name="isEnabled"
+	                   value="false">
+	             </objectState>
+	          </enablement>
+	       </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.DisableNgxPageComponentAction"
+	             enablesFor="+"
+	             id="convertigo.action.disableNgxPageComponent"
+	             label="Disable"
+	             menubarPath="enable">
+	          <enablement>
+	             <objectState
+	                   name="isEnabled"
+	                   value="true">
+	             </objectState>
+	          </enablement>
+	       </action>
+      </objectContribution>
+      <objectContribution
             id="convertigo.mobileUIComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject">
          <action
@@ -978,6 +1102,51 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.MobileComponentImportVariablesAction"
                enablesFor="1"
                id="convertigo.action.componentImportVariables"
+               label="Import variables from the targeted object"
+               menubarPath="import">
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.ngxUIComponentContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/uicomponent_color_16x16.png"
+               id="convertigo.action.newNgxUIComponent"
+               label="UI Component"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.EnableNgxUIComponentAction"
+                     enablesFor="+"
+                     id="convertigo.action.enableNgxComponent"
+                     label="Enable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnabled"
+                           value="false">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DisableNgxUIComponentAction"
+                     enablesFor="+"
+                     id="convertigo.action.disableNgxComponent"
+                     label="Disable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnabled"
+                           value="true">
+                     </objectState>
+                  </enablement>
+               </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.NgxComponentImportVariablesAction"
+               enablesFor="1"
+               id="convertigo.action.ngxComponentImportVariables"
                label="Import variables from the targeted object"
                menubarPath="import">
          </action>
@@ -2104,13 +2273,39 @@
                enablesFor="1"
                icon="icons/studio/menu/pagecomponent_color_16x16.png"
                id="convertigo.action.newPageComponent"
-               label="Page"
+               label="Mobile Page"
                menubarPath="convertigo.menu.new/content">
             <enablement>
-               <objectState
-                     name="folderType"
-                     value="24">
-               </objectState>
+            	<and>
+	               <objectState
+	                     name="folderType"
+	                     value="24">
+	               </objectState>
+	               <objectState
+	                     name="parentPackageName"
+	                     value="com.twinsoft.convertigo.beans.mobile.components">
+	               </objectState>
+            	</and>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxPageComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/pagecomponent_color_16x16.png"
+               id="convertigo.action.newNgxPageComponent"
+               label="Ngx Page"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+            	<and>
+	               <objectState
+	                     name="folderType"
+	                     value="24">
+	               </objectState>
+	               <objectState
+	                     name="parentPackageName"
+	                     value="com.twinsoft.convertigo.beans.ngx.components">
+	               </objectState>
+            	</and>
             </enablement>
          </action>
          <action
@@ -2118,8 +2313,28 @@
                enablesFor="1"
                icon="icons/studio/menu/uicomponent_color_16x16.png"
                id="convertigo.action.newUIComponent"
-               label="UI Component"
+               label="Mobile UI Component"
                menubarPath="convertigo.menu.new/content">
+             <enablement>
+	               <objectState
+	                     name="parentPackageName"
+	                     value="com.twinsoft.convertigo.beans.mobile.components">
+	               </objectState>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateNgxUIComponentAction"
+               enablesFor="1"
+               icon="icons/studio/menu/uicomponent_color_16x16.png"
+               id="convertigo.action.newNgxUIComponent"
+               label="Ngx UI Component"
+               menubarPath="convertigo.menu.new/content">
+             <enablement>
+	               <objectState
+	                     name="parentPackageName"
+	                     value="com.twinsoft.convertigo.beans.ngx.components">
+	               </objectState>
+            </enablement>
          </action>
          <menu
                id="convertigo.menu.new"

@@ -190,6 +190,11 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 			int iTest = Integer.parseInt(value);
 			return folderType == iTest;
 		}
+		if (name.equals("parentPackageName")) {
+			if (getParent() instanceof DatabaseObjectTreeObject) {
+				return ((DatabaseObjectTreeObject)getParent()).testAttribute(target, "objectPackageName", value);
+			}
+		}
 		return super.testAttribute(target, name, value);
 	}
 }

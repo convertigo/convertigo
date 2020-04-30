@@ -1326,6 +1326,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			objectClassName = Pattern.quote(objectClassName);
 			return value.matches("(^|.*;)" + objectClassName + "($|;.*)");
 		}
+		if (name.equals("objectPackageName")) {
+			String objectPackageName = getClass().getPackageName();
+			objectPackageName = Pattern.quote(objectPackageName);
+			return value.matches("(^|.*;)" + objectPackageName + "($|;.*)");
+		}
 		if (name.equals("isModified")) {
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(hasChanged));
