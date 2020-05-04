@@ -147,7 +147,7 @@ public class UIUseShared extends UIElement {
 				
 				// recursive case
 				if (parentSharedComp != null && parentSharedComp.priority == uisc.priority) {
-					computed += "<ng-container *ngTemplateOutlet=\"sc"+ uisc.priority +";context:{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
+					computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
 				}
 				// other cases
 				else {
@@ -156,7 +156,7 @@ public class UIUseShared extends UIElement {
 						String sharedTemplate = uisc.computeTemplate(this);
 						main.addTemplate("sc"+ uisc.priority, sharedTemplate);
 					}
-					computed += "<ng-container *ngTemplateOutlet=\"sc"+ uisc.priority +";context:{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
+					computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
 				}
 			}
 		}

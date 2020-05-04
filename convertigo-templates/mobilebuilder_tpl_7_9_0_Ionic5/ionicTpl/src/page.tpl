@@ -26,7 +26,7 @@ import { TranslateService }                                 							from '@ngx-tr
 //@IonicPage({priority: /*=c8o_PagePriority*/, segment: /*=c8o_PageSegment*/, defaultHistory: /*=c8o_PageHistory*/})
 //@Component({selector: /*=c8o_PageSelector*/, templateUrl: /*=c8o_PageTplUrl*/, changeDetection: /*=c8o_PageChangeDetection*/})
 //export class /*=c8o_PageName*/ extends C8oPage  {
-@Component({selector: /*=c8o_PageSelector*/, templateUrl: /*=c8o_PageTplUrl*/, styleUrls: /*=c8o_PageStyleUrls*/, changeDetection: /*=c8o_PageChangeDetection*/})
+@Component({selector: /*=c8o_PageSelector*/, templateUrl: /*=c8o_PageTplUrl*/, styleUrls: [/*=c8o_PageStyleUrls*/], changeDetection: /*=c8o_PageChangeDetection*/})
 export class /*=c8o_PageName*/ {
 	/*=c8o_PageDeclarations*/
 
@@ -51,6 +51,10 @@ export class /*=c8o_PageName*/ {
 	
 	instance() {
 		return this;
+	}
+	
+	public merge(firstObj: Object, secondObj): Object{
+	    return Object.assign(firstObj, secondObj);
 	}
 	
 	/*Begin_c8o_PageFunction*/
