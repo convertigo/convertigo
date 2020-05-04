@@ -960,8 +960,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	@Override
 	public String computeStyle() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("page-"+ getName().toLowerCase()).append(" {")
-			.append(System.getProperty("line.separator"));
+//		sb.append("page-"+ getName().toLowerCase()).append(" {")
+//			.append(System.getProperty("line.separator"));
 		
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
@@ -980,8 +980,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			}
 		}
 		
-		sb.append("}")
-			.append(System.getProperty("line.separator"));
+//		sb.append("}")
+//			.append(System.getProperty("line.separator"));
 		
 		return sb.toString();
 	}
