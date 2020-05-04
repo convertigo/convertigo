@@ -1214,6 +1214,7 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_PageSegment = page.getSegment();
 		String c8o_PageChangeDetection = page.getChangeDetectionStrategy();
 		String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
+		String c8o_PageStyleUrls = pageName.toLowerCase() + ".scss";
 		String c8o_PageSelector = "page-"+pageName.toLowerCase();
 		String c8o_PageImports = page.getComputedImports();
 		String c8o_PageDeclarations = page.getComputedDeclarations();
@@ -1230,6 +1231,7 @@ public class NgxBuilder extends MobileBuilder {
 		
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageSelector\\*/","'"+c8o_PageSelector+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageTplUrl\\*/","'"+c8o_PageTplUrl+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageStyleUrls\\*/","'"+c8o_PageStyleUrls+"'");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageChangeDetection\\*/",c8o_PageChangeDetection);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImports\\*/",c8o_PageImports);
