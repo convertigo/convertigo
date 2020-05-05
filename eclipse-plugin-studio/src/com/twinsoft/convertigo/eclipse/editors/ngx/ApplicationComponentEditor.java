@@ -1486,7 +1486,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			C8oBrowser.run(() -> {
 				String url = baseUrl;
 				if (pagePath != null) {
-					url += "#/" + pagePath;
+					url += "/" + pagePath;
 				}
 				if (!c8oBrowser.getURL().equals(url)) {
 					c8oBrowser.loadURL(url);
