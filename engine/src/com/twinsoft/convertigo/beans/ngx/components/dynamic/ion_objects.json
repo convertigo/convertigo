@@ -5820,16 +5820,30 @@
       "icon16": "header_color_16x16.png",
       "icon32": "header_color_32x32.png",
       "properties": {
-        "NoBorder": {
-          "label": "No border",
-          "description": "If Set removes shadow and border below the header.",
+      	"IonMode": false,
+        "Collapse": {
+          "attr": "collapse",
+          "label": "Collapse",
+          "description": "Describes the scroll effect that will be applied to the header. <code>condense</code> only applies when the <i>Mode</i> is ios.",
           "category": "Attributes",
           "value": false,
           "values": [
             false,
-            "no-border"
+            "condense"
           ]
-        }
+        },
+      	"Translucent": {
+          "attr": "translucent",
+          "label": "Translucent",
+          "description": "Specifies whether to make the header translucent. Only applies when the <i>Mode</i> is ios and the device supports backdrop-filter.",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+      	}
       }
     },
 

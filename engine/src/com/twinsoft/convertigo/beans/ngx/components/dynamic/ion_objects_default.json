@@ -256,10 +256,20 @@
   "   7   9   0": {
    "name": "Header",
    "properties": {
-    "NoBorder": {
-     "name": "NoBorder",
+    "IonMode": {
+     "name": "IonMode",
      "mode": "plain",
      "value": false
+    },
+    "Collapse": {
+     "name": "Collapse",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
     }
    }
   }
