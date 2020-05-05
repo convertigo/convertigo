@@ -50,8 +50,8 @@
      "mode": "plain",
      "value": false
     },
-    "IonSlot": {
-     "name": "IonSlot",
+    "IconSlot": {
+     "name": "IconSlot",
      "mode": "plain",
      "value": false
     },
@@ -179,8 +179,73 @@
   "   7   9   0": {
    "name": "GenericItem",
    "properties": {
-    "ItemPosition": {
-     "name": "ItemPosition",
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    },
+    "Detail": {
+     "name": "Detail",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DetailIconName": {
+     "name": "DetailIconName",
+     "mode": "plain",
+     "value": "chevron-forward"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
      "mode": "plain",
      "value": false
     }
@@ -342,8 +407,8 @@
      "mode": "plain",
      "value": false
     },
-    "IonSlot": {
-     "name": "IonSlot",
+    "IconSlot": {
+     "name": "IconSlot",
      "mode": "plain",
      "value": false
     },
@@ -435,8 +500,73 @@
   "   7   9   0": {
    "name": "ListItem",
    "properties": {
-    "ItemPosition": {
-     "name": "ItemPosition",
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    },
+    "Detail": {
+     "name": "Detail",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DetailIconName": {
+     "name": "DetailIconName",
+     "mode": "plain",
+     "value": "chevron-forward"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
      "mode": "plain",
      "value": false
     }
@@ -583,8 +713,8 @@
      "mode": "plain",
      "value": false
     },
-    "IonSlot": {
-     "name": "IonSlot",
+    "IconSlot": {
+     "name": "IconSlot",
      "mode": "plain",
      "value": false
     },
@@ -671,8 +801,8 @@
      "mode": "plain",
      "value": false
     },
-    "IonSlot": {
-     "name": "IonSlot",
+    "IconSlot": {
+     "name": "IconSlot",
      "mode": "plain",
      "value": false
     },
@@ -730,6 +860,23 @@
     },
     "BarMode": {
      "name": "BarMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TextItem": {
+  "   7   9   0": {
+   "name": "TextItem",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
      "mode": "plain",
      "value": false
     }
