@@ -483,13 +483,18 @@
   "   7   9   0": {
    "name": "List",
    "properties": {
-    "Nolines": {
-     "name": "Nolines",
+    "IonMode": {
+     "name": "IonMode",
      "mode": "plain",
      "value": false
     },
     "Inset": {
      "name": "Inset",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
      "mode": "plain",
      "value": false
     }
@@ -594,7 +599,23 @@
  "Listheader": {
   "   7   9   0": {
    "name": "Listheader",
-   "properties": {}
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "Menu": {

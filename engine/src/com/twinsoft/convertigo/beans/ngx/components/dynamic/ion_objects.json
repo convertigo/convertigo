@@ -8136,24 +8136,30 @@
       "icon16": "list_16x16.png",
       "icon32": "list_32x32.png",
       "properties": {
-        "Nolines": {
-          "label": "nolines",
-          "description": "Adding the no-lines attribute will hide the dividers between list items.",
+        "IonMode": false,
+        "Inset": {
+          "attr": "inset",
+          "label": "Inset",
+          "description": "Specifies whether the list will have margin around it and rounded corners.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
-            "no-lines"
+            "false",
+            "true"
           ]
         },
-        "Inset": {
-          "label": "Inset",
-          "description": "Lists do not have an outside margin by default. To add one, add the inset attribute to ion-list component.",
+        "Lines": {
+          "attr": "lines",
+          "label": "Lines",
+          "description": "Specifies how the bottom border should be displayed on all items.",
           "category": "@Properties",
           "value": false,
           "values": [
             false,
-            "inset"
+            "full",
+            "inset",
+            "none"
           ]
         }
       }
@@ -8171,6 +8177,21 @@
       "icon16": "listheader_16x16.png",
       "icon32": "listheader_32x32.png",
       "properties": {
+        "IonMode": false,
+        "IonColor": false,
+        "Lines": {
+          "attr": "lines",
+          "label": "Lines",
+          "description": "Specifies how the bottom border should be displayed on the list header.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "full",
+            "inset",
+            "none"
+          ]
+        }
       }
     },
 
@@ -8341,6 +8362,7 @@
           "category": "Attributes",
           "value": false,
           "values": [
+            false,
             "full",
             "inset",
             "none"
@@ -8404,6 +8426,7 @@
           "category": "Attributes",
           "value": false,
           "values": [
+            false,
             "full",
             "inset",
             "none"
