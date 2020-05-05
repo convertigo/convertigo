@@ -4539,6 +4539,19 @@
       "icon16": "footer_color_16x16.png",
       "icon32": "footer_color_32x32.png",
       "properties": {
+      	"IonMode": false,
+      	"Translucent": {
+          "attr": "translucent",
+          "label": "Translucent",
+          "description": "Specifies whether to make the footer translucent. Only applies when the <i>Mode</i> is ios and the device supports backdrop-filter.",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+      	}
       }
     },
     

@@ -161,7 +161,18 @@
  "Footer": {
   "   7   9   0": {
    "name": "Footer",
-   "properties": {}
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
   }
  },
  "GenericItem": {
