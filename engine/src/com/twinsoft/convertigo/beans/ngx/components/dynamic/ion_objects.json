@@ -254,9 +254,8 @@
       "description": "Specifies whether to activate a heavier font weight.",
       "category": "Attributes",
       "type": "boolean",
-      "value": false,
+      "value": "false",
       "values": [
-      	false,
         "false",
         "true"
       ]
@@ -4155,9 +4154,8 @@
           "description": "Specifies whether to automatically hides the menu button when the corresponding menu is not active.",
           "category": "@Properties",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
             "true",
             "false"
           ]
@@ -4415,9 +4413,8 @@
           "description": "Specifies whether to collapse buttons of toolbar. Only applies in ios mode with collapse set to true on ion-header.",
           "category": "Attributes",
           "type": "boolean",
-          "value": false,
+          "value": "false",
           "values": [
-            false,
             "false",
             "true"
           ]
@@ -4439,19 +4436,92 @@
       "icon16": "content_color_16x16.png",
       "icon32": "content_color_32x32.png",
       "properties": {
-        "IonPadding": "padding",
-        "Fullscreen": {
-          "attr": "fullscreen",
-          "label": "full screen",
-          "description": "Specifies a fullscreen scrollable content.",
+        "IonColor": false,
+        "IonSlot": {
+          "attr": "slot",
+          "label": "Fixed content",
+          "description": "Specifies a fixed content.",
           "category": "Attributes",
           "value": false,
           "values": [
             false,
+            "fixed"
+          ]
+        },
+        "Fullscreen": {
+          "attr": "fullscreen",
+          "label": "Full screen",
+          "description": "Specifies a fullscreen content.",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "ForceOverScroll": {
+          "attr": "forceOverscroll",
+          "label": "Force overscroll",
+          "description": "Specifies whether to force over scroll.",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "ScrollEvents": {
+          "attr": "scrollEvents",
+          "label": "Scroll events",
+          "description": "Specifies whether to enable scroll events and start listening from (ionScroll).",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "ScrollX": {
+          "attr": "scroll-x",
+          "label": "Scroll X",
+          "description": "Specifies whether to enable the content scrolling in the X axis.",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "ScrollY": {
+          "attr": "scroll-y",
+          "label": "Scroll Y",
+          "description": "Specifies whether to enable the content scrolling in the Y axis.",
+          "category": "Attributes",
+          "type": "boolean",
+          "value": "false",
+          "values": [
             "false",
             "true"
           ]
         }
+      },
+      "events": {
+        "ionScroll": {
+          "attr":"(ionScroll)",
+          "description": "Emitted while scrolling. This event is disabled by default. Look at the property: `scrollEvents`."
+        },
+        "ionScrollEnd": {
+          "attr":"(ionScrollEnd)",
+          "description": "Emitted when the scroll has ended."
+        },
+        "ionScrollStart": {
+          "attr":"(ionScrollStart)",
+          "description": "Emitted when the scroll has started."
+        }        
       }
     },
     

@@ -105,7 +105,7 @@
     "Collapse": {
      "name": "Collapse",
      "mode": "plain",
-     "value": false
+     "value": "false"
     }
    }
   }
@@ -114,15 +114,40 @@
   "   7   9   0": {
    "name": "Content",
    "properties": {
-    "IonPadding": {
-     "name": "IonPadding",
+    "IonColor": {
+     "name": "IonColor",
      "mode": "plain",
-     "value": "padding"
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
     },
     "Fullscreen": {
      "name": "Fullscreen",
      "mode": "plain",
-     "value": false
+     "value": "false"
+    },
+    "ForceOverScroll": {
+     "name": "ForceOverScroll",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ScrollEvents": {
+     "name": "ScrollEvents",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ScrollX": {
+     "name": "ScrollX",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ScrollY": {
+     "name": "ScrollY",
+     "mode": "plain",
+     "value": "false"
     }
    }
   }
@@ -481,7 +506,7 @@
     "AutoHide": {
      "name": "AutoHide",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "MenuId": {
      "name": "MenuId",
