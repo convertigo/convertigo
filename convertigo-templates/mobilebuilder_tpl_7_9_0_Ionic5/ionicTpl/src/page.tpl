@@ -57,6 +57,10 @@ export class /*=c8o_PageName*/ {
 	    return Object.assign(firstObj, secondObj);
 	}
 	
+	public log(val) {
+	    console.log(val);
+	}
+	
 	/*Begin_c8o_PageFunction*/
 	/*End_c8o_PageFunction*/
 	
