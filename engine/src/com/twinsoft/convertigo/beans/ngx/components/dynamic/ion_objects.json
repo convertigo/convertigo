@@ -1611,7 +1611,7 @@
     
     "IconMdName": {
       "attr": "md",
-      "label": "Icon name",
+      "label": "Icon Md name",
       "description": "Specifies ionic icon name for md platform.",
       "category": "Attributes",
 	  "values": [
@@ -2849,7 +2849,7 @@
 	
     "IconIosName": {
       "attr": "ios",
-      "label": "Icon name",
+      "label": "Icon Ios name",
       "description": "Specifies ionic icon name for ios platform.",
       "category": "Attributes",
 	  "values": [
@@ -4364,6 +4364,7 @@
         "IconMdName": false,
         "IconIosName": false,
         "IonSize": false,
+        "IonSlot": false,
         "IconSource": {
           "attr": "src",
           "label": "Source file URL",
