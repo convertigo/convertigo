@@ -1506,6 +1506,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 	
 	public void selectPage(String pagePath) {
+		if (this.pagePath != null && this.pagePath.equals(pagePath)) {
+			return;
+		}
+		
 		this.pagePath = pagePath;
 		doLoad();
 	}
