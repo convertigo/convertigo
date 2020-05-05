@@ -291,23 +291,23 @@
      "mode": "plain",
      "value": "add"
     },
-    "ItemPosition": {
-     "name": "ItemPosition",
+    "IconMdName": {
+     "name": "IconMdName",
      "mode": "plain",
      "value": false
     },
-    "IonColor": {
-     "name": "IonColor",
+    "IconIosName": {
+     "name": "IconIosName",
      "mode": "plain",
      "value": false
     },
-    "RangeLeft": {
-     "name": "RangeLeft",
+    "IonSize": {
+     "name": "IonSize",
      "mode": "plain",
      "value": false
     },
-    "RangeRight": {
-     "name": "RangeRight",
+    "IconSource": {
+     "name": "IconSource",
      "mode": "plain",
      "value": false
     }
