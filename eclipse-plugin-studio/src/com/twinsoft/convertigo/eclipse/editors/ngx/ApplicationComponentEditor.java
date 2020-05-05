@@ -1322,14 +1322,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 //					Engine.logStudio.warn("Failed to update DEBOUNCE", e);
 //				}
 //				
-//				File assets = new File(displayObjectsMobile, "assets");
-//				if (assets.exists() && assets.isDirectory()) {
-//					appendOutput("Handle application assets");
-//					Engine.logStudio.info("Handle application assets");
-//					File privAssets = new File(ionicDir, "src/assets");
-//					FileUtils.deleteDirectory(privAssets);
-//					FileUtils.copyDirectory(assets, privAssets);
-//				}
+			File assets = new File(displayObjectsMobile, "assets");
+			if (assets.exists() && assets.isDirectory()) {
+				appendOutput("Handle application assets");
+				Engine.logStudio.info("Handle application assets");
+				File privAssets = new File(ionicDir, "src/assets");
+				FileUtils.deleteDirectory(privAssets);
+				FileUtils.copyDirectory(assets, privAssets);
+			}
+			
 			try {
 				// TODO: to be removed -> has to be fixed in CAF
 				File routerJS = new File(project.getDirPath(), "_private/ionic/node_modules/c8ocaf/src/caf/convertigo.router.js");
