@@ -331,6 +331,11 @@
      "mode": "plain",
      "value": false
     },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
     "IconSource": {
      "name": "IconSource",
      "mode": "plain",
