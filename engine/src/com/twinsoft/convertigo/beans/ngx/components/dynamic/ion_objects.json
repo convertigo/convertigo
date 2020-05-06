@@ -8428,38 +8428,20 @@
       "icon16": "label_color_16x16.png",
       "icon32": "label_color_32x32.png",
       "properties": {
-        "Fixed": {
-          "label": "Fixed",
-          "description": "Use fixed to place a label to the left of the input element. The label does not hide when text is entered. The input will align on the same position, regardless of the length of the label. Placeholder text can be used in conjunction with a fixed label.",
-          "category": "@Position",
+        "IonColor" : false,
+        "IonMode" : false,
+        "Position": {
+          "label": "position",
+          "description": "The position determines where and how the label behaves inside an item.",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
-            "fixed"
-          ]
-        },
-        "Floating": {
-          "label": "Floating",
-          "description": "Floating labels are labels that animate or 'float' up when the input is selected. Add the floating attribute to an ion-label to use.",
-          "category": "@Position",
-          "value": false,
-          "values": [
-            false,
-            "floating"
-          ]
-        },
-        "Stacked": {
-          "label": "Stacked",
-          "description": "A stacked label will always appear on top of the input. Add the stacked attribute to an ion-label to use. Placeholder text can be used in conjunction with an stacked label.",
-          "category": "@Position",
-          "value": false,
-          "values": [
-            false,
+            "fixed",
+            "floating",
             "stacked"
           ]
-        },
-        "RangeLeft" : false,
-        "RangeRight" : false
+        }
       }
     }
 

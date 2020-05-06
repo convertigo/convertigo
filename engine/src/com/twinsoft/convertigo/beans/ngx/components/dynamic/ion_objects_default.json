@@ -384,28 +384,18 @@
   "   7   9   0": {
    "name": "Label",
    "properties": {
-    "Fixed": {
-     "name": "Fixed",
+    "IonColor": {
+     "name": "IonColor",
      "mode": "plain",
      "value": false
     },
-    "Floating": {
-     "name": "Floating",
+    "IonMode": {
+     "name": "IonMode",
      "mode": "plain",
      "value": false
     },
-    "Stacked": {
-     "name": "Stacked",
-     "mode": "plain",
-     "value": false
-    },
-    "RangeLeft": {
-     "name": "RangeLeft",
-     "mode": "plain",
-     "value": false
-    },
-    "RangeRight": {
-     "name": "RangeRight",
+    "Position": {
+     "name": "Position",
      "mode": "plain",
      "value": false
     }
