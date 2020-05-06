@@ -277,120 +277,43 @@
  "Heading": {
   "   7   9   0": {
    "name": "Heading",
-   "properties": {
-    "ionText": {
-     "name": "ionText",
-     "mode": "plain",
-     "value": false
-    },
-    "IonColor": {
-     "name": "IonColor",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "Heading1": {
   "   7   9   0": {
    "name": "Heading1",
-   "properties": {
-    "ionText": {
-     "name": "ionText",
-     "mode": "plain",
-     "value": false
-    },
-    "IonColor": {
-     "name": "IonColor",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "Heading2": {
   "   7   9   0": {
    "name": "Heading2",
-   "properties": {
-    "ionText": {
-     "name": "ionText",
-     "mode": "plain",
-     "value": false
-    },
-    "IonColor": {
-     "name": "IonColor",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "Heading3": {
   "   7   9   0": {
    "name": "Heading3",
-   "properties": {
-    "ionText": {
-     "name": "ionText",
-     "mode": "plain",
-     "value": false
-    },
-    "IonColor": {
-     "name": "IonColor",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "Heading4": {
   "   7   9   0": {
    "name": "Heading4",
-   "properties": {
-    "ionText": {
-     "name": "ionText",
-     "mode": "plain",
-     "value": false
-    },
-    "IonColor": {
-     "name": "IonColor",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "Heading5": {
   "   7   9   0": {
    "name": "Heading5",
-   "properties": {
-    "ionText": {
-     "name": "ionText",
-     "mode": "plain",
-     "value": false
-    },
-    "IonColor": {
-     "name": "IonColor",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "Heading6": {
   "   7   9   0": {
    "name": "Heading6",
-   "properties": {
-    "ionText": {
-     "name": "ionText",
-     "mode": "plain",
-     "value": false
-    },
-    "IonColor": {
-     "name": "IonColor",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "Icon": {

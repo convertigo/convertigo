@@ -5889,23 +5889,12 @@
 " | Defines a <i>Heading</i> component.<br/>",
 "This component acts as the standard HTML heading tag.<br/>",
 "The <i>h1</i> to <i>h6</i> tags are used to define headings, from the most important to the least important ones.<br/>",
-"Use them for pages Titles for example. Add <i>Text</i> components inside.<br/>",
+"Use them for pages Titles for example. Add <i>TextItem</i> with <i>Text</i> components inside.<br/>",
 " For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>Headings</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-        "ionText": {
-          "value": false,
-          "label": "Ion-Text",
-          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
-          "category": "Attributes",
-          "values": [
-            false,
-            "ion-text"
-          ]
-        },
-        "IonColor": false
       }
     },
     
@@ -5917,23 +5906,12 @@
 "h1| Defines a <i>H1</i> component.<br/>",
 "This component acts as the standard HTML h1 tag.<br/>",
 "The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>",
-"Use them for pages Titles for example. Add <i>Text</i> components inside.<br/>",
+"Use them for pages Titles for example. Add <i>TextItem</i> with <i>Text</i> components inside.<br/>",
 " For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H1</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-        "ionText": {
-          "value": false,
-          "label": "Ion-Text",
-          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
-          "category": "Attributes",
-          "values": [
-            false,
-            "ion-text"
-          ]
-        },
-        "IonColor": false
       }
     },
     
@@ -5945,23 +5923,12 @@
 "h2| Defines a <i>H2</i> component.<br/>",
 "This component acts as the standard HTML h2 tag.<br/>",
 "The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>",
-"Use them for pages Titles for example. Add <i>Text</i> components inside.<br/>",
-" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H2</a>."],
+"Use them for pages Titles for example. Add <i>TextItem</i> with <i>Text</i> components inside.<br/>",
+" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H1</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-        "ionText": {
-          "value": false,
-          "label": "Ion-Text",
-          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
-          "category": "Attributes",
-          "values": [
-            false,
-            "ion-text"
-          ]
-        },
-        "IonColor": false
       }
     },
     
@@ -5973,23 +5940,12 @@
 "h3| Defines a <i>H3</i> component.<br/>",
 "This component acts as the standard HTML h3 tag.<br/>",
 "The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>",
-"Use them for pages Titles for example. Add <i>Text</i> components inside.<br/>",
-" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H3</a>."],
+"Use them for pages Titles for example. Add <i>TextItem</i> with <i>Text</i> components inside.<br/>",
+" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H1</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-        "ionText": {
-          "value": false,
-          "label": "Ion-Text",
-          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
-          "category": "Attributes",
-          "values": [
-            false,
-            "ion-text"
-          ]
-        },
-        "IonColor": false
       }
     },
     
@@ -6001,23 +5957,12 @@
 "h4| Defines a <i>H4</i> component.<br/>",
 "This component acts as the standard HTML h4 tag.<br/>",
 "The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>",
-"Use them for pages Titles for example. Add <i>Text</i> components inside.<br/>",
-" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H4</a>."],
+"Use them for pages Titles for example. Add <i>TextItem</i> with <i>Text</i> components inside.<br/>",
+" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H1</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-        "ionText": {
-          "value": false,
-          "label": "Ion-Text",
-          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
-          "category": "Attributes",
-          "values": [
-            false,
-            "ion-text"
-          ]
-        },
-        "IonColor": false
       }
     },
     
@@ -6029,23 +5974,12 @@
 "h5| Defines a <i>H5</i> component.<br/>",
 "This component acts as the standard HTML h5 tag.<br/>",
 "The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>",
-"Use them for pages Titles for example. Add <i>Text</i> components inside.<br/>",
-" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H5</a>."],
+"Use them for pages Titles for example. Add <i>TextItem</i> with <i>Text</i> components inside.<br/>",
+" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H1</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-        "ionText": {
-          "value": false,
-          "label": "Ion-Text",
-          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
-          "category": "Attributes",
-          "values": [
-            false,
-            "ion-text"
-          ]
-        },
-        "IonColor": false
       }
     },
     
@@ -6057,23 +5991,12 @@
 "h6| Defines a <i>H6</i> component.<br/>",
 "This component acts as the standard HTML h6 tag.<br/>",
 "The <i>H1</i> to <i>H6</i> are used to define headings, from the most important to the least important ones.<br/>",
-"Use them for pages Titles for example. Add <i>Text</i> components inside.<br/>",
-" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H6</a>."],
+"Use them for pages Titles for example. Add <i>TextItem</i> with <i>Text</i> components inside.<br/>",
+" For more information: <a href='https://www.w3schools.com/tags/tag_hn.asp'>H1</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-        "ionText": {
-          "value": false,
-          "label": "Ion-Text",
-          "description": "The ion-text attribute should be added to the element in order to pass a color from the Sass $colors map and change the text color of that element.",
-          "category": "Attributes",
-          "values": [
-            false,
-            "ion-text"
-          ]
-        },
-        "IonColor": false
       }
     },
     
@@ -6084,7 +6007,7 @@
       "description": [
 "p| Defines a <i>Paragraph</i> component.<br/>",
 "This component acts as the standard HTML p tag.<br/>",
-"Use <i>Paragraph</i> with <i>Text</i> components inside to display text in your pages.<br/>",
+"Use <i>Paragraph</i> with <i>TextItem</i> and <i>Text</i> components inside to display text in your pages.<br/>",
 " For more information: <a href='https://www.w3schools.com/tags/tag_p.asp'>Paragraph</a>."],
       "group": "HTML",
       "icon16": "HTML_color_16x16.png",
