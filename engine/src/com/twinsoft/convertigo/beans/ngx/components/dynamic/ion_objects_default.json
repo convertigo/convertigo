@@ -509,6 +509,16 @@
      "name": "IonColor",
      "mode": "plain",
      "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Sticky": {
+     "name": "Sticky",
+     "mode": "plain",
+     "value": "false"
     }
    }
   }

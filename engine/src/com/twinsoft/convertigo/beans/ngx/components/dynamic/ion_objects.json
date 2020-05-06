@@ -8163,7 +8163,20 @@
       "icon16": "listdivider_16x16.png",
       "icon32": "listdivider_32x32.png",
       "properties": {
-        "IonColor": false
+        "IonColor": false,
+        "IonMode": false,
+        "Sticky": {
+          "attr": "sticky",
+          "label": "Sticky",
+          "description": "Specifies whether the divider will stay visible when it reaches the top of the viewport until the next divider replaces it.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        }
       }
     },
 
@@ -8431,9 +8444,10 @@
         "IonColor" : false,
         "IonMode" : false,
         "Position": {
-          "label": "position",
+          "attr": "position",
+          "label": "Position",
           "description": "The position determines where and how the label behaves inside an item.",
-          "category": "@Properties",
+          "category": "Attributes",
           "value": false,
           "values": [
             false,
