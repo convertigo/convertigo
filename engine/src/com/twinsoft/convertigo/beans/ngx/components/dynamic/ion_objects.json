@@ -7004,7 +7004,7 @@
           ]
         },
         "ForceOverScroll": {
-          "attr": "forceOverscroll",
+          "attr": "force-overscroll",
           "label": "Force overscroll",
           "description": "Specifies whether to force over scroll.",
           "category": "Attributes",
@@ -7016,7 +7016,7 @@
           ]
         },
         "ScrollEvents": {
-          "attr": "scrollEvents",
+          "attr": "scroll-events",
           "label": "Scroll events",
           "description": "Specifies whether to enable scroll events and start listening from (ionScroll).",
           "category": "Attributes",
