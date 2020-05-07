@@ -1,8 +1,8 @@
 import { Component }																	from '@angular/core';
-import { ActivatedRoute } 																from '@angular/router';
+import { Router, ActivatedRoute } 														from '@angular/router';
 import { DomSanitizer }                 												from '@angular/platform-browser';
-//import { IonicPage, NavParams, LoadingController, MenuController, Platform, Events}		from 'ionic-angular';
-//import { AlertController, ActionSheetController, ModalController }						from 'ionic-angular';
+//import { IonicPage, NavParams, LoadingController, MenuController, Platform, Events}	from 'ionic-angular';
+//import { AlertController, ActionSheetController, ModalController }					from 'ionic-angular';
 import { NavParams, LoadingController, MenuController, Platform}						from '@ionic/angular';
 import { AlertController, ActionSheetController, ModalController }						from '@ionic/angular';
 //import { C8oPage, C8oPageBase, C8oRouter, C8oCafUtils }                      			from 'c8ocaf';
@@ -30,6 +30,7 @@ import { TranslateService }                                 							from '@ngx-tr
 export class /*=c8o_PageName*/ {
 	/*=c8o_PageDeclarations*/
 
+	public router: Router;
 	//public events : Events;
 	//public actionBeans: ActionBeans;
 	public static nameStatic: string = "/*=c8o_PageName*/";
@@ -37,8 +38,9 @@ export class /*=c8o_PageName*/ {
 	/*End_c8o_PageDeclaration*/
 
 	//constructor(routerProvider : C8oRouter, navParams: NavParams, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
-	constructor(private route: ActivatedRoute, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
+	constructor(private route: ActivatedRoute, router: Router, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
 		//super(routerProvider, navParams, loadingCtrl, sanitizer, ref, injector, menuCtrl);
+		this.router = router;
 		//this.events = this.getInstance(Events);
 		//this.actionBeans = this.getInstance(ActionBeans);
 		
@@ -59,6 +61,10 @@ export class /*=c8o_PageName*/ {
 	
 	public log(val) {
 	    console.log(val);
+	}
+	
+	public navigateByUrl(url: string){
+	    this.router.navigateByUrl(url);
 	}
 	
 	/*Begin_c8o_PageFunction*/
