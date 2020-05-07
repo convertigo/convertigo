@@ -19,12 +19,7 @@ tagName: ion-menu
   beanData: '{"ionBean":"Content"}'
   tagName: ion-content
   ↓List [ngx.components.UIDynamicElement-1501343197007]: 
-    beanData: |
-      '{
-       "ionBean": "List",
-       "Nolines": "plain:no-lines",
-       "Inset": "plain:inset"
-      }'
+    beanData: '{"ionBean":"List","Inset":"plain:inset"}'
     tagName: ion-list
     ↓MenuAutoItems [ngx.components.UIDynamicMenuItems-1500890605250]: 
       beanData: '{"ionBean":"MenuAutoItems"}'

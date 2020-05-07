@@ -42,7 +42,7 @@ title: First page
       beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:end"}'
       tagName: ion-buttons
       ↓Button [ngx.components.UIDynamicElement-1588170817806]: 
-        beanData: '{"ionBean":"Button","IonSlot":"plain:icon-only"}'
+        beanData: '{"ionBean":"Button"}'
         tagName: ion-button
         ↓Icon [ngx.components.UIDynamicElement-1588170831166]: 
           beanData: '{"ionBean":"Icon","IconName":"plain:ellipsis-vertical"}'
