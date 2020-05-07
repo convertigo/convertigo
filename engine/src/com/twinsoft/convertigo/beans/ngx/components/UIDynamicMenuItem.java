@@ -105,7 +105,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 	/*
 	 * The item's title
 	 */
-	private String itemtitle = "'item\\\\'s title'";
+	private String itemtitle = "'item\\'s title'";
 	
 	public String getItemTitle() {
 		return itemtitle;
@@ -202,12 +202,15 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			String pageName = getPageName();
 			String pageIcon = "", pageIconPos = "";
 			String pageTitle = "Please specify a page for item";
+			String pageSegment = "";
 			if (!pageName.isEmpty()) {
 				try {
-					pageIsEnabled = getApplication().getPageComponentByName(pageName).isEnabled();
-					pageTitle = getApplication().getPageComponentByName(pageName).getTitle();
-					pageIcon = getApplication().getPageComponentByName(pageName).getIcon();
-					pageIconPos = getApplication().getPageComponentByName(pageName).getIconPosition();
+					PageComponent page = getApplication().getPageComponentByName(pageName);
+					pageIsEnabled = page.isEnabled();
+					pageTitle = page.getTitle();
+					pageIcon = page.getIcon();
+					pageIconPos = page.getIconPosition();
+					pageSegment = page.getSegment();
 				} catch (Exception e) {}
 			}
 			
@@ -222,19 +225,33 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append("<").append(getTagName()).append(attrclass)
-				.append(" ion-item")
-				.append(pageIsEnabled ? "":" disabled")
-				.append(menuId.isEmpty() ? " menuClose":" menuClose=\""+menuId+"\"")
-				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
-			  	.append(attributes.length()>0 ? attributes:"").append(">")
-			  	.append(System.getProperty("line.separator"))
-			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon+ "\" "+ pos + "></ion-icon>")
-			  	.append(System.getProperty("line.separator"))
-			  	.append(title)
-			  	.append(System.getProperty("line.separator"))
-				.append("</").append(getTagName()).append(">")
-				.append(System.getProperty("line.separator"));
+//			sb.append("<").append(getTagName()).append(attrclass)
+//				.append(" ion-item")
+//				.append(pageIsEnabled ? "":" disabled")
+//				.append(menuId.isEmpty() ? " menuClose":" menuClose=\""+menuId+"\"")
+//				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
+//			  	.append(attributes.length()>0 ? attributes:"").append(">")
+//			  	.append(System.getProperty("line.separator"))
+//			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon+ "\" "+ (pos.isEmpty() ? "": "slot=\""+ pos +"\"") + "></ion-icon>")
+//			  	.append(System.getProperty("line.separator"))
+//			  	.append(title)
+//			  	.append(System.getProperty("line.separator"))
+//				.append("</").append(getTagName()).append(">")
+//				.append(System.getProperty("line.separator"));
+			if (compareToTplVersion("7.9.0.2") >= 0) {
+				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"true\""+ (pageIsEnabled ? "":" disabled") +">")
+				.append(System.lineSeparator())
+				.append("<ion-item routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\">")
+				.append(System.lineSeparator())
+				.append("<ion-icon name=\""+ icon + "\" "+ (pos.isEmpty() ? "": "slot=\""+ pos +"\"") +"></ion-icon>")
+				.append(System.lineSeparator())
+				.append("<ion-label>"+ title +"</ion-label>")
+				.append(System.lineSeparator())
+				.append("</ion-item>")
+				.append(System.lineSeparator())
+				.append("</ion-menu-toggle>")
+				.append(System.lineSeparator());
+			}
 			
 			return sb.toString();
 		}
@@ -253,7 +270,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			return EnumUtils.toStrings(IonIcon.class);
 		}
 		if (propertyName.equals("itemiconPos")) {
-			return new String[] {"item-left","item-end","item-right","item-start"};
+			return new String[] {"start","end"};
 		}
 		return new String[0];
 	}

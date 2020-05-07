@@ -1027,7 +1027,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			return EnumUtils.toStrings(IonIcon.class);
 		}
 		if (propertyName.equals("iconPosition")) {
-			return new String[] {"item-left","item-end","item-right","item-start"};
+			return new String[] {"start","end"};
 		}
 		if (propertyName.equals("preloadPriority")) {
 			return new String[] {"high","low","off"};

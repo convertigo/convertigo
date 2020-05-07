@@ -555,6 +555,11 @@
   "   7   9   0": {
    "name": "Menu",
    "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
     "MenuType": {
      "name": "MenuType",
      "mode": "plain",
@@ -563,15 +568,15 @@
     "MenuSide": {
      "name": "MenuSide",
      "mode": "plain",
-     "value": false
-    },
-    "MenuPersistent": {
-     "name": "MenuPersistent",
-     "mode": "plain",
-     "value": false
+     "value": "start"
     },
     "MenuSwipeEnabled": {
      "name": "MenuSwipeEnabled",
+     "mode": "plain",
+     "value": "true"
+    },
+    "MenuMaxEdgeStart": {
+     "name": "MenuMaxEdgeStart",
      "mode": "plain",
      "value": false
     }
@@ -606,7 +611,7 @@
     "AutoHide": {
      "name": "AutoHide",
      "mode": "plain",
-     "value": "false"
+     "value": "true"
     },
     "MenuId": {
      "name": "MenuId",
@@ -831,6 +836,23 @@
     },
     "IonMode": {
      "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "MenuToggle": {
+  "   7   9   0": {
+   "name": "MenuToggle",
+   "properties": {
+    "AutoHide": {
+     "name": "AutoHide",
+     "mode": "plain",
+     "value": "true"
+    },
+    "MenuId": {
+     "name": "MenuId",
      "mode": "plain",
      "value": false
     }

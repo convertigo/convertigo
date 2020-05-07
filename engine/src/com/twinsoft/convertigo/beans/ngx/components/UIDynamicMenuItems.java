@@ -70,11 +70,11 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 			
 			StringBuilder sb = new StringBuilder();
 			if (compareToTplVersion("7.9.0.2") >= 0) {
-				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"false\" *ngFor=\"let p of appPages; let i = index\">")
+				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"true\" *ngFor=\"let p of appPages; let i = index\">")
 				.append(System.lineSeparator())
 				.append("<ion-item (click)=\"selectedIndex = i\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedIndex == i\">")
 				.append(System.lineSeparator())
-				.append("<ion-icon slot=\"start\" [ios]=\"p.icon + '-outline'\" [md]=\"p.icon + '-sharp'\"></ion-icon>")
+				.append("<ion-icon [slot]=\"p.iconPos\" [ios]=\"p.icon + '-outline'\" [md]=\"p.icon + '-sharp'\"></ion-icon>")
 				.append(System.lineSeparator())
 				.append("<ion-label>{{ p.titleKey | translate }}</ion-label>")
 				.append(System.lineSeparator())

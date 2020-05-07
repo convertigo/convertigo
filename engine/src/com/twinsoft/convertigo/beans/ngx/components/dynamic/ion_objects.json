@@ -1,58 +1,6 @@
 {
   /*  Property models   */
   "Props": {
-	"MenuType": {
-	  "attr": "type",
-	  "label": "Type",
-	  "description": "Specifies the menu type.",
-	  "category": "Attributes",
-	  "value": false,
-	  "values": [
-		false,
-		"overlay",
-		"push",
-		"reveal"
-	  ]
-	},
-	
-	"MenuSide": {
-	  "attr": "side",
-	  "label": "Side",
-	  "description": "Specifies the menu side.",
-	  "category": "Attributes",
-	  "value": false,
-	  "values": [
-		false,
-		"left",
-		"right"
-	  ]
-	},
-	
-	"MenuPersistent": {
-	  "attr": "persistent",
-	  "label": "Persistent",
-	  "description": "Specifies whether the menu is persistent or not on child pages.",
-	  "category": "Attributes",
-	  "value": false,
-	  "values": [
-		false,
-		"false",
-		"true"
-	  ]
-	},
-	
-	"MenuSwipeEnabled": {
-	  "attr": "swipeEnabled",
-	  "label": "Swiping",
-	  "description": "Specifies whether swiping the menu is enabled.",
-	  "category": "Attributes",
-	  "value": false,
-	  "values": [
-		false,
-		"false",
-		"true"
-	  ]
-	},
 	
 	"FormControlName": {
       "label": "Control name",
@@ -5392,7 +5340,7 @@
       "description": [
 "ion-menu-button| Defines a <i>Menu Button</i> component.<br/>",
 "A <i>Menu Button</i> component automatically creates the icon and functionality to open a menu on a page."],
-      "group": "Buttons",
+      "group": "Menus",
       "icon16": "menu-button_color_16x16.png",
       "icon32": "menu-button_color_32x32.png",
       "properties": {
@@ -5405,7 +5353,50 @@
           "description": "Specifies whether to automatically hides the menu button when the corresponding menu is not active.",
           "category": "@Properties",
           "type": "boolean",
-          "value": "false",
+          "value": "true",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "MenuId": {
+          "attr": "menu",
+          "label": "Menu id",
+          "description": "Specifies the menu's' id to map. Can also be start or end for the menu side.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false,
+          "values": [
+            false,
+            "start",
+            "end",
+            true
+          ]
+        }        
+      }
+    },
+    
+    "MenuToggle": {
+      "tag": "ion-menu-toggle",
+	  "displayName": "MenuToggle",
+      "label": "Menu Toggle",
+      "description": [
+"ion-menu-toggle| Defines a <i>Menu Toggle</i> component.<br/>",
+"A <i>Menu Toggle</i> component can be used with a <i>Button</i> or <i>GenericItem</i> inside to toggle a menu opened or closed.<br/>",
+"By default, it's only visible when the selected menu is active. A menu is active when it can be opened/closed.<br/>",
+"If the menu is disabled or it's being presented as a split-pane, the menu is marked as non-active and <i>MenuToggle</i> hides itself.<br/>",
+"In case it's desired to keep <i>MenuToggle</i> always visible, the AutoHide property can be set to false."],
+      "group": "Menus",
+      "icon16": "menu-toggle_color_16x16.png",
+      "icon32": "menu-toggle_color_32x32.png",
+      "properties": {
+        "AutoHide": {
+          "attr": "auto-hide",
+          "label": "Auto hide",
+          "description": "Specifies whether to automatically hides the menu button when the corresponding menu is not active.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
           "values": [
             "true",
             "false"
@@ -7433,20 +7424,84 @@
       "icon16": "menu_color_16x16.png",
       "icon32": "menu_color_32x32.png",
       "properties": {
-        "MenuType": false,
-        "MenuSide": false,
-        "MenuPersistent": false,
-        "MenuSwipeEnabled": false
-	  }
+        "Disabled": false,
+		"MenuType": {
+		  "attr": "type",
+		  "label": "Type",
+		  "description": "Specifies the menu type.",
+		  "category": "@Properties",
+		  "value": false,
+		  "values": [
+			false,
+			"overlay",
+			"push",
+			"reveal"
+		  ]
+		},
+		"MenuSide": {
+		  "attr": "side",
+		  "label": "Side",
+		  "description": "Specifies the menu side.",
+		  "category": "@Properties",
+		  "value": "start",
+		  "values": [
+			"end",
+			"start"
+		  ]
+		},
+		"MenuSwipeEnabled": {
+		  "attr": "swipe-gesture",
+		  "label": "Swiping",
+		  "description": "Specifies whether swiping the menu is enabled.",
+		  "category": "@Properties",
+		  "type": "boolean",
+		  "value": "true",
+		  "values": [
+			"false",
+			"true"
+		  ]
+		},
+		"MenuMaxEdgeStart": {
+		  "attr": "max-edge-start",
+		  "label": "Edge threshold",
+		  "description": "Specifies the edge threshold for dragging the menu open.",
+		  "category": "@Properties",
+		  "type": "number",
+		  "value": false,
+		  "values": [
+		    false,
+			"50",
+			true
+		  ]
+		}
+	  },
+      "events": {
+        "ionDidClose": {
+          "attr":"(ionDidClose)",
+          "description": "This event is emitted when the menu is closed."
+        },
+        "ionDidOpen": {
+          "attr":"(ionDidOpen)",
+          "description": "This event is emitted when the menu is open."
+        },
+        "ionWillClose": {
+          "attr":"(ionWillClose)",
+          "description": "This event is emitted when the menu is about to be closed."
+        },
+        "ionWillOpen": {
+          "attr":"(ionWillOpen)",
+          "description": "This event is emitted when the menu is about to be opened."
+        }
+      }
 	},
 	
 	"MenuItem": {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem",
-      "tag": "button",
+      "tag": "ion-menu-toggle",
 	  "displayName": "MenuItem",
       "label": "Menu Item",
       "description": [
-"button| Defines a <i>Menu Item</i> component.<br/>",
+"ion-menu-toggle| Defines a <i>Menu Item</i> component.<br/>",
 "A menu item acts as button and when clicked the navigation to the associated page is done.<br/>",
 "You can add <i>Menu Item</i>s under a <i>Menu</i> component, one per page you'd like to navigate to.<br/>",
 "You can not add child components to it except <i>Attr</i> components."],
@@ -7459,11 +7514,11 @@
 	
 	"MenuAutoItems": {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems",
-      "tag": "button",
+      "tag": "ion-menu-toggle",
 	  "displayName": "MenuAutoItems",
       "label": "Menu AutoItems",
       "description": [
-"button| Defines a <i>Menu AutoItems</i> component.<br/>",
+"ion-menu-toggle| Defines a <i>Menu AutoItems</i> component.<br/>",
 "This component may be added <u>once</u> inside a <i>Menu</i> component.<br/>",
 "It will generate a menu with links to all your visible pages in the order you've set.<br/>",
 "A <i>Page</i> is considered as visible if it is <code>enabled</code> and if its <i>Include in auto menu</i> property is set to <ode>true</code>.<br/>",
