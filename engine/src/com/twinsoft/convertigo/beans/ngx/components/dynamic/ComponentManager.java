@@ -849,4 +849,15 @@ public class ComponentManager {
 	public static Map<String, IonBean> getIonBeans() {
 		return Collections.unmodifiableMap(instance.bCache);
 	}
+	
+	protected static void printIcons() {
+		IonProperty property = instance.pCache.get("IconName");
+		for (Object name : property.getValues()) {
+			if (name instanceof String) {
+				String icon = "icon_" + ((String)name).replaceAll("-", "_");
+				String key = icon + "(\""+ name +"\"),";
+				System.out.println(key);
+			}
+		}
+	}
 }
