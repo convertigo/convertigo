@@ -319,8 +319,8 @@
     
     "LinkRouterDirection": {
       "attr": "router-direction",
-      "label": "Link router direction",
-      "description": "Specifies the transition direction when navigating to another page using a LinkUrl.",
+      "label": "Router direction",
+      "description": "Specifies the transition direction when navigating to another page using a <i>Router URL</i>.",
       "category": "@Properties",
       "values": [
         false,
@@ -330,6 +330,19 @@
       ]
     },
     
+    "LinkRouterPath": {
+      "attr": "routerLink",
+      "label": "Router URL",
+      "description": "Specifies the router link URL.",
+      "category": "@Properties",
+      "value": false,
+      "values": [
+        false,
+        "/",
+        true
+      ]
+    },
+
     "LinkTarget": {
       "attr": "target",
       "label": "Link target",
@@ -6577,6 +6590,7 @@
         "LinkDownload": false,
         "LinkTarget": false,
         "LinkRel": false,
+        "LinkRouterPath": false,
         "LinkRouterDirection": false
       },
       "events": {
@@ -6747,6 +6761,7 @@
         "LinkDownload": false,
         "LinkTarget": false,
         "LinkRel": false,
+        "LinkRouterPath": false,
         "LinkRouterDirection": false,
 		"AutoDisable": {
       		"label": "Auto disable",
@@ -6796,6 +6811,7 @@
         "LinkDownload": false,
         "LinkTarget": false,
         "LinkRel": false,
+        "LinkRouterPath": false,
         "LinkRouterDirection": false
       },
       "events": {
@@ -9696,6 +9712,7 @@
         "LinkDownload": false,
         "LinkTarget": false,
         "LinkRel": false,
+        "LinkRouterPath": false,
         "LinkRouterDirection": false
       }
     },
@@ -9760,6 +9777,7 @@
         "LinkDownload": false,
         "LinkTarget": false,
         "LinkRel": false,
+        "LinkRouterPath": false,
         "LinkRouterDirection": false
       }
     },
