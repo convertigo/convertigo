@@ -183,6 +183,22 @@
       ]
     },
     
+    "BarSlot": {
+      "attr": "slot",
+      "label": "Slot",
+      "description": "Specifies ionic slot mode.",
+      "category": "Attributes",
+      "values": [
+        false,
+        "",
+        "start",
+        "primary",
+        "secondary",
+        "end",
+        true
+      ]
+    },
+    
     "IconSlot": {
       "attr": "slot",
       "label": "Slot",
@@ -190,9 +206,11 @@
       "category": "Attributes",
       "values": [
         false,
+        "",
         "start",
         "icon-only",
-        "end"
+        "end",
+        true
       ]
     },
     
@@ -203,8 +221,10 @@
       "category": "Attributes",
       "values": [
         false,
+        "",
         "start",
-        "end"
+        "end",
+        true
       ]
     },
     
@@ -7664,7 +7684,8 @@
       "icon32": "toolbar_color_32x32.png",
       "properties": {
         "IonColor": false,
-        "BarMode": false
+        "BarMode": false,
+        "BarSlot": false,
       }
     },
 
