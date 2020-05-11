@@ -9056,7 +9056,7 @@
 		  }			
 	  },
 */
-/*
+
     "Searchbar": {
     	"tag": "ion-searchbar",
 		"displayName": "SearchBar",
@@ -9069,22 +9069,26 @@
     	"icon16": "searchbar_color_16x16.png",
     	"icon32": "searchbar_color_32x32.png",
     	"properties": {
-        "FormControlName": false,
+    		"Disabled": false,
+    		"IonColor": false,
+    		"IonMode": false,
+        	"FormControlName": false,
     		"animated": {
     			"attr":"animated",
     			"label": "Animated",
     			"description": "If true, enable searchbar animation.",
     			"category": "@Properties",
-    			"value": false,
+    			"type": "boolean",
+    			"value": "false",
     			"values": [
-    				true,
-    				false
+    				"false",
+    				"true"
     			]
     		},
     		"autocomplete":{
     			"attr":"autocomplete",
     			"label": "Autocomplete",
-    			"description": "Set the input's autocomplete property.",
+    			"description": "Sets the input's autocomplete property.",
     			"category": "@Properties",
     			"value": "off",
     			"values": [
@@ -9095,7 +9099,7 @@
     		"autocorrect":{
     			"attr":"autocorrect",
     			"label": "Autocorrect",
-    			"description": "Set the input's autocorrect property.",
+    			"description": "Sets the input's autocorrect property.",
     			"category": "@Properties",
     			"value": "off",
     			"values": [
@@ -9103,12 +9107,47 @@
     				"off"
     			]
     		},
+    		"cancelButtonIcon":{
+    			"attr":"cancel-button-icon",
+    			"label": "Cancel button icon",
+    			"description": "Sets the the cancel button icon. Only applies to md mode.",
+    			"category": "@Properties",
+    			"value": "arrow-back-sharp"
+    		},
     		"cancelButtonText":{
-    			"attr":"cancelButtonText",
-    			"label": "CancelButtonText",
-    			"description": "Set the the cancel button text.",
+    			"attr":"cancel-button-text",
+    			"label": "Cancel button text",
+    			"description": "Sets the the cancel button text. Only applies to ios mode.",
     			"category": "@Properties",
     			"value": "Cancel"
+    		},
+    		"clearIcon":{
+    			"attr":"clear-icon",
+    			"label": "Clear icon",
+    			"description": "Sets the clear icon. Defaults to 'close-circle' for ios and 'close-sharp' for md.",
+    			"category": "@Properties",
+    			"value": false,
+    			"values" : [
+    			  false,
+    			  "close",
+    			  "close-circle",
+    			  "close-sharp",
+    			  true
+    			]
+    		},
+    		"searchIcon":{
+    			"attr":"search-icon",
+    			"label": "Search icon",
+    			"description": "The icon to use as the search icon. Defaults to 'search-outline' in ios mode and 'search-sharp' in md mode.",
+    			"category": "@Properties",
+    			"value": false,
+    			"values" : [
+    			  false,
+    			  "search",
+    			  "search-outline",
+    			  "search-sharp",
+    			  true
+    			]
     		},
     		"debounce":{
     			"attr":"debounce",
@@ -9117,54 +9156,128 @@
     			"category": "@Properties",
     			"value": "250"
     		},
+    		"enterkeyhint":{
+    			"attr":"enterkeyhint",
+    			"label": "Browser enter key hint",
+    			"description": "A hint to the browser for which enter key to display.",
+    			"category": "@Properties",
+    			"value": false,
+    			"values": [
+    				false,
+    				"done",
+    				"enter",
+    				"go",
+    				"next",
+    				"previous",
+    				"search",
+    				"send"    				
+    			]
+    		},
+    		"inputmode":{
+    			"attr":"inputmode",
+    			"label": "Browser input mode hint",
+    			"description": "A hint to the browser for which keyboard to display.",
+    			"category": "@Properties",
+    			"value": false,
+    			"values": [
+    				false,
+    				"decimal",
+    				"email",
+    				"none",
+    				"numeric",
+    				"search",
+    				"tel",
+    				"text",
+    				"url"   				
+    			]
+    		},
     		"placeholder":{
     			"attr":"placeholder",
     			"label": "Placeholder",
-    			"description": "Set the input's placeholder.",
+    			"description": "Sets the input's placeholder.",
     			"category": "@Properties",
     			"value": "Search"
     		},
     		"showCancelButton":{
-    			"attr":"showCancelButton",
-    			"label": "ShowCancelButton",
-    			"description": "If true, show the cancel button.",
+    			"attr":"show-cancel-button",
+    			"label": "Show Cancel button",
+    			"description": "Sets the behavior for the cancel button. Defaults to 'never'. Setting to 'focus' shows the cancel button on focus. Setting to 'never' hides the cancel button. Setting to 'always' shows the cancel button regardless of focus state.",
     			"category": "@Properties",
-    			"value": "false",
+    			"value": "never",
     			"values": [
-    				"true",
-    				"false"
+    				"always",
+    				"focus",
+    				"never"
     			]
     		},
     		"spellcheck":{
     			"attr":"spellcheck",
     			"label": "Spellcheck",
-    			"description": "Set the input's spellcheck property.",
+    			"description": "Sets the input's spellcheck property.",
     			"category": "@Properties",
+    			"type": "boolean",
     			"value": "false",
     			"values": [
-    				"true",
-    				"false"
+    				"false",
+    				"true"
     			]
     		},
     		"type":{
     			"attr":"type",
     			"label": "Type",
-    			"description": "Set the input's spellcheck property.",
+    			"description": "Sets the input's type property.",
     			"category": "@Properties",
     			"value": "search",
     			"values": [
-    				"search",
-    				"text",
-    				"password",
     				"email",
     				"number",
+    				"password",
+    				"search",
     				"tel",
+    				"text",
     				"url"    				
     			]
+    		},
+    		"value":{
+    			"attr":"value",
+    			"label": "Value",
+    			"description": "Sets the value of the searchbar.",
+    			"category": "@Properties",
+    			"value": "",
+    			"values": [
+    				false,
+    				true
+    			]
     		}
-    	}
+    	},
+      	"events": {
+	        "ionBlur": {
+	          "attr":"(ionBlur)",
+	          "description": "This event is fired when the input loses focus."
+	        },
+	        "ionCancel": {
+	          "attr":"(ionCancel)",
+	          "description": "This event is fired when the cancel button is clicked."
+	        },
+	        "ionChange": {
+	          "attr":"(ionChange)",
+	          "description": "This event is fired when the value has changed."
+	        },
+	        "ionClear": {
+	          "attr":"(ionClear)",
+	          "description": "This event gets emitted when the clear input button is clicked."
+	        },
+	        "ionFocus": {
+	          "attr":"(ionFocus)",
+	          "description": "This event gets emitted when the input has focus."
+	        },
+	        "ionInput": {
+	          "attr":"(ionInput)",
+	          "description": "This event is fired when a keyboard input occurred."
+	        }
+      	}
     },
-*/
+
     
     "BarTitle": {
       "tag": "ion-title",
