@@ -260,13 +260,13 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		if (!identifier.isEmpty()) {
 			try {
 				String imports = jsonScripts.getString("imports");
-				if (main.addImport("ViewChild", "@angular/forms")) {
+				if (main.addImport("ViewChild", "@angular/core")) {
 					imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
 				}
-				if (main.addImport("ViewChildren", "@angular/forms")) {
+				if (main.addImport("ViewChildren", "@angular/core")) {
 					imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
 				}
-				if (main.addImport("QueryList", "@angular/forms")) {
+				if (main.addImport("QueryList", "@angular/core")) {
 					imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
 				}
 				
@@ -283,7 +283,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 					declarations += "\t" + all_dcode + System.lineSeparator();
 				}
 				String dname = identifier;
-				String dcode = "@ViewChild(\""+ identifier +"\") public "+ identifier+";";
+				String dcode = "@ViewChild(\""+ identifier +"\", { static: false }) public "+ identifier+";";
 				if (main.addDeclaration(dname, dcode)) {
 					declarations += "\t" + dcode + System.lineSeparator();
 				}
