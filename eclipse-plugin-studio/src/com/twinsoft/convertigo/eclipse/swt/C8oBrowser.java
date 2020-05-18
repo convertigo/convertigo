@@ -50,7 +50,7 @@ public class C8oBrowser extends Composite {
 	
 	private static Thread threadSwt = null;
 	private static Map<String, Engine> browserContexts = new HashMap<>();
-	private static final String jxKey = "x31d140170e500d2cb6ea40186207fc4648722a44e93ce99816d812fb04ad802339785879b7429b466dea337c536d1d13aa4de4d2c578c252dd5885460c0f511067527743a0df65e6be52632fe108f782";
+	private static final String jxKey = "x9384a09ae4e09d49453cf65cdf9424d92907689aeb3f3f2ade80fb8677856376abeabaefa4588a9c61ca7f28249bf3ae3ab6264768940ceec5c8759c3fc1b2033e692e006e0fb882b9876ad5c2cdc0d0";
 
 	private String debugUrl;
 	private BrowserView browserView;
