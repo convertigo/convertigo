@@ -1742,5 +1742,82 @@
     }
    }
   }
+ },
+ "Range": {
+  "   7   9   0": {
+   "name": "Range",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Debounce": {
+     "name": "Debounce",
+     "mode": "plain",
+     "value": "0"
+    },
+    "DualKnobs": {
+     "name": "DualKnobs",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": "100"
+    },
+    "Pin": {
+     "name": "Pin",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Snaps": {
+     "name": "Snaps",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Step": {
+     "name": "Step",
+     "mode": "plain",
+     "value": "1"
+    },
+    "Ticks": {
+     "name": "Ticks",
+     "mode": "plain",
+     "value": "true"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

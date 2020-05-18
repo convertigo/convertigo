@@ -11218,9 +11218,27 @@
           "category": "@Properties",
           "value": false
         }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the datetime loses focus."
+        },
+        "ionCancel": {
+          "attr":"(ionCancel)",
+          "description": "This event is emitted when the datetime selection was cancelled."
+        },
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the value (selected date) has changed."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the datetime has focus."
+        }
       }
-    }
-/*	
+    },
+	
     "Range": {
       "tag": "ion-range",
 	  "displayName": "RangeSlider",
@@ -11237,15 +11255,29 @@
       "icon16": "range_16x16.png",
       "icon32": "range_32x32.png",
       "properties": {
-        "DefaultValue": {
-          "attr": "[ngModel]",
-          "label": "Default value",
-          "description": "The default range value.",
+        "ControlName": "",
+ 		"DoubleBinding": false,
+        "Disabled": "false",
+      	"IonColor": false,
+      	"IonMode": false,
+        "Debounce": {
+          "attr": "debounce",
+          "label": "Debounce",
+          "description": "How long, in milliseconds, to wait to trigger the ionChange event after each change in the range value. Default 0.",
           "category": "@Properties",
-          "value": false,
+          "type": "number",
+          "value": "0"
+        },
+        "DualKnobs": {
+          "attr": "dual-knobs",
+          "label": "Dual Knobs",
+          "description": "Setting the dualKnobs property to true on the range component will enable two knobs on the range. If the range has two knobs, the value will be an object containing two properties: lower and upper.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
-            true
+            "false",
+            "true"
           ]
         },
         "Min": {
@@ -11253,37 +11285,25 @@
           "label": "Minimum",
           "description": "Minimum and maximum values can be passed to the range through the min and max properties, respectively. By default, the range sets the min to 0 and the max to 100.",
           "category": "@Properties",
-          "value": false
+          "type": "number",
+          "value": "0"
         },
         "Max": {
           "attr": "max",
           "label": "Maximum",
           "description": "Minimum and maximum values can be passed to the range through the min and max properties, respectively. By default, the range sets the min to 0 and the max to 100.",
           "category": "@Properties",
-          "value": false
-        },
-        "Step": {
-          "attr": "step",
-          "label": "Step",
-          "description": "The step property specifies the value granularity of the range's value. It can be useful to set the step when the value isn't in increments of 1. Setting the step property will show tick marks on the range for each step. The snaps property can be set to automatically move the knob to the nearest tick mark based on the step property value.",
-          "category": "@Properties",
-          "value": false
-        },
-        "Debounce": {
-          "attr": "debounce",
-          "label": "Debounce",
-          "description": "How long, in milliseconds, to wait to trigger the ionChange event after each change in the range value. Default 0.",
-          "category": "@Properties",
-          "value": false
+          "type": "number",
+          "value": "100"
         },
         "Pin": {
           "attr": "pin",
           "label": "Pin",
           "description": "If true, a pin with integer value is shown when the knob is pressed. Defaults to false.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
             "false",
             "true"
           ]
@@ -11293,29 +11313,64 @@
           "label": "Snaps",
           "description": "The step property specifies the value granularity of the range's value. It can be useful to set the step when the value isn't in increments of 1. Setting the step property will show tick marks on the range for each step. The snaps property can be set to automatically move the knob to the nearest tick mark based on the step property value.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
             "false",
             "true"
           ]
         },
-        "DualKnobs": {
-          "attr": "dualKnobs",
-          "label": "Dual Knobs",
-          "description": "Setting the dualKnobs property to true on the range component will enable two knobs on the range. If the range has two knobs, the value will be an object containing two properties: lower and upper.",
+        "Step": {
+          "attr": "step",
+          "label": "Step",
+          "description": "The step property specifies the value granularity of the range's value. It can be useful to set the step when the value isn't in increments of 1. Setting the step property will show tick marks on the range for each step. The snaps property can be set to automatically move the knob to the nearest tick mark based on the step property value.",
+          "category": "@Properties",
+          "type": "number",
+          "value": "1",
+          "values": [
+            "1",
+            true
+          ]
+        },
+        "Ticks": {
+          "attr": "ticks",
+          "label": "Ticks",
+          "description": "If true, tick marks are displayed based on the step value. Only applies when snaps is true.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Value": {
+          "attr": "Value",
+          "label": "Default value",
+          "description": "The default range value.",
           "category": "@Properties",
           "value": false,
           "values": [
             false,
-            "false",
-            "true"
+            true
           ]
+        }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the range  loses focus."
         },
-        "IonColor": false
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the value (selected range) has changed."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the range  has focus."
+        }
       }
-    },
-*/
+    }
     
     /*    Grid System     */
 /*
