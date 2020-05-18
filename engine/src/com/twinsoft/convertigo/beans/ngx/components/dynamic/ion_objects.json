@@ -9903,7 +9903,6 @@
     },
 
     /* Forms */
-/*
     "FormItem": {
       "tag": "ion-item",
 	  "displayName": "FormItem",
@@ -9916,10 +9915,58 @@
       "icon16": "form_item_16x16.png",
       "icon32": "form_item_32x32.png",
       "properties": {
-        "ItemPosition": false
+        "Button" : {
+          "attr": "button",
+          "label": "Button item",
+          "description": "Specifies whether item should be rendered as a button and be tappable.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Lines": {
+          "attr": "lines",
+          "label": "Bottom lines",
+          "description": "Specifies How the bottom border should be displayed on the item.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "full",
+            "inset",
+            "none"
+          ]
+        },
+        "Detail" : {
+          "attr": "detail",
+          "label": "Detail arrow",
+          "description": "Specifies whether a detail arrow should appear on the item. Defaults to <code>false</code> unless the <i>Mode</i> is ios and an href or <i>Button</i> property is true.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "DetailIconName": "chevron-forward",
+        "ButtonFormType": "button",
+        "Disabled": "false",
+        "IonColor": false,
+        "IonSlot": false,
+        "IonMode": false,
+        "LinkUrl": false,
+        "LinkDownload": false,
+        "LinkTarget": false,
+        "LinkRel": false,
+        "LinkRouterPath": false,
+        "LinkRouterDirection": false
       }
     },
-*/   
+   
     "Label": {
       "tag": "ion-label",
 	  "displayName": "Label",
@@ -10617,7 +10664,7 @@
       }
     },
 
-/*
+
     "TextArea": {
       "tag": "ion-textarea",
 	  "displayName": "TextArea",
@@ -10633,35 +10680,137 @@
       "icon16": "textarea_color_16x16.png",
       "icon32": "textarea_color_32x32.png",
       "properties": {
+        "ControlName": "",
+        "DoubleBinding": false,
         "Disabled": "false",
-        "ClearInput": {
-          "attr": "clearInput",
-          "label": "ClearInput",
-          "description": "If true, a clear icon will appear in the textarea when there is a value. Clicking it clears the textarea.",
+        "IonColor": false,
+        "IonMode": false,
+        "AutoGrow": {
+          "attr": "auto-grow",
+          "label": "AutoGrow",
+          "description": "If true, the element height will increase based on the value.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Autocapitalize": {
+          "attr": "autocapitalize",
+          "label": "Autocapitalize",
+          "description": "Specifies whether and how the text value should be automatically capitalized as it is entered/edited by the user.",
+          "category": "@Properties",
+          "value": "off",
           "values": [
             false,
+            "off",
+            "characters",
+            "sentences",
+            "words",
+            true
+          ]
+        },
+        "AutoFocus": {
+          "attr": "autofocus",
+          "label": "Autofocus",
+          "description": "This Boolean attribute lets you specify that a form control should have input focus when the page loads.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
             "false",
             "true"
           ]
         },
         "ClearOnEdit": {
-          "attr": "clearOnEdit",
+          "attr": "clear-on-edit",
           "label": "ClearOnEdit",
-          "description": "If true, the value will be cleared after focus upon edit.",
+          "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
           "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Debounce": {
+          "attr": "debounce",
+          "label": "Debounce",
+          "description": "Set the amount of time, in milliseconds, to wait to trigger the ionChange event after each keystroke.",
+          "category": "@Properties",
+          "type": "number",
+          "value": 0,
+          "values": [
+            false,
+            true
+          ]
+        },
+		"EnterKeyHint":{
+			"attr":"enterkeyhint",
+			"label": "Browser enter key hint",
+			"description": "A hint to the browser for which enter key to display.",
+			"category": "@Properties",
+			"value": false,
+			"values": [
+				false,
+				"done",
+				"enter",
+				"go",
+				"next",
+				"previous",
+				"search",
+				"send"    				
+			]
+		},
+		"InputMode":{
+			"attr":"inputmode",
+			"label": "Browser input mode hint",
+			"description": "A hint to the browser for which keyboard to display.",
+			"category": "@Properties",
+			"value": false,
+			"values": [
+				false,
+				"decimal",
+				"email",
+				"none",
+				"numeric",
+				"search",
+				"tel",
+				"text",
+				"url"   				
+			]
+		},
+        "MaxLength": {
+          "attr": "maxlength",
+          "label": "Maxlength",
+          "description": "If the value of the type attribute is text, email, search, password, tel, or url, this attribute specifies the maximum number of characters that the user can enter.",
+          "category": "@Properties",
+          "type": "number",
           "value": false,
           "values": [
             false,
-            "false",
-            "true"
+            true
+          ]
+        },
+        "MinLength": {
+          "attr": "minlength",
+          "label": "Minlength",
+          "description": "If the value of the type attribute is text, email, search, password, tel, or url, this attribute specifies the minimum number of characters that the user can enter.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
           ]
         },
         "Placeholder": {
           "attr": "placeholder",
           "label": "Placeholder",
-          "description": "Instructional text that shows before the textarea has a value.",
+          "description": "Instructional text that shows before the input has a value.",
           "category": "@Properties",
           "value": false,
           "values": [
@@ -10674,49 +10823,97 @@
           "label": "Readonly",
           "description": "If true, the user cannot modify the value.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
             "false",
             "true"
           ]
         },
-        "AreaRows": {
-          "attr": "rows",
-          "label": "Area rows",
-          "description": "The number of rows of the textarea.",
+        "Required": {
+          "attr": "required",
+          "label": "Required",
+          "description": "If true, the user must fill in a value before submitting a form.",
           "category": "@Properties",
-          "value": "3",
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
-            true
+            "false",
+            "true"
           ]
         },
-        "AreaCols": {
+        "Spellcheck": {
+          "attr": "spellcheck",
+          "label": "Spellcheck",
+          "description": "If true, the input will have its spelling and grammar checked.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Cols": {
           "attr": "cols",
           "label": "Area cols",
-          "description": "The number of cols of the textarea.",
+          "description": "The visible width of the text control, in average character widths. If it is specified, it must be a positive integer.",
           "category": "@Properties",
-          "value": "40",
-          "values": [
-            false,
-            true
-          ]
+          "type": "number",
+          "value": false
+        },
+        "Rows": {
+          "attr": "rows",
+          "label": "Area rows",
+          "description": "The number of visible text lines for the control.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false
         },
         "Value": {
           "attr": "value",
-          "label": "Value",
-          "description": "The text value of the textarea.",
+          "label": "Control default value",
+          "description": "The default text value of the area.",
+          "category": "@Control",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Wrap": {
+          "attr": "wrap",
+          "label": "Wrap",
+          "description": "Indicates how the control wraps text.",
           "category": "@Properties",
           "value": false,
           "values": [
             false,
-            true
+            "hard",
+            "off",
+            "soft"
           ]
+        }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the input loses focus."
+        },
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the input property has changed."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the input has focus."
+        },
+        "ionInput": {
+          "attr":"(ionInput)",
+          "description": "This event is emitted when a keyboard input occurred."
         }
       }
     },
-*/
     
     "CheckBox": {
       "tag": "ion-checkbox",

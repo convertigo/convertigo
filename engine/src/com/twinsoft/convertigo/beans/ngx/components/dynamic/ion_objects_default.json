@@ -1416,5 +1416,204 @@
     }
    }
   }
+ },
+ "FormItem": {
+  "   7   9   0": {
+   "name": "FormItem",
+   "properties": {
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    },
+    "Detail": {
+     "name": "Detail",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DetailIconName": {
+     "name": "DetailIconName",
+     "mode": "plain",
+     "value": "chevron-forward"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TextArea": {
+  "   7   9   0": {
+   "name": "TextArea",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "AutoGrow": {
+     "name": "AutoGrow",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Autocapitalize": {
+     "name": "Autocapitalize",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoFocus": {
+     "name": "AutoFocus",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ClearOnEdit": {
+     "name": "ClearOnEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Debounce": {
+     "name": "Debounce",
+     "mode": "plain",
+     "value": 0
+    },
+    "EnterKeyHint": {
+     "name": "EnterKeyHint",
+     "mode": "plain",
+     "value": false
+    },
+    "InputMode": {
+     "name": "InputMode",
+     "mode": "plain",
+     "value": false
+    },
+    "MaxLength": {
+     "name": "MaxLength",
+     "mode": "plain",
+     "value": false
+    },
+    "MinLength": {
+     "name": "MinLength",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Required": {
+     "name": "Required",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Spellcheck": {
+     "name": "Spellcheck",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Cols": {
+     "name": "Cols",
+     "mode": "plain",
+     "value": false
+    },
+    "Rows": {
+     "name": "Rows",
+     "mode": "plain",
+     "value": false
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    },
+    "Wrap": {
+     "name": "Wrap",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }
