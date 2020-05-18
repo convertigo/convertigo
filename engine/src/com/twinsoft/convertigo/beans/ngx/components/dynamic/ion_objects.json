@@ -10111,17 +10111,15 @@
     /**************************************************/
     /* Form RadioButton	/ RadioGroup				  */
     /**************************************************/
-/*
-    "RadioList": {
-      "tag": "ion-list",
-	  "displayName": "RadioList",
+    "RadioGroup": {
+      "tag": "ion-radio-group",
+	  "displayName": "RadioGroup",
       "label": "Radio List",
       "description": [
-"ion-list| Defines a <i>Radio List</i> component.<br/>",
-"This component is a container for a set of radio buttons. It allows a user to select at most one radio button from the set. Checking one radio button that belongs to a <i>Radio List</i> unchecks any previous checked radio button within the same list.<br/>",
-"Add as many <i>Radio Button</i> you want under your <i>Radio List</i> component.<br/>",
+"ion-radio-group| Defines a <i>Radio Group</i> component.<br/>",
+"This component is a container for a set of radio buttons. It allows a user to select at most one radio button from the set. Checking one radio button that belongs to a <i>Radio Group</i> unchecks any previous checked radio button within the same group.<br/>",
+"Add as many <i>Radio Button</i> you want under your <i>Radio Group</i> component.<br/>",
 "Use the <i>Default value</i> property to set its default value. If a radio button has the same value it will be checked by default.<br/>",
-"Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a <i>CustomValidator</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/v3/api/components/radio/RadioGroup/'>Radio Group</a>.<br/>",
 "<br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add each <i>Radio Button</i> under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
@@ -10129,26 +10127,40 @@
       "icon16": "radiolist_color_16x16.png",
       "icon32": "radiolist_color_32x32.png",
       "properties": {
-      	"ListType": {
-          "label": "List type",
-          "description": "The type of list.",
+        "ControlName": "",
+        "DoubleBinding": false,
+        "AllowEmptySelection": {
+          "attr": "allowEmptySelection",
+          "label": "Allow empty selection",
+          "description": "If true, the radios can be deselected.",
           "category": "@Properties",
-          "value": "radio-group",
+          "type": "boolean",
+          "value": "false",
           "values": [
-          	 "radio-group"
+            "false",
+            "true"
           ]
-      	},
-        "DefaultValue": {
-          "attr": "[ngModel]",
+        },
+        "Value": {
+          "attr": "value",
           "label": "Default value",
-          "description": "The value to be selected by default.",
+          "description": "The default value of the radio group.",
           "category": "@Properties",
-          "value": false
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "events": {
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the value has changed."
         }
       }
     },
-*/
-/*   
+   
     "RadioButton": {
       "tag": "ion-radio",
 	  "displayName": "RadioButton",
@@ -10165,28 +10177,32 @@
       "icon32": "radio_color_32x32.png",
       "properties": {
         "Disabled": "false",
+        "IonColor": false,
+        "IonMode": false,
+        "IonSlot": false,
         "Value": {
-          "attr": "[value]",
+          "attr": "value",
           "label": "Value",
-          "description": "When this button is selected, the radio control will have this value.",
+          "description": "The value of the radio.",
           "category": "@Properties",
-          "value": false
-        },
-        "Checked": {
-          "attr": "checked",
-          "label": "Checked",
-          "description": "If true, the component is checked.",
-          "category": "@Properties",
-          "value": false,
+          "value": "",
           "values": [
             false,
-            "true",
-            "false"
+            true
           ]
         }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus."
+        }
       }
-    },
-*/	
+    },	
 	
     /**************************************************/
     /* Form Toggle 									  */

@@ -1357,5 +1357,64 @@
     }
    }
   }
+ },
+ "RadioButton": {
+  "   7   9   0": {
+   "name": "RadioButton",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "RadioGroup": {
+  "   7   9   0": {
+   "name": "RadioGroup",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "AllowEmptySelection": {
+     "name": "AllowEmptySelection",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
  }
 }
