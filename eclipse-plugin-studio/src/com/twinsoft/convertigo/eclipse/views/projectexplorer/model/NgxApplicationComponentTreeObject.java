@@ -150,20 +150,20 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					UIDynamicMenu menu = uic.getMenu();
 					if (menu != null) {
 						if (ac.equals(menu.getParent())) {
-							if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
-								if (!newValue.equals(oldValue)) {
-									try {
-										String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
-										String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-										if (uic.getUIForm() != null) {
-											String form = uic.getUIForm().getFormGroupName();
-											if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-												this.viewer.refresh();
-											}
-										}
-									} catch (Exception e) {}
-								}
-							}
+//							if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
+//								if (!newValue.equals(oldValue)) {
+//									try {
+//										String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+//										String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+//										if (uic.getUIForm() != null) {
+//											String form = uic.getUIForm().getFormGroupName();
+//											if (menu.updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+//												this.viewer.refresh();
+//											}
+//										}
+//									} catch (Exception e) {}
+//								}
+//							}
 							
 							markApplicationAsDirty(done);
 						}

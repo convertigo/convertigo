@@ -25,7 +25,6 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class UIElement extends UIComponent implements ITagsProperty, IStyleGenerator {
@@ -73,7 +72,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		this.selfClose = selfClose;
 	}
 	
-	private String identifier = "";
+	protected String identifier = "";
 	
 	public String getIdentifier() {
 		return identifier;
@@ -90,33 +89,24 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
-        if (isSelfClose() && !(uiComponent instanceof UIAttribute 
-        						|| uiComponent instanceof UIStyle
-        							|| uiComponent instanceof UIFormValidator)) {
+        if (isSelfClose() && !(uiComponent instanceof UIAttribute || uiComponent instanceof UIStyle)) {
             throw new EngineException("You cannot add component to this self-closing tag");
-        } else if (uiComponent instanceof UIFormValidator) {
-        	if (this instanceof UIForm) {
-        		if (!(uiComponent instanceof UIFormCustomValidator)) {
-        			throw new EngineException("You can only add a custom validator to this component");
-        		} else {
-	    			super.addUIComponent(uiComponent, after);
-        		}
-        	} else {
-	    		String formControlName = getFormControlName();
-	    		if (formControlName.isEmpty()) {
-	    			Engine.logBeans.warn("Validator is missing \"formControlName\" property or attribute for component "+ this.getQName());
-	    		}
-	    		super.addUIComponent(uiComponent, after);
-        	}
         } else {
-        	if (uiComponent instanceof UIDynamicElement && uiComponent.bNew) {
-        		if (getUIForm() != null) {
-					IonBean ionBean = ((UIDynamicElement)uiComponent).getIonBean();
-					if (ionBean != null && ionBean.hasProperty("FormControlName")) {
-						ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType("var"+uiComponent.priority));
-					}
-        		}
+        	if (uiComponent instanceof UIForm && uiComponent.bNew) {
+            	// Auto set formXXXXXX as identifier
+        		((UIForm)uiComponent).setIdentifier("form"+uiComponent.priority);
         	}
+        	
+        	if (uiComponent instanceof UIDynamicElement && uiComponent.bNew) {
+				IonBean ionBean = ((UIDynamicElement)uiComponent).getIonBean();
+				if (ionBean != null) {
+		        	// Auto set nameXXXXXX as control name
+					if (ionBean.hasProperty("ControlName")) {
+						ionBean.setPropertyValue("ControlName", new MobileSmartSourceType("name"+uiComponent.priority));
+					}
+				}
+        	}
+        	
         	super.addUIComponent(uiComponent, after);
         }
 	}
@@ -133,18 +123,6 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	}
 	
 	protected String getFormControlName() {
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIAttribute) {
-				UIAttribute attribute = (UIAttribute)component;
-				if (attribute.getAttrName().equals("formControlName")) {
-					if (attribute.isEnabled()) {
-						return attribute.getAttrValue();
-					}
-				}
-			}
-		}
 		return "";
 	}
 
@@ -179,74 +157,10 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	}
 	
 	protected String computeConstructor() {
-		if (isEnabled()) {
-			StringBuilder sb = new StringBuilder();
-			
-			String formControlVarName = getFormControlName();
-			if (!formControlVarName.isEmpty()) {
-				StringBuilder constructors = new StringBuilder();
-				StringBuilder asyncConstructors = new StringBuilder();
-				
-				Iterator<UIComponent> it = getUIComponentList().iterator();
-				while (it.hasNext()) {
-					UIComponent component = (UIComponent)it.next();
-					if (component instanceof UIFormValidator) {
-						UIFormValidator validator = (UIFormValidator)component;
-						String constructor = validator.computeConstructor();
-						if (validator.isAsync()) {
-							asyncConstructors.append(asyncConstructors.length() > 0 && !constructor.isEmpty() ? ",":"").append(constructor);
-						} else {
-							constructors.append(constructors.length() > 0 && !constructor.isEmpty() ? ",":"").append(constructor);
-						}
-					}
-				}
-				sb.append(System.lineSeparator());
-				sb.append("\t\t\t"+formControlVarName + " : new FormControl('',")
-					.append(" Validators.compose([").append(constructors).append("]),")
-					.append(" Validators.composeAsync([").append(asyncConstructors).append("])")
-					.append(")").append(",");
-			}
-			else {
-				StringBuilder constructors = new StringBuilder();
-				Iterator<UIComponent> it = getUIComponentList().iterator();
-				while (it.hasNext()) {
-					UIComponent component = (UIComponent)it.next();
-					if (component instanceof UIElement ) {
-						String constructor = ((UIElement)component).computeConstructor();
-						constructors.append(constructor);
-					}
-				}
-				sb.append(constructors);
-			}
-			return sb.toString().replaceAll(",+", ",");
-		}
 		return "";
 	}
 	
 	protected String computeFunction() {
-		if (isEnabled()) {
-			StringBuilder sb = new StringBuilder();
-			String formControlVarName = getFormControlName();
-			if (!formControlVarName.isEmpty()) {
-				Iterator<UIComponent> it = getUIComponentList().iterator();
-				while (it.hasNext()) {
-					UIComponent component = (UIComponent)it.next();
-					if (component instanceof UIFormValidator) {
-						sb.append(((UIFormValidator)component).computeFunction());
-					}
-				}
-			}
-			else {
-				Iterator<UIComponent> it = getUIComponentList().iterator();
-				while (it.hasNext()) {
-					UIComponent component = (UIComponent)it.next();
-					if (component instanceof UIElement ) {
-						sb.append(((UIElement)component).computeFunction());
-					}
-				}
-			}
-			return sb.toString();
-		}
 		return "";
 	}
 	

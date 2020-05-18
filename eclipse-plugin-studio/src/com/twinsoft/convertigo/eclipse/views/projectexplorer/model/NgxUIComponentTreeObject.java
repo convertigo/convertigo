@@ -1154,18 +1154,18 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					if (hasSameScriptComponent(getObject(), uic)) {
 						// A FormControlName property has changed
 						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
-							if (!newValue.equals(oldValue)) {
-								try {
-									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
-									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-									if (uic.getUIForm() != null) {
-										String form = uic.getUIForm().getFormGroupName();
-										if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-											sourcesUpdated = true;
-										}
-									}
-								} catch (Exception e) {}
-							}
+//							if (!newValue.equals(oldValue)) {
+//								try {
+//									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+//									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+//									if (uic.getUIForm() != null) {
+//										String form = uic.getUIForm().getFormGroupName();
+//										if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
+//											sourcesUpdated = true;
+//										}
+//									}
+//								} catch (Exception e) {}
+//							}
 						}
 					}
 				}

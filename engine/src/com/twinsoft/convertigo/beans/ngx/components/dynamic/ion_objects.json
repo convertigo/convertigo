@@ -2,22 +2,31 @@
   /*  Property models   */
   "Props": {
 	
-	"FormControlName": {
+	"ControlName": {
       "label": "Control name",
-      "description": "The associated declared form's control name.",
-      "category": "@Forms",
-      "attr": "formControlName",
+      "description": "The associated declared control name.",
+      "category": "@Control",
+      "attr": "name",
       "value": ""
 	},
 	
+    "DoubleBinding": {
+      "attr": "[(ngModel)]",
+      "label": "Binding",
+      "description": "The object or variable to bind with the control.",
+      "category": "@Control",
+      "mode": "script",
+      "value": false
+    },
+    
     "Disabled": {
       "attr": "disabled",
       "label": "Disabled",
       "description": "If true the component will be disabled, preventing the the user from changing the value.",
       "category": "@Properties",
-      "value": false,
+      "type": "boolean",
+      "value": "false",
       "values": [
-        false,
         "false",
         "true"
       ]
@@ -49,7 +58,7 @@
       "attr": "button-type",
       "label": "Button type",
       "description": "Specifies ionic button style.",
-      "category": "Attributes",
+      "category": "@Properties",
       "value": "button", // optional value (default is false)
       "values": [ // possible values (false means do no set)
         false,
@@ -73,7 +82,7 @@
     "IconOnly": {
       "label": "Icon only",
       "description": "Set if we only show the icon.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "icon-only"
@@ -83,7 +92,7 @@
     "MenuMode": {
       "label": "Menu mode",
       "description": "Specifies menu mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [ // possible values (false means do no set)
         false,
         "menuClose",
@@ -94,7 +103,7 @@
     "BarMode": {
       "label": "Mode",
       "description": "Specifies ionic bar mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "attr": "mode",
       "values": [
         false,
@@ -107,7 +116,7 @@
     "IonMode": {
       "label": "Mode",
       "description": "Specifies ionic mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "attr": "mode",
       "values": [
         false,
@@ -119,7 +128,7 @@
     "IonPadding": {
       "label": "Padding",
       "description": "Specifies ionic padding mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "padding"
@@ -130,7 +139,7 @@
       "attr": "color",
       "label": "Color",
       "description": "Specifies ionic color.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "danger",
@@ -150,7 +159,7 @@
       "attr": "expand",
       "label": "Expand",
       "description": "Specifies ionic expand.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "block",
@@ -162,7 +171,7 @@
       "attr": "shape",
       "label": "Shape",
       "description": "Specifies ionic shape.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "round"
@@ -173,7 +182,7 @@
       "attr": "fill",
       "label": "Fill",
       "description": "Specifies ionic fill mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "clear",
@@ -187,7 +196,7 @@
       "attr": "slot",
       "label": "Slot",
       "description": "Specifies ionic slot mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "",
@@ -203,7 +212,7 @@
       "attr": "slot",
       "label": "Slot",
       "description": "Specifies ionic slot mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "",
@@ -218,7 +227,7 @@
       "attr": "slot",
       "label": "Slot",
       "description": "Specifies ionic slot mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "",
@@ -232,7 +241,7 @@
       "attr": "strong",
       "label": "Strong",
       "description": "Specifies whether to activate a heavier font weight.",
-      "category": "Attributes",
+      "category": "@Properties",
       "type": "boolean",
       "value": "false",
       "values": [
@@ -244,7 +253,7 @@
     "IonOutline": {
       "label": "Outline",
       "description": "Specifies ionic outline mode.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "outline"
@@ -254,7 +263,7 @@
     "IonClear": {
       "label": "Clear",
       "description": "If set make a 'clear' component.",
-      "category": "Attributes",
+      "category": "@Properties",
       "value": false,
       "values": [
         false,
@@ -266,7 +275,7 @@
       "attr": "size",
       "label": "Size",
       "description": "Specifies ionic size.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "default",
@@ -278,7 +287,7 @@
     "IconPosition": {
       "label": "Icon position",
       "description": "Specifies ionic icon position.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
 		"icon-start",
@@ -292,7 +301,7 @@
     "ItemPosition": {
       "label": "Item position",
       "description": "Specifies item position.",
-      "category": "Attributes",
+      "category": "@Properties",
       "values": [
         false,
         "item-start",
@@ -368,7 +377,7 @@
       "attr": "detail-icon",
       "label": "Detail icon",
       "description": "Specifies detail icon name to use when <i>Detail</i> is set to <code>true</code>.",
-      "category": "Attributes",
+      "category": "@Properties",
       "value": "chevron-forward",
 	  "values": [
 	    false,
@@ -1607,7 +1616,7 @@
       "attr": "name",
       "label": "Icon name",
       "description": "Specifies ionic icon name.",
-      "category": "Attributes",
+      "category": "@Properties",
 	  "values": [
 	    false,
 	    "add",
@@ -2845,7 +2854,7 @@
       "attr": "icon",
       "label": "Icon name",
       "description": "Specifies ionic icon name.",
-      "category": "Attributes",
+      "category": "@Properties",
 	  "values": [
 	    false,
 	    "add",
@@ -4083,7 +4092,7 @@
       "attr": "md",
       "label": "Icon Md name",
       "description": "Specifies ionic icon name for md platform.",
-      "category": "Attributes",
+      "category": "@Properties",
 	  "values": [
 	    false,
 	    "add",
@@ -5321,7 +5330,7 @@
       "attr": "ios",
       "label": "Icon Ios name",
       "description": "Specifies ionic icon name for ios platform.",
-      "category": "Attributes",
+      "category": "@Properties",
 	  "values": [
 	    false,
 	    "add",
@@ -6577,7 +6586,7 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
         "IonExpand": false,
         "IonShape": false,
@@ -6617,7 +6626,7 @@
       "icon32": "menu-button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
         "AutoHide": {
           "attr": "auto-hide",
@@ -6704,7 +6713,7 @@
       "icon32": "backbutton_color_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
         "IonIcon": false,
         "IonMode": false,
@@ -6748,7 +6757,7 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "submit",
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
         "IonExpand": false,
         "IonShape": false,
@@ -6798,7 +6807,7 @@
       "icon32": "button_color_32x32.png",
       "properties": {
         "ButtonFormType" : "reset",
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
         "IonExpand": false,
         "IonShape": false,
@@ -6927,7 +6936,7 @@
           "attr": "src",
           "label": "Source file URL",
           "description": "The url to a custom external SVG file. Can be absolute (http(s)://) or relative to project (assets/icons/myicon.svg).",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -6956,7 +6965,7 @@
           "attr": "slot",
           "label": "position",
           "description": "Specifies the position.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -6970,7 +6979,7 @@
           "attr": "collapse",
           "label": "collapse",
           "description": "Specifies whether to collapse buttons of toolbar. Only applies in ios mode with collapse set to true on ion-header.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7000,7 +7009,7 @@
           "attr": "slot",
           "label": "Fixed content",
           "description": "Specifies a fixed content.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -7011,7 +7020,7 @@
           "attr": "fullscreen",
           "label": "Full screen",
           "description": "Specifies a fullscreen content.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7023,7 +7032,7 @@
           "attr": "force-overscroll",
           "label": "Force overscroll",
           "description": "Specifies whether to force over scroll.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7035,7 +7044,7 @@
           "attr": "scroll-events",
           "label": "Scroll events",
           "description": "Specifies whether to enable scroll events and start listening from (ionScroll).",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7047,7 +7056,7 @@
           "attr": "scroll-x",
           "label": "Scroll X",
           "description": "Specifies whether to enable the content scrolling in the X axis.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7059,7 +7068,7 @@
           "attr": "scroll-y",
           "label": "Scroll Y",
           "description": "Specifies whether to enable the content scrolling in the Y axis.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7102,7 +7111,7 @@
           "attr": "translucent",
           "label": "Translucent",
           "description": "Specifies whether to make the footer translucent. Only applies when the <i>Mode</i> is ios and the device supports backdrop-filter.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7132,7 +7141,7 @@
           "attr": "collapse",
           "label": "Collapse",
           "description": "Describes the scroll effect that will be applied to the header. <code>condense</code> only applies when the <i>Mode</i> is ios.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -7143,7 +7152,7 @@
           "attr": "translucent",
           "label": "Translucent",
           "description": "Specifies whether to make the header translucent. Only applies when the <i>Mode</i> is ios and the device supports backdrop-filter.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -7363,7 +7372,7 @@
           "attr": "[src]",
           "label": "src",
           "description": "The image url. Can be absolute (http(s)://) or relative to project (assets/myimage.png). Can also be a Base64 Embedded images (data:image/png;base64,iVBORw0.......).",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "",
           "values": [
             false,
@@ -7374,7 +7383,7 @@
           "attr": "width",
           "label": "width",
           "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt).",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "",
           "values": [
             false,
@@ -7385,7 +7394,7 @@
           "attr": "height",
           "label": "height",
           "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt).",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "",
           "values": [
             false,
@@ -7595,7 +7604,7 @@
           "attr": "name",
           "label": "Name",
           "description": "SVG spinner name.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "ios",
           "values": [
           		"ios",
@@ -7610,7 +7619,7 @@
          "attr": "paused",
          "label": "Paused",
          "description": "If true, pause the animation.",
-         "category": "Attributes",
+         "category": "@Properties",
          "value": false,
          "values": [ false,
          "true",
@@ -7649,14 +7658,14 @@
           "attr": "[src]",
           "label": "src",
           "description": "The image url.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
         },
         "docid": {
           "composite": true,
           "label": "Document ID",
           "description": "The document ID for this attachment.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -7667,7 +7676,7 @@
           "composite": true,
           "label": "Attachment name",
           "description": "The attachment name.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -7678,7 +7687,7 @@
           "composite": true,
           "label": "Attachment placeholder",
           "description": "The url placeholder for this attachment.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -7690,7 +7699,7 @@
           "composite": true,
           "label": "Database",
           "description": "The fullsync database.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "",
           "values": [
             false,
@@ -7701,7 +7710,7 @@
           "attr": "width",
           "label": "Image width",
           "description": "The image width (in pixels add px eg: 200px, in points add pt eg: 20pt).",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "",
           "values": [
             false,
@@ -7712,7 +7721,7 @@
           "attr": "height",
           "label": "Image height",
           "description": "The image height (in pixels add px eg: 200px, in points add pt eg: 20pt).",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "",
           "values": [
             false,
@@ -8267,7 +8276,7 @@
           "attr": "selectedIndex",
           "label": "selected tab",
           "description": "Specifies the index of the first tab to select.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -8278,7 +8287,7 @@
           "attr": "tabsHighlight",
           "label": "tabs highlight",
           "description": "If true, show the tab highlight bar under the selected tab.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -8290,7 +8299,7 @@
           "attr": "tabsLayout",
           "label": "tabs layout",
           "description": "Set the tabs layout.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -8306,7 +8315,7 @@
           "attr": "tabsPlacement",
           "label": "tabs placement",
           "description": "Set the tabs position.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -8338,7 +8347,7 @@
           "attr": "tabTitle",
           "label": "title",
           "description": "Specifies the tab title.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "Tab",
           "values": [
             false,
@@ -8349,21 +8358,21 @@
           "attr": "tabBadge",
           "label": "badge",
           "description": "Specifies the badge for the tab button.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false
         },
         "TabBadgeStyle": {
           "attr": "tabBadgeStyle",
           "label": "badge color",
           "description": "Specifies the badge color for the tab button.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false
         },
         "TabIcon": {
           "attr": "tabIcon",
           "label": "icon",
           "description": "Specifies the tab icon.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": "bookmark",
           "values": [ 
               false,
@@ -8740,7 +8749,7 @@
       "icon16": "menu_color_16x16.png",
       "icon32": "menu_color_32x32.png",
       "properties": {
-        "Disabled": false,
+        "Disabled": "false",
 		"MenuType": {
 		  "attr": "type",
 		  "label": "Type",
@@ -8867,7 +8876,7 @@
           "attr": "hideBackButton",
           "label": "Hide back button",
           "description": "Specifies whether back button is hidden or not.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -8981,7 +8990,7 @@
       "properties": {
         "IonColor": false,
         "BarMode": false,
-        "BarSlot": false,
+        "BarSlot": false
       }
     },
 
@@ -9072,7 +9081,6 @@
     		"Disabled": false,
     		"IonColor": false,
     		"IonMode": false,
-        	"FormControlName": false,
     		"animated": {
     			"attr":"animated",
     			"label": "Animated",
@@ -9500,7 +9508,6 @@
       "icon16": "segment_color_16x16.png",
       "icon32": "segment_color_32x32.png",
       "properties": {
-        "FormControlName": false,
         "IonColor": false,
         "Name": {
           "attr": "[ngModel]",
@@ -9782,7 +9789,7 @@
           "attr": "button",
           "label": "Button item",
           "description": "Specifies whether item should be rendered as a button and be tappable.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -9794,7 +9801,7 @@
           "attr": "lines",
           "label": "Bottom lines",
           "description": "Specifies How the bottom border should be displayed on the item.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -9807,7 +9814,7 @@
           "attr": "detail",
           "label": "Detail arrow",
           "description": "Specifies whether a detail arrow should appear on the item. Defaults to <code>false</code> unless the <i>Mode</i> is ios and an href or <i>Button</i> property is true.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -9817,7 +9824,7 @@
         },
         "DetailIconName": "chevron-forward",
         "ButtonFormType": "button",
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
         "IonSlot": false,
         "IonMode": false,
@@ -9847,7 +9854,7 @@
           "attr": "button",
           "label": "Button item",
           "description": "Specifies whether item should be rendered as a button and be tappable.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -9859,7 +9866,7 @@
           "attr": "lines",
           "label": "Bottom lines",
           "description": "Specifies How the bottom border should be displayed on the item.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -9872,7 +9879,7 @@
           "attr": "detail",
           "label": "Detail arrow",
           "description": "Specifies whether a detail arrow should appear on the item. Defaults to <code>false</code> unless the <i>Mode</i> is ios and an href or <i>Button</i> property is true.",
-          "category": "Attributes",
+          "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
@@ -9882,7 +9889,7 @@
         },
         "DetailIconName": "chevron-forward",
         "ButtonFormType": "button",
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
         "IonSlot": false,
         "IonMode": false,
@@ -9934,7 +9941,7 @@
           "attr": "position",
           "label": "Position",
           "description": "The position determines where and how the label behaves inside an item.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -9944,18 +9951,18 @@
           ]
         }
       }
-    }
+    },
 
     /**************************************************/
     /* Form select / option  				          */
     /**************************************************/
-/*
-    "Option": {
-      "tag": "ion-option",
+
+    "SelectOption": {
+      "tag": "ion-select-option",
 	  "displayName": "SelectOption",
       "label": "Select Option",
       "description": [
-"ion-option| Defines a <i>Select Option</i> component.<br/>",
+"ion-select-option| Defines a <i>Select Option</i> component.<br/>",
 "Each option component must be placed under a <i>Select Container</i> component to give a list of selectable options.<br/>",
 "To set the name or label of the option add a <i>Text</i> component to it.<br/>",
 "Use the <i>Value</i> property to set its value, and the <i>Disabled</i> property to prevent the user from changing the value.<br/>",
@@ -9964,41 +9971,17 @@
       "icon16": "option_color_16x16.png",
       "icon32": "option_color_32x32.png",
       "properties": {
-        "value": {
-          "attr": "[value]",
+        "Disabled": "false",
+        "Value": {
+          "attr": "value",
           "label": "Value",
-          "description": "When this option is selected, the parent select object will have this value.",
+          "description": "The text value of the option. When this option is selected, the parent select object will have this value.",
           "category": "@Properties",
           "value": false
-        },
-        "disabled": {
-          "attr": "disabled",
-          "label": "Disabled",
-          "description": "If true, the user cannot interact with this element.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "true",
-            "false"
-          ]
-        },
-        "selected": {
-          "attr": "selected",
-          "label": "Selected",
-          "description": "If true, the element is selected.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "true",
-            "false"
-          ]
         }
       }
     },
-*/
-/*
+
     "Select": {
       "tag": "ion-select",
 	  "displayName": "SelectContainer",
@@ -10016,71 +9999,115 @@
       "icon16": "select_color_16x16.png",
       "icon32": "select_color_32x32.png",
       "properties": {
-        "FormControlName": false,
-        "DefaultValue": {
-          "attr": "[ngModel]",
-          "label": "Default value",
-          "description": "The value to be selected by default.",
+        "ControlName": "",
+        "IonMode": false,
+        "Disabled": "false",
+        "DoubleBinding": false,
+        "CancelText": {
+          "attr": "cancel-text",
+          "label": "Cancel Text",
+          "description": "The text to display on the cancel button. Default: Cancel",
+          "category": "@Properties",
+          "value": "Cancel",
+          "values": [
+            false,
+            "Cancel",
+            true
+          ]
+        },
+        "OkText": {
+          "attr": "ok-text",
+          "label": "Ok Text",
+          "description": "The text to display on the ok button. Default: Ok",
+          "category": "@Properties",
+          "value": "Ok",
+          "values": [
+            false,
+            "Ok",
+            true
+          ]
+        },
+        "CompareWith": {
+          "attr": "compare-with",
+          "label": "Compare with",
+          "description": "A property name or function used to compare object values.",
           "category": "@Properties",
           "value": false
         },
-
-        "interface": {
+        "Interface": {
           "attr": "interface",
-          "label": "Type of dialog",
-          "description": "Select choices can be displayed in alerts, action sheets or popovers, default is alerts. Multiple options are always displayed in alerts.",
+          "label": "Interface dialog",
+          "description": "Select choices can be displayed in alert, action sheet or popover, default is alert. Multiple options are always displayed in alert.",
           "category": "@Properties",
           "value": false,
           "values": [
             false,
+            "action-sheet",
             "alert",
-            "popover",
-            "action-sheet"
+            "popover"
           ]
         },
-        "cancelText": {
-          "attr": "cancelText",
-          "label": "Cancel Text",
-          "description": "The text to display on the cancel button. Default: Cancel",
+        "InterfaceOptions": {
+          "attr": "interface-options",
+          "label": "Interface dialog options",
+          "description": "Any additional options that the alert, action-sheet or popover interface can take. See the ion-alert docs, the ion-action-sheet docs and the ion-popover docs for the create options for each interface. Note: Options will not override inputs or buttons with the alert interface.",
           "category": "@Properties",
           "value": false
         },
-        "okText": {
-          "attr": "okText",
-          "label": "Ok Text",
-          "description": "The text to display on the ok button. Default: Ok",
-          "category": "@Properties",
-          "value": false
-        },
-        "placeholder": {
+        "Placeholder": {
           "attr": "placeholder",
           "label": "Place holder",
           "description": "The text to display when the select is empty.",
           "category": "@Properties",
           "value": false
         },
-        "selectedText": {
-          "attr": "selectedText",
-          "label": "Selected text",
-          "description": "The text to display instead of the selected option's value.",
-          "category": "@Properties",
-          "value": false
-        },
-        "multiple": {
+        "Multiple": {
           "attr": "multiple",
           "label": "Multiple",
           "description": "If true, the element can accept multiple values.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
-            "true",
-            "false"
+            "false",
+            "true"
           ]
+        },
+        "SelectedText": {
+          "attr": "selected-text",
+          "label": "Control selected text",
+          "description": "The text to display instead of the selected option's value.",
+          "category": "@Control",
+          "value": false
+        },
+        "Value": {
+          "attr": "value",
+          "label": "Control default value",
+          "description": "The value to be selected by default.",
+          "category": "@Control",
+          "value": false
+        }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus."
+        },
+        "ionCancel": {
+          "attr":"(ionCancel)",
+          "description": "This event is emitted when the selection is cancelled."
+        },
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the checked property has changed."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus."
         }
       }
     },
-*/
+
     /**************************************************/
     /* Form RadioButton	/ RadioGroup				  */
     /**************************************************/
@@ -10102,7 +10129,6 @@
       "icon16": "radiolist_color_16x16.png",
       "icon32": "radiolist_color_32x32.png",
       "properties": {
-        "FormControlName": false,      
       	"ListType": {
           "label": "List type",
           "description": "The type of list.",
@@ -10138,7 +10164,7 @@
       "icon16": "radio_color_16x16.png",
       "icon32": "radio_color_32x32.png",
       "properties": {
-        "Disabled": false,
+        "Disabled": "false",
         "Value": {
           "attr": "[value]",
           "label": "Value",
@@ -10181,8 +10207,7 @@
       "icon16": "toggle_color_16x16.png",
       "icon32": "toggle_color_32x32.png",
       "properties": {
-        "FormControlName": false,
-        "Disabled": false,
+        "Disabled": "false",
         "IonColor": false,
     	"Checked": {
       	   "attr": "[ngModel]",
@@ -10200,11 +10225,9 @@
       }
     },
 */
-
     /**************************************************/
     /* Form Input 									                  */
     /**************************************************/
-/*
     "Input": {
       "tag": "ion-input",
 	  "displayName": "TextInput",
@@ -10221,37 +10244,159 @@
       "icon16": "input_color_16x16.png",
       "icon32": "input_color_32x32.png",
       "properties": {
-        "FormControlName": false,
-        "Disabled": false,
-        "ClearInput": {
-          "attr": "clearInput",
-          "label": "ClearInput",
-          "description": "If true, a clear icon will appear in the input when there is a value. Clicking it clears the input.",
+        "ControlName": "",
+        "DoubleBinding": false,
+        "Disabled": "false",
+        "IonColor": false,
+        "IonMode": false,
+        "Accept": {
+          "attr": "accept",
+          "label": "Accept",
+          "description": "If the value of the type attribute is 'file', then this attribute will indicate the types of files that the server accepts, otherwise it will be ignored. The value must be a comma-separated list of unique content type specifiers.",
           "category": "@Properties",
           "value": false,
           "values": [
             false,
+            true
+          ]
+        },
+        "Autocapitalize": {
+          "attr": "autocapitalize",
+          "label": "Autocapitalize",
+          "description": "Specifies whether and how the text value should be automatically capitalized as it is entered/edited by the user.",
+          "category": "@Properties",
+          "value": "off",
+          "values": [
+            false,
+            "off",
+            "characters",
+            "sentences",
+            "words",
+            true
+          ]
+        },
+        "AutoComplete": {
+          "attr": "autocomplete",
+          "label": "Autocomplete",
+          "description": "Specifies whether the value of the control can be automatically completed by the browser.",
+          "category": "@Properties",
+          "value": "off",
+          "values": [
+            "off",
+            "on"
+          ]
+        },
+        "AutoCorrect": {
+          "attr": "autocorrect",
+          "label": "Autocorrect",
+          "description": "Specifies whether auto correction should be enabled when the user is entering/editing the text value.",
+          "category": "@Properties",
+          "value": "off",
+          "values": [
+            "off",
+            "on"
+          ]
+        },
+        "AutoFocus": {
+          "attr": "autofocus",
+          "label": "Autofocus",
+          "description": "This Boolean attribute lets you specify that a form control should have input focus when the page loads.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "ClearInput": {
+          "attr": "clear-input",
+          "label": "ClearInput",
+          "description": "If true, a clear icon will appear in the input when there is a value. Clicking it clears the input.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
             "false",
             "true"
           ]
         },
         "ClearOnEdit": {
-          "attr": "clearOnEdit",
+          "attr": "clear-on-edit",
           "label": "ClearOnEdit",
           "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
             "false",
             "true"
           ]
         },
+        "Debounce": {
+          "attr": "debounce",
+          "label": "Debounce",
+          "description": "Set the amount of time, in milliseconds, to wait to trigger the ionChange event after each keystroke.",
+          "category": "@Properties",
+          "type": "number",
+          "value": 0,
+          "values": [
+            false,
+            true
+          ]
+        },
+		"EnterKeyHint":{
+			"attr":"enterkeyhint",
+			"label": "Browser enter key hint",
+			"description": "A hint to the browser for which enter key to display.",
+			"category": "@Properties",
+			"value": false,
+			"values": [
+				false,
+				"done",
+				"enter",
+				"go",
+				"next",
+				"previous",
+				"search",
+				"send"    				
+			]
+		},
+		"InputMode":{
+			"attr":"inputmode",
+			"label": "Browser input mode hint",
+			"description": "A hint to the browser for which keyboard to display.",
+			"category": "@Properties",
+			"value": false,
+			"values": [
+				false,
+				"decimal",
+				"email",
+				"none",
+				"numeric",
+				"search",
+				"tel",
+				"text",
+				"url"   				
+			]
+		},
         "Max": {
           "attr": "max",
           "label": "Maximum",
           "description": "The maximum value, which must not be less than its minimum (min attribute) value.",
           "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "MaxLength": {
+          "attr": "maxlength",
+          "label": "Maxlength",
+          "description": "If the value of the type attribute is text, email, search, password, tel, or url, this attribute specifies the maximum number of characters that the user can enter.",
+          "category": "@Properties",
+          "type": "number",
           "value": false,
           "values": [
             false,
@@ -10269,17 +10414,39 @@
             true
           ]
         },
-        "Mode": {
-          "attr": "mode",
-          "label": "Mode",
-          "description": "The mode determines which platform styles to use. Possible values are: 'ios', 'md' (Material Design) , or 'wp' (Windows). For more information, see Platform Styles.",
+        "MinLength": {
+          "attr": "minlength",
+          "label": "Minlength",
+          "description": "If the value of the type attribute is text, email, search, password, tel, or url, this attribute specifies the minimum number of characters that the user can enter.",
+          "category": "@Properties",
+          "type": "number",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "Multiple": {
+          "attr": "multiple",
+          "label": "Multiple",
+          "description": "If true, the user can enter more than one value. This attribute applies when the type attribute is set to 'email' or 'file', otherwise it is ignored.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Pattern": {
+          "attr": "pattern",
+          "label": "Pattern",
+          "description": "A regular expression that the value is checked against. The pattern must match the entire value, not just some subset. Use the title attribute to describe the pattern to help the user. This attribute applies when the value of the type attribute is 'text', 'search', 'tel', 'url', 'email', 'date', or 'password', otherwise it is ignored. When the type attribute is 'date', pattern will only be used in browsers that do not support the 'date' input type natively. See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date for more information.",
           "category": "@Properties",
           "value": false,
           "values": [
             false,
-            "ios",
-            "md",
-            "wp"
+            true
           ]
         },
         "Placeholder": {
@@ -10298,9 +10465,45 @@
           "label": "Readonly",
           "description": "If true, the user cannot modify the value.",
           "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Required": {
+          "attr": "required",
+          "label": "Required",
+          "description": "If true, the user must fill in a value before submitting a form.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Size": {
+          "attr": "size",
+          "label": "Size",
+          "description": "The initial size of the control. This value is in pixels unless the value of the type attribute is 'text' or 'password', in which case it is an integer number of characters. This attribute applies only when the type attribute is set to 'text', 'search', 'tel', 'url', 'email', or 'password', otherwise it is ignored.",
+          "category": "@Properties",
+          "type": "number",
           "value": false,
           "values": [
             false,
+            true
+          ]
+        },
+        "Spellcheck": {
+          "attr": "spellcheck",
+          "label": "Spellcheck",
+          "description": "If true, the element will have its spelling and grammar checked.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
             "false",
             "true"
           ]
@@ -10308,61 +10511,68 @@
         "Step": {
           "attr": "step",
           "label": "Step",
-          "description": "Works with the min and max attributes to limit the increments at which a value can be set.",
+          "description": "Works with the min and max attributes to limit the increments at which a value can be set.Possible values are: 'any' or a positive floating point number.",
           "category": "@Properties",
           "value": false,
           "values": [
             false,
+            "any",
+            "0.5",
             true
           ]
         },
-
-        "TextAlign": {
-          "label": "Text Align",
-          "description": "Aligns text left or right.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "text-left",
-            "text-right",
-            "text-center",
-            true
-          ]
-        },
-
         "Type": {
           "attr": "type",
           "label": "Type",
-          "description": "The type of control to display. The default type is text. Possible values are: 'text', 'password', 'email', 'number', 'search', 'tel', or 'url'.",
+          "description": "The type of control to display. The default type is text.",
           "category": "@Properties",
-          "value": false,
+          "value": "text",
           "values": [
             false,
-            "text",
-            "password",
+            "date",
             "email",
             "number",
+            "password",
             "search",
             "tel",
+            "text",
+            "time",
             "url",
             true
           ]
         },
         "Value": {
           "attr": "value",
-          "label": "Value",
-          "description": "The text value of the input.",
-          "category": "@Properties",
-          "value": false,
+          "label": "Control default value",
+          "description": "The default text value of the input.",
+          "category": "@Control",
+          "value": "",
           "values": [
             false,
             true
           ]
         }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus."
+        },
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the checked property has changed."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus."
+        },
+        "ionInput": {
+          "attr":"(ionInput)",
+          "description": "This event is emitted when a keyboard input occurred."
+        }
       }
     },
-*/
+
 /*
     "TextArea": {
       "tag": "ion-textarea",
@@ -10379,8 +10589,7 @@
       "icon16": "textarea_color_16x16.png",
       "icon32": "textarea_color_32x32.png",
       "properties": {
-        "FormControlName": false,
-        "Disabled": false,
+        "Disabled": "false",
         "ClearInput": {
           "attr": "clearInput",
           "label": "ClearInput",
@@ -10464,7 +10673,7 @@
       }
     },
 */
-/*    
+    
     "CheckBox": {
       "tag": "ion-checkbox",
 	  "displayName": "CheckBox",
@@ -10482,25 +10691,64 @@
       "icon16": "input_checkbox_16x16.png",
       "icon32": "input_checkbox_32x32.png",
       "properties": {
-        "FormControlName": false,
+        "ControlName": "",
+        "DoubleBinding": false,
+        "Disabled": "false",
         "IonColor": false,
-        "Disabled": false,
+        "IonMode": false,
     	"Checked": {
-      	   "attr": "[ngModel]",
-      	   "label": "Checked",
-      	   "description": "If true the component will be checked.",
-      	   "category": "@Properties",
-      	   "value": false,
+      	   "attr": "checked",
+      	   "label": "Control checked",
+      	   "description": "If true the checkbox will be checked.",
+      	   "category": "@Control",
+      	   "type": "boolean",
+      	   "value": "false",
       	   "values": [
-        	   false,
         	   "false",
-        	   "true",
-        	   true
+        	   "true"
       	   ]
-    	 }
+    	},
+    	"Indeterminate": {
+      	   "attr": "indeterminate",
+      	   "label": "Indeterminate",
+      	   "description": "If true, the checkbox will visually appear as indeterminate.",
+      	   "category": "@Properties",
+      	   "type": "boolean",
+      	   "value": "false",
+      	   "values": [
+        	   "false",
+        	   "true"
+      	   ]
+    	},
+        "Value": {
+          "attr": "value",
+          "label": "Value",
+          "description": "The value of the Checkbox does not mean if it's checked or not, use the Checked property for that.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "on",
+            true
+          ]
+        }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus."
+        },
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the checked property has changed."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus."
+        }
       }
-    },
-*/
+    }
+
 /*
     "DateTime": {
       "tag": "ion-datetime",
@@ -10519,7 +10767,6 @@
       "icon16": "input_datetime_16x16.png",
       "icon32": "input_datetime_32x32.png",
       "properties": {
-        "FormControlName": false,
         "IonColor": false,
         "displayFormat": {
           "attr": "displayFormat",
@@ -10725,7 +10972,6 @@
       "icon16": "range_16x16.png",
       "icon32": "range_32x32.png",
       "properties": {
-        "FormControlName": false,
         "DefaultValue": {
           "attr": "[ngModel]",
           "label": "Default value",
@@ -10837,7 +11083,7 @@
           "attr": "no-padding",
           "label": "No padding",
           "description": "Removes padding from the grid and immediate children columns.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -10849,7 +11095,7 @@
           "attr": "fixed",
           "label": "Fixed",
           "description": "Set a max width based on the screen size.",
-          "category": "Attributes",
+          "category": "@Properties",
           "value": false,
           "values": [
             false,
@@ -12101,8 +12347,6 @@
       "icon16": "calendar_color_16x16.png",
       "icon32": "calendar_color_32x32.png",
       "properties": {
-        "FormControlName": false,
-      
         "type": {
           "attr" : "[type]",
           "label": "Type",
@@ -12533,8 +12777,6 @@
       "icon32": "signaturecomponent_color_32x32.png",
       
       "properties": {
-        "FormControlName": false,
-        
         "DotSize": {
           "composite": true,
           "label": "Dot size",
@@ -12699,7 +12941,6 @@
       "icon32": "treeviewcomponent_color_32x32.png",
       
       "properties": {
-        "FormControlName": false,
         "treenodes": {
           "mode": "script",
           "attr":"[nodes]",

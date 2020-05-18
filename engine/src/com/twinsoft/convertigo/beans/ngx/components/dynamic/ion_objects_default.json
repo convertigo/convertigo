@@ -23,7 +23,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "IonColor": {
      "name": "IonColor",
@@ -212,7 +212,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "IonColor": {
      "name": "IonColor",
@@ -466,7 +466,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "IonColor": {
      "name": "IonColor",
@@ -573,7 +573,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "MenuType": {
      "name": "MenuType",
@@ -616,7 +616,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "IonColor": {
      "name": "IonColor",
@@ -660,7 +660,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "IonColor": {
      "name": "IonColor",
@@ -753,7 +753,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "IonColor": {
      "name": "IonColor",
@@ -901,7 +901,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": false
+     "value": "false"
     },
     "IonColor": {
      "name": "IonColor",
@@ -947,11 +947,6 @@
     },
     "IonMode": {
      "name": "IonMode",
-     "mode": "plain",
-     "value": false
-    },
-    "FormControlName": {
-     "name": "FormControlName",
      "mode": "plain",
      "value": false
     },
@@ -1029,6 +1024,294 @@
      "name": "value",
      "mode": "plain",
      "value": ""
+    }
+   }
+  }
+ },
+ "Input": {
+  "   7   9   0": {
+   "name": "Input",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Accept": {
+     "name": "Accept",
+     "mode": "plain",
+     "value": false
+    },
+    "Autocapitalize": {
+     "name": "Autocapitalize",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoComplete": {
+     "name": "AutoComplete",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoCorrect": {
+     "name": "AutoCorrect",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoFocus": {
+     "name": "AutoFocus",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ClearInput": {
+     "name": "ClearInput",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ClearOnEdit": {
+     "name": "ClearOnEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Debounce": {
+     "name": "Debounce",
+     "mode": "plain",
+     "value": 0
+    },
+    "EnterKeyHint": {
+     "name": "EnterKeyHint",
+     "mode": "plain",
+     "value": false
+    },
+    "InputMode": {
+     "name": "InputMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": false
+    },
+    "MaxLength": {
+     "name": "MaxLength",
+     "mode": "plain",
+     "value": false
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": false
+    },
+    "MinLength": {
+     "name": "MinLength",
+     "mode": "plain",
+     "value": false
+    },
+    "Multiple": {
+     "name": "Multiple",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Pattern": {
+     "name": "Pattern",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Required": {
+     "name": "Required",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Size": {
+     "name": "Size",
+     "mode": "plain",
+     "value": false
+    },
+    "Spellcheck": {
+     "name": "Spellcheck",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Step": {
+     "name": "Step",
+     "mode": "plain",
+     "value": false
+    },
+    "Type": {
+     "name": "Type",
+     "mode": "plain",
+     "value": "text"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "CheckBox": {
+  "   7   9   0": {
+   "name": "CheckBox",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Indeterminate": {
+     "name": "Indeterminate",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Select": {
+  "   7   9   0": {
+   "name": "Select",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "CancelText": {
+     "name": "CancelText",
+     "mode": "plain",
+     "value": "Cancel"
+    },
+    "OkText": {
+     "name": "OkText",
+     "mode": "plain",
+     "value": "Ok"
+    },
+    "CompareWith": {
+     "name": "CompareWith",
+     "mode": "plain",
+     "value": false
+    },
+    "Interface": {
+     "name": "Interface",
+     "mode": "plain",
+     "value": false
+    },
+    "InterfaceOptions": {
+     "name": "InterfaceOptions",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "SelectedText": {
+     "name": "SelectedText",
+     "mode": "plain",
+     "value": false
+    },
+    "Multiple": {
+     "name": "Multiple",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SelectOption": {
+  "   7   9   0": {
+   "name": "SelectOption",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
     }
    }
   }

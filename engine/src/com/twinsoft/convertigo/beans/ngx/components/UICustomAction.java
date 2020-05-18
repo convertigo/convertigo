@@ -384,16 +384,18 @@ public class UICustomAction extends UIComponent implements IAction {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			String formGroupName = null;
+			String formIdentifier = null;
 			if (underSubmitEvent()) {
 				UIForm uiForm = getUIForm();
 				if (uiForm != null) {
-					formGroupName = uiForm.getFormGroupName();
+					if (!uiForm.getIdentifier().isBlank()) {
+						formIdentifier = uiForm.getIdentifier();
+					}
 				}
 			}
 			
 			String scope = getScope();
-			String in = formGroupName == null ? "{}": "merge({},"+formGroupName +".value)";
+			String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
 			if (isStacked()) {
 				return getFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";
 			} else {
@@ -406,8 +408,8 @@ public class UICustomAction extends UIComponent implements IAction {
 					vars = matcher.group(2);
 				}
 				
-				if (formGroupName != null) {
-					vars = "merge(merge({},"+formGroupName +".value), "+ vars +")";
+				if (formIdentifier != null) {
+					vars = "merge(merge({},"+formIdentifier +".value), "+ vars +")";
 				}
 				
 				String stack = "{stack:{root: {scope:"+ scope +", in:"+ in +", out:$event}}}";

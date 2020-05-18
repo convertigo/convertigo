@@ -143,7 +143,8 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		IonBean ionBean = getIonBean();
 		
     	if (ionBean != null) {
-    		String formControlVarName = getFormControlName();
+			UIForm form = getUIForm();
+			boolean underForm = form != null;
 
     		Map<String, String> vm = new HashMap<String, String>();
 			for (IonProperty property : ionBean.getProperties().values()) {
@@ -177,24 +178,13 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				// case value is set
 				if (!value.equals(false)) {
 					if (name.equals("AutoDisable")) {
-						UIForm form = getUIForm();
-						if (form != null) {
-							String formGroupName = form.getFormGroupName();
-							attributes.append(" [disabled]=\"!").append(formGroupName).append(".valid\"");
-						}
-					} else {
-						if (name.equals("FormControlName") && formControlVarName.isEmpty()) {
-							continue;
-						}
-						if (attr.equals("[ngModel]")) {
-							String tagName = getTagName();
-							if (tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
-								attr = formControlVarName.isEmpty() ? "[checked]":"[ngModel]";
-							} else if (tagName.equals("ion-datetime")) {
-								attr = formControlVarName.isEmpty() ? "value":"[ngModel]";
+						if (underForm) {
+							String formIdentifier = form.getIdentifier();
+							if (!formIdentifier.isBlank()) {
+								attributes.append(" [disabled]=\"").append(formIdentifier).append(".invalid\"");
 							}
 						}
-						
+					} else {
 						String smartValue = property.getSmartValue();
 						smartValue = sub.replace(smartValue);
 						
@@ -216,13 +206,20 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				// case value is not set
 				else {
 					if (!isComposite) {
-						if (attr.equals("[ngModel]")) {
-							String tagName = getTagName();
-							if (formControlVarName.isEmpty() 
-									|| tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
-								continue;
-							} else {
-								attributes.append(" [ngModel]=\"null\"");
+						if (underForm) {
+							if (name.equals("DoubleBinding")) {
+								String defval = null;
+								if (tagName.equals("ion-checkbox") || tagName.equals("ion-toggle")) {
+									defval = vm.get("Checked");
+								} else {
+									defval = vm.get("Value");
+								}
+								
+								if (defval != null && !defval.equals("null")) {
+									attributes.append(" [ngModel]=\"" + defval + "\"");
+								} else {
+									attributes.append(" ngModel");
+								}
 							}
 						}
 					}
@@ -232,18 +229,6 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return attributes;
 	}
 
-	@Override
-	protected String getFormControlName() {
-		IonBean ionBean = getIonBean();
-		if (ionBean != null && ionBean.hasProperty("FormControlName")) {
-			MobileSmartSourceType msst = (MobileSmartSourceType) ionBean.getPropertyValue("FormControlName");
-			if (msst != null && !msst.getValue().equals("not set") && !msst.getValue().isEmpty()) {
-				return msst.getValue();
-			}
-		}
-		return super.getFormControlName();
-	}
-	
 	@Override
 	public boolean updateSmartSource(String oldString, String newString) {
 		boolean updated = false;
