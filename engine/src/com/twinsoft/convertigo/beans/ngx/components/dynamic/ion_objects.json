@@ -10191,7 +10191,7 @@
     /**************************************************/
     /* Form Toggle 									  */
     /**************************************************/
-/*
+
     "Toggle": {
       "tag": "ion-toggle",
 	  "displayName": "ToggleButton",
@@ -10207,24 +10207,52 @@
       "icon16": "toggle_color_16x16.png",
       "icon32": "toggle_color_32x32.png",
       "properties": {
+        "ControlName": "",
+        "DoubleBinding": false,
         "Disabled": "false",
         "IonColor": false,
+        "IonMode": false,
     	"Checked": {
-      	   "attr": "[ngModel]",
-      	   "label": "Checked",
-      	   "description": "If true the component will be checked.",
-      	   "category": "@Properties",
-      	   "value": false,
+      	   "attr": "checked",
+      	   "label": "Control checked",
+      	   "description": "If true the toggle will be selected.",
+      	   "category": "@Control",
+      	   "type": "boolean",
+      	   "value": "false",
       	   "values": [
-        	   false,
         	   "false",
-        	   "true",
-        	   true
+        	   "true"
       	   ]
-    	 }
+    	},
+        "Value": {
+          "attr": "value",
+          "label": "Value",
+          "description": "The value of the toggle does not mean if it's checked or not, use the Checked property for that.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "on",
+            true
+          ]
+        }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus."
+        },
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the checked property has changed."
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus."
+        }
       }
     },
-*/
+
     /**************************************************/
     /* Form Input 									                  */
     /**************************************************/

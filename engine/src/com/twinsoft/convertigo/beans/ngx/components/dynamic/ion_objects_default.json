@@ -1315,5 +1315,47 @@
     }
    }
   }
+ },
+ "Toggle": {
+  "   7   9   0": {
+   "name": "Toggle",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }
