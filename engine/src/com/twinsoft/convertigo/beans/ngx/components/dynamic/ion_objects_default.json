@@ -1615,5 +1615,132 @@
     }
    }
   }
+ },
+ "DateTime": {
+  "   7   9   0": {
+   "name": "DateTime",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "CancelText": {
+     "name": "CancelText",
+     "mode": "plain",
+     "value": false
+    },
+    "DoneText": {
+     "name": "DoneText",
+     "mode": "plain",
+     "value": false
+    },
+    "DisplayFormat": {
+     "name": "DisplayFormat",
+     "mode": "plain",
+     "value": false
+    },
+    "DisplayTimeZone": {
+     "name": "DisplayTimeZone",
+     "mode": "plain",
+     "value": false
+    },
+    "DayNames": {
+     "name": "DayNames",
+     "mode": "plain",
+     "value": false
+    },
+    "DayShortNames": {
+     "name": "DayShortNames",
+     "mode": "plain",
+     "value": false
+    },
+    "DayValues": {
+     "name": "DayValues",
+     "mode": "plain",
+     "value": false
+    },
+    "HourValues": {
+     "name": "HourValues",
+     "mode": "plain",
+     "value": false
+    },
+    "MonthNames": {
+     "name": "MonthNames",
+     "mode": "plain",
+     "value": false
+    },
+    "MonthShortNames": {
+     "name": "MonthShortNames",
+     "mode": "plain",
+     "value": false
+    },
+    "MonthValues": {
+     "name": "MonthValues",
+     "mode": "plain",
+     "value": false
+    },
+    "MinuteValues": {
+     "name": "MinuteValues",
+     "mode": "plain",
+     "value": false
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": false
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "PickerFormat": {
+     "name": "PickerFormat",
+     "mode": "plain",
+     "value": false
+    },
+    "PickerOptions": {
+     "name": "PickerOptions",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    },
+    "YearValues": {
+     "name": "YearValues",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

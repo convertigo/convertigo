@@ -10988,9 +10988,8 @@
           "description": "This event is emitted when the button has focus."
         }
       }
-    }
+    },
 
-/*
     "DateTime": {
       "tag": "ion-datetime",
 	  "displayName": "DateTime",
@@ -11008,9 +11007,36 @@
       "icon16": "input_datetime_16x16.png",
       "icon32": "input_datetime_32x32.png",
       "properties": {
-        "IonColor": false,
-        "displayFormat": {
-          "attr": "displayFormat",
+        "ControlName": "",
+        "DoubleBinding": false,
+        "Disabled": "false",
+        "IonMode": false,
+        "CancelText": {
+          "attr": "cancel-text",
+          "label": "Cancel text",
+          "description": "The text to display on the picker's cancel button.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "Cancel",
+            true
+          ]
+        },
+        "DoneText": {
+          "attr": "done-text",
+          "label": "Done text",
+          "description": "The text to display on the picker's 'Done' button. Default: Done.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "Done",
+            true
+          ]
+        },
+        "DisplayFormat": {
+          "attr": "display-format",
           "label": "Display format",
           "description": "The display format ex: hh:mm AAAA or  MM/DD/YYYY see https://ionicframework.com/docs/v3/api/components/datetime/DateTime/ for more formats.",
           "category": "@Properties",
@@ -11024,8 +11050,124 @@
             true
           ]
         },
-        "displayPicker": {
-          "attr": "pickerFormat",
+        "DisplayTimeZone": {
+          "attr": "display-timezone",
+          "label": "Display time zone",
+          "description": "The timezone to use for display purposes only. See Date.prototype.toLocaleString() for a list of supported timezones. If no value is provided, the component will default to displaying times in the user's local timezone.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            true
+          ]
+        },
+        "DayNames": {
+          "attr": "day-names",
+          "label": "Day Names",
+          "description": "List of day names separated by a comma, if different from English standard names.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi",
+            "Domenica, Lunedi, Martedi, Mercoledi, Giovedi, Venerdi, Sabato",
+            true
+          ]
+        },
+        "DayShortNames": {
+          "attr": "day-short-names",
+          "label": "Day short names",
+          "description": "Short abbreviated day of the week names. This can be used to provide locale names for each day in the week. Defaults to English.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "Dim, Lun, Mar, Mer, Jeu, Ven, Sam",
+            true
+          ]
+        },
+        "DayValues": {
+          "attr": "day-values",
+          "label": "Day values",
+          "description": "Values used to create the list of selectable days. By default every day is shown for the given month. However, to control exactly which days of the month to display, the dayValues input can take either an array of numbers, or string of comma separated numbers. Note that even if the array days have an invalid number for the selected month, like 31 in February, it will correctly not show days which are not valid for the selected month.",
+          "category": "@Properties",
+          "value": false
+        },
+        "HourValues": {
+          "attr": "hour-values",
+          "label": "Hour values",
+          "description": "Values used to create the list of selectable hours. By default the hour values range from 0 to 23 for 24-hour, or 1 to 12 for 12-hour. However, to control exactly which hours to display, the hourValues input can take either an array of numbers, or string of comma separated numbers.",
+          "category": "@Properties",
+          "value": false
+        },
+        "MonthNames": {
+          "attr": "month-names",
+          "label": "Month Names",
+          "description": "List of month names separated by a comma, if different from English standard names.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "Janvier, Février, Mars, Avril, Mai, Juin, Juillet, Aout, Septembre, Octobre, Novembre, Décembre",
+            "Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre",
+            true
+          ]
+        },
+        "MonthShortNames": {
+          "attr": "month-short-names",
+          "label": "Month short names",
+          "description": "Short abbreviated names for each month name. This can be used to provide locale month names. Defaults to English.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "Jan, Fev, Mar, Avr, Mai, Jui, Juil, Aou, Sep, Oct, Nov, Dec",
+            true
+          ]
+        },
+        "MonthValues": {
+          "attr": "month-values",
+          "label": "Month values",
+          "description": "Values used to create the list of selectable months. By default the month values range from 1 to 12. However, to control exactly which months to display, the monthValues input can take either an array of numbers, or string of comma separated numbers. For example, if only summer months should be shown, then this input value would be monthValues=\"6,7,8\". Note that month numbers do not have a zero-based index, meaning January's value is 1, and December's is 12.",
+          "category": "@Properties",
+          "value": false
+        },
+        "MinuteValues": {
+          "attr": "minute-values",
+          "label": "Minute values",
+          "description": "Values used to create the list of selectable minutes. By default the minutes range from 0 to 59. However, to control exactly which minutes to display, the minuteValues input can take either an array of numbers, or string of comma separated numbers. For example, if the minute selections should only be every 15 minutes, then this input value would be minuteValues='0,15,30,45'.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "0,15,30,45",
+            "0,30",
+            true
+          ]
+        },
+    	"Min":{
+    		"attr":"min",
+    		"label": "Minimum datetime",
+    		"description": "The minimum datetime allowed. Use ISO 8601 datetime format YYYY-MM-DD. See https://www.w3.org/TR/NOTE-datetime for more formats.",
+    		"category": "@Properties",
+    		"value": false
+    	},
+    	"Max":{
+    		"attr":"max",
+    		"label": "Maximum datetime",
+    		"description": "The maximum datetime allowed. Use ISO 8601 datetime format YYYY-MM-DD. See https://www.w3.org/TR/NOTE-datetime for more formats.",
+    		"category": "@Properties",
+    		"value": false
+    	},
+    	"Placeholder":{
+    		"attr":"placeholder",
+    		"label": "Placeholder",
+    		"description": "Set the datetime's placeholder.",
+    		"category": "@Properties",
+    		"value": false
+    	},
+        "PickerFormat": {
+          "attr": "picker-format",
           "label": "Picker format",
           "description": "The picker format ex: hh:mm AAAA or  MM/DD/YYYY see https://ionicframework.com/docs/v3/api/components/datetime/DateTime/ for more formats.",
           "category": "@Properties",
@@ -11039,113 +11181,27 @@
             true
           ]
         },
-        "monthNames": {
-          "attr": "monthNames",
-          "label": "Month Names",
-          "description": "List of month names separated by a comma, if different from English standard names.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "Janvier, Février, Mars, Avril, Mai, Juin, Juillet, Aout, Septembre, Octobre, Novembre, Décembre",
-            "Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre",
-            true
-          ]
-        },
-        "monthShortNames": {
-          "attr": "monthShortNames",
-          "label": "Month short names",
-          "description": "Short abbreviated names for each month name. This can be used to provide locale month names. Defaults to English.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "Jan, Fev, Mar, Avr, Mai, Jui, Juil, Aou, Sep, Oct, Nov, Dec",
-            true
-          ]
-        },
-        "monthValues": {
-          "attr": "monthValues",
-          "label": "Month values",
-          "description": "Values used to create the list of selectable months. By default the month values range from 1 to 12. However, to control exactly which months to display, the monthValues input can take either an array of numbers, or string of comma separated numbers. For example, if only summer months should be shown, then this input value would be monthValues=\"6,7,8\". Note that month numbers do not have a zero-based index, meaning January's value is 1, and December's is 12.",
+         "PickerOptions": {
+          "attr": "[pickerOptions]",
+          "label": "Picker Options",
+          "description": "Any additional options that the picker interface can accept. See the Ionic Picker API docs for the picker options.",
           "category": "@Properties",
           "value": false
         },
-        "minuteValues": {
-          "attr": "minuteValues",
-          "label": "Minute values",
-          "description": "Values used to create the list of selectable minutes. By default the minutes range from 0 to 59. However, to control exactly which minutes to display, the minuteValues input can take either an array of numbers, or string of comma separated numbers. For example, if the minute selections should only be every 15 minutes, then this input value would be minuteValues='0,15,30,45'.",
+        "Readonly": {
+          "attr": "readonly",
+          "label": "Readonly",
+          "description": "If true, the user cannot modify the value.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
-            "0,15,30,45",
-            "0,30",
-            true
+            "false",
+            "true"
           ]
         },
-        "dayNames": {
-          "attr": "dayNames",
-          "label": "Day Names",
-          "description": "List of day names separated by a comma, if different from English standard names.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "Dimanche, Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi",
-            "Domenica, Lunedi, Martedi, Mercoledi, Giovedi, Venerdi, Sabato",
-            true
-          ]
-        },
-        "dayShortNames": {
-          "attr": "dayShortNames",
-          "label": "Day short names",
-          "description": "Short abbreviated day of the week names. This can be used to provide locale names for each day in the week. Defaults to English.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "Dim, Lun, Mar, Mer, Jeu, Ven, Sam",
-            true
-          ]
-        },
-        "dayValues": {
-          "attr": "dayValues",
-          "label": "Day values",
-          "description": "Values used to create the list of selectable days. By default every day is shown for the given month. However, to control exactly which days of the month to display, the dayValues input can take either an array of numbers, or string of comma separated numbers. Note that even if the array days have an invalid number for the selected month, like 31 in February, it will correctly not show days which are not valid for the selected month.",
-          "category": "@Properties",
-          "value": false
-        },
-        "hourValues": {
-          "attr": "hourValues",
-          "label": "Hour values",
-          "description": "Values used to create the list of selectable hours. By default the hour values range from 0 to 23 for 24-hour, or 1 to 12 for 12-hour. However, to control exactly which hours to display, the hourValues input can take either an array of numbers, or string of comma separated numbers.",
-          "category": "@Properties",
-          "value": false
-        },
-    	"placeholder":{
-    		"attr":"placeholder",
-    		"label": "Placeholder",
-    		"description": "Set the datetime's placeholder.",
-    		"category": "@Properties",
-    		"value": false
-    	},
-    	"min":{
-    		"attr":"min",
-    		"label": "Minimum datetime",
-    		"description": "The minimum datetime allowed. Use ISO 8601 datetime format YYYY-MM-DD. See https://www.w3.org/TR/NOTE-datetime for more formats.",
-    		"category": "@Properties",
-    		"value": false
-    	},
-    	"max":{
-    		"attr":"max",
-    		"label": "Maximum datetime",
-    		"description": "The maximum datetime allowed. Use ISO 8601 datetime format YYYY-MM-DD. See https://www.w3.org/TR/NOTE-datetime for more formats.",
-    		"category": "@Properties",
-    		"value": false
-    	},
         "Value": {
-          "attr": "[ngModel]",
+          "attr": "value",
           "label": "Value",
           "description": "The default datetime value. Use ISO 8601 datetime format like YYYY-MM-DD or hh:mm:ss or YYYY-MM-DDThh:mm:ss. See https://www.w3.org/TR/NOTE-datetime for more formats.",
           "category": "@Properties",
@@ -11155,47 +11211,15 @@
             true
           ]
         },
-        "cancelText": {
-          "attr": "cancelText",
-          "label": "Cancel text",
-          "description": "The text to display on the picker's cancel button.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "Cancel",
-            true
-          ]
-        },
-        "doneText": {
-          "attr": "doneText",
-          "label": "Done text",
-          "description": "The text to display on the picker's 'Done' button. Default: Done.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "Done",
-            true
-          ]
-        },
-         "pickerOptions": {
-          "attr": "pickerOptions",
-          "label": "Picker Options",
-          "description": "Any additional options that the picker interface can accept. See the Ionic Picker API docs for the picker options.",
-          "category": "@Properties",
-          "value": false
-        },
-        "yearValues": {
-          "attr": "yearValues",
+        "YearValues": {
+          "attr": "year-values",
           "label": "Year values",
           "description": "Values used to create the list of selectable years. By default the year values range between the min and max datetime inputs. However, to control exactly which years to display, the yearValues input can take either an array of numbers, or string of comma separated numbers. For example, to show upcoming and recent leap years, then this input's value would be yearValues=\"2024,2020,2016,2012,2008\".",
           "category": "@Properties",
           "value": false
         }
       }
-    },
-*/
+    }
 /*	
     "Range": {
       "tag": "ion-range",
