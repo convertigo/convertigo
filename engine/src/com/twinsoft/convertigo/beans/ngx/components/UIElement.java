@@ -126,6 +126,23 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		return "";
 	}
 
+	protected StringBuilder initAttrClasses() {
+		StringBuilder attrclasses = new StringBuilder();
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIAttribute) {
+				UIAttribute uiAttribute = (UIAttribute)component;
+				if (uiAttribute.getAttrName().equals("class")) {
+					if (uiAttribute.isEnabled()) {
+						attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+					}
+				}
+			}
+		}
+		return attrclasses;
+	}
+	
 	protected StringBuilder initAttributes() {
 		StringBuilder sb = new StringBuilder();
 		if (!identifier.isEmpty()) {
@@ -209,12 +226,12 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		
 		super.computeScripts(jsonScripts);
 	}
-		
+
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
 			StringBuilder attributes = initAttributes();
-			StringBuilder attrclasses = new StringBuilder();
+			StringBuilder attrclasses = initAttrClasses();
 			StringBuilder children = new StringBuilder();
 			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -227,9 +244,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 				} else if (component instanceof UIAttribute) {
 					UIAttribute uiAttribute = (UIAttribute)component;
 					if (uiAttribute.getAttrName().equals("class")) {
-						if (uiAttribute.isEnabled()) {
-							attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
-						}
+						;// ignore
 					} else {
 						attributes.append(component.computeTemplate());
 					}

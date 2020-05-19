@@ -1819,5 +1819,171 @@
     }
    }
   }
+ },
+ "Grid": {
+  "   7   9   0": {
+   "name": "Grid",
+   "properties": {
+    "Fixed": {
+     "name": "Fixed",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "GridCol": {
+  "   7   9   0": {
+   "name": "GridCol",
+   "properties": {
+    "FlexAlignement": {
+     "name": "FlexAlignement",
+     "mode": "plain",
+     "value": false
+    },
+    "Offset": {
+     "name": "Offset",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetLg": {
+     "name": "OffsetLg",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetMd": {
+     "name": "OffsetMd",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetSm": {
+     "name": "OffsetSm",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetXl": {
+     "name": "OffsetXl",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetXs": {
+     "name": "OffsetXs",
+     "mode": "plain",
+     "value": false
+    },
+    "Pull": {
+     "name": "Pull",
+     "mode": "plain",
+     "value": false
+    },
+    "PullLg": {
+     "name": "PullLg",
+     "mode": "plain",
+     "value": false
+    },
+    "PullMd": {
+     "name": "PullMd",
+     "mode": "plain",
+     "value": false
+    },
+    "PullSm": {
+     "name": "PullSm",
+     "mode": "plain",
+     "value": false
+    },
+    "PullXl": {
+     "name": "PullXl",
+     "mode": "plain",
+     "value": false
+    },
+    "PullXs": {
+     "name": "PullXs",
+     "mode": "plain",
+     "value": false
+    },
+    "Push": {
+     "name": "Push",
+     "mode": "plain",
+     "value": false
+    },
+    "PushLg": {
+     "name": "PushLg",
+     "mode": "plain",
+     "value": false
+    },
+    "PushMd": {
+     "name": "PushMd",
+     "mode": "plain",
+     "value": false
+    },
+    "PushSm": {
+     "name": "PushSm",
+     "mode": "plain",
+     "value": false
+    },
+    "PushXl": {
+     "name": "PushXl",
+     "mode": "plain",
+     "value": false
+    },
+    "PushXs": {
+     "name": "PushXs",
+     "mode": "plain",
+     "value": false
+    },
+    "Size": {
+     "name": "Size",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeLg": {
+     "name": "SizeLg",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeMd": {
+     "name": "SizeMd",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeSm": {
+     "name": "SizeSm",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeXl": {
+     "name": "SizeXl",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeXs": {
+     "name": "SizeXs",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "GridRow": {
+  "   7   9   0": {
+   "name": "GridRow",
+   "properties": {
+    "FlexJustifyContent": {
+     "name": "FlexJustifyContent",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexAlignement": {
+     "name": "FlexAlignement",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexWrap": {
+     "name": "FlexWrap",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

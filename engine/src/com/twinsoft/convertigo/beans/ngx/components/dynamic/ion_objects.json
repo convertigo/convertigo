@@ -11370,10 +11370,9 @@
           "description": "This event is emitted when the range  has focus."
         }
       }
-    }
+    },
     
     /*    Grid System     */
-/*
     "Grid": {
       "tag": "ion-grid",
 	  "displayName": "Grid",
@@ -11387,46 +11386,21 @@
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
       "properties": {
-        "Height": {
-          "attr": "style",
-          "label": "Height",
-          "description": "Hight of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering.",
-          "category": "Attribute",
-          "value": false,
-          "values": [
-            false,
-            "height:100%",
-            true
-          ]
-        },
-        "NoPadding": {
-          "attr": "no-padding",
-          "label": "No padding",
-          "description": "Removes padding from the grid and immediate children columns.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "false",
-            "true"
-          ]
-        },
         "Fixed": {
           "attr": "fixed",
           "label": "Fixed",
           "description": "Set a max width based on the screen size.",
           "category": "@Properties",
-          "value": false,
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
             "false",
             "true"
           ]
         }
       }
     },
-*/
-/*
+
     "GridRow": {
       "tag": "ion-row",
 	  "displayName": "GridRow",
@@ -11440,142 +11414,53 @@
       "icon16": "grid_row_color_16x16.png",
       "icon32": "grid_row_color_32x32.png",
       "properties": {
-        "Height": {
-          "attr": "style",
-          "label": "Height",
-          "description": "Hight of the row, pixel (px) or percentage (%). Use 100% to set a row full screen, usefull for centering.",
-          "category": "@Size",
+         "FlexJustifyContent": {
+          "attr": "class",
+          "label": "Justification",
+          "description": "Specifies how items are packed on the main axis.",
+          "category": "@Content",
           "value": false,
           "values": [
             false,
-            "height:100%",
-            true
+            "ion-justify-content-start",
+            "ion-justify-content-end",
+            "ion-justify-content-center",
+            "ion-justify-content-around",
+            "ion-justify-content-between",
+            "ion-justify-content-evenly"
           ]
-        },
-        "Nowrap": {
-          "label": "No wrap",
-          "description": "Forces the columns to a single row.",
-          "category": "@Wrapping",
+         },
+         "FlexAlignement": {
+          "attr": "class",
+          "label": "Alignement",
+          "description": "Specifies how items are aligned on the cross axis.",
+          "category": "@Content",
           "value": false,
           "values": [
             false,
-            "nowrap"
+            "ion-align-items-start",
+            "ion-align-items-end",
+            "ion-align-items-center",
+            "ion-align-items-baseline",
+            "ion-align-items-stretch"
           ]
-        },
-        "WrapReverse": {
-          "label": "Wrap reverse",
-          "description": "The columns will wrap in reverse.",
-          "category": "@Wrapping",
+         },
+         "FlexWrap": {
+          "attr": "class",
+          "label": "Wrapping",
+          "description": "Specifies how items are wrapped on line(s).",
+          "category": "@Content",
           "value": false,
           "values": [
             false,
-            "wrap-reverse"
+            "ion-nowrap",
+            "ion-wrap",
+            "ion-wrap-reverse"
           ]
-        },
-        "AlignItemsStart": {
-          "label": "Align items start",
-          "description": "All columns will be vertically aligned at the top, unless they specify their own alignment.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-items-start"
-          ]
-        },
-        "AlignItemsCenter": {
-          "label": "Align items center",
-          "description": "All columns will be vertically aligned in the center, unless they specify their own alignment.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-items-center"
-          ]
-        },
-        "AlignItemsEnd": {
-          "label": "Align items bottom",
-          "description": "All columns will be vertically aligned at the bottom, unless they specify their own alignment.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-items-end"
-          ]
-        },
-        "AlignItemsStrech": {
-          "label": "Align items strech",
-          "description": "All columns will be stretched to take up the entire height of the row, unless they specify their own alignment.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-items-stretch"
-          ]
-        },
-        "AlignItemsBaseline": {
-          "label": "Align items baseline",
-          "description": "All columns will be vertically aligned at their baselines, unless they specify their own alignment.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-items-baseline"
-          ]
-        },
-        "JustifyContentStart": {
-          "label": "Justify content start",
-          "description": "All columns will be horizontally aligned at the start.",
-          "category": "@Justifications",
-          "value": false,
-          "values": [
-            false,
-            "justify-content-start"
-          ]
-        },
-        "JustifyContentCenter": {
-          "label": "Justify content center",
-          "description": "All columns will be horizontally aligned at the center.",
-          "category": "@Justifications",
-          "value": false,
-          "values": [
-            false,
-            "justify-content-center"
-          ]
-        },
-        "JustifyContentEnd": {
-          "label": "Justify content end",
-          "description": "All columns will be horizontally aligned at the end.",
-          "category": "@Justifications",
-          "value": false,
-          "values": [
-            false,
-            "justify-content-end"
-          ]
-        },
-        "JustifyContentAround": {
-          "label": "Justify content around",
-          "description": "All columns will be horizontally aligned with equal space around them.",
-          "category": "@Justifications",
-          "value": false,
-          "values": [
-            false,
-            "justify-content-around"
-          ]
-        },
-        "JustifyContentBeteween": {
-          "label": "Justify content between",
-          "description": "All columns will be horizontally aligned with a half-size space on either end.",
-          "category": "@Justifications",
-          "value": false,
-          "values": [
-            false,
-            "justify-content-between"
-          ]
-        }
+         }
       }
     },
-*/
-/*
+
     "GridCol": {
       "tag": "ion-col",
 	  "displayName": "GridCol",
@@ -11588,330 +11473,229 @@
       "icon16": "grid_column_color_16x16.png",
       "icon32": "grid_column_color_32x32.png",
       "properties": {
-        "AlignItemsStart": {
-          "label": "Align column top",
-          "description": "Column will be vertically aligned at the top.",
-          "category": "@Vertical alignments",
+         "FlexAlignement": {
+          "attr": "class",
+          "label": "Alignement",
+          "description": "Specifies how item is aligned on the cross axis.",
+          "category": "@Content",
           "value": false,
           "values": [
             false,
-            "align-self-start"
+            "ion-align-self-start",
+            "ion-align-self-end",
+            "ion-align-self-center",
+            "ion-align-self-baseline",
+            "ion-align-self-stretch",
+            "ion-align-self-auto"
           ]
-        },
-        "AlignItemsCenter": {
-          "label": "Align column center",
-          "description": "Column will be vertically aligned in the center.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-self-center"
-          ]
-        },
-        "AlignItemsEnd": {
-          "label": "Align column bottom",
-          "description": "Column will be vertically aligned at the bottom.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-self-end"
-          ]
-        },
-        "AlignItemsStrech": {
-          "label": "Align column strech",
-          "description": "Column will be stretched to take up the entire height of the row.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-self-stretch"
-          ]
-        },
-        "AlignItemsBaseline": {
-          "label": "Align column baseline",
-          "description": "Column will be vertically aligned at the baseline.",
-          "category": "@Vertical alignments",
-          "value": false,
-          "values": [
-            false,
-            "align-self-baseline"
-          ]
-        },
-
-        "Columns": {
-          "attr": "col-%%",
-          "label": "Column slots (Any devices)",
-          "description": "Number of slots this column spans on.",
-          "category": "@Widths",
-          "value": false,
-          "values": [
-            false,
-            "auto",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-          ]
-        },
-        "ColumnsXSmall": {
-          "attr": "col-%%",
-          "label": "Span (X-Small)",
-          "description": "Number of slots this column spans on for Xtra small devices (Witdh <  576px).",
-          "category": "@Widths",
-          "value": false,
-          "values": [
-            false,
-            "auto",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-          ]
-        },
-        "ColumnsSmall": {
-          "attr": "col-sm-%%",
-          "label": "Span (Small)",
-          "description": "Number of slots this column spans on for small devices (Width >  576px and <  768px).",
-          "category": "@Widths",
-          "value": false,
-          "values": [
-            false,
-            "auto",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-          ]
-        },
-        "ColumnsMedium": {
-          "attr": "col-md-%%",
-          "label": "Span (Medium)",
-          "description": "Number of slots this column spans on for medium devices (Width >  768px and <  992px).",
-          "category": "@Widths",
-          "value": false,
-          "values": [
-            false,
-            "auto",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-          ]
-        },
-        "ColumnsLarge": {
-          "attr": "col-lg-%%",
-          "label": "Span (Large)",
-          "description": "Number of slots this column spans on for large devices (Width >  992px and <  1200px).",
-          "category": "@Widths",
-          "value": false,
-          "values": [
-            false,
-            "auto",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-          ]
-        },
-        "ColumnsXLarge": {
-          "attr": "col-xl-%%",
-          "label": "Span (X-Large)",
-          "description": "Number of slots this column spans on for Xtra large devices (Width >  1200px).",
-          "category": "@Widths",
+         },
+         "Offset": {
+          "attr": "offset",
+          "label": "Offset",
+          "description": "The amount to offset the column, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Offset",
+          "value": false
+         },
+         "OffsetLg": {
+          "attr": "offset-lg",
+          "label": "Offset (lg)",
+          "description": "The amount to offset the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Offset",
+          "value": false
+         },
+         "OffsetMd": {
+          "attr": "offset-md",
+          "label": "Offset (md)",
+          "description": "The amount to offset the column for md screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Offset",
+          "value": false
+         },
+         "OffsetSm": {
+          "attr": "offset-sm",
+          "label": "Offset (sm)",
+          "description": "The amount to offset the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Offset",
+          "value": false
+         },
+         "OffsetXl": {
+          "attr": "offset-xl",
+          "label": "Offset (xl)",
+          "description": "The amount to offset the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Offset",
+          "value": false
+         },
+         "OffsetXs": {
+          "attr": "offset-xs",
+          "label": "Offset (xs)",
+          "description": "The amount to offset the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Offset",
+          "value": false
+         },
+         "Pull": {
+          "attr": "pull",
+          "label": "Pull",
+          "description": "The amount to pull the column, in terms of how many columns it should shift to the start of the total available.",
+          "category": "@Pull",
+          "value": false
+         },
+         "PullLg": {
+          "attr": "pull-lg",
+          "label": "Pull (lg)",
+          "description": "The amount to pull the column for lg screens, in terms of how many columns it should shift to the start of the total available.",
+          "category": "@Pull",
+          "value": false
+         },
+         "PullMd": {
+          "attr": "pull-md",
+          "label": "Pull (md)",
+          "description": "The amount to pull the column for md screens, in terms of how many columns it should shift to the start of the total available.",
+          "category": "@Pull",
+          "value": false
+         },
+         "PullSm": {
+          "attr": "pull-sm",
+          "label": "Pull (sm)",
+          "description": "The amount to pull the column for sm screens, in terms of how many columns it should shift to the start of the total available.",
+          "category": "@Pull",
+          "value": false
+         },
+         "PullXl": {
+          "attr": "pull-xl",
+          "label": "Pull (xl)",
+          "description": "The amount to pull the column for xl screens, in terms of how many columns it should shift to the start of the total available.",
+          "category": "@Pull",
+          "value": false
+         },
+         "PullXs": {
+          "attr": "pull-xs",
+          "label": "Pull (xs)",
+          "description": "The amount to pull the column for xs screens, in terms of how many columns it should shift to the start of the total available.",
+          "category": "@Pull",
+          "value": false
+         },
+         "Push": {
+          "attr": "push",
+          "label": "Push",
+          "description": "The amount to push the column, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Push",
+          "value": false
+         },
+         "PushLg": {
+          "attr": "push-lg",
+          "label": "Push (lg)",
+          "description": "The amount to push the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Push",
+          "value": false
+         },
+         "PushMd": {
+          "attr": "push-md",
+          "label": "Push (md)",
+          "description": "The amount to push the column for md screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Push",
+          "value": false
+         },
+         "PushSm": {
+          "attr": "push-sm",
+          "label": "Push (sm)",
+          "description": "The amount to push the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Push",
+          "value": false
+         },
+         "PushXl": {
+          "attr": "push-xl",
+          "label": "Push (xl)",
+          "description": "The amount to push the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Push",
+          "value": false
+         },
+         "PushXs": {
+          "attr": "push-xs",
+          "label": "Push (xs)",
+          "description": "The amount to push the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
+          "category": "@Push",
+          "value": false
+         },
+         "Size": {
+          "attr": "size",
+          "label": "Size",
+          "description": "The size of the column, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
+          "category": "@Size",
           "value": false,
           "values": [
             false,
             "auto",
-            "1",
             "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
+            true
           ]
-        },
-        "Offset": {
-          "attr": "offset-%%",
-          "label": "Column offset",
-          "description": "Number of slots for this column offset.",
-          "category": "@Offsets",
+         },
+         "SizeLg": {
+          "attr": "size-lg",
+          "label": "Size (lg)",
+          "description": "The size of the column for lg screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
+          "category": "@Size",
           "value": false,
           "values": [
             false,
-            "1",
+            "auto",
             "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
+            true
           ]
-        },
-        "OffsetXSmall": {
-          "attr": "offset-xs-%%",
-          "label": "Offset (X-Small)",
-          "description": "Number of slots for this column offset for Xtra small devices (Witdh <  576px).",
-          "category": "@Offsets",
+         },
+         "SizeMd": {
+          "attr": "size-md",
+          "label": "Size (md)",
+          "description": "The size of the column for md screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
+          "category": "@Size",
           "value": false,
           "values": [
             false,
-            "1",
+            "auto",
             "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
+            true
           ]
-        },
-        "OffsetSmall": {
-          "attr": "offset-sm-%%",
-          "label": "Offset (Small)",
-          "description": "Number of slots for this column offset for small devices (Width >  576px and <  768px).",
-          "category": "@Offsets",
+         },
+         "SizeSm": {
+          "attr": "size-sm",
+          "label": "Size (sm)",
+          "description": "The size of the column for sm screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
+          "category": "@Size",
           "value": false,
           "values": [
             false,
-            "1",
+            "auto",
             "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
+            true
           ]
-        },
-        "OffsetMedium": {
-          "attr": "offset-md-%%",
-          "label": "Offset (Medium)",
-          "description": "Number of slots for this column offset for medium devices (Width >  768px and <  992px).",
-          "category": "@Offsets",
+         },
+         "SizeXl": {
+          "attr": "size-xl",
+          "label": "Size (xl)",
+          "description": "The size of the column for xl screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
+          "category": "@Size",
           "value": false,
           "values": [
             false,
-            "1",
+            "auto",
             "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
+            true
           ]
-        },
-        "OffsetLarge": {
-          "attr": "offset-lg-%%",
-          "label": "Offset (Large)",
-          "description": "Number of slots for this column offset for large devices (Width >  992px and <  1200px).",
-          "category": "@Offsets",
+         },
+         "SizeXs": {
+          "attr": "size-xs",
+          "label": "Size (xs)",
+          "description": "The size of the column for xs screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
+          "category": "@Size",
           "value": false,
           "values": [
             false,
-            "1",
+            "auto",
             "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
+            true
           ]
-        },
-        "OffsetXLarge": {
-          "attr": "offset-xl-%%",
-          "label": "Offset (X-Large)",
-          "description": "Number of slots for this column offset for Xtra large devices (Width >  1200px).",
-          "category": "@Offsets",
-          "value": false,
-          "values": [
-            false,
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-          ]
-        }
+         }
       }
-    },
-*/
+    }
+
     /* Cards */
 /*
     "Card": {

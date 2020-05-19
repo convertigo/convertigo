@@ -137,9 +137,33 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 	
 	@Override
+	protected StringBuilder initAttrClasses() {
+		StringBuilder attrclasses = super.initAttrClasses();
+		IonBean ionBean = getIonBean();
+		
+    	if (ionBean != null) {
+			for (IonProperty property : ionBean.getProperties().values()) {
+				//String name = property.getName();
+				String attr = property.getAttr();
+				Object value = property.getValue();
+				
+				// case value is set
+				if (!value.equals(false)) {
+					String smartValue = property.getSmartValue();
+					if (attr.equals("class")) {
+						attrclasses.append(attrclasses.length()> 0 ? " ":"").append(smartValue);
+					}
+				}
+			}
+    	}
+		
+		return attrclasses;
+	}
+	
+	@Override
 	protected StringBuilder initAttributes() {
 		StringBuilder attributes = super.initAttributes();
-
+		
 		IonBean ionBean = getIonBean();
 		
     	if (ionBean != null) {
@@ -177,6 +201,10 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				
 				// case value is set
 				if (!value.equals(false)) {
+					if (attr.equals("class")) {
+						continue; // already handle in initAttrClasses
+					}
+					
 					if (name.equals("AutoDisable")) {
 						if (underForm) {
 							String formIdentifier = form.getIdentifier();
