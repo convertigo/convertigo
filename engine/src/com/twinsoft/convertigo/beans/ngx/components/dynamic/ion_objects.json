@@ -231,6 +231,7 @@
       "values": [
         false,
         "",
+        "fixed",
         "start",
         "end",
         true
@@ -6834,14 +6835,13 @@
         }
       }
     },
-
-/*    
+    
     "FabButton": {
-      "tag": "button",
+      "tag": "ion-fab-button",
 	  "displayName": "FabButton",
       "label": "FAB Button",
       "description": [
-"button| Defines a <i>FAB Button</i> component.<br/>",
+"ion-fab-button| Defines a <i>FAB Button</i> component.<br/>",
 "FABs (Floating Action Buttons) are standard material design components.<br/>",
 "They are shaped as a circle that represents a promoted action.<br/>",
 "When pressed, it may contain more related actions.<br/>",
@@ -6852,21 +6852,75 @@
       "icon16": "fab_16x16.png",
       "icon32": "fab_32x32.png",
       "properties": {
-        "ButtonType": "ion-fab",
+        "ButtonFormType" : "button",
+        "Disabled": "false",
         "IonColor": false,
+        "IonMode": false,
+        "LinkUrl": false,
+        "LinkDownload": false,
+        "LinkTarget": false,
+        "LinkRel": false,
+        "LinkRouterPath": false,
+        "LinkRouterDirection": false,
+        "Activated": {
+          "attr": "activated",
+          "label": "Activated",
+          "description": "If true, the fab button will be show a close icon.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+         ]
+        },
+        "Show": {
+          "attr": "show",
+          "label": "Show",
+          "description": "If true, the fab button will show when in a fab-list.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+         ]
+        },
         "Size": {
+          "attr": "size",
           "label": "size",
           "description": "Specifies FAB size.",
           "category": "@Properties",
           "values": [
             false,
-            "mini"
+            "small"
           ]
+        },
+        "Translucent": {
+          "attr": "translucent",
+          "label": "Translucent",
+          "description": "If true, the fab button will be translucent. Only applies when the mode is ios and the device supports backdrop-filter.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+         ]
+        }
+      },
+      "events": {
+        "ionBlur": {
+          "attr":"(ionBlur)",
+          "description": "This event is emitted when the button loses focus"
+        },
+        "ionFocus": {
+          "attr":"(ionFocus)",
+          "description": "This event is emitted when the button has focus"
         }
       }
     },
-*/
-/*
+
     "FabContainer": {
       "tag": "ion-fab",
 	  "displayName": "FabContainer",
@@ -6879,41 +6933,102 @@
       "icon16": "container_fab_16x16.png",
       "icon32": "container_fab_32x32.png",
       "properties": {
-        "HorzPosition": {
-          "label": "Horizontal Position",
-          "description": "Specifies the horizontal position.",
+        "IonSlot": false,
+        "Activated": {
+          "attr": "activated",
+          "label": "Activated",
+          "description": "If true, both the <i>FAB Button</i> and <i>FAB List</i> inside ion-fab will become active. That means <i>FAB Button</i> will become a close icon and <i>FAB List</i> will become visible.",
           "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
           "values": [
-            false,
-            "left",
-            "center",
-            "right"
-          ]
-        },
-        "VertPosition": {
-          "label": "Vertical Position",
-          "description": "Specifies the vertical position.",
-          "category": "@Properties",
-          "values": [
-            false,
-            "top",
-            "middle",
-            "bottom"
-          ]
+            "false",
+            "true"
+         ]
         },
         "Edge": {
+          "attr": "edge",
           "label": "Edge",
-          "description": "Specifies if the FAB must be positioned on the edge.",
+          "description": "If true, the fab will display on the edge of the header if vertical is 'top', and on the edge of the footer if it is 'bottom'. Should be used with a 'fixed' slot.",
           "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+         ]
+        },
+        "Horizontal": {
+          "attr": "horizontal",
+          "label": "Horizontal",
+          "description": "Specifies the horizontal position.",
+          "category": "@Position",
+          "value": false,
           "values": [
             false,
-            "edge"
+            "center",
+            "end",
+            "start"
+          ]
+        },
+        "Vertical": {
+          "attr": "vertical",
+          "label": "Vertical",
+          "description": "Specifies the vertical position.",
+          "category": "@Position",
+          "value": false,
+          "values": [
+            false,
+            "bottom",
+            "center",
+            "top"
           ]
         }
       }
     },
-*/
 
+    "FabList": {
+      "tag": "ion-fab-list",
+	  "displayName": "FabList",
+      "label": "FAB List",
+      "description": [
+"ion-fab-list| Defines a <i>FAB List</i> component.<br/>",
+"The <i>FAB List</i> is a container for multiple <i>FAB Button</i>s. It contains actions related to the main fab button and is flung out on click.<br/>",
+" To specify what side the buttons should appear on, set the side property to 'start', 'end', 'top', 'bottom'.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/v3/api/components/fab/FabList/'>FabList</a>."],
+      "group": "Buttons",
+      "icon16": "fab_list_16x16.png",
+      "icon32": "fab_list_32x32.png",
+      "properties": {
+        "Activated": {
+          "attr": "activated",
+          "label": "Activated",
+          "description": "If true, the fab list will show all fab buttons in the list.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+         ]
+        },
+        "Side": {
+          "attr": "side",
+          "label": "Side",
+          "description": "The side the fab list will show on relative to the main fab button.",
+          "category": "@Properties",
+          "value": "bottom",
+          "values": [
+            false,
+            "bottom",
+            "end",
+            "start",
+            "top"
+          ]
+        }
+      }
+    },
+    
     "Icon": {
       "tag": "ion-icon",
 	  "displayName": "Icon",
