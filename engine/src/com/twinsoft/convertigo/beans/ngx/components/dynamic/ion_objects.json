@@ -11730,6 +11730,7 @@
         "LinkDownload": false,
         "LinkTarget": false,
         "LinkRel": false,
+        "LinkRouterPath": false,
         "LinkRouterDirection": false
       }
     },

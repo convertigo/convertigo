@@ -2035,6 +2035,11 @@
      "mode": "plain",
      "value": false
     },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
     "LinkRouterDirection": {
      "name": "LinkRouterDirection",
      "mode": "plain",
