@@ -2115,5 +2115,44 @@
     }
    }
   }
+ },
+ "InfiniteScroll": {
+  "   7   9   0": {
+   "name": "InfiniteScroll",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Position": {
+     "name": "Position",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "Threshold": {
+     "name": "Threshold",
+     "mode": "plain",
+     "value": "15%"
+    }
+   }
+  }
+ },
+ "InfiniteScrollContent": {
+  "   7   9   0": {
+   "name": "InfiniteScrollContent",
+   "properties": {
+    "LoadingSpinner": {
+     "name": "LoadingSpinner",
+     "mode": "plain",
+     "value": "bubbles"
+    },
+    "LoadingText": {
+     "name": "LoadingText",
+     "mode": "plain",
+     "value": "Loading more data..."
+    }
+   }
+  }
  }
 }

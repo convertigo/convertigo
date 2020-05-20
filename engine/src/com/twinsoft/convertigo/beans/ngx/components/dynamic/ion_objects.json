@@ -11813,7 +11813,7 @@
         "IonColor": false,
         "IonMode": false
       }
-    }
+    },
 
 /*
     "TextFormat": {
@@ -12732,7 +12732,6 @@
     /*
      * InfiniteScroll
      */
-/*
     "InfiniteScroll" : {
       "tag": "ion-infinite-scroll",
       "displayName": "InfiniteScroll",
@@ -12742,20 +12741,19 @@
 "It allows you to perform a given task when the user scrolls a specified distance from the bottom or top of the page.<br/>",
 "To do so, add the <b>ionInfinite</b> <i>Event</i> to your <i>InfiniteScroll</i> with a <i>CustomAction</i> inside.<br/>",
 "Copy/paste below code in your action and add yours.<br/>",
-"<code><pre>//disable scroll\nevent.enable(false);\n\nlet isOK = true;\n//TODO: add your code\n//get next items and push them\n//...\nif (isOK) {\n\t//enable scroll\n\tevent.enable(true);\n}\n\n//specify loading is complete\nevent.complete();\nresolve();\n</pre></code><br/>",
+"<code><pre>//disable scroll\nevent.target.disabled = true;\n\nlet isOK = true;\n//TODO: add your code\n//get next items and push them\n//...\nif (isOK) {\n\t//enable scroll\n\tevent.target.disabled = false;\n}\n\n//specify loading is complete\nevent.complete();\nresolve();\n</pre></code><br/>",
 "For more information: <a href='https://ionicframework.com/docs/v3/api/components/infinite-scroll/InfiniteScroll/'>InfiniteScroll</a>."],
       "group": "Lists",
       "icon16": "infinitescroll_color_16x16.png",
       "icon32": "infinitescroll_color_32x32.png",
       "properties": {
-        "Enabled": {
-          "attr": "enabled",
-          "label": "Enabled",
-          "description": "Define whether or not the infinite scroll should be enabled or not.",
+        "Disabled": {
+          "attr": "disbled",
+          "label": "Disabled",
+          "description": "If true, the infinite scroll will be hidden and scroll event listeners will be removed.",
           "category": "@Properties",
-          "mode": "plain",
           "type": "boolean",
-          "value": "true",
+          "value": "false",
           "values": [
             "false",
             "true"
@@ -12766,8 +12764,6 @@
           "label": "Position",
           "description": "Define the position of the infinite scroll element.",
           "category": "@Properties",
-          "mode": "plain",
-          "type": "string",
           "value": "bottom",
           "values": [
             "top",
@@ -12779,8 +12775,6 @@
           "label": "Threshold",
           "description": "Define the threshold distance in percents or pixels, from the bottom of the content.",
           "category": "@Properties",
-          "mode": "plain",
-          "type": "string",
           "value": "15%",
           "values": [
             false,
@@ -12797,11 +12791,10 @@
         }
       }
     },
-*/        
+        
     /*
      * InfiniteScrollContent
      */
-/*
     "InfiniteScrollContent" : {
       "tag": "ion-infinite-scroll-content",
       "displayName": "InfiniteScrollContent",
@@ -12819,8 +12812,6 @@
           "label": "Loading spinner",
           "description": "Define the loading spinner to use.",
           "category": "@Properties",
-          "mode": "plain",
-          "type": "string",
           "value": "bubbles",
           "values": [
             false,
@@ -12834,8 +12825,6 @@
           "label": "Loading text",
           "description": "Define the loading text to display.",
           "category": "@Properties",
-          "mode": "plain",
-          "type": "string",
           "value": "Loading more data...",
           "values": [
             false,
@@ -12843,8 +12832,8 @@
           ]
         }
       }
-    },
-*/    
+    }
+    
     /*
      * AutoInfiniteScroll
      */
