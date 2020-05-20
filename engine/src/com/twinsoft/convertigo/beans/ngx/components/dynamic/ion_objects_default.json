@@ -1985,5 +1985,130 @@
     }
    }
   }
+ },
+ "Card": {
+  "   7   9   0": {
+   "name": "Card",
+   "properties": {
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CardContent": {
+  "   7   9   0": {
+   "name": "CardContent",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CardHeader": {
+  "   7   9   0": {
+   "name": "CardHeader",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "CardSubTitle": {
+  "   7   9   0": {
+   "name": "CardSubTitle",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CardTitle": {
+  "   7   9   0": {
+   "name": "CardTitle",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

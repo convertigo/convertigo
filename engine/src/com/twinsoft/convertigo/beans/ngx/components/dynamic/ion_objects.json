@@ -11694,10 +11694,9 @@
           ]
          }
       }
-    }
+    },
 
     /* Cards */
-/*
     "Card": {
       "tag": "ion-card",
 	  "displayName": "CardContainer",
@@ -11712,10 +11711,29 @@
       "icon16": "card_color_16x16.png",
       "icon32": "card_color_32x32.png",
       "properties": {
+        "Button": {
+          "attr": "button",
+          "label": "Tappable",
+          "description": "If true, a button tag will be rendered and the card will be tappable.",
+          "category": "@Properties",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "ButtonFormType" : "button",
+        "Disabled": "false",
+        "IonColor": false,
+        "IonMode": false,
+        "LinkUrl": false,
+        "LinkDownload": false,
+        "LinkTarget": false,
+        "LinkRel": false,
+        "LinkRouterDirection": false
       }
     },
-*/
-/*
+
     "CardHeader": {
       "tag": "ion-card-header",
 	  "displayName": "CardHeader",
@@ -11723,16 +11741,28 @@
       "description": [
 "ion-card-header| Defines a <i>Card Header</i> component.<br/>",
 "Just like a page, cards can be customized to include headers.<br/>",
-"Use a <i>Card Header</i> component inside of a <i>Card container</i>.<br/>",
+"Use a <i>Card Header</i> component inside of a <i>Card Container</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/v3/components/#card-header'>Card Header</a>."],
       "group": "Cards",
       "icon16": "cardheader_color_16x16.png",
       "icon32": "cardheader_color_32x32.png",
       "properties": {
+        "IonColor": false,
+        "IonMode": false,
+        "Translucent": {
+          "attr": "translucent",
+          "label": "Translucent",
+          "description": "If true, the card header will be translucent. Only applies when the mode is ios and the device supports backdrop-filter.",
+          "category": "@Properties",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        }
       }
     },
-*/
-/*
+
     "CardContent": {
       "tag": "ion-card-content",
 	  "displayName": "CardContent",
@@ -11740,15 +11770,50 @@
       "description": [
 "ion-card-content| Defines a <i>Card Content</i> component.<br/>",
 "This component is the content part of the card.<br/>",
-"Use a <i>Card Content</i> component inside of a <i>Card container</i>.<br/>",
+"Use a <i>Card Content</i> component inside of a <i>Card Container</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/v3/components/#cards'>Cards</a>."],
       "group": "Cards",
       "icon16": "cardcontent_color_16x16.png",
       "icon32": "cardcontent_color_32x32.png",
       "properties": {
+        "IonMode": false
       }
     },
-*/
+    
+    "CardTitle": {
+      "tag": "ion-card-title",
+	  "displayName": "CardTitle",
+      "label": "Card Title",
+      "description": [
+"ion-card-title| Defines a <i>Card Title</i> component.<br/>",
+"Use a <i>Card Title</i> component inside of a <i>Card Header</i> component.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/v3/components/#cards'>Cards</a>."],
+      "group": "Cards",
+      "icon16": "cardtitle_color_16x16.png",
+      "icon32": "cardtitle_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "IonMode": false
+      }
+    },
+    
+    "CardSubTitle": {
+      "tag": "ion-card-subtitle",
+	  "displayName": "CardSubTitle",
+      "label": "Card SubTitle",
+      "description": [
+"ion-card-subtitle| Defines a <i>Card SubTitle</i> component.<br/>",
+"Use a <i>Card SubTitle</i> component inside of a <i>Card Header</i> component.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/v3/components/#cards'>Cards</a>."],
+      "group": "Cards",
+      "icon16": "cardsubtitle_color_16x16.png",
+      "icon32": "cardsubtitle_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "IonMode": false
+      }
+    }
+
 /*
     "TextFormat": {
       "tag": "div",
