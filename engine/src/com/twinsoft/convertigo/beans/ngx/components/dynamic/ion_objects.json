@@ -9083,33 +9083,6 @@
       }
     },
 */
-/*
-    "FabList": {
-      "tag": "ion-fab-list",
-	  "displayName": "FabList",
-      "label": "Fab List",
-      "description": [
-"ion-fab-list| Defines a <i>Fab List</i> component.<br/>",
-"This component is a container for multiple <i>FAB button</i>. They are components of <i>FAB Container</i> and allow you to specify the buttons position: <code>left, right, top, bottom</code>.<br/>",
-" For more information: <a href='https://ionicframework.com/docs/v3/api/components/fab/FabList/'>FabList</a>."],
-      "group": "Buttons",
-      "icon16": "fablist_color_16x16.png",
-      "icon32": "fablist_color_32x32.png",
-      "properties": {
-        "side": {
-    			"attr":"side",
-    			"label": "Side",
-    			"category": "@Properties",
-    			"values":[
-    			"top",
-    			"bottom",
-    			"left",
-    			"right"
-    			]
-    			}	
-    		}
-    },
-*/
 
     "ToolBar": {
       "tag": "ion-toolbar",
