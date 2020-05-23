@@ -7131,6 +7131,27 @@
             "fixed"
           ]
         },
+        
+        "Padding": {
+          "attr": "class",
+          "label": "Padding",
+          "description": "Specifies a padding for content",
+          "category": "@Properties",
+          "type": "string",
+          "value": "ion-padding",
+          "values": [
+            "ion-padding",
+            "ion-padding-top",
+            "ion-padding-bottom",
+            "ion-padding-start",
+            "ion-padding-end",
+            "ion-padding-vertical",
+            "ion-padding-horizontal",
+            "ion-no-padding",
+            true
+          ]
+        },
+        
         "Fullscreen": {
           "attr": "fullscreen",
           "label": "Full screen",
@@ -11501,6 +11522,19 @@
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
       "properties": {
+        "Height": {
+          "attr": "style",
+          "label": "Height",
+          "description": "Hight of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering.",
+          "category": "Attribute",
+          "value": "height:100%",
+          "values": [
+            false,
+            "height:100%",
+            true
+          ]
+        },
+      
         "Fixed": {
           "attr": "fixed",
           "label": "Fixed",
@@ -11529,6 +11563,19 @@
       "icon16": "grid_row_color_16x16.png",
       "icon32": "grid_row_color_32x32.png",
       "properties": {
+        "Height": {
+          "attr": "style",
+          "label": "Height",
+          "description": "Hight of the row, pixel (px) or percentage (%). Use 100% to set a row taking the full grid height, usefull for vertical centering.",
+          "category": "Attribute",
+          "value": "height:100%",
+          "values": [
+            false,
+            "height:100%",
+            true
+          ]
+        },
+      
          "FlexJustifyContent": {
           "attr": "class",
           "label": "Justification",
@@ -11739,72 +11786,138 @@
           "values": [
             false,
             "auto",
+            "1",
             "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
             true
           ]
          },
          "SizeLg": {
           "attr": "size-lg",
-          "label": "Size (lg)",
+          "label": "Size 992-1200 px (lg)",
           "description": "The size of the column for lg screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
           "value": false,
           "values": [
             false,
             "auto",
+            "1",
             "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
             true
           ]
          },
          "SizeMd": {
           "attr": "size-md",
-          "label": "Size (md)",
+          "label": "Size 768-992 px (md)",
           "description": "The size of the column for md screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
           "value": false,
           "values": [
             false,
             "auto",
+            "1",
             "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
             true
           ]
          },
          "SizeSm": {
           "attr": "size-sm",
-          "label": "Size (sm)",
+          "label": "Size 576-768 px (sm)",
           "description": "The size of the column for sm screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
           "value": false,
           "values": [
             false,
             "auto",
+            "1",
             "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
             true
           ]
          },
          "SizeXl": {
           "attr": "size-xl",
-          "label": "Size (xl)",
+          "label": "Size 1200-over px (xl)",
           "description": "The size of the column for xl screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
           "value": false,
           "values": [
             false,
             "auto",
+            "1",
             "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
             true
           ]
          },
          "SizeXs": {
           "attr": "size-xs",
-          "label": "Size (xs)",
+          "label": "Size 0-576 px (xs)",
           "description": "The size of the column for xs screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
           "value": false,
           "values": [
             false,
             "auto",
+            "1",
             "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
             true
           ]
          }
