@@ -2280,5 +2280,32 @@
     }
    }
   }
+ },
+ "Spinner": {
+  "   7   9   0": {
+   "name": "Spinner",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Duration": {
+     "name": "Duration",
+     "mode": "plain",
+     "value": false
+    },
+    "Name": {
+     "name": "Name",
+     "mode": "plain",
+     "value": false
+    },
+    "Paused": {
+     "name": "Paused",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
  }
 }

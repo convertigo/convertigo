@@ -7717,7 +7717,7 @@
       }         
     },
 */
-/*
+
     "Spinner": {
       "tag": "ion-spinner",
 	  "displayName": "Spinner",
@@ -7729,42 +7729,45 @@
       "icon16": "spinner_color_16x16.png",
       "icon32": "spinner_color_32x32.png",
       "properties": {
-        "duration": {
+        "IonColor": false,
+        "Duration": {
           "attr": "duration",
-          "value": false,
           "label": "Duration",
-          "description": "How long it takes to do one loop. (in ms)",
-          "category": "Attributes"
+          "description": "Duration of the spinner animation in milliseconds.",
+          "category": "@Properties",
+          "value": false
         },
-        "name": {
+        "Name": {
           "attr": "name",
           "label": "Name",
-          "description": "SVG spinner name.",
+          "description": "The name of the SVG spinner to use. If a name is not provided, the platform's default spinner will be used.",
           "category": "@Properties",
-          "value": "ios",
+          "value": false,
           "values": [
-          		"ios",
-          		"ios-small",
-          		"bubbles",
-          		"circles",
-          		"crescent",
-          		"dots"
+             false,
+          	 "bubbles",
+          	 "circles",
+          	 "circular",
+          	 "crescent",
+          	 "dots",
+          	 "lines",
+          	 "lines-small"
           ]
         },
-        "paused": {
+        "Paused": {
          "attr": "paused",
          "label": "Paused",
-         "description": "If true, pause the animation.",
+         "description": "If true, the spinner's animation will be paused.",
          "category": "@Properties",
-         "value": false,
-         "values": [ false,
-         "true",
-         "false"
+         "type": "boolean",
+         "value": "false",
+         "values": [
+            "false",
+            "true"
          ]
         }
       }
-    },  
-*/
+    },
 /*
     "FSImage": {
       "tplVersion": "1.0.100",
