@@ -7674,49 +7674,69 @@
       }         
     },
 */
-/*
+
     "ProgressBar" : {
-      "tag": "progress-bar",
+      "tag": "ion-progress-bar",
         "displayName": "ProgressBar",
         "label": "ProgressBar",
         "description": [
-"angular-progress-bar| Defines a ProgressBar component. This component displays a progress bar that helps to monitor progression <br/>",
-" For more information: <a href='https://www.npmjs.com/package/angular-progress-bar'>angular-progress-bar</a>."],
+"ion-progress-bar| Defines a ProgressBar component. This component is a horizontal progress bar to visualize the progression of an operation and activity.<br/>",
+"You can choose between two types: determinate and indeterminate."],
    		"group": "Forms",
         "icon16": "progressbar_color_16x16.png",
         "icon32": "progressbar_color_32x32.png",
       "properties": {
-        "progress": {
-           "mode": "script",
-          "attr":"[progress]",
-          "label": "Progress",
-          "description": "progress to be displayed.",
-          "category": "@Attributes",
-          "value": "0"
+        "IonColor": false,
+        "IonMode": false,
+        "Buffer": {
+         "attr":"buffer",
+          "label": "Buffer",
+          "description": "If the buffer and value are smaller than 1, the buffer circles will show. The buffer should be between [0, 1].",
+          "category": "@Properties",
+          "type": "number",
+          "value": "1",
+          "values": [
+            "1",
+            true
+          ]
         },
-        "color": {
-          "mode": "script",
-          "attr":"[color]",
-          "label": "color",
-          "description": "color of the progress bar. Default value is #488aff ",
-          "category": "@Attributes",
-          "value": "'#488aff'"
+        "Reversed": {
+         "attr":"reversed",
+          "label": "Reversed",
+          "description": "If true, reverse the progress bar direction.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Type": {
+         "attr":"type",
+          "label": "Type",
+          "description": "The state of the progress bar, based on if the time the process takes is known or not. Default options are: 'determinate' (no animation), 'indeterminate' (animate from left to right).",
+          "category": "@Properties",
+          "value": "determinate",
+          "values": [
+            "determinate",
+            "indeterminate"
+          ]
+        },
+        "Value": {
+         "attr":"value",
+          "label": "Value",
+          "description": "The value determines how much of the active bar should display when the type is 'determinate'. The value should be between [0, 1].",
+          "category": "@Properties",
+          "type": "number",
+          "value": "0",
+          "values": [
+            "0",
+            true
+          ]
         }
-        
-      },
-      "config": {
-        "module_ts_imports": [
-          {"from":"angular-progress-bar", "components":["ProgressBarModule"]}
-        ],
-        "module_ng_imports": [
-          "ProgressBarModule"
-        ],
-        "package_dependencies": [
-          {"package":"angular-progress-bar", "version":"1.0.9"}
-        ]
-      }         
+      }     
     },
-*/
 
     "Spinner": {
       "tag": "ion-spinner",

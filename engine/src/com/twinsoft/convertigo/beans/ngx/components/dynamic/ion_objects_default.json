@@ -129,6 +129,11 @@
      "mode": "plain",
      "value": false
     },
+    "Padding": {
+     "name": "Padding",
+     "mode": "plain",
+     "value": "ion-padding"
+    },
     "Fullscreen": {
      "name": "Fullscreen",
      "mode": "plain",
@@ -1824,6 +1829,11 @@
   "   7   9   0": {
    "name": "Grid",
    "properties": {
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "height:100%"
+    },
     "Fixed": {
      "name": "Fixed",
      "mode": "plain",
@@ -1968,6 +1978,11 @@
   "   7   9   0": {
    "name": "GridRow",
    "properties": {
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "height:100%"
+    },
     "FlexJustifyContent": {
      "name": "FlexJustifyContent",
      "mode": "plain",
@@ -2304,6 +2319,43 @@
      "name": "Paused",
      "mode": "plain",
      "value": "false"
+    }
+   }
+  }
+ },
+ "ProgressBar": {
+  "   7   9   0": {
+   "name": "ProgressBar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Buffer": {
+     "name": "Buffer",
+     "mode": "plain",
+     "value": "1"
+    },
+    "Reversed": {
+     "name": "Reversed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Type": {
+     "name": "Type",
+     "mode": "plain",
+     "value": "determinate"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": "0"
     }
    }
   }
