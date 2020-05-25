@@ -9425,7 +9425,6 @@
       }
     },
 
-/*
     "Badge": {
       "tag": "ion-badge",
 	  "displayName": "Badge",
@@ -9440,10 +9439,11 @@
       "icon32": "badge_color_32x32.png",
       "properties": {
         "IonColor": false,
-        "ItemPosition": false
+        "IonMode": false,
+        "IonSlot": false
       }
     },
-*/
+
     /* Slides */
 /*
     "Slides": {
