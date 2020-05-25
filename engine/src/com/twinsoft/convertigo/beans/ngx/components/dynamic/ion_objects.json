@@ -9065,10 +9065,9 @@
       }
     },
 
-/*
-    "Refresher":{
+    "Refresher": {
   		"tag": "ion-refresher",
-		  "displayName": "Refresher",
+		"displayName": "Refresher",
     	"label": "Refresher",
         "description": [
 "ion-refresher| Defines a <i>Refresher</i> component.<br/>",
@@ -9079,11 +9078,66 @@
 " For more information: <a href='https://ionicframework.com/docs/v3/api/components/refresher/Refresher/'>Refresher</a>."],
     	"group": "Forms",
     	"icon16": "refresher_color_16x16.png",
-    	"icon32": "refresher_color_32x32.png"
+    	"icon32": "refresher_color_32x32.png",
+		"properties": {
+		    "Disabled": "false",
+		    "IonSlot": "fixed",
+			"CloseDuration": {
+    		   "attr":"close-duration",
+    		   "label": "Close duration",
+    		   "description": "Time it takes to close the refresher. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
+    		   "category": "@Properties",
+    		   "value": "280ms"
+    		},
+    		"PullFactor": {
+    		   "attr": "pull-factor",
+    		   "label": "Pull factor",
+    		   "description": "How much to multiply the pull speed by. To slow the pull animation down, pass a number less than 1. To speed up the pull, pass a number greater than 1. The default value is 1 which is equal to the speed of the cursor.",
+    		   "category": "@Properties",
+    		   "type": "number",
+    		   "value": "1"
+    		},
+    		"PullMax": {
+    		   "attr": "pull-max",
+    		   "label": "Pull max",
+    		   "description": "The maximum distance of the pull until the refresher will automatically go into the refreshing state. Defaults to the result of pullMin + 60. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
+    		   "category": "@Properties",
+    		   "type": "number",
+    		   "value": false
+    		},
+    		"PullMin": {
+    		   "attr": "pull-min",
+    		   "label": "Pull min",
+    		   "description": "The minimum distance the user must pull down until the refresher will go into the refreshing state. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
+    		   "category": "@Properties",
+    		   "type": "number",
+    		   "value": "60"
+    		},
+			"SnapbackDuration": {
+    			"attr":"snapback-duration",
+    			"label": "Snapback duration",
+    			"description": "Time it takes the refresher to to snap back to the refreshing state. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
+    			"category": "@Properties",
+    			"value": "280ms"
+    		}
+    	},
+      	"events": {
+	        "ionPull": {
+	          "attr":"(ionPull)",
+	          "description": "This event is emitted while the user is pulling down the content and exposing the refresher."
+	        },
+	        "ionRefresh": {
+	          "attr":"(ionRefresh)",
+	          "description": "Emitted when the user lets go of the content and has pulled down further than the `pullMin` or pulls the content down and exceeds the pullMax. Updates the refresher state to `refreshing`. The `complete()` method should be called when the async operation has completed."
+	        },
+	        "ionStart": {
+	          "attr":"(ionStart)",
+	          "description": "This event is emitted when the user begins to start pulling down."
+	        }
+      	}
     },
-*/
-/*      
-	  "RefresherContent":{
+    
+	"RefresherContent":{
 		"tag": "ion-refresher-content",
 		"displayName": "RefresherContent",
     	"label": "Content Refresher",
@@ -9094,48 +9148,46 @@
     	"group": "Forms", 
     	"icon16": "refreshercontent_color_16x16.png",
     	"icon32": "refreshercontent_color_32x32.png",
-		  "properties": {
-    		"closeDuration": {
-    			"attr":"closeDuration",
-    			"label": "Close Duration",
-    			"description": "How many milliseconds it takes to close the refresher.",
+		"properties": {
+			"PullingIcon": {
+    			"attr":"pulling-icon",
+    			"label": "Pulling Icon",
+    			"description": "A static icon or a spinner to display when you begin to pull down. A spinner name can be provided to gradually show tick marks when pulling down on iOS devices.",
     			"category": "@Properties",
-    			"value": 280
+    			"value": false
     		},
-			  "enabled": {
-    			"attr":"enabled",
-    			"label": "Enabled",
-    			"description": "If the refresher is enabled or not. This should be used in place of an ngIf.",
+			"PullingText": {
+    			"attr":"pulling-text",
+    			"label": "Pulling Text",
+    			"description": "The text you want to display when you begin to pull down. pullingText can accept either plaintext or HTML as a string. To display characters normally reserved for HTML, they must be escaped. For example <Ionic> would become &lt;Ionic&gt;",
     			"category": "@Properties",
-    			"value": true,
-          "values":[
-            true,
-            false
-          ]
+    			"value": false
     		},
-			  "pullMax": {
-    			"attr":"pullMax",
-    			"label": "PullMax",
-    			"description": "The maximum distance of the pull until the refresher will automatically go into the refreshing state. By default, the pull maximum will be the result of pullMin + 60.",
-    			"category": "@Properties"
-    		},
-			  "pullMin": {
-    			"attr":"pullMin",
-    			"label": "PullMin",
-    			"description": "The min distance the user must pull down until the refresher can go into the refreshing state.",
+			"RefreshingSpinner": {
+    			"attr":"refreshing-spinner",
+    			"label": "Refreshing Spinner",
+    			"description": "An animated SVG spinner that shows when refreshing begins.",
     			"category": "@Properties",
-    			"value": 60
+    			"value": false,
+    			"values": [
+    			  "bubbles",
+    			  "circles",
+    			  "circular",
+    			  "crescent",
+    			  "dots",
+    			  "lines",
+    			  "lines-small"
+    			]
     		},
-			  "snapbackDuration": {
-    			"attr":"snapbackDuration",
-    			"label": "SnapbackDuration",
-    			"description": "How many milliseconds it takes the refresher to to snap back to the refreshing state.",
+			"RefreshingText": {
+    			"attr":"refreshing-text",
+    			"label": "Refreshing Text",
+    			"description": "The text you want to display when performing a refresh. refreshingText can accept either plaintext or HTML as a string. To display characters normally reserved for HTML, they must be escaped. For example <Ionic> would become &lt;Ionic&gt;",
     			"category": "@Properties",
-    			"value": 280
+    			"value": false
     		}
 		  }			
 	  },
-*/
 
     "Searchbar": {
     	"tag": "ion-searchbar",

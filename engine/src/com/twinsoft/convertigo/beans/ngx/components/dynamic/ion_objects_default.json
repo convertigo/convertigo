@@ -2359,5 +2359,74 @@
     }
    }
   }
+ },
+ "Refresher": {
+  "   7   9   0": {
+   "name": "Refresher",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": "fixed"
+    },
+    "CloseDuration": {
+     "name": "CloseDuration",
+     "mode": "plain",
+     "value": "280ms"
+    },
+    "PullFactor": {
+     "name": "PullFactor",
+     "mode": "plain",
+     "value": "1"
+    },
+    "PullMax": {
+     "name": "PullMax",
+     "mode": "plain",
+     "value": false
+    },
+    "PullMin": {
+     "name": "PullMin",
+     "mode": "plain",
+     "value": "60"
+    },
+    "SnapbackDuration": {
+     "name": "SnapbackDuration",
+     "mode": "plain",
+     "value": "280ms"
+    }
+   }
+  }
+ },
+ "RefresherContent": {
+  "   7   9   0": {
+   "name": "RefresherContent",
+   "properties": {
+    "PullingIcon": {
+     "name": "PullingIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "PullingText": {
+     "name": "PullingText",
+     "mode": "plain",
+     "value": false
+    },
+    "RefreshingSpinner": {
+     "name": "RefreshingSpinner",
+     "mode": "plain",
+     "value": false
+    },
+    "RefreshingText": {
+     "name": "RefreshingText",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }
