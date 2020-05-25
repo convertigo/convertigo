@@ -9445,7 +9445,6 @@
     },
 
     /* Slides */
-/*
     "Slides": {
       "tag": "ion-slides",
 	  "displayName": "SlidesContainer",
@@ -9459,146 +9458,120 @@
       "icon16": "slides_color_16x16.png",
       "icon32": "slides_color_32x32.png",
       "properties": {
-        "AutoPlay": {
-          "attr": "[autoplay]",
-          "label": "Autoplay",
-          "description": "Delay between transitions (in milliseconds). If this parameter is not passed, autoplay is disabled. Default does not have a value and does not autoplay. Default: null",
-          "category": "@Properties",
-          "value": false,
+        "IonMode": false,
+        "Height": {
+          "attr": "style",
+          "label": "Height",
+          "description": "Height of the slides container, pixel (px) or percentage (%). Use 100% to set a slides full screen, usefull for vertical centering.",
+          "category": "Attribute",
+          "value": "height:100%",
           "values": [
             false,
+            "height:100%",
             true
           ]
         },
-        "Direction": {
-          "attr": "[direction]",
-          "label": "Direction",
-          "description": "Swipe direction: 'horizontal' or 'vertical'. Default: horizontal",
+        "Options": {
+          "attr": "[options]",
+          "label": "Options",
+          "description": "Options to pass to the swiper instance. See http://idangero.us/swiper/api/ for valid options.",
           "category": "@Properties",
-          "value": "horizontal",
-          "values": [
-            "horizontal",
-            "vertical"
-          ]
+          "mode": "script",
+          "value": "{}"
         },
         "Pager": {
-          "attr": "[pager]",
+          "attr": "pager",
           "label": "Pager",
-          "description": "If true, show the pager. (Little dots for each page).",
+          "description": "If true, show the pagination (Little dots for each page).",
           "category": "@Properties",
-          "value": "true",
-          "values": [
-            "true",
-            "false"
-          ]
-        },
-        "PaginationType": {
-          "attr": "[paginationType]",
-          "label": "Pagination type",
-          "description": "Type of pagination. Possible values are: bullets, fraction, progress. Default: bullets. (Note that the pager will not show unless pager input is set to true)",
-          "category": "@Properties",
-          "value": "bullets",
-          "values": [
-            "bullets",
-            "fraction",
-            "progress"
-          ]
-        },
-        "parallax": {
-          "attr": "[parallax]",
-          "label": "Parallax",
-          "description": "If true, allows you to use 'parallaxed' elements inside of slider.",
-          "category": "@Properties",
+          "type": "boolean",
           "value": "false",
           "values": [
-            "true",
-            "false"
+            "false",
+            "true"
           ]
         },
-        "SlidesPerView": {
-          "attr": "[slidesPerView]",
-          "label": "Slides per view",
-          "description": "Slides per view. Slides visible at the same time. Default, 1.",
+        "Scrollbar": {
+          "attr": "scrollbar",
+          "label": "Scrollbar",
+          "description": "If true, show the scrollbar.",
           "category": "@Properties",
-          "value": "1",
-          "values": [
-            "1",
-            true
-          ]
-        },
-        "SpaceBetween": {
-          "attr": "[spaceBetween]",
-          "label": "Space between",
-          "description": "Distance between slides in px. Default: 0",
-          "category": "@Properties",
-          "value": "0",
-          "values": [
-            "0",
-            true
-          ]
-        },
-        "Speed": {
-          "attr": "[speed]",
-          "label": "Speed",
-          "description": "Duration of transition between slides (in milliseconds). Default: 300",
-          "category": "@Properties",
-          "value": "300",
-          "values": [
-            "300",
-            true
-          ]
-        },
-        "Zoom": {
-          "attr": "[zoom]",
-          "label": "Zoom",
-          "description": "If true, enables zooming functionality.",
-          "category": "@Properties",
-          "value": "false",
-          "values": [
-            "true",
-            "false"
-          ]
-        },
-        "InitialSlide": {
-          "attr": "[initialSlide]",
-          "label": "Initial Slide",
-          "description": "Index number of initial slide. Default: 0",
-          "category": "@Properties",
-          "value": "0",
-          "values": [
-            "0",
-            true
-          ]
-        },
-        "Effect": {
-          "attr": "[effect]",
-          "label": "Effect",
-          "description": "The animation effect of the slides. Possible values are: slide, fade, cube, coverflow or flip. Default: slide",
-          "category": "@Properties",
-          "value": "slide",
-          "values": [
-            "slide",
-            "fade",
-            "cube",
-            "coverflow",
-            "flip"
-          ]
-        },
-        "Loop": {
-          "attr": "[loop]",
-          "label": "Loop",
-          "description": "If true, continuously loop from the last slide to the first slide.",
-          "category": "@Properties",
+          "type": "boolean",
           "value": "false",
           "values": [
             "false",
             "true"
           ]
         }
+      },
+      "events": {
+        "ionSlideDidChange": {
+          "attr":"(ionSlideDidChange)",
+          "description": "This event is emitted after the active slide has changed."
+        },
+        "ionSlideDoubleTap": {
+          "attr":"(ionSlideDoubleTap)",
+          "description": "This event is emitted when the user double taps on the slide's container."
+        },
+        "ionSlideDrag": {
+          "attr":"(ionSlideDrag)",
+          "description": "This event is emitted when the slider is actively being moved."
+        },
+        "ionSlideNextEnd": {
+          "attr":"(ionSlideNextEnd)",
+          "description": "This event is emitted when the next slide has ended."
+        },
+        "ionSlideNextStart": {
+          "attr":"(ionSlideNextStart)",
+          "description": "This event is emitted when the next slide has started."
+        },
+        "ionSlidePrevEnd": {
+          "attr":"(ionSlidePrevEnd)",
+          "description": "This event is emitted when the previous slide has ended."
+        },
+        "ionSlidePrevStart": {
+          "attr":"(ionSlidePrevStart)",
+          "description": "This event is emitted when the previous slide has started."
+        },
+        "ionSlideReachEnd": {
+          "attr":"(ionSlideReachEnd)",
+          "description": "This event is emitted when the slider is at the last slide."
+        },
+        "ionSlideReachStart": {
+          "attr":"(ionSlideReachStart)",
+          "description": "This event is emitted when the slider is at its initial position."
+        },
+        "ionSlidesDidLoad": {
+          "attr":"(ionSlidesDidLoad)",
+          "description": "This event is emitted after Swiper initialization."
+        },
+        "ionSlideTap": {
+          "attr":"(ionSlideTap)",
+          "description": "This event is emitted when the user taps/clicks on the slide's container."
+        },
+        "ionSlideTouchEnd": {
+          "attr":"(ionSlideTouchEnd)",
+          "description": "This event is emitted when the user releases the touch."
+        },
+        "ionSlideTouchStart": {
+          "attr":"(ionSlideTouchStart)",
+          "description": "This event is emitted when the user first touches the slider."
+        },
+        "ionSlideTransitionEnd": {
+          "attr":"(ionSlideTransitionEnd)",
+          "description": "This event is emitted when the slide transition has ended."
+        },
+        "ionSlideTransitionStart": {
+          "attr":"(ionSlideTransitionStart)",
+          "description": "This event is emitted when the slide transition has started."
+        },
+        "ionSlideWillChange": {
+          "attr":"(ionSlideWillChange)",
+          "description": "This event is emitted before the active slide has changed."
+        }
       }
     },
-*/
-/*
+
     "Slide": {
       "tag": "ion-slide",
 	  "displayName": "SlideItem",
@@ -9611,7 +9584,7 @@
       "icon16": "slide_color_16x16.png",
       "icon32": "slide_color_32x32.png"
     },
-*/
+
 
     /* Segments */
 /*
