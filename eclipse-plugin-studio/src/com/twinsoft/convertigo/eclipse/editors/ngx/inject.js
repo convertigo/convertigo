@@ -78,7 +78,6 @@ function _c8o_highlight_class(classname) {
 					"position: absolute;"
 					+ "z-index: 999999;"
 					+ "background: rgba(0, 100, 255, 0.3);"
-					+ "pointer-events: none;"
 					+ "transition: 0.2s;"
 					+ "top: " + (rect.top - cRect.top + container.scrollTop + rect.height / 2) + "px;"
 					+ "left: " + (rect.left - cRect.left + rect.width / 2) + "px;"
@@ -86,13 +85,83 @@ function _c8o_highlight_class(classname) {
 					+ "height: 1px;"
 					+ "border: red dotted 3px;");
 			overlay.setAttribute("class", "_c8o_overlay");
+			
+			window._c8o_dragOverLay = false;
+			
+			overlay.addEventListener("contextmenu", function(e) {
+				// console.log("Mouse ContextMenu");
+				_c8o_toast("Mouse Context Menu");
+				e.preventDefault();
+			});
+			
+			document.addEventListener("keydown", function(e) {
+				ol = [...document.getElementsByClassName("_c8o_overlay")]
+				switch(e.keyCode) {
+					case 27: // Escape , reset original position
+						ol[0].style.left = window._c8o_OverlayOriginalPosition.left; 
+						ol[0].style.top  = window._c8o_OverlayOriginalPosition.top;
+						break;
+					case 39: // Key right
+						ol[0].style.left = ol[0].style.left.replace("px", "") * 1 + 1 + "px";
+						break;
+					case 37: // Key Left
+						ol[0].style.left = ol[0].style.left.replace("px", "") * 1 - 1 + "px";
+						break;
+					case 38: // Key UP
+						ol[0].style.top =  ol[0].style.top.replace("px", "") * 1 - 1 + "px";
+						break;
+					case 40: // Key Down
+						ol[0].style.top =  ol[0].style.top.replace("px", "") * 1 + 1 + "px";
+						break;
+					case 13: // Key ENTER
+						moveBy = {
+							x: Math.round(ol[0].style.left.replace("px", "") * 1 - window._c8o_OverlayOriginalPosition.left.replace("px", "") * 1),
+							y: Math.round(ol[0].style.top.replace("px", "") * 1 -  window._c8o_OverlayOriginalPosition.top.replace("px", "") * 1)
+						}
+						_c8o_toast("Moving the component x:" + moveBy.x + ",y:" + moveBy.y);
+						break;
+				}
+			});
+
+			overlay.addEventListener("mousedown", function(e) {
+				// console.log("Mouse Down : " + e.x + " " + e.y);
+				window._c8o_dragOverLay = {
+						event: e
+				};
+				
+				
+				document.addEventListener("mousemove", function(e) {
+					if (window._c8o_dragOverLay != false) {
+						window._c8o_dragOverLay.event.target.style.left 	=  e.x + "px";
+						window._c8o_dragOverLay.event.target.style.top  	=  e.y + "px";
+					}
+					e.preventDefault();
+				});
+				
+				document.addEventListener("mouseup", function(e) {
+					if (window._c8o_dragOverLay != false) {
+						window._c8o_dragOverLay = false;
+						e.preventDefault();
+					}
+				});
+				
+				e.preventDefault();
+			});
+			
 			container.appendChild(overlay);
+			_c8o_toast("You can drag the component using the mouse or arrow keys, use ESC to reset to original position or ENTER to set new component position");
 		}
 		
 		overlay.style.top = (rect.top - cRect.top + container.scrollTop) + "px";
 		overlay.style.left = (rect.left - cRect.left) + "px";
 		overlay.style.width = rect.width + "px";
 		overlay.style.height = rect.height + "px";
+		window._c8o_OverlayOriginalPosition  = {
+				top: overlay.style.top,
+				left: overlay.style.left,
+		};
+		
+		// console.log(JSON.stringify(window._c8o_OverlayOriginalPosition));
 	}
 	
 	while (i < ol.length) {
