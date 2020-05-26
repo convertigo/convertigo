@@ -9881,53 +9881,6 @@
       }
     },
 
-/*
-    "Sliding": {
-      "tag": "ion-item-sliding",
-	  "displayName": "SlidingItem",
-      "label": "Sliding Item",
-      "description": [
-"ion-item-sliding| Defines a <i>Sliding Item</i> component.<br/>",
-"Sliding items can be swiped to the left or right to reveal a hidden set of buttons.<br/>",
-"To use a <code>&lt;ion-item-sliding&gt;</code>, add a <i>Sliding Item</i> component inside of an <i>List Container</i> component.<br/>",
-"Next, add a <i>Sliding Options</i> component inside of the sliding item to contain the buttons.<br/>",
-" For more information: <a href='https://ionicframework.com/docs/v3/components/#sliding-list'>Sliding Item</a>."],
-      "group": "Lists",
-      "icon16": "sliding_16x16.png",
-      "icon32": "sliding_32x32.png",
-      "properties": {
-      }
-    },
-*/
-/*
-    "SlidingOption": {
-      "tag": "ion-item-options",
-	  "displayName": "SlidingOption",
-      "label": "Sliding Options",
-      "description": [
-"ion-item-options| Defines a <i>Sliding Options</i> component.<br/>",
-"Add a <i>Sliding Options</i> component inside a <i>Sliding Item</i> to contain the buttons.<br/>",
-" For more information: <a href='https://ionicframework.com/docs/v3/components/#sliding-list'>Sliding Options</a>."],
-      "group": "Lists",
-      "icon16": "slidingoption_16x16.png",
-      "icon32": "slidingoption_32x32.png",
-      "properties": {
-        "side": {
-          "attr": "side",
-          "label": "Buttons side",
-          "description": "Side where buttons are revealed.",
-          "category": "@Properties",
-          "value": false,
-          "values": [
-            false,
-            "left",
-            "right"
-          ]
-        }
-      }
-    },
-*/
-
     "TextItem": {
       "tag": "ion-text",
 	  "displayName": "TextItem",
