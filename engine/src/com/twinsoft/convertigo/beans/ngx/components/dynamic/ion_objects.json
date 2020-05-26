@@ -9850,7 +9850,7 @@
           "label": "Alt",
           "description": "This attribute defines the alternative text describing the image. Users will see this text displayed if the image URL is wrong, the image is not in one of the supported formats, or if the image is not yet downloaded.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
         "Src": {
           "mode":"script",
@@ -9877,7 +9877,7 @@
         "ionImgWillLoad": {
           "attr":"(ionImgWillLoad)",
           "description": "This event is emitted when the img src has been set."
-        },
+        }
       }
     },
 
