@@ -9804,31 +9804,83 @@
 "ion-avatar| Defines an <i>Avatar Item</i> component.<br/>",
 "Avatars are circular components that usually wrap an image or icon. They can be used to represent a person or an object.<br/>",
 "Avatars can be used by themselves or inside of any element. If placed inside of a <i>Chip</i> or <i>List item</i>, the avatar will resize to fit the parent component.",
-"To position an avatar on the left or right side of an item, set the item's Slot property to 'start' or 'end', respectively.<br/>",
+"To position an avatar on the left or right side of an item, set its Slot property to 'start' or 'end', respectively.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/v3/components/#avatar-list'>Avatar</a>."],
       "group": "Lists",
       "icon16": "listavatar_16x16.png",
       "icon32": "listavatar_32x32.png",
+      "properties": {
+        "IonSlot": false
+      }
     },
 
-/*
     "Thumbnail": {
       "tag": "ion-thumbnail",
 	  "displayName": "Thumbnail",
       "label": "Thumbnail Item",
       "description": [
 "ion-thumbnail| Defines a <i>Thumbnail Item</i> component.<br/>",
-"Item thumbnails showcase an image that takes up the entire height of an item.<br/>",
-"To use a <code>&lt;ion-thumbnail&gt;</code>, add a <i>Thumbnail Item</i> component inside of a <i>Generic Item</i> component. The <i>position</i> property of the <i>Thumbnail Item</i> can be set to <code>item-left</code> or <code>item-right</code> value.<br/>",
-" For more information: <a href='https://ionicframework.com/docs/v3/components/#thumbnail-list'>Thumbnail</a>."],
+"Thumbnails are square components that usually wrap an image or icon. They can be used to make it easier to display a group of larger images or provide a preview of the full-size image.<br/>",
+"Thumbnails can be used by themselves or inside of any element. If placed inside of a <i>List item</i>, the thumbnail will resize to fit the parent component.",
+"To position a thumbnail on the left or right side of an item, set its Slot property to 'start' or 'end', respectively.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/thumbnail'>Thumbnail</a>."],
       "group": "Lists",
       "icon16": "thumbnail_16x16.png",
       "icon32": "thumbnail_32x32.png",
       "properties": {
-        "ItemPosition": "item-left"
+        "IonSlot": false
       }
     },
-*/
+
+    "LazyImage": {
+      "tag": "ion-img",
+	  "displayName": "LazyImage",
+      "label": "Lazy Image",
+      "description": [
+"ion-img| Defines a <i>Lazy Image</i> component.<br/>",
+"This component will lazily load an image when ever it is in the viewport.<br/>",
+"This is extremely useful when generating a large list as images are only loaded when they're visible.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/img'>Img</a>."],
+      "group": "Lists",
+      "icon16": "lazyimage_16x16.png",
+      "icon32": "lazyimage_32x32.png",
+      "properties": {
+        "Alt": {
+          "attr": "alt",
+          "label": "Alt",
+          "description": "This attribute defines the alternative text describing the image. Users will see this text displayed if the image URL is wrong, the image is not in one of the supported formats, or if the image is not yet downloaded.",
+          "category": "@Properties",
+          "value": false,
+        },
+        "Src": {
+          "mode":"script",
+          "attr": "[src]",
+          "label": "src",
+          "description": "The image mandatory URL. Can be absolute (http(s)://) or relative to project (assets/myimage.png). Can also be a Base64 Embedded images (data:image/png;base64,iVBORw0.......).",
+          "category": "@Properties",
+          "value": "",
+          "values": [
+            false,
+            true
+          ]
+        }
+      },
+      "events": {
+        "ionError": {
+          "attr":"(ionError)",
+          "description": "This event is emitted when the img fails to load."
+        },
+        "ionImgDidLoad": {
+          "attr":"(ionImgDidLoad)",
+          "description": "This event is emitted when the image has finished loading."
+        },
+        "ionImgWillLoad": {
+          "attr":"(ionImgWillLoad)",
+          "description": "This event is emitted when the img src has been set."
+        },
+      }
+    },
+
 /*
     "Sliding": {
       "tag": "ion-item-sliding",

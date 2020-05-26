@@ -2514,7 +2514,42 @@
  "Avatar": {
   "   7   9   0": {
    "name": "Avatar",
-   "properties": {}
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Thumbnail": {
+  "   7   9   0": {
+   "name": "Thumbnail",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "LazyImage": {
+  "   7   9   0": {
+   "name": "LazyImage",
+   "properties": {
+    "Alt": {
+     "name": "Alt",
+     "mode": "plain",
+     "value": false
+    },
+    "Src": {
+     "name": "Src",
+     "mode": "script",
+     "value": ""
+    }
+   }
   }
  }
 }
