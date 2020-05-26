@@ -9585,6 +9585,34 @@
       "icon32": "slide_color_32x32.png"
     },
 
+	"Chip": {
+      "tag": "ion-chip",
+	  "displayName": "Chip",
+      "label": "Chip",
+      "description": [
+"ion-chip| Defines a <i>Chip</i> component.<br/>",
+"Chips represent complex entities in small blocks, such as a contact. A chip can contain several different elements such as avatars, text, and icons.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/chip'>Chip</a>."],
+      "group": "Containers",
+      "icon16": "chip_color_16x16.png",
+      "icon32": "chip_color_32x32.png",
+      "properties": {
+        "IonColor": false,
+        "IonMode": false,
+        "Outline": {
+          "attr": "outline",
+          "label": "Outline",
+          "description": "Display an outline style button.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        }
+      }
+	},
 
     /* Segments */
 /*
@@ -9768,24 +9796,21 @@
       }
     },
 
-/*
     "Avatar": {
       "tag": "ion-avatar",
 	  "displayName": "AvatarItem",
       "label": "Avatar Item",
       "description": [
 "ion-avatar| Defines an <i>Avatar Item</i> component.<br/>",
-"Item avatars showcase an image larger than an icon, but smaller than a thumbnail.<br/>",
-"To use an <code>&lt;ion-avatar&gt;</code>, add an <i>Avatar Item</i> component inside of a <i>Generic Item</i> component. The <i>position</i> property of the <i>Avatar Item</i> can be set to <code>item-left</code> or <code>item-right</code> value.<br/>",
+"Avatars are circular components that usually wrap an image or icon. They can be used to represent a person or an object.<br/>",
+"Avatars can be used by themselves or inside of any element. If placed inside of a <i>Chip</i> or <i>List item</i>, the avatar will resize to fit the parent component.",
+"To position an avatar on the left or right side of an item, set the item's Slot property to 'start' or 'end', respectively.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/v3/components/#avatar-list'>Avatar</a>."],
       "group": "Lists",
       "icon16": "listavatar_16x16.png",
       "icon32": "listavatar_32x32.png",
-      "properties": {
-        "ItemPosition": "item-left"
-      }
     },
-*/
+
 /*
     "Thumbnail": {
       "tag": "ion-thumbnail",

@@ -2488,5 +2488,33 @@
     }
    }
   }
+ },
+ "Chip": {
+  "   7   9   0": {
+   "name": "Chip",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Outline": {
+     "name": "Outline",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Avatar": {
+  "   7   9   0": {
+   "name": "Avatar",
+   "properties": {}
+  }
  }
 }
