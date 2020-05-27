@@ -49,6 +49,77 @@ function _c8o_remove_overlay(overlay) {
 	}
 }
 
+function _c8o_display_menu(element, container) {
+	menuFunctions = {
+		addOption: function(ul, optionText, action) {
+			li = ul.appendChild(document.createElement("li"))
+			check = li.appendChild(document.createElement("input"));
+			check.setAttribute("type", "checkbox");
+			
+			label = li.appendChild(document.createElement("label"))
+			label.appendChild(document.createTextNode(optionText))
+			label.setAttribute("style", "margin-left: 6px");
+			
+			li.setAttribute("style", "display: block;"
+				  + "color: #000;"
+				  + "padding: 4px 16px;"
+			);
+			
+			li.setAttribute("onmouseover", "this.style.backgroundColor='#808080'");
+			li.setAttribute("onmouseout",  "this.style.backgroundColor='#f1f1f1'");
+		}
+	};
+	
+	/* remove previous menus */
+	var ml = [...document.getElementsByClassName("_c8o_menu")];
+	if (ml.length != 0)
+		ml[0].remove();
+	
+	/* Create a Menu */
+	menu = document.createElement("div");
+	menu.setAttribute("style",
+			"position: absolute;"
+			+ "z-index: 999999;"
+			+ "background-color: #f1f1f1;"
+			+ "top: 5px;"
+			+ "left: 5px;"
+			+ "width: 200px;"
+			+ "border: solid black  1px;"
+	);
+	
+	menu.setAttribute("class", "_c8o_menu");
+
+	ul = menu.appendChild(document.createElement("ul"))
+	ul.setAttribute("style", 
+		"list-style-type: none;" +
+		"margin: 0;" +
+		"padding: 2px;" 
+	);
+
+	switch(element.tagName) {
+		case "ION-TEXT":
+			menuFunctions.addOption(ul, "Text Align Left", function() {});
+			menuFunctions.addOption(ul, "Text Align Right", function() {});
+			menuFunctions.addOption(ul, "Text Align Start", function() {});
+			menuFunctions.addOption(ul, "Text Align End", function() {});
+			menuFunctions.addOption(ul, "Text Align Center", function() {});
+			menuFunctions.addOption(ul, "Text Justify", function() {});
+			menuFunctions.addOption(ul, "Text Wrap", function() {});
+			menuFunctions.addOption(ul, "Text No Wrap", function() {});
+			container.appendChild(menu);
+			break;
+	}
+}
+
+
+function _c8o_handle_context_menu(e) {
+	_c8o_display_menu(
+			window._c8o_currentElement,
+			window._c8o_currentContainer
+	);
+	e.preventDefault();
+}
+
 _c8o_highlight_class_previous = null;
 function _c8o_highlight_class(classname) {
 	var i, nl;
@@ -64,6 +135,7 @@ function _c8o_highlight_class(classname) {
 		var overlay = ol[i];
 		var rect = nl[i].getBoundingClientRect();
 		var container = nl[i].parentNode;
+		var element   = nl[i];
 		while (!container.classList.contains("scroll-content") && container != document.body) {
 			container = container.parentNode;
 		}
@@ -87,12 +159,6 @@ function _c8o_highlight_class(classname) {
 			overlay.setAttribute("class", "_c8o_overlay");
 			
 			window._c8o_dragOverLay = false;
-			
-			overlay.addEventListener("contextmenu", function(e) {
-				// console.log("Mouse ContextMenu");
-				_c8o_toast("Mouse Context Menu");
-				e.preventDefault();
-			});
 			
 			document.addEventListener("keydown", function(e) {
 				ol = [...document.getElementsByClassName("_c8o_overlay")]
@@ -147,15 +213,21 @@ function _c8o_highlight_class(classname) {
 				
 				e.preventDefault();
 			});
-			
+
 			container.appendChild(overlay);
 			_c8o_toast("You can drag the component using the mouse or arrow keys, use ESC to reset to original position or ENTER to set new component position");
 		}
+		
+		window._c8o_currentElement = element;
+		window._c8o_currentContainer = container;
+		overlay.removeEventListener("contextmenu", _c8o_handle_context_menu);
+		overlay.addEventListener("contextmenu",    _c8o_handle_context_menu);
 		
 		overlay.style.top = (rect.top - cRect.top + container.scrollTop) + "px";
 		overlay.style.left = (rect.left - cRect.left) + "px";
 		overlay.style.width = rect.width + "px";
 		overlay.style.height = rect.height + "px";
+		
 		window._c8o_OverlayOriginalPosition  = {
 				top: overlay.style.top,
 				left: overlay.style.left,
