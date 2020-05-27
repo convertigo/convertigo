@@ -9252,7 +9252,6 @@
 	},
 
     /* Segments */
-/*
     "Segment": {
       "tag": "ion-segment",
 	  "displayName": "SegmentContainer",
@@ -9269,9 +9268,25 @@
       "icon16": "segment_color_16x16.png",
       "icon32": "segment_color_32x32.png",
       "properties": {
+        "Disabled": "false",
+        "ControlName": "",
+        "DoubleBinding": false,
         "IonColor": false,
-        "Name": {
-          "attr": "[ngModel]",
+        "IonMode": false,
+        "Scrollable": {
+          "attr": "scrollable",
+          "label": "Scrollable",
+          "description": "If true, the segment buttons will overflow and the user can swipe to see them. In addition, this will disable the gesture to drag the indicator between the buttons in order to swipe to see hidden buttons.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Value": {
+          "attr": "value",
           "label": "Default value",
           "description": "The value to be selected by default.",
           "category": "@Properties",
@@ -9281,10 +9296,15 @@
             true
           ]
         }
+      },
+      "events": {
+        "ionChange": {
+          "attr":"(ionChange)",
+          "description": "This event is emitted when the value property has changed."
+        }
       }
     },
-*/
-/*
+
     "SegmentButton": {
       "tag": "ion-segment-button",
 	  "displayName": "SegmentButton",
@@ -9297,21 +9317,38 @@
       "icon16": "segment-button_color_16x16.png",
       "icon32": "segment-button_color_32x32.png",
       "properties": {
-        "IonColor": false,
-        "Name": {
-          "attr": "[value]",
-          "label": "Value",
-          "description": "When this segment is selected, the parent segment object will have this value.",
-          "category": "@Properties",
-          "value": "",
-          "values": [
-            false,
-            true
-          ]
+        "Disabled": "false",
+        "ButtonFormType": "button",
+        "IonMode": false,
+        "Layout": {
+            "attr": "layout",
+            "label": "Layout",
+            "description": "Set the layout of the text and icon in the tab bar. It defaults to 'icon-top'.",
+            "category": "@Properties",
+            "value": "icon-top",
+            "values": [
+               "icon-bottom",
+               "icon-end",
+               "icon-hide",
+               "icon-start",
+               "icon-top",
+               "label-hide"
+            ]
+        },
+        "Value": {
+            "attr": "value",
+            "label": "Value",
+            "description": "The value of the segment button.",
+            "category": "@Properties",
+            "value": "",
+            "values": [
+               false,
+               true
+            ]
         }
       }
     },
-*/
+
     /* Lists */
     "List": {
       "tag": "ion-list",
