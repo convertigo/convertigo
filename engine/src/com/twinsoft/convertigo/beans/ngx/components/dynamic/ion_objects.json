@@ -9349,6 +9349,48 @@
       }
     },
 
+	/* Reorder */
+	"ReorderGroup": {
+      "tag": "ion-reorder-group",
+	  "displayName": "ReorderGroup",
+      "label": "Reorder Group",
+      "description": [
+"ion-reorder-group| Defines a <i>Reorder Group</i> component.<br/>",
+"The <i>Reorder Group</i> is a container for items using the <i>Reorder</i> component that is used to drag items within the group.<br/>",
+"Once the user drags an item and drops it in a new position, the ionItemReorder event is dispatched. A handler for it should be implemented that calls the complete() method.<br/>",
+"The detail property of the ionItemReorder event includes all of the relevant information about the reorder operation, including the 'from' and 'to' indexes.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/reorder-group'>Reorder Group</a>."],
+      "group": "Lists",
+      "icon16": "reordergroup_16x16.png",
+      "icon32": "reordergroup_32x32.png",
+      "properties": {
+        "Disabled": "false"
+	  },
+      "events": {
+        "ionItemReorder": {
+          "attr":"(ionItemReorder)",
+          "description": "Event that needs to be listened to in order to complete the reorder action. Once the event has been emitted, the `event.target.complete()` method then needs to be called in order to finalize the reorder action."
+        }
+      }
+	},
+
+	"Reorder": {
+      "tag": "ion-reorder",
+	  "displayName": "Reorder",
+      "label": "Reorder",
+      "description": [
+"ion-reorder| Defines a <i>Reorder</i> component.<br/>",
+"The <i>Reorder</i> is the anchor component used to drag and drop the items inside of the <i>Reorder Group</i>.<br/>",
+"It allows an item in a group of items to be dragged to change its order within that group. It must be used within a <i>Reorder Group</i> to provide a visual drag and drop interface.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/reorder-group'>Reorder Group</a>."],
+      "group": "Lists",
+      "icon16": "reorder_16x16.png",
+      "icon32": "reorder_32x32.png",
+      "properties": {
+        "IonSlot": false
+	  }
+	},
+	
     /* Lists */
     "List": {
       "tag": "ion-list",

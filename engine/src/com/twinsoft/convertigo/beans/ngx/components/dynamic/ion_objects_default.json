@@ -2710,5 +2710,29 @@
     }
    }
   }
+ },
+ "Reorder": {
+  "   7   9   0": {
+   "name": "Reorder",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ReorderGroup": {
+  "   7   9   0": {
+   "name": "ReorderGroup",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
  }
 }
