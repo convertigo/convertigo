@@ -491,7 +491,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustom"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent"/>
 				</bean>
-				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab">
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicTabButton">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicTag">

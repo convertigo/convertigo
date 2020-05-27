@@ -836,6 +836,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				return contributor.getConfigPlugins();
 			}
 			
+			@Override
+			public Set<String> getModuleNgRoutes(String pageSegment) {
+				return contributor.getModuleNgRoutes(pageSegment);
+			}
 		};
 	}
 

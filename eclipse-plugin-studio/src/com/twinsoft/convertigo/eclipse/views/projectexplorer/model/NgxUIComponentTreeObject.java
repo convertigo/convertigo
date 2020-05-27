@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInfiniteScroll;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicTabButton;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
@@ -513,7 +514,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				List<String> list = new ArrayList<String>();
 				UIComponent object = getObject();
 				
-				if (object instanceof UIDynamicTab) {
+				if (object instanceof UIDynamicTabButton) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -630,7 +631,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			public boolean isSelectable(String propertyName, Object nsObject) {
 				UIComponent object = getObject();
 				
-				if (object instanceof UIDynamicTab) {
+				if (object instanceof UIDynamicTabButton) {
 					if ("tabpage".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
 							return (((PageComponent)nsObject).getProject().equals(object.getProject()));

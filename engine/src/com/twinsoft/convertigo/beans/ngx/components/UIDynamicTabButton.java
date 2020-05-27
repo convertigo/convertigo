@@ -20,47 +20,61 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
-import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
-import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+public class UIDynamicTabButton extends UIDynamicElement {
 
-public class UIDynamicComponent extends UIDynamicElement {
+	private static final long serialVersionUID = 1116808929065077751L;
 
-	private static final long serialVersionUID = 4724936673248748018L;
-
-	public UIDynamicComponent() {
+	public UIDynamicTabButton() {
 		super();
 	}
 
-	public UIDynamicComponent(String tagName) {
+	public UIDynamicTabButton(String tagName) {
 		super(tagName);
 	}
 
 	@Override
-	public UIDynamicComponent clone() throws CloneNotSupportedException {
-		UIDynamicComponent cloned = (UIDynamicComponent) super.clone();
+	public UIDynamicTabButton clone() throws CloneNotSupportedException {
+		UIDynamicTabButton cloned = (UIDynamicTabButton) super.clone();
 		return cloned;
 	}
 	
-	@Override
-	protected String getRequiredTplVersion() {
-		IonBean ionBean = getIonBean();
-		if (ionBean != null) {
-			String beanTplVersion = ionBean.getTplVersion();
-			if (MobileBuilder.compareVersions(beanTplVersion, "1.0.100") >= 0) {
-				return beanTplVersion;
-			}
-		}
-		return "1.0.100";
+	/*
+	 * The page associated with tab
+	 */
+	private String tabpage = "";
+	
+	public String getTabQName() {
+		return tabpage;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement#getContributor()
-	 */
+	public void setTabQName(String tabpage) {
+		this.tabpage = tabpage;
+	}
+
+	private String getTabName() {
+		if (!tabpage.isEmpty()) {
+			try {
+				return tabpage.substring(tabpage.lastIndexOf('.')+1);
+			} catch (Exception e) {}
+		}
+		return "";
+	}
+	
+	@Override
+	protected StringBuilder initAttributes() {
+		StringBuilder attributes = super.initAttributes();
+		String tabName = getTabName();
+		if (!tabName.isEmpty()) {
+			try {
+				attributes.append(" tab").append("=").append("\""+ tabName +"\"");
+			} catch (Exception e) {}
+		}
+		return attributes;
+	}
+	
 	@Override
 	protected Contributor getContributor() {
 		Contributor contributor = super.getContributor();
@@ -78,16 +92,7 @@ public class UIDynamicComponent extends UIDynamicElement {
 
 			@Override
 			public Map<String, File> getCompBeanDir() {
-				Map<String, File> map = new HashMap<String, File>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					String compName = ionBean.getName();
-					File dir = ComponentManager.getCompBeanDir(compName);
-					if (dir != null) {
-						map.put(compName, dir);
-					}
-				}
-				return map;
+				return contributor.getCompBeanDir();
 			}
 
 			@Override
@@ -127,9 +132,23 @@ public class UIDynamicComponent extends UIDynamicElement {
 			
 			@Override
 			public Set<String> getModuleNgRoutes(String pageSegment) {
-				return contributor.getModuleNgRoutes(pageSegment);
+				Set<String> set = contributor.getModuleNgRoutes(pageSegment);
+				String tabName = getTabName();
+				if (!tabName.isEmpty()) {
+					String tabLower = tabName.toLowerCase();
+					String tabModulePath = "../"+ tabLower +"/"+ tabLower +".module";
+					String tabModuleName = tabName +"Module";
+					set.add("{path: '', redirectTo: '/"+ pageSegment +"/"+tabName+"', pathMatch: 'full'}");
+					set.add("{path: '"+ tabName +"', children: [{path: '', loadChildren: () => import('"+tabModulePath+"').then( m => m."+ tabModuleName +")}]}");
+				}
+				return set;
 			}
 		};
 	}
 	
+	@Override
+	public String toString() {
+		String tabName = getTabName();
+		return super.toString() + ": " + (tabName.isEmpty() ? "?":tabName);
+	}
 }

@@ -220,6 +220,11 @@ public class UIDynamicInfiniteScroll extends UIDynamicComponent {
 			public Map<String, String> getConfigPlugins() {
 				return contributor.getConfigPlugins();
 			}
+			
+			@Override
+			public Set<String> getModuleNgRoutes(String pageSegment) {
+				return contributor.getModuleNgRoutes(pageSegment);
+			}
 		};
 	}
 }

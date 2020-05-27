@@ -428,6 +428,11 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 				return new HashMap<String, String>();
 			}
 
+			@Override
+			public Set<String> getModuleNgRoutes(String pageSegment) {
+				return new HashSet<String>();
+			}
+
 		};
 	}
 	
