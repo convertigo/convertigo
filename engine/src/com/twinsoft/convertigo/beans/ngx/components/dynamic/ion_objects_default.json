@@ -2488,5 +2488,153 @@
     }
    }
   }
+ },
+ "Chip": {
+  "   7   9   0": {
+   "name": "Chip",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Outline": {
+     "name": "Outline",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Avatar": {
+  "   7   9   0": {
+   "name": "Avatar",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Thumbnail": {
+  "   7   9   0": {
+   "name": "Thumbnail",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "LazyImage": {
+  "   7   9   0": {
+   "name": "LazyImage",
+   "properties": {
+    "Alt": {
+     "name": "Alt",
+     "mode": "plain",
+     "value": false
+    },
+    "Src": {
+     "name": "Src",
+     "mode": "script",
+     "value": ""
+    }
+   }
+  }
+ },
+ "TabBar": {
+  "   7   9   0": {
+   "name": "TabBar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "SelectedTab": {
+     "name": "SelectedTab",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TabButton": {
+  "   7   9   0": {
+   "name": "TabButton",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "Layout": {
+     "name": "Layout",
+     "mode": "plain",
+     "value": "icon-top"
+    },
+    "Selected": {
+     "name": "Selected",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Tabs": {
+  "   7   9   0": {
+   "name": "Tabs",
+   "properties": {}
+  }
  }
 }

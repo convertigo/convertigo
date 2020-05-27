@@ -911,6 +911,10 @@ public class UICustomAction extends UIComponent implements IAction {
 				return plugins;
 			}
 			
+			@Override
+			public Set<String> getModuleNgRoutes(String pageSegment) {
+				return new HashSet<String>();
+			}
 		};
 	}	
 }

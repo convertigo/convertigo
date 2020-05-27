@@ -38,4 +38,5 @@ public abstract class Contributor {
 	abstract public Set<String> getModuleNgProviders();
 	abstract public Set<String> getModuleNgDeclarations();
 	abstract public Set<String> getModuleNgComponents();
+	abstract public Set<String> getModuleNgRoutes(String pageSegment);
 }

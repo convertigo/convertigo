@@ -210,6 +210,7 @@ public class NgxBuilder extends MobileBuilder {
 	String tpl_pageModuleNgProviders = null;
 	String tpl_pageModuleNgDeclarations = null;
 	String tpl_pageModuleNgComponents = null;
+	String tpl_pageModuleNgRoutes = null;
 	
 	File appDir, pagesDir, interfacesDir, servicesDir, providersDir, componentsDir;
 	File assetsDir, envDir, themeDir;
@@ -1198,6 +1199,24 @@ public class NgxBuilder extends MobileBuilder {
 		return tpl_pageModuleNgComponents;
 	}
 	
+	private String getTplPageModuleNgRoutes() {
+		if (tpl_pageModuleNgRoutes == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
+				tpl_pageModuleNgRoutes = getMarker(tsContent, "NgRoutes")
+						.replaceAll("/\\*Begin_c8o_NgRoutes\\*/","")
+						.replaceAll("/\\*End_c8o_NgRoutes\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_pageModuleNgRoutes = "";
+			}
+		}
+		return tpl_pageModuleNgRoutes;
+	}
+	
 	private Map<String,String> getTplServiceActionTsImports() {
 		if (tpl_serviceActionTsImports == null) {
 			tpl_serviceActionTsImports = initTplImports(new File(ionicTplDir, "src/app/services/actionbeans.service.ts"));
@@ -1263,6 +1282,7 @@ public class NgxBuilder extends MobileBuilder {
 		Set<String> module_ng_providers =  new HashSet<String>();
 		Set<String> module_ng_declarations =  new HashSet<String>();
 		Set<String> module_ng_components =  new HashSet<String>();
+		Set<String> module_ng_routes =  new HashSet<String>();
 		
 		List<Contributor> contributors = page.getContributors();
 		for (Contributor contributor : contributors) {
@@ -1273,6 +1293,14 @@ public class NgxBuilder extends MobileBuilder {
 			module_ng_providers.addAll(contributor.getModuleNgProviders());
 			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
 			module_ng_components.addAll(contributor.getModuleNgComponents());
+			
+			for (String route: contributor.getModuleNgRoutes(page.getSegment())) {
+				if (module_ng_routes.isEmpty()) {
+					module_ng_routes.addAll(contributor.getModuleNgRoutes(page.getSegment()));
+				} else if (route.indexOf("redirectTo") == -1) {
+					module_ng_routes.add(route);
+				}
+			}
 		}
 		// fix for BrowserAnimationsModule until it will be handled in config
 		module_ts_imports.remove("BrowserAnimationsModule");
@@ -1346,6 +1374,19 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		
+		String c8o_ModuleNgRoutes = "";
+		String tpl_ng_routes = getTplPageModuleNgRoutes();
+		if (!module_ng_routes.isEmpty()) {
+			for (String route: module_ng_routes) {
+				if (!tpl_ng_routes.contains(route)) {
+					c8o_ModuleNgRoutes += "\t" + route + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgRoutes.isEmpty()) {
+				c8o_ModuleNgRoutes = System.lineSeparator() + c8o_ModuleNgRoutes;
+			}
+		}
+		
 		String pageName = page.getName();
 		String c8o_PageName = pageName;
 		String c8o_PageModuleName = pageName + "Module";
@@ -1365,6 +1406,8 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgRoutes\\*/",c8o_ModuleNgRoutes);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgRoutess\\*/","");
 		
 		for (String compbean : comp_beans_dirs.keySet()) {
 			File srcCompDir = comp_beans_dirs.get(compbean);
@@ -1592,7 +1635,8 @@ public class NgxBuilder extends MobileBuilder {
 					if (page.isRoot) {
 						c8o_AppRoutes += "{ path: '', redirectTo: '"+ pageSegment +"', pathMatch: 'full' }," + System.lineSeparator();
 					}
-					c8o_AppRoutes += " { path: '"+pageSegment+"', loadChildren: () => import('"+pageModulePath+"').then( m => m."+ pageModuleName +")}" + (isLastPage ? "":",");
+					c8o_AppRoutes += " { path: '"+pageSegment+"', loadChildren: () => import('"+pageModulePath+"').then( m => m."+ pageModuleName +")}" + 
+										(isLastPage ? "":",") + System.lineSeparator();
 				}
 				
 				File appRoutingTpl = new File(ionicTplDir, "src/app-routing.module.tpl");

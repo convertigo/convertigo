@@ -21,10 +21,13 @@ import { TranslateModule } from '@ngx-translate/core';
     RouterModule.forChild([
       {
         path: '',
-        component: /*=c8o_PageName*/
+        component: /*=c8o_PageName*/,
+        children: [/*Begin_c8o_NgRoutes*/
+        /*End_c8o_NgRoutes*/]
       }
     ])
   /*End_c8o_NgModules*/],
+  exports: [RouterModule],
   entryComponents: [/*Begin_c8o_NgComponents*/
   /*End_c8o_NgComponents*/],
   providers: [/*Begin_c8o_NgProviders*/
