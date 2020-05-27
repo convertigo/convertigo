@@ -8471,7 +8471,12 @@
             "label": "Translucent",
             "description": "If true, the tab bar will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
             "category": "@Properties",
-            "value": false
+            "type": "boolean",
+            "value": "false",
+            "values": [
+              "false",
+              "true"
+            ]
         }
 	  }
 	},
@@ -11689,6 +11694,7 @@
           "label": "Translucent",
           "description": "If true, the card header will be translucent. Only applies when the mode is ios and the device supports backdrop-filter.",
           "category": "@Properties",
+          "type": "boolean",
           "value": "false",
           "values": [
             "false",

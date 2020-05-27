@@ -2579,7 +2579,7 @@
     "Translucent": {
      "name": "Translucent",
      "mode": "plain",
-     "value": false
+     "value": "false"
     }
    }
   }
