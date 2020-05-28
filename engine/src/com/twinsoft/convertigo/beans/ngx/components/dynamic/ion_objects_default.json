@@ -2837,5 +2837,37 @@
     }
    }
   }
+ },
+ "SkeletonText": {
+  "   7   9   0": {
+   "name": "SkeletonText",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "Animated": {
+     "name": "Animated",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": "60%"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": false
+    },
+    "Style": {
+     "name": "Style",
+     "mode": "plain",
+     "value": "width: $[Width]; height: $[Height]"
+    }
+   }
+  }
  }
 }

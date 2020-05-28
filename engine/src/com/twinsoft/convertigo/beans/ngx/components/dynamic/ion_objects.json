@@ -7739,6 +7739,68 @@
       }     
     },
 
+	"SkeletonText": {
+      "tag": "ion-skeleton-text",
+	  "displayName": "SkeletonText",
+      "label": "Skeleton Text",
+      "description": [
+"The <i>Skeleton Text</i> is a component for rendering placeholder content. The element will render a gray block at the specified width.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/skeleton-text'>Skeleton Text</a>."],
+      "group": "Miscellaneous",
+      "icon16": "skeleton_color_16x16.png",
+      "icon32": "skeleton_color_32x32.png",
+      "properties": {
+        "IonSlot": false,
+        "Animated": {
+         "attr": "animated",
+         "label": "Animated",
+         "description": "If true, the skeleton text will animate.",
+         "category": "@Properties",
+         "type": "boolean",
+         "value": "false",
+         "values": [
+            "false",
+            "true"
+         ]
+        },
+        "Width": {
+         "attr": "width",
+         "composite": true,
+         "label": "Width",
+         "description": "Specifies the witdh of the skeleton text (in % or px).",
+         "category": "@Properties",
+         "type": "style",
+         "value": "60%",
+         "values": [
+            false,
+            "60%",
+            true
+         ]
+        },
+        "Height": {
+         "attr": "height",
+         "composite": true,
+         "label": "Height",
+         "description": "Specifies the height of the skeleton text (in % or px).",
+         "category": "@Properties",
+         "type": "style",
+         "value": false,
+         "values": [
+            false,
+            true
+         ]
+        },
+        "Style": {
+         "attr": "style",
+         "hidden": true,
+         "label": "Style",
+         "description": "Specifies the style of the skeleton text.",
+         "category": "@Properties",
+         "value": "width: $[Width]; height: $[Height]"
+        }
+	  }
+	},
+	
     "Spinner": {
       "tag": "ion-spinner",
 	  "displayName": "Spinner",
