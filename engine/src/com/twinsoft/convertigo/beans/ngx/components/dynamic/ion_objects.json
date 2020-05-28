@@ -9362,7 +9362,7 @@
       "description": [
 "ion-reorder-group| Defines a <i>Reorder Group</i> component.<br/>",
 "The <i>Reorder Group</i> is a container for items using the <i>Reorder</i> component that is used to drag items within the group.<br/>",
-"Once the user drags an item and drops it in a new position, the ionItemReorder event is dispatched. A handler for it should be implemented that calls the complete() method.<br/>",
+"Once the user drags an item and drops it in a new position, the ionItemReorder event is dispatched. A handler for it should be implemented that calls the event.target.complete() method.<br/>",
 "The detail property of the ionItemReorder event includes all of the relevant information about the reorder operation, including the 'from' and 'to' indexes.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/reorder-group'>Reorder Group</a>."],
       "group": "Lists",
@@ -9517,6 +9517,98 @@
       }
     },
 
+	"SlidingContainer": {
+      "tag": "ion-item-sliding",
+	  "displayName": "SlidingContainer",
+      "label": "Sliding Container",
+      "description": [
+"ion-item-sliding| Defines an <i>Sliding Container</i> component.<br/>",
+"A <i>Sliding Container</i> contains an item that can be dragged to reveal buttons.<br/>",
+"It requires a <i>List Item</i> or a <Generic Item</i> component as a child.<br/>",
+"All <i>Sliding Button</i>s to reveal should be placed in a <i>Sliding ButtonSet</i> component.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/item-sliding'>Sliding item</a>."],
+      "group": "Lists",
+      "icon16": "slidingitem_16x16.png",
+      "icon32": "slidingitem_32x32.png",
+      "properties": {
+        "Disabled": "false"
+      },
+      "events": {
+        "ionDrag": {
+          "attr":"(ionDrag)",
+          "description": "This event is emitted when the sliding position changes."
+        }
+      }
+	},
+	
+	"SlidingButtonSet": {
+      "tag": "ion-item-options",
+	  "displayName": "SlidingButtonSet",
+      "label": "Sliding ButtonSet",
+      "description": [
+"ion-item-options| Defines a <i>Sliding ButtonSet</i> component.<br/>",
+"A <i>Sliding ButtonSet</i> contains one or more <i>Sliding Button</i>s which reveals while sliding.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/item-options'>Sliding options</a>."],
+      "group": "Lists",
+      "icon16": "slidingoptions_16x16.png",
+      "icon32": "slidingoptions_32x32.png",
+      "properties": {
+        "Side": {
+          "attr": "side",
+          "label": "Side",
+          "description": "The side the buttons should be on. Possible values: 'start' and 'end'. If you have multiple set, a side must be provided for each.",
+          "category": "@Properties",
+          "value": "end",
+          "values": [
+            "start",
+            "end"
+          ]
+        }
+      },
+      "events": {
+        "ionSwipe": {
+          "attr":"(ionSwipe)",
+          "description": "This event is emitted when the item has been fully swiped."
+        }
+      }
+	},
+	
+	"SlidingButton": {
+      "tag": "ion-item-option",
+	  "displayName": "SlidingButton",
+      "label": "Sliding Button",
+      "description": [
+"ion-item-option| Defines a <i>Sliding Button</i> component.<br/>",
+"A <i>Sliding Button</i> must be place inside a <i>Sliding ButtonSet</i> of a <i>Sliding Container</i>.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/item-option'>Sliding option</a>."],
+      "group": "Lists",
+      "icon16": "slidingoption_16x16.png",
+      "icon32": "slidingoption_32x32.png",
+      "properties": {
+        "ButtonFormType": "button",
+        "Disabled": "false",
+        "IonColor": false,
+        "IonSlot": false,
+        "IonMode": false,
+        "LinkUrl": false,
+        "LinkDownload": false,
+        "LinkTarget": false,
+        "LinkRel": false,
+        "Expandable": {
+          "attr": "expandable",
+          "label": "Expandable",
+          "description": "If true, the button will expand to take up the available width and cover any other buttons.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        }
+      }
+	},
+	
     "Avatar": {
       "tag": "ion-avatar",
 	  "displayName": "AvatarItem",

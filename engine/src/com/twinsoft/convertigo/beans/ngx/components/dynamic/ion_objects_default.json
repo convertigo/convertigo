@@ -2734,5 +2734,86 @@
     }
    }
   }
+ },
+ "SlidingButton": {
+  "   7   9   0": {
+   "name": "SlidingButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "Expandable": {
+     "name": "Expandable",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "SlidingButtonSet": {
+  "   7   9   0": {
+   "name": "SlidingButtonSet",
+   "properties": {
+    "Side": {
+     "name": "Side",
+     "mode": "plain",
+     "value": "end"
+    }
+   }
+  }
+ },
+ "SlidingContainer": {
+  "   7   9   0": {
+   "name": "SlidingContainer",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
  }
 }
