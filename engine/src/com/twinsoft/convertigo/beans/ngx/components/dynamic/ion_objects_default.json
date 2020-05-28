@@ -2815,5 +2815,27 @@
     }
    }
   }
+ },
+ "Note": {
+  "   7   9   0": {
+   "name": "Note",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

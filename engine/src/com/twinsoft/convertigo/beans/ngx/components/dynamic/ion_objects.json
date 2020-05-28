@@ -9939,6 +9939,25 @@
       }
     },
 
+    "Note": {
+      "tag": "ion-note",
+	  "displayName": "Note",
+      "label": "Note",
+      "description": [
+"ion-note| Defines a <i>Note</i> component.<br/>",
+"Notes are text elements generally used as subtitles that provide more information.<br/>",
+"Notes are styled to appear grey by default. Notes can be used in an item as metadata text.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/note'>Note</a>.<br/>"],
+      "group": "Forms",
+      "icon16": "note_color_16x16.png",
+      "icon32": "note_color_32x32.png",
+      "properties": {
+        "IonColor" : false,
+        "IonMode" : false,
+        "IonSlot": false
+      }
+    },
+    
     /**************************************************/
     /* Form select / option  				          */
     /**************************************************/
