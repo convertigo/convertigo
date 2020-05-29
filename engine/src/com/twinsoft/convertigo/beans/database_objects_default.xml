@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr" priority="0" version="   7   9   0">
+        <property name="beanData">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="identifier">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DynamicAttr"/>
+        </property>
+        <property name="selfClose">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="tagName">
+            <java.lang.String value="tag"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicTabButton" priority="0" version="   7   9   0">
         <property name="beanData">
             <java.lang.String value=""/>

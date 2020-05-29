@@ -6570,6 +6570,479 @@
   /*  Beans models  */
   "Beans": {
   
+  	/* Format & Layout */
+  	"FormatLayout": {
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr",
+	  "displayName": "FormatLayout",
+      "label": "Format & Layout",
+      "description": [
+" | Defines a <i>Format &amp; Layout</i> component.<br/>",
+"This component can be used on any component in order to modify the text, element placement or adjust the padding and margin.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/layout/css-utilities'>CSS Utilities</a>."],
+      "group": "Miscellaneous",
+      "icon16": "formatlayout_color_16x16.png",
+      "icon32": "formatlayout_color_32x32.png",
+      "properties": {
+        "TextAlignment": {
+          "attr": "class",
+          "label": "Alignment",
+          "description": "Specifies how text should be aligned inside component.",
+          "category": "@Text Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-left",
+            "ion-text-right",
+            "ion-text-start",
+            "ion-text-end",
+            "ion-text-center",
+            "ion-text-justify",
+            "ion-text-wrap",
+            "ion-text-nowrap",
+            true
+          ]
+        },
+        "TextAlignmentXs": {
+          "attr": "class",
+          "label": "Alignment 0-576 px (xs)",
+          "description": "Specifies how text should be aligned inside component, for xs screen.",
+          "category": "@Text Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-xs-left",
+            "ion-text-xs-right",
+            "ion-text-xs-start",
+            "ion-text-xs-end",
+            "ion-text-xs-center",
+            "ion-text-xs-justify",
+            "ion-text-xs-wrap",
+            "ion-text-xs-nowrap",
+            true
+          ]
+        },
+        "TextAlignmentSm": {
+          "attr": "class",
+          "label": "Alignment 576-768 px (sm)",
+          "description": "Specifies how text should be aligned inside component, for sm screen.",
+          "category": "@Text Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-sm-left",
+            "ion-text-sm-right",
+            "ion-text-sm-start",
+            "ion-text-sm-end",
+            "ion-text-sm-center",
+            "ion-text-sm-justify",
+            "ion-text-sm-wrap",
+            "ion-text-sm-nowrap",
+            true
+          ]
+        },
+        "TextAlignmentMd": {
+          "attr": "class",
+          "label": "Alignment 768-992 px (md)",
+          "description": "Specifies how text should be aligned inside component, for md screen.",
+          "category": "@Text Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-md-left",
+            "ion-text-md-right",
+            "ion-text-md-start",
+            "ion-text-md-end",
+            "ion-text-md-center",
+            "ion-text-md-justify",
+            "ion-text-md-wrap",
+            "ion-text-md-nowrap",
+            true
+          ]
+        },
+        "TextAlignmentLg": {
+          "attr": "class",
+          "label": "Alignment 992-1200 px (lg)",
+          "description": "Specifies how text should be aligned inside component, for lg screen.",
+          "category": "@Text Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-lg-left",
+            "ion-text-lg-right",
+            "ion-text-lg-start",
+            "ion-text-lg-end",
+            "ion-text-lg-center",
+            "ion-text-lg-justify",
+            "ion-text-lg-wrap",
+            "ion-text-lg-nowrap",
+            true
+          ]
+        },
+        "TextAlignmentXl": {
+          "attr": "class",
+          "label": "Alignment 1200-over px (xl)",
+          "description": "Specifies how text should be aligned inside component, for xl screen.",
+          "category": "@Text Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-xl-left",
+            "ion-text-xl-right",
+            "ion-text-xl-start",
+            "ion-text-xl-end",
+            "ion-text-xl-center",
+            "ion-text-xl-justify",
+            "ion-text-xl-wrap",
+            "ion-text-xl-nowrap",
+            true
+          ]
+        },
+        "TextTransformation": {
+          "attr": "class",
+          "label": "Transformation",
+          "description": "Specifies the kind of transformation which should be applied on text inside component.",
+          "category": "@Text Transformation",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-capitalize",
+            "ion-text-lowercase",
+            "ion-text-uppercase",
+            true
+          ]
+        },
+        "TextTransformationXs": {
+          "attr": "class",
+          "label": "Transformation 0-576 px (xs)",
+          "description": "Specifies the kind of transformation which should be applied on text inside component, for xs screen.",
+          "category": "@Text Transformation",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-xs-capitalize",
+            "ion-text-xs-lowercase",
+            "ion-text-xs-uppercase",
+            true
+          ]
+        },
+        "TextTransformationSm": {
+          "attr": "class",
+          "label": "Transformation 576-768 px (sm)",
+          "description": "Specifies the kind of transformation which should be applied on text inside component, for sm screen..",
+          "category": "@Text Transformation",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-sm-capitalize",
+            "ion-text-sm-lowercase",
+            "ion-text-sm-uppercase",
+            true
+          ]
+        },
+        "TextTransformationMd": {
+          "attr": "class",
+          "label": "Transformation 768-992 px (md)",
+          "description": "Specifies the kind of transformation which should be applied on text inside component, for md screen..",
+          "category": "@Text Transformation",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-md-capitalize",
+            "ion-text-md-lowercase",
+            "ion-text-md-uppercase",
+            true
+          ]
+        },
+        "TextTransformationLg": {
+          "attr": "class",
+          "label": "Transformation 992-1200 px (lg)",
+          "description": "Specifies the kind of transformation which should be applied on text inside component, for lg screen..",
+          "category": "@Text Transformation",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-lg-capitalize",
+            "ion-text-lg-lowercase",
+            "ion-text-lg-uppercase",
+            true
+          ]
+        },
+        "TextTransformationXl": {
+          "attr": "class",
+          "label": "Transformation 1200-over px (xl)",
+          "description": "Specifies the kind of transformation which should be applied on text inside component, for xl screen..",
+          "category": "@Text Transformation",
+          "value": false,
+          "values": [
+            false,
+            "ion-text-xl-capitalize",
+            "ion-text-xl-lowercase",
+            "ion-text-xl-uppercase",
+            true
+          ]
+        },
+        "FloatPlacement": {
+          "attr": "class",
+          "label": "Float",
+          "description": "Specifies where component should be placed along the left or right side of its container.",
+          "category": "@Float Placement",
+          "value": false,
+          "values": [
+            false,
+            "ion-float-left",
+            "ion-float-right",
+            "ion-float-start",
+            "ion-float-end",
+            true
+          ]
+        },
+        "FloatPlacementXs": {
+          "attr": "class",
+          "label": "Float 0-576 px (xs)",
+          "description": "Specifies where component should be placed along the left or right side of its container, for xs screen.",
+          "category": "@Float Placement",
+          "value": false,
+          "values": [
+            false,
+            "ion-float-xs-left",
+            "ion-float-xs-right",
+            "ion-float-xs-start",
+            "ion-float-xs-end",
+            true
+          ]
+        },
+        "FloatPlacementSm": {
+          "attr": "class",
+          "label": "Float 576-768 px (sm)",
+          "description": "Specifies where component should be placed along the left or right side of its container, for sm screen.",
+          "category": "@Float Placement",
+          "value": false,
+          "values": [
+            false,
+            "ion-float-sm-left",
+            "ion-float-sm-right",
+            "ion-float-sm-start",
+            "ion-float-sm-end",
+            true
+          ]
+        },
+        "FloatPlacementMd": {
+          "attr": "class",
+          "label": "Float 768-992 px (md)",
+          "description": "Specifies where component should be placed along the left or right side of its container, for md screen.",
+          "category": "@Float Placement",
+          "value": false,
+          "values": [
+            false,
+            "ion-float-md-left",
+            "ion-float-md-right",
+            "ion-float-md-start",
+            "ion-float-md-end",
+            true
+          ]
+        },
+        "FloatPlacementLg": {
+          "attr": "class",
+          "label": "Float 992-1200 px (lg)",
+          "description": "Specifies where component should be placed along the left or right side of its container, for lg screen.",
+          "category": "@Float Placement",
+          "value": false,
+          "values": [
+            false,
+            "ion-float-lg-left",
+            "ion-float-lg-right",
+            "ion-float-lg-start",
+            "ion-float-lg-end",
+            true
+          ]
+        },
+        "FloatPlacementXl": {
+          "attr": "class",
+          "label": "Float 1200-over px (xl)",
+          "description": "Specifies where component should be placed along the left or right side of its container, for xl screen.",
+          "category": "@Float Placement",
+          "value": false,
+          "values": [
+            false,
+            "ion-float-xl-left",
+            "ion-float-xl-right",
+            "ion-float-xl-start",
+            "ion-float-xl-end",
+            true
+          ]
+        },
+        "HiddenBorder": {
+          "attr": "class",
+          "label": "Hidden",
+          "description": "Specifies whether Header/Footer borders should be should be visible or not.",
+          "category": "@Border Display",
+          "value": false,
+          "values": [
+            false,
+            "ion-no-border",
+            true
+          ]
+        },
+        "HiddenDisplay": {
+          "attr": "class",
+          "label": "Hidden",
+          "description": "Specifies whether component should be should be visible or not.",
+          "category": "@Component Display",
+          "value": false,
+          "values": [
+            false,
+            "ion-hide",
+            true
+          ]
+        },
+        "HiddenDisplayXs": {
+          "attr": "class",
+          "label": "Hidden 0-576 px (xs)",
+          "description": "Specifies whether component should be should be visible or not, for xs screen.",
+          "category": "@Component Display",
+          "value": false,
+          "values": [
+            false,
+            "ion-hide-xs-down",
+            "ion-hide-xs-up",
+            true
+          ]
+        },
+        "HiddenDisplaySm": {
+          "attr": "class",
+          "label": "Hidden 576-768 px (sm)",
+          "description": "Specifies whether component should be should be visible or not, for sm screen.",
+          "category": "@Component Display",
+          "value": false,
+          "values": [
+            false,
+            "ion-hide-sm-down",
+            "ion-hide-sm-up",
+            true
+          ]
+        },
+        "HiddenDisplayMd": {
+          "attr": "class",
+          "label": "Hidden 768-992 px (md)",
+          "description": "Specifies whether component should be should be visible or not, for md screen.",
+          "category": "@Component Display",
+          "value": false,
+          "values": [
+            false,
+            "ion-hide-md-down",
+            "ion-hide-md-up",
+            true
+          ]
+        },
+        "HiddenDisplayLg": {
+          "attr": "class",
+          "label": "Hidden 992-1200 px (lg)",
+          "description": "Specifies whether component should be should be visible or not, for lg screen.",
+          "category": "@Component Display",
+          "value": false,
+          "values": [
+            false,
+            "ion-hide-lg-down",
+            "ion-hide-lg-up",
+            true
+          ]
+        },
+        "HiddenDisplayXl": {
+          "attr": "class",
+          "label": "Hidden 1200-over px (xl)",
+          "description": "Specifies whether component should be should be visible or not, for xl screen.",
+          "category": "@Component Display",
+          "value": false,
+          "values": [
+            false,
+            "ion-hide-xl-down",
+            "ion-hide-xl-up",
+            true
+          ]
+        },
+        "ContentPadding": {
+          "attr": "class",
+          "label": "Padding",
+          "description": "Specifies the padding area of a component.",
+          "category": "@Component Padding",
+          "value": false,
+          "values": [
+            false,
+            "ion-padding",
+            "ion-padding-top",
+            "ion-padding-start",
+            "ion-padding-end",
+            "ion-padding-bottom",
+            "ion-padding-vertical",
+            "ion-padding-horizontal",
+            "ion-no-padding",
+            true
+          ]
+        },
+        "ContentMargin": {
+          "attr": "class",
+          "label": "Margin",
+          "description": "Specifies the margin area of a component.",
+          "category": "@Component Margin",
+          "value": false,
+          "values": [
+            false,
+            "ion-margin",
+            "ion-margin-top",
+            "ion-margin-start",
+            "ion-margin-end",
+            "ion-margin-bottom",
+            "ion-margin-vertical",
+            "ion-margin-horizontal",
+            "ion-no-margin",
+            true
+          ]
+        },
+        "FlexContainerAlignment": {
+          "attr": "class",
+          "label": "Container",
+          "description": "Specifies the aligment of a Flex container.",
+          "category": "@Flex Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-justify-content-start",
+            "ion-justify-content-end",
+            "ion-justify-content-center",
+            "ion-justify-content-around",
+            "ion-justify-content-between",
+            "ion-justify-content-evenly",
+            "ion-align-items-start",
+            "ion-align-items-end",
+            "ion-align-items-center",
+            "ion-align-items-baseline",
+            "ion-align-items-stretch",
+            "ion-nowrap",
+            "ion-wrap",
+            "ion-wrap-reverse",
+            true
+          ]
+        },
+        "FlexItemAlignment": {
+          "attr": "class",
+          "label": "Item",
+          "description": "Specifies the aligment of a Flex item.",
+          "category": "@Flex Alignment",
+          "value": false,
+          "values": [
+            false,
+            "ion-align-self-start",
+            "ion-align-self-end",
+            "ion-align-self-center",
+            "ion-align-self-baseline",
+            "ion-align-self-stretch",
+            "ion-align-self-auto",
+            true
+          ]
+        }
+      }
+  	},
+  	
     /*
      buttons
     */
@@ -11406,19 +11879,6 @@
       "icon16": "grid_color_16x16.png",
       "icon32": "grid_color_32x32.png",
       "properties": {
-        "Height": {
-          "attr": "style",
-          "label": "Height",
-          "description": "Hight of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering.",
-          "category": "Attribute",
-          "value": "height:100%",
-          "values": [
-            false,
-            "height:100%",
-            true
-          ]
-        },
-      
         "Fixed": {
           "attr": "fixed",
           "label": "Fixed",
@@ -11430,6 +11890,42 @@
             "false",
             "true"
           ]
+        },
+        "Height": {
+         "attr": "height",
+         "composite": true,
+         "label": "Height",
+         "description": "Specifies the height of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering.",
+         "category": "@Properties",
+         "type": "style",
+         "value": "100%",
+         "values": [
+            false,
+            "100%",
+            true
+         ]
+        },
+        "Width": {
+         "attr": "width",
+         "composite": true,
+         "label": "Width",
+         "description": "Specifies the width of the grid, pixel (px) or percentage (%).",
+         "category": "@Properties",
+         "type": "style",
+         "value": false,
+         "values": [
+            false,
+            "100%",
+            true
+         ]
+        },
+        "Style": {
+         "attr": "style",
+         "hidden": true,
+         "label": "Style",
+         "description": "Specifies the style of the grid.",
+         "category": "@Properties",
+         "value": "width: $[Width]; height: $[Height]"
         }
       }
     },
@@ -11447,20 +11943,43 @@
       "icon16": "grid_row_color_16x16.png",
       "icon32": "grid_row_color_32x32.png",
       "properties": {
-        "Height": {
-          "attr": "style",
-          "label": "Height",
-          "description": "Hight of the row, pixel (px) or percentage (%). Use 100% to set a row taking the full grid height, usefull for vertical centering.",
-          "category": "Attribute",
-          "value": "height:100%",
-          "values": [
+        "Width": {
+         "attr": "width",
+         "composite": true,
+         "label": "Width",
+         "description": "Specifies the witdh of the row, pixel (px) or percentage (%).",
+         "category": "@Properties",
+         "type": "style",
+         "value": false,
+         "values": [
             false,
-            "height:100%",
+            "100%",
             true
-          ]
+         ]
         },
-      
-         "FlexJustifyContent": {
+        "Height": {
+         "attr": "height",
+         "composite": true,
+         "label": "Height",
+         "description": "Specifies the height of the row, pixel (px) or percentage (%). Use 100% to set a row taking the full grid height, usefull for vertical centering.",
+         "category": "@Properties",
+         "type": "style",
+         "value": "100%",
+         "values": [
+            false,
+            "100%",
+            true
+         ]
+        },
+        "Style": {
+         "attr": "style",
+         "hidden": true,
+         "label": "Style",
+         "description": "Specifies the style of the row.",
+         "category": "@Properties",
+         "value": "width: $[Width]; height: $[Height]"
+        },
+        "FlexJustifyContent": {
           "attr": "class",
           "label": "Justification",
           "description": "Specifies how items are packed on the main axis.",
@@ -11544,35 +12063,35 @@
          },
          "OffsetLg": {
           "attr": "offset-lg",
-          "label": "Offset (lg)",
+          "label": "Offset 992-1200 px (lg)",
           "description": "The amount to offset the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetMd": {
           "attr": "offset-md",
-          "label": "Offset (md)",
+          "label": "Offset 768-992 px (md)",
           "description": "The amount to offset the column for md screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetSm": {
           "attr": "offset-sm",
-          "label": "Offset (sm)",
+          "label": "Offset 576-768 px (sm)",
           "description": "The amount to offset the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetXl": {
           "attr": "offset-xl",
-          "label": "Offset (xl)",
+          "label": "Offset 1200-over px (xl)",
           "description": "The amount to offset the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetXs": {
           "attr": "offset-xs",
-          "label": "Offset (xs)",
+          "label": "Offset 0-576 px (xs)",
           "description": "The amount to offset the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
@@ -11586,35 +12105,35 @@
          },
          "PullLg": {
           "attr": "pull-lg",
-          "label": "Pull (lg)",
+          "label": "Pull 992-1200 px (lg)",
           "description": "The amount to pull the column for lg screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullMd": {
           "attr": "pull-md",
-          "label": "Pull (md)",
+          "label": "Pull 768-992 px (md)",
           "description": "The amount to pull the column for md screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullSm": {
           "attr": "pull-sm",
-          "label": "Pull (sm)",
+          "label": "Pull 576-768 px (sm)",
           "description": "The amount to pull the column for sm screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullXl": {
           "attr": "pull-xl",
-          "label": "Pull (xl)",
+          "label": "Pull 1200-over px (xl)",
           "description": "The amount to pull the column for xl screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullXs": {
           "attr": "pull-xs",
-          "label": "Pull (xs)",
+          "label": "Pull 0-576 px (xs)",
           "description": "The amount to pull the column for xs screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
@@ -11628,35 +12147,35 @@
          },
          "PushLg": {
           "attr": "push-lg",
-          "label": "Push (lg)",
+          "label": "Push 992-1200 px (lg)",
           "description": "The amount to push the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushMd": {
           "attr": "push-md",
-          "label": "Push (md)",
+          "label": "Push 768-992 px (md)",
           "description": "The amount to push the column for md screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushSm": {
           "attr": "push-sm",
-          "label": "Push (sm)",
+          "label": "Push 576-768 px (sm)",
           "description": "The amount to push the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushXl": {
           "attr": "push-xl",
-          "label": "Push (xl)",
+          "label": "Push 1200-over px (xl)",
           "description": "The amount to push the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushXs": {
           "attr": "push-xs",
-          "label": "Push (xs)",
+          "label": "Push 0-576 px (xs)",
           "description": "The amount to push the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false

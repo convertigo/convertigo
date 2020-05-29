@@ -62,7 +62,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 	/*
 	 * the self-closing state
 	 */
-	private boolean selfClose = false;
+	protected boolean selfClose = false;
 	
 	public boolean isSelfClose() {
 		return selfClose;
@@ -139,6 +139,10 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 					}
 				}
 			}
+			if (component instanceof UIDynamicAttr) {
+				UIDynamicAttr uiDynAttr = (UIDynamicAttr)component;
+				attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiDynAttr.initAttrClasses());
+			}
 		}
 		return attrclasses;
 	}
@@ -147,6 +151,15 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		StringBuilder sb = new StringBuilder();
 		if (!identifier.isEmpty()) {
 			sb.append(" #"+ identifier);
+		}
+		
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIDynamicAttr) {
+				UIDynamicAttr uiDynAttr = (UIDynamicAttr)component;
+				sb.append(sb.length()>0 ? " ":"").append(uiDynAttr.initAttributes());
+			}
 		}
 		return sb;
 	}

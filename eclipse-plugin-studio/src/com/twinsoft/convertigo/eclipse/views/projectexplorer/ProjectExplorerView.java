@@ -1714,6 +1714,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS;
 									}
 								}
+								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr) {
+									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES;
+								}
 								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStyle) {
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STYLES;
 								}
@@ -3240,7 +3243,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAttribute &&
+					return (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAttribute ||
+							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr) &&
 							!(databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlAttr);
 				case ObjectsFolderTreeObject.FOLDER_TYPE_CONTROLS:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlAttr;

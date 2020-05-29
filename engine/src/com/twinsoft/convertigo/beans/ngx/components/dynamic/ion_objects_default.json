@@ -1829,15 +1829,25 @@
   "   7   9   0": {
    "name": "Grid",
    "properties": {
-    "Height": {
-     "name": "Height",
-     "mode": "plain",
-     "value": "height:100%"
-    },
     "Fixed": {
      "name": "Fixed",
      "mode": "plain",
      "value": "false"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "100%"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "Style": {
+     "name": "Style",
+     "mode": "plain",
+     "value": "width: $[Width]; height: $[Height]"
     }
    }
   }
@@ -1978,10 +1988,20 @@
   "   7   9   0": {
    "name": "GridRow",
    "properties": {
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
     "Height": {
      "name": "Height",
      "mode": "plain",
-     "value": "height:100%"
+     "value": "100%"
+    },
+    "Style": {
+     "name": "Style",
+     "mode": "plain",
+     "value": "width: $[Width]; height: $[Height]"
     },
     "FlexJustifyContent": {
      "name": "FlexJustifyContent",
@@ -2866,6 +2886,158 @@
      "name": "Style",
      "mode": "plain",
      "value": "width: $[Width]; height: $[Height]"
+    }
+   }
+  }
+ },
+ "FormatLayout": {
+  "   7   9   0": {
+   "name": "FormatLayout",
+   "properties": {
+    "TextAlignment": {
+     "name": "TextAlignment",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentXs": {
+     "name": "TextAlignmentXs",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentSm": {
+     "name": "TextAlignmentSm",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentMd": {
+     "name": "TextAlignmentMd",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentLg": {
+     "name": "TextAlignmentLg",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentXl": {
+     "name": "TextAlignmentXl",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformation": {
+     "name": "TextTransformation",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationXs": {
+     "name": "TextTransformationXs",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationSm": {
+     "name": "TextTransformationSm",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationMd": {
+     "name": "TextTransformationMd",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationLg": {
+     "name": "TextTransformationLg",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationXl": {
+     "name": "TextTransformationXl",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacement": {
+     "name": "FloatPlacement",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementXs": {
+     "name": "FloatPlacementXs",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementSm": {
+     "name": "FloatPlacementSm",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementMd": {
+     "name": "FloatPlacementMd",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementLg": {
+     "name": "FloatPlacementLg",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementXl": {
+     "name": "FloatPlacementXl",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenBorder": {
+     "name": "HiddenBorder",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplay": {
+     "name": "HiddenDisplay",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayXs": {
+     "name": "HiddenDisplayXs",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplaySm": {
+     "name": "HiddenDisplaySm",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayMd": {
+     "name": "HiddenDisplayMd",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayLg": {
+     "name": "HiddenDisplayLg",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayXl": {
+     "name": "HiddenDisplayXl",
+     "mode": "plain",
+     "value": false
+    },
+    "ContentPadding": {
+     "name": "ContentPadding",
+     "mode": "plain",
+     "value": false
+    },
+    "ContentMargin": {
+     "name": "ContentMargin",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexContainerAlignment": {
+     "name": "FlexContainerAlignment",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexItemAlignment": {
+     "name": "FlexItemAlignment",
+     "mode": "plain",
+     "value": false
     }
    }
   }

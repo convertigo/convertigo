@@ -462,6 +462,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAttribute">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAnimation">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
 				</bean>

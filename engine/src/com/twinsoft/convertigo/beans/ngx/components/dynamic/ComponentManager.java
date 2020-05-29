@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UICustom;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
@@ -418,6 +419,7 @@ public class ComponentManager {
 					if (bean.getTag().equals("ion-menu")) {
 						return parent instanceof ApplicationComponent;
 					}
+					
 					if (bean.getClassName().startsWith("com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem")) {
 						if (parent instanceof UIComponent) {
 							if (parent instanceof UIDynamicMenuItem) return false;
@@ -588,6 +590,7 @@ public class ComponentManager {
 					!UISharedComponent.class.isAssignableFrom(dboClass) &&
 					!UIFormValidator.class.isAssignableFrom(dboClass) &&
 					!UIAttribute.class.isAssignableFrom(dboClass) &&
+					!UIDynamicAttr.class.isAssignableFrom(dboClass) &&
 					!UIControlVariable.class.isAssignableFrom(dboClass) &&
 					!UIActionEvent.class.isAssignableFrom(dboClass) &&
 					!IAction.class.isAssignableFrom(dboClass)) {
@@ -663,6 +666,8 @@ public class ComponentManager {
 					if (UIControlVariable.class.isAssignableFrom(dboClass)) {
 						return true;
 					}
+				} else if (dboParent instanceof UIDynamicAttr) {
+					return false;
 				} else if (dboParent instanceof UIElement) {
 					if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
 						return menu != null;
