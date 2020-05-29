@@ -396,8 +396,8 @@ public class ComponentManager {
 //			components.add(getDboComponent(UICustomAction.class,group));
 			
 			components.add(getDboComponent(UIForm.class,"Forms"));
-			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));
-			components.add(getDboComponent(UIFormCustomValidator.class,"Forms"));
+//			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));
+//			components.add(getDboComponent(UIFormCustomValidator.class,"Forms"));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
