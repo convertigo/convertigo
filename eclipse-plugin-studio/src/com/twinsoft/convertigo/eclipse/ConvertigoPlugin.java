@@ -676,7 +676,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					username = DeploymentKey.adminUser.value(properties, 1);
 				} catch (Exception e) {}
 
-				String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
+				//String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
+				String url = "https://www.convertigo.com/quick-start-videos/";
 				url += "&" + URLUtils.encodePart("user", username);
 				url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
 
