@@ -1026,6 +1026,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 		});
+		
+		
+		item = new ToolItem(toolbar, SWT.CHECK);
+		item.setToolTipText("Show Grids");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/grid_color_16x16.png")));
+		item.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean showGrid = ((ToolItem) e.widget).getSelection();
+				C8oBrowser.run(() -> c8oBrowser.executeJavaScriptAndReturnValue("_c8o_showGrids(" + (showGrid ? "true":"false") +")")); 
+			}
+		});
 	}
 	
 	private void updateDevicesMenu() {

@@ -120,6 +120,47 @@ function _c8o_handle_context_menu(e) {
 	e.preventDefault();
 }
 
+function _c8o_showGrids(bShow) {
+	//console.log("**** showGrids:" + bShow)
+	class styleUtils  {
+		constructor() {
+			this.final_style = document.createElement('style');
+			this.final_style.type = 'text/css';
+		}
+
+		addNewStyle(selector, style, id){
+			this.final_style.innerHTML += selector + '{ ' + style + ' } \n';
+			this.final_style.id =  id;
+		}
+
+		submitNewStyle() {
+			document.getElementsByTagName('head')[0].appendChild(this.final_style);
+			this.final_style = document.createElement('style');
+			this.final_style.type = 'text/css';
+		}
+		
+		removeStyle(selector) {
+		    var elem = document.getElementById(selector);
+		    if (elem)
+		    	return elem.parentNode.removeChild(elem);
+		}
+	}
+	
+	su = new styleUtils();
+	//console.log("**** showGrids: su : " + su);
+	
+	if (bShow) {
+		su.addNewStyle("ion-grid", "border: solid 1px red",  '_c8o_style_');
+		su.addNewStyle("ion-row",  "border: solid 1px blue", '_c8o_style_');
+		su.addNewStyle("ion-col",  "border: solid 1px green",'_c8o_style_');
+		su.submitNewStyle();
+	} else {
+		su.removeStyle("_c8o_style_");
+	}
+	
+	//console.log("**** showGrids: Finished" + bShow)
+}
+
 _c8o_highlight_class_previous = null;
 function _c8o_highlight_class(classname) {
 	var i, nl;
