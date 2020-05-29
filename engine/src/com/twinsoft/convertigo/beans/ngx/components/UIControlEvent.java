@@ -101,7 +101,7 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 	/*
 	 * The event to bind
 	 */
-	private String eventName = AttrEvent.onTap.name();
+	private String eventName = AttrEvent.onClick.name();
 
 	public String getEventName() {
 		return eventName;
