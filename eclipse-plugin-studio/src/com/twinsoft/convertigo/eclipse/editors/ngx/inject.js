@@ -8,7 +8,7 @@ function _c8o_toast(msg) {
 		"margin: 2% 5%;" +
 		"background-color: black;" +
 		"color: white;" +
-		"font-size: 1.5em;" +
+		"font-size: 1.2em;" +
 		"font-family: sans-serif" +
 		"padding: 5px;" +
 		"width: 90%;" +
@@ -162,16 +162,70 @@ function _c8o_showGrids(bShow) {
 }
 
 _c8o_highlight_class_previous = null;
+_c8o_OverlayOriginalPosition = [];
+
+function _c8o_keyEventListener(e) {
+	ol = [...document.getElementsByClassName("_c8o_overlay")]
+	for (i in ol) {
+		
+		//console.log("i                 : " + i)
+		//console.log("ol[i].style.left  : " + ol[i].style.left)
+		//console.log("ol[i].style.top   : " + ol[i].style.top)
+		
+		switch(e.keyCode) {
+			case 27: // Escape , reset original position
+				ol[i].style.left = window._c8o_OverlayOriginalPosition[i].left; 
+				ol[i].style.top  = window._c8o_OverlayOriginalPosition[i].top;
+				e.preventDefault();
+				break;
+			case 39: // Key right
+				ol[i].style.left = ol[i].style.left.replace("px", "") * 1 + 1 + "px";
+				e.preventDefault();
+				break;
+			case 37: // Key Left
+				ol[i].style.left = ol[i].style.left.replace("px", "") * 1 - 1 + "px";
+				e.preventDefault();
+				break;
+			case 38: // Key UP
+				ol[i].style.top =  ol[i].style.top.replace("px", "") * 1 - 1 + "px";
+				e.preventDefault();
+				break;
+			case 40: // Key Down
+				ol[i].style.top =  ol[i].style.top.replace("px", "") * 1 + 1 + "px";
+				e.preventDefault();
+				break;
+			case 13: // Key ENTER
+				moveBy = {
+					x: Math.round(ol[i].style.left.replace("px", "") * 1 - window._c8o_OverlayOriginalPosition[i].left.replace("px", "") * 1),
+					y: Math.round(ol[i].style.top.replace("px", "") * 1 -  window._c8o_OverlayOriginalPosition[i].top.replace("px", "") * 1)
+				}
+				
+				if (moveBy.x != 0 && moveBy.y != 0) {
+					console.log("Moving the component class:" + ol[i].getAttribute("targetClass") + " by  x:" + moveBy.x + ",y:" + moveBy.y);
+					// _c8o_toast("Moving the component x:" + moveBy.x + ",y:" + moveBy.y);
+				}
+				
+				
+				e.preventDefault();
+				break;
+		}
+	}
+}
+
 function _c8o_highlight_class(classname) {
 	var i, nl;
 	var ol = [...document.getElementsByClassName("_c8o_overlay")];
+	
 	if (_c8o_highlight_class_previous != classname) {
 		_c8o_highlight_class_previous = classname;
 		nl = document.getElementsByClassName(classname);
+		document.addEventListener("keydown", _c8o_keyEventListener); 	
 	} else {
 		_c8o_highlight_class_previous = null;
 		nl = [];
+		document.removeEventListener("keydown", _c8o_keyEventListener);
 	}
+	
 	for (i = 0; i < nl.length; i++) {
 		var overlay = ol[i];
 		var rect = nl[i].getBoundingClientRect();
@@ -197,39 +251,11 @@ function _c8o_highlight_class(classname) {
 					+ "width: 1px;"
 					+ "height: 1px;"
 					+ "border: red dotted 3px;");
+			
 			overlay.setAttribute("class", "_c8o_overlay");
 			
 			window._c8o_dragOverLay = false;
 			
-			document.addEventListener("keydown", function(e) {
-				ol = [...document.getElementsByClassName("_c8o_overlay")]
-				switch(e.keyCode) {
-					case 27: // Escape , reset original position
-						ol[0].style.left = window._c8o_OverlayOriginalPosition.left; 
-						ol[0].style.top  = window._c8o_OverlayOriginalPosition.top;
-						break;
-					case 39: // Key right
-						ol[0].style.left = ol[0].style.left.replace("px", "") * 1 + 1 + "px";
-						break;
-					case 37: // Key Left
-						ol[0].style.left = ol[0].style.left.replace("px", "") * 1 - 1 + "px";
-						break;
-					case 38: // Key UP
-						ol[0].style.top =  ol[0].style.top.replace("px", "") * 1 - 1 + "px";
-						break;
-					case 40: // Key Down
-						ol[0].style.top =  ol[0].style.top.replace("px", "") * 1 + 1 + "px";
-						break;
-					case 13: // Key ENTER
-						moveBy = {
-							x: Math.round(ol[0].style.left.replace("px", "") * 1 - window._c8o_OverlayOriginalPosition.left.replace("px", "") * 1),
-							y: Math.round(ol[0].style.top.replace("px", "") * 1 -  window._c8o_OverlayOriginalPosition.top.replace("px", "") * 1)
-						}
-						_c8o_toast("Moving the component x:" + moveBy.x + ",y:" + moveBy.y);
-						break;
-				}
-			});
-
 			overlay.addEventListener("mousedown", function(e) {
 				// console.log("Mouse Down : " + e.x + " " + e.y);
 				window._c8o_dragOverLay = {
@@ -258,22 +284,24 @@ function _c8o_highlight_class(classname) {
 			container.appendChild(overlay);
 			_c8o_toast("You can drag the component using the mouse or arrow keys, use ESC to reset to original position or ENTER to set new component position");
 		}
+
+		
 		
 		window._c8o_currentElement = element;
 		window._c8o_currentContainer = container;
 		overlay.removeEventListener("contextmenu", _c8o_handle_context_menu);
 		overlay.addEventListener("contextmenu",    _c8o_handle_context_menu);
+		overlay.setAttribute("targetClass", classname);
 		
 		overlay.style.top = (rect.top - cRect.top + container.scrollTop) + "px";
 		overlay.style.left = (rect.left - cRect.left) + "px";
 		overlay.style.width = rect.width + "px";
 		overlay.style.height = rect.height + "px";
 		
-		window._c8o_OverlayOriginalPosition  = {
+		window._c8o_OverlayOriginalPosition[i]  = {
 				top: overlay.style.top,
 				left: overlay.style.left,
 		};
-		
 		// console.log(JSON.stringify(window._c8o_OverlayOriginalPosition));
 	}
 	
