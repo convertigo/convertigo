@@ -23,6 +23,7 @@ import java.util.Iterator;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -107,6 +108,13 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 				}
         	}
         	
+        	if (uiComponent instanceof UIStyle && uiComponent.bNew) {
+				String scss = getCustomScss();
+				if (!scss.isEmpty()) {
+					((UIStyle)uiComponent).setStyleContent(new FormatedContent(scss));
+				}
+        	}
+        	
         	super.addUIComponent(uiComponent, after);
         }
 	}
@@ -126,6 +134,10 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		return "";
 	}
 
+	protected String getCustomScss() {
+		return "";
+	}
+	
 	protected StringBuilder initAttrClasses() {
 		StringBuilder attrclasses = new StringBuilder();
 		Iterator<UIComponent> it = getUIComponentList().iterator();

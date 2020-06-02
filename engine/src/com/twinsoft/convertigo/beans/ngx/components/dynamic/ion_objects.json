@@ -7086,7 +7086,32 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus"
         }
-      }
+      },
+      "scss": [
+		"//--background	//Background of the button\n",
+		"//--background-activated	//Background of the button when pressed. Note: setting this will interfere with the Material Design ripple\n",
+		"//--background-activated-opacity	//Opacity of the button when pressed\n",
+		"//--background-focused	//Background of the button when focused with the tab key\n",
+		"//--background-focused-opacity	//Opacity of the button when focused with the tab key\n",
+		"//--background-hover	//Background of the button on hover\n",
+		"//--background-hover-opacity	//Opacity of the background on hover\n",
+		"//--border-color	//Border color of the button\n",
+		"//--border-radius	//Border radius of the button\n",
+		"//--border-style	//Border style of the button\n",
+		"//--border-width	//Border width of the button\n",
+		"//--box-shadow	//Box shadow of the button\n",
+		"//--color	//Text color of the button\n",
+		"//--color-activated	//Text color of the button when pressed\n",
+		"//--color-focused	//Text color of the button when focused with the tab key\n",
+		"//--color-hover	//Text color of the button when hover\n",
+		"//--opacity	//Opacity of the button\n",
+		"//--padding-bottom	//Bottom padding of the button\n",
+		"//--padding-end	//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button\n",
+		"//--padding-start	//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button\n",
+		"//--padding-top	//Top padding of the button\n",
+		"//--ripple-color	//Color of the button ripple effect\n",
+		"//--transition	//Transition of the button\n"
+     ]
     },
 
     "MenuButton": {
@@ -8217,7 +8242,7 @@
 	  "displayName": "SkeletonText",
       "label": "Skeleton Text",
       "description": [
-"The <i>Skeleton Text</i> is a component for rendering placeholder content. The element will render a gray block at the specified width.<br/>",
+"ion-skeleton-text | The <i>Skeleton Text</i> is a component for rendering placeholder content. The element will render a gray block at the specified width.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/skeleton-text'>Skeleton Text</a>."],
       "group": "Miscellaneous",
       "icon16": "skeleton_color_16x16.png",
@@ -9922,7 +9947,7 @@
 "ion-reorder| Defines a <i>Reorder</i> component.<br/>",
 "The <i>Reorder</i> is the anchor component used to drag and drop the items inside of the <i>Reorder Group</i>.<br/>",
 "It allows an item in a group of items to be dragged to change its order within that group. It must be used within a <i>Reorder Group</i> to provide a visual drag and drop interface.<br/>",
-" For more information: <a href='https://ionicframework.com/docs/api/reorder-group'>Reorder Group</a>."],
+" For more information: <a href='https://ionicframework.com/docs/api/reorder'>Reorder</a>."],
       "group": "Lists",
       "icon16": "reorder_16x16.png",
       "icon32": "reorder_32x32.png",

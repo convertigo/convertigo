@@ -281,6 +281,33 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return "";
 	}
 	
+	@Override
+	protected String getCustomScss() {
+		IonBean ionBean = getIonBean();
+		
+		String scss = "";
+		if (ionBean != null) {
+			for (String s: ionBean.getScssList()) {
+				scss += s;
+			}
+			if (!scss.isEmpty()) {
+				String cartridge = "";
+				cartridge += "/**\n";
+				cartridge += " * Custom properties (sometimes referred to as CSS variables or cascading variables)\n";
+				cartridge += " * are entities defined by CSS authors that contain specific values to be reused throughout a document.\n";
+				cartridge += " * They are set using custom property notation, e.g.: --main-color: black;\n";
+				cartridge += " * and are accessed using the var() function, e.g.: color: var(--main-color);\n";
+				cartridge += " * You can find below your component's properties you can customize within the page.\n";
+				cartridge += " * If you'd like to make some customizations for whole app, please see your app Style & Theme components.\n";
+				cartridge += " * For more informations see https://ionicframework.com/docs/theming.\n";
+				cartridge += "**/\n";
+				
+				scss = cartridge + scss;
+			}
+		}
+		return scss;
+	}
+	
 	protected String[] getEventNames() {
 		IonBean ionBean = getIonBean();
 		

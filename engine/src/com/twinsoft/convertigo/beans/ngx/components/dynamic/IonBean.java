@@ -19,8 +19,10 @@
 
 package com.twinsoft.convertigo.beans.ngx.components.dynamic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -49,6 +51,7 @@ public class IonBean {
 		icon32,
 		properties,
 		events,
+		scss,
 		config
 		;
 	}
@@ -74,6 +77,7 @@ public class IonBean {
 				.put(Key.icon32.name(), "default_color_32x32.png")
 				.put(Key.properties.name(), new JSONObject())
 				.put(Key.events.name(), new JSONObject())
+				.put(Key.events.name(), new JSONArray())
 				.put(Key.config.name(), new JSONObject())
 				;
 		} catch (JSONException e) {
@@ -355,6 +359,21 @@ public class IonBean {
 	
 	public IonEvent getEvent(String eventName) {
 		return getEvents().get(eventName);
+	}
+	
+	public List<String> getScssList() {
+		List<String> scss = new ArrayList<String>();
+		try {
+			if (jsonBean.has(Key.scss.name())) {
+				JSONArray arr = jsonBean.getJSONArray(Key.scss.name());
+				for (int i= 0; i < arr.length(); i++) {
+					scss.add(arr.getString(i));
+				}
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return scss;
 	}
 	
 	public Map<String, IonEvent> getEvents() {
