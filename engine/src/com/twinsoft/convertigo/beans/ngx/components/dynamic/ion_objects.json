@@ -10088,8 +10088,8 @@
 "All <i>Sliding Button</i>s to reveal should be placed in a <i>Sliding ButtonSet</i> component.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/item-sliding'>Sliding item</a>."],
       "group": "Lists",
-      "icon16": "slidingitem_16x16.png",
-      "icon32": "slidingitem_32x32.png",
+      "icon16": "slidingcontainer_16x16.png",
+      "icon32": "slidingcontainer_32x32.png",
       "properties": {
         "Disabled": "false"
       },
@@ -10110,8 +10110,8 @@
 "A <i>Sliding ButtonSet</i> contains one or more <i>Sliding Button</i>s which reveals while sliding.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/item-options'>Sliding options</a>."],
       "group": "Lists",
-      "icon16": "slidingoptions_16x16.png",
-      "icon32": "slidingoptions_32x32.png",
+      "icon16": "slidingbuttonset_16x16.png",
+      "icon32": "slidingbuttonset_32x32.png",
       "properties": {
         "Side": {
           "attr": "side",

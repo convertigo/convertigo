@@ -289,10 +289,10 @@ public class IonBean {
 		}
 	}
 	public String getIconColor16Path() {
-		return "/com/twinsoft/convertigo/beans/mobile/components/dynamic/images/"+ getIcon16();
+		return "/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/"+ getIcon16();
 	}
 	public String getIconColor32Path() {
-		return "/com/twinsoft/convertigo/beans/mobile/components/dynamic/images/"+ getIcon32();
+		return "/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/"+ getIcon32();
 	}
 	
 	public boolean hasProperty(String propertyName) {
