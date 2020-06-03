@@ -3109,5 +3109,62 @@
     }
    }
   }
+ },
+ "TreeviewComponent": {
+  "   7   9   0": {
+   "name": "TreeviewComponent",
+   "properties": {
+    "treenodes": {
+     "name": "treenodes",
+     "mode": "script",
+     "value": "[{'id': 1,'name': 'root1','children': [{'id': 2,'name': 'child1'}, {'id': 3,'name': 'child2'}]}]"
+    },
+    "displayField": {
+     "name": "displayField",
+     "mode": "plain",
+     "value": "name"
+    },
+    "childrenField": {
+     "name": "childrenField",
+     "mode": "plain",
+     "value": "children"
+    },
+    "hasChildrenField": {
+     "name": "hasChildrenField",
+     "mode": "plain",
+     "value": "hasChildren"
+    },
+    "idField": {
+     "name": "idField",
+     "mode": "plain",
+     "value": "id"
+    },
+    "isExpandedField": {
+     "name": "isExpandedField",
+     "mode": "plain",
+     "value": "expanded"
+    },
+    "RTL": {
+     "name": "RTL",
+     "mode": "plain",
+     "value": "false"
+    },
+    "scrollOnSelect": {
+     "name": "scrollOnSelect",
+     "mode": "plain",
+     "value": "true"
+    },
+    "useCheckbox": {
+     "name": "useCheckbox",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{childrenField: $[childrenField], displayField: $[displayField], idField:$[idField], hasChildrenField:$[hasChildrenField], isExpandedField:$[isExpandedField], rtl:$[RTL], scrollOnSelect:$[scrollOnSelect], useCheckbox:$[useCheckbox]}"
+    }
+   }
+  }
  }
 }

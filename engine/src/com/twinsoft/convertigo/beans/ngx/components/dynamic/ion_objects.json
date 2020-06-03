@@ -14266,12 +14266,11 @@
             {"package":"angular2-signaturepad", "version":"2.7.0"}
         ]
       }
-    }
+    },
 
     /*
      * TreeviewComponent
      */
-/*
     "TreeviewComponent" : {
       "enabled": true,
       "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
@@ -14282,7 +14281,6 @@
       "group": "Lists",
       "icon16": "treeviewcomponent_color_16x16.png",
       "icon32": "treeviewcomponent_color_32x32.png",
-      
       "properties": {
         "treenodes": {
           "mode": "script",
@@ -14432,14 +14430,11 @@
         "module_ng_components": [
         ],
         "package_dependencies": [
-            {"package":"angular-tree-component", "version":"7.0.2"}
+            {"package":"angular-tree-component", "version":"7.2.1"}
         ]
       }	        
     }
-*/
    
-//	,
-	
 	/*
 	 * Actions
   	*/

@@ -107,7 +107,7 @@ export class TreeviewComponent {
   @Output() private onFocus = new EventEmitter<any>();
   @Output() private onBlur = new EventEmitter<any>();
   
-  @ViewChild(TreeComponent)
+  @ViewChild(TreeComponent, { static: false })
   private tree: TreeComponent;
   
   public focused: boolean = true;
