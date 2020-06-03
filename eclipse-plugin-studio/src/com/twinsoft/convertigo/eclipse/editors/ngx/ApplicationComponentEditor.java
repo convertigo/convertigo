@@ -1383,7 +1383,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			// "ionic:serve:eval": "ng serve app --sourceMap=false --optimization=true",
 			// "ionic:serve:nosourcemap": "ng serve app --sourceMap=false",
 			// "ionic:serve": "ng serve app --sourceMap=true"
-			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command());
+			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
 			if (MobileBuilderBuildMode.production.equals(buildMode)) {
 				String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 				String baseHref = SERVER_C8O_URL.substring(SERVER_C8O_URL.lastIndexOf("/")) + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
