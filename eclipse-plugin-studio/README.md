@@ -28,13 +28,13 @@ In the wizard, select your git/convertigo folder.
 
 The wizard will automatically import projects, configure a new working set named convertigo.
 
-A will propose to install org.eclipse.swt.common.modulecore.ModuleCoreNature : CANCEL all stacked dialogs !
+It may propose you to install org.eclipse.swt.common.modulecore.ModuleCoreNature : CANCEL all stacked dialogs !
 
-In the Gradle Tasks vew, execute convertigo > generateEclipseConfigurationWithManifest.
+In the Gradle Tasks view, execute convertigo > convertigo > generateEclipseConfigurationWithManifest.
 
 Refresh the convertigo project.
 
-When the dialog for ModuleCoreNature comes again, the click Show Solution and Install Eclipse Java Enterprise Developer Tools.
+When the dialog for ModuleCoreNature comes again, click the **Show Solution** and Install Eclipse Java Enterprise Developer Tools.
 
 At the wizard with checkboxes, check only:
 * Eclipse Java EE Developer Tools
@@ -43,5 +43,5 @@ At the wizard with checkboxes, check only:
 * JST Server Adapters
 * JST Server Adapters Extensions
 * (Eclipse Web Developer Tools)
-* (Eclipse XLM Editors and Tools)
+* (Eclipse XML Editors and Tools)
 * (Docker Tooling)
