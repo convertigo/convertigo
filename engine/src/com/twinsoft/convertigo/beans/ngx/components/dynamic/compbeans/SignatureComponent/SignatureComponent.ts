@@ -15,7 +15,7 @@ import { SignaturePad }                            							from 'angular2-signatu
 })
 export class SignatureComponent implements ControlValueAccessor {
   @Input() public options: Object = {};
-  @ViewChild(SignaturePad) public signaturePad: SignaturePad;
+  @ViewChild(SignaturePad, { static: false }) public signaturePad: SignaturePad;
 
   public _signature: any = null;
 

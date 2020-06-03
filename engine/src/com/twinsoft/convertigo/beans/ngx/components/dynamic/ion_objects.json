@@ -14023,7 +14023,7 @@
           ]
         }
       }
-    }
+    },
     
     /*
      * AutoInfiniteScroll
@@ -14110,7 +14110,6 @@
     /*
      * SignatureComponent
      */
-/*
     "SignatureComponent" : {
       "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicComponent",
       "tag": "c8o-signature",
@@ -14118,14 +14117,11 @@
       "label": "Signature",
       "description": [
 "c8o-signature. | Displays a Signature pad. This component uses an Angular2 component based on the Signature Pad JavaScript library.<br/>",
-"For more information: <a href='https://www.npmjs.com/package/angular2-signaturepad'>angular2-signaturepad</a>.<br/>",
-"<br/>",
-"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form.<br/>",
-"If you'd like to have some label, add a <i>Text</i> under a <i>Div</i>. Do not use <i>Label</i> component."],
+"For more information: <a href='https://www.npmjs.com/package/angular2-signaturepad'>angular2-signaturepad</a>.<br/><br/>",
+"<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form.<br/>"],
       "group": "Forms",
       "icon16": "signaturecomponent_color_16x16.png",
       "icon32": "signaturecomponent_color_32x32.png",
-      
       "properties": {
         "DotSize": {
           "composite": true,
@@ -14245,7 +14241,6 @@
           "value": "{dotSize: $[DotSize], minWidth: $[LineMinWidth], maxWidth: $[LineMaxWidth], canvasWidth: $[CanvasWidth], canvasHeight: $[CanvasHeight], throttle: $[Throttle], backgroundColor: $[BackgroundColor], penColor: $[PenColor], velocityFilterWeight: $[VelocityFilterWeight]}"
         }
       },
-      
       "events": {
         "onBeginEvent": {
           "attr":"(onBeginEvent)",
@@ -14256,7 +14251,6 @@
           "description": "This event is fired when the user stops drawing"
         }
       },
-      
       "config": {
         "module_ts_imports": [
           {"from":"../components/SignatureComponent/SignatureModule", "components":["SignatureModule"]}
@@ -14272,9 +14266,8 @@
             {"package":"angular2-signaturepad", "version":"2.7.0"}
         ]
       }
-      
-    },
-*/
+    }
+
     /*
      * TreeviewComponent
      */

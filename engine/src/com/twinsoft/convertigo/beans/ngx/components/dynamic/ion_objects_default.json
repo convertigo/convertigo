@@ -3052,5 +3052,62 @@
     }
    }
   }
+ },
+ "SignatureComponent": {
+  "   7   9   0": {
+   "name": "SignatureComponent",
+   "properties": {
+    "DotSize": {
+     "name": "DotSize",
+     "mode": "plain",
+     "value": false
+    },
+    "LineMinWidth": {
+     "name": "LineMinWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "LineMaxWidth": {
+     "name": "LineMaxWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "CanvasWidth": {
+     "name": "CanvasWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "CanvasHeight": {
+     "name": "CanvasHeight",
+     "mode": "plain",
+     "value": false
+    },
+    "Throttle": {
+     "name": "Throttle",
+     "mode": "plain",
+     "value": false
+    },
+    "VelocityFilterWeight": {
+     "name": "VelocityFilterWeight",
+     "mode": "plain",
+     "value": false
+    },
+    "BackgroundColor": {
+     "name": "BackgroundColor",
+     "mode": "plain",
+     "value": false
+    },
+    "PenColor": {
+     "name": "PenColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{dotSize: $[DotSize], minWidth: $[LineMinWidth], maxWidth: $[LineMaxWidth], canvasWidth: $[CanvasWidth], canvasHeight: $[CanvasHeight], throttle: $[Throttle], backgroundColor: $[BackgroundColor], penColor: $[PenColor], velocityFilterWeight: $[VelocityFilterWeight]}"
+    }
+   }
+  }
  }
 }

@@ -1407,7 +1407,7 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgRoutes\\*/",c8o_ModuleNgRoutes);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgRoutess\\*/","");
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgRoutes\\*/","");
 		
 		for (String compbean : comp_beans_dirs.keySet()) {
 			File srcCompDir = comp_beans_dirs.get(compbean);
