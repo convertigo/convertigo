@@ -940,6 +940,9 @@ public class Engine {
 				try {
 					SapJcoDestinationDataProvider.destroy();
 				}
+				catch (NoClassDefFoundError e) {
+					// java.lang.NoClassDefFoundError: com/sap/conn/jco/ext/DestinationDataProvider
+				}
 				catch (Throwable e) {
 					Engine.logEngine.error("Error while unregistering SAP destination provider", e);
 				}

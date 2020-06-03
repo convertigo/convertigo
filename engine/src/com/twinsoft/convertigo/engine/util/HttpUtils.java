@@ -368,7 +368,11 @@ public class HttpUtils {
 			return applyCorsHeaders(request, response, filterCorsOrigin(globalCorsPolicy, origin));
 		} catch (Exception e) {
 			if (Engine.logEngine != null) {
-				Engine.logEngine.warn("(HttpUtils) Failed applyCorsHeaders", e);
+				if (e instanceof IllegalStateException) {
+					Engine.logEngine.warn("Cannot retrieve properties for applyCorsHeaders, Engine probably stopped.");
+				} else {
+					Engine.logEngine.warn("(HttpUtils) Failed applyCorsHeaders", e);
+				}
 			}
 			return null;
 		}
