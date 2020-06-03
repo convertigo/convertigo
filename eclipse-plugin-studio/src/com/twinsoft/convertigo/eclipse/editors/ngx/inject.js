@@ -53,9 +53,6 @@ function _c8o_display_menu(element, container) {
 	menuFunctions = {
 		addOption: function(ul, optionText, action) {
 			li = ul.appendChild(document.createElement("li"))
-			check = li.appendChild(document.createElement("input"));
-			check.setAttribute("type", "checkbox");
-			
 			label = li.appendChild(document.createElement("label"))
 			label.appendChild(document.createTextNode(optionText))
 			label.setAttribute("style", "margin-left: 6px");
@@ -67,6 +64,16 @@ function _c8o_display_menu(element, container) {
 			
 			li.setAttribute("onmouseover", "this.style.backgroundColor='#808080'");
 			li.setAttribute("onmouseout",  "this.style.backgroundColor='#f1f1f1'");
+			li.onclick =  function () { 
+				var ml = [...document.getElementsByClassName('_c8o_menu')];
+				if (ml.length != 0) 
+					ml[0].remove();
+			};
+		},
+		
+		addSeparator(ul) {
+			hr = ul.appendChild(document.createElement("hr"))
+			hr.setAttribute("style", "border-width: 1px");
 		}
 	};
 	
@@ -85,6 +92,10 @@ function _c8o_display_menu(element, container) {
 			+ "left: 5px;"
 			+ "width: 200px;"
 			+ "border: solid black  1px;"
+			+ "overflow-y: scroll;"
+			+ "height: 500px;"
+			+ "margin-top: 2px;"
+			+ "margin-left: 1px;"
 	);
 	
 	menu.setAttribute("class", "_c8o_menu");
@@ -96,19 +107,45 @@ function _c8o_display_menu(element, container) {
 		"padding: 2px;" 
 	);
 
-	switch(element.tagName) {
-		case "ION-TEXT":
-			menuFunctions.addOption(ul, "Text Align Left", function() {});
-			menuFunctions.addOption(ul, "Text Align Right", function() {});
-			menuFunctions.addOption(ul, "Text Align Start", function() {});
-			menuFunctions.addOption(ul, "Text Align End", function() {});
-			menuFunctions.addOption(ul, "Text Align Center", function() {});
-			menuFunctions.addOption(ul, "Text Justify", function() {});
-			menuFunctions.addOption(ul, "Text Wrap", function() {});
-			menuFunctions.addOption(ul, "Text No Wrap", function() {});
-			container.appendChild(menu);
-			break;
-	}
+	menuFunctions.addOption(ul, "Text Align Left", function() {});
+	menuFunctions.addOption(ul, "Text Align Right", function() {});
+	menuFunctions.addOption(ul, "Text Align Start", function() {});
+	menuFunctions.addOption(ul, "Text Align End", function() {});
+	menuFunctions.addOption(ul, "Text Align Center", function() {});
+	menuFunctions.addOption(ul, "Text Justify", function() {});
+	menuFunctions.addSeparator(ul);
+	
+	menuFunctions.addOption(ul, "Text Wrap", function() {});
+	menuFunctions.addOption(ul, "Text No Wrap", function() {});
+	menuFunctions.addSeparator(ul);
+	
+	menuFunctions.addOption(ul, "Text Capitalize", function() {});
+	menuFunctions.addOption(ul, "Text Lower case", function() {});
+	menuFunctions.addOption(ul, "Text Upper case", function() {});
+	menuFunctions.addSeparator(ul);
+	
+	menuFunctions.addOption(ul, "Margin Vertical", function() {});
+	menuFunctions.addOption(ul, "Margin Horizontal", function() {});
+	menuFunctions.addOption(ul, "Margin Top", function() {});
+	menuFunctions.addOption(ul, "Margin Bottom", function() {});
+	menuFunctions.addOption(ul, "Margin start", function() {});
+	menuFunctions.addOption(ul, "Margin end", function() {});
+	menuFunctions.addOption(ul, "Margin none", function() {});
+	menuFunctions.addSeparator(ul);
+	
+	menuFunctions.addOption(ul, "Padding Vertical", function() {});
+	menuFunctions.addOption(ul, "Padding Horizontal", function() {});
+	menuFunctions.addOption(ul, "Padding Top", function() {});
+	menuFunctions.addOption(ul, "Padding Bottom", function() {});
+	menuFunctions.addOption(ul, "Padding start", function() {});
+	menuFunctions.addOption(ul, "Padding end", function() {});
+	menuFunctions.addOption(ul, "Padding none", function() {});
+	menuFunctions.addSeparator(ul);
+	
+	menuFunctions.addOption(ul, "Hidden", function() {});
+	menuFunctions.addOption(ul, "Visible", function() {});
+	
+	container.appendChild(menu);
 }
 
 
@@ -164,6 +201,14 @@ function _c8o_showGrids(bShow) {
 _c8o_highlight_class_previous = null;
 _c8o_OverlayOriginalPosition = [];
 
+function _c8o_compute_move(ol) {
+	moveBy = {
+			x: Math.round(ol.style.left.replace("px", "") * 1 - window._c8o_OverlayOriginalPosition[i].left.replace("px", "") * 1),
+			y: Math.round(ol.style.top.replace("px", "") * 1 -  window._c8o_OverlayOriginalPosition[i].top.replace("px", "") * 1)
+	}
+	return(moveBy)
+}
+
 function _c8o_keyEventListener(e) {
 	ol = [...document.getElementsByClassName("_c8o_overlay")]
 	for (i in ol) {
@@ -195,17 +240,11 @@ function _c8o_keyEventListener(e) {
 				e.preventDefault();
 				break;
 			case 13: // Key ENTER
-				moveBy = {
-					x: Math.round(ol[i].style.left.replace("px", "") * 1 - window._c8o_OverlayOriginalPosition[i].left.replace("px", "") * 1),
-					y: Math.round(ol[i].style.top.replace("px", "") * 1 -  window._c8o_OverlayOriginalPosition[i].top.replace("px", "") * 1)
-				}
-				
+				moveBy = _c8o_compute_move(ol[i])
 				if (moveBy.x != 0 && moveBy.y != 0) {
 					console.log("Moving the component class:" + ol[i].getAttribute("targetClass") + " by  x:" + moveBy.x + ",y:" + moveBy.y);
-					// _c8o_toast("Moving the component x:" + moveBy.x + ",y:" + moveBy.y);
+					_c8o_toast("Moving the component x:" + moveBy.x + ",y:" + moveBy.y);
 				}
-				
-				
 				e.preventDefault();
 				break;
 		}
