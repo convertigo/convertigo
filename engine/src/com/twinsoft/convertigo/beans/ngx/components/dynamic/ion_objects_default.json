@@ -2,7 +2,18 @@
  "BarTitle": {
   "   7   9   0": {
    "name": "BarTitle",
-   "properties": {}
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "Break": {

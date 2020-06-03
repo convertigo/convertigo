@@ -7088,29 +7088,29 @@
         }
       },
       "scss": [
-		"//--background	//Background of the button\n",
-		"//--background-activated	//Background of the button when pressed. Note: setting this will interfere with the Material Design ripple\n",
-		"//--background-activated-opacity	//Opacity of the button when pressed\n",
-		"//--background-focused	//Background of the button when focused with the tab key\n",
-		"//--background-focused-opacity	//Opacity of the button when focused with the tab key\n",
-		"//--background-hover	//Background of the button on hover\n",
-		"//--background-hover-opacity	//Opacity of the background on hover\n",
-		"//--border-color	//Border color of the button\n",
-		"//--border-radius	//Border radius of the button\n",
-		"//--border-style	//Border style of the button\n",
-		"//--border-width	//Border width of the button\n",
-		"//--box-shadow	//Box shadow of the button\n",
-		"//--color	//Text color of the button\n",
-		"//--color-activated	//Text color of the button when pressed\n",
-		"//--color-focused	//Text color of the button when focused with the tab key\n",
-		"//--color-hover	//Text color of the button when hover\n",
-		"//--opacity	//Opacity of the button\n",
-		"//--padding-bottom	//Bottom padding of the button\n",
-		"//--padding-end	//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button\n",
-		"//--padding-start	//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button\n",
-		"//--padding-top	//Top padding of the button\n",
-		"//--ripple-color	//Color of the button ripple effect\n",
-		"//--transition	//Transition of the button\n"
+		"//--background\t//Background of the button",
+		"//--background-activated\t//Background of the button when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the button when pressed",
+		"//--background-focused\t//Background of the button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the button when focused with the tab key",
+		"//--background-hover\t//Background of the button on hover",
+		"//--background-hover-opacity\t//Opacity of the background on hover",
+		"//--border-color\t//Border color of the button",
+		"//--border-radius\t//Border radius of the button",
+		"//--border-style\t//Border style of the button",
+		"//--border-width\t//Border width of the button",
+		"//--box-shadow\t//Box shadow of the button",
+		"//--color\t//Text color of the button",
+		"//--color-activated\t//Text color of the button when pressed",
+		"//--color-focused\t//Text color of the button when focused with the tab key",
+		"//--color-hover\t//Text color of the button when hover",
+		"//--opacity\t//Opacity of the button",
+		"//--padding-bottom\t//Bottom padding of the button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button",
+		"//--padding-top\t//Top padding of the button",
+		"//--ripple-color\t//Color of the button ripple effect",
+		"//--transition\t//Transition of the button"
      ]
     },
 
@@ -7154,7 +7154,22 @@
             true
           ]
         }        
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the menu button",
+		"//--background-focused\t//Background of the menu button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the menu button background when focused with the tab key",
+		"//--background-hover\t//Background of the menu button on hover",
+		"//--background-hover-opacity\t//Opacity of the background on hover",
+		"//--border-radius\t//Border radius of the menu button",
+		"//--color\t//Color of the menu button",
+		"//--color-focused\t//Color of the menu button when focused with the tab key",
+		"//--color-hover\t//Color of the menu button on hover",
+		"//--padding-bottom\t//Bottom padding of the button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button",
+		"//--padding-top\t//Top padding of the button"      
+      ]
     },
     
     "MenuToggle": {
@@ -7239,7 +7254,48 @@
         		true
       		]
 		}
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the button",
+		"//--background-activated\t//Background of the button when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the button when pressed",
+		"//--background-focused\t//Background of the button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the button when focused with the tab key",
+		"//--background-hover\t//Background of the button on hover",
+		"//--background-hover-opacity\t//Opacity of the background on hover",
+		"//--border-color\t//Border color of the button",
+		"//--border-radius\t//Border radius of the button",
+		"//--border-style\t//Border style of the button",
+		"//--border-width\t//Border width of the button",
+		"//--box-shadow\t//Box shadow of the button",
+		"//--color\t//Text color of the button",
+		"//--color-activated\t//Text color of the button when pressed",
+		"//--color-focused\t//Text color of the button when focused with the tab key",
+		"//--color-hover\t//Text color of the button when hover",
+		"//--icon-font-size\t//Font size of the button icon",
+		"//--icon-font-weight\t//Font weight of the button icon",
+		"//--icon-margin-bottom\t//Bottom margin of the button icon",
+		"//--icon-margin-end\t//Right margin if direction is left-to-right, and left margin if direction is right-to-left of the button icon",
+		"//--icon-margin-start\t//Left margin if direction is left-to-right, and right margin if direction is right-to-left of the button icon",
+		"//--icon-margin-top\t//Top margin of the button icon",
+		"//--icon-padding-bottom\t//Bottom padding of the button icon",
+		"//--icon-padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button icon",
+		"//--icon-padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button icon",
+		"//--icon-padding-top\t//Top padding of the button icon",
+		"//--margin-bottom\t//Bottom margin of the button",
+		"//--margin-end\t//Right margin if direction is left-to-right, and left margin if direction is right-to-left of the button",
+		"//--margin-start\t//Left margin if direction is left-to-right, and right margin if direction is right-to-left of the button",
+		"//--margin-top\t//Top margin of the button",
+		"//--min-height\t//Minimum height of the button",
+		"//--min-width\t//Minimum width of the button",
+		"//--opacity\t//Opacity of the button",
+		"//--padding-bottom\t//Bottom padding of the button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button",
+		"//--padding-top\t//Top padding of the button",
+		"//--ripple-color\t//Color of the button ripple effect",
+		"//--transition\t//Transition of the button"
+     ]
     },
 
     "SubmitButton": {
@@ -7292,7 +7348,32 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus"
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the button",
+		"//--background-activated\t//Background of the button when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the button when pressed",
+		"//--background-focused\t//Background of the button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the button when focused with the tab key",
+		"//--background-hover\t//Background of the button on hover",
+		"//--background-hover-opacity\t//Opacity of the background on hover",
+		"//--border-color\t//Border color of the button",
+		"//--border-radius\t//Border radius of the button",
+		"//--border-style\t//Border style of the button",
+		"//--border-width\t//Border width of the button",
+		"//--box-shadow\t//Box shadow of the button",
+		"//--color\t//Text color of the button",
+		"//--color-activated\t//Text color of the button when pressed",
+		"//--color-focused\t//Text color of the button when focused with the tab key",
+		"//--color-hover\t//Text color of the button when hover",
+		"//--opacity\t//Opacity of the button",
+		"//--padding-bottom\t//Bottom padding of the button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button",
+		"//--padding-top\t//Top padding of the button",
+		"//--ripple-color\t//Color of the button ripple effect",
+		"//--transition\t//Transition of the button"
+     ]
     },
 
     "ResetButton": {
@@ -7332,7 +7413,32 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus"
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the button",
+		"//--background-activated\t//Background of the button when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the button when pressed",
+		"//--background-focused\t//Background of the button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the button when focused with the tab key",
+		"//--background-hover\t//Background of the button on hover",
+		"//--background-hover-opacity\t//Opacity of the background on hover",
+		"//--border-color\t//Border color of the button",
+		"//--border-radius\t//Border radius of the button",
+		"//--border-style\t//Border style of the button",
+		"//--border-width\t//Border width of the button",
+		"//--box-shadow\t//Box shadow of the button",
+		"//--color\t//Text color of the button",
+		"//--color-activated\t//Text color of the button when pressed",
+		"//--color-focused\t//Text color of the button when focused with the tab key",
+		"//--color-hover\t//Text color of the button when hover",
+		"//--opacity\t//Opacity of the button",
+		"//--padding-bottom\t//Bottom padding of the button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button",
+		"//--padding-top\t//Top padding of the button",
+		"//--ripple-color\t//Color of the button ripple effect",
+		"//--transition\t//Transition of the button"
+     ]
     },
     
     "FabButton": {
@@ -7417,7 +7523,35 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus"
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the button",
+		"//--background-activated\t//Background of the button when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the button when pressed",
+		"//--background-focused\t//Background of the button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the button when focused with the tab key",
+		"//--background-hover\t//Background of the button on hover",
+		"//--background-hover-opacity\t//Opacity of the background on hover",
+		"//--border-color\t//Border color of the button",
+		"//--border-radius\t//Border radius of the button",
+		"//--border-style\t//Border style of the button",
+		"//--border-width\t//Border width of the button",
+		"//--box-shadow\t//Box shadow of the button",
+		"//--color\t//Text color of the button",
+		"//--color-activated\t//Text color of the button when pressed",
+		"//--color-focused\t//Text color of the button when focused with the tab key",
+		"//--color-hover\t//Text color of the button when hover",
+		"//--icon-padding-bottom\t//Bottom padding of the button icon",
+		"//--icon-padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button icon",
+		"//--icon-padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button icon",
+		"//--icon-padding-top\t//Top padding of the button icon",
+		"//--padding-bottom\t//Bottom padding of the button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the button",
+		"//--padding-top\t//Top padding of the button",
+		"//--ripple-color\t//Color of the button ripple effect",
+		"//--transition\t//Transition of the button"
+     ]
     },
 
     "FabContainer": {
@@ -7630,7 +7764,6 @@
             "fixed"
           ]
         },
-        
         "Padding": {
           "attr": "class",
           "label": "Padding",
@@ -7650,7 +7783,6 @@
             true
           ]
         },
-        
         "Fullscreen": {
           "attr": "fullscreen",
           "label": "Full screen",
@@ -7725,7 +7857,18 @@
           "attr":"(ionScrollStart)",
           "description": "Emitted when the scroll has started."
         }        
-      }
+      },
+      "scss": [
+        "//--background\t//Background of the content",
+        "//--color\t//Color of the content",
+        "//--keyboard-offset\t//Keyboard offset of the content",
+        "//--offset-bottom\t//Offset bottom of the content",
+        "//--offset-top\t//Offset top of the content",
+        "//--padding-bottom\t//Bottom padding of the content",
+        "//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the content",
+        "//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the content",
+        "//--padding-top\t//Top padding of the content"
+      ]
     },
     
     "Footer": {
@@ -8184,57 +8327,62 @@
    		"group": "Forms",
         "icon16": "progressbar_color_16x16.png",
         "icon32": "progressbar_color_32x32.png",
-      "properties": {
-        "IonColor": false,
-        "IonMode": false,
-        "Buffer": {
-         "attr":"buffer",
-          "label": "Buffer",
-          "description": "If the buffer and value are smaller than 1, the buffer circles will show. The buffer should be between [0, 1].",
-          "category": "@Properties",
-          "type": "number",
-          "value": "1",
-          "values": [
-            "1",
-            true
-          ]
-        },
-        "Reversed": {
-         "attr":"reversed",
-          "label": "Reversed",
-          "description": "If true, reverse the progress bar direction.",
-          "category": "@Properties",
-          "type": "boolean",
-          "value": "false",
-          "values": [
-            "false",
-            "true"
-          ]
-        },
-        "Type": {
-         "attr":"type",
-          "label": "Type",
-          "description": "The state of the progress bar, based on if the time the process takes is known or not. Default options are: 'determinate' (no animation), 'indeterminate' (animate from left to right).",
-          "category": "@Properties",
-          "value": "determinate",
-          "values": [
-            "determinate",
-            "indeterminate"
-          ]
-        },
-        "Value": {
-         "attr":"value",
-          "label": "Value",
-          "description": "The value determines how much of the active bar should display when the type is 'determinate'. The value should be between [0, 1].",
-          "category": "@Properties",
-          "type": "number",
-          "value": "0",
-          "values": [
-            "0",
-            true
-          ]
-        }
-      }     
+	    "properties": {
+	        "IonColor": false,
+	        "IonMode": false,
+	        "Buffer": {
+	         "attr":"buffer",
+	          "label": "Buffer",
+	          "description": "If the buffer and value are smaller than 1, the buffer circles will show. The buffer should be between [0, 1].",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "1",
+	          "values": [
+	            "1",
+	            true
+	          ]
+	        },
+	        "Reversed": {
+	         "attr":"reversed",
+	          "label": "Reversed",
+	          "description": "If true, reverse the progress bar direction.",
+	          "category": "@Properties",
+	          "type": "boolean",
+	          "value": "false",
+	          "values": [
+	            "false",
+	            "true"
+	          ]
+	        },
+	        "Type": {
+	         "attr":"type",
+	          "label": "Type",
+	          "description": "The state of the progress bar, based on if the time the process takes is known or not. Default options are: 'determinate' (no animation), 'indeterminate' (animate from left to right).",
+	          "category": "@Properties",
+	          "value": "determinate",
+	          "values": [
+	            "determinate",
+	            "indeterminate"
+	          ]
+	        },
+	        "Value": {
+	         "attr":"value",
+	          "label": "Value",
+	          "description": "The value determines how much of the active bar should display when the type is 'determinate'. The value should be between [0, 1].",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "0",
+	          "values": [
+	            "0",
+	            true
+	          ]
+	        }
+      	},
+      	"scss": [
+			"//--background\t//Same as --buffer-background when using a determinate progress bar, otherwise it styles the background of the ion-progress-bar itself",
+			"//--buffer-background\t//Color of the buffer bar",
+			"//--progress-background\t//Color of the progress bar"      	
+      	]    
     },
 
 	"SkeletonText": {
@@ -8296,7 +8444,12 @@
          "category": "@Properties",
          "value": "width: $[Width]; height: $[Height]"
         }
-	  }
+	  },
+	  "scss": [
+		"//--background\t//Background of the skeleton text",
+		"//--background-rgb\t//Background of the skeleton text in rgb format",
+		"//--border-radius\t//Border radius of the skeleton text"	  
+	  ]
 	},
 	
     "Spinner": {
@@ -8347,7 +8500,10 @@
             "true"
          ]
         }
-      }
+      },
+      "scss": [
+        "//--color\t//Color of the spinner"
+      ]
     },
 /*
     "FSImage": {
@@ -9038,7 +9194,12 @@
               "true"
             ]
         }
-	  }
+	  },
+	  "scss": [
+	    "//--background\t//Background of the tab bar",
+	    "//--border\t//Border of the tab bar",
+	    "//--color\t//Color of the tab bar"
+	  ]
 	},
 	
 	"TabButton": {
@@ -9089,7 +9250,20 @@
                "true"
             ]
         }
-	  }	
+	  },
+	  "scss": [
+		"//--background\t//Background of the tab button",
+		"//--background-focused\t//Background of the tab button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the tab button background when focused with the tab key",
+		"//--color\t//Color of the tab button",
+		"//--color-focused\t//Color of the tab button when focused with the tab key",
+		"//--color-selected\t//Color of the selected tab button",
+		"//--padding-bottom\t//Bottom padding of the tab button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the tab button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the tab button",
+		"//--padding-top\t//Top padding of the tab button",
+		"//--ripple-color\t//Color of the button ripple effect"	  
+	  ]
 	},
 	
 	"Menu": {
@@ -9178,7 +9352,16 @@
           "attr":"(ionWillOpen)",
           "description": "This event is emitted when the menu is about to be opened."
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the menu",
+		"//--height\t//Height of the menu",
+		"//--max-height\t//Maximum height of the menu",
+		"//--max-width\t//Maximum width of the menu",
+		"//--min-height\t//Minimum height of the menu",
+		"//--min-width\t//Minimum width of the menu",
+		"//--width\t//Width of the menu"      
+      ]
 	},
 	
 	"MenuItem": {
@@ -9264,7 +9447,20 @@
         "IonColor": false,
         "BarMode": false,
         "BarSlot": false
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the toolbar",
+		"//--border-color\t//Color of the toolbar border",
+		"//--border-style\t//Style of the toolbar border",
+		"//--border-width\t//Width of the toolbar border",
+		"//--color\t//Color of the toolbar text",
+		"//--min-height\t//Minimum height of the toolbar",
+		"//--opacity\t//Opacity of the toolbar background",
+		"//--padding-bottom\t//Bottom padding of the toolbar",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the toolbar",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the toolbar",
+		"//--padding-top\t//Top padding of the toolbar"      
+      ]
     },
 
     "Refresher": {
@@ -9608,7 +9804,20 @@
 	          "attr":"(ionInput)",
 	          "description": "This event is fired when a keyboard input occurred."
 	        }
-      	}
+      	},
+      	"scss": [
+			"//--background\t//Background of the searchbar input",
+			"//--border-radius\t//Border radius of the searchbar input",
+			"//--box-shadow\t//Box shadow of the searchbar input",
+			"//--cancel-button-color\t//Color of the searchbar cancel button",
+			"//--clear-button-color\t//Color of the searchbar clear button",
+			"//--color\t//Color of the searchbar text",
+			"//--icon-color\t//Color of the searchbar icon",
+			"//--placeholder-color\t//Color of the searchbar placeholder",
+			"//--placeholder-font-style\t//Font style of the searchbar placeholder",
+			"//--placeholder-font-weight\t//Font weight of the searchbar placeholder",
+			"//--placeholder-opacity\t//Opacity of the searchbar placeholder"      	
+      	]
     },
 
     
@@ -9624,7 +9833,12 @@
       "icon16": "bartitle_color_16x16.png",
       "icon32": "bartitle_color_32x32.png",
       "properties": {
-      }
+        "IonColor": false,
+        "IonSize": false
+      },
+      "scss": [
+        "//--color\t//Text color of the title"
+      ]
     },
 
     "Badge": {
@@ -9643,7 +9857,15 @@
         "IonColor": false,
         "IonMode": false,
         "IonSlot": false
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the badge",
+		"//--color\t//Text color of the badge",
+		"//--padding-bottom\t//Bottom padding of the badge",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the badge",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the badge",
+		"//--padding-top\t//Top padding of the badge"
+     ]
     },
 
     /* Slides */
@@ -9771,7 +9993,15 @@
           "attr":"(ionSlideWillChange)",
           "description": "This event is emitted before the active slide has changed."
         }
-      }
+      },
+      "scss": [
+		"//--bullet-background\t//Background of the pagination bullets",
+		"//--bullet-background-active\t//Background of the active pagination bullet",
+		"//--progress-bar-background\t//Background of the pagination progress-bar",
+		"//--progress-bar-background-active\t//Background of the active pagination progress-bar",
+		"//--scroll-bar-background\t//Background of the pagination scroll-bar",
+		"//--scroll-bar-background-active\t//Background of the active pagination scroll-bar"      
+      ]
     },
 
     "Slide": {
@@ -9813,7 +10043,11 @@
             "true"
           ]
         }
-      }
+      },
+      "scss": [
+        "//--background\t//Background of the chip",
+        "//--color\t//Color of the chip"
+      ]
 	},
 
     /* Segments */
@@ -9867,7 +10101,10 @@
           "attr":"(ionChange)",
           "description": "This event is emitted when the value property has changed."
         }
-      }
+      },
+      "scss": [
+        "//--background\t//Background of the segment button"
+      ]
     },
 
     "SegmentButton": {
@@ -9911,7 +10148,37 @@
                true
             ]
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the segment button",
+		"//--background-checked\t//Background of the checked segment button",
+		"//--background-focused\t//Background of the segment button when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the segment button background when focused with the tab key",
+		"//--background-hover\t//Background of the segment button on hover",
+		"//--background-hover-opacity\t//Opacity of the segment button background on hover",
+		"//--border-color\t//Color of the segment button border",
+		"//--border-radius\t//Radius of the segment button border",
+		"//--border-style\t//Style of the segment button border",
+		"//--border-width\t//Width of the segment button border",
+		"//--color\t//Color of the segment button",
+		"//--color-checked\t//Color of the checked segment button",
+		"//--color-focused\t//Color of the segment button when focused with the tab key",
+		"//--color-hover\t//Color of the segment button on hover",
+		"//--indicator-box-shadow\t//Box shadow on the indicator for the checked segment button",
+		"//--indicator-color\t//Color of the indicator for the checked segment button",
+		"//--indicator-height\t//Height of the indicator for the checked segment button",
+		"//--indicator-transform\t//Transform of the indicator for the checked segment button",
+		"//--indicator-transition\t//Transition of the indicator for the checked segment button",
+		"//--margin-bottom\t//Bottom margin of the segment button",
+		"//--margin-end\t//Right margin if direction is left-to-right, and left margin if direction is right-to-left of the segment button",
+		"//--margin-start\t//Left margin if direction is left-to-right, and right margin if direction is right-to-left of the segment button",
+		"//--margin-top\t//Top margin of the segment button",
+		"//--padding-bottom\t//Bottom padding of the segment button",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the segment button",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the segment button",
+		"//--padding-top\t//Top padding of the segment button",
+		"//--transition\t//Transition of the segment button"      
+      ]
     },
 
 	/* Reorder */
@@ -10026,7 +10293,15 @@
             "none"
           ]
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the list header",
+		"//--border-color\t//Color of the list header border",
+		"//--border-style\t//Style of the list header border",
+		"//--border-width\t//Width of the list header border",
+		"//--color\t//Color of the list header text",
+		"//--inner-border-width\t//Width of the inner list header border"      
+      ]
     },
 
     "Listgroup": {
@@ -10074,7 +10349,19 @@
             "true"
           ]
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the item divider",
+		"//--color\t//Color of the item divider",
+		"//--inner-padding-bottom\t//Bottom inner padding of the item divider",
+		"//--inner-padding-end\t//End inner padding of the item divider",
+		"//--inner-padding-start\t//Start inner padding of the item divider",
+		"//--inner-padding-top\t//Top inner padding of the item divider",
+		"//--padding-bottom\t//Bottom padding of the item divider",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the item divider",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the item divider",
+		"//--padding-top\t//Top padding of the item divider"      
+      ]
     },
 
 	"SlidingContainer": {
@@ -10166,7 +10453,11 @@
             "true"
           ]
         }
-      }
+      },
+      "scss": [
+        "//--background\t//Background of the button",
+        "//--color\t//Color of the button"
+      ]
 	},
 	
     "Avatar": {
@@ -10184,7 +10475,10 @@
       "icon32": "listavatar_32x32.png",
       "properties": {
         "IonSlot": false
-      }
+      },
+      "scss": [
+		"//--border-radius\t//Border radius of the avatar and inner image"
+     ]
     },
 
     "Thumbnail": {
@@ -10202,7 +10496,11 @@
       "icon32": "thumbnail_32x32.png",
       "properties": {
         "IonSlot": false
-      }
+      },
+      "scss": [
+       "//--border-radius\t//Border radius of the thumbnail",
+       "//--size\t//Size of the thumbnail"
+      ]
     },
 
     "LazyImage": {
@@ -10333,7 +10631,44 @@
         "LinkRel": false,
         "LinkRouterPath": false,
         "LinkRouterDirection": false
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the item",
+		"//--background-activated\t//Background of the item when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the item background when pressed",
+		"//--background-focused\t//Background of the item when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the item background when focused with the tab key",
+		"//--background-hover\t//Background of the item on hover",
+		"//--background-hover-opacity\t//Opacity of the background of the item on hover",
+		"//--border-color\t//Color of the item border",
+		"//--border-radius\t//Radius of the item border",
+		"//--border-style\t//Style of the item border",
+		"//--border-width\t//Width of the item border",
+		"//--color\t//Color of the item",
+		"//--color-activated\t//Color of the item when pressed",
+		"//--color-focused\t//Color of the item when focused with the tab key",
+		"//--color-hover\t//Color of the item on hover",
+		"//--detail-icon-color\t//Color of the item detail icon",
+		"//--detail-icon-font-size\t//Font size of the item detail icon",
+		"//--detail-icon-opacity\t//Opacity of the item detail icon",
+		"//--highlight-color-focused\t//The color of the highlight on the item when focused",
+		"//--highlight-color-invalid\t//The color of the highlight on the item when invalid",
+		"//--highlight-color-valid\t//The color of the highlight on the item when valid",
+		"//--highlight-height\t//The height of the highlight on the item",
+		"//--inner-border-width\t//Width of the item inner border",
+		"//--inner-box-shadow\t//Box shadow of the item inner",
+		"//--inner-padding-bottom\t//Bottom padding of the item inner",
+		"//--inner-padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the item inner",
+		"//--inner-padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the item inner",
+		"//--inner-padding-top\t//Top padding of the item inner",
+		"//--min-height\t//Minimum height of the item",
+		"//--padding-bottom\t//Bottom padding of the item",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the item",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the item",
+		"//--padding-top\t//Top padding of the item",
+		"//--ripple-color\t//Color of the item ripple effect",
+		"//--transition\t//Transition of the item"
+      ]
     },
 
     "ListItem": {
@@ -10398,7 +10733,44 @@
         "LinkRel": false,
         "LinkRouterPath": false,
         "LinkRouterDirection": false
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the item",
+		"//--background-activated\t//Background of the item when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the item background when pressed",
+		"//--background-focused\t//Background of the item when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the item background when focused with the tab key",
+		"//--background-hover\t//Background of the item on hover",
+		"//--background-hover-opacity\t//Opacity of the background of the item on hover",
+		"//--border-color\t//Color of the item border",
+		"//--border-radius\t//Radius of the item border",
+		"//--border-style\t//Style of the item border",
+		"//--border-width\t//Width of the item border",
+		"//--color\t//Color of the item",
+		"//--color-activated\t//Color of the item when pressed",
+		"//--color-focused\t//Color of the item when focused with the tab key",
+		"//--color-hover\t//Color of the item on hover",
+		"//--detail-icon-color\t//Color of the item detail icon",
+		"//--detail-icon-font-size\t//Font size of the item detail icon",
+		"//--detail-icon-opacity\t//Opacity of the item detail icon",
+		"//--highlight-color-focused\t//The color of the highlight on the item when focused",
+		"//--highlight-color-invalid\t//The color of the highlight on the item when invalid",
+		"//--highlight-color-valid\t//The color of the highlight on the item when valid",
+		"//--highlight-height\t//The height of the highlight on the item",
+		"//--inner-border-width\t//Width of the item inner border",
+		"//--inner-box-shadow\t//Box shadow of the item inner",
+		"//--inner-padding-bottom\t//Bottom padding of the item inner",
+		"//--inner-padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the item inner",
+		"//--inner-padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the item inner",
+		"//--inner-padding-top\t//Top padding of the item inner",
+		"//--min-height\t//Minimum height of the item",
+		"//--padding-bottom\t//Bottom padding of the item",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the item",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the item",
+		"//--padding-top\t//Top padding of the item",
+		"//--ripple-color\t//Color of the item ripple effect",
+		"//--transition\t//Transition of the item"
+      ]
     },
 
     /* Forms */
@@ -10463,7 +10835,44 @@
         "LinkRel": false,
         "LinkRouterPath": false,
         "LinkRouterDirection": false
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the item",
+		"//--background-activated\t//Background of the item when pressed. Note: setting this will interfere with the Material Design ripple",
+		"//--background-activated-opacity\t//Opacity of the item background when pressed",
+		"//--background-focused\t//Background of the item when focused with the tab key",
+		"//--background-focused-opacity\t//Opacity of the item background when focused with the tab key",
+		"//--background-hover\t//Background of the item on hover",
+		"//--background-hover-opacity\t//Opacity of the background of the item on hover",
+		"//--border-color\t//Color of the item border",
+		"//--border-radius\t//Radius of the item border",
+		"//--border-style\t//Style of the item border",
+		"//--border-width\t//Width of the item border",
+		"//--color\t//Color of the item",
+		"//--color-activated\t//Color of the item when pressed",
+		"//--color-focused\t//Color of the item when focused with the tab key",
+		"//--color-hover\t//Color of the item on hover",
+		"//--detail-icon-color\t//Color of the item detail icon",
+		"//--detail-icon-font-size\t//Font size of the item detail icon",
+		"//--detail-icon-opacity\t//Opacity of the item detail icon",
+		"//--highlight-color-focused\t//The color of the highlight on the item when focused",
+		"//--highlight-color-invalid\t//The color of the highlight on the item when invalid",
+		"//--highlight-color-valid\t//The color of the highlight on the item when valid",
+		"//--highlight-height\t//The height of the highlight on the item",
+		"//--inner-border-width\t//Width of the item inner border",
+		"//--inner-box-shadow\t//Box shadow of the item inner",
+		"//--inner-padding-bottom\t//Bottom padding of the item inner",
+		"//--inner-padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the item inner",
+		"//--inner-padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the item inner",
+		"//--inner-padding-top\t//Top padding of the item inner",
+		"//--min-height\t//Minimum height of the item",
+		"//--padding-bottom\t//Bottom padding of the item",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the item",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the item",
+		"//--padding-top\t//Top padding of the item",
+		"//--ripple-color\t//Color of the item ripple effect",
+		"//--transition\t//Transition of the item"
+      ]
     },
    
     "Label": {
@@ -10496,7 +10905,10 @@
             "stacked"
           ]
         }
-      }
+      },
+      "scss": [
+		"//--color\t//Color of the label"
+      ]
     },
 
     "Note": {
@@ -10515,7 +10927,10 @@
         "IonColor" : false,
         "IonMode" : false,
         "IonSlot": false
-      }
+      },
+      "scss": [
+        "//--color\t//Color of the note"
+      ]
     },
     
     /**************************************************/
@@ -10670,7 +11085,15 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus."
         }
-      }
+      },
+      "scss": [
+		"//--padding-bottom\t//Bottom padding of the select",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the select",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the select",
+		"//--padding-top\t//Top padding of the select",
+		"//--placeholder-color\t//Color of the select placeholder text",
+		"//--placeholder-opacity\t//Opacity of the select placeholder text"      
+      ]
     },
 
     /**************************************************/
@@ -10766,7 +11189,13 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus."
         }
-      }
+      },
+      "scss": [
+		"//--border-radius\t//Border radius of the radio",
+		"//--color\t//Color of the radio",
+		"//--color-checked\t//Color of the checked radio",
+		"//--inner-border-radius\t//Border radius of the inner checked radio"      
+      ]
     },	
 	
     /**************************************************/
@@ -10831,7 +11260,21 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus."
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the toggle",
+		"//--background-checked\t//Background of the toggle when checked",
+		"//--border-radius\t//Border radius of the toggle track",
+		"//--handle-background\t//Background of the toggle handle",
+		"//--handle-background-checked\t//Background of the toggle handle when checked",
+		"//--handle-border-radius\t//Border radius of the toggle handle",
+		"//--handle-box-shadow\t//Box shadow of the toggle handle",
+		"//--handle-height\t//Height of the toggle handle",
+		"//--handle-max-height\t//Maximum height of the toggle handle",
+		"//--handle-spacing\t//Horizontal spacing around the toggle handle",
+		"//--handle-transition\t//Transition of the toggle handle",
+		"//--handle-width\t//Width of the toggle handle"      
+      ]
     },
 
     /**************************************************/
@@ -11179,7 +11622,19 @@
           "attr":"(ionInput)",
           "description": "This event is emitted when a keyboard input occurred."
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the input",
+		"//--color\t//Color of the input text",
+		"//--padding-bottom\t//Bottom padding of the input",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the input",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the input",
+		"//--padding-top\t//Top padding of the input",
+		"//--placeholder-color\t//Color of the input placeholder text",
+		"//--placeholder-font-style\t//Font style of the input placeholder text",
+		"//--placeholder-font-weight\t//Font weight of the input placeholder text",
+		"//--placeholder-opacity\t//Opacity of the input placeholder text"      
+      ]
     },
 
 
@@ -11430,7 +11885,20 @@
           "attr":"(ionInput)",
           "description": "This event is emitted when a keyboard input occurred."
         }
-      }
+      },
+      "scss": [
+		"//--background\t//Background of the textarea",
+		"//--border-radius\t//Border radius of the textarea",
+		"//--color\t//Color of the text",
+		"//--padding-bottom\t//Bottom padding of the textarea",
+		"//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the textarea",
+		"//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the textarea",
+		"//--padding-top\t//Top padding of the textarea",
+		"//--placeholder-color\t//Color of the placeholder text",
+		"//--placeholder-font-style\t//Style of the placeholder text",
+		"//--placeholder-font-weight\t//Weight of the placeholder text",
+		"//--placeholder-opacity\t//Opacity of the placeholder text"      
+      ]
     },
     
     "CheckBox": {
@@ -11505,7 +11973,20 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus."
         }
-      }
+      },
+      "scss": [
+        "//--background\t//Background of the checkbox icon",
+        "//--background-checked\t//Background of the checkbox icon when checked",
+        "//--border-color\t//Border color of the checkbox icon",
+        "//--border-color-checked\t//Border color of the checkbox icon when checked",
+        "//--border-radius\t//Border radius of the checkbox icon",
+        "//--border-style\t//Border style of the checkbox icon",
+        "//--border-width\t//Border width of the checkbox icon",
+        "//--checkmark-color\t//Color of the checkbox checkmark when checked",
+        "//--checkmark-width\t//Stroke width of the checkbox checkmark",
+        "//--size\t//Size of the checkbox icon",
+        "//--transition\t//Transition of the checkbox icon"
+      ]
     },
 
     "DateTime": {
@@ -11754,7 +12235,14 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the datetime has focus."
         }
-      }
+      },
+      "scss": [
+        "//--padding-bottom\t//Bottom padding of the datetime",
+        "//--padding-end\t//Right padding if direction is left-to-right, and left padding if direction is right-to-left of the datetime",
+        "//--padding-start\t//Left padding if direction is left-to-right, and right padding if direction is right-to-left of the datetime",
+        "//--padding-top\t//Top padding of the datetime",
+        "//--placeholder-color\t//Color of the datetime placeholder"
+      ]
     },
 	
     "Range": {
@@ -11887,7 +12375,20 @@
           "attr":"(ionFocus)",
           "description": "This event is emitted when the range  has focus."
         }
-      }
+      },
+      "scss": [
+		"//--bar-background\t//Background of the range bar",
+		"//--bar-background-active\t//Background of the active range bar",
+		"//--bar-border-radius\t//Border radius of the range bar",
+		"//--bar-height\t//Height of the range bar",
+		"//--height\t//Height of the range",
+		"//--knob-background\t//Background of the range knob",
+		"//--knob-border-radius\t//Border radius of the range knob",
+		"//--knob-box-shadow\t//Box shadow of the range knob",
+		"//--knob-size\t//Size of the range knob",
+		"//--pin-background\t//Background of the range pin",
+		"//--pin-color\t//Color of the range pin"      
+      ]
     },
     
     /*    Grid System     */
@@ -11952,7 +12453,21 @@
          "category": "@Properties",
          "value": "width: $[Width]; height: $[Height]"
         }
-      }
+      },
+      "scss": [
+		"//--ion-grid-padding\t//Padding for the Grid",
+		"//--ion-grid-padding-lg\t//Padding for the Grid on lg screens",
+		"//--ion-grid-padding-md\t//Padding for the Grid on md screens",
+		"//--ion-grid-padding-sm\t//Padding for the Grid on sm screens",
+		"//--ion-grid-padding-xl\t//Padding for the Grid on xl screens",
+		"//--ion-grid-padding-xs\t//Padding for the Grid on xs screens",
+		"//--ion-grid-width\t//Width of the fixed Grid",
+		"//--ion-grid-width-lg\t//Width of the fixed Grid on lg screens",
+		"//--ion-grid-width-md\t//Width of the fixed Grid on md screens",
+		"//--ion-grid-width-sm\t//Width of the fixed Grid on sm screens",
+		"//--ion-grid-width-xl\t//Width of the fixed Grid on xl screens",
+		"//--ion-grid-width-xs\t//Width of the fixed Grid on xs screens"
+      ]
     },
 
     "GridRow": {
@@ -12349,7 +12864,16 @@
             true
           ]
          }
-      }
+      },
+      "scss": [
+		"//--ion-grid-column-padding\t//Padding for the Column",
+		"//--ion-grid-column-padding-lg\t//Padding for the Column on lg screens and up",
+		"//--ion-grid-column-padding-md\t//Padding for the Column on md screens and up",
+		"//--ion-grid-column-padding-sm\t//Padding for the Column on sm screens and up",
+		"//--ion-grid-column-padding-xl\t//Padding for the Column on xl screens and up",
+		"//--ion-grid-column-padding-xs\t//Padding for the Column on xs screens and up",
+		"//--ion-grid-columns\t//The number of total Columns in the Grid"      
+      ]
     },
 
     /* Cards */
@@ -12388,7 +12912,11 @@
         "LinkRel": false,
         "LinkRouterPath": false,
         "LinkRouterDirection": false
-      }
+      },
+      "scss": [
+        "//--background\t//Background of the card",
+        "//--color\t//Color of the card"
+      ]
     },
 
     "CardHeader": {
@@ -12452,7 +12980,10 @@
       "properties": {
         "IonColor": false,
         "IonMode": false
-      }
+      },
+      "scss": [
+        "//--color\t//Color of the card title"
+      ]
     },
     
     "CardSubTitle": {
@@ -12469,7 +13000,10 @@
       "properties": {
         "IonColor": false,
         "IonMode": false
-      }
+      },
+      "scss": [
+        "//--color\t//Color of the card subtitle"
+      ]
     },
 
 /*

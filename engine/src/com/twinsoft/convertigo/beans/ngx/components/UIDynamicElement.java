@@ -288,7 +288,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		String scss = "";
 		if (ionBean != null) {
 			for (String s: ionBean.getScssList()) {
-				scss += s;
+				scss += s + System.lineSeparator();
 			}
 			if (!scss.isEmpty()) {
 				String cartridge = "";
