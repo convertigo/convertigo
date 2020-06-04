@@ -8188,134 +8188,259 @@
       }
     },
 
-/*
     "Tooltips" : {
-      "tag": "span",
+    	"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr",
         "displayName": "Tooltips",
         "label": "Tooltips",
         "description": [
-"ionic-tooltips| Defines a Tooltip component. This component displays a tooltip that can be positioned around any item giving the position properties. You can set as many tooltips in a page.<br/>",
-" To use it, you have to place the tooltip as a parent of the item. <br/>",
-" For more information: <a href='https://www.npmjs.com/package/ionic-tooltips'>ionic-tooltips</a>."],
+" | Defines a <i>Tooltip</i> component. The <i>Tooltip</i> is a pop-up tip that appears when you hover over an item or click on it.<br/>",
+" To use it, place the <i>Tooltip</i> inside any component such as <i>Button</i> or <i>Generic item</i>.<br/>",
+" For more information: <a href='https://www.npmjs.com/package/ng2-tooltip-directive'>ng2-tooltip-directive</a>."],
         "group": "Miscellaneous",
         "icon16": "tooltips_color_16x16.png",
         "icon32": "tooltips_color_32x32.png",
-      "properties": {
-        "tooltip": {
-          "attr":"tooltip",
-          "label": "Tooltip string",
-          "description": "string to be displayed. 'empty string = disabled').",
-          "category": "@Attributes",
-          "value": "a tooltip to display",
-          "values": ["",true]
-        },
-
-        "navTooltip": {
-          "attr":"navTooltip",
-          "label": "Navbar Tooltip",
-          "description": "add this attribute or set it's value to true to specify that the tooltip belongs to a nav button. Defaults to not set.",
-          "category": "@Attributes",
-          "value": false, // optional value (default is not set)
-          "values": [ // possible values (false means do no set)
-          	false,
-         	"false",
-          	true
-          ]
-        },
-        "event": {
-          "attr":"event",
-          "label": "Showing event",
-          "description": "the event to show the tooltip on. Can be either 'hover', 'click' or 'press'. Defaults to hover.",
-          "category": "@Attributes",
-          "value": "hover", // optional value (default is hover)
-          "values": [ // possible values 
-            "hover",
-            "click",
-            "press"
-          ]
-        },
-        "arrow": {
-          "label": "Displays arrow",
-          "description": "add this attribute or set it's value to true to show an arrow attached to the tooltip. Defaults to true.",
-          "category": "@Attributes",
-          "value": "arrow", // optional value (default is true)
-          "values": [ // possible values (false means no set)
-	    	false,
-            "arrow"
-          ]
-        },
-
-        "positionH": {
-          "attr":"positionH",
-          "label": "Horizontal Position",
-          "description": "specifies the horizontal position of the tooltip. Can be either 'right' or 'left'",
-          "category": "@Attributes",
-          "value": "right", // optional value (default is right)
-          "values": [ // possible values (false means do no set)
-            false,
-            "right",
-            "left"
-          ]
-        },
-        "positionV": {
-          "attr":"positionV",
-          "label": "Vertical Position",
-          "description": "specifies the vertical position of the tooltip. Can be either 'top' or 'bottom'.",
-          "category": "@Attributes",
-          "value": "top", // optional value (default is top)
-          "values": [ // possible values (false means do no set)
-            false,
-            "top",
-            "bottom"
-          ]
-        },
-        "topOffset": {
-          "attr": "topOffset",
-          "label": "Top Offset",
-          "description": "add this attribute to offset the vertical position of the tooltip. Defaults to 0.",
-          "category": "@Attributes",
-          "value": "0", // optional value (default is 0)
-          "values": [ // possible values (false means no set)
-	    	false,
-            true
-          ]
-        },
-        "leftOffset": {
-          "attr": "leftOffset",
-          "label": "Left Offset",
-          "description": "add this attribute to offset the horizontal position of the tooltip. Defaults to 0.",
-          "category": "@Attributes",
-          "value": "0", // optional value (default is 0)
-          "values": [ // possible values (false means no set)
-	    	false,
-            true
-          ]
-        },
-        "duration": {
-          "mode": "script",
-          "attr":"[duration]",
-          "label": "Display duration",
-          "description": "number: number of milliseconds to show the tooltip for. Defaults to 3000.",
-          "category": "@Attributes",
-          "value": "3000"
-        }
-      },
-      "config": {
-        "module_ts_imports": [
-          {"from":"ionic-tooltips", "components":["TooltipsModule"]},
-          {"from":"@angular/platform-browser/animations", "components":["BrowserAnimationsModule"]}
-        ],
-        "module_ng_imports": [
-          "TooltipsModule",
-          "BrowserAnimationsModule"
-        ],
-        "package_dependencies": [
-          {"package":"@angular/animations", "version":"5.2.10"},
-          {"package":"ionic-tooltips", "version":"2.1.1"}
-        ]
-      }         
+      	"properties": {
+      		"AnimationDuration": {
+	          "attr": "animation-duration",
+	          "label": "Animation duration",
+	          "description": "The duration controls how long the animation takes to run from start to finish.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "300",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+      		"AutoPlacement": {
+	          "attr": "autoPlacement",
+	          "label": "Auto placement",
+	          "description": "Place the tooltip so that it does not go beyond the borders of the browser window.",
+	          "category": "@Properties",
+	          "type": "boolean",
+	          "value": "true",
+	          "values": [
+	            "false",
+	            "true"
+	          ]
+      		},
+      		"HideDelay": {
+	          "attr": "hide-delay",
+	          "label": "Hide delay",
+	          "description": "The delay in ms before removing the tooltip.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "300",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+      		"HideDelayAfterClick": {
+	          "attr": "hideDelayAfterClick",
+	          "label": "Hide delay (click)",
+	          "description": "Tooltip hiding delay for 'click' trigger.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "2000",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+      		"HideDelayTouchscreen": {
+	          "attr": "hideDelayTouchscreen",
+	          "label": "Hide delay (touch)",
+	          "description": "Delay in milliseconds before hiding the tooltip (for mobile devices).",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "0",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+      		"Offset": {
+	          "attr": "offset",
+	          "label": "Offset",
+	          "description": "Offset the tooltip relative to the item.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "8",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+      		"Shadow": {
+	          "attr": "shadow",
+	          "label": "Shadow",
+	          "description": "Shadow of the tooltip.",
+	          "category": "@Properties",
+	          "type": "boolean",
+	          "value": "true",
+	          "values": [
+	            "false",
+	            "true"
+	          ]
+      		},
+      		"ShowDelay": {
+	          "attr": "show-delay",
+	          "label": "Show delay",
+	          "description": "The delay in ms before showing the tooltip.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "0",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+	        "Placement": {
+	          "attr": "placement",
+	          "label": "Position",
+	          "description": "The position of the tooltip.",
+	          "category": "@Properties",
+	          "value": "top",
+	          "values": [
+	            "bottom",
+	            "left",
+	            "right",
+	            "top"
+	          ]
+	        },
+	        "PointerEvents": {
+	          "attr": "pointerEvents",
+	          "label": "Pointer events",
+	          "description": "Defines whether or not an element reacts to pointer events.",
+	          "category": "@Properties",
+	          "value": "none",
+	          "values": [
+	            "auto",
+	            "none",
+	            true
+	          ]
+	        },
+	        "Position": {
+	          "attr": "[position]",
+	          "label": "Coordinates",
+	          "description": "The tooltip coordinates relative to the browser window, e.g.: {top: number, left: number} ",
+	          "category": "@Properties",
+	          "mode": "script",
+	          "value": false,
+	          "values": [
+	            false,
+	            true
+	          ]
+	        },
+	        "Theme": {
+	          "attr": "theme",
+	          "label": "Theme",
+	          "description": "Theme of tooltip background and text.",
+	          "category": "@Properties",
+	          "value": "dark",
+	          "values": [
+	            "dark",
+	            "light",
+	            true
+	          ]
+	        },
+	        "Tooltip": {
+	          "attr": "tooltip",
+	          "label": "Tooltip string",
+	          "description": "The string to be displayed in the popup.",
+	          "category": "@Properties",
+	          "value": "A tooltip string",
+	          "values": [
+	            false,
+	            true
+	          ]
+	        },
+	        "TooltipClass": {
+	          "attr": "tooltip-class",
+	          "label": "Tooltip classes",
+	          "description": "Comma separated class names to be passed to the tooltip.",
+	          "category": "@Properties",
+	          "value": "",
+	          "values": [
+	            false,
+	            true
+	          ]
+	        },
+	        "TooltipContent": {
+	          "attr": "content-type",
+	          "label": "Tooltip content",
+	          "description": "The content type passed to the tooltip.",
+	          "category": "@Properties",
+	          "value": "string",
+	          "values": [
+	            "html",
+	            "template",
+	            "string",
+	            true
+	          ]
+	        },
+	        "Trigger": {
+	          "attr": "trigger",
+	          "label": "Trigger event",
+	          "description": "Specifies how the tooltip is triggered. Control the closing time with 'Hide delay' property.",
+	          "category": "@Properties",
+	          "value": "hover",
+	          "values": [
+	            "click",
+	            "hover",
+	            true
+	          ]
+	        },
+      		"Width": {
+	          "attr": "width",
+	          "label": "Width",
+	          "description": "Width of the tooltip in pixels.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": false,
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+      		"MaxWidth": {
+	          "attr": "max-width",
+	          "label": "Max width",
+	          "description": "Maximum width of the tooltip in pixels.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "200",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		},
+      		"ZIndex": {
+	          "attr": "z-index",
+	          "label": "Z-index",
+	          "description": "Z-index of the tooltip.",
+	          "category": "@Properties",
+	          "type": "number",
+	          "value": "0",
+	          "values": [
+	            false,
+	            true
+	          ]
+      		}
+	    },
+	    "config": {
+	        "module_ts_imports": [
+	          {"from":"ng2-tooltip-directive", "components":["TooltipModule"]}
+	        ],
+	        "module_ng_imports": [
+	          "TooltipModule"
+	        ],
+	        "package_dependencies": [
+	          {"package":"ng2-tooltip-directive", "version":"2.9.20"}
+	        ]
+	    }         
     },
-*/
 
     "ProgressBar" : {
       "tag": "ion-progress-bar",

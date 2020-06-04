@@ -3166,5 +3166,107 @@
     }
    }
   }
+ },
+ "Tooltips": {
+  "   7   9   0": {
+   "name": "Tooltips",
+   "properties": {
+    "AnimationDuration": {
+     "name": "AnimationDuration",
+     "mode": "plain",
+     "value": "300"
+    },
+    "AutoPlacement": {
+     "name": "AutoPlacement",
+     "mode": "plain",
+     "value": "true"
+    },
+    "HideDelay": {
+     "name": "HideDelay",
+     "mode": "plain",
+     "value": "300"
+    },
+    "HideDelayAfterClick": {
+     "name": "HideDelayAfterClick",
+     "mode": "plain",
+     "value": "2000"
+    },
+    "HideDelayTouchscreen": {
+     "name": "HideDelayTouchscreen",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Offset": {
+     "name": "Offset",
+     "mode": "plain",
+     "value": "8"
+    },
+    "Shadow": {
+     "name": "Shadow",
+     "mode": "plain",
+     "value": "true"
+    },
+    "ShowDelay": {
+     "name": "ShowDelay",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Placement": {
+     "name": "Placement",
+     "mode": "plain",
+     "value": "top"
+    },
+    "PointerEvents": {
+     "name": "PointerEvents",
+     "mode": "plain",
+     "value": "none"
+    },
+    "Position": {
+     "name": "Position",
+     "mode": "script",
+     "value": false
+    },
+    "Theme": {
+     "name": "Theme",
+     "mode": "plain",
+     "value": "dark"
+    },
+    "Tooltip": {
+     "name": "Tooltip",
+     "mode": "plain",
+     "value": "A tooltip string"
+    },
+    "TooltipClass": {
+     "name": "TooltipClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "TooltipContent": {
+     "name": "TooltipContent",
+     "mode": "plain",
+     "value": "string"
+    },
+    "Trigger": {
+     "name": "Trigger",
+     "mode": "plain",
+     "value": "hover"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "MaxWidth": {
+     "name": "MaxWidth",
+     "mode": "plain",
+     "value": "200"
+    },
+    "ZIndex": {
+     "name": "ZIndex",
+     "mode": "plain",
+     "value": "0"
+    }
+   }
+  }
  }
 }
