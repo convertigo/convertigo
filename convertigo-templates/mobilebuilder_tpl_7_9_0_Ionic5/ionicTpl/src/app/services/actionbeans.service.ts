@@ -5,7 +5,7 @@ import {Platform,
         ModalController,
         AlertController,
         PopoverController
-}                               from "ionic-angular";
+}                               from "@ionic/angular";
 import { TranslateService }     from '@ngx-translate/core';
 
 /*=c8o_ActionTsImports*/
