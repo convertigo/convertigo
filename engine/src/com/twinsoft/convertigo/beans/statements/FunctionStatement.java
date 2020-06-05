@@ -27,6 +27,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class FunctionStatement extends StatementWithExpressions {
 
@@ -89,5 +90,10 @@ public class FunctionStatement extends StatementWithExpressions {
 	 */
 	public void setReturnedValue(Object returnedValue) {
 		this.returnedValue = returnedValue;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.FUNCTION;
 	}
 }

@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "UrlMappingResponse",
@@ -48,6 +49,9 @@ public abstract class UrlMappingResponse extends DatabaseObject {
 	public String toString() {
 		return getStatusCode()+"-Response";
 	}
-	
-	
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.RESPONSE;
+	}	
 }

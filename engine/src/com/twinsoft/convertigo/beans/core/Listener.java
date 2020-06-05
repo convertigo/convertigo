@@ -24,6 +24,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -89,5 +90,9 @@ public abstract class Listener extends DatabaseObject implements IEnableAble {
 		}
 		return super.testAttribute(name, value);
 	}
-
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.LISTENER;
+	}
 }

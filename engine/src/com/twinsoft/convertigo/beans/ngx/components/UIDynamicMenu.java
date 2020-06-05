@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIDynamicMenu extends UIDynamicElement {
 
@@ -72,4 +73,8 @@ public class UIDynamicMenu extends UIDynamicElement {
 		return map;
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.MENU;
+	}
 }

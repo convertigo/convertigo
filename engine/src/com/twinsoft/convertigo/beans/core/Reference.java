@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "Reference",
@@ -32,5 +33,10 @@ public abstract class Reference extends DatabaseObject {
 	public Reference() {
 		super();
 		databaseType = "Reference";
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.REFERENCE;
 	}
 }

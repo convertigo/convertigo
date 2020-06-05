@@ -27,6 +27,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 /**
@@ -643,4 +644,8 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 		return super.testAttribute(name, value);
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return (parent != null && parent instanceof ScreenClass) ? FolderType.INHERITED_SCREEN_CLASS : FolderType.SCREEN_CLASS;
+	}
 }

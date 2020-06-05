@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 /**
@@ -153,5 +154,8 @@ public class Pool extends DatabaseObject implements ITagsProperty{
 		return getProject().getName() + "/" + getConnector().getName() + "/" + getName();
 	}
 
-
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.NONE;
+	}
 }

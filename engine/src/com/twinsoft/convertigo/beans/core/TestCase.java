@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -318,4 +319,8 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 		return rep;
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.TESTCASE;
+	}
 }

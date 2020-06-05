@@ -78,6 +78,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -998,4 +999,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return super.testAttribute(name, value);
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return (parent != null && parent instanceof Step) ? FolderType.NONE : FolderType.STEP;
+	}
 }

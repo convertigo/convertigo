@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -1050,4 +1051,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return tplVersion;
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.PAGE;
+	}	
 }

@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
  * This class defines the base class for extraction rules.
@@ -100,4 +101,8 @@ public abstract class ExtractionRule extends DatabaseObject implements IEnableAb
 		return super.testAttribute(name, value);
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EXTRACTION_RULE;
+	}
 }

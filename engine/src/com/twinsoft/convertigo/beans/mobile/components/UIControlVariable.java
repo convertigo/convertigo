@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIControlVariable extends UIComponent implements ITagsProperty {
 
@@ -99,5 +100,10 @@ public class UIControlVariable extends UIComponent implements ITagsProperty {
 			updated = this.hasChanged = true;
 		}
 		return updated;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.VARIABLE;
 	}
 }

@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "UrlMapping",
@@ -180,5 +181,10 @@ public abstract class UrlMapping extends DatabaseObject {
 		Pattern url_pattern = Pattern.compile(url_regex);
 		Matcher url_matcher = url_pattern.matcher(requestPath);
 		return url_matcher.matches();
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.MAPPING;
 	}
 }

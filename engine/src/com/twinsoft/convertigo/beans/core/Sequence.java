@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -1949,4 +1950,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public boolean isGenerateElement() {
 		return true;
 	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.SEQUENCE;
+	}	
 }

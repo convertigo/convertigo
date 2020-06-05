@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
  * The Connector class is the base class for all connectors.
@@ -715,4 +716,9 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty 
             couchDbConnector.setDefaultTransaction(transaction);
         }
     }
+	
+    @Override
+	public FolderType getFolderType() {
+		return FolderType.CONNECTOR;
+	}
 }

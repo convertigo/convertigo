@@ -30,6 +30,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UISharedComponent extends UIComponent implements IShared {
 
@@ -214,5 +215,10 @@ public class UISharedComponent extends UIComponent implements IShared {
 				}
 			}
 		}
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.SHARED_COMPONENT;
 	}
 }

@@ -34,6 +34,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIActionStack extends UIComponent implements IShared {
 
@@ -438,5 +439,10 @@ public class UIActionStack extends UIComponent implements IShared {
 			}
 		//}
 		return jsonModel.toString();
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.SHARED_ACTION;
 	}
 }

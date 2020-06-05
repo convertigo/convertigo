@@ -30,6 +30,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIEventSubscriber extends UIComponent implements IEventListener {
 
@@ -244,4 +245,8 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		return map;
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EVENT;
+	}	
 }

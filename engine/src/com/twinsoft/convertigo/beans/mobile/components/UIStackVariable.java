@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.twinsoft.convertigo.engine.enums.FolderType;
+
 public class UIStackVariable extends UIComponent {
 
 	private static final long serialVersionUID = -3544805847766179482L;
@@ -64,4 +66,8 @@ public class UIStackVariable extends UIComponent {
 		return getVariableName() + (val.isEmpty() ? "" : "="+val.toString());
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.VARIABLE;
+	}
 }

@@ -26,6 +26,7 @@ import java.util.Set;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
 @DboCategoryInfo(
@@ -255,4 +256,8 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 		return super.testAttribute(name, value);
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.VARIABLE;
+	}
 }

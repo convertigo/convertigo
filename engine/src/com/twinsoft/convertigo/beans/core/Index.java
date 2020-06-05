@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.core;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "Index",
@@ -51,5 +52,9 @@ public abstract class Index extends DatabaseObject {
 	public String getRenderer() {
 		return "IndexTreeObject";
 	}
-
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.INDEX;
+	}
 }
