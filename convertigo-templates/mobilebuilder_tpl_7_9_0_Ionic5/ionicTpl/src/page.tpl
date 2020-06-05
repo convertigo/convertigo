@@ -5,7 +5,7 @@ import { DomSanitizer }                 												from '@angular/platform-brow
 //import { AlertController, ActionSheetController, ModalController }					from 'ionic-angular';
 import { NavParams, LoadingController, MenuController, Platform}						from '@ionic/angular';
 import { AlertController, ActionSheetController, ModalController }						from '@ionic/angular';
-//import { C8oPage, C8oPageBase, C8oRouter, C8oCafUtils }                      			from 'c8ocaf';
+import { C8oPage, C8oPageBase, C8oRouter, C8oCafUtils }                      			from 'c8ocaf';
 //import { C8oNetworkStatus }                                 							from 'c8osdkangular';
 import { ChangeDetectorRef, ChangeDetectionStrategy, InjectionToken, Injector, Type}	from "@angular/core";
 import { TranslateService }                                 							from '@ngx-translate/core';
@@ -27,10 +27,9 @@ import { TranslateService }                                 							from '@ngx-tr
 //@Component({selector: /*=c8o_PageSelector*/, templateUrl: /*=c8o_PageTplUrl*/, changeDetection: /*=c8o_PageChangeDetection*/})
 //export class /*=c8o_PageName*/ extends C8oPage  {
 @Component({selector: /*=c8o_PageSelector*/, templateUrl: /*=c8o_PageTplUrl*/, styleUrls: [/*=c8o_PageStyleUrls*/], changeDetection: /*=c8o_PageChangeDetection*/})
-export class /*=c8o_PageName*/ {
+export class /*=c8o_PageName*/  extends C8oPage {
 	/*=c8o_PageDeclarations*/
 
-	public router: Router;
 	//public events : Events;
 	//public actionBeans: ActionBeans;
 	public static nameStatic: string = "/*=c8o_PageName*/";
@@ -38,9 +37,8 @@ export class /*=c8o_PageName*/ {
 	/*End_c8o_PageDeclaration*/
 
 	//constructor(routerProvider : C8oRouter, navParams: NavParams, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
-	constructor(private route: ActivatedRoute, router: Router, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
-		//super(routerProvider, navParams, loadingCtrl, sanitizer, ref, injector, menuCtrl);
-		this.router = router;
+	constructor(routerProvider: C8oRouter, private route: ActivatedRoute, private angularRouter: Router, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
+		super(routerProvider, loadingCtrl, sanitizer, ref, injector, menuCtrl);
 		//this.events = this.getInstance(Events);
 		//this.actionBeans = this.getInstance(ActionBeans);
 		
@@ -64,7 +62,7 @@ export class /*=c8o_PageName*/ {
 	}
 	
 	public navigateByUrl(url: string){
-	    this.router.navigateByUrl(url);
+	    this.angularRouter.navigateByUrl(url);
 	}
 	
 	/*Begin_c8o_PageFunction*/

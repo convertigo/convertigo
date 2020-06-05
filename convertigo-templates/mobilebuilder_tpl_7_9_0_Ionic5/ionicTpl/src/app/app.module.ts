@@ -48,14 +48,14 @@ export function createTranslateLoader(http: HttpClient) {
   providers: [
     StatusBar,
     SplashScreen,
-//    C8o,
-//    C8oRouter,
+    C8o,
+    C8oRouter,
 //    ActionBeans,
-//    {
-//        provide: HTTP_INTERCEPTORS,
-//        useClass: HttpXsrfInterceptor,
-//        multi: true
-//    },
+    {
+        provide: HTTP_INTERCEPTORS,
+        useClass: HttpXsrfInterceptor,
+        multi: true
+    },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]
