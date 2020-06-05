@@ -13672,7 +13672,6 @@
     /*
      * Charts
      */
-/*
     "Charts" : {
       "tag": "canvas",
 	  "displayName": "Chart",
@@ -13796,6 +13795,16 @@
           ]
         }
       },
+      "events": {
+        "chartClick": {
+          "attr":"(chartClick)",
+          "description": "fires when click on a chart has occurred, returns information regarding active points and labels"
+        },
+        "chartHover": {
+          "attr":"(chartHover)",
+          "description": "fires when mousemove (hover) on a chart has occurred, returns information regarding active points and labels"
+        }
+      },
       "config": {
         "module_ts_imports": [
           {"from":"ng2-charts", "components":["ChartsModule"]}
@@ -13807,8 +13816,7 @@
             {"package":"ng2-charts", "version":"1.6.0"}
         ]
       }
-    },
-*/    
+    },    
 
     /*
      * Calendar
