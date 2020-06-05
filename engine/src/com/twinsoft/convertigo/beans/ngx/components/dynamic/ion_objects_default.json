@@ -3479,5 +3479,97 @@
     }
    }
   }
+ },
+ "Calendar": {
+  "   7   9   0": {
+   "name": "Calendar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "primary"
+    },
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": "string"
+    },
+    "format": {
+     "name": "format",
+     "mode": "plain",
+     "value": "'YYYY-MM-DD'"
+    },
+    "pickMode": {
+     "name": "pickMode",
+     "mode": "plain",
+     "value": "single"
+    },
+    "from": {
+     "name": "from",
+     "mode": "script",
+     "value": "undefined"
+    },
+    "to": {
+     "name": "to",
+     "mode": "script",
+     "value": "undefined"
+    },
+    "showToggleButtons": {
+     "name": "showToggleButtons",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showMonthPicker": {
+     "name": "showMonthPicker",
+     "mode": "plain",
+     "value": "false"
+    },
+    "defaultTitle": {
+     "name": "defaultTitle",
+     "mode": "plain",
+     "value": ""
+    },
+    "defaultSubtitle": {
+     "name": "defaultSubtitle",
+     "mode": "plain",
+     "value": ""
+    },
+    "disableWeeks": {
+     "name": "disableWeeks",
+     "mode": "script",
+     "value": "[]"
+    },
+    "monthFormat": {
+     "name": "monthFormat",
+     "mode": "plain",
+     "value": "MMM YYYY"
+    },
+    "monthPickerFormat": {
+     "name": "monthPickerFormat",
+     "mode": "script",
+     "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
+    },
+    "weekdays": {
+     "name": "weekdays",
+     "mode": "script",
+     "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+    },
+    "weekStart": {
+     "name": "weekStart",
+     "mode": "plain",
+     "value": 0
+    },
+    "daysConfig": {
+     "name": "daysConfig",
+     "mode": "script",
+     "value": "[]"
+    },
+    "options": {
+     "name": "options",
+     "mode": "script",
+     "value": "{pickMode: $[pickMode], from: $[from], to: $[to], color: $[IonColor], showToggleButtons: $[showToggleButtons], showMonthPicker: $[showMonthPicker], monthPickerFormat: $[monthPickerFormat], defaultTitle: $[defaultTitle], defaultSubtitle: $[defaultSubtitle], disableWeeks: $[disableWeeks], monthFormat: $[monthFormat], weekdays: $[weekdays], weekStart: $[weekStart], daysConfig: $[daysConfig] }"
+    }
+   }
+  }
  }
 }

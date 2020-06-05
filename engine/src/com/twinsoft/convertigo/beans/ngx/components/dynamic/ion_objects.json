@@ -13821,7 +13821,6 @@
     /*
      * Calendar
      */
-/*
     "Calendar" : {
       "tag": "ion-calendar",
       "displayName": "Calendar",
@@ -13834,6 +13833,7 @@
       "icon16": "calendar_color_16x16.png",
       "icon32": "calendar_color_32x32.png",
       "properties": {
+        "IonColor" : "primary",
         "type": {
           "attr" : "[type]",
           "label": "Type",
@@ -13848,7 +13848,6 @@
             "moment"
           ]
         },
-
         "format": {
           "attr" : "[format]",
           "label": "format",
@@ -13856,9 +13855,6 @@
           "category": "@Properties",
           "value": "'YYYY-MM-DD'"
         },
-
-        "IonColor" : "primary",
-
         "pickMode": {
           "composite": true,
           "label": "Pick mode",
@@ -13871,7 +13867,6 @@
             "range"
           ]
         },
-
         "from":	{
           "composite": true,
           "label": "From",
@@ -13881,7 +13876,6 @@
           "mode": "script",
           "value": "undefined"
         },
-        
         "to":{	
           "composite": true,
           "label": "To",
@@ -13891,7 +13885,6 @@
           "mode": "script",
           "value": "undefined"
         },
-        
         "showToggleButtons":{
           "composite": true,
           "label": "Show toggle buttons",
@@ -13904,7 +13897,6 @@
             "false"
           ]
         },
-
         "showMonthPicker":{
           "composite": true,
           "label": "Show month picker",
@@ -13917,7 +13909,6 @@
             "false"
           ]
         },
-
         "defaultTitle":{
           "composite": true,
           "label": "Day Title",
@@ -13926,7 +13917,6 @@
           "type": "string",
           "value": ""
         },
-
         "defaultSubtitle":{	
           "composite": true,
           "label": "Subtitle",
@@ -13935,7 +13925,6 @@
           "type": "string",
           "value": ""
         },
-
         "disableWeeks":{	
           "composite": true,
           "label": "Disable week days",
@@ -13945,7 +13934,6 @@
           "mode": "script",
           "value": "[]"
         },
-
         "monthFormat":{	
           "composite": true,
           "label": "Month format",
@@ -13954,7 +13942,6 @@
           "type": "string",
           "value": "MMM YYYY"
         },
-
         "monthPickerFormat":{	
           "composite": true,
           "label": "Month picker format",
@@ -13964,7 +13951,6 @@
           "type": "string",
           "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
         },
-
         "weekdays":{	
           "composite": true,
           "label": "Weekdays labels",
@@ -13974,7 +13960,6 @@
           "type": "string",
           "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
         },
-
         "weekStart":{	
           "composite": true,
           "label": "Week start",
@@ -13987,7 +13972,6 @@
             1
           ]
         },
-
         "daysConfig":{
           "composite": true,
           "label": "Days configuration",
@@ -13997,8 +13981,6 @@
           "type": "string",
           "value": "[]"
         },
-        
-        
         "options": {
           "hidden": true,
           "mode":"script",
@@ -14009,7 +13991,6 @@
           "value": "{pickMode: $[pickMode], from: $[from], to: $[to], color: $[IonColor], showToggleButtons: $[showToggleButtons], showMonthPicker: $[showMonthPicker], monthPickerFormat: $[monthPickerFormat], defaultTitle: $[defaultTitle], defaultSubtitle: $[defaultSubtitle], disableWeeks: $[disableWeeks], monthFormat: $[monthFormat], weekdays: $[weekdays], weekStart: $[weekStart], daysConfig: $[daysConfig] }"
         }
       },
-      
       "config": {
         "module_ts_imports": [
           {"from":"ion2-calendar", "components":["CalendarModule"]}
@@ -14018,7 +13999,7 @@
           "CalendarModule"
         ],
         "package_dependencies": [
-            {"package":"ion2-calendar", "version":"2.2.0"}
+            {"package":"ion2-calendar", "version":"3.0.0-rc.0"}
         ]
       },
       "events": {
@@ -14044,7 +14025,6 @@
         }
       }
     },
-*/
     
     /*
      * InfiniteScroll
