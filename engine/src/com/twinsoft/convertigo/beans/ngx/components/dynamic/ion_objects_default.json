@@ -3268,5 +3268,132 @@
     }
    }
   }
+ },
+ "GoogleMap": {
+  "   7   9   0": {
+   "name": "GoogleMap",
+   "properties": {
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "script",
+     "value": "'100%'"
+    },
+    "Zoom": {
+     "name": "Zoom",
+     "mode": "script",
+     "value": "12"
+    }
+   }
+  }
+ },
+ "MapCircle": {
+  "   7   9   0": {
+   "name": "MapCircle",
+   "properties": {
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Radius": {
+     "name": "Radius",
+     "mode": "script",
+     "value": "3000"
+    },
+    "Draggable": {
+     "name": "Draggable",
+     "mode": "script",
+     "value": "false"
+    },
+    "Clickable": {
+     "name": "Clickable",
+     "mode": "script",
+     "value": "true"
+    },
+    "FillColor": {
+     "name": "FillColor",
+     "mode": "script",
+     "value": "'#004de8'"
+    },
+    "FillOpacity": {
+     "name": "FillOpacity",
+     "mode": "script",
+     "value": "0.15"
+    },
+    "StrokeColor": {
+     "name": "StrokeColor",
+     "mode": "script",
+     "value": "'#004de8'"
+    },
+    "StrokePosition": {
+     "name": "StrokePosition",
+     "mode": "script",
+     "value": "0"
+    },
+    "StrokeOpacity": {
+     "name": "StrokeOpacity",
+     "mode": "script",
+     "value": "0.60"
+    },
+    "StrokeWeight": {
+     "name": "StrokeWeight",
+     "mode": "script",
+     "value": "1"
+    },
+    "Visible": {
+     "name": "Visible",
+     "mode": "script",
+     "value": "true"
+    }
+   }
+  }
+ },
+ "MapInfoWindow": {
+  "   7   9   0": {
+   "name": "MapInfoWindow",
+   "properties": {}
+  }
+ },
+ "MapMarker": {
+  "   7   9   0": {
+   "name": "MapMarker",
+   "properties": {
+    "IconUrl": {
+     "name": "IconUrl",
+     "mode": "script",
+     "value": "''"
+    },
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Title": {
+     "name": "Title",
+     "mode": "script",
+     "value": "'Convertigo'"
+    }
+   }
+  }
  }
 }

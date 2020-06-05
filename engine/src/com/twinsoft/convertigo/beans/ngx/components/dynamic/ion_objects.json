@@ -13241,7 +13241,6 @@
     /*
      * Google Maps AGM
      */
-/*
     "GoogleMap" : {
       "tag": "agm-map",
 	  "displayName": "GoogleMap",
@@ -13335,12 +13334,11 @@
           "AgmCoreModule.forRoot({apiKey: 'AIzaSyB0Nl1dX0kEsB5QZaNf6m-tnb1N-U5dpXs'})"
         ],
         "package_dependencies": [
-            {"package":"@agm/core", "version":"1.0.0-beta.2"}
+            {"package":"@agm/core", "version":"1.1.0"}
         ]
       }
     },
-*/
-/*   
+   
     "MapMarker" : {
       "tag": "agm-marker",
 	  "displayName": "MapMarker",
@@ -13406,8 +13404,7 @@
         }
       }
     },
-*/
-/*    
+    
     "MapInfoWindow" : {
       "tag": "agm-info-window",
 	  "displayName": "MapInfoWindow",
@@ -13424,8 +13421,7 @@
       "properties": {
       }
     },
-*/
-/*
+
 	"MapCircle" : {
        "tag": "agm-circle",
 	   "displayName": "MapCircle",
@@ -13611,7 +13607,6 @@
         }
       }
     },
-*/
     
     /*
      * Video
