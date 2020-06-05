@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class FunctionStep extends StepWithExpressions {
 
@@ -71,5 +72,9 @@ public class FunctionStep extends StepWithExpressions {
 	public void setReturnedValue(Object returnedValue) {
 		this.returnedValue = returnedValue;
 	}
-
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.FUNCTION;
+	}
 }

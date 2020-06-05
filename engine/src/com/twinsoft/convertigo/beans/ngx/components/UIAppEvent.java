@@ -32,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class UIAppEvent extends UIComponent implements ITagsProperty {
@@ -314,5 +315,10 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	public String toString() {
 		String label = appEvent.name();
 		return label.isEmpty() ? "?":label;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EVENT;
 	}
 }

@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.ngx.components;
 import java.util.Iterator;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public abstract class UIControlAttr extends UIAttribute implements ITagsProperty {
 	
@@ -71,4 +72,8 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 		return "";
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.CONTROL;
+	}	
 }

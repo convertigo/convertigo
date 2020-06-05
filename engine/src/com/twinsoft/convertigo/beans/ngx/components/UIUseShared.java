@@ -329,8 +329,9 @@ public class UIUseShared extends UIElement {
 					}
 					if (p != null) {
 						ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+						String name = qname.replaceFirst(".*\\.(?:.+:)?(.*?)$", "$1");
 						for (UISharedComponent uisc: app.getSharedComponentList()) {
-							if (uisc.getQName().equals(qname)) {
+							if (uisc.getName().equals(name)) {
 								target = uisc;
 							}
 						}

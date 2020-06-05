@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
  
 /**
  * The Criteria class is the base class for all criterias.
@@ -93,5 +94,10 @@ public abstract class Criteria extends DatabaseObject {
 	protected String processToString(String toString){
 		if(reverseResult) return "Not "+toString;
 		return toString;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.CRITERIA;
 	}
 }

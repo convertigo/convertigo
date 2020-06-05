@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIDynamicAttr extends UIDynamicElement {
 
@@ -49,5 +50,10 @@ public class UIDynamicAttr extends UIDynamicElement {
 	@Override
 	public String computeTemplate() {
 		return "";
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.VARIABLE;
 	}
 }

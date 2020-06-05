@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -925,5 +926,10 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			handlers = expression;
 			changed();
 		}
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.TRANSACTION;
 	}
 }

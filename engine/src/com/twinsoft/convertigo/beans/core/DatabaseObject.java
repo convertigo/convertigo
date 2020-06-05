@@ -64,6 +64,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -359,11 +360,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 * @return the fully qualified name of the object.
 	 */
 	public String getQName() {
-		String qname;
+		String qname = getFolderType().qnamePart(this);
 		if (parent != null) {
-			qname = parent.getQName() + "." + getName();
+			qname = parent.getQName() + "." + qname;
 		} else {
-			qname = "?." + getName();
+			qname = "?." + qname;
 		}
 		return qname;
 	}
@@ -1298,7 +1299,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
 		List<DatabaseObject> children = getDatabaseObjectChildren();
 		for (DatabaseObject child: children) {
-			if (child.getName().equals(name)) {
+			if (child.getFolderType().qnamePart(child).equals(name) || child.getName().equals(name)) {
 				return child;
 			}
 		}
@@ -1343,5 +1344,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	
 	protected void checkBatchOperation(Runnable runnable) {
 		BatchOperationHelper.check(runnable);
+	}
+	
+	public FolderType getFolderType() {
+		return FolderType.NONE;
 	}
 }

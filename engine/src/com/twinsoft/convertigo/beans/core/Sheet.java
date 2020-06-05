@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
  * This class defines a XSL sheet.
@@ -94,5 +95,10 @@ public class Sheet extends DatabaseObject implements ITagsProperty{
 	        return browsers;
 		}
 		return new String[0];
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.SHEET;
 	}
 }

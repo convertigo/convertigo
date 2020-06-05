@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
 
 @DboCategoryInfo(
@@ -141,5 +142,9 @@ public class RouteEventComponent extends MobileComponent implements IRouteGenera
 		}
 		return super.testAttribute(name, value);
 	}
-
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EVENT;
+	}
 }

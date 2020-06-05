@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import com.twinsoft.convertigo.engine.enums.FolderType;
+
 public abstract class UIFormValidator extends UIComponent implements IValidator {
 
 	private static final long serialVersionUID = -1290023592270052973L;
@@ -41,5 +43,10 @@ public abstract class UIFormValidator extends UIComponent implements IValidator 
 
 	public void setAsync(boolean async) {
 		this.async = async;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.VALIDATOR;
 	}
 }

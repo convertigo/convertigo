@@ -25,6 +25,7 @@ import java.util.List;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
 public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsProperty {
@@ -237,5 +238,10 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	public String toString() {
 		String label = viewEvent.name();
 		return label.isEmpty() ? "?":label;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EVENT;
 	}
 }

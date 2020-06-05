@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class UIStyle extends UIComponent {
@@ -101,5 +102,10 @@ public class UIStyle extends UIComponent {
 				return computedStyle;
 		}
 		return "";
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.STYLE;
 	}
 }
