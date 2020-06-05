@@ -3395,5 +3395,37 @@
     }
    }
   }
+ },
+ "Video": {
+  "   7   9   0": {
+   "name": "Video",
+   "properties": {
+    "src": {
+     "name": "src",
+     "mode": "script",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "control": {
+     "name": "control",
+     "mode": "plain",
+     "value": false
+    },
+    "autoplay": {
+     "name": "autoplay",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

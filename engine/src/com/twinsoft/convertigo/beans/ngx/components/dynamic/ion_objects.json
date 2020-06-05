@@ -13611,13 +13611,12 @@
     /*
      * Video
      */
-/*
     "Video" : {
       "tag": "video",
 	  "displayName": "Video",
       "label": "Video",
       "description": [
-"video. | Defines a <i>Video</i> component.<br/>",
+"video | Defines a <i>Video</i> component.<br/>",
 "This component acts as the standard HTML5 video tag which embed a video in a web page.<br/>",
 "It helps to display a video from a remote or local video ressource.<br/>",
 " For more information: <a href='https://www.w3schools.com/html/html5_video.asp'>Video</a>."],
@@ -13669,7 +13668,6 @@
         }
       }
     },
-*/
 
     /*
      * Charts
