@@ -85,13 +85,6 @@ public class WalkHelper {
 					walk(sequence);
 				}
 			}
-
-			if (before(databaseObject, MobileApplication.class)) {
-				MobileApplication mobileApplication = project.getMobileApplication();
-				if (mobileApplication != null) {
-					walk(mobileApplication);
-				}
-			}
 			
 			if (before(databaseObject, UrlMapper.class)) {
 				UrlMapper urlMapper = project.getUrlMapper();
@@ -103,6 +96,13 @@ public class WalkHelper {
 			if (before(databaseObject, Reference.class)) {
 				for (Reference reference : project.getReferenceList()) {
 					walk(reference);
+				}
+			}
+
+			if (before(databaseObject, MobileApplication.class)) {
+				MobileApplication mobileApplication = project.getMobileApplication();
+				if (mobileApplication != null) {
+					walk(mobileApplication);
 				}
 			}
 		} else if (databaseObject instanceof MobileApplication) {

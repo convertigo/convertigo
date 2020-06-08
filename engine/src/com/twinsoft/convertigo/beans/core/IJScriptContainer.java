@@ -33,7 +33,7 @@ public interface IJScriptContainer {
 	
 	public default String getFullName() {
 		DatabaseObject dbo = getDatabaseObject();
-		return dbo != null ? dbo.getQName() : getName();
+		return dbo != null ? dbo.getQName().replace(':', '-') : getName();
 	}
 	
 	public default String getEditorName() {
