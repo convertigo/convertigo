@@ -10,8 +10,10 @@ import { TranslateService }     from '@ngx-translate/core';
 
 /*=c8o_ActionTsImports*/
 
-@Injectable()
-export class ActionBeans{
+@Injectable({
+    providedIn: 'root'
+  })
+export class ActionBeans {
     constructor(public translate: TranslateService){
     }
     

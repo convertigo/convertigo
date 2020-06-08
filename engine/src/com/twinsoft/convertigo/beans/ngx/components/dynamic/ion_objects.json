@@ -14539,7 +14539,7 @@
             {"package":"angular-tree-component", "version":"7.2.1"}
         ]
       }	        
-    }
+    },
    
 	/*
 	 * Actions
@@ -14722,7 +14722,7 @@
 	  }
 	},
 */
-/*
+
     "ToastAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Toast",
@@ -14810,8 +14810,7 @@
         }
 	  }
 	},
-*/
-/*	
+
     "ErrorAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Error",
@@ -14834,8 +14833,7 @@
         }
 	  }
   },
-*/
-/* 
+ 
   "IfAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "If",
@@ -14874,8 +14872,7 @@
       }
     }
   },
-*/
-/*
+
   "IfElseAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf",
     "displayName": "IfElse",
@@ -14909,8 +14906,7 @@
       }
     }
   },
-*/
-/*
+
   "LogAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "Log",
@@ -14948,7 +14944,7 @@
       }
     }
   },
- */
+
  /*
     "CloseLoadingAction":{
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -14980,7 +14976,7 @@
        }
     },
 */
-/*
+
 	"CallSequenceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CallSequence",
@@ -15089,8 +15085,7 @@
 		}
 	  }
 	},
-*/
-/*
+
     "CallFullSyncAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CallFullSync",
@@ -15162,10 +15157,9 @@
             "true"
           ]
 		}
-  }
-},
-*/
-/*
+      }
+    },
+
     "ClearDataSourceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ClearDataSource",
@@ -15185,7 +15179,7 @@
 		}
 	  }
 	},
-*/
+
 /*
     "CloseModalAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -15320,7 +15314,7 @@
       }
 	},
 */
-/*
+
   "SetGlobalAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SetGlobal",
@@ -15355,7 +15349,7 @@
         }
 	  }
 	},
-*/
+
 /*
   "CalendarPickerAction" : {
       "tplVersion": "1.0.98",
@@ -15730,7 +15724,7 @@
     }
   },
 */
-/* 
+ 
   "FullSyncSyncAction" : {
 	    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	    "displayName": "SyncData",
@@ -15836,8 +15830,7 @@
         }
       }
   },
-*/
-/*  
+  
   "FullSyncPostAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "PostData",
@@ -15921,8 +15914,7 @@
       }
     }
 },
-*/
-/*
+
 "FullSyncPutAttachmentAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "PutAttachment",
@@ -16013,8 +16005,7 @@
       ]
     }
 },
-*/
-/*
+
 "FullSyncDeleteAttachmentAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "DeleteAttachment",
@@ -16069,8 +16060,7 @@
       }
     }
 },
-*/
-/*
+
 "FullSyncGetAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "GetData",
@@ -16140,8 +16130,7 @@
       }
    }
 },
-*/
-/*
+
 "FullSyncDeleteAction" : {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "DeleteData",
@@ -16202,8 +16191,7 @@
       }
    }
 },
-*/
-/*
+
   "FullSyncViewAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "QueryView",
@@ -16444,7 +16432,7 @@
       }
     }
   },
-*/
+
 /* 
   "FileChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -18103,7 +18091,7 @@
       }
     },
 */
-/*
+
     "InvokeAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke",
 	  "displayName": "InvokeSharedAction",
@@ -18121,8 +18109,7 @@
       "properties": {
       }
     },
-*/
-/*    
+    
     "IterateAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate",
 	  "displayName": "IterateAction",
@@ -18146,8 +18133,7 @@
 	      }
       }
     },
-*/
-/*    
+    
     "PauseAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "PauseAction",
@@ -18168,7 +18154,6 @@
 	        "values": [false,true]
 	      }
       }
-    }
-*/   
+    }   
   }
 }

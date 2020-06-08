@@ -17,7 +17,6 @@ import { TranslateModule } from '@ngx-translate/core';
 	ReactiveFormsModule,
 	IonicModule,
 	TranslateModule.forChild(),
-	//IonicPageModule.forChild(/*=c8o_PageName*/),
     RouterModule.forChild([
       {
         path: '',
