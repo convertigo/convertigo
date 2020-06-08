@@ -143,14 +143,14 @@ public class NgxBuilder extends MobileBuilder {
 						if (buildMutex != null) {
 							synchronized (buildMutex) {
 								try {
-									buildMutex.wait(60000);
+									buildMutex.wait(6000);//buildMutex.wait(60000);
 								} catch (InterruptedException e) {}							
 							}
 							Engine.logEngine.debug("(MobileBuilder) build finished.");
 						}
 						
 						// THEN: move again app or service files 
-						if (hasMovedPageFiles && hasMovedAppOrServFiles) {
+						/*if (hasMovedPageFiles && hasMovedAppOrServFiles) {
 							int count = 0;
 							for (String path: map.keySet()) {
 								if (isAppFile(path) || isServiceFile(path)) {
@@ -176,7 +176,7 @@ public class NgxBuilder extends MobileBuilder {
 									Engine.logEngine.debug("(MobileBuilder) build finished.");
 								}
 							}
-						}
+						}*/
 					}
 					inProcess = false;
 				}
@@ -219,17 +219,17 @@ public class NgxBuilder extends MobileBuilder {
 	MbWorker worker = null;
 	
 	static private boolean isAppFile(String path) {
-		String search = File.separator + "src" + File.separator + "app" + File.separator;
+		String search = File.separator + "src" + File.separator + "app" + File.separator + "app.";
 		return path == null ? false : path.indexOf(search) != -1;
 	}
 	
 	static private boolean isPageFile(String path) {
-		String search = File.separator + "src" + File.separator + "pages" + File.separator;
+		String search = File.separator + "src" + File.separator + "app" + File.separator + "pages" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
 	}
 	
 	static private boolean isServiceFile(String path) {
-		String search = File.separator + "src" + File.separator + "services" + File.separator;
+		String search = File.separator + "src" + File.separator + "app" + File.separator + "services" + File.separator;
 		return path == null ? false : path.indexOf(search) != -1;
 	}
 	
