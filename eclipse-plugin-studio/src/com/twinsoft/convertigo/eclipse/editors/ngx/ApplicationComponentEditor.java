@@ -1438,6 +1438,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						JSONObject envJSON = new JSONObject();
 						envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
 						FileUtils.write(new File(displayObjectsMobile, "env.json"), envJSON.toString(4), "UTF-8");
+						FileUtils.write(new File(ionicDir, "src/env.json"), envJSON.toString(4), "UTF-8");
 						String sGroup = m.group(1);
 						baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/")+1);//"http://localhost:8100/";
 						doLoad();
