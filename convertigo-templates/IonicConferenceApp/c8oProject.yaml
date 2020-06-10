@@ -11,6 +11,8 @@
   ↓fill_speakers [sequences.GenericSequence]: 🗏 sequences/fill_speakers.yaml
   ↓fill_tracks [sequences.GenericSequence]: 🗏 sequences/fill_tracks.yaml
   ↓login [sequences.GenericSequence]: 🗏 sequences/login.yaml
+  ↓CouchDb_schema [references.ImportXsdSchemaReference]: 
+    urlpath: http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd
   ↓MobileApplication [core.MobileApplication]: 
     comment: Describes the mobile application global properties
     splashRemoveMode: beforeUpdate
@@ -19,5 +21,3 @@
     ↓iOS [mobileplatforms.IOs]: 
       comment: iOS 7, 8, 9 for iPhone and iPad
     ↓Application [mobile.components.ApplicationComponent]: 🗏 mobileApplication.yaml
-  ↓CouchDb_schema [references.ImportXsdSchemaReference]: 
-    urlpath: http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd

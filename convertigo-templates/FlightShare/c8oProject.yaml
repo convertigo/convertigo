@@ -15,6 +15,10 @@
   ↓PublishFlight [sequences.GenericSequence]: 🗏 sequences/PublishFlight.yaml
   ↓PublishFlights [sequences.GenericSequence]: 🗏 sequences/PublishFlights.yaml
   ↓RegisterOnFlight [sequences.GenericSequence]: 🗏 sequences/RegisterOnFlight.yaml
+  ↓CouchDb_schema [references.ImportXsdSchemaReference]: 
+    urlpath: http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd
+  ↓lib_FullSyncGrp_reference [references.ProjectSchemaReference]: 
+    projectName: lib_FullSyncGrp
   ↓MobileApplication [core.MobileApplication]: 
     applicationDescription: Flying Club flight sharing application
     applicationId: com.convertigo.flightshare
@@ -26,7 +30,3 @@
     ↓iOS [mobileplatforms.IOs]: 
       comment: iOS 7, 8, 9 for iPhone and iPad
     ↓Application [mobile.components.ApplicationComponent]: 🗏 mobileApplication.yaml
-  ↓CouchDb_schema [references.ImportXsdSchemaReference]: 
-    urlpath: http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd
-  ↓lib_FullSyncGrp_reference [references.ProjectSchemaReference]: 
-    projectName: lib_FullSyncGrp

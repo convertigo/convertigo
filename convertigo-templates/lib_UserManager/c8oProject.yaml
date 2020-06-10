@@ -14,7 +14,7 @@
   ↓HashAndSalt [sequences.GenericSequence]: 🗏 sequences/HashAndSalt.yaml
   ↓NewSequence [sequences.GenericSequence]: 🗏 sequences/NewSequence.yaml
   ↓SignIn [sequences.GenericSequence]: 🗏 sequences/SignIn.yaml
-  ↓MobileApplication [core.MobileApplication]: 
-    ↓Application [mobile.components.ApplicationComponent]: 🗏 mobileApplication.yaml
   ↓CouchDb_schema [references.ImportXsdSchemaReference]: 
     urlpath: http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd
+  ↓MobileApplication [core.MobileApplication]: 
+    ↓Application [mobile.components.ApplicationComponent]: 🗏 mobileApplication.yaml
