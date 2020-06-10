@@ -37,6 +37,7 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
@@ -54,6 +55,8 @@ import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
@@ -558,6 +561,9 @@ public class NgxBuilder extends MobileBuilder {
 			// Modify configuration files
 			updateConfigurationFiles();
 			
+			// Modify env.json
+			updateEnvFile();
+			
 			// Tpl version
 			updateTplVersion();
 			
@@ -592,6 +598,16 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	private void updateEnvFile() {
+		JSONObject envJSON = new JSONObject();
+		try {
+			envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
+			FileUtils.write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4), "UTF-8");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	protected synchronized void release() throws EngineException {
 		if (!initDone) {
