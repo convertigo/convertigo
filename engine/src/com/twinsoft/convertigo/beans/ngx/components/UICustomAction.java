@@ -308,9 +308,10 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected boolean isStacked() {
-		return handleError() || handleFailure() || handleFinally() || numberOfActions() > 0 || 
-				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent ||
-				getParent() instanceof UIEventSubscriber;
+//		return handleError() || handleFailure() || handleFinally() || numberOfActions() > 0 || 
+//				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent ||
+//				getParent() instanceof UIEventSubscriber;
+		return true;
 	}
 	
 	protected String getScope() {

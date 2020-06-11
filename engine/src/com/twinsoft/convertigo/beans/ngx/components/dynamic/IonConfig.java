@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.beans.ngx.components.dynamic;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -134,7 +133,7 @@ public class IonConfig implements Cloneable {
 			} catch (JSONException e) {
 			}
 		}
-		return Collections.emptyMap();
+		return new HashMap<String, List<String>>();
 	}
 
 	protected Set<String> getNgSet(Key key) {
@@ -152,7 +151,7 @@ public class IonConfig implements Cloneable {
 			} catch (JSONException e) {
 			}
 		}
-		return Collections.emptySet();
+		return new HashSet<String>();
 	}
 
 	protected Map<String, String> getCfgPlugins(Key key, String keyId) {
@@ -174,7 +173,7 @@ public class IonConfig implements Cloneable {
 			} catch (JSONException e) {
 			}
 		}
-		return Collections.emptyMap();
+		return new HashMap<String, String>();
 	}
 
 	protected Map<String, String> getCfgImports(Key key, String key1, String key2) {

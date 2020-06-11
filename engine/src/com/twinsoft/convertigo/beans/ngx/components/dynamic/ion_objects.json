@@ -14544,8 +14544,7 @@
 	/*
 	 * Actions
   	*/
-  
-/*
+
   "ModalAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ModalPage",
@@ -14566,6 +14565,7 @@
       "icon16": "modalaction_color_16x16.png",
       "icon32": "modalaction_color_32x32.png",
       "properties": {
+        "IonMode": false,
         "page": {
           "editor": "NamedSourceSelectorEditor",
           "label": "Page",
@@ -14574,13 +14574,55 @@
           "type": "string",
           "value": ""
         },
-
         "data": {
           "label": "Page data",
           "description": "Additional page data Object (be sure to use an object not a string) passed to the modal page. You can access this data in the modal page by using a (TS) expression <code>this.navParams.data</code>.",
           "category": "@Properties",
           "type": "string",
           "value": false
+        },
+		"animated": {
+          "label": "Animated",
+          "description": "If true, the modal will animate",
+          "category": "@Expert",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "enterAnimation": {
+          "label": "Animation (enter)",
+          "description": "Animation to use when the modal is presented. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+        "leaveAnimation": {
+          "label": "Animation (leave)",
+          "description": "Animation to use when the modal is dismissed. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+        "presentingElement": {
+          "label": "Presenting element",
+          "description": "The HTMLElement that presented the modal. This is used for card presentation effects and for stacking multiple modals on top of each other. Only applies in iOS mode.",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+		"keyboardClose": {
+          "label": "Keyboard close",
+          "description": "If true, the keyboard will be automatically dismissed when the overlay is presented",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
         },
 		"blockWhileDisplayed": {
           "label": "Block while displayed",
@@ -14604,9 +14646,19 @@
             "false"
           ]
         },
-
+        "swipeToClose": {
+          "label": "Swipe to close",
+          "description": "If true, the modal can be swiped to dismiss. Only applies in iOS mode.",
+          "category": "@Expert",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
         "enableBackdropDismiss": {
-          "label": "Enable Backdrop Dismiss",
+          "label": "Enable backdrop dismiss",
           "description": "If true, tapping on the back drop will dismiss the page.",
           "category": "@Properties",
           "type": "boolean",
@@ -14616,17 +14668,37 @@
             "false"
           ]
         },
-
         "cssClass": {
-          "label": "Css Class",
+          "label": "Css Classes",
           "description": "Additional classes for custom styles, separated by spaces.",
+          "category": "@Properties",
+          "type": "string",
+          "value": ""
+        }
+	  }
+	},
+
+    "CloseModalAction" : {
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
+      "displayName" : "CloseModal",
+      "label" : "Close Modal",
+      "description" : [
+"Defines a <i>Close Modal</i> action component. | Use this action to close a modal page previously opened through the <i>Modal Page</i> action.<br/>",
+"Add a <i>Close Modal</i> action under an Event."],
+      "group" : "Actions",
+      "icon16": "closemodalaction_color_16x16.png",
+      "icon32": "closemodalaction_color_32x32.png",
+      "properties": {
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data Object (be sure to use an object in (TS) mode not a string) passed back to the caller page.",
           "category": "@Properties",
           "type": "string",
           "value": false
         }
-	  }
-	},
-*/
+      }
+    },
+
 /*
     "ClosePopoverAction" : {
     	"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -15180,19 +15252,6 @@
 	  }
 	},
 
-/*
-    "CloseModalAction" : {
-    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
-    "displayName" : "CloseModal",
-      "label" : "Close Modal",
-      "description" : [
-"Defines a <i>Close Modal</i> action component. | Use this action to close a modal page previously opened through the <i>Modal Page</i> action.<br/>",
-"Add a <i>Close Modal</i> action under an Event."],
-      "group" : "Actions",
-      "icon16": "closemodalaction_color_16x16.png",
-      "icon32": "closemodalaction_color_32x32.png"
-    },
-*/
 /*
     "PushPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",

@@ -37,7 +37,6 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
@@ -89,6 +88,7 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		
+		@SuppressWarnings("unused")
 		void process() {
 			if (!inProcess) {
 				// retrieve all in queue
@@ -1021,6 +1021,59 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	private void writePageRoutingTs(PageComponent page) throws EngineException {
+		try {
+			if (page != null) {
+				File pageDir = pageDir(page);
+				String pageName = page.getName();
+				
+				String c8o_PageRoutingModuleName =  page.getName() + "RoutingModule";
+
+				String c8o_PageImport = "import { "+pageName+" } from \"./"+pageName.toLowerCase()+"\";" + System.lineSeparator();
+				
+				String c8o_PageChildRoute = "";
+				String c8o_PageChildRoutes = "";
+				List<Contributor> contributors = page.getContributors();
+				for (Contributor contributor : contributors) {
+					for (String route: contributor.getModuleNgRoutes(page.getSegment())) {
+						if (route.indexOf("redirectTo") == -1) {
+							c8o_PageChildRoutes += c8o_PageChildRoutes.isEmpty() ? System.lineSeparator() : "";
+							c8o_PageChildRoutes += "\t"+ route + "," + System.lineSeparator();
+						} else {
+							if (c8o_PageChildRoute.isEmpty()) {
+								c8o_PageChildRoute += "\t"+ route + "," + System.lineSeparator();
+							}
+						}
+					}
+				}
+				
+				String c8o_PageRoutes = "";
+				c8o_PageRoutes += "{ path: '', component: "+ pageName +", children: [";
+				c8o_PageRoutes += c8o_PageChildRoutes;
+				c8o_PageRoutes += c8o_PageChildRoute;
+				c8o_PageRoutes += "]}," + System.lineSeparator();
+
+				File pageRoutingTpl = new File(ionicTplDir, "src/page-routing.module.tpl");
+				String mContent = FileUtils.readFileToString(pageRoutingTpl, "UTF-8");
+				mContent = mContent.replaceAll("/\\*\\=c8o_PageImport\\*/", c8o_PageImport);
+				mContent = mContent.replaceAll("/\\*\\=c8o_PageRoutes\\*/", c8o_PageRoutes);
+				mContent = mContent.replaceAll("/\\*\\=c8o_PageRoutingModuleName\\*/", c8o_PageRoutingModuleName);
+				
+				File pageRoutingTsFile = new File(pageDir, pageName.toLowerCase() + "-routing.module.ts");
+				writeFile(pageRoutingTsFile, mContent, "UTF-8");
+				
+				
+				if (initDone) {
+					Engine.logEngine.trace("(MobileBuilder) Ionic routing module ts file generated for page '"+ page.getName()+"'");
+				}
+				
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic app routing ts file",e);
+		}
+	}
+	
 	private void writePageModuleTs(PageComponent page) throws EngineException {
 		try {
 			if (page != null && page.isEnabled()) {
@@ -1215,24 +1268,6 @@ public class NgxBuilder extends MobileBuilder {
 		return tpl_pageModuleNgComponents;
 	}
 	
-	private String getTplPageModuleNgRoutes() {
-		if (tpl_pageModuleNgRoutes == null) {
-			try {
-				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/page.module.tpl"), "UTF-8");
-				tpl_pageModuleNgRoutes = getMarker(tsContent, "NgRoutes")
-						.replaceAll("/\\*Begin_c8o_NgRoutes\\*/","")
-						.replaceAll("/\\*End_c8o_NgRoutes\\*/","")
-						.replaceAll("\r\n", "").replaceAll("\n", "")
-						.replaceAll("\t", "")
-						.replaceAll("\\s", "");
-			} catch (Exception e) {
-				e.printStackTrace();
-				tpl_pageModuleNgRoutes = "";
-			}
-		}
-		return tpl_pageModuleNgRoutes;
-	}
-	
 	private Map<String,String> getTplServiceActionTsImports() {
 		if (tpl_serviceActionTsImports == null) {
 			tpl_serviceActionTsImports = initTplImports(new File(ionicTplDir, "src/app/services/actionbeans.service.ts"));
@@ -1298,7 +1333,6 @@ public class NgxBuilder extends MobileBuilder {
 		Set<String> module_ng_providers =  new HashSet<String>();
 		Set<String> module_ng_declarations =  new HashSet<String>();
 		Set<String> module_ng_components =  new HashSet<String>();
-		Set<String> module_ng_routes =  new HashSet<String>();
 		
 		List<Contributor> contributors = page.getContributors();
 		for (Contributor contributor : contributors) {
@@ -1309,14 +1343,6 @@ public class NgxBuilder extends MobileBuilder {
 			module_ng_providers.addAll(contributor.getModuleNgProviders());
 			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
 			module_ng_components.addAll(contributor.getModuleNgComponents());
-			
-			for (String route: contributor.getModuleNgRoutes(page.getSegment())) {
-				if (module_ng_routes.isEmpty()) {
-					module_ng_routes.addAll(contributor.getModuleNgRoutes(page.getSegment()));
-				} else if (route.indexOf("redirectTo") == -1) {
-					module_ng_routes.add(route);
-				}
-			}
 		}
 		// fix for BrowserAnimationsModule until it will be handled in config
 		module_ts_imports.remove("BrowserAnimationsModule");
@@ -1347,7 +1373,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 			}
 			if (!c8o_ModuleNgImports.isEmpty()) {
-				c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports;
+				c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports + System.lineSeparator();
 			}
 		}
 		
@@ -1390,40 +1416,30 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		
-		String c8o_ModuleNgRoutes = "";
-		String tpl_ng_routes = getTplPageModuleNgRoutes();
-		if (!module_ng_routes.isEmpty()) {
-			for (String route: module_ng_routes) {
-				if (!tpl_ng_routes.contains(route)) {
-					c8o_ModuleNgRoutes += "\t" + route + "," + System.lineSeparator();
-				}
-			}
-			if (!c8o_ModuleNgRoutes.isEmpty()) {
-				c8o_ModuleNgRoutes = System.lineSeparator() + c8o_ModuleNgRoutes;
-			}
-		}
-		
 		String pageName = page.getName();
 		String c8o_PageName = pageName;
 		String c8o_PageModuleName = pageName + "Module";
-		String c8o_PageImport = "import { "+pageName+" } from \"./"+pageName.toLowerCase()+"\";" + System.lineSeparator();
+		String c8o_PageRoutingModuleName = pageName + "RoutingModule";
+		String c8o_PageImport = "";
+		
+		c8o_PageImport += "import { "+pageName+" } from \"./"+pageName.toLowerCase()+"\";" + System.lineSeparator();
+		c8o_PageImport += "import { "+pageName+"RoutingModule } from \"./"+pageName.toLowerCase()+"-routing.module\";" + System.lineSeparator();
 		
 		File pageTplTs = new File(ionicTplDir, "src/page.module.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageName\\*/",c8o_PageName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageModuleName\\*/",c8o_PageModuleName);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageRoutingModuleName\\*/",c8o_PageRoutingModuleName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImport\\*/",c8o_PageImport);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/",c8o_ModuleNgImports);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgRoutes\\*/",c8o_ModuleNgRoutes);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgRoutes\\*/","");
 		
 		for (String compbean : comp_beans_dirs.keySet()) {
 			File srcCompDir = comp_beans_dirs.get(compbean);
@@ -1738,6 +1754,7 @@ public class NgxBuilder extends MobileBuilder {
 						}
 						
 						writePageModuleTs(page);
+						writePageRoutingTs(page);
 					}
 					
 					i++;
@@ -2091,6 +2108,7 @@ public class NgxBuilder extends MobileBuilder {
 			
 			writePageTs(page);
 			writePageModuleTs(page);
+			writePageRoutingTs(page);
 			writePageStyle(page);
 			writePageTemplate(page);
 			

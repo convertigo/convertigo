@@ -4118,5 +4118,89 @@
     }
    }
   }
+ },
+ "CloseModalAction": {
+  "   7   9   0": {
+   "name": "CloseModalAction",
+   "properties": {
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ModalAction": {
+  "   7   9   0": {
+   "name": "ModalAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "presentingElement": {
+     "name": "presentingElement",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "blockWhileDisplayed": {
+     "name": "blockWhileDisplayed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "swipeToClose": {
+     "name": "swipeToClose",
+     "mode": "plain",
+     "value": "false"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
  }
 }

@@ -241,9 +241,10 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 	
 	protected boolean isStacked() {
-		return handleError() || handleFailure() || handleFinally() || numberOfActions() > 0 || 
-				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent || 
-				getParent() instanceof UIEventSubscriber;
+//		return handleError() || handleFailure() || handleFinally() || numberOfActions() > 0 || 
+//				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent || 
+//				getParent() instanceof UIEventSubscriber;
+		return true;
 	}
 	
 	protected String getScope() {
@@ -372,6 +373,24 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		sbProps.append("tplVersion").append(": ").append("'"+ tplVersion +"'");
 		sbProps.append(", actionName").append(": ").append("'"+ getName() +"'");
 		sbProps.append(", actionFunction").append(": ").append("'"+ getActionName() +"'");
+		
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			if (ionBean.getName().equals("ModalAction")) {
+				try {
+					String pageQName = ionBean.getProperty("page").getSmartValue();
+					if (!pageQName.isBlank()) {
+						String pageClass = pageQName.substring(pageQName.lastIndexOf(".")+1);
+						sbProps.append(", component").append(": ").append(pageClass);
+					} else {
+						sbProps.append(", component").append(": ").append("null");
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
 		return sbProps;
 	}
 	
@@ -530,9 +549,28 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		try {
 			String imports = jsonScripts.getString("imports");
 			
+			IonBean ionBean = getIonBean();
+			if (ionBean != null) {
+				if (ionBean.getName().equals("ModalAction")) {
+					try {
+						String pageQName = ionBean.getProperty("page").getSmartValue();
+						if (!pageQName.isBlank()) {
+							String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
+							String pageLower = pageName.toLowerCase();
+							String pagePath = "../" + pageLower + "/" + pageLower;
+							if (main.addImport(pageName, pagePath)) {
+								imports += "import {"+ pageName +"} from '"+ pagePath +"';" + System.lineSeparator();
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
 			if (main.addImport("* as ts", "typescript")) {
 				imports += "import * as ts from 'typescript';" + System.lineSeparator();
-			}			
+			}
 			
 			jsonScripts.put("imports", imports);
 		} catch (JSONException e) {
@@ -792,6 +830,19 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 					}
+					if (ionBean.getName().equals("ModalAction")) {
+						try {
+							String pageQName = ionBean.getProperty("page").getSmartValue();
+							if (!pageQName.isBlank()) {
+								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
+								String pageLower = pageName.toLowerCase();
+								String pagePath = "../pages/" + pageLower + "/" + pageLower;
+								imports.put(pageName, pagePath);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
 				}
 				return imports;
 			}
@@ -803,12 +854,46 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 
 			@Override
 			public Map<String, String> getModuleTsImports() {
-				return contributor.getModuleTsImports();
+				Map<String, String> map = contributor.getModuleTsImports();
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					if (ionBean.getName().equals("ModalAction")) {
+						try {
+							String pageQName = ionBean.getProperty("page").getSmartValue();
+							if (!pageQName.isBlank()) {
+								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
+								String pageLower = pageName.toLowerCase();
+								String pageModuleName = pageName + "Module";
+								String pageModulepath = "../" + pageLower + "/" + pageLower + ".module";
+								map.put(pageModuleName, pageModulepath);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				return map;
 			}
 
 			@Override
 			public Set<String> getModuleNgImports() {
-				return contributor.getModuleNgImports();
+				Set<String> imports = contributor.getModuleNgImports();
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					if (ionBean.getName().equals("ModalAction")) {
+						try {
+							String pageQName = ionBean.getProperty("page").getSmartValue();
+							if (!pageQName.isBlank()) {
+								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
+								String pageModuleName = pageName + "Module";
+								imports.add(pageModuleName);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				return imports;
 			}
 
 			@Override
