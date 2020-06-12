@@ -7,7 +7,7 @@
      */
     PushPageAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
-            let q:string = props.page; // qname of page
+            /*let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
             let version:string = props.tplVersion ? props.tplVersion : '';
             let greater: any = typeof page["compare"]!== "undefined" ? page["compare"]("7.7.0.2", version) : version.localeCompare("7.7.0.2");
@@ -20,6 +20,14 @@
                 resolve(res)
             }).catch((error:any) => {
                 reject(error)
+            })*/
+            let navController = page.getInstance(NavController)
+            navController.navigateForward(props.LinkRouterPath)
+            .then((res:any) => {
+                resolve(res)
+            }).catch((error:any) => {
+                reject(error)
             })
+            
         });
     }

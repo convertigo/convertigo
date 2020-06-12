@@ -4320,7 +4320,13 @@
  "CloseLoadingAction": {
   "   7   9   0": {
    "name": "CloseLoadingAction",
-   "properties": {}
+   "properties": {
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "ShowLoadingAction": {
@@ -4386,6 +4392,42 @@
      "name": "translucent",
      "mode": "plain",
      "value": "false"
+    }
+   }
+  }
+ },
+ "RootPageAction": {
+  "   7   9   0": {
+   "name": "RootPageAction",
+   "properties": {
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "PopPageAction": {
+  "   7   9   0": {
+   "name": "PopPageAction",
+   "properties": {
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "PushPageAction": {
+  "   7   9   0": {
+   "name": "PushPageAction",
+   "properties": {
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
     }
    }
   }

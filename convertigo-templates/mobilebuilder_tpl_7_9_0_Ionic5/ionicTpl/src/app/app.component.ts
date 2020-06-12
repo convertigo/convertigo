@@ -2,7 +2,7 @@ import { Component }                                                            
 import { ChangeDetectorRef, ChangeDetectionStrategy, InjectionToken, Injector, Type}    from "@angular/core";
 import { DomSanitizer }                                                                 from '@angular/platform-browser';
 import { Router, ActivatedRoute }                                                       from '@angular/router';
-import { NavParams, LoadingController, MenuController, Platform}                        from '@ionic/angular';
+import { NavParams, NavController, LoadingController, MenuController, Platform}         from '@ionic/angular';
 import { AlertController, ActionSheetController, ModalController }                      from '@ionic/angular';
 import { PopoverController, ToastController }                                           from '@ionic/angular';
 import { SplashScreen }                                                                 from '@ionic-native/splash-screen/ngx';

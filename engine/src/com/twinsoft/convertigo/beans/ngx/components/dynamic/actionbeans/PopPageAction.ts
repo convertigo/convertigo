@@ -7,7 +7,14 @@
      */
     PopPageAction(page: C8oPageBase, props, vars) : Promise<any> {
         return new Promise((resolve, reject) => {
-            page.routerProvider.pop()
-            .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})
+            /*page.routerProvider.pop()
+            .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})*/
+            let navController = page.getInstance(NavController)
+            navController.navigateBack(props.LinkRouterPath)
+            .then((res:any) => {
+                resolve(res)
+            }).catch((error:any) => {
+                reject(error)
+            })
         });
     }
