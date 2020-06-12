@@ -4202,5 +4202,84 @@
     }
    }
   }
+ },
+ "ClosePopoverAction": {
+  "   7   9   0": {
+   "name": "ClosePopoverAction",
+   "properties": {
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "PopoverAction": {
+  "   7   9   0": {
+   "name": "PopoverAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "event": {
+     "name": "event",
+     "mode": "script",
+     "value": "(event == undefined ? $event : event)"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
  }
 }

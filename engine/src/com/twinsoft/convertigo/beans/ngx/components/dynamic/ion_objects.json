@@ -14699,7 +14699,6 @@
       }
     },
 
-/*
     "ClosePopoverAction" : {
     	"classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     	"displayName" : "ClosePopover",
@@ -14710,14 +14709,17 @@
       	"group" : "Actions",
       	"icon16": "closepopoveraction_color_16x16.png",
       	"icon32": "closepopoveraction_color_32x32.png",
-      	"config": {
-        	"action_ts_imports": [
-          		{"from":"ionic-angular", "components":["ViewController"]}
-        	]
-      	}
+	    "properties": {
+	      "data": {
+	        "label": "Page data",
+	        "description": "Additional page data Object (be sure to use an object in (TS) mode not a string) passed back to the caller page.",
+	        "category": "@Properties",
+	        "type": "string",
+	        "value": false
+	      }
+	    }
     },
-*/
-/*
+
   "PopoverAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Popover",
@@ -14733,6 +14735,7 @@
       "icon16": "popoveraction_color_16x16.png",
       "icon32": "popoveraction_color_32x32.png",
       "properties": {
+        "IonMode": false,
         "page": {
           "editor": "NamedSourceSelectorEditor",
           "label": "Page",
@@ -14741,7 +14744,6 @@
           "type": "string",
           "value": ""
         },
-
         "data": {
           "label": "Page data",
           "description": "Additional page data Object (be sure to use an object not a string) passed to the modal page. You can access this data in the modal page by using a (TS) expression <code>this.navParams.data</code>.",
@@ -14749,10 +14751,45 @@
           "type": "string",
           "value": false
         },
-
+		"animated": {
+          "label": "Animated",
+          "description": "If true, the popover will animate",
+          "category": "@Expert",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "enterAnimation": {
+          "label": "Animation (enter)",
+          "description": "Animation to use when the popover is presented. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+        "leaveAnimation": {
+          "label": "Animation (leave)",
+          "description": "Animation to use when the popover is dismissed. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+		"keyboardClose": {
+          "label": "Keyboard close",
+          "description": "If true, the keyboard will be automatically dismissed when the overlay is presented",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
         "showBackdrop": {
           "label": "Show Backdrop",
-          "description": "Show a backdrop (dark background) behind the page. This will only occur if the page is displayed as popup as defined in the <i>Theme</i> component. See <code>$modal-inset-min-width</code>.",
+          "description": "If true, a backdrop will be displayed behind the popover.",
           "category": "@Properties",
           "type": "boolean",
           "value": "true",
@@ -14761,7 +14798,17 @@
             "false"
           ]
         },
-
+        "translucent": {
+          "label": "Translucent",
+          "description": "If true, the popover will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
         "enableBackdropDismiss": {
           "label": "Enable Backdrop Dismiss",
           "description": "If true, tapping on the back drop will dismiss the page.",
@@ -14773,27 +14820,24 @@
             "false"
           ]
         },
-
         "event": {
           "hidden": true,
           "label": "Event",
-          "description": "Event to be passed to the Popover present().",
-          "category": "@Properties",
+          "description": "The event to pass to the popover animation..",
+          "category": "@Expert",
           "type": "string",
           "mode": "script",
           "value": "(event == undefined ? $event : event)"
         },
-
         "cssClass": {
           "label": "Css Class",
           "description": "Additional classes for custom styles, separated by spaces.",
           "category": "@Properties",
           "type": "string",
-          "value": false
+          "value": ""
         }
 	  }
 	},
-*/
 
     "ToastAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -14860,7 +14904,6 @@
           	"true",
           	"false"
           	]
-           
         },
         "closeButtonText": {
           "label": "Close button text",

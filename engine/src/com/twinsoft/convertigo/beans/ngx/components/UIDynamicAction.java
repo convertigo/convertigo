@@ -376,7 +376,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
-			if (ionBean.getName().equals("ModalAction")) {
+			if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
 				try {
 					String pageQName = ionBean.getProperty("page").getSmartValue();
 					if (!pageQName.isBlank()) {
@@ -551,7 +551,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
-				if (ionBean.getName().equals("ModalAction")) {
+				if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
 					try {
 						String pageQName = ionBean.getProperty("page").getSmartValue();
 						if (!pageQName.isBlank()) {
@@ -830,7 +830,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 					}
-					if (ionBean.getName().equals("ModalAction")) {
+					if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
 						try {
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
@@ -857,7 +857,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				Map<String, String> map = contributor.getModuleTsImports();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					if (ionBean.getName().equals("ModalAction")) {
+					if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
 						try {
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
@@ -880,7 +880,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				Set<String> imports = contributor.getModuleNgImports();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					if (ionBean.getName().equals("ModalAction")) {
+					if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
 						try {
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
