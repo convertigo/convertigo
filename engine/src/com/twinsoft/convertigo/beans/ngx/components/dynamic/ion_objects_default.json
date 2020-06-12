@@ -4081,6 +4081,21 @@
   "   7   9   0": {
    "name": "ToastAction",
    "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "header": {
+     "name": "header",
+     "mode": "plain",
+     "value": false
+    },
     "message": {
      "name": "message",
      "mode": "plain",
@@ -4099,7 +4114,7 @@
     "cssClass": {
      "name": "cssClass",
      "mode": "plain",
-     "value": false
+     "value": ""
     },
     "showCloseButton": {
      "name": "showCloseButton",
@@ -4111,8 +4126,28 @@
      "mode": "plain",
      "value": false
     },
-    "dismissOnPageChange": {
-     "name": "dismissOnPageChange",
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
      "mode": "plain",
      "value": "false"
     }

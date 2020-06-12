@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } 														from '@angular/router';
 import { DomSanitizer }                 												from '@angular/platform-browser';
 import { NavParams, LoadingController, MenuController, Platform}						from '@ionic/angular';
 import { AlertController, ActionSheetController, ModalController }						from '@ionic/angular';
+import { PopoverController, ToastController }											from '@ionic/angular';
 import { C8oPage, C8oPageBase, C8oRouter, C8oCafUtils }                      			from 'c8ocaf';
 import { C8oNetworkStatus }                                 							from 'c8osdkangular';
 import { ChangeDetectorRef, ChangeDetectionStrategy, InjectionToken, Injector, Type}	from "@angular/core";

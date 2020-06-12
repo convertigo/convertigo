@@ -14851,6 +14851,19 @@
       "icon16": "toastaction_color_16x16.png",
       "icon32": "toastaction_color_32x32.png",
       "properties": {
+        "IonColor": false,
+        "IonMode": false,
+        "header": {
+          "label": "Header",
+          "description": "Defines the toast's header.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false,
+          "values": [
+            false,
+			true
+          ]
+        },
         "message": {
           "label": "Message",
           "description": "Defines the toast's message.",
@@ -14883,16 +14896,15 @@
             false,
 			"bottom",
 			"middle",
-			"top",
-			true
+			"top"
           ]
         },
         "cssClass": {
-          "label": "Css class",
+          "label": "Css classes",
           "description": "Additional classes for custom styles, separated by spaces.",
           "category": "@Properties",
           "type": "string",
-          "value": false
+          "value": ""
         },
         "showCloseButton": {
           "label": "Show close button",
@@ -14912,16 +14924,52 @@
           "type": "string",
           "value": false
         },
-        "dismissOnPageChange": {
-          "label": "Dismiss on page change",
-          "description": "Whether to dismiss the toast when navigating to a new page.",
+		"animated": {
+          "label": "Animated",
+          "description": "If true, the toast will animate",
+          "category": "@Expert",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "enterAnimation": {
+          "label": "Animation (enter)",
+          "description": "Animation to use when the toast is presented. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+        "leaveAnimation": {
+          "label": "Animation (leave)",
+          "description": "Animation to use when the toast is dismissed. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+		"keyboardClose": {
+          "label": "Keyboard close",
+          "description": "If true, the keyboard will be automatically dismissed when the overlay is presented",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "translucent": {
+          "label": "Translucent",
+          "description": "If true, the toast will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
           "category": "@Properties",
           "type": "boolean",
           "value": "false",
           "values": [
-          	"true",
-          	"false"
-          	]
+            "true",
+            "false"
+          ]
         }
 	  }
 	},

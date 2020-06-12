@@ -3,7 +3,8 @@ import { ChangeDetectorRef, ChangeDetectionStrategy, InjectionToken, Injector, T
 import { DomSanitizer }                                                                 from '@angular/platform-browser';
 import { Router, ActivatedRoute }                                                       from '@angular/router';
 import { NavParams, LoadingController, MenuController, Platform}                        from '@ionic/angular';
-//import { AlertController, ActionSheetController, ModalController }                    from '@ionic/angular';
+import { AlertController, ActionSheetController, ModalController }                      from '@ionic/angular';
+import { PopoverController, ToastController }                                           from '@ionic/angular';
 import { SplashScreen }                                                                 from '@ionic-native/splash-screen/ngx';
 import { StatusBar }                                                                    from '@ionic-native/status-bar/ngx';
 import { TranslateService }                                                             from '@ngx-translate/core';
