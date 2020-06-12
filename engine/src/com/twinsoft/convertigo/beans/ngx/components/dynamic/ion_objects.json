@@ -15108,20 +15108,27 @@
     }
   },
 
- /*
     "CloseLoadingAction":{
-    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Close Loading",
       "label": "Close Loading",
       "description": "Defines a <i>Close Loading</i> action component. | This component closes a loading opened by 'Show Loading'",
       "group": "Actions",
       "icon16": "closeloadingaction_color_16x16.png",
-      "icon32": "closeloadingaction_color_32x32.png"
+      "icon32": "closeloadingaction_color_32x32.png",
+      "properties": {
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data Object (be sure to use an object in (TS) mode not a string) passed back to the caller page.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        }
+      }
     },
-*/
-/*
-    "ShowLoadingAction":{
-    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
+
+    "ShowLoadingAction": {
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Show Loading",
       "label": "Show Loading",
       "description": "Defines a <i>Show Loading</i> action component. | This component show a loading",
@@ -15129,16 +15136,124 @@
       "icon16": "showloadingaction_color_16x16.png",
       "icon32": "showloadingaction_color_32x32.png",
       "properties": {
-        "content": {
-        "label": "Content",
-          "description": "Defines the content.",
+        "IonMode": false,
+        "message": {
+          "label": "Message",
+          "description": "Optional text content to display in the loading indicator.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "Please wait...",
+          "values": [
+            false,
+			true
+          ]
+        },
+        "duration": {
+          "label": "Duration",
+          "description": "Number of milliseconds to wait before dismissing the loading indicator.",
+          "category": "@Properties",
+          "type": "number",
+          "value": "3000",
+          "values": [
+            false,
+			true
+          ]
+        },
+        "spinner": {
+          "label": "Spinner",
+          "description": "The name of the spinner to display.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false,
+          "values": [
+            false,
+			"bubbles",
+			"circles",
+			"circular",
+			"crescent",
+			"dots",
+			"lines",
+			"lines-small"
+          ]
+        },
+        "cssClass": {
+          "label": "Css classes",
+          "description": "Additional classes for custom styles, separated by spaces.",
           "category": "@Properties",
           "type": "string",
           "value": ""
+        },
+        "showBackdrop": {
+          "label": "Show Backdrop",
+          "description": "If true, a backdrop will be displayed behind the loading indicator.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+        "backdropDismiss": {
+          "label": "Enable backdrop dismiss",
+          "description": "If true, the loading indicator will be dismissed when the backdrop is clicked.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "true",
+            "false"
+          ]
+        },
+		"animated": {
+          "label": "Animated",
+          "description": "If true, the loading will animate",
+          "category": "@Expert",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "enterAnimation": {
+          "label": "Animation (enter)",
+          "description": "Animation to use when the loading is presented. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+        "leaveAnimation": {
+          "label": "Animation (leave)",
+          "description": "Animation to use when the loading is dismissed. ((baseEl: any, opts?: any) => Animation).",
+          "category": "@Expert",
+          "type": "string",
+          "value": false
+        },
+		"keyboardClose": {
+          "label": "Keyboard close",
+          "description": "If true, the keyboard will be automatically dismissed when the overlay is presented",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "true",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "translucent": {
+          "label": "Translucent",
+          "description": "If true, the loading will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "true",
+            "false"
+          ]
         }
-       }
+	  }
     },
-*/
 
 	"CallSequenceAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",

@@ -4316,5 +4316,78 @@
     }
    }
   }
+ },
+ "CloseLoadingAction": {
+  "   7   9   0": {
+   "name": "CloseLoadingAction",
+   "properties": {}
+  }
+ },
+ "ShowLoadingAction": {
+  "   7   9   0": {
+   "name": "ShowLoadingAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "Please wait..."
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "spinner": {
+     "name": "spinner",
+     "mode": "plain",
+     "value": false
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "backdropDismiss": {
+     "name": "backdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
  }
 }

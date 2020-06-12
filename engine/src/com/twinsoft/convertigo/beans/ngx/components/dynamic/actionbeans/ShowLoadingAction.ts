@@ -6,8 +6,46 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     ShowLoadingAction(page: C8oPageBase, props, vars) : Promise<any> {
+        
+        function toString(data) {
+            if (data) {
+                try {
+                    return JSON.stringify(data);
+                } catch(e) {
+                    return data.toString();
+                }
+            } else {
+               return "no data"; 
+            }
+        }
+        
+        const openLoading = async (resolve) => {
+            let loadingController = page.getInstance(LoadingController)
+            const loading  = await loadingController.create({
+              mode              : props.mode ? props.mode : undefined,
+              spinner           : props.spinnner,
+              message           : props.message,
+              duration          : props.duration,
+              keyboardClose     : props.keyboardClose,
+              showBackdrop      : props.showBackdrop,
+              backdropDismiss   : props.backdropDismiss,
+              animated          : props.animated,
+              enterAnimation    : props.enterAnimation ? props.enterAnimation : undefined,
+              leaveAnimation    : props.leaveAnimation ? props.leaveAnimation : undefined,
+              cssClass          : props.cssClass ? props.cssClass : '',
+              translucent       : props.translucent
+            });
+
+            loading.onDidDismiss().then((data) => {
+                page.c8o.log.debug("[MB] Loading  dismissed: " + toString(data));
+                resolve(data)
+            })
+
+            return await loading.present();
+        }
+        
         return new Promise((resolve, reject) => {
-            try {
+            /*try {
                 if(page.global["_c8o_loaders"] != undefined){
                     resolve();
                 }
@@ -20,6 +58,13 @@
             }
             catch(err) {
                 reject(err)
-            }
+            }*/
+            
+            Promise.resolve(openLoading(resolve))
+            .then(() => {
+                page.c8o.log.debug("[MB] Loading displayed: " + toString(props.message));
+                resolve();
+            }).catch((error:any) => {reject(error)})
+            
         });
     }
