@@ -4703,5 +4703,103 @@
     }
    }
   }
+ },
+ "CheckInstallAction": {
+  "   7   9   0": {
+   "name": "CheckInstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "SpeechToTextAction": {
+  "   7   9   0": {
+   "name": "SpeechToTextAction",
+   "properties": {
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "matches": {
+     "name": "matches",
+     "mode": "plain",
+     "value": false
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "showPopup": {
+     "name": "showPopup",
+     "mode": "plain",
+     "value": "true"
+    },
+    "showPartial": {
+     "name": "showPartial",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "TextToSpeechAction": {
+  "   7   9   0": {
+   "name": "TextToSpeechAction",
+   "properties": {
+    "text": {
+     "name": "text",
+     "mode": "plain",
+     "value": false
+    },
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "volume": {
+     "name": "volume",
+     "mode": "script",
+     "value": "1"
+    },
+    "pitch": {
+     "name": "pitch",
+     "mode": "script",
+     "value": "0"
+    },
+    "rate": {
+     "name": "rate",
+     "mode": "script",
+     "value": "1"
+    }
+   }
+  }
+ },
+ "UninstallAction": {
+  "   7   9   0": {
+   "name": "UninstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
  }
 }

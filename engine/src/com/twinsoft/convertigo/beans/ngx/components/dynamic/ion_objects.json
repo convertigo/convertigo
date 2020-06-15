@@ -16818,7 +16818,7 @@
     }
   },
 */
-/*
+
   "SpeechToTextAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SpeechToText",
@@ -16900,10 +16900,10 @@
 	  },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/speech-recognition", "components":["SpeechRecognition"]}
+			{"from":"@ionic-native/speech-recognition/ngx", "components":["SpeechRecognition"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/speech-recognition", "components":["SpeechRecognition"]}
+			{"from":"@ionic-native/speech-recognition/ngx", "components":["SpeechRecognition"]}
         ],
         "module_ng_imports": [
         ],
@@ -16911,15 +16911,14 @@
 			"SpeechRecognition"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/speech-recognition", "version":"4.5.2"}
+            {"package":"@ionic-native/speech-recognition", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
 			{"plugin":"cordova-plugin-speechrecognition", "version":"1.2.0"}
         ]
     }
   },
-*/
-/*
+
   "TextToSpeechAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "TextToSpeech",
@@ -16978,12 +16977,12 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/globalization", "components":["Globalization"]},
-			{"from":"@ionic-native/text-to-speech", "components":["TextToSpeech"]}
+			{"from":"@ionic-native/globalization/ngx", "components":["Globalization"]},
+			{"from":"@ionic-native/text-to-speech/ngx", "components":["TextToSpeech"]}
         ],
         "module_ts_imports": [
-        	{"from":"@ionic-native/globalization", "components":["Globalization"]},
-			{"from":"@ionic-native/text-to-speech", "components":["TextToSpeech"]}
+        	{"from":"@ionic-native/globalization/ngx", "components":["Globalization"]},
+			{"from":"@ionic-native/text-to-speech/ngx", "components":["TextToSpeech"]}
         ],
         "module_ng_imports": [
         ],
@@ -16991,16 +16990,16 @@
 			"TextToSpeech", "Globalization"
         ],
         "package_dependencies": [
-        	{"package":"@ionic-native/globalization", "version":"4.5.3"},
-            {"package":"@ionic-native/text-to-speech", "version":"4.5.2"}
+        	{"package":"@ionic-native/globalization", "version":"^5.26.0"},
+            {"package":"@ionic-native/text-to-speech", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
-        	{"plugin":"cordova-plugin-globalization", "version":"1.0.9"},
+        	{"plugin":"cordova-plugin-globalization", "version":"1.11.0"},
 			{"plugin":"cordova-plugin-tts", "version":"0.2.3"}
       ]
     }
   },
-*/
+
 /*
    "ActionSheetAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -17770,7 +17769,7 @@
       ]
     }
   },
-/*
+
     "UninstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Uninstaller",
@@ -17811,10 +17810,10 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ng_imports": [
         ],
@@ -17822,17 +17821,17 @@
 			"FileOpener"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+            {"package":"@ionic-native/file-opener", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file-opener2",
-            "version":"2.0.19"
+            "version":"3.0.2"
           }
-      ]
+       ]
     }
   },
-*/
+
 /* 
   "OAuthLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -17971,7 +17970,7 @@
       	}
   },
 */
-/*
+
     "CheckInstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CheckInstall",
@@ -18014,10 +18013,10 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ng_imports": [
         ],
@@ -18025,17 +18024,16 @@
 			"FileOpener"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+            {"package":"@ionic-native/file-opener", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file-opener2",
-            "version":"2.0.19"
+            "version":"3.0.2"
           }
-      ]
-    }
+        ]
+     }
   },
-*/
 /*
     "PublishEventAction" : {
       "tplVersion": "7.5.2.0",
