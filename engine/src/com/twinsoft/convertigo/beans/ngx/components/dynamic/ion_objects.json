@@ -15766,7 +15766,7 @@
     }
   },
 */
-/*
+
   "GooglePlusLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "GoogleLogin",
@@ -15798,7 +15798,7 @@
       "icon16": "googleloginaction_color_16x16.png",
       "icon32": "googleloginaction_color_32x32.png",
       "properties": {
-      "mockedResponseE": {
+      	  "mockedResponseE": {
 	        "label": "mocked email",
 	        "description": "The mocked response email for the GooglePlus login action in case of running not supported platform. Must be a string.",
 	        "category": "@mocking options login",
@@ -15869,28 +15869,28 @@
 	        "value": "true",
 	        "values": ["true", "false"]
 	      },
-      "actionGoogle": {
-          "label": "Action",
-          "description": "The action to do can be Login or Logout.",
-          "category": "@Properties",
-          "type": "string",
-          "value": "Login",
-          "values": ["Login", "Logout"]
-        },
-        "webClientId": {
-          "label": "Web Client ID",
-          "description": "The web client ID (Optional). Has to be set if you want to retrieve an 'idToken' or a 'serverAuthCode'.",
-          "category": "@Properties",
-          "type": "string",
-          "value": false
-        }
+	      "actionGoogle": {
+	          "label": "Action",
+	          "description": "The action to do can be Login or Logout.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": "Login",
+	          "values": ["Login", "Logout"]
+	        },
+	      "webClientId": {
+	          "label": "Web Client ID",
+	          "description": "The web client ID (Optional). Has to be set if you want to retrieve an 'idToken' or a 'serverAuthCode'.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": false
+	      }
       },
       "config": {
         "action_ts_imports": [
-          {"from":"@ionic-native/google-plus", "components":["GooglePlus"]}
+          {"from":"@ionic-native/google-plus/ngx", "components":["GooglePlus"]}
         ],
         "module_ts_imports": [
-          {"from":"@ionic-native/google-plus", "components":["GooglePlus"]}
+          {"from":"@ionic-native/google-plus/ngx", "components":["GooglePlus"]}
         ],
         "module_ng_imports": [
         ],
@@ -15898,12 +15898,12 @@
           "GooglePlus"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/google-plus", "version":"4.3.3"}
+            {"package":"@ionic-native/google-plus", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-googleplus",
-            "version":"5.1.1",
+            "version":"^8.5.0",
             "variables": {
               "REVERSED_CLIENT_ID":"com.googleusercontent.apps.465373723999-473lfu4591v78mopjgo96t0m4fqmu17u"
             }
@@ -15911,7 +15911,6 @@
       ]
     }
   },
-*/
  
   "FullSyncSyncAction" : {
 	    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",

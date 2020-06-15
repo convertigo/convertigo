@@ -4431,5 +4431,72 @@
     }
    }
   }
+ },
+ "GooglePlusLoginAction": {
+  "   7   9   0": {
+   "name": "GooglePlusLoginAction",
+   "properties": {
+    "mockedResponseE": {
+     "name": "mockedResponseE",
+     "mode": "plain",
+     "value": "user@convertigo.com"
+    },
+    "mockedResponseU": {
+     "name": "mockedResponseU",
+     "mode": "plain",
+     "value": "my_id"
+    },
+    "mockedResponseD": {
+     "name": "mockedResponseD",
+     "mode": "plain",
+     "value": "John Doe"
+    },
+    "mockedResponseF": {
+     "name": "mockedResponseF",
+     "mode": "plain",
+     "value": "Doe"
+    },
+    "mockedResponseG": {
+     "name": "mockedResponseG",
+     "mode": "plain",
+     "value": "John"
+    },
+    "mockedResponseImg": {
+     "name": "mockedResponseImg",
+     "mode": "plain",
+     "value": "http:\/\/saffroninteractive.com\/wp-content\/uploads\/2017\/10\/empty-avatar2.png"
+    },
+    "mockedResponseId": {
+     "name": "mockedResponseId",
+     "mode": "plain",
+     "value": "my_id_token"
+    },
+    "mockedResponseS": {
+     "name": "mockedResponseS",
+     "mode": "plain",
+     "value": "12"
+    },
+    "mockedResponseA": {
+     "name": "mockedResponseA",
+     "mode": "plain",
+     "value": "my_access_token"
+    },
+    "mockedResponseLogout": {
+     "name": "mockedResponseLogout",
+     "mode": "plain",
+     "value": "true"
+    },
+    "actionGoogle": {
+     "name": "actionGoogle",
+     "mode": "plain",
+     "value": "Login"
+    },
+    "webClientId": {
+     "name": "webClientId",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }
