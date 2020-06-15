@@ -16171,10 +16171,10 @@
     },
     "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file", "components":["File"]}
+			{"from":"@ionic-native/file/ngx", "components":["File"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file", "components":["File"]}
+			{"from":"@ionic-native/file/ngx", "components":["File"]}
         ],
         "module_ng_imports": [
         ],
@@ -16182,12 +16182,12 @@
 			"File"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file", "version":"4.5.2"}
+            {"package":"@ionic-native/file", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file",
-            "version":"6.0.1"
+            "version":"^6.0.2"
           }
       ]
     }
