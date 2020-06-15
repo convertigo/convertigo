@@ -4801,5 +4801,104 @@
     }
    }
   }
+ },
+ "FSImage": {
+  "   7   9   0": {
+   "name": "FSImage",
+   "properties": {
+    "url": {
+     "name": "url",
+     "mode": "script",
+     "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "attachment": {
+     "name": "attachment",
+     "mode": "plain",
+     "value": false
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "alt": {
+     "name": "alt",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "OAuthLoginAction": {
+  "   7   9   0": {
+   "name": "OAuthLoginAction",
+   "properties": {
+    "provider": {
+     "name": "provider",
+     "mode": "plain",
+     "value": "azure"
+    },
+    "clientid": {
+     "name": "clientid",
+     "mode": "plain",
+     "value": false
+    },
+    "tenantid": {
+     "name": "tenantid",
+     "mode": "plain",
+     "value": false
+    },
+    "scope": {
+     "name": "scope",
+     "mode": "plain",
+     "value": false
+    },
+    "response_type": {
+     "name": "response_type",
+     "mode": "plain",
+     "value": false
+    },
+    "loginRequestable": {
+     "name": "loginRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "checkAccessTokenRequestable": {
+     "name": "checkAccessTokenRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "authorization_endpoint": {
+     "name": "authorization_endpoint",
+     "mode": "plain",
+     "value": false
+    },
+    "callbackurl": {
+     "name": "callbackurl",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

@@ -8630,7 +8630,7 @@
         "//--color\t//Color of the spinner"
       ]
     },
-/*
+
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
@@ -8737,7 +8737,7 @@
         }
       }
     },
-*/
+
   /* Super tabs : Sliding tabs */
 /*  
   "SlidingTabs": {
@@ -11403,7 +11403,7 @@
     },
 
     /**************************************************/
-    /* Form Input 									                  */
+    /* Form Input 									  */
     /**************************************************/
     "Input": {
       "tag": "ion-input",
@@ -13131,113 +13131,6 @@
       ]
     },
 
-/*
-    "TextFormat": {
-      "tag": "div",
-	  "displayName": "TextFormat",
-      "label": "Text Format",
-      "description": [
-"div| Defines a <i>Text Format</i> component.<br/>",
-"Text formatting such as alignments to left right and center or text transformations.<br/>",
-"Will be applied to all underlying <i>Text</i> components.<br/>",
-"For more information: <a href='https://ionicframework.com/docs/v3/theming/css-utilities/#text-modification'>Text Modification</a>."],
-      "group": "Formatting",
-      "icon16": "textformat_color_16x16.png",
-      "icon32": "textformat_color_32x32.png",
-      "properties": {
-        "TextLeft": {
-          "label": "Align left",
-          "description": "Aligns the text of the element to its left.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-left"
-          ]
-        },
-        "TextRight": {
-          "label": "Align right",
-          "description": "Aligns the text of the element to its Right.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-right"
-          ]
-        },
-        "TextCenter": {
-          "label": "Align Center",
-          "description": "Aligns the text of the element to its center.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-center"
-          ]
-        },
-        "TextJustify": {
-          "label": "Justify",
-          "description": "Justify text by stretching the lines so that each line has equal width.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-justify"
-          ]
-        },
-        "TextWrap": {
-          "label": "Wrap",
-          "description": "Wraps text.",
-          "category": "@Wrapping",
-          "value": false,
-          "values": [
-            false,
-            "text-wrap"
-          ]
-        },
-        "TextNoWrap": {
-          "label": "No wrap",
-          "description": "Dont't wrap text.",
-          "category": "@Wrapping",
-          "value": false,
-          "values": [
-            false,
-            "text-nowrap"
-          ]
-        },
-        "TextUpperCase": {
-          "label": "To upper case",
-          "description": "Transforms text to all caps.",
-          "category": "@Transformations",
-          "value": false,
-          "values": [
-            false,
-            "text-uppercase"
-          ]
-        },
-        "TextLowerCase": {
-          "label": "To lower case",
-          "description": "Transforms text to all lowercase.",
-          "category": "@Transformations",
-          "value": false,
-          "values": [
-            false,
-            "text-lowercase"
-          ]
-        },
-        "TextCapitalize": {
-          "label": "Capitalize",
-          "description": "Transforms the first letter of the text to capitals.",
-          "category": "@Transformations",
-          "value": false,
-          "values": [
-            false,
-            "text-capitalize"
-          ]
-        }
-      }
-    },
-*/
     /*
      * Google Maps AGM
      */
@@ -17832,7 +17725,6 @@
     }
   },
 
-/* 
   "OAuthLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "OAuthLogin",
@@ -17885,7 +17777,6 @@
                 "openid"
               ]
           },
-          
           "clientid": {
             "label": "Client ID",
             "description": "The OAuth Client ID as configured in the provider's portal.",
@@ -17901,7 +17792,6 @@
             "type": "string",
             "value": false
           },
-          
           "scope": {
             "label": "Scope",
             "description": "The Scope permissions. If not set, scopes are automatically configured from the 'provider' setting, by you may override this setting here.",
@@ -17909,7 +17799,6 @@
             "type": "string",
             "value": false
           },
-          
           "response_type": {
             "label": "Response Type",
             "description": "The response type. If not set, response type is automatically configured from the 'provider' setting, by you may override this setting here.",
@@ -17923,8 +17812,6 @@
                 true
               ]
           },
-
-          
          "loginRequestable": {
             "label": "Server LoginSequence",
             "description": "&lt;Project.Sequence&gt;. The MBaaS Server sequence to call for login. If not set, is automatically configured from the 'provider' setting. You may override this setting here.",
@@ -17932,7 +17819,6 @@
             "type": "string",
             "value": false
           },
-          
          "checkAccessTokenRequestable": {
             "label": "Server checkToken",
             "description": "&lt;Project.Sequence&gt;. The MBaaS Server sequence to call for checking tokens. If not set, is automatically configured from the 'provider' setting. You may override this setting here.",
@@ -17940,7 +17826,6 @@
             "type": "string",
             "value": false
           },
-          
           "authorization_endpoint": {
             "label": "Authorization endpoint",
             "description": "For OpenID only, specifies the authorization end point url. Mandatory.",
@@ -17948,7 +17833,6 @@
             "type": "string",
             "value": false
           },
-
           "callbackurl": {
             "label": "Redirect URI",
             "description": "For OpenID only, specifies an authorized redirect uri. Mandatory.",
@@ -17956,20 +17840,16 @@
             "type": "string",
             "value": false
           }
-          
-          
     	},
-    	
       	"config": {
 	      	"cordova_plugins": [
 	          {
 	            "plugin":"cordova-plugin-inappbrowser",
-	            "version":"3.0.0"
+	            "version":"4.0.0"
 	          }
 	      ]
       	}
-  },
-*/
+    },
 
     "CheckInstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
