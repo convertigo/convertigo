@@ -4431,5 +4431,474 @@
     }
    }
   }
+ },
+ "GooglePlusLoginAction": {
+  "   7   9   0": {
+   "name": "GooglePlusLoginAction",
+   "properties": {
+    "mockedResponseE": {
+     "name": "mockedResponseE",
+     "mode": "plain",
+     "value": "user@convertigo.com"
+    },
+    "mockedResponseU": {
+     "name": "mockedResponseU",
+     "mode": "plain",
+     "value": "my_id"
+    },
+    "mockedResponseD": {
+     "name": "mockedResponseD",
+     "mode": "plain",
+     "value": "John Doe"
+    },
+    "mockedResponseF": {
+     "name": "mockedResponseF",
+     "mode": "plain",
+     "value": "Doe"
+    },
+    "mockedResponseG": {
+     "name": "mockedResponseG",
+     "mode": "plain",
+     "value": "John"
+    },
+    "mockedResponseImg": {
+     "name": "mockedResponseImg",
+     "mode": "plain",
+     "value": "http:\/\/saffroninteractive.com\/wp-content\/uploads\/2017\/10\/empty-avatar2.png"
+    },
+    "mockedResponseId": {
+     "name": "mockedResponseId",
+     "mode": "plain",
+     "value": "my_id_token"
+    },
+    "mockedResponseS": {
+     "name": "mockedResponseS",
+     "mode": "plain",
+     "value": "12"
+    },
+    "mockedResponseA": {
+     "name": "mockedResponseA",
+     "mode": "plain",
+     "value": "my_access_token"
+    },
+    "mockedResponseLogout": {
+     "name": "mockedResponseLogout",
+     "mode": "plain",
+     "value": "true"
+    },
+    "actionGoogle": {
+     "name": "actionGoogle",
+     "mode": "plain",
+     "value": "Login"
+    },
+    "webClientId": {
+     "name": "webClientId",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "BarcodeAction": {
+  "   7   9   0": {
+   "name": "BarcodeAction",
+   "properties": {
+    "mockedFormat": {
+     "name": "mockedFormat",
+     "mode": "plain",
+     "value": "QR_CODE"
+    },
+    "mockedCancel": {
+     "name": "mockedCancel",
+     "mode": "plain",
+     "value": "false"
+    },
+    "mockedText": {
+     "name": "mockedText",
+     "mode": "plain",
+     "value": "http:\/\/www.convertigo.com\/"
+    },
+    "preferFrontCamera": {
+     "name": "preferFrontCamera",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showFlipCameraButton": {
+     "name": "showFlipCameraButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showTorchButton": {
+     "name": "showTorchButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableAnimations": {
+     "name": "disableAnimations",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableSuccessBeep": {
+     "name": "disableSuccessBeep",
+     "mode": "plain",
+     "value": "false"
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "formats": {
+     "name": "formats",
+     "mode": "plain",
+     "value": "QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF417,RSS_EXPANDED,MSI,AZTEC"
+    },
+    "orientation": {
+     "name": "orientation",
+     "mode": "plain",
+     "value": false
+    },
+    "torchOn": {
+     "name": "torchOn",
+     "mode": "plain",
+     "value": "false"
+    },
+    "resultDisplayDuration": {
+     "name": "resultDisplayDuration",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CameraAction": {
+  "   7   9   0": {
+   "name": "CameraAction",
+   "properties": {
+    "quality": {
+     "name": "quality",
+     "mode": "script",
+     "value": 80
+    },
+    "destinationType": {
+     "name": "destinationType",
+     "mode": "plain",
+     "value": "FILE_URL"
+    },
+    "sourceType": {
+     "name": "sourceType",
+     "mode": "plain",
+     "value": "CAMERA"
+    },
+    "allowEdit": {
+     "name": "allowEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "encodingType": {
+     "name": "encodingType",
+     "mode": "plain",
+     "value": "JPEG"
+    },
+    "targetWidth": {
+     "name": "targetWidth",
+     "mode": "script",
+     "value": 800
+    },
+    "targetHeight": {
+     "name": "targetHeight",
+     "mode": "script",
+     "value": 800
+    },
+    "mediaType": {
+     "name": "mediaType",
+     "mode": "plain",
+     "value": false
+    },
+    "correctOrientation": {
+     "name": "correctOrientation",
+     "mode": "plain",
+     "value": "true"
+    },
+    "saveToPhotoAlbum": {
+     "name": "saveToPhotoAlbum",
+     "mode": "plain",
+     "value": "false"
+    },
+    "cameraDirection": {
+     "name": "cameraDirection",
+     "mode": "plain",
+     "value": "BACK"
+    },
+    "x": {
+     "name": "x",
+     "mode": "script",
+     "value": false
+    },
+    "y": {
+     "name": "y",
+     "mode": "script",
+     "value": false
+    },
+    "width": {
+     "name": "width",
+     "mode": "script",
+     "value": false
+    },
+    "height": {
+     "name": "height",
+     "mode": "script",
+     "value": false
+    },
+    "arrowDir": {
+     "name": "arrowDir",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ChooserAction": {
+  "   7   9   0": {
+   "name": "ChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    },
+    "mimeType": {
+     "name": "mimeType",
+     "mode": "script",
+     "value": false
+    }
+   }
+  }
+ },
+ "FileChooserAction": {
+  "   7   9   0": {
+   "name": "FileChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    }
+   }
+  }
+ },
+ "FileOpenerAction": {
+  "   7   9   0": {
+   "name": "FileOpenerAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "filePath": {
+     "name": "filePath",
+     "mode": "plain",
+     "value": true
+    }
+   }
+  }
+ },
+ "CheckInstallAction": {
+  "   7   9   0": {
+   "name": "CheckInstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "SpeechToTextAction": {
+  "   7   9   0": {
+   "name": "SpeechToTextAction",
+   "properties": {
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "matches": {
+     "name": "matches",
+     "mode": "plain",
+     "value": false
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "showPopup": {
+     "name": "showPopup",
+     "mode": "plain",
+     "value": "true"
+    },
+    "showPartial": {
+     "name": "showPartial",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "TextToSpeechAction": {
+  "   7   9   0": {
+   "name": "TextToSpeechAction",
+   "properties": {
+    "text": {
+     "name": "text",
+     "mode": "plain",
+     "value": false
+    },
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "volume": {
+     "name": "volume",
+     "mode": "script",
+     "value": "1"
+    },
+    "pitch": {
+     "name": "pitch",
+     "mode": "script",
+     "value": "0"
+    },
+    "rate": {
+     "name": "rate",
+     "mode": "script",
+     "value": "1"
+    }
+   }
+  }
+ },
+ "UninstallAction": {
+  "   7   9   0": {
+   "name": "UninstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "FSImage": {
+  "   7   9   0": {
+   "name": "FSImage",
+   "properties": {
+    "url": {
+     "name": "url",
+     "mode": "script",
+     "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "attachment": {
+     "name": "attachment",
+     "mode": "plain",
+     "value": false
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "alt": {
+     "name": "alt",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "OAuthLoginAction": {
+  "   7   9   0": {
+   "name": "OAuthLoginAction",
+   "properties": {
+    "provider": {
+     "name": "provider",
+     "mode": "plain",
+     "value": "azure"
+    },
+    "clientid": {
+     "name": "clientid",
+     "mode": "plain",
+     "value": false
+    },
+    "tenantid": {
+     "name": "tenantid",
+     "mode": "plain",
+     "value": false
+    },
+    "scope": {
+     "name": "scope",
+     "mode": "plain",
+     "value": false
+    },
+    "response_type": {
+     "name": "response_type",
+     "mode": "plain",
+     "value": false
+    },
+    "loginRequestable": {
+     "name": "loginRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "checkAccessTokenRequestable": {
+     "name": "checkAccessTokenRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "authorization_endpoint": {
+     "name": "authorization_endpoint",
+     "mode": "plain",
+     "value": false
+    },
+    "callbackurl": {
+     "name": "callbackurl",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

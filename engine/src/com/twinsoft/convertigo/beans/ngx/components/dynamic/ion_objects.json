@@ -8630,7 +8630,7 @@
         "//--color\t//Color of the spinner"
       ]
     },
-/*
+
     "FSImage": {
       "tplVersion": "1.0.100",
       "tag": "img",
@@ -8737,7 +8737,7 @@
         }
       }
     },
-*/
+
   /* Super tabs : Sliding tabs */
 /*  
   "SlidingTabs": {
@@ -11403,7 +11403,7 @@
     },
 
     /**************************************************/
-    /* Form Input 									                  */
+    /* Form Input 									  */
     /**************************************************/
     "Input": {
       "tag": "ion-input",
@@ -13131,113 +13131,6 @@
       ]
     },
 
-/*
-    "TextFormat": {
-      "tag": "div",
-	  "displayName": "TextFormat",
-      "label": "Text Format",
-      "description": [
-"div| Defines a <i>Text Format</i> component.<br/>",
-"Text formatting such as alignments to left right and center or text transformations.<br/>",
-"Will be applied to all underlying <i>Text</i> components.<br/>",
-"For more information: <a href='https://ionicframework.com/docs/v3/theming/css-utilities/#text-modification'>Text Modification</a>."],
-      "group": "Formatting",
-      "icon16": "textformat_color_16x16.png",
-      "icon32": "textformat_color_32x32.png",
-      "properties": {
-        "TextLeft": {
-          "label": "Align left",
-          "description": "Aligns the text of the element to its left.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-left"
-          ]
-        },
-        "TextRight": {
-          "label": "Align right",
-          "description": "Aligns the text of the element to its Right.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-right"
-          ]
-        },
-        "TextCenter": {
-          "label": "Align Center",
-          "description": "Aligns the text of the element to its center.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-center"
-          ]
-        },
-        "TextJustify": {
-          "label": "Justify",
-          "description": "Justify text by stretching the lines so that each line has equal width.",
-          "category": "@Alignments",
-          "value": false,
-          "values": [
-            false,
-            "text-justify"
-          ]
-        },
-        "TextWrap": {
-          "label": "Wrap",
-          "description": "Wraps text.",
-          "category": "@Wrapping",
-          "value": false,
-          "values": [
-            false,
-            "text-wrap"
-          ]
-        },
-        "TextNoWrap": {
-          "label": "No wrap",
-          "description": "Dont't wrap text.",
-          "category": "@Wrapping",
-          "value": false,
-          "values": [
-            false,
-            "text-nowrap"
-          ]
-        },
-        "TextUpperCase": {
-          "label": "To upper case",
-          "description": "Transforms text to all caps.",
-          "category": "@Transformations",
-          "value": false,
-          "values": [
-            false,
-            "text-uppercase"
-          ]
-        },
-        "TextLowerCase": {
-          "label": "To lower case",
-          "description": "Transforms text to all lowercase.",
-          "category": "@Transformations",
-          "value": false,
-          "values": [
-            false,
-            "text-lowercase"
-          ]
-        },
-        "TextCapitalize": {
-          "label": "Capitalize",
-          "description": "Transforms the first letter of the text to capitals.",
-          "category": "@Transformations",
-          "value": false,
-          "values": [
-            false,
-            "text-capitalize"
-          ]
-        }
-      }
-    },
-*/
     /*
      * Google Maps AGM
      */
@@ -15766,7 +15659,7 @@
     }
   },
 */
-/*
+
   "GooglePlusLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "GoogleLogin",
@@ -15798,7 +15691,7 @@
       "icon16": "googleloginaction_color_16x16.png",
       "icon32": "googleloginaction_color_32x32.png",
       "properties": {
-      "mockedResponseE": {
+      	  "mockedResponseE": {
 	        "label": "mocked email",
 	        "description": "The mocked response email for the GooglePlus login action in case of running not supported platform. Must be a string.",
 	        "category": "@mocking options login",
@@ -15869,28 +15762,28 @@
 	        "value": "true",
 	        "values": ["true", "false"]
 	      },
-      "actionGoogle": {
-          "label": "Action",
-          "description": "The action to do can be Login or Logout.",
-          "category": "@Properties",
-          "type": "string",
-          "value": "Login",
-          "values": ["Login", "Logout"]
-        },
-        "webClientId": {
-          "label": "Web Client ID",
-          "description": "The web client ID (Optional). Has to be set if you want to retrieve an 'idToken' or a 'serverAuthCode'.",
-          "category": "@Properties",
-          "type": "string",
-          "value": false
-        }
+	      "actionGoogle": {
+	          "label": "Action",
+	          "description": "The action to do can be Login or Logout.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": "Login",
+	          "values": ["Login", "Logout"]
+	        },
+	      "webClientId": {
+	          "label": "Web Client ID",
+	          "description": "The web client ID (Optional). Has to be set if you want to retrieve an 'idToken' or a 'serverAuthCode'.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": false
+	      }
       },
       "config": {
         "action_ts_imports": [
-          {"from":"@ionic-native/google-plus", "components":["GooglePlus"]}
+          {"from":"@ionic-native/google-plus/ngx", "components":["GooglePlus"]}
         ],
         "module_ts_imports": [
-          {"from":"@ionic-native/google-plus", "components":["GooglePlus"]}
+          {"from":"@ionic-native/google-plus/ngx", "components":["GooglePlus"]}
         ],
         "module_ng_imports": [
         ],
@@ -15898,12 +15791,12 @@
           "GooglePlus"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/google-plus", "version":"4.3.3"}
+            {"package":"@ionic-native/google-plus", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-googleplus",
-            "version":"5.1.1",
+            "version":"^8.5.0",
             "variables": {
               "REVERSED_CLIENT_ID":"com.googleusercontent.apps.465373723999-473lfu4591v78mopjgo96t0m4fqmu17u"
             }
@@ -15911,7 +15804,6 @@
       ]
     }
   },
-*/
  
   "FullSyncSyncAction" : {
 	    "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -16172,10 +16064,10 @@
     },
     "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file", "components":["File"]}
+			{"from":"@ionic-native/file/ngx", "components":["File"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file", "components":["File"]}
+			{"from":"@ionic-native/file/ngx", "components":["File"]}
         ],
         "module_ng_imports": [
         ],
@@ -16183,12 +16075,12 @@
 			"File"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file", "version":"4.5.2"}
+            {"package":"@ionic-native/file", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file",
-            "version":"6.0.1"
+            "version":"^6.0.2"
           }
       ]
     }
@@ -16621,7 +16513,6 @@
     }
   },
 
-/* 
   "FileChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileChooser",
@@ -16653,12 +16544,12 @@
       "config": {
         "action_ts_imports": [
 			
-			{"from":"@ionic-native/file-path", "components":["FilePath"]},
-			{"from":"@ionic-native/file-chooser", "components":["FileChooser"]}
+			{"from":"@ionic-native/file-path/ngx", "components":["FilePath"]},
+			{"from":"@ionic-native/file-chooser/ngx", "components":["FileChooser"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-chooser", "components":["FileChooser"]},
-			{"from":"@ionic-native/file-path", "components":["FilePath"]}
+			{"from":"@ionic-native/file-chooser/ngx", "components":["FileChooser"]},
+			{"from":"@ionic-native/file-path/ngx", "components":["FilePath"]}
         ],
         "module_ng_imports": [
         ],
@@ -16667,8 +16558,8 @@
 			"FilePath"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-chooser", "version":"4.5.3"},
-             {"package":"@ionic-native/file-path", "version":"4.5.3"}
+            {"package":"@ionic-native/file-chooser", "version":"^5.26.0"},
+             {"package":"@ionic-native/file-path", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
@@ -16677,13 +16568,12 @@
           },
           {
             "plugin":"cordova-plugin-filepath",
-            "version":"1.2.0"
+            "version":"1.5.8"
           }
       ]
     }
   },
-*/
-/*  
+  
   "ChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Chooser",
@@ -16723,10 +16613,10 @@
       },
       "config": {
         "action_ts_imports": [			
-			{"from":"@ionic-native/chooser", "components":["Chooser"]}
+			{"from":"@ionic-native/chooser/ngx", "components":["Chooser"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/chooser", "components":["Chooser"]}
+			{"from":"@ionic-native/chooser/ngx", "components":["Chooser"]}
         ],
         "module_ng_imports": [
         ],
@@ -16734,17 +16624,17 @@
 			"Chooser"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/chooser", "version":"4.20.0"}
+            {"package":"@ionic-native/chooser", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-chooser",
-            "version":"1.2.5"
+            "version":"1.3.1"
           }
       ]
     }
   },
-*/ 
+ 
 /* also commented in 7.8
   "SpeechToEventAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -16821,7 +16711,7 @@
     }
   },
 */
-/*
+
   "SpeechToTextAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "SpeechToText",
@@ -16903,10 +16793,10 @@
 	  },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/speech-recognition", "components":["SpeechRecognition"]}
+			{"from":"@ionic-native/speech-recognition/ngx", "components":["SpeechRecognition"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/speech-recognition", "components":["SpeechRecognition"]}
+			{"from":"@ionic-native/speech-recognition/ngx", "components":["SpeechRecognition"]}
         ],
         "module_ng_imports": [
         ],
@@ -16914,15 +16804,14 @@
 			"SpeechRecognition"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/speech-recognition", "version":"4.5.2"}
+            {"package":"@ionic-native/speech-recognition", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
 			{"plugin":"cordova-plugin-speechrecognition", "version":"1.2.0"}
         ]
     }
   },
-*/
-/*
+
   "TextToSpeechAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "TextToSpeech",
@@ -16981,12 +16870,12 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/globalization", "components":["Globalization"]},
-			{"from":"@ionic-native/text-to-speech", "components":["TextToSpeech"]}
+			{"from":"@ionic-native/globalization/ngx", "components":["Globalization"]},
+			{"from":"@ionic-native/text-to-speech/ngx", "components":["TextToSpeech"]}
         ],
         "module_ts_imports": [
-        	{"from":"@ionic-native/globalization", "components":["Globalization"]},
-			{"from":"@ionic-native/text-to-speech", "components":["TextToSpeech"]}
+        	{"from":"@ionic-native/globalization/ngx", "components":["Globalization"]},
+			{"from":"@ionic-native/text-to-speech/ngx", "components":["TextToSpeech"]}
         ],
         "module_ng_imports": [
         ],
@@ -16994,16 +16883,16 @@
 			"TextToSpeech", "Globalization"
         ],
         "package_dependencies": [
-        	{"package":"@ionic-native/globalization", "version":"4.5.3"},
-            {"package":"@ionic-native/text-to-speech", "version":"4.5.2"}
+        	{"package":"@ionic-native/globalization", "version":"^5.26.0"},
+            {"package":"@ionic-native/text-to-speech", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
-        	{"plugin":"cordova-plugin-globalization", "version":"1.0.9"},
+        	{"plugin":"cordova-plugin-globalization", "version":"1.11.0"},
 			{"plugin":"cordova-plugin-tts", "version":"0.2.3"}
       ]
     }
   },
-*/
+
 /*
    "ActionSheetAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -17312,7 +17201,7 @@
     }
   },
 */
-/*  
+ 
   "FileOpenerAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileOpener",
@@ -17352,10 +17241,10 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ng_imports": [
         ],
@@ -17363,18 +17252,17 @@
 			"FileOpener"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+            {"package":"@ionic-native/file-opener", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file-opener2",
-            "version":"2.0.19"
+            "version":"3.0.2"
           }
       ]
     }
   },
-*/
-/*
+
   "CameraAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Camera",
@@ -17562,12 +17450,12 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/camera", "components":["Camera"]},
-			{"from":"@ionic-native/camera", "components":["CameraOptions"]},
-			{"from":"@ionic-native/camera", "components":["CameraPopoverOptions"]}
+			{"from":"@ionic-native/camera/ngx", "components":["Camera"]},
+			{"from":"@ionic-native/camera/ngx", "components":["CameraOptions"]},
+			{"from":"@ionic-native/camera/ngx", "components":["CameraPopoverOptions"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/camera", "components":["Camera"]}
+			{"from":"@ionic-native/camera/ngx", "components":["Camera"]}
         ],
         "module_ng_imports": [
         ],
@@ -17575,12 +17463,12 @@
 			"Camera"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/camera", "version":"4.4.2"}
+            {"package":"@ionic-native/camera", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-camera",
-            "version":"2.4.0",
+            "version":"4.1.0",
             "variables": {
               "CAMERA_USAGE_DESCRIPTION":"To capture photos",
               "PHOTOLIBRARY_USAGE_DESCRIPTION":"To access photo gallery"
@@ -17589,8 +17477,7 @@
       ]
     }
   },
-*/
-/*
+
   "BarcodeAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "BarcodeScanner",
@@ -17647,7 +17534,6 @@
           "true"
         ]
       },
-
       "showFlipCameraButton": {
         "label": "Show flip camera button",
         "description": "Show flip camera button. Supported on iOS and Android.",
@@ -17659,7 +17545,6 @@
           "true"
         ]
       },
-
       "showTorchButton": {
         "label": "Show torch button",
         "description": "Show torch  button. Supported on iOS and Android.",
@@ -17671,7 +17556,6 @@
           "true"
         ]
       },
-
       "disableAnimations": {
         "label": "Disable animations",
         "description": "Disable animations. Supported on iOS only.",
@@ -17683,7 +17567,6 @@
           "true"
         ]
       },
-
       "disableSuccessBeep": {
         "label": "Disable success beep",
         "description": "Disable success beep. Supported on iOS only.",
@@ -17695,7 +17578,6 @@
           "true"
         ]
       },
-
       "prompt": {
         "label": "Prompt",
         "description": "Prompt text. Supported on Android only.",
@@ -17703,7 +17585,6 @@
         "type": "string",
         "value": false
       },
-
       "formats": {
         "label": "Formats",
         "description": "Formats separated by commas. Defaults to all formats except PDF_417 and RSS_EXPANDED.",
@@ -17711,7 +17592,6 @@
         "type": "string",
         "value": "QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF417,RSS_EXPANDED,MSI,AZTEC"
       },
-
       "orientation": {
         "label": "Orientation",
         "description": "Orientation. Supported on Android only. Can be set to portrait or landscape. Defaults to none so the user can rotate the phone and pick an orientation.",
@@ -17724,7 +17604,6 @@
           "landscape"
         ]
       },
-
       "torchOn": {
         "label": "Torch on",
         "description": "Launch with the torch switched on (if available). Supported on Android only.",
@@ -17736,7 +17615,6 @@
           "false"
         ]
       },
-
       "resultDisplayDuration": {
         "label": "Result display duration",
         "description": "Display scanned text for X ms. 0 suppresses it entirely, default 1500. Supported on Android only.",
@@ -17745,11 +17623,10 @@
         "value": false
       }
     },
-
     "config": {
       "action_ts_imports": [
         {
-          "from": "@ionic-native/barcode-scanner",
+          "from": "@ionic-native/barcode-scanner/ngx",
           "components": [
             "BarcodeScanner"
           ]
@@ -17757,7 +17634,7 @@
       ],
       "module_ts_imports": [
         {
-          "from": "@ionic-native/barcode-scanner",
+          "from": "@ionic-native/barcode-scanner/ngx",
           "components": [
             "BarcodeScanner"
           ]
@@ -17770,7 +17647,7 @@
       "package_dependencies": [
         {
           "package": "@ionic-native/barcode-scanner",
-          "version": "4.4.2"
+          "version": "^5.26.0"
         }
       ],
       "cordova_plugins": [
@@ -17785,8 +17662,7 @@
       ]
     }
   },
-*/
-/*
+
     "UninstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Uninstaller",
@@ -17827,10 +17703,10 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ng_imports": [
         ],
@@ -17838,18 +17714,17 @@
 			"FileOpener"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+            {"package":"@ionic-native/file-opener", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file-opener2",
-            "version":"2.0.19"
+            "version":"3.0.2"
           }
-      ]
+       ]
     }
   },
-*/
-/* 
+
   "OAuthLoginAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "OAuthLogin",
@@ -17902,7 +17777,6 @@
                 "openid"
               ]
           },
-          
           "clientid": {
             "label": "Client ID",
             "description": "The OAuth Client ID as configured in the provider's portal.",
@@ -17918,7 +17792,6 @@
             "type": "string",
             "value": false
           },
-          
           "scope": {
             "label": "Scope",
             "description": "The Scope permissions. If not set, scopes are automatically configured from the 'provider' setting, by you may override this setting here.",
@@ -17926,7 +17799,6 @@
             "type": "string",
             "value": false
           },
-          
           "response_type": {
             "label": "Response Type",
             "description": "The response type. If not set, response type is automatically configured from the 'provider' setting, by you may override this setting here.",
@@ -17940,8 +17812,6 @@
                 true
               ]
           },
-
-          
          "loginRequestable": {
             "label": "Server LoginSequence",
             "description": "&lt;Project.Sequence&gt;. The MBaaS Server sequence to call for login. If not set, is automatically configured from the 'provider' setting. You may override this setting here.",
@@ -17949,7 +17819,6 @@
             "type": "string",
             "value": false
           },
-          
          "checkAccessTokenRequestable": {
             "label": "Server checkToken",
             "description": "&lt;Project.Sequence&gt;. The MBaaS Server sequence to call for checking tokens. If not set, is automatically configured from the 'provider' setting. You may override this setting here.",
@@ -17957,7 +17826,6 @@
             "type": "string",
             "value": false
           },
-          
           "authorization_endpoint": {
             "label": "Authorization endpoint",
             "description": "For OpenID only, specifies the authorization end point url. Mandatory.",
@@ -17965,7 +17833,6 @@
             "type": "string",
             "value": false
           },
-
           "callbackurl": {
             "label": "Redirect URI",
             "description": "For OpenID only, specifies an authorized redirect uri. Mandatory.",
@@ -17973,21 +17840,17 @@
             "type": "string",
             "value": false
           }
-          
-          
     	},
-    	
       	"config": {
 	      	"cordova_plugins": [
 	          {
 	            "plugin":"cordova-plugin-inappbrowser",
-	            "version":"3.0.0"
+	            "version":"4.0.0"
 	          }
 	      ]
       	}
-  },
-*/
-/*
+    },
+
     "CheckInstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "CheckInstall",
@@ -18030,10 +17893,10 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ng_imports": [
         ],
@@ -18041,17 +17904,16 @@
 			"FileOpener"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+            {"package":"@ionic-native/file-opener", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file-opener2",
-            "version":"2.0.19"
+            "version":"3.0.2"
           }
-      ]
-    }
+        ]
+     }
   },
-*/
 /*
     "PublishEventAction" : {
       "tplVersion": "7.5.2.0",
