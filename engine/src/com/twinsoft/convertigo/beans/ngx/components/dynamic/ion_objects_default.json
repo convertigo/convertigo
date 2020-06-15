@@ -4900,5 +4900,127 @@
     }
    }
   }
+ },
+ "AlertAction": {
+  "   7   9   0": {
+   "name": "AlertAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "header": {
+     "name": "header",
+     "mode": "plain",
+     "value": false
+    },
+    "subHeader": {
+     "name": "subHeader",
+     "mode": "plain",
+     "value": false
+    },
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some message"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "backdropDismiss": {
+     "name": "backdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    },
+    "button1": {
+     "name": "button1",
+     "mode": "plain",
+     "value": false
+    },
+    "button2": {
+     "name": "button2",
+     "mode": "plain",
+     "value": false
+    },
+    "button3": {
+     "name": "button3",
+     "mode": "plain",
+     "value": false
+    },
+    "value1": {
+     "name": "value1",
+     "mode": "plain",
+     "value": false
+    },
+    "value2": {
+     "name": "value2",
+     "mode": "plain",
+     "value": false
+    },
+    "value3": {
+     "name": "value3",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel1": {
+     "name": "cancel1",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel2": {
+     "name": "cancel2",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel3": {
+     "name": "cancel3",
+     "mode": "plain",
+     "value": false
+    },
+    "css1": {
+     "name": "css1",
+     "mode": "plain",
+     "value": false
+    },
+    "css2": {
+     "name": "css2",
+     "mode": "plain",
+     "value": false
+    },
+    "css3": {
+     "name": "css3",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }
