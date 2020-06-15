@@ -16620,7 +16620,6 @@
     }
   },
 
-/* 
   "FileChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileChooser",
@@ -16652,12 +16651,12 @@
       "config": {
         "action_ts_imports": [
 			
-			{"from":"@ionic-native/file-path", "components":["FilePath"]},
-			{"from":"@ionic-native/file-chooser", "components":["FileChooser"]}
+			{"from":"@ionic-native/file-path/ngx", "components":["FilePath"]},
+			{"from":"@ionic-native/file-chooser/ngx", "components":["FileChooser"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-chooser", "components":["FileChooser"]},
-			{"from":"@ionic-native/file-path", "components":["FilePath"]}
+			{"from":"@ionic-native/file-chooser/ngx", "components":["FileChooser"]},
+			{"from":"@ionic-native/file-path/ngx", "components":["FilePath"]}
         ],
         "module_ng_imports": [
         ],
@@ -16666,8 +16665,8 @@
 			"FilePath"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-chooser", "version":"4.5.3"},
-             {"package":"@ionic-native/file-path", "version":"4.5.3"}
+            {"package":"@ionic-native/file-chooser", "version":"^5.26.0"},
+             {"package":"@ionic-native/file-path", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
@@ -16676,13 +16675,12 @@
           },
           {
             "plugin":"cordova-plugin-filepath",
-            "version":"1.2.0"
+            "version":"1.5.8"
           }
       ]
     }
   },
-*/
-/*  
+  
   "ChooserAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Chooser",
@@ -16722,10 +16720,10 @@
       },
       "config": {
         "action_ts_imports": [			
-			{"from":"@ionic-native/chooser", "components":["Chooser"]}
+			{"from":"@ionic-native/chooser/ngx", "components":["Chooser"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/chooser", "components":["Chooser"]}
+			{"from":"@ionic-native/chooser/ngx", "components":["Chooser"]}
         ],
         "module_ng_imports": [
         ],
@@ -16733,17 +16731,17 @@
 			"Chooser"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/chooser", "version":"4.20.0"}
+            {"package":"@ionic-native/chooser", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-chooser",
-            "version":"1.2.5"
+            "version":"1.3.1"
           }
       ]
     }
   },
-*/ 
+ 
 /* also commented in 7.8
   "SpeechToEventAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
@@ -17311,7 +17309,7 @@
     }
   },
 */
-/*  
+ 
   "FileOpenerAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "FileOpener",
@@ -17351,10 +17349,10 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/file-opener", "components":["FileOpener"]}
+			{"from":"@ionic-native/file-opener/ngx", "components":["FileOpener"]}
         ],
         "module_ng_imports": [
         ],
@@ -17362,18 +17360,17 @@
 			"FileOpener"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/file-opener", "version":"4.4.2"}
+            {"package":"@ionic-native/file-opener", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-file-opener2",
-            "version":"2.0.19"
+            "version":"3.0.2"
           }
       ]
     }
   },
-*/
-/*
+
   "CameraAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Camera",
@@ -17561,12 +17558,12 @@
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/camera", "components":["Camera"]},
-			{"from":"@ionic-native/camera", "components":["CameraOptions"]},
-			{"from":"@ionic-native/camera", "components":["CameraPopoverOptions"]}
+			{"from":"@ionic-native/camera/ngx", "components":["Camera"]},
+			{"from":"@ionic-native/camera/ngx", "components":["CameraOptions"]},
+			{"from":"@ionic-native/camera/ngx", "components":["CameraPopoverOptions"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/camera", "components":["Camera"]}
+			{"from":"@ionic-native/camera/ngx", "components":["Camera"]}
         ],
         "module_ng_imports": [
         ],
@@ -17574,12 +17571,12 @@
 			"Camera"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/camera", "version":"4.4.2"}
+            {"package":"@ionic-native/camera", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
             "plugin":"cordova-plugin-camera",
-            "version":"2.4.0",
+            "version":"4.1.0",
             "variables": {
               "CAMERA_USAGE_DESCRIPTION":"To capture photos",
               "PHOTOLIBRARY_USAGE_DESCRIPTION":"To access photo gallery"
@@ -17588,8 +17585,7 @@
       ]
     }
   },
-*/
-/*
+
   "BarcodeAction": {
     "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
     "displayName": "BarcodeScanner",
@@ -17646,7 +17642,6 @@
           "true"
         ]
       },
-
       "showFlipCameraButton": {
         "label": "Show flip camera button",
         "description": "Show flip camera button. Supported on iOS and Android.",
@@ -17658,7 +17653,6 @@
           "true"
         ]
       },
-
       "showTorchButton": {
         "label": "Show torch button",
         "description": "Show torch  button. Supported on iOS and Android.",
@@ -17670,7 +17664,6 @@
           "true"
         ]
       },
-
       "disableAnimations": {
         "label": "Disable animations",
         "description": "Disable animations. Supported on iOS only.",
@@ -17682,7 +17675,6 @@
           "true"
         ]
       },
-
       "disableSuccessBeep": {
         "label": "Disable success beep",
         "description": "Disable success beep. Supported on iOS only.",
@@ -17694,7 +17686,6 @@
           "true"
         ]
       },
-
       "prompt": {
         "label": "Prompt",
         "description": "Prompt text. Supported on Android only.",
@@ -17702,7 +17693,6 @@
         "type": "string",
         "value": false
       },
-
       "formats": {
         "label": "Formats",
         "description": "Formats separated by commas. Defaults to all formats except PDF_417 and RSS_EXPANDED.",
@@ -17710,7 +17700,6 @@
         "type": "string",
         "value": "QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF417,RSS_EXPANDED,MSI,AZTEC"
       },
-
       "orientation": {
         "label": "Orientation",
         "description": "Orientation. Supported on Android only. Can be set to portrait or landscape. Defaults to none so the user can rotate the phone and pick an orientation.",
@@ -17723,7 +17712,6 @@
           "landscape"
         ]
       },
-
       "torchOn": {
         "label": "Torch on",
         "description": "Launch with the torch switched on (if available). Supported on Android only.",
@@ -17735,7 +17723,6 @@
           "false"
         ]
       },
-
       "resultDisplayDuration": {
         "label": "Result display duration",
         "description": "Display scanned text for X ms. 0 suppresses it entirely, default 1500. Supported on Android only.",
@@ -17744,11 +17731,10 @@
         "value": false
       }
     },
-
     "config": {
       "action_ts_imports": [
         {
-          "from": "@ionic-native/barcode-scanner",
+          "from": "@ionic-native/barcode-scanner/ngx",
           "components": [
             "BarcodeScanner"
           ]
@@ -17756,7 +17742,7 @@
       ],
       "module_ts_imports": [
         {
-          "from": "@ionic-native/barcode-scanner",
+          "from": "@ionic-native/barcode-scanner/ngx",
           "components": [
             "BarcodeScanner"
           ]
@@ -17769,7 +17755,7 @@
       "package_dependencies": [
         {
           "package": "@ionic-native/barcode-scanner",
-          "version": "4.4.2"
+          "version": "^5.26.0"
         }
       ],
       "cordova_plugins": [
@@ -17784,7 +17770,6 @@
       ]
     }
   },
-*/
 /*
     "UninstallAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",

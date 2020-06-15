@@ -4498,5 +4498,210 @@
     }
    }
   }
+ },
+ "BarcodeAction": {
+  "   7   9   0": {
+   "name": "BarcodeAction",
+   "properties": {
+    "mockedFormat": {
+     "name": "mockedFormat",
+     "mode": "plain",
+     "value": "QR_CODE"
+    },
+    "mockedCancel": {
+     "name": "mockedCancel",
+     "mode": "plain",
+     "value": "false"
+    },
+    "mockedText": {
+     "name": "mockedText",
+     "mode": "plain",
+     "value": "http:\/\/www.convertigo.com\/"
+    },
+    "preferFrontCamera": {
+     "name": "preferFrontCamera",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showFlipCameraButton": {
+     "name": "showFlipCameraButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showTorchButton": {
+     "name": "showTorchButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableAnimations": {
+     "name": "disableAnimations",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableSuccessBeep": {
+     "name": "disableSuccessBeep",
+     "mode": "plain",
+     "value": "false"
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "formats": {
+     "name": "formats",
+     "mode": "plain",
+     "value": "QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF417,RSS_EXPANDED,MSI,AZTEC"
+    },
+    "orientation": {
+     "name": "orientation",
+     "mode": "plain",
+     "value": false
+    },
+    "torchOn": {
+     "name": "torchOn",
+     "mode": "plain",
+     "value": "false"
+    },
+    "resultDisplayDuration": {
+     "name": "resultDisplayDuration",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CameraAction": {
+  "   7   9   0": {
+   "name": "CameraAction",
+   "properties": {
+    "quality": {
+     "name": "quality",
+     "mode": "script",
+     "value": 80
+    },
+    "destinationType": {
+     "name": "destinationType",
+     "mode": "plain",
+     "value": "FILE_URL"
+    },
+    "sourceType": {
+     "name": "sourceType",
+     "mode": "plain",
+     "value": "CAMERA"
+    },
+    "allowEdit": {
+     "name": "allowEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "encodingType": {
+     "name": "encodingType",
+     "mode": "plain",
+     "value": "JPEG"
+    },
+    "targetWidth": {
+     "name": "targetWidth",
+     "mode": "script",
+     "value": 800
+    },
+    "targetHeight": {
+     "name": "targetHeight",
+     "mode": "script",
+     "value": 800
+    },
+    "mediaType": {
+     "name": "mediaType",
+     "mode": "plain",
+     "value": false
+    },
+    "correctOrientation": {
+     "name": "correctOrientation",
+     "mode": "plain",
+     "value": "true"
+    },
+    "saveToPhotoAlbum": {
+     "name": "saveToPhotoAlbum",
+     "mode": "plain",
+     "value": "false"
+    },
+    "cameraDirection": {
+     "name": "cameraDirection",
+     "mode": "plain",
+     "value": "BACK"
+    },
+    "x": {
+     "name": "x",
+     "mode": "script",
+     "value": false
+    },
+    "y": {
+     "name": "y",
+     "mode": "script",
+     "value": false
+    },
+    "width": {
+     "name": "width",
+     "mode": "script",
+     "value": false
+    },
+    "height": {
+     "name": "height",
+     "mode": "script",
+     "value": false
+    },
+    "arrowDir": {
+     "name": "arrowDir",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ChooserAction": {
+  "   7   9   0": {
+   "name": "ChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    },
+    "mimeType": {
+     "name": "mimeType",
+     "mode": "script",
+     "value": false
+    }
+   }
+  }
+ },
+ "FileChooserAction": {
+  "   7   9   0": {
+   "name": "FileChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    }
+   }
+  }
+ },
+ "FileOpenerAction": {
+  "   7   9   0": {
+   "name": "FileOpenerAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "filePath": {
+     "name": "filePath",
+     "mode": "plain",
+     "value": true
+    }
+   }
+  }
  }
 }
