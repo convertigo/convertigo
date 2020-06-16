@@ -17041,7 +17041,6 @@
     }
   },
 */ 
-/*
   "AlertAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Alert",
@@ -17053,40 +17052,110 @@
       "group": "Actions",
 		"icon16": "alertaction_color_16x16.png",
     	"icon32": "alertaction_color_32x32.png",
-      "properties": {
-      	"title": {
-	        "label": "Title",
-	        "description": "The title for the alert.",
-	        "category": "@options",
-	        "type": "string",
-	        "value": false
-	      },
-	      "subTitle": {
-	        "label": "SubTitle",
-	        "description": "The subtitle for the alert.",
-	        "category": "@options",
-	        "type": "string",
-	        "value": false
-	      },
-	      "message": {
-	        "label": "Message",
-	        "description": "The message for the alert.",
-	        "category": "@options",
-	        "type": "string",
-	        "value": false
-	      },
-	      "cssClass": {
-	        "label": "CssClass",
-	        "description": "Additional classes for custom styles, separated by spaces.",
-	        "category": "@options",
-	        "type": "string",
-	        "value": false
-	        
-	      },
+        "properties": {
+	        "IonMode": false,
+	        "header": {
+	          "label": "Header",
+	          "description": "Defines the alert's header.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": false,
+	          "values": [
+	            false,
+				true
+	          ]
+	        },
+	        "subHeader": {
+	          "label": "Sub header",
+	          "description": "Defines the alert's sub header.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": false,
+	          "values": [
+	            false,
+				true
+	          ]
+	        },
+	        "message": {
+	          "label": "Message",
+	          "description": "Defines the alert's message.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": "some message",
+	          "values": [
+	            false,
+				true
+	          ]
+	        },
+	        "cssClass": {
+	          "label": "Css classes",
+	          "description": "Additional classes for custom styles, separated by spaces.",
+	          "category": "@Properties",
+	          "type": "string",
+	          "value": ""
+	        },
+			"animated": {
+	          "label": "Animated",
+	          "description": "If true, the alert will animate",
+	          "category": "@Expert",
+	          "type": "boolean",
+	          "value": "true",
+	          "values": [
+	            "false",
+	            "true"
+	          ]
+	        },
+	        "enterAnimation": {
+	          "label": "Animation (enter)",
+	          "description": "Animation to use when the alert is presented. ((baseEl: any, opts?: any) => Animation).",
+	          "category": "@Expert",
+	          "type": "string",
+	          "value": false
+	        },
+	        "leaveAnimation": {
+	          "label": "Animation (leave)",
+	          "description": "Animation to use when the alert is dismissed. ((baseEl: any, opts?: any) => Animation).",
+	          "category": "@Expert",
+	          "type": "string",
+	          "value": false
+	        },
+			"keyboardClose": {
+	          "label": "Keyboard close",
+	          "description": "If true, the keyboard will be automatically dismissed when the overlay is presented",
+	          "category": "@Properties",
+	          "type": "boolean",
+	          "value": "true",
+	          "values": [
+	            "false",
+	            "true"
+	          ]
+	        },
+	        "backdropDismiss": {
+	          "label": "Enable backdrop dismiss",
+	          "description": "If true, the alert will be dismissed when the backdrop is clicked.",
+	          "category": "@Properties",
+	          "type": "boolean",
+	          "value": "true",
+	          "values": [
+	            "true",
+	            "false"
+	          ]
+	        },
+	        "translucent": {
+	          "label": "Translucent",
+	          "description": "If true, the alert will be translucent. Only applies when the mode is 'ios' and the device supports backdrop-filter.",
+	          "category": "@Properties",
+	          "type": "boolean",
+	          "value": "false",
+	          "values": [
+	            "true",
+	            "false"
+	          ]
+	        },
 	      "button1": {
 	        "label": "Text 1",
 	        "description": "Text for the button 1.",
-	        "category": "@options button 1",
+	        "category": "@Options button 1",
 	        "type": "string",
 	        "value": false
 	        
@@ -17094,7 +17163,7 @@
 	      "button2": {
 	        "label": "Text 2",
 	        "description": "Text for the button 2.",
-	        "category": "@options button 2",
+	        "category": "@Options button 2",
 	        "type": "string",
 	        "value": false
 	        
@@ -17102,7 +17171,7 @@
 	      "button3": {
 	        "label": "Text 3",
 	        "description": "Text for the button 3.",
-	        "category": "@options button 3",
+	        "category": "@Options button 3",
 	        "type": "string",
 	        "value": false
 	        
@@ -17110,7 +17179,7 @@
 	      "value1": {
 	        "label": "Return value 1",
 	        "description": "A value to return for the button 1.",
-	        "category": "@options button 1",
+	        "category": "@Options button 1",
 	        "type": "string",
 	        "value": false
 	        
@@ -17118,7 +17187,7 @@
 	      "value2": {
 	        "label": "Return value 2",
 	        "description": "A value to return for the button 2.",
-	        "category": "@options button 2",
+	        "category": "@Options button 2",
 	        "type": "string",
 	        "value": false
 	        
@@ -17126,14 +17195,14 @@
 	      "value3": {
 	        "label": "Return value 3",
 	        "description": "A value to return for the button 3.",
-	        "category": "@options button 3",
+	        "category": "@Options button 3",
 	        "type": "string",
 	        "value": false	        
 	      },
 	      "cancel1": {
 	        "label": "Role 1",
 	        "description": "The button 1 role: not set or cancel.",
-	        "category": "@options button 1",
+	        "category": "@Options button 1",
 	        "type": "string",
 	        "value": false,
 	        "values":[false, "cancel"]
@@ -17142,7 +17211,7 @@
 	      "cancel2": {
 	        "label": "Role 2",
 	        "description": "The button 2 role: not set or cancel.",
-	        "category": "@options button 2",
+	        "category": "@Options button 2",
 	        "type": "string",
 	        "value": false,
 	        "values":[false, "cancel"]
@@ -17151,7 +17220,7 @@
 	      "cancel3": {
 	        "label": "Role 3",
 	        "description": "The button 3 role: not set or cancel.",
-	        "category": "@options button 3",
+	        "category": "@Options button 3",
 	        "type": "string",
 	        "value": false,
 	        "values":[false, "cancel"]
@@ -17160,7 +17229,7 @@
 	      "css1": {
 	        "label": "Css class 1",
 	        "description": "A css class for button 1.",
-	        "category": "@options button 1",
+	        "category": "@Options button 1",
 	        "type": "string",
 	        "value": false
 	        
@@ -17168,7 +17237,7 @@
 	      "css2": {
 	        "label": "Css class 2",
 	        "description": "A css class for button 2.",
-	        "category": "@options button 2",
+	        "category": "@Options button 2",
 	        "type": "string",
 	        "value": false
 	        
@@ -17176,31 +17245,13 @@
 	      "css3": {
 	        "label": "Css class 3",
 	        "description": "A css class for button 3.",
-	        "category": "@options button 3",
+	        "category": "@Options button 3",
 	        "type": "string",
 	        "value": false
 	        
-	      },
-	      
-	      "enableBackdropDismiss": {
-	        "label": "Enable Backdrop Dismiss",
-	        "description": "Whether the alert should be dismissed by tapping the backdrop. Default true.",
-	        "category": "@options",
-	        "type": "boolean",
-	        "value": "true",
-	        "values": [
-	        	"true",
-	        	"false"
-	        ]
-	        
 	      }
-	      
-      },
-      "config": {
-        
-    }
+      }
   },
-*/
  
   "FileOpenerAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
