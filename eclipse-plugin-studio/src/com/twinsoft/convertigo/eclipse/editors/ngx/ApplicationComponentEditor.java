@@ -1273,12 +1273,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					
 					Engine.execute(() -> {
 						try {
-							File staging = new File(nodeModules, ".staging");
-							while (running[0] && !staging.exists()) {
-								appendOutput("Resolving dependencies … (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
-								Thread.sleep(1000);
-							}
-							while (running[0] && staging.exists()) {
+							while (running[0]) {
 								appendOutput("Collecting node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)) + " (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
 								Engine.logStudio.info("Installing, node_module size is now : " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
 								Thread.sleep(1000);
