@@ -199,12 +199,15 @@ public class ProcessUtils {
 	}
 	
 	public static ProcessBuilder getNpmProcessBuilder(String paths, List<String> command) throws IOException {
-		if (command == null || command.size() == 0 || !(command.get(0).equals("npm"))) {
-			throw new IOException("not a npm command");
+		if (command == null || command.size() == 0 || (!command.get(0).equals("npm") && !command.get(0).equals("yarn"))) {
+			throw new IOException("not a npm or yarn command");
 		}
 		
 		if (Engine.isWindows()) {
-			command.set(0, "npm.cmd");
+			if (command.get(0).equals("npm"))
+				command.set(0, "npm.cmd");
+			if (command.get(0).equals("yarn"))
+				command.set(0, "yarn.cmd");
 		}
 		
 		ProcessBuilder pb = getProcessBuilder(paths, command);

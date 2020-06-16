@@ -1252,10 +1252,25 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
 					long start = System.currentTimeMillis();
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+					
+					ProcessBuilder pb;
+					Process p;
+					
+					File yarnFile = new File(ionicDir.toString() + "/node_modules/.bin/yarn");
+					if (!yarnFile.exists()) {
+						Engine.logStudio.info("Installing Yarn...");
+						pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "yarn");
+						pb.redirectErrorStream(true);
+						pb.directory(ionicDir);
+						p = pb.start();
+						p.waitFor();
+					}
+					
+					pb = ProcessUtils.getNpmProcessBuilder(ionicDir.toString() + "/node_modules/.bin/", "yarn");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
-					Process p = pb.start();
+					p = pb.start();
+					
 					Engine.execute(() -> {
 						try {
 							File staging = new File(nodeModules, ".staging");
