@@ -168,8 +168,16 @@ public class ConvertigoTypeScriptDefinition {
 				ConvertigoTypeScriptDefinition tsd = new ConvertigoTypeScriptDefinition();
 				tsd.handleCls(com.twinsoft.convertigo.engine.Context.class);
 				tsd.handleCls(com.twinsoft.convertigo.engine.util.LogWrapper.class);
-				tsd.handleCls(org.w3c.dom.Document.class);
+				tsd.handleCls(com.twinsoft.convertigo.engine.util.Crypto2.class);
+				tsd.handleCls(java.lang.System.class);
+				tsd.handleCls(java.math.BigInteger.class);
+				tsd.handleCls(java.security.Signature.class);
+				tsd.handleCls(java.security.spec.RSAPublicKeySpec.class);
 				tsd.handleCls(org.apache.commons.lang3.StringUtils.class);
+				tsd.handleCls(org.apache.commons.codec.binary.Base64.class);
+				tsd.handleCls(org.apache.commons.codec.binary.Hex.class);
+				tsd.handleCls(org.w3c.dom.Document.class);
+				
 				tsd.append.append("declare var context: com.twinsoft.convertigo.engine.Context\n")
 					.append("declare var log: com.twinsoft.convertigo.engine.util.LogWrapper\n")
 					.append("declare var dom: org.w3c.dom.Document\n")
