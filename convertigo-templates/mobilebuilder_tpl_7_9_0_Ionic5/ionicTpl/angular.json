@@ -87,7 +87,11 @@
             },
             "ci": {
               "progress": false
-            }
+            },
+            "hmr": {
+       			 "hmr": true,
+        		 "browserTarget": "app:build:hmr"
+      		}
           }
         },
         "extract-i18n": {
