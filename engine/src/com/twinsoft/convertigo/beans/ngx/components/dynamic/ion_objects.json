@@ -14431,7 +14431,7 @@
         "module_ng_components": [
         ],
         "package_dependencies": [
-            {"package":"angular-tree-component", "version":"7.2.1"}
+            {"package":"angular-tree-component", "version":"8.5.6"}
         ]
       }	        
     },
