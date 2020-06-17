@@ -202,7 +202,13 @@ public abstract class MobileBuilder {
 	}
 	
 	static public MobileBuilder getInstance(Project project) throws EngineException {
-		IApplicationComponent app = project.getMobileApplication().getApplicationComponent();
+		IApplicationComponent app;
+		try {
+			app = project.getMobileApplication().getApplicationComponent();
+		} catch (NullPointerException e) {
+			// for project without mobile application
+			return null;
+		}
 		// IONIC-ANGULAR : Ionic3Builder
 		if ("com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent".equals(app.getClass().getName())) {
 			return new Ionic3Builder(project);
