@@ -7,7 +7,7 @@ import { TreeviewComponent } from './TreeviewComponent';
 @NgModule({
   declarations: [ TreeviewComponent ],
   exports: [ TreeviewComponent ],
-  imports: [ CommonModule, TreeModule ],
+  imports: [ CommonModule, TreeModule.forRoot() ],
   schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
 })
 export class TreeviewModule {}
