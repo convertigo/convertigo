@@ -14116,12 +14116,14 @@
       "label": "Signature",
       "description": [
 "c8o-signature. | Displays a Signature pad. This component uses an Angular2 component based on the Signature Pad JavaScript library.<br/>",
-"For more information: <a href='https://www.npmjs.com/package/angular2-signaturepad'>angular2-signaturepad</a>.<br/><br/>",
+"For more information: <a href='https://github.com/szimek/signature_pad'>signature_pad</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form.<br/>"],
       "group": "Forms",
       "icon16": "signaturecomponent_color_16x16.png",
       "icon32": "signaturecomponent_color_32x32.png",
       "properties": {
+        "ControlName": "",
+        "DoubleBinding": false,
         "DotSize": {
           "composite": true,
           "label": "Dot size",
@@ -14262,7 +14264,7 @@
         "module_ng_components": [
         ],
         "package_dependencies": [
-            {"package":"angular2-signaturepad", "version":"2.7.0"}
+            {"package":"signature_pad", "version":"^3.0.0-beta.3"}
         ]
       }
     },

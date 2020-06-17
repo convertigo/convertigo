@@ -3057,6 +3057,16 @@
   "   7   9   0": {
    "name": "SignatureComponent",
    "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
     "DotSize": {
      "name": "DotSize",
      "mode": "plain",
