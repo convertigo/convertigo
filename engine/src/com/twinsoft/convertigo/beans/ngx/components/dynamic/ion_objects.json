@@ -16895,7 +16895,6 @@
     }
   },
 
-/*
    "ActionSheetAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "ActionSheet",
@@ -17016,15 +17015,14 @@
 	        	"false"
 	        ]
 	      }
-	      
       },
       "config": {
         "action_ts_imports": [
-			{"from":"@ionic-native/action-sheet", "components":["ActionSheet"]},
-			{"from":"@ionic-native/action-sheet", "components":["ActionSheetOptions"]}
+			{"from":"@ionic-native/action-sheet/ngx", "components":["ActionSheet"]},
+			{"from":"@ionic-native/action-sheet/ngx", "components":["ActionSheetOptions"]}
         ],
         "module_ts_imports": [
-			{"from":"@ionic-native/action-sheet", "components":["ActionSheet"]}
+			{"from":"@ionic-native/action-sheet/ngx", "components":["ActionSheet"]}
         ],
         "module_ng_imports": [
         ],
@@ -17032,7 +17030,7 @@
 			"ActionSheet"
         ],
         "package_dependencies": [
-            {"package":"@ionic-native/action-sheet", "version":"4.5.2"}
+            {"package":"@ionic-native/action-sheet", "version":"^5.26.0"}
         ],
         "cordova_plugins": [
           {
@@ -17042,7 +17040,7 @@
       ]
     }
   },
-*/ 
+ 
   "AlertAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "Alert",

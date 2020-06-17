@@ -5032,5 +5032,67 @@
     }
    }
   }
+ },
+ "ActionSheetAction": {
+  "   7   9   0": {
+   "name": "ActionSheetAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "script",
+     "value": 0
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "subtitle": {
+     "name": "subtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "buttonLabels": {
+     "name": "buttonLabels",
+     "mode": "script",
+     "value": "['']"
+    },
+    "androidTheme": {
+     "name": "androidTheme",
+     "mode": "plain",
+     "value": false
+    },
+    "androidEnableCancelButton": {
+     "name": "androidEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "winphoneEnableCancelButton": {
+     "name": "winphoneEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "addCancelButtonWithLabel": {
+     "name": "addCancelButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "addDestructiveButtonWithLabel": {
+     "name": "addDestructiveButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": false
+    },
+    "destructiveButtonLast": {
+     "name": "destructiveButtonLast",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
  }
 }
