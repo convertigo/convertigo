@@ -26,7 +26,10 @@
                 buttons[num] = {};
                 buttons[num]['text'] = props.button1;
                 if (props.value1 != null) {
-                    buttons[num]['handler'] = () => { return props.value1};
+                    buttons[num]['handler'] = () => { 
+                        Promise.resolve(props.value1).then((data) => alert.dismiss(data));
+                        return false;
+                    };
                 }
                 if (props.cancel1 != null) {
                     buttons[num]['role'] = props.cancel1;
@@ -40,8 +43,11 @@
                 buttons[num] = {};
                 buttons[num]['text'] = props.button2;
                 if (props.value2 != null) {
-                    buttons[num]['handler'] = () => { return props.value2};
-                }
+                    buttons[num]['handler'] = () => { 
+                        Promise.resolve(props.value2).then((data) => alert.dismiss(data));
+                        return false;
+                    };
+               }
                 if (props.cancel2 != null) {
                     buttons[num]['role'] = props.cancel2;
                 }
@@ -54,7 +60,10 @@
                 buttons[num] = {};
                 buttons[num]['text'] = props.button3;
                 if (props.value3 != null) {
-                    buttons[num]['handler'] = () => { return props.value3};
+                    buttons[num]['handler'] = () => { 
+                        Promise.resolve(props.value3).then((data) => alert.dismiss(data));
+                        return false;
+                    };
                 }
                 if (props.cancel3 != null) {
                     buttons[num]['role'] = props.cancel3;
