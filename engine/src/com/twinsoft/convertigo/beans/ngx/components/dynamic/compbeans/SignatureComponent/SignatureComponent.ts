@@ -1,4 +1,4 @@
-import {Input, AfterViewInit, Component, forwardRef, ElementRef, Renderer2, OnInit, ViewChild} from '@angular/core';
+import {Input, Output, AfterViewInit, Component, forwardRef, ElementRef, Renderer2, OnInit, ViewChild, EventEmitter} from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor }  from '@angular/forms';
 import SignaturePad from 'signature_pad';
 
@@ -16,6 +16,8 @@ import SignaturePad from 'signature_pad';
 })
 export class SignatureComponent implements ControlValueAccessor, OnInit, AfterViewInit {
   @Input() public options: Object = {};
+  @Output() private onBeginEvent = new EventEmitter<any>();
+  @Output() private onEndEvent = new EventEmitter<any>();
   @ViewChild('sPad', {static: true}) signaturePadElement;
   
   signaturePad: SignaturePad;
@@ -67,9 +69,12 @@ export class SignatureComponent implements ControlValueAccessor, OnInit, AfterVi
 
   ngAfterViewInit(): void {
     this.signaturePad = new SignaturePad(this.signaturePadElement.nativeElement, this.options);
-    this.signaturePad.onBegin = () => {};
-    this.signaturePad.onEnd = () => {
+    this.signaturePad.onBegin = (event) => {
+        this.onBeginEvent.emit(event);
+    };
+    this.signaturePad.onEnd = (event) => {
         this.signature = this.signaturePad.toDataURL('image/png', 0.5);
+        this.onEndEvent.emit(event);
     }
     
     this.resize();
