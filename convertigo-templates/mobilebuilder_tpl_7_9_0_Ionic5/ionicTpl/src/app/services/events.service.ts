@@ -35,7 +35,7 @@ export class Events implements OnDestroy{
     
     ngOnDestroy() {
         for (const topic in this.eventMap) {
-          this.eventMap[topic].complete
+          this.eventMap[topic].complete()
         }
         this.eventMap = {};
     }    
