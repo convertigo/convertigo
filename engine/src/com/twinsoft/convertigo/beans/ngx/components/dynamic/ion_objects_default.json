@@ -5211,5 +5211,22 @@
     }
    }
   }
+ },
+ "PublishEventAction": {
+  "   7   9   0": {
+   "name": "PublishEventAction",
+   "properties": {
+    "topic": {
+     "name": "topic",
+     "mode": "plain",
+     "value": false
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": false
+    }
+   }
+  }
  }
 }

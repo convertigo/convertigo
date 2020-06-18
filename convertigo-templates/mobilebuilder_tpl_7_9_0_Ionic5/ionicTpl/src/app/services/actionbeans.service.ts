@@ -5,6 +5,7 @@ import { PopoverController, ToastController }                                   
 import { TranslateService }                                                             from '@ngx-translate/core';
 
 import {C8oPageBase, C8oCafUtils}                                                       from 'c8ocaf';
+import { Events }                                                                       from './events.service';
 
 /*=c8o_ActionTsImports*/
 

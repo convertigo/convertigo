@@ -814,6 +814,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			}
 			computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
 			computed += "\t\t}"+ System.lineSeparator();
+			computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
 			computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
 			computed += "\t}"+ System.lineSeparator();
 			computed += "\t";

@@ -9,6 +9,7 @@ import { C8oNetworkStatus }                                 							from 'c8osdka
 import { ChangeDetectorRef, ChangeDetectionStrategy, InjectionToken, Injector, Type}	from "@angular/core";
 import { TranslateService }                                 							from '@ngx-translate/core';
 import { ActionBeans } 																	from '../../services/actionbeans.service';
+import { Events } 																		from '../../services/events.service';
 
 /*
 	You can customize your page class by writing code between the :
@@ -26,7 +27,8 @@ import { ActionBeans } 																	from '../../services/actionbeans.service
 export class /*=c8o_PageName*/  extends C8oPage {
 	/*=c8o_PageDeclarations*/
 
-	//public events : Events;
+	public events : Events;
+	public subscriptions = {};
 	public actionBeans: ActionBeans;
 	public static nameStatic: string = "/*=c8o_PageName*/";
 	/*Begin_c8o_PageDeclaration*/
@@ -34,7 +36,7 @@ export class /*=c8o_PageName*/  extends C8oPage {
 
 	constructor(routerProvider: C8oRouter, private route: ActivatedRoute, private angularRouter: Router, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
 		super(routerProvider, loadingCtrl, sanitizer, ref, injector, menuCtrl);
-		//this.events = this.getInstance(Events);
+		this.events = this.getInstance(Events);
 		this.actionBeans = this.getInstance(ActionBeans);
 		
 		/*=c8o_PageConstructors*/

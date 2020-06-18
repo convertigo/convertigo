@@ -17,6 +17,7 @@ import { C8o, C8oSettings, C8oLogLevel,C8oProgress }        from "c8osdkangular"
 import { C8oNetworkStatus }                                 from "c8osdkangular";
 
 import { ActionBeans }                                      from './services/actionbeans.service';
+import { Events }                                           from './services/events.service';
 
 /*
 	You can customize your application class by writing code between the :
@@ -45,6 +46,8 @@ export class AppComponent extends C8oPageBase {
 	rootPage : any = /*=c8o_RootPage*/;
 	public appPages : /*=c8o_PageArrayDef*/;
     pagesKeyValue: any;
+	public events: Events;
+	public subscriptions = {};
     public actionBeans: ActionBeans;
     /*=c8o_AppDeclarations*/
     
@@ -54,7 +57,7 @@ export class AppComponent extends C8oPageBase {
 //  	constructor(private platform: Platform, private splashScreen: SplashScreen, private statusBar: StatusBar) {
     constructor(private platform: Platform, private splashScreen: SplashScreen, private statusBar: StatusBar, routerProvider: C8oRouter, private route: ActivatedRoute, private angularRouter: Router, loadingCtrl: LoadingController, sanitizer: DomSanitizer, ref: ChangeDetectorRef, injector: Injector, menuCtrl: MenuController, public translate: TranslateService){
         super(injector, routerProvider, loadingCtrl, ref);
-        //this.events = this.getInstance(Events);
+        this.events = this.getInstance(Events);
         this.actionBeans = this.getInstance(ActionBeans);
 
 		this.appPages = [/*=c8o_PagesVariables*/];
