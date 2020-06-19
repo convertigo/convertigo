@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -44,7 +46,10 @@ import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 public class ServletUtils {
+	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/mobile/)[^.]+");
+	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
+		System.out.println("File: " + file + "\nURI: " + request.getRequestURI());
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
 
@@ -81,10 +86,15 @@ public class ServletUtils {
 					}
 				}
 			}
-		}
-		else {
-			Engine.logContext.debug("Convertigo request => follow the normal filter chain");
-			chain.doFilter(request, response);
+		} else {
+			Matcher m = p_mobile.matcher(file.getPath().replace('\\', '/'));
+			if (m.matches()) {
+				File index = new File(m.group(1), "index.html");
+				handleFileFilter(index, request, response, filterConfig, chain);
+			} else {
+				Engine.logContext.debug("Convertigo request => follow the normal filter chain");
+				chain.doFilter(request, response);
+			}
 		}
 	}
 
