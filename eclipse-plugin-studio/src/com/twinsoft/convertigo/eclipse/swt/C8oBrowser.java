@@ -92,7 +92,7 @@ public class C8oBrowser extends Composite {
 						FileUtils.write(browserIdFile, browserId, "UTF-8");
 					} catch (IOException e1) {
 					}
-				}	
+				}
 			}
 			
 			File browserWorks = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH + "/browser-works");
@@ -215,8 +215,8 @@ public class C8oBrowser extends Composite {
 		return getBrowser().mainFrame().get().executeJavaScript(script);
 	}
 	
-	public void executeFunctionAsync(String script, Object... params) {
-		((JsObject) getBrowser().mainFrame().get().executeJavaScript("window")).call(script, params);
+	public <T> T executeFunctionAndReturnValue(String function, Object... params) {
+		return ((JsObject) getBrowser().mainFrame().get().executeJavaScript("window")).call(function, params);
 	}
 	
 	public String getURL() {

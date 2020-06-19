@@ -1149,7 +1149,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			if (c8oBrowser.getURL().equals("about:blank")) {
 				try {
 					for (String m: msg) {
-						c8oBrowser.executeFunctionAsync("loader_log", m);
+						c8oBrowser.executeFunctionAndReturnValue("loader_log", m);
 					}
 				} catch (Exception e) {
 					// silently ignore
@@ -1161,7 +1161,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private void toast(String msg) {
 		Engine.logStudio.info("[Toast] " + msg);
 		C8oBrowser.run(() -> {
-			c8oBrowser.executeFunctionAsync("_c8o_toast");
+			c8oBrowser.executeFunctionAndReturnValue("_c8o_toast");
 		});
 	}
 	
@@ -1544,6 +1544,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		while (!(node == null || node instanceof Element)) {
 			node = node.parent().orElse(null);
 		}
+		
+		Object shadowHost = c8oBrowser.executeFunctionAndReturnValue("_c8o_getShadowHost", node);
+		if (shadowHost != null && shadowHost instanceof Element) {
+			node = (Element) shadowHost;
+		}
+		
 		while (node != null) {
 			Element element = (Element) node;
 			if (element.equals(exHighlightElement)) {
@@ -1551,7 +1557,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			exHighlightElement = element;
 			String classes = element.attributeValue("class");
-
 			Matcher mPriority = pPriority.matcher(classes);
 			if (mPriority.find()) {
 				try {

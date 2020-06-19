@@ -1136,7 +1136,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			if (c8oBrowser.getURL().equals("about:blank")) {
 				try {
 					for (String m: msg) {
-						c8oBrowser.executeFunctionAsync("loader_log", m);
+						c8oBrowser.executeFunctionAndReturnValue("loader_log", m);
 					}
 				} catch (Exception e) {
 					// silently ignore
@@ -1148,7 +1148,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private void toast(String msg) {
 		Engine.logStudio.info("[Toast] " + msg);
 		C8oBrowser.run(() -> {
-			c8oBrowser.executeFunctionAsync("_c8o_toast");
+			c8oBrowser.executeFunctionAndReturnValue("_c8o_toast");
 		});
 	}
 	

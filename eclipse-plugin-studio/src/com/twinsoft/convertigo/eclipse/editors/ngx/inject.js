@@ -357,6 +357,14 @@ function _c8o_highlight_class(classname) {
 	}, 200);
 }
 
+function _c8o_getShadowHost(element) {
+	try {
+		return element.getRootNode().host;
+	} catch (e) {
+		return null;
+	}
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 	var scrollStyle = document.createElement("style");
 	scrollStyle.textContent =
