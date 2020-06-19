@@ -77,7 +77,7 @@ public class IonBean {
 				.put(Key.icon32.name(), "default_color_32x32.png")
 				.put(Key.properties.name(), new JSONObject())
 				.put(Key.events.name(), new JSONObject())
-				.put(Key.events.name(), new JSONArray())
+				.put(Key.scss.name(), new JSONArray())
 				.put(Key.config.name(), new JSONObject())
 				;
 		} catch (JSONException e) {
@@ -379,21 +379,24 @@ public class IonBean {
 	public Map<String, IonEvent> getEvents() {
 		Map<String, IonEvent> events = new HashMap<String, IonEvent>();
 		try {
-			JSONObject jsonEvents = jsonBean.getJSONObject(Key.events.name());
-			@SuppressWarnings("unchecked")
-			Iterator<String> it = jsonEvents.keys();
-			while (it.hasNext()) {
-				String pkey = it.next();
-				if (!pkey.isEmpty()) {
-					Object ob = jsonEvents.get(pkey);
-					if (ob instanceof JSONObject) {
-						IonEvent event = new IonEvent((JSONObject)ob);
-						event.setName(pkey);
-						events.put(event.getName(), event);
+			if (jsonBean.has(Key.events.name())) {
+				JSONObject jsonEvents = jsonBean.getJSONObject(Key.events.name());
+				@SuppressWarnings("unchecked")
+				Iterator<String> it = jsonEvents.keys();
+				while (it.hasNext()) {
+					String pkey = it.next();
+					if (!pkey.isEmpty()) {
+						Object ob = jsonEvents.get(pkey);
+						if (ob instanceof JSONObject) {
+							IonEvent event = new IonEvent((JSONObject)ob);
+							event.setName(pkey);
+							events.put(event.getName(), event);
+						}
 					}
 				}
 			}
 		} catch (JSONException e) {
+			System.out.print(jsonBean.toString());
 			e.printStackTrace();
 		}
 		return events;
