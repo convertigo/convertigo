@@ -49,7 +49,6 @@ public class ServletUtils {
 	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/mobile/)[^.]+");
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
-		System.out.println("File: " + file + "\nURI: " + request.getRequestURI());
 		if (file.exists()) {
 			Engine.logContext.debug("Static file");
 
