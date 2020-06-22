@@ -6,9 +6,9 @@
 
 Select your **Operating System** and the **x64** Architecture, then install the JDK somewhere.
 
-## Install Eclipse 2020-03
+## Install Eclipse 2020-06
 
-[Go to this link.](https://www.eclipse.org/downloads/packages/release/2020-03/r/eclipse-ide-eclipse-committers)
+[Go to this link.](https://www.eclipse.org/downloads/packages/release/2020-06/r/eclipse-ide-eclipse-committers)
 
 Download the 64 bit **Eclipse Committers** archive.
 
@@ -42,6 +42,19 @@ At the wizard with checkboxes, check only:
 * JST Server UI
 * JST Server Adapters
 * JST Server Adapters Extensions
-* (Eclipse Web Developer Tools)
 * (Eclipse XML Editors and Tools)
 * (Docker Tooling)
+
+After installation, reboot and Eclipse is ready.
+
+## Generate templates
+
+Run from the **Gradle Tasks** view the task **convertigo/buildTemplates**.
+
+## Launch the studio
+
+Open the menu Run > Run Configurations...
+
+Then create an **Eclipse application** entry, named **Convertigo Studio** and choose the product **com.twinsoft.convertigo.studio.product.ConvertigoProduct** in the combo box.
+
+The Studio is ready to be launched.
