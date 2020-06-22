@@ -921,8 +921,9 @@ public class MobileSmartSource {
 		@Override
 		public String getValueEx() {
 			String valueEx = null;
-			if (priority != 0L) {
-				valueEx = keyThis + ".form"+ priority;
+			String value = getValue();
+			if (value != null) {
+				valueEx = keyThis + "." + value;
 			}
 			return valueEx;
 		}

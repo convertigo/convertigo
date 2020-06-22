@@ -592,6 +592,12 @@
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
          </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
          <hiddenMenuItem id="org.eclipse.ui.edit.text.openLocalFile"></hiddenMenuItem>
          <hiddenMenuItem id="org.eclipse.e4.ui.importer.openDirectory.menu"></hiddenMenuItem>
          <hiddenMenuItem id="sourceMenuId"></hiddenMenuItem>
@@ -3698,6 +3704,14 @@
             icon="icons/picker_16x16.gif"
             id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerView"
             name="Mobile Picker"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
+            icon="icons/picker_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
+            name="Ngx Picker"
             restorable="true">
       </view>
       <!--view

@@ -79,7 +79,7 @@ public class NgxSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
     
     public NgxSmartSourceTypeCellEditor(Composite parent, int style, String[] items) {
     	super(parent, style);
-    	this.dialogTitle = "MobileComponent Source";
+    	this.dialogTitle = "NgxComponent Source";
 		this.items = items;
 		populateComboBoxItems();
     }
@@ -178,7 +178,7 @@ public class NgxSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		comboBox.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				//MobileSmartSourceTypeCellEditor.this.focusLost();
+				//NgxSmartSourceTypeCellEditor.this.focusLost();
 			}
 		});
 		
@@ -261,7 +261,7 @@ public class NgxSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
 		button.setForeground(ColorEnum.DARK_GREEN.get());
 		button.setData(DataKeys.TEXT_COLOR.name(), ColorEnum.LIGHT_GREEN.get());
 		button.setData(DataKeys.SMART_TYPE.name(), Mode.SOURCE);
-		button.setData(DataKeys.EDITOR_CLASS.name(), MobileSmartSourceEditorComposite.class);
+		button.setData(DataKeys.EDITOR_CLASS.name(), NgxSmartSourceEditorComposite.class);
 		buttons.add(button);
 		
 		for (Button bt : buttons) {

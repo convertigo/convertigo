@@ -56,17 +56,18 @@ public class UIForm extends UIElement {
 					models.append(models.length() > 0 && !model.isEmpty() ? ",":"").append(model);
 				}
 			}
+			
 			StringBuilder sb = new StringBuilder();
+			sb.append("{");
 			if (models.length() > 0) {
-				sb.append("{")
-				  .append("\"controls\":{").append(models).append("}").append(",")
-				  .append("\"errors\":\"\"").append(",")
-				  .append("\"status\":\"\"").append(",")
-				  .append("\"valid\":\"\"").append(",")
-				  .append("\"value\":\"\"")
-				  .append("}");
-				return sb.toString();
+				  sb.append("\"controls\":{").append(models).append("}").append(",");
 			}
+			sb.append("\"errors\":\"\"").append(",")
+			  .append("\"status\":\"\"").append(",")
+			  .append("\"valid\":\"\"").append(",")
+			  .append("\"value\":\"\"")
+			  .append("}");
+			return sb.toString();
 		}
 		return "";
 	}
