@@ -96,7 +96,7 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 		
 		if (parent != null) {
 			ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) parent).activeEditor();
-			editor.highlightComponent(getObject());
+			editor.highlightComponent(getObject(), true);
 		}
 		
 	}

@@ -96,7 +96,7 @@ public class NgxComponentTreeObject extends DatabaseObjectTreeObject implements 
 		
 		if (parent != null) {
 			ApplicationComponentEditor editor = ((NgxApplicationComponentTreeObject) parent).activeEditor();
-			editor.highlightComponent(getObject());
+			editor.highlightComponent(getObject(), true);
 		}
 		
 	}

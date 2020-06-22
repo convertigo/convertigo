@@ -1449,7 +1449,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
 						FileUtils.write(new File(displayObjectsMobile, "env.json"), envJSON.toString(4), "UTF-8");
 						String sGroup = m.group(1);
-						baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/")+1);//"http://localhost:8100/";
+						baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));//"http://localhost:8100/";
 						doLoad();
 					}
 				}
@@ -1458,7 +1458,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			if (buildCount == this.buildCount) {
 				if (MobileBuilderBuildMode.production.equals(buildMode)) {
 					String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-					baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile/index.html";
+					baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile";
 					doLoad();
 					
 					toast("Application in production mode");
@@ -1594,7 +1594,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
 					
 					if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
-						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject);
+						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1608,9 +1608,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 
-	public void highlightComponent(MobileComponent mobileComponent) {
+	public void highlightComponent(MobileComponent mobileComponent, boolean selectPage) {
 		C8oBrowser.run(() -> {
-			if (mobileComponent instanceof UIComponent) {
+			if (selectPage && mobileComponent instanceof UIComponent) {
 				PageComponent pageComponent = ((UIComponent) mobileComponent).getPage();
 				if (pageComponent != null) {
 					selectPage(pageComponent.getSegment());

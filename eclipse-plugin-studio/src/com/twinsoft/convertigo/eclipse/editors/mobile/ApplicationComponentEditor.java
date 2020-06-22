@@ -1501,7 +1501,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
 					
 					if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
-						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject);
+						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -1515,9 +1515,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 
-	public void highlightComponent(MobileComponent mobileComponent) {
+	public void highlightComponent(MobileComponent mobileComponent, boolean selectPage) {
 		C8oBrowser.run(() -> {
-			if (mobileComponent instanceof UIComponent) {
+			if (selectPage && mobileComponent instanceof UIComponent) {
 				PageComponent pageComponent = ((UIComponent) mobileComponent).getPage();
 				if (pageComponent != null) {
 					selectPage(pageComponent.getSegment());
