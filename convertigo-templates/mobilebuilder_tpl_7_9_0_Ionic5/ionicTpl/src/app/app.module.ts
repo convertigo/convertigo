@@ -2,7 +2,7 @@ import { NgModule, ErrorHandler } 							from '@angular/core';
 import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } 	from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule }   				from '@angular/forms';
 import { BrowserModule } 									from '@angular/platform-browser';
-//import { BrowserAnimationsModule }                          from '@angular/platform-browser/animations';
+import { BrowserAnimationsModule }                          from '@angular/platform-browser/animations';
 import { RouteReuseStrategy } 								from '@angular/router';
 
 import { TranslateModule, TranslateLoader } 				from '@ngx-translate/core';
@@ -31,7 +31,7 @@ export function createTranslateLoader(http: HttpClient) {
   entryComponents: [],
   imports: [
     BrowserModule,
-    //BrowserAnimationsModule,
+    BrowserAnimationsModule,
     HttpClientModule,
 	FormsModule,
 	ReactiveFormsModule,
