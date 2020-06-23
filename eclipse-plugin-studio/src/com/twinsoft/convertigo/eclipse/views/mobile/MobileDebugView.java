@@ -61,8 +61,14 @@ public class MobileDebugView extends ViewPart implements IPartListener2 {
 		
 		if (!onActivated(getSite().getPage().getActiveEditor())) {
 			parent.getDisplay().asyncExec(() -> {
-				c8oBrowser.setText("<html><head><style>html {color: $foreground$; background-color: $background$;}</style></head>"
-						+ "<body>please select a mobile application editor</body></html>");
+				c8oBrowser.setText("<html><head><style>html {color: $foreground$; background-color: $background$; font-family: sans-serif }</style></head>"
+						+ "<body>"
+						+ "<center>"
+						+ "Please click on an application viewer in the right pane to enable a <br />"
+						+ "debuging session. </br>"
+						+ "</center>"
+						+ "</body>"
+						+ "</html>");
 			});
 		}
 		
