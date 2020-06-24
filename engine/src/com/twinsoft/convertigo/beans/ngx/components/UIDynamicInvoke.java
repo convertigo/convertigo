@@ -89,9 +89,8 @@ public class UIDynamicInvoke extends UIDynamicAction {
 				Project p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
 				if (p != null) {
 					ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
-					String name = qname.replaceFirst(".*\\.(?:.+:)?(.*?)$", "$1");
 					for (UIActionStack uias: app.getSharedActionList()) {
-						if (uias.getName().equals(name)) {
+						if (uias.getQName().equals(qname)) {
 							return uias;
 						}
 					}

@@ -359,8 +359,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 * 
 	 * @return the fully qualified name of the object.
 	 */
-	public String getQName() {
-		String qname = getFolderType().qnamePart(this);
+	public String getQName(boolean full) {
+		String qname = full ? getFolderType().qnamePart(this) : getName();
 		if (parent != null) {
 			qname = parent.getQName() + "." + qname;
 		} else {
@@ -369,6 +369,14 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return qname;
 	}
 
+	public String getQName() {
+		return getQName(false);
+	}
+	
+	public String getFullQName() {
+		return getQName(true);
+	}
+	
 	/**
 	 * The priority of object.
 	 */
