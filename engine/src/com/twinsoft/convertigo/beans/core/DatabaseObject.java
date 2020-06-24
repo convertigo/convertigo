@@ -362,7 +362,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public String getQName(boolean full) {
 		String qname = full ? getFolderType().qnamePart(this) : getName();
 		if (parent != null) {
-			qname = parent.getQName() + "." + qname;
+			qname = parent.getQName(full) + "." + qname;
 		} else {
 			qname = "?." + qname;
 		}
