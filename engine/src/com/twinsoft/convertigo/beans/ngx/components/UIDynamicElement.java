@@ -270,6 +270,18 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return updated;
 	}
 	
+	@Override
+	protected String getFormControlName() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null && ionBean.hasProperty("ControlName")) {
+			MobileSmartSourceType msst = (MobileSmartSourceType) ionBean.getPropertyValue("ControlName");
+			if (msst != null && !msst.getValue().equals("not set") && !msst.getValue().isEmpty()) {
+				return msst.getValue();
+			}
+		}
+		return super.getFormControlName();
+	}
+	
 	protected String getEventAttr(String eventName) {
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {

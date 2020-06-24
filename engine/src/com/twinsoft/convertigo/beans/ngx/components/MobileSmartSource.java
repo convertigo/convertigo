@@ -876,12 +876,16 @@ public class MobileSmartSource {
 	
 	public class FormData extends SourceData {
 		private long priority = 0L;
+		private String identifier = "";
 		
 		public FormData(JSONObject jsonObject) {
 			super(jsonObject);
 			try {
 				if (jsonObject.has("priority")) {
 					priority = jsonObject.getLong("priority");
+				}
+				if (jsonObject.has("identifier")) {
+					identifier = jsonObject.getString("identifier");
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -907,6 +911,7 @@ public class MobileSmartSource {
 			JSONObject jsonObject = new JSONObject();
 			try {
 				jsonObject.put("priority", priority);
+				jsonObject.put("identifier", identifier);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -915,7 +920,11 @@ public class MobileSmartSource {
 		
 		@Override
 		public String getValue() {
-			return getSource();
+			String value = null;
+			if (!identifier.isBlank()) {
+				value = ""+ identifier;
+			}
+			return value;
 		}
 
 		@Override

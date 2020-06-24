@@ -674,7 +674,8 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 						SourceData sd = null;
 						try {
 							sd = Filter.Form.toSourceData(new JSONObject()
-									.put("priority", uic.priority));
+									.put("priority", uic.priority)
+									.put("identifier", ((UIForm) uic).getIdentifier()));
 						} catch (JSONException e) {
 							e.printStackTrace();
 						}

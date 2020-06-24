@@ -1153,20 +1153,32 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
 					if (hasSameScriptComponent(getObject(), uic)) {
-						// A FormControlName property has changed
-						if (propertyName.equals("FormControlName") || uic.isFormControlAttribute()) {
-//							if (!newValue.equals(oldValue)) {
-//								try {
-//									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
-//									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
-//									if (uic.getUIForm() != null) {
-//										String form = uic.getUIForm().getFormGroupName();
-//										if (getObject().updateSmartSource(form+"\\?\\.controls\\['"+oldSmart+"'\\]", form+"?.controls['"+newSmart+"']")) {
-//											sourcesUpdated = true;
-//										}
-//									}
-//								} catch (Exception e) {}
-//							}
+						// A ControlName property has changed
+						if (propertyName.equals("ControlName") || uic.isFormControlAttribute()) {
+							if (!newValue.equals(oldValue)) {
+								try {
+									String oldSmart = ((MobileSmartSourceType)oldValue).getSmartValue();
+									String newSmart = ((MobileSmartSourceType)newValue).getSmartValue();
+									if (uic.getUIForm() != null) {
+										if (getObject().updateSmartSource("\\?\\.controls\\['"+oldSmart+"'\\]", "?.controls['"+newSmart+"']")) {
+											sourcesUpdated = true;
+										}
+									}
+								} catch (Exception e) {}
+							}
+						}
+						else if (propertyName.equals("identifier")) {
+							if (!newValue.equals(oldValue)) {
+								try {
+									String oldId = (String)oldValue;
+									String newId = (String)newValue;
+									if (uic.getUIForm() != null) {
+										if (getObject().updateSmartSource("\"identifier\":\""+oldId+"\"", "\"identifier\":\""+newId+"\"")) {
+											sourcesUpdated = true;
+										}
+									}
+								} catch (Exception e) {}
+							}
 						}
 					}
 				}
