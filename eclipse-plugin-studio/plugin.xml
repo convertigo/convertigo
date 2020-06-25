@@ -1277,6 +1277,8 @@
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
                   <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject"/>
                </or>
             </and>
          </visibility>
@@ -3827,6 +3829,8 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject"/>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
@@ -3853,6 +3857,8 @@
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteActionComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileRouteEventComponentTreeObject"/>
             <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMappingParameterTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject"/>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerFindAction"
