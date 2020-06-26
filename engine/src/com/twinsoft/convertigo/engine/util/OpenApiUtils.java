@@ -78,6 +78,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariabl
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
@@ -253,6 +254,7 @@ public class OpenApiUtils {
 		info.setContact(new Contact());
 		info.setTitle("Convertigo OAS3 REST API");
 		info.setDescription("Find here all deployed projects");
+		info.setVersion(ProductVersion.productVersion);
 		if (project != null) {
 			info.setTitle(project.getName() + " OAS3 REST API");
 			info.setDescription(project.getComment());
