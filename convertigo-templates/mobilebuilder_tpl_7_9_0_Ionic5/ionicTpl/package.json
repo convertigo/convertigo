@@ -12,7 +12,7 @@
     "e2e": "ng e2e",
     "ionic:build": "ng build app",
     "ionic:build:prod": "ng build app --prod=true",
-    "ionic:serve": "ng serve app --sourceMap=true --hmr=true --hmrWarning=false --aot"
+    "ionic:serve": "ng serve app --sourceMap=true --hmr=true --hmrWarning=false --aot --progress=true"
   },
   "dependencies": {
   	"@angular/common": "~9.1.6",
