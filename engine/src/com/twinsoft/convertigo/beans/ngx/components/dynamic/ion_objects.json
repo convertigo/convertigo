@@ -9409,7 +9409,19 @@
       "icon16": "menu_color_16x16.png",
       "icon32": "menu_color_32x32.png",
       "properties": {
-        "Disabled": "false",
+	  "Disabled": {
+	  	  "hidden": true,
+	      "attr": "disabled",
+	      "label": "Disabled",
+	      "description": "If true the component will be disabled, preventing the the user from changing the value.",
+	      "category": "@Properties",
+	      "type": "boolean",
+	      "value": "true",
+	      "values": [
+	        "false",
+	        "true"
+	      ]
+	    },
 		"MenuType": {
 		  "attr": "type",
 		  "label": "Type",

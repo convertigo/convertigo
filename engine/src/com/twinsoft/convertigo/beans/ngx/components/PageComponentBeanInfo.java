@@ -38,7 +38,7 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[11];
+			properties = new PropertyDescriptor[12];
 
 			properties[0] = new PropertyDescriptor("iconPosition", beanClass, "getIconPosition", "setIconPosition");
 			properties[0].setDisplayName(getExternalizedString("property.iconPosition.display_name"));
@@ -68,33 +68,38 @@ public class PageComponentBeanInfo extends MySimpleBeanInfo {
 			properties[5].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.isEnabled.short_description"));
 			
-			properties[6] = new PropertyDescriptor("menu", beanClass, "getMenu", "setMenu");
-			properties[6].setDisplayName(getExternalizedString("property.menu.display_name"));
-			properties[6].setShortDescription(getExternalizedString("property.menu.short_description"));
+			properties[6] = new PropertyDescriptor("startMenu", beanClass, "getStartMenu", "setStartMenu");
+			properties[6].setDisplayName(getExternalizedString("property.startMenu.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.startMenu.short_description"));
 			properties[6].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 			
-			properties[7] = new PropertyDescriptor("icon", beanClass, "getIcon", "setIcon");
-			properties[7].setDisplayName(getExternalizedString("property.icon.display_name"));
-			properties[7].setShortDescription(getExternalizedString("property.icon.short_description"));
-			properties[7].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			properties[7] = new PropertyDescriptor("endMenu", beanClass, "getEndMenu", "setEndMenu");
+			properties[7].setDisplayName(getExternalizedString("property.endMenu.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.endMenu.short_description"));
+			properties[7].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
 			
-			properties[8] = new PropertyDescriptor("preloadPriority", beanClass, "getPreloadPriority", "setPreloadPriority");
-			properties[8].setDisplayName(getExternalizedString("property.preloadPriority.display_name"));
-			properties[8].setShortDescription(getExternalizedString("property.preloadPriority.short_description"));
+			properties[8] = new PropertyDescriptor("icon", beanClass, "getIcon", "setIcon");
+			properties[8].setDisplayName(getExternalizedString("property.icon.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.icon.short_description"));
 			properties[8].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
-			properties[8].setExpert(true);
 			
-			properties[9] = new PropertyDescriptor("defaultHistory", beanClass, "getDefaultHistory", "setDefaultHistory");
-			properties[9].setDisplayName(getExternalizedString("property.defaultHistory.display_name"));
-			properties[9].setShortDescription(getExternalizedString("property.defaultHistory.short_description"));
+			properties[9] = new PropertyDescriptor("preloadPriority", beanClass, "getPreloadPriority", "setPreloadPriority");
+			properties[9].setDisplayName(getExternalizedString("property.preloadPriority.display_name"));
+			properties[9].setShortDescription(getExternalizedString("property.preloadPriority.short_description"));
+			properties[9].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
 			properties[9].setExpert(true);
-			properties[9].setHidden(true);
 			
-			properties[10] = new PropertyDescriptor("changeDetection", beanClass, "getChangeDetection", "setChangeDetection");
-			properties[10].setDisplayName(getExternalizedString("property.changeDetection.display_name"));
-			properties[10].setShortDescription(getExternalizedString("property.changeDetection.short_description"));
-			properties[10].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			properties[10] = new PropertyDescriptor("defaultHistory", beanClass, "getDefaultHistory", "setDefaultHistory");
+			properties[10].setDisplayName(getExternalizedString("property.defaultHistory.display_name"));
+			properties[10].setShortDescription(getExternalizedString("property.defaultHistory.short_description"));
 			properties[10].setExpert(true);
+			properties[10].setHidden(true);
+			
+			properties[11] = new PropertyDescriptor("changeDetection", beanClass, "getChangeDetection", "setChangeDetection");
+			properties[11].setDisplayName(getExternalizedString("property.changeDetection.display_name"));
+			properties[11].setShortDescription(getExternalizedString("property.changeDetection.short_description"));
+			properties[11].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
+			properties[11].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

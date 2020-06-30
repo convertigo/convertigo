@@ -425,21 +425,41 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		this.inAutoMenu = inAutoMenu;
 	}
 
-	private String menu = "";
+	private String startMenu = "";
 	
-	public String getMenu() {
-		return menu;
+	public String getStartMenu() {
+		return startMenu;
 	}
 
-	public void setMenu(String menu) {
-		this.menu = menu;
+	public void setStartMenu(String menu) {
+		this.startMenu = menu;
 	}
 	
-	protected String getMenuId() {
-		String menuId = "";
-		if (!menu.isEmpty() && menu.startsWith(getProject().getName())) {
+	private String endMenu = "";
+	
+	public String getEndMenu() {
+		return endMenu;
+	}
+
+	public void setEndMenu(String menu) {
+		this.endMenu = menu;
+	}
+	
+	protected String getStartMenuId() {
+		String menuId = getApplication().getDefaultStartMenuId();
+		if (!startMenu.isEmpty() && startMenu.startsWith(getProject().getName())) {
 			try {
-				menuId = menu.substring(menu.lastIndexOf('.')+1);
+				menuId = startMenu.substring(startMenu.lastIndexOf('.')+1);
+			} catch (IndexOutOfBoundsException e) {}
+		}
+		return menuId;
+	}
+	
+	protected String getEndMenuId() {
+		String menuId = getApplication().getDefaultEndMenuId();
+		if (!endMenu.isEmpty() && endMenu.startsWith(getProject().getName())) {
+			try {
+				menuId = endMenu.substring(endMenu.lastIndexOf('.')+1);
 			} catch (IndexOutOfBoundsException e) {}
 		}
 		return menuId;
@@ -824,13 +844,27 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		// Page menu
-		String menuId = getMenuId();
-		if (!menuId.isEmpty()) {
+		// Page menus
+		String startMenuId = getStartMenuId();
+		if (!startMenuId.isEmpty()) {
 			try {
 				String constructors = jsonScripts.getString("constructors");
-				String cname = "menuId";
-				String ccode = System.lineSeparator() + "\t\tthis.menuId = '" + menuId +"';" + System.lineSeparator() + "\t\t";
+				String cname = "startMenuId";
+				String ccode = System.lineSeparator() + "\t\tthis.startMenuId = '" + startMenuId +"';" + System.lineSeparator() + "\t\t";
+				if (addConstructor(cname, ccode)) {
+					constructors += ccode;
+				}
+				jsonScripts.put("constructors", constructors);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		String endMenuId = getEndMenuId();
+		if (!endMenuId.isEmpty()) {
+			try {
+				String constructors = jsonScripts.getString("constructors");
+				String cname = "endMenuId";
+				String ccode = System.lineSeparator() + "\t\tthis.endMenuId = '" + endMenuId +"';" + System.lineSeparator() + "\t\t";
 				if (addConstructor(cname, ccode)) {
 					constructors += ccode;
 				}

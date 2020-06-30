@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
@@ -55,6 +56,17 @@ public class UIDynamicMenu extends UIDynamicElement {
 	
 	protected String getId() {
 		return getName();
+	}
+	
+	protected String getSide() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null && ionBean.hasProperty("MenuSide")) {
+			MobileSmartSourceType msst = (MobileSmartSourceType) ionBean.getPropertyValue("MenuSide");
+			if (msst != null && !msst.getValue().equals("not set") && !msst.getValue().isEmpty()) {
+				return msst.getValue();
+			}
+		}
+		return "start";
 	}
 	
 	protected void markMenuAsDirty() throws EngineException {

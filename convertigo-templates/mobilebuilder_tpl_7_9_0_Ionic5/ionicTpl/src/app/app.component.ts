@@ -1,7 +1,7 @@
 import { Component }                                                                    from '@angular/core';
 import { ChangeDetectorRef, ChangeDetectionStrategy, InjectionToken, Injector, Type}    from "@angular/core";
 import { DomSanitizer }                                                                 from '@angular/platform-browser';
-import { Router, ActivatedRoute }                                                       from '@angular/router';
+import { Router, ActivatedRoute }                                          				from '@angular/router';
 import { NavParams, NavController, LoadingController, MenuController, Platform}         from '@ionic/angular';
 import { AlertController, ActionSheetController, ModalController }                      from '@ionic/angular';
 import { PopoverController, ToastController }                                           from '@ionic/angular';
@@ -42,13 +42,13 @@ import { Events }                                           from './services/eve
   styleUrls: ['app.component.scss']
 })
 export class AppComponent extends C8oPageBase {
-	public selectedIndex = 0;
 	rootPage : any = /*=c8o_RootPage*/;
 	public appPages : /*=c8o_PageArrayDef*/;
     pagesKeyValue: any;
 	public events: Events;
 	public subscriptions = {};
     public actionBeans: ActionBeans;
+	public selectedPath = '';
     /*=c8o_AppDeclarations*/
     
     /*Begin_c8o_AppDeclaration*/
@@ -59,6 +59,12 @@ export class AppComponent extends C8oPageBase {
         super(injector, routerProvider, loadingCtrl, ref);
         this.events = this.getInstance(Events);
         this.actionBeans = this.getInstance(ActionBeans);
+
+		this.angularRouter.events.subscribe((event: any) => {
+			if (event && event.urlAfterRedirects) {
+				this.selectedPath = event.urlAfterRedirects
+			}
+		})
 
 		this.appPages = [/*=c8o_PagesVariables*/];
         this.pagesKeyValue = {/*=c8o_PagesVariablesKeyValue*/}

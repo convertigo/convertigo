@@ -338,7 +338,8 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
 						NgxUIComponentTreeObject.class.isAssignableFrom(c))
 					{
-						list.add("menu");
+						list.add("startMenu");
+						list.add("endMenu");
 					}
 				}
 				
@@ -348,7 +349,7 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 			@Override
 			protected boolean isNamedSource(String propertyName) {
 				if (getObject() instanceof PageComponent) {
-					return "menu".equals(propertyName);
+					return "startMenu".equals(propertyName) || "endMenu".equals(propertyName);
 				}
 				return false;
 			}
@@ -356,7 +357,7 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 			@Override
 			public boolean isSelectable(String propertyName, Object nsObject) {
 				if (getObject() instanceof PageComponent) {
-					if ("menu".equals(propertyName)) {
+					if ("startMenu".equals(propertyName) || "endMenu".equals(propertyName)) {
 						PageComponent pc = getObject();
 						if (nsObject instanceof UIDynamicMenu) {
 							return (((UIDynamicMenu)nsObject).getProject().equals(pc.getProject()));
@@ -381,8 +382,12 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 						String _pValue = newName + pValue.substring(oldName.length());
 						if (!pValue.equals(_pValue)) {
 							if (getObject() instanceof PageComponent) {
-								if ("menu".equals(propertyName)) {
-									getObject().setMenu(_pValue);
+								if ("startMenu".equals(propertyName)) {
+									getObject().setStartMenu(_pValue);
+									hasBeenRenamed = true;
+								}
+								if ("endMenu".equals(propertyName)) {
+									getObject().setEndMenu(_pValue);
 									hasBeenRenamed = true;
 								}
 							}

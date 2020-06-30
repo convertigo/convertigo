@@ -1,4 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent" isRoot="false" priority="0" version="   7   9   0">
+        <property name="changeDetection">
+            <java.lang.String value="Default"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="defaultHistory">
+            <java.lang.String value="[]"/>
+        </property>
+        <property name="endMenu">
+            <java.lang.String value=""/>
+        </property>
+        <property name="icon">
+            <java.lang.String value=""/>
+        </property>
+        <property name="iconPosition">
+            <java.lang.String value=""/>
+        </property>
+        <property name="inAutoMenu">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Page"/>
+        </property>
+        <property name="preloadPriority">
+            <java.lang.String value="low"/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="segment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="startMenu">
+            <java.lang.String value=""/>
+        </property>
+        <property name="title">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   7   9   0">
         <property name="attrName">
             <java.lang.String value="(click)"/>
@@ -1014,49 +1060,7 @@
             <java.lang.String value="NavRoute"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent" isRoot="false" priority="0" version="   7   9   0">
-        <property name="changeDetection">
-            <java.lang.String value="Default"/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="defaultHistory">
-            <java.lang.String value="[]"/>
-        </property>
-        <property name="icon">
-            <java.lang.String value=""/>
-        </property>
-        <property name="iconPosition">
-            <java.lang.String value=""/>
-        </property>
-        <property name="inAutoMenu">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="menu">
-            <java.lang.String value=""/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Page"/>
-        </property>
-        <property name="preloadPriority">
-            <java.lang.String value="low"/>
-        </property>
-        <property name="scriptContent">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent/>
-            </xmlizable>
-        </property>
-        <property name="segment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="title">
-            <java.lang.String value=""/>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent" priority="0" version="   7   9   0">
         <property name="comment">
             <java.lang.String value=""/>

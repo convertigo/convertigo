@@ -682,6 +682,24 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		return sort(vMenuComponents);
 	}
 
+	public String getDefaultStartMenuId() {
+		for (UIDynamicMenu menu: getMenuComponentList()) {
+			if ("start".equals(menu.getSide())) {
+				return menu.getId();
+			}
+		}
+		return "";
+	}
+	
+	public String getDefaultEndMenuId() {
+		for (UIDynamicMenu menu: getMenuComponentList()) {
+			if ("end".equals(menu.getSide())) {
+				return menu.getId();
+			}
+		}
+		return "";
+	}
+	
 	public UIDynamicMenu getMenuComponentByName(String menuName) throws EngineException {
 		checkSubLoaded();
 		for (UIDynamicMenu menuComponent : vMenuComponents)

@@ -198,7 +198,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			}
 			String attrclass = attrclasses.length()>0 ? " class=\""+ attrclasses +"\"":"";
 			
-			boolean pageIsEnabled = false;
+//			boolean pageIsEnabled = false;
 			String pageName = getPageName();
 			String pageIcon = "", pageIconPos = "";
 			String pageTitle = "Please specify a page for item";
@@ -206,7 +206,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			if (!pageName.isEmpty()) {
 				try {
 					PageComponent page = getApplication().getPageComponentByName(pageName);
-					pageIsEnabled = page.isEnabled();
+//					pageIsEnabled = page.isEnabled();
 					pageTitle = page.getTitle();
 					pageIcon = page.getIcon();
 					pageIconPos = page.getIconPosition();
@@ -222,34 +222,35 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			String title = titleText.isEmpty() ? pageTitle:titleText;
 			String pos = itemiconPos.isEmpty() ? pageIconPos:itemiconPos;
 			String icon = itemicon.isEmpty() ? pageIcon:itemicon;
-			String menuId = getMenuId();
+//			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();
-//			sb.append("<").append(getTagName()).append(attrclass)
-//				.append(" ion-item")
-//				.append(pageIsEnabled ? "":" disabled")
-//				.append(menuId.isEmpty() ? " menuClose":" menuClose=\""+menuId+"\"")
-//				.append(pageName.isEmpty() ? "":" (click)=\"openPageWithName('"+ pageName +"')\"")
-//			  	.append(attributes.length()>0 ? attributes:"").append(">")
-//			  	.append(System.getProperty("line.separator"))
-//			  	.append(icon.isEmpty() ? "":"<ion-icon name=\""+ icon+ "\" "+ (pos.isEmpty() ? "": "slot=\""+ pos +"\"") + "></ion-icon>")
-//			  	.append(System.getProperty("line.separator"))
-//			  	.append(title)
-//			  	.append(System.getProperty("line.separator"))
-//				.append("</").append(getTagName()).append(">")
-//				.append(System.getProperty("line.separator"));
 			if (compareToTplVersion("7.9.0.2") >= 0) {
-				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"true\""+ (pageIsEnabled ? "":" disabled") +">")
-				.append(System.lineSeparator())
-				.append("<ion-item routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\">")
+/* 
+ * Ionic issue using ion-menu-toggle in menu
+ * Occurs when enabling/disabling different menus for different pages
+ * Commented until issues are fixed : #19676, #20092, #17600
+ */
+//				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"true\""+ (pageIsEnabled ? "":" disabled") +">")
+//				.append(System.lineSeparator())
+//				.append("<ion-item routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\">")
+//				.append(System.lineSeparator())
+//				.append("<ion-icon name=\""+ icon + "\" "+ (pos.isEmpty() ? "": "slot=\""+ pos +"\"") +"></ion-icon>")
+//				.append(System.lineSeparator())
+//				.append("<ion-label>"+ title +"</ion-label>")
+//				.append(System.lineSeparator())
+//				.append("</ion-item>")
+//				.append(System.lineSeparator())
+//				.append("</ion-menu-toggle>")
+//				.append(System.lineSeparator());
+				
+				sb.append("<ion-item "+ attrclass +" routerDirection=\"root\" [routerLink]=\"'"+ pageSegment +"'\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedPath.startsWith('/'+'"+pageSegment+"')\" >")
 				.append(System.lineSeparator())
 				.append("<ion-icon name=\""+ icon + "\" "+ (pos.isEmpty() ? "": "slot=\""+ pos +"\"") +"></ion-icon>")
 				.append(System.lineSeparator())
 				.append("<ion-label>"+ title +"</ion-label>")
 				.append(System.lineSeparator())
 				.append("</ion-item>")
-				.append(System.lineSeparator())
-				.append("</ion-menu-toggle>")
 				.append(System.lineSeparator());
 			}
 			

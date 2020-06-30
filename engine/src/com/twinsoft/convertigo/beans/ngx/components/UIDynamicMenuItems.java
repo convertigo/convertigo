@@ -66,22 +66,37 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 			}
 			String attrclass = attrclasses.length()>0 ? " class=\""+ attrclasses +"\"":"";
 			
-			String menuId = getMenuId();
+//			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();
 			if (compareToTplVersion("7.9.0.2") >= 0) {
-				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"true\" *ngFor=\"let p of appPages; let i = index\">")
-				.append(System.lineSeparator())
-				.append("<ion-item (click)=\"selectedIndex = i\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedIndex == i\">")
+/* 
+ * Ionic issue using ion-menu-toggle in menu
+ * Occurs when enabling/disabling different menus for different pages
+ * Commented until issues are fixed : #19676, #20092, #17600
+ */
+//				sb.append("<ion-menu-toggle "+ attrclass +" menu=\""+ menuId+"\" auto-hide=\"true\" *ngFor=\"let p of appPages; let i = index\">")
+//				.append(System.lineSeparator())
+//				.append("<ion-item (click)=\"selectedIndex = i\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedIndex == i\">")
+//				.append(System.lineSeparator())
+//				.append("<ion-icon [slot]=\"p.iconPos\" [ios]=\"p.icon + '-outline'\" [md]=\"p.icon + '-sharp'\"></ion-icon>")
+//				.append(System.lineSeparator())
+//				.append("<ion-label>{{ p.titleKey | translate }}</ion-label>")
+//				.append(System.lineSeparator())
+//				.append("</ion-item>")
+//				.append(System.lineSeparator())
+//				.append("</ion-menu-toggle>")
+//				.append(System.lineSeparator());
+				
+				sb.append("<ion-item "+ attrclass +" *ngFor=\"let p of appPages;\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedPath.startsWith('/'+p.url)\">")
 				.append(System.lineSeparator())
 				.append("<ion-icon [slot]=\"p.iconPos\" [ios]=\"p.icon + '-outline'\" [md]=\"p.icon + '-sharp'\"></ion-icon>")
 				.append(System.lineSeparator())
 				.append("<ion-label>{{ p.titleKey | translate }}</ion-label>")
 				.append(System.lineSeparator())
 				.append("</ion-item>")
-				.append(System.lineSeparator())
-				.append("</ion-menu-toggle>")
 				.append(System.lineSeparator());
+				
 			}
 			return sb.toString();
 		}

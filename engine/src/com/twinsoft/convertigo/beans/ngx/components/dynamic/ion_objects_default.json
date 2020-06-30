@@ -589,7 +589,7 @@
     "Disabled": {
      "name": "Disabled",
      "mode": "plain",
-     "value": "false"
+     "value": "true"
     },
     "MenuType": {
      "name": "MenuType",
