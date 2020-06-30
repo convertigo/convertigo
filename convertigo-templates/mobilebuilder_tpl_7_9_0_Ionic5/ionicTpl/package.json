@@ -33,7 +33,7 @@
     "@ngx-translate/http-loader": "4.0.0",
     "@types/node": "12.12.6",
     "c8osdkangular": "3.0.9",
-    "c8ocaf": "2.0.0-beta5"
+    "c8ocaf": "2.0.0-beta6"
   },
   "devDependencies": {
   	"@angularclass/hmr": "~2.1.3",
