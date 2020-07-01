@@ -14,6 +14,12 @@ body {
 	overflow-x: hidden;
 	overflow-y: hidden;
 }
+
+a {
+	background-color: lightblue;
+	font-weight: bolder;
+}
+
 #main {
 	padding: 3% 25% 3% 25%;
 	display: inline
@@ -28,14 +34,20 @@ body {
     text-align: center;
 }
 
-#l1, #l2, #l3 {
+#l1, #l2, #l3, #l4, #l5 {
 	margin-top: 3 px;
 }
 #l2 {
 	opacity: 0.8;
 }
 #l3 {
+	opacity: 0.65;
+}
+#l4 {
 	opacity: 0.5;
+}
+#l5 {
+	opacity: 0.35;
 }
 
 #logs {
@@ -46,6 +58,8 @@ body {
 </style>
 <script>
 function loader_log(msg) {
+	document.getElementById("l5").textContent = document.getElementById("l4").textContent;
+	document.getElementById("l4").textContent = document.getElementById("l3").textContent;
 	document.getElementById("l3").textContent = document.getElementById("l2").textContent;
 	document.getElementById("l2").textContent = document.getElementById("l1").textContent;
 	document.getElementById("l1").textContent = msg;
@@ -79,6 +93,12 @@ function _c8o_toast(msg) {
 		toast.remove();
 	}, 3000);
 }
+
+function _c8o_doLoad(url) {
+	document.getElementById("load").innerHTML = 
+		'<h1>Build terminated !</h1>' +
+		'<a href="' + url + '">Click here to launch with your external default browser</a>';
+}
 </script>
 </head>
 <body>
@@ -96,6 +116,8 @@ function _c8o_toast(msg) {
 			<div id="l1"></div>
 			<div id="l2"></div>
 			<div id="l3"></div>
+			<div id="l4"></div>
+			<div id="l5"></div>
 		</div>
 	</div>
 </body>
