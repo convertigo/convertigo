@@ -36,6 +36,7 @@
     "c8ocaf": "2.0.0-beta6"
   },
   "devDependencies": {
+  	"yarn": "1.22.4",
   	"@angularclass/hmr": "~2.1.3",
     "@angular-devkit/build-angular": "~0.901.5",
     "@angular/cli": "~9.1.5",
