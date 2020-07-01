@@ -193,15 +193,22 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 		String namespaceURI = getNodeNameSpaceURI();
 		boolean hasQName = !namespace.equals("") && !namespaceURI.equals("");
 		
+		String attrName = getStepNodeName();
+		String attrText = getNodeText();
+		
 		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-		attribute.setName(getStepNodeName());
+		attribute.setName(attrName);
 		attribute.setSchemaTypeName(getSimpleTypeAffectation());
 		if (hasQName) {
-			attribute.setQName(new QName(namespaceURI,getStepNodeName(),namespace));
-		}
-		else {
+			attribute.setQName(new QName(namespaceURI, attrName, namespace));
+		} else {
 			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 		}
+		
+		if (!attrText.isBlank()) {
+			attribute.setDefaultValue(attrText);
+		}
+		
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}
