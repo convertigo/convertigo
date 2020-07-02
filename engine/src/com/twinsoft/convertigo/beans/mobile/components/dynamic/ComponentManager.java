@@ -886,6 +886,7 @@ public class ComponentManager {
 							jsonProperty.put(IonProperty.Key.type.name(), property.getType());
 							jsonProperty.put(IonProperty.Key.mode.name(), property.getMode());
 							jsonProperty.put(IonProperty.Key.value.name(), property.getValue());
+							jsonProperty.put(IonProperty.Key.values.name(), property.getJSONObject().getJSONArray(IonProperty.Key.values.name()));
 							jsonProperties.put(property.getName(), jsonProperty);
 						}
 						
