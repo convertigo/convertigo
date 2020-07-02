@@ -84,6 +84,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UITheme;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
@@ -863,6 +864,55 @@ public class ComponentManager {
 				String key = icon + "(\""+ name +"\"),";
 				System.out.println(key);
 			}
+		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		try {
+			if (args.length > 0) {
+				File output = new File(args[0]);
+				if (output.exists() && output.isDirectory()) {
+					List<IonBean> beans = new ArrayList<IonBean>();
+					beans.addAll(getIonBeans().values());
+					Collections.sort(beans, new Comparator<IonBean>() {
+						@Override
+						public int compare(IonBean b1, IonBean b2) {
+							return b1.getName().toLowerCase().compareTo(b2.getName().toLowerCase());
+						}				
+					} );
+					
+					for (IonBean bean: beans) {
+						JSONObject jsonBean = new JSONObject();
+						jsonBean.put(IonBean.Key.tag.name(), bean.getTag());
+						
+						List<IonProperty> properties = new ArrayList<IonProperty>();
+						properties.addAll(bean.getProperties().values());
+						Collections.sort(properties, new Comparator<IonProperty>() {
+							@Override
+							public int compare(IonProperty p1, IonProperty p2) {
+								return p1.getName().toLowerCase().compareTo(p2.getName().toLowerCase());
+							}				
+						} );
+					
+						JSONObject jsonProperties = new JSONObject();
+						jsonBean.put(IonBean.Key.properties.name(), jsonProperties);
+						for (IonProperty property: properties) {
+							JSONObject jsonProperty = new JSONObject();
+							jsonProperty.put(IonProperty.Key.attr.name(), property.getAttr());
+							jsonProperty.put(IonProperty.Key.type.name(), property.getType());
+							jsonProperty.put(IonProperty.Key.mode.name(), property.getMode());
+							jsonProperty.put(IonProperty.Key.value.name(), property.getValue());
+							jsonProperties.put(property.getName(), jsonProperty);
+						}
+								
+						String jsonString = jsonBean.toString(1);
+						FileUtils.write(new File(output, "c8o-beans/ion5/"+ bean.getName() +".json"), jsonString, "UTF-8");
+					}
+				}
+			}
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 }
