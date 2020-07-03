@@ -228,8 +228,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	
 	private DeviceOS deviceOS = DeviceOS.android;
 	private ZoomFactor zoomFactor = ZoomFactor.z100;
-	
-	private MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
+	private MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.debugplus;
+	private boolean headlessBuild = false;
+	private boolean prodBuild = false;
 	private int buildCount = 0;
 	
 	//private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
@@ -361,6 +362,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		try {
 			device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
 			buildMode = MobileBuilderBuildMode.get(device.getString("buildMode"));
+			headlessBuild = device.getBoolean("headlessBuild");
+			prodBuild = device.getBoolean("prodBuild");
 		} catch (Exception e) { }
 		
 		updateDevicesMenu();
@@ -803,7 +806,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				C8oBrowser.run(() -> {
-					String url = c8oBrowser.getURL();
+					String url = headlessBuild ? getPageUrl() : c8oBrowser.getURL();
 					if (url.startsWith("http")) {
 						org.eclipse.swt.program.Program.launch(url);
 					}
@@ -811,6 +814,43 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 		});
+		
+		item = new ToolItem(toolbar, SWT.CHECK);
+		item.setToolTipText("Headless build");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/statements/images/invokebrowserjs_16x16.png")));
+		item.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				headlessBuild = ((ToolItem) e.widget).getSelection();
+				try {
+					JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+					device.put("headlessBuild", headlessBuild);
+					FileUtils.write(devicePref, device.toString(4), "UTF-8");
+				} catch (Exception ex) {
+					// TODO: handle exception
+				}
+				launchBuilder(false);
+			}
+		});
+		item.setSelection(headlessBuild);
+		
+		item = new ToolItem(toolbar, SWT.CHECK);
+		item.setToolTipText("Prod build");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/build_prod_p.png")));
+		item.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				prodBuild = ((ToolItem) e.widget).getSelection();
+				try {
+					JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+					device.put("prodBuild", prodBuild);
+					FileUtils.write(devicePref, device.toString(4), "UTF-8");
+				} catch (Exception ex) {
+					// TODO: handle exception
+				}
+			}
+		});
+		item.setSelection(prodBuild);
 		
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
@@ -849,48 +889,48 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 		});
-
-		final ToolItem buildModeItem = item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		
-		final Menu buildModeMenu = new Menu(parent.getShell());
-		SelectionListener buildModeListener = new SelectionAdapter() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				dialogBuild(buildModeItem, (MenuItem) e.widget);
-			}
-			
-		};
+//		final ToolItem buildModeItem = item = new ToolItem(toolbar, SWT.DROP_DOWN);
 		
-		for (MobileBuilderBuildMode mode: MobileBuilderBuildMode.values()) {
-			MenuItem menuItem = new MenuItem(buildModeMenu, SWT.NONE);
-			menuItem.setText(mode.label());
-			menuItem.setToolTipText(mode.description());
-			menuItem.setData(mode);
-			menuItem.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream(mode.icon())));
-			menuItem.addSelectionListener(buildModeListener);
-			if (mode.equals(buildMode)) {
-				item.setImage(menuItem.getImage());
-				item.setToolTipText(mode.description());
-			}
-		}
-		
-		item.addSelectionListener(new SelectionAdapter() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (e.detail == SWT.ARROW) {
-					ToolItem item = (ToolItem) e.widget;
-					Rectangle rect = item.getBounds(); 
-					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
-					buildModeMenu.setLocation(pt);
-					buildModeMenu.setVisible(true);
-				} else {
-					dialogBuild(buildMode);
-				}
-			}
-			
-		});
+//		final Menu buildModeMenu = new Menu(parent.getShell());
+//		SelectionListener buildModeListener = new SelectionAdapter() {
+//
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				dialogBuild(buildModeItem, (MenuItem) e.widget);
+//			}
+//			
+//		};
+//		
+//		for (MobileBuilderBuildMode mode: MobileBuilderBuildMode.values()) {
+//			MenuItem menuItem = new MenuItem(buildModeMenu, SWT.NONE);
+//			menuItem.setText(mode.label());
+//			menuItem.setToolTipText(mode.description());
+//			menuItem.setData(mode);
+//			menuItem.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream(mode.icon())));
+//			menuItem.addSelectionListener(buildModeListener);
+//			if (mode.equals(buildMode)) {
+//				item.setImage(menuItem.getImage());
+//				item.setToolTipText(mode.description());
+//			}
+//		}
+//		
+//		item.addSelectionListener(new SelectionAdapter() {
+//			
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				if (e.detail == SWT.ARROW) {
+//					ToolItem item = (ToolItem) e.widget;
+//					Rectangle rect = item.getBounds(); 
+//					Point pt = item.getParent().toDisplay(new Point(rect.x + 8, rect.y + 8));
+//					buildModeMenu.setLocation(pt);
+//					buildModeMenu.setVisible(true);
+//				} else {
+//					dialogBuild(buildMode);
+//				}
+//			}
+//			
+//		});
 		
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
@@ -1090,36 +1130,36 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 	
-	private void dialogBuild(ToolItem buildModeItem, MenuItem menuItem) {
-		MobileBuilderBuildMode newBuildMode = (MobileBuilderBuildMode) menuItem.getData();
-		if (dialogBuild(newBuildMode)) {
-			buildModeItem.setImage(menuItem.getImage());
-			buildModeItem.setToolTipText("Rebuild in: " + buildMode.label() + "\n" + buildMode.description());
-			try {
-				JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
-				device.put("buildMode", buildMode.name());
-				FileUtils.write(devicePref, device.toString(4), "UTF-8");
-			} catch (Exception ex) {
-				Engine.logStudio.debug("Cannot save build mode", ex);
-			}	
-		}
-	}
+//	private void dialogBuild(ToolItem buildModeItem, MenuItem menuItem) {
+//		MobileBuilderBuildMode newBuildMode = (MobileBuilderBuildMode) menuItem.getData();
+//		if (dialogBuild(newBuildMode)) {
+//			buildModeItem.setImage(menuItem.getImage());
+//			buildModeItem.setToolTipText("Rebuild in: " + buildMode.label() + "\n" + buildMode.description());
+//			try {
+//				JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+//				device.put("buildMode", buildMode.name());
+//				FileUtils.write(devicePref, device.toString(4), "UTF-8");
+//			} catch (Exception ex) {
+//				Engine.logStudio.debug("Cannot save build mode", ex);
+//			}	
+//		}
+//	}
 	
-	private boolean dialogBuild(MobileBuilderBuildMode buildMode) {
-		MessageDialog dialog = new MessageDialog(
-			null, "Build '" + buildMode.label() + "'",
-			null, "This action will build your application for '" + buildMode.label() + "':\n" + buildMode.description(),
-			MessageDialog.QUESTION,
-			new String[] {"Build", "Cancel"}, 0
-		);
-		int result = dialog.open();
-		if (result == 0) {
-			this.buildMode = buildMode;
-			launchBuilder(false, false);
-			return true;
-		}
-		return false;
-	}
+//	private boolean dialogBuild(MobileBuilderBuildMode buildMode) {
+//		MessageDialog dialog = new MessageDialog(
+//			null, "Build '" + buildMode.label() + "'",
+//			null, "This action will build your application for '" + buildMode.label() + "':\n" + buildMode.description(),
+//			MessageDialog.QUESTION,
+//			new String[] {"Build", "Cancel"}, 0
+//		);
+//		int result = dialog.open();
+//		if (result == 0) {
+//			this.buildMode = buildMode;
+//			launchBuilder(false, false);
+//			return true;
+//		}
+//		return false;
+//	}
 	
 	private void updateBrowserSize() {
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
@@ -1449,7 +1489,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
 						FileUtils.write(new File(displayObjectsMobile, "env.json"), envJSON.toString(4), "UTF-8");
 						String sGroup = m.group(1);
-						baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));//"http://localhost:8100/";
+						baseUrl = sGroup.substring(0, sGroup.lastIndexOf("/"));
 						doLoad();
 					}
 				}
@@ -1503,14 +1543,24 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		deviceBar.getParent().layout();
 	}
 	
+	private String getPageUrl() {
+		String url = baseUrl;
+		if (url != null && pagePath != null) {
+			url += "/" + pagePath;
+		}
+		return url;
+	}
+	
 	private void doLoad() {
-		if (baseUrl != null) {
+		String url = getPageUrl();
+		if (url != null) {
 			C8oBrowser.run(() -> {
-				String url = baseUrl;
-				if (pagePath != null) {
-					url += "/" + pagePath;
-				}
-				if (!c8oBrowser.getURL().equals(url)) {
+				String currentUrl = c8oBrowser.getURL();
+				if (headlessBuild) {
+					c8oBrowser.setUseExternalBrowser(true);
+					c8oBrowser.executeFunctionAndReturnValue("_c8o_doLoad", url);
+				} else if (!currentUrl.equals(url)) {
+					c8oBrowser.setUseExternalBrowser(false);
 					c8oBrowser.loadURL(url);
 				}
 			});

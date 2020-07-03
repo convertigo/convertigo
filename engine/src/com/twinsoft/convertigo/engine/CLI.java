@@ -303,11 +303,15 @@ public class CLI {
 		int code = p.waitFor();
 		Engine.logConvertigo.info("npm install finished with exit: " + code);
 		
-		if ("debug".equals(mode)) {
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--nobrowser");
-		} else {
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
+		if (project.getMobileApplication().getApplicationComponent() instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+			if ("debug".equals(mode)) {
+				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--nobrowser");
+			} else {
+				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
 //				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
+			}
+		} else {
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
 		}
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);

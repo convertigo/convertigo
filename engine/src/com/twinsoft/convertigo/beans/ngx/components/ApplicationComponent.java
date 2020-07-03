@@ -1269,9 +1269,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		boolean hasSplitPane = !layout.equals("not set");
 		if (hasSplitPane) {
 			if (layout.isEmpty())
-				sb.append("<ion-split-pane>").append(System.lineSeparator());
+				sb.append("<ion-split-pane content-id=\"main-content\">").append(System.lineSeparator());
 			else
-				sb.append("<ion-split-pane when=\""+ layout +"\">").append(System.lineSeparator());
+				sb.append("<ion-split-pane when=\""+ layout +"\" content-id=\"main-content\">").append(System.lineSeparator());
 		}
 		
 		Iterator<UIDynamicMenu> it = getMenuComponentList().iterator();
