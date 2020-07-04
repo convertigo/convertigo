@@ -22,7 +22,7 @@ export const hmrBootstrap = (module: any, bootstrap: () => Promise<NgModuleRef<a
 			buildDiv.id = "BuildDiv"
 			buildDiv.innerHTML = `
 				<span style="
-					font-size: 30px;
+					font-size: 25px;
 				    color: white;
 				    background-color: #222222;
 				    z-index: 100;
@@ -32,7 +32,7 @@ export const hmrBootstrap = (module: any, bootstrap: () => Promise<NgModuleRef<a
 				    transform: translate(-50%,-50%);					
 					border: solid 1px white;
 					padding: 5px;
-					border-radius: 5px">Build in progress..
+					border-radius: 5px">Building...
 				</span>"
 			`
 			document.body.appendChild(buildDiv)
