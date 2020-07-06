@@ -26,6 +26,11 @@
                 "output": "assets"
               },
               {
+                "glob": "**/*",
+                "input": "../../DisplayObjects/mobile/assets",
+                "output": "assets"
+              },
+              {
                 "glob": "env.json",
                 "input": "src",
                 "output": "/"
