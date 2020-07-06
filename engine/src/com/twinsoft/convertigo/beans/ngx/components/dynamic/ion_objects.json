@@ -13951,7 +13951,7 @@
       "icon32": "infinitescroll_color_32x32.png",
       "properties": {
         "Disabled": {
-          "attr": "disbled",
+          "attr": "disabled",
           "label": "Disabled",
           "description": "If true, the infinite scroll will be hidden and scroll event listeners will be removed.",
           "category": "@Properties",
