@@ -1679,18 +1679,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
 								databaseObjectTreeObject = new NgxApplicationComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
 	
-							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent) {
-								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES;
-								//databaseObjectTreeObject = new NgxRouteComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
-							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent) {
-								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
-								//databaseObjectTreeObject = new NgxRouteEventComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
-							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent) {
-								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS;
-								//databaseObjectTreeObject = new NgxRouteActionComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
-	
 							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_PAGES;
 								databaseObjectTreeObject = new NgxPageComponentTreeObject(viewer, GenericUtils.cast(databaseObject), false);
@@ -2763,15 +2751,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
 					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_APPLICATIONCOMPONENT;
 				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTECOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEEVENTCOMPONENT;
-				}
-				else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent) {
-					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_ROUTEACTIONCOMPONENT;
-				}
 				else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
 					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILE_PAGECOMPONENT;
 				}
@@ -3241,7 +3220,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (databaseObject != null && databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
 			switch (folderType) {
 				case ObjectsFolderTreeObject.FOLDER_TYPE_ACTIONS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent;
+					//return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_ATTRIBUTES:
 					return (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAttribute ||
 							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr) &&
@@ -3251,14 +3230,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				case ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent ||
 							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber ||
-							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent ;
+							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_MENUS:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_PAGES:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_ROUTES:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_ACTIONS:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_SHARED_COMPONENTS:

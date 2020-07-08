@@ -59,12 +59,11 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Application",
 		getIconClassCSS = "convertigo-action-newApplicationComponent"
 	)
-public class ApplicationComponent extends MobileComponent implements IApplicationComponent, IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
+public class ApplicationComponent extends MobileComponent implements IApplicationComponent, IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IContainerOrdered, ITagsProperty {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
 
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
-	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedPages = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedMenus = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedSharedActions = new XMLVector<XMLVector<Long>>();
@@ -88,9 +87,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		orderedPages = new XMLVector<XMLVector<Long>>();
 		orderedPages.add(new XMLVector<Long>());
 		
-		orderedRoutes = new XMLVector<XMLVector<Long>>();
-		orderedRoutes.add(new XMLVector<Long>());
-		
 		orderedComponents = new XMLVector<XMLVector<Long>>();
 		orderedComponents.add(new XMLVector<Long>());
 		
@@ -104,7 +100,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	@Override
 	public ApplicationComponent clone() throws CloneNotSupportedException {
 		ApplicationComponent cloned = (ApplicationComponent) super.clone();
-		cloned.vRouteComponents = new LinkedList<RouteComponent>();
 		cloned.vPageComponents = new LinkedList<PageComponent>();
 		cloned.vMenuComponents = new LinkedList<UIDynamicMenu>();
 		cloned.vSharedActions = new LinkedList<UIActionStack>();
@@ -246,38 +241,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
         hasChanged = true;
     }
 	
-	public XMLVector<XMLVector<Long>> getOrderedRoutes() {
-		return orderedRoutes;
-	}
-    
-	public void setOrderedRoutes(XMLVector<XMLVector<Long>> orderedRoutes) {
-		this.orderedRoutes = orderedRoutes;
-	}
-	
-    private void insertOrderedRoute(RouteComponent component, Long after) {
-    	List<Long> ordered = orderedRoutes.get(0);
-    	int size = ordered.size();
-    	
-    	if (ordered.contains(component.priority))
-    		return;
-    	
-    	if (after == null) {
-    		after = 0L;
-    		if (size > 0)
-    			after = ordered.get(ordered.size()-1);
-    	}
-    	
-   		int order = ordered.indexOf(after);
-    	ordered.add(order+1, component.priority);
-    	hasChanged = !isImporting;
-    }
-    
-    private void removeOrderedRoute(Long value) {
-        Collection<Long> ordered = orderedRoutes.get(0);
-        ordered.remove(value);
-        hasChanged = true;
-    }
-    
 	public XMLVector<XMLVector<Long>> getOrderedComponents() {
 		return orderedComponents;
 	}
@@ -384,8 +347,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
     	
     	if (databaseObject instanceof PageComponent)
     		ordered = orderedPages.get(0);
-    	else if (databaseObject instanceof RouteComponent)
-    		ordered = orderedRoutes.get(0);
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
     	else if (databaseObject instanceof UIActionStack)
@@ -418,8 +379,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
     	
     	if (databaseObject instanceof PageComponent)
     		ordered = orderedPages.get(0);
-    	else if (databaseObject instanceof RouteComponent)
-    		ordered = orderedRoutes.get(0);
     	else if (databaseObject instanceof UIDynamicMenu)
     		ordered = orderedMenus.get(0);
     	else if (databaseObject instanceof UIActionStack)
@@ -448,7 +407,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
     
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {
 		increaseOrder(databaseObject,null);
-		if (databaseObject instanceof PageComponent || databaseObject instanceof RouteComponent) {
+		if (databaseObject instanceof PageComponent) {
 			markComponentTsAsDirty();
 		} else {
 			markApplicationAsDirty();
@@ -457,7 +416,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 
 	public void decreasePriority(DatabaseObject databaseObject) throws EngineException {
 		decreaseOrder(databaseObject,null);
-		if (databaseObject instanceof PageComponent || databaseObject instanceof RouteComponent) {
+		if (databaseObject instanceof PageComponent) {
 			markComponentTsAsDirty();
 		} else {
 			markApplicationAsDirty();
@@ -475,13 +434,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
         	if (ordered.contains(time))
         		return (long)ordered.indexOf(time);
         	else throw new EngineException("Corrupted page for application \""+ getName() +"\". PageComponent \""+ ((PageComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
-        }
-        else if (object instanceof RouteComponent) {
-        	List<Long> ordered = orderedRoutes.get(0);
-        	long time = ((RouteComponent)object).priority;
-        	if (ordered.contains(time))
-        		return (long)ordered.indexOf(time);
-        	else throw new EngineException("Corrupted route for application \""+ getName() +"\". RouteComponent \""+ ((RouteComponent)object).getName() +"\" with priority \""+ time +"\" isn't referenced anymore.");
         }
         else if (object instanceof UIDynamicMenu) {
         	List<Long> ordered = orderedMenus.get(0);
@@ -514,44 +466,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
         else return super.getOrder(object);
     }
 	
-	/**
-	 * The list of available routes for this application.
-	 */
-	transient private List<RouteComponent> vRouteComponents = new LinkedList<RouteComponent>();
-	
-	protected void addRouteComponent(RouteComponent routeComponent) throws EngineException {
-		addRouteComponent(routeComponent, null);
-	}
-	
-	protected void addRouteComponent(RouteComponent routeComponent, Long after) throws EngineException {
-		checkSubLoaded();
-		String newDatabaseObjectName = getChildBeanName(vRouteComponents, routeComponent.getName(), routeComponent.bNew);
-		routeComponent.setName(newDatabaseObjectName);
-		vRouteComponents.add(routeComponent);
-		super.add(routeComponent);
-		
-		insertOrderedRoute(routeComponent, after);
-		
-		if (routeComponent.bNew) {
-			markApplicationAsDirty();
-		}
-	}
-
-	protected void removeRouteComponent(RouteComponent routeComponent) throws EngineException {
-		checkSubLoaded();
-		vRouteComponents.remove(routeComponent);
-		
-		removeOrderedRoute(routeComponent.priority);
-		
-		markApplicationAsDirty();
-	}
-
-	public List<RouteComponent> getRouteComponentList() {
-		checkSubLoaded();
-		return sort(vRouteComponents);
-	}
-	
-
 	/**
 	 * The list of available page component for this application.
 	 */
@@ -926,7 +840,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
 		if (theme != null) rep.add(theme);
-		rep.addAll(getRouteComponentList());
 		rep.addAll(getMenuComponentList());
 		rep.addAll(getPageComponentList());
 		rep.addAll(getSharedActionList());
@@ -937,9 +850,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 
 	@Override
 	public void add(DatabaseObject databaseObject, Long after) throws EngineException {
-		if (databaseObject instanceof RouteComponent) {
-			addRouteComponent((RouteComponent) databaseObject, after);
-		} else if (databaseObject instanceof PageComponent) {
+		if (databaseObject instanceof PageComponent) {
 			addPageComponent((PageComponent) databaseObject);
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			addMenuComponent((UIDynamicMenu) databaseObject);
@@ -961,9 +872,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 
     @Override
     public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof RouteComponent) {
-			removeRouteComponent((RouteComponent) databaseObject);
-		} else if (databaseObject instanceof PageComponent) {
+		if (databaseObject instanceof PageComponent) {
 			removePageComponent((PageComponent) databaseObject);
 		} else if (databaseObject instanceof UIDynamicMenu) {
 			removeMenuComponent((UIDynamicMenu) databaseObject);
@@ -1156,7 +1065,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			
 			newComputedContent.put("style", computeStyle());
 			newComputedContent.put("theme", computeTheme());
-			newComputedContent.put("route", computeRoute());
 			newComputedContent.put("template", computeTemplate());
 			
 			computedContents = newComputedContent;
@@ -1436,24 +1344,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			e.printStackTrace();
 		}
 		return "";
-	}
-    
-	@Override
-	public String computeRoute() {
-		StringBuilder sb = new StringBuilder();
-		int size = orderedRoutes.size();
-		if (size > 0) {
-			Iterator<RouteComponent> itr = getRouteComponentList().iterator();
-			while (itr.hasNext()) {
-				RouteComponent route = itr.next();
-				String tpl = route.computeRoute();
-				if (!tpl.isEmpty()) {
-					sb.append("this.router.addRouteListener(").append(tpl).append(")")
-						.append(";").append(System.getProperty("line.separator"));
-				}
-			}
-		}
-		return sb.toString();
 	}
     
 	public String getComputedStyle() {

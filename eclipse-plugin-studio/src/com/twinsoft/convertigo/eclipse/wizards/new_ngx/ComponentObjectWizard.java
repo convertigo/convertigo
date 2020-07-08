@@ -30,9 +30,6 @@ import org.eclipse.jface.wizard.Wizard;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
-import com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent;
-import com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent;
-import com.twinsoft.convertigo.beans.ngx.components.RouteComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -74,18 +71,6 @@ public class ComponentObjectWizard extends Wizard {
 			if (beanClass.equals(ApplicationComponent.class)) {
 				objectExplorerPageTitle = "New Application Component";
 				objectExplorerPageMessage = "Please select a application component template.";
-			}
-			else if (beanClass.equals(RouteComponent.class)) {
-				objectExplorerPageTitle = "New Route Component";
-				objectExplorerPageMessage = "Please select a route component template.";
-			}
-			else if (beanClass.equals(RouteActionComponent.class)) {
-				objectExplorerPageTitle = "New Action Component";
-				objectExplorerPageMessage = "Please select an action component template.";
-			}
-			else if (beanClass.equals(RouteEventComponent.class)) {
-				objectExplorerPageTitle = "New Event Component";
-				objectExplorerPageMessage = "Please select an event component template.";
 			}
 			else if (beanClass.equals(PageComponent.class)) {
 				objectExplorerPageTitle = "New Page Component";

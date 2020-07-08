@@ -612,17 +612,11 @@ public class ClipboardManager {
 				} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
 					if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
 						com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent ac = GenericUtils.cast(databaseObject);
-						ac.setOrderedRoutes(getNewOrdered());
 						ac.setOrderedMenus(getNewOrdered());
 						ac.setOrderedPages(getNewOrdered());
 						ac.setOrderedComponents(getNewOrdered());
 						ac.setOrderedSharedActions(getNewOrdered());
 						ac.setOrderedSharedComponents(getNewOrdered());
-					}
-					if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent) {
-						com.twinsoft.convertigo.beans.ngx.components.RouteComponent rc = GenericUtils.cast(databaseObject);
-						rc.setOrderedActions(getNewOrdered());
-						rc.setOrderedEvents(getNewOrdered());
 					}
 					if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
 						com.twinsoft.convertigo.beans.ngx.components.PageComponent pc = GenericUtils.cast(databaseObject);
@@ -827,10 +821,6 @@ public class ClipboardManager {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							app.add(databaseObject);
 						}
-						else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							app.add(databaseObject);
-						}
 						else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							app.add(databaseObject);
@@ -838,23 +828,6 @@ public class ClipboardManager {
 						else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
 							databaseObject.priority = databaseObject.getNewOrderValue();
 							app.add(databaseObject);
-						}
-					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent) {
-						com.twinsoft.convertigo.beans.ngx.components.RouteComponent route = GenericUtils.cast(parentDatabaseObject);
-						if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent rac = GenericUtils.cast(databaseObject);
-							int i = rac.getPage().lastIndexOf(".");
-							if (i != -1) {
-								String pageName = rac.getPage().substring(i);
-								String pageQName = route.getParent().getQName() + pageName;
-								rac.setPage(pageQName);
-							}
-							route.add(rac);
-						}
-						else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent) {
-							databaseObject.priority = databaseObject.getNewOrderValue();
-							route.add(databaseObject);
 						}
 					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
 						com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(parentDatabaseObject);

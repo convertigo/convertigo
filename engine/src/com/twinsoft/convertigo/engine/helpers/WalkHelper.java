@@ -231,12 +231,6 @@ public class WalkHelper {
 		else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
 			com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent applicationComponent = GenericUtils.cast(databaseObject);
 			
-			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.RouteComponent.class)) {
-				for (com.twinsoft.convertigo.beans.ngx.components.RouteComponent route : applicationComponent.getRouteComponentList()) {
-					walk(route);
-				}
-			}
-			
 			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu.class)) {
 				for (com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu : applicationComponent.getMenuComponentList()) {
 					walk(menu);
@@ -267,20 +261,6 @@ public class WalkHelper {
 				}
 			}
 			
-		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.RouteComponent) {
-			com.twinsoft.convertigo.beans.ngx.components.RouteComponent routingListenerComponent = GenericUtils.cast(databaseObject);
-			
-			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent.class)) {
-				for (com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent event : routingListenerComponent.getRouteEventComponentList()) {
-					walk(event);
-				}
-			}
-			
-			if (before(databaseObject, com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent.class)) {
-				for (com.twinsoft.convertigo.beans.ngx.components.RouteActionComponent action : routingListenerComponent.getRouteActionComponentList()) {
-					walk(action);
-				}
-			}
 		} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
 			com.twinsoft.convertigo.beans.ngx.components.PageComponent pageComponent = GenericUtils.cast(databaseObject);
 			
