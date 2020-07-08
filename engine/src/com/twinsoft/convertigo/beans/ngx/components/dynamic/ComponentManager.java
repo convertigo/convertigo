@@ -73,9 +73,6 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
-//import com.twinsoft.convertigo.beans.ngx.components.UIFormControlValidator;
-//import com.twinsoft.convertigo.beans.ngx.components.UIFormCustomValidator;
-import com.twinsoft.convertigo.beans.ngx.components.UIFormValidator;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
@@ -589,7 +586,6 @@ public class ComponentManager {
 					!UIAppEvent.class.isAssignableFrom(dboClass) &&
 					!UIActionStack.class.isAssignableFrom(dboClass) &&
 					!UISharedComponent.class.isAssignableFrom(dboClass) &&
-					!UIFormValidator.class.isAssignableFrom(dboClass) &&
 					!UIAttribute.class.isAssignableFrom(dboClass) &&
 					!UIDynamicAttr.class.isAssignableFrom(dboClass) &&
 					!UIControlVariable.class.isAssignableFrom(dboClass) &&
@@ -600,8 +596,7 @@ public class ComponentManager {
 			} else if (dboParent instanceof UIComponent) {
 				UIDynamicMenu menu = ((UIComponent)dboParent).getMenu();
 				if (menu != null) {
-					if (UIControlEvent.class.isAssignableFrom(dboClass) ||
-						UIFormValidator.class.isAssignableFrom(dboClass)) {
+					if (UIControlEvent.class.isAssignableFrom(dboClass)) {
 						if (menu.compareToTplVersion("7.5.2.0") < 0) {
 							return false;
 						}
@@ -672,10 +667,6 @@ public class ComponentManager {
 				} else if (dboParent instanceof UIElement) {
 					if (UIDynamicMenuItem.class.isAssignableFrom(dboClass)) {
 						return menu != null;
-					}
-					
-					if (UIFormValidator.class.isAssignableFrom(dboClass)) {
-						return ((UIComponent)dboParent).getUIForm() != null;
 					}
 					
 					if (!UIControlVariable.class.isAssignableFrom(dboClass) &&

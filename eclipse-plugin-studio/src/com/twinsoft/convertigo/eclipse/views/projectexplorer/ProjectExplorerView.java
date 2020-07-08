@@ -1717,9 +1717,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStackVariable) {
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 								}
-								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIFormValidator) {
-									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS;
-								}
 								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent) {
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
 								}
@@ -3241,8 +3238,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_STYLES:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStyle;
-				case ObjectsFolderTreeObject.FOLDER_TYPE_VALIDATORS:
-					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIFormValidator;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIStackVariable ||
 							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UICompVariable ||

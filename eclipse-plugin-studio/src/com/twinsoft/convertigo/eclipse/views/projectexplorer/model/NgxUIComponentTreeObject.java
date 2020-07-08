@@ -75,7 +75,6 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicTabButton;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
-import com.twinsoft.convertigo.beans.ngx.components.UIFormCustomValidator;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
@@ -134,9 +133,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		} else if (uic instanceof UICustomAction) {
 			String functionMarker = "function:"+ ((UICustomAction)uic).getActionName();
 			editFunction(uic, functionMarker, "actionValue");
-		} else if (uic instanceof UIFormCustomValidator) {
-			String functionMarker = "function:"+ ((UIFormCustomValidator)uic).getValidatorName();
-			editFunction(uic, functionMarker , "validatorValue");
 		} else {
 			super.launchEditor(editorType);
 		}

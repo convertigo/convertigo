@@ -262,9 +262,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
-				if (component instanceof UIFormControlValidator) {
-					;// ignore
-				} else if (component instanceof UIStyle) {
+				if (component instanceof UIStyle) {
 					;// ignore
 				} else if (component instanceof UIAttribute) {
 					UIAttribute uiAttribute = (UIAttribute)component;
