@@ -168,6 +168,10 @@ public class ProjectUtils {
 			if (!keepOldReferences) {
 				replacements.clear();
 				replacements.add(new Replacement(": " + oldName + "\\.", ": " + newName + "."));
+				replacements.add(new Replacement(":" + oldName + "\\.", ":" + newName + "."));
+				replacements.add(new Replacement("\"" + oldName + "\"", "\"" + newName + "\""));
+				replacements.add(new Replacement("\\\\\"" + oldName + "\\\\\"", "\\\\\"" + newName + "\\\\\""));
+				replacements.add(new Replacement("\'" + oldName + "\\.", "\'" + newName + "."));
 				makeReplacementsInFile(replacements, newFile, "UTF-8");
 				File sub = new File(newFile.getParentFile(), "_c8oProject");
 				if (sub.exists()) {
@@ -184,6 +188,13 @@ public class ProjectUtils {
 			}
 		}		
 
+		File dotProject = new File(oldXml.getParentFile(), ".project");
+		if (dotProject.exists()) {
+			replacements.clear();
+			replacements.add(new Replacement(oldName, newName));
+			makeReplacementsInFile(replacements, dotProject);
+		}
+		
 		ArrayList<File> deep = CarUtils.deepListFiles(oldXml.getParent() + "/xsd/internal", ".xsd");
 		File xsd = new File(oldXml.getParentFile(), "xsd/" + oldName + ".xsd");
 		if (!xsd.exists()) {

@@ -187,7 +187,9 @@ public class BeansDefaultValues {
 				String dBeanVersion = dBean.getAttribute("version");
 				if (hVersion.compareTo(dBeanVersion) < 0) {
 					hVersion = dBeanVersion;
-					Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+					if (Engine.logEngine != null) {
+						Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+					}
 				}
 				for (Node pAttr: xpath.selectList(pBean, "@*")) {
 					String name = pAttr.getNodeName();
@@ -246,7 +248,9 @@ public class BeansDefaultValues {
 									}
 									if (hVersion.compareTo(lVersion) < 0) {
 										hVersion = lVersion;
-										Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+										if (Engine.logEngine != null) {
+											Engine.logEngine.debug("hVersion to: " + hVersion + " for " + dBean.getAttribute("classname"));
+										}
 									}
 									dIonProps = dIonProps.getJSONObject(lVersion).getJSONObject("properties");
 									JSONObject ionProps = (JSONObject) ion.remove("properties");

@@ -234,7 +234,10 @@ public class ComponentManager {
 
 	public static IonBean loadBean(String jsonString) throws Exception {
 		JSONObject jsonBean = new JSONObject(jsonString);
-		String modelName = jsonBean.getString(IonBean.Key.name.name());
+		String modelName = "Unknown";
+		if (jsonBean.has(IonBean.Key.name.name())) {
+			modelName = jsonBean.getString(IonBean.Key.name.name());
+		}
 		final IonBean model = instance.bCache.get(modelName);
 		// The model exists
 		if (model != null) {
@@ -267,9 +270,9 @@ public class ComponentManager {
 		}
 		// The model doesn't exist (anymore)
 		else {
-			System.out.println("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache.");
+			System.out.println("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
 			if (Engine.isStarted) {
-				Engine.logBeans.warn("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache.");
+				Engine.logBeans.warn("(ComponentManager) Model \""+modelName+"\" does not exist anymore in cache ("+jsonString+").");
 			}
 			return new IonBean(jsonString);
 		}
