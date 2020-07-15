@@ -422,26 +422,6 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
 			</beans>
-			<beans groupname="Route Components">
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteEventComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteComponent"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteSequenceEvent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteComponent"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteFullsyncEvent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteComponent"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteDataActionComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteComponent"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteExceptionActionComponent">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.RouteComponent"/>
-				</bean>
-			</beans>
 			<beans groupname="Page Components">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
@@ -513,12 +493,6 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustom"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIFormControlValidator">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIFormCustomValidator">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
-				</bean>			
 			</beans>
 			<beans groupname="Menu Components">
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu">
