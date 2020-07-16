@@ -342,7 +342,7 @@
     },
     
     "LinkRouterPath": {
-      "attr": "routerLink",
+      "attr": "[routerLink]",
       "label": "Router URL",
       "description": "Specifies the router link URL.",
       "category": "@Properties",
@@ -354,6 +354,18 @@
       ]
     },
 
+    "LinkRouterData": {
+      "attr": "[queryParams]",
+      "label": "Router data",
+      "description": "Specifies router optional data.",
+      "category": "@Properties",
+      "value": false,
+      "values": [
+        false,
+        true
+      ]
+    },
+    
     "LinkTarget": {
       "attr": "target",
       "label": "Link target",
@@ -7075,6 +7087,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false
       },
       "events": {
@@ -7327,6 +7340,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false,
 		"AutoDisable": {
       		"label": "Auto disable",
@@ -7402,6 +7416,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false
       },
       "events": {
@@ -7466,6 +7481,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false,
         "Activated": {
           "attr": "activated",
@@ -10767,6 +10783,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false
       },
       "scss": [
@@ -10869,6 +10886,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false
       },
       "scss": [
@@ -10971,6 +10989,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false
       },
       "scss": [
@@ -13048,6 +13067,7 @@
         "LinkTarget": false,
         "LinkRel": false,
         "LinkRouterPath": false,
+        "LinkRouterData": false,
         "LinkRouterDirection": false
       },
       "scss": [
@@ -15377,7 +15397,25 @@
       "icon16": "pushpageaction_color_16x16.png",
       "icon32": "pushpageaction_color_32x32.png",
       "properties": {
-        "LinkRouterPath": false
+        "page": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Page",
+          "description": "Defines the target page to push on the stack.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			      true
+          ]
+        },
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data object passed to the pushed page. You can access this data in the pushed page by using a (TS) expression <code>this.navParams.data</code>.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        }
 	  }
 	},
 
@@ -15392,7 +15430,25 @@
       "icon16": "rootpageaction_color_16x16.png",
       "icon32": "rootpageaction_color_32x32.png",
       "properties": {
-         "LinkRouterPath": false
+        "page": {
+          "editor": "NamedSourceSelectorEditor",
+          "label": "Page",
+          "description": "Defines the target page.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+        },
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data object passed to the rooted page. You can access this data in the pushed page by using a (TS) expression <code>this.navParams.data</code>.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        }
 	  }
 	},
 
@@ -15407,7 +15463,6 @@
       "icon16": "poppageaction_color_16x16.png",
       "icon32": "poppageaction_color_32x32.png",
       "properties": {
-         "LinkRouterPath": false
       }
 	},
 

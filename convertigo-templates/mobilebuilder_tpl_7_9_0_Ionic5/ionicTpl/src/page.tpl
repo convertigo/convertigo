@@ -27,6 +27,7 @@ import { Events } 																		from '../../services/events.service';
 export class /*=c8o_PageName*/  extends C8oPage {
 	/*=c8o_PageDeclarations*/
 
+	public navParams : NavParams;
 	public events : Events;
 	public subscriptions = {};
 	public actionBeans: ActionBeans;
@@ -46,6 +47,14 @@ export class /*=c8o_PageName*/  extends C8oPage {
 		
     }
 	
+	ngOnInit() {
+		this.route
+		.queryParams
+		.subscribe(params => {
+			this.navParams = new NavParams(params)
+		});
+	}
+	
 	instance() {
 		return this;
 	}
@@ -56,6 +65,10 @@ export class /*=c8o_PageName*/  extends C8oPage {
 	
 	public log(val) {
 	    console.log(val);
+	}
+	
+	public navigate(url: string, data: any) {
+	    this.angularRouter.navigate([url], { queryParams: data });
 	}
 	
 	public navigateByUrl(url: string){

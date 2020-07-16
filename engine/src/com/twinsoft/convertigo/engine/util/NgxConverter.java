@@ -1069,18 +1069,6 @@ public class NgxConverter {
 		} catch (Exception e) {}
 	}
 	
-	private static void handleNavPageAction(Element beanEl) {
-		JSONObject jsonBean = getJsonBean(beanEl);
-		try {
-			JSONObject json = new JSONObject().put("ionBean", jsonBean.getString("ionBean"));
-			if (jsonBean.has("page")) {
-				//String qname = jsonBean.getString("page");
-				json.put("LinkRouterPath", "plain:false");
-			}
-			setBeanData(beanEl, json.toString());
-		} catch (Exception e) {}
-	}
-
 	private static void handleShowLoadingAction(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
@@ -1229,9 +1217,6 @@ public class NgxConverter {
 					}
 					else if ("PopoverAction".equalsIgnoreCase(ionBeanName)) {
 						handlePopoverAction(beanEl);
-					}
-					else if ("PushPageAction".equalsIgnoreCase(ionBeanName) || "RootPageAction".equalsIgnoreCase(ionBeanName)) {
-						handleNavPageAction(beanEl);
 					}
 					else if ("ShowLoadingAction".equalsIgnoreCase(ionBeanName)) {
 						handleShowLoadingAction(beanEl);

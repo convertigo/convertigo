@@ -6,6 +6,17 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     RootPageAction(page: C8oPageBase, props, vars) : Promise<any> {
+		
+		let getPageSegment = function (pageName: string) {
+			let appPages = page.routerProvider.pagesArray;
+			for (let i=0; i < appPages.length; i++) {
+				if (appPages[i].name == pageName) {
+					return appPages[i].url
+				}
+			}
+			return "/"
+		}
+	
         return new Promise((resolve, reject) => {
             /*let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
@@ -22,9 +33,13 @@
             }).catch((error:any) => {
                 reject(error)
             })*/
+
+            let q:string = props.page; // qname of page
+            let p:string = q.substring(q.lastIndexOf('.')+1);
+			let path = getPageSegment(p);
             
             let navController = page.getInstance(NavController)
-            navController.navigateRoot(props.LinkRouterPath)
+            navController.navigateRoot(path, { queryParams: props.data })
             .then((res:any) => {
                 resolve(res)
             }).catch((error:any) => {

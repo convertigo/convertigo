@@ -101,6 +101,11 @@
      "mode": "plain",
      "value": false
     },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
     "LinkRouterDirection": {
      "name": "LinkRouterDirection",
      "mode": "plain",
@@ -267,6 +272,11 @@
     },
     "LinkRouterPath": {
      "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
      "mode": "plain",
      "value": false
     },
@@ -524,6 +534,11 @@
      "mode": "plain",
      "value": false
     },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
     "LinkRouterDirection": {
      "name": "LinkRouterDirection",
      "mode": "plain",
@@ -743,6 +758,11 @@
      "mode": "plain",
      "value": false
     },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
     "LinkRouterDirection": {
      "name": "LinkRouterDirection",
      "mode": "plain",
@@ -833,6 +853,11 @@
     },
     "LinkRouterPath": {
      "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
      "mode": "plain",
      "value": false
     },
@@ -1507,6 +1532,11 @@
      "mode": "plain",
      "value": false
     },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
     "LinkRouterDirection": {
      "name": "LinkRouterDirection",
      "mode": "plain",
@@ -2086,6 +2116,11 @@
      "mode": "plain",
      "value": false
     },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
     "LinkRouterDirection": {
      "name": "LinkRouterDirection",
      "mode": "plain",
@@ -2247,6 +2282,11 @@
     },
     "LinkRouterPath": {
      "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
      "mode": "plain",
      "value": false
     },
@@ -4410,8 +4450,13 @@
   "   7   9   0": {
    "name": "RootPageAction",
    "properties": {
-    "LinkRouterPath": {
-     "name": "LinkRouterPath",
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
      "mode": "plain",
      "value": false
     }
@@ -4421,21 +4466,20 @@
  "PopPageAction": {
   "   7   9   0": {
    "name": "PopPageAction",
-   "properties": {
-    "LinkRouterPath": {
-     "name": "LinkRouterPath",
-     "mode": "plain",
-     "value": false
-    }
-   }
+   "properties": {}
   }
  },
  "PushPageAction": {
   "   7   9   0": {
    "name": "PushPageAction",
    "properties": {
-    "LinkRouterPath": {
-     "name": "LinkRouterPath",
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
      "mode": "plain",
      "value": false
     }

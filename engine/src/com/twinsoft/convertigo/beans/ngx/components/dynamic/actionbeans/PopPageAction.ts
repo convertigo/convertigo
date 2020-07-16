@@ -10,7 +10,7 @@
             /*page.routerProvider.pop()
             .then((res:any) => {resolve(res)}).catch((error:any) => {reject(error)})*/
             let navController = page.getInstance(NavController)
-            navController.navigateBack(props.LinkRouterPath)
+            navController.pop()
             .then((res:any) => {
                 resolve(res)
             }).catch((error:any) => {

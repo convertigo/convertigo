@@ -88,7 +88,7 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 //				.append("</ion-menu-toggle>")
 //				.append(System.lineSeparator());
 				
-				sb.append("<ion-item "+ attrclass +" *ngFor=\"let p of appPages;\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedPath.startsWith('/'+p.url)\">")
+				sb.append("<ion-item "+ attrclass +" *ngFor=\"let p of appPages;\" [hidden]=\"!p.includedInAutoMenu\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedPath.startsWith('/'+p.url)\">")
 				.append(System.lineSeparator())
 				.append("<ion-icon [slot]=\"p.iconPos\" [ios]=\"p.icon + '-outline'\" [md]=\"p.icon + '-sharp'\"></ion-icon>")
 				.append(System.lineSeparator())

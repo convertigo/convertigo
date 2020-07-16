@@ -1880,7 +1880,7 @@ public class NgxBuilder extends MobileBuilder {
 		
 		if (app.compareToTplVersion("7.9.0.2") >= 0) {
 			//c8o_PageArrayDef = "Array<{title: string, titleKey: string, icon: string, iconPos: string, component: any, name: string, includedInAutoMenu?: boolean}>";
-			c8o_PageArrayDef = "Array<{title: string, titleKey: string, url: string, icon: string, iconPos: string}>";
+			c8o_PageArrayDef = "Array<{title: string, titleKey: string, url: string, icon: string, iconPos: string, name: string, includedInAutoMenu?: boolean}>";
 		}
 		
 		List<PageComponent> pages = getEnabledPages(app);
@@ -1903,9 +1903,7 @@ public class NgxBuilder extends MobileBuilder {
 				if (isRootPage) {
 					c8o_RootPage = "'"+ c8o_RootPage + "'";
 				}
-				if (isMenuPage) {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", url: \""+ pageSegment +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\"}" + (isLastPage ? "":",");
-				}
+				c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", url: \""+ pageSegment +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", name: \""+ pageName +"\", includedInAutoMenu: "+ isMenuPage +"}" + (isLastPage ? "":",");
 				
 				c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
 			}
