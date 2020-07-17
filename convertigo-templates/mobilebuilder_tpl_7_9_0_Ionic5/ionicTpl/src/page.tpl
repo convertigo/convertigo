@@ -39,6 +39,13 @@ export class /*=c8o_PageName*/  extends C8oPage {
 		super(routerProvider, loadingCtrl, sanitizer, ref, injector, menuCtrl);
 		this.events = this.getInstance(Events);
 		this.actionBeans = this.getInstance(ActionBeans);
+		try {
+			// for PopoverController, ModalController
+			this.navParams = new NavParams(this.getInstance(NavParams).data)
+		} catch (e) {
+			// for NavController (based on angular router)
+			this.navParams = new NavParams(this.route.snapshot.queryParams)
+		}
 		
 		/*=c8o_PageConstructors*/
 		
@@ -46,14 +53,6 @@ export class /*=c8o_PageName*/  extends C8oPage {
 		/*End_c8o_PageConstructor*/
 		
     }
-	
-	ngOnInit() {
-		this.route
-		.queryParams
-		.subscribe(params => {
-			this.navParams = new NavParams(params)
-		});
-	}
 	
 	instance() {
 		return this;
