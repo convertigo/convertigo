@@ -1013,7 +1013,16 @@ public class NgxConverter {
 	private static void handleTooltips(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
-			JSONObject json = new JSONObject().put("ionBean", "Tooltips").put("Tooltip", jsonBean.get("tooltip"));
+			JSONObject json = new JSONObject().put("ionBean", "Tooltips");
+			if (jsonBean.has("duration")) {
+				json.put("AnimationDuration", jsonBean.get("duration"));
+			}
+			if (jsonBean.has("tooltip")) {
+				json.put("Tooltip", jsonBean.get("tooltip"));
+			}
+			if (jsonBean.has("event")) {
+				json.put("Trigger", jsonBean.get("event"));
+			}
 			setBeanData(beanEl, json.toString());
 		} catch (Exception e) {}
 	}
@@ -1262,11 +1271,17 @@ public class NgxConverter {
 	}
 
 	private static void makeProjectCopy(String projectsPath, String sourceProjectName, String targetProjectName) throws Exception {
+		// Copy project
 		File projectsDir = new File(projectsPath);
 		File sourceDir = new File(projectsDir, sourceProjectName);
 		File targetDir = new File(projectsDir, targetProjectName);
 		FileUtils.copyDirectory(sourceDir, targetDir);
 		
+		// Delete dirs
+		FileUtils.deleteQuietly(new File(targetDir, "_private"));
+		FileUtils.deleteQuietly(new File(targetDir, "DisplayObjects/mobile/build"));
+		
+		// Rename project
 		ProjectUtils.renameProjectFile(new File(targetDir, "c8oProject.yaml"), targetProjectName, false);
 	}
 		
