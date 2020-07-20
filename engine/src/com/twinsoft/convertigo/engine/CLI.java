@@ -72,8 +72,10 @@ public class CLI {
 	private synchronized void checkInit() throws EngineException {
 		if (Engine.bCliMode) {
 			return;
-		}
+		}		
 		Engine.bCliMode = true;
+		
+		Engine.startStopDate = System.currentTimeMillis();
 		
 		EnginePropertiesManager.initProperties();
 		Engine.logConvertigo = Logger.getLogger("cems");
@@ -278,6 +280,8 @@ public class CLI {
 			Engine.logConvertigo.warn("Failed to perform NodeJS build, no folder: " + ionicDir);
 			return;
 		}
+		boolean ngx = project.getMobileApplication().getApplicationComponent() instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+		
 		String nodeVersion = ProcessUtils.getNodeVersion(project);
 		Engine.logConvertigo.info("Requested nodeVersion: " + nodeVersion);
 		File nodeDir = ProcessUtils.getNodeDir(nodeVersion, new ProgressListener() {
@@ -288,7 +292,22 @@ public class CLI {
 			}
 		});
 		String nodePath = nodeDir.getAbsolutePath();
-		ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
+		
+		ProcessBuilder pb;
+		
+		if (ngx) {
+			File yarnFile = new File(ionicDir, "node_modules/.bin/yarn");
+			if (!yarnFile.exists()) {
+				Engine.logConvertigo.info("Installing Yarn...");
+				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "yarn");
+				pb.redirectErrorStream(true);
+				pb.directory(ionicDir);
+				pb.start().waitFor();
+			}
+			pb = ProcessUtils.getNpmProcessBuilder(yarnFile.getParent(), "yarn");
+		} else {
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");	
+		}
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
 		Process p = pb.start();
@@ -301,17 +320,17 @@ public class CLI {
 			}
 		}
 		int code = p.waitFor();
-		Engine.logConvertigo.info("npm install finished with exit: " + code);
+		Engine.logConvertigo.info((ngx ? "yarn" : "npm install") + " finished with exit: " + code);
 		
-		if (project.getMobileApplication().getApplicationComponent() instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+		if (ngx) {
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
+		} else {
 			if ("debug".equals(mode)) {
 				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--nobrowser");
 			} else {
 				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--aot", "--minifyjs", "--minifycss", "--release", "--nobrowser");
 //				pb = ProcessUtils.getNpmProcessBuilder(nodeDir.getAbsolutePath(), "npm", "run", MobileBuilderBuildMode.production.command(), "--nobrowser");
 			}
-		} else {
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
 		}
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);

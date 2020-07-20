@@ -111,14 +111,16 @@ public class GitUtils {
 	}
 	
 	private static boolean asRemote(Git git, String url) {
-		StoredConfig conf = git.getRepository().getConfig();
-		for (String name: git.getRepository().getRemoteNames()) {
-			String rUrl = conf.getString(ConfigConstants.CONFIG_REMOTE_SECTION, name, "url");
-			if (url.equals(rUrl)) {
-				return true;
+		try (Repository repo = git.getRepository()) {
+			StoredConfig conf = repo.getConfig();
+			for (String name: repo.getRemoteNames()) {
+				String rUrl = conf.getString(ConfigConstants.CONFIG_REMOTE_SECTION, name, "url");
+				if (url.equals(rUrl)) {
+					return true;
+				}
 			}
+			return false;
 		}
-		return false;
 	}
 	
 	public static File getGitContainer() {
@@ -154,6 +156,9 @@ public class GitUtils {
 			}
 		}).call()) {
 			Engine.logEngine.info("(ReferencedProjectManager) Clone done !");
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) clone " + url + " to " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
 		};
 	}
 
@@ -161,6 +166,9 @@ public class GitUtils {
 		try (Git git = Git.open(dir)) {
 			boolean pulled = git.pull().call().isSuccessful();
 			Engine.logEngine.info("(ReferencedProjectManager) Pull from " + dir + " is " + pulled);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) pull " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
 		}
 	}
 
@@ -168,6 +176,9 @@ public class GitUtils {
 		try (Git git = Git.open(dir)) {
 			git.reset().setMode(ResetType.HARD).call();
 			Engine.logEngine.info("(ReferencedProjectManager) Reset from " + dir);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) reset " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
 		}
 	}
 	
