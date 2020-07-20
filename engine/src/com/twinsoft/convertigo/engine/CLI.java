@@ -280,7 +280,8 @@ public class CLI {
 			Engine.logConvertigo.warn("Failed to perform NodeJS build, no folder: " + ionicDir);
 			return;
 		}
-		boolean ngx = project.getMobileApplication().getApplicationComponent() instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+		boolean b_ngx = project.getMobileApplication().getApplicationComponent() instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
+		boolean ngx = false;
 		
 		String nodeVersion = ProcessUtils.getNodeVersion(project);
 		Engine.logConvertigo.info("Requested nodeVersion: " + nodeVersion);
@@ -321,6 +322,8 @@ public class CLI {
 		}
 		int code = p.waitFor();
 		Engine.logConvertigo.info((ngx ? "yarn" : "npm install") + " finished with exit: " + code);
+		
+		ngx = b_ngx;
 		
 		if (ngx) {
 			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
