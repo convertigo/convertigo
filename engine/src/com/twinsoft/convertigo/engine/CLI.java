@@ -327,6 +327,20 @@ public class CLI {
 		
 		if (ngx) {
 			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
+			
+			String SERVER_C8O_URL = project.getMobileApplication().getComputedEndpoint();
+			if (SERVER_C8O_URL.isEmpty()) {
+				SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+			}
+			String baseHref = SERVER_C8O_URL.replaceFirst("(.*?//.*?/)", "/") + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
+			String deployUrl = SERVER_C8O_URL + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
+			
+			List<String> cmd = pb.command();
+			cmd.add("--");
+			cmd.add("--outputPath=./../../DisplayObjects/mobile/");
+			cmd.add("--baseHref=" + baseHref);
+			cmd.add("--deployUrl=" + deployUrl);
+			Engine.logConvertigo.info("running command: " + cmd.toString());
 		} else {
 			if ("debug".equals(mode)) {
 				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--nobrowser");
