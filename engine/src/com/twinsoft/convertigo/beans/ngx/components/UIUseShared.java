@@ -328,12 +328,17 @@ public class UIUseShared extends UIElement {
 						Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 					}
 					if (p != null) {
-						ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
-						for (UISharedComponent uisc: app.getSharedComponentList()) {
-							if (uisc.getQName().equals(qname)) {
-								target = uisc;
+						try {
+							ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+							for (UISharedComponent uisc: app.getSharedComponentList()) {
+								if (uisc.getQName().equals(qname)) {
+									target = uisc;
+								}
 							}
+						} catch (ClassCastException e) {
+							Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is not compatible !");
 						}
+						
 						if (target == null) {
 							Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is missing !");
 						}
