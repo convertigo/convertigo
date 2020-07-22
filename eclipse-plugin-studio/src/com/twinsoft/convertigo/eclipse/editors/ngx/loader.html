@@ -55,13 +55,31 @@ a {
 	color: white;
 	font-family: monospace;
 }
+
+/* ----------------------- */
+/* Progress bar / Canvas */
+/* ----------------------- */
+canvas {
+	border:0px solid #fff;
+	display: none;
+}
+/* .progressBloc { */
+/* 	position:relative; */
+/* 	width: 200px; */
+/* 	margin: 20% auto; */
+/* } */
+#progress {
+/* 	padding-top: 10px; */
+	width: 100px;
+	margin: auto;
+}
 </style>
 <script>
 function loader_log(msg) {
-	document.getElementById("l5").textContent = document.getElementById("l4").textContent;
-	document.getElementById("l4").textContent = document.getElementById("l3").textContent;
-	document.getElementById("l3").textContent = document.getElementById("l2").textContent;
-	document.getElementById("l2").textContent = document.getElementById("l1").textContent;
+// 	document.getElementById("l5").textContent = document.getElementById("l4").textContent;
+// 	document.getElementById("l4").textContent = document.getElementById("l3").textContent;
+// 	document.getElementById("l3").textContent = document.getElementById("l2").textContent;
+// 	document.getElementById("l2").textContent = document.getElementById("l1").textContent;
 	document.getElementById("l1").textContent = msg;
 }
 
@@ -99,6 +117,42 @@ function _c8o_doLoad(url) {
 		'<h1>Build terminated !</h1>' +
 		'<a href="' + url + '">Click here to launch with your external default browser</a>';
 }
+
+_init_doProgress = false;
+function doProgress(progress) {
+	var canvas = document.getElementById("progressGauge");
+	var context = canvas.getContext("2d");
+	if (!_init_doProgress) {
+		context.lineWidth = 15;
+		context.strokeStyle = "#333333";
+		
+		context.beginPath();
+		context.arc(50, 50, 40, 0, 2 * Math.PI, false);
+		context.stroke();
+		
+		context.strokeStyle = "#33b5e5";
+		_init_doProgress = true;
+	}
+	context.beginPath();
+	context.arc(50, 50, 40, 1.5 * Math.PI, (2 * progress / 100 + 1.5) * Math.PI, false);
+	context.stroke();
+	if (progress == 100) {
+		window.setTimeout(function() {
+			canvas.style["display"] = "none";	
+			document.getElementById("load").style["display"] = "block";
+			context.strokeStyle = "#333333";
+			
+			context.beginPath();
+			context.arc(50, 50, 40, 0, 2 * Math.PI, false);
+			context.stroke();
+			
+			context.strokeStyle = "#33b5e5";
+		}, 1500);
+	} else {
+		canvas.style["display"] = "block";
+		document.getElementById("load").style["display"] = "none";
+	}
+}
 </script>
 </head>
 <body>
@@ -110,6 +164,10 @@ function _c8o_doLoad(url) {
 		</div>
 		<div id="load">
 			<img src="data:image/gif;base64,R0lGODlhKwALAPEAAP///zSY25vM7DSY2yH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAKwALAAACMoSOCMuW2diD88UKG95W88uF4DaGWFmhZid93pq+pwxnLUnXh8ou+sSz+T64oCAyTBUAACH5BAkKAAAALAAAAAArAAsAAAI9xI4IyyAPYWOxmoTHrHzzmGHe94xkmJifyqFKQ0pwLLgHa82xrekkDrIBZRQab1jyfY7KTtPimixiUsevAAAh+QQJCgAAACwAAAAAKwALAAACPYSOCMswD2FjqZpqW9xv4g8KE7d54XmMpNSgqLoOpgvC60xjNonnyc7p+VKamKw1zDCMR8rp8pksYlKorgAAIfkECQoAAAAsAAAAACsACwAAAkCEjgjLltnYmJS6Bxt+sfq5ZUyoNJ9HHlEqdCfFrqn7DrE2m7Wdj/2y45FkQ13t5itKdshFExC8YCLOEBX6AhQAADsAAAAAAAAAAAA="/>
+		</div>
+		<br />
+		<div id="progress">
+			<canvas id="progressGauge" width="100" height="100"></canvas>
 		</div>
 		<br />
 		<div id="logs">

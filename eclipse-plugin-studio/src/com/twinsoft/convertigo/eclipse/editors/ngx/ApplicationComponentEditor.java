@@ -40,6 +40,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
@@ -118,7 +119,6 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -228,7 +228,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	
 	private DeviceOS deviceOS = DeviceOS.android;
 	private ZoomFactor zoomFactor = ZoomFactor.z100;
-	private MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.debugplus;
 	private boolean headlessBuild = false;
 	private boolean prodBuild = false;
 	private int buildCount = 0;
@@ -245,6 +244,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private int portLogger;
 	
 	public ApplicationComponentBrowserImpl browserInterface;
+	
+	private Project project;
+	private File ionicDir;
+	private File nodeModules;
+	private File nodeDir;
 	
 	public ApplicationComponentEditor() {
 		try {
@@ -298,7 +302,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			p.destroy();
 		}
 		
-		terminateNode();
+		terminateNode(false);
 		synchronized (usedPort) {
 			usedPort.remove(portNode);
 			usedPort.remove(portReload);
@@ -330,7 +334,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		devicePref = new File(Engine.USER_WORKSPACE_PATH, "studio/device-" + project.getName() + ".json");
 		
 		setPartName(project.getName() + " [A: " + application.getName() + "]");
-		terminateNode();
+		terminateNode(false);
 	}
 
 	@Override
@@ -361,7 +365,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		JSONObject device = null;
 		try {
 			device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
-			buildMode = MobileBuilderBuildMode.get(device.getString("buildMode"));
 			headlessBuild = device.getBoolean("headlessBuild");
 			prodBuild = device.getBoolean("prodBuild");
 		} catch (Exception e) { }
@@ -848,6 +851,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} catch (Exception ex) {
 					// TODO: handle exception
 				}
+				handleProdBuild();
 			}
 		});
 		item.setSelection(prodBuild);
@@ -1198,6 +1202,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 	}
 	
+	private void progress(int progress) {
+		C8oBrowser.run(() -> {
+			if (c8oBrowser.getURL().equals("about:blank")) {
+				try {
+					c8oBrowser.executeFunctionAndReturnValue("doProgress", progress);
+				} catch (Exception e) {
+					// silently ignore
+				}
+			}
+		});
+	}
+	
 	private void toast(String msg) {
 		Engine.logStudio.info("[Toast] " + msg);
 		C8oBrowser.run(() -> {
@@ -1210,7 +1226,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 	
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
-		final MobileBuilderBuildMode buildMode = this.buildMode;
 		final int buildCount = ++this.buildCount;
 		final boolean isDark = SwtUtils.isDark();
 
@@ -1253,12 +1268,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				throw new RuntimeException(e1);
 			}
 			
-			Project project = applicationEditorInput.application.getProject();
-			File ionicDir = new File(project.getDirPath(), "_private/ionic");
-			File nodeModules = new File(ionicDir, "node_modules");
+			project = applicationEditorInput.application.getProject();
+			ionicDir = new File(project.getDirPath(), "_private/ionic");
+			nodeModules = new File(ionicDir, "node_modules");
 			
 			String nodeVersion = ProcessUtils.getNodeVersion(project);
-			File nodeDir = ProcessUtils.getDefaultNodeDir();
+			nodeDir = ProcessUtils.getDefaultNodeDir();
 			try {
 				nodeDir = ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
 					appendOutput("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
@@ -1274,7 +1289,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			
 			String path = nodeDir.getAbsolutePath();
 			
-			terminateNode();
+			terminateNode(false);
 			
 			MobileBuilder mb = project.getMobileBuilder();
 			
@@ -1341,17 +1356,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 			mb.setNeedPkgUpdate(false);
-			build(path, buildMode, buildCount, mb);
+			build(path, buildCount, mb);
 		});
 	}
 
-	private void build(final String path, final MobileBuilderBuildMode buildMode, final int buildCount, final MobileBuilder mb) {
-		Project project = applicationEditorInput.application.getProject();
-		File ionicDir = new File(project.getDirPath(), "_private/ionic");
-		
+	private void build(final String path, final int buildCount, final MobileBuilder mb) {	
 		Object mutex = new Object();
 		mb.setBuildMutex(mutex);
-		//mb.setAppBuildMode(buildMode);
 		try {
 			ConvertigoPlugin.getDefault().getProjectPluginResource(project.getName()).refreshLocal(IResource.DEPTH_INFINITE, null);
 		} catch (CoreException ce) {}
@@ -1361,29 +1372,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
 			displayObjectsMobile.mkdirs();
 			
-			appendOutput("removing previous build directory");
-			for (File f: displayObjectsMobile.listFiles()) {
-				if (!f.getName().equals("assets")) {
-					com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(f);
-				}
-			}
-			appendOutput("previous build directory removed");
 			this.applicationEditorInput.application.checkFolder();
 			
-//				try {
-//					File watchJS = new File(project.getDirPath(), "_private/ionic/node_modules/@ionic/app-scripts/dist/watch.js");
-//					if (watchJS.exists()) {
-//						int ms = ConvertigoPlugin.getMobileBuilderThreshold();
-//						String txt = FileUtils.readFileToString(watchJS, "UTF-8");
-//						String ntxt = txt.replaceAll("var BUILD_UPDATE_DEBOUNCE_MS = \\d+;", "var BUILD_UPDATE_DEBOUNCE_MS = " + ms + ";");
-//						if (!txt.equals(ntxt)); {
-//							FileUtils.writeStringToFile(watchJS, ntxt, "UTF-8");
-//						}
-//					}
-//				} catch (Exception e) {
-//					Engine.logStudio.warn("Failed to update DEBOUNCE", e);
-//				}
-//				
 			File assets = new File(displayObjectsMobile, "assets");
 			if (assets.exists() && assets.isDirectory()) {
 				appendOutput("Handle application assets");
@@ -1414,49 +1404,21 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			} catch (Exception e) {
 				Engine.logStudio.warn("Failed to update CAF router", e);
 			}
+			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
 			
-//				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder("", "npm", "run", buildMode.command(), "--nobrowser");
-//				if (!MobileBuilderBuildMode.production.equals(buildMode)) {
-//					List<String> cmd = pb.command();
-//					synchronized (usedPort) {
-//						cmd.add("--port");
-//						cmd.add("" + (portNode = NetworkUtils.nextAvailable(8100, usedPort)));
-//						cmd.add("--livereload-port");
-//						cmd.add("" + (portReload = NetworkUtils.nextAvailable(35729, usedPort)));
-//						cmd.add("--dev-logger-port");
-//						cmd.add("" + (portLogger = NetworkUtils.nextAvailable(53703, usedPort)));
-//					}
-//				}
-			
-			// "ionic:build": "ng build app",
-			// "ionic:build:prod": "ng build app --prod=true",
-			// "ionic:serve:eval": "ng serve app --sourceMap=false --optimization=true",
-			// "ionic:serve:nosourcemap": "ng serve app --sourceMap=false",
-			// "ionic:serve": "ng serve app --sourceMap=true"
-			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
-			if (MobileBuilderBuildMode.production.equals(buildMode)) {
-				String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-				String baseHref = SERVER_C8O_URL.substring(SERVER_C8O_URL.lastIndexOf("/")) + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
-				String deployUrl = SERVER_C8O_URL + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
-				
-				List<String> cmd = pb.command();
+			List<String> cmd = pb.command();
+			synchronized (usedPort) {
 				cmd.add("--");
-				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
-				cmd.add("--baseHref="+ baseHref);
-				cmd.add("--deployUrl="+ deployUrl);
-			} else {
-				List<String> cmd = pb.command();
-				synchronized (usedPort) {
-					cmd.add("--");
-					cmd.add("--port="+ NetworkUtils.nextAvailable(8100, usedPort));
-					//cmd.add("--poll="+ ConvertigoPlugin.getMobileBuilderThreshold());
-				}
+				cmd.add("--port="+ NetworkUtils.nextAvailable(8100, usedPort));
 			}
 			
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
 			Process p = pb.start();
 			processes.add(p);
+			
+
+			Matcher matcher = Pattern.compile(" (\\d+)% (.*)").matcher("");
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
 			
@@ -1464,25 +1426,20 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				line = pRemoveEchap.matcher(line).replaceAll("");
 				if (StringUtils.isNotBlank(line)) {
 					Engine.logStudio.info(line);
-					appendOutput(line);
+					matcher.reset(line);
+					if (matcher.find()) {
+						progress(Integer.parseInt(matcher.group(1)));
+						appendOutput(matcher.group(2));
+					} else {
+						appendOutput(line);
+					}
 					if (line.matches(".*Compiled .*successfully.*")) {
 						synchronized (mutex) {
 							mutex.notify();
 						}
 						mb.buildFinished();
 					}
-//						Matcher m = pIsServerRunning.matcher(line);
-//						if (m.matches()) {
-//							JSONObject envJSON = new JSONObject();
-//							envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
-//							FileUtils.write(new File(displayObjectsMobile, "env.json"), envJSON.toString(4), "UTF-8");
-//							baseUrl = m.group(1);
-//							synchronized (mutex) {
-//								mutex.notify();
-//							}
-//							mb.buildFinished();
-//							doLoad();
-//						}
+					
 					Matcher m = pIsBrowserOpenable.matcher(line);
 					if (m.matches()) {
 						JSONObject envJSON = new JSONObject();
@@ -1495,15 +1452,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 			}
 			
-			if (buildCount == this.buildCount) {
-				if (MobileBuilderBuildMode.production.equals(buildMode)) {
-					String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-					baseUrl = SERVER_C8O_URL + "/projects/"	+ project.getName() + "/DisplayObjects/mobile";
-					doLoad();
-					
-					toast("Application in production mode");
-				}
-				
+			if (buildCount == this.buildCount) {				
 				appendOutput("\\o/");
 			} else {
 				appendOutput("previous build canceled !");
@@ -1712,14 +1661,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 	}
 	
-	private void terminateNode() {
+	private void terminateNode(boolean prodOnly) {
 		String projectName = new File(applicationEditorInput.application.getProject().getDirPath()).getName();
 		int retry = 10;
 		try {
 			while (retry-- > 0) {
 				if (Engine.isWindows()) {
+					String prod = prodOnly ? " AND CommandLine Like '%--watch%'" : "";
 					Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
-						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'",
+						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'" + prod,
 						"CALL", "TERMINATE").start();
 					String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
@@ -1729,8 +1679,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				} else {
 					//ps -e | sed -n -E "s/ ([0-9]+).*Fli.*/\1/p" | xargs kill
+					String prod = prodOnly ? " | grep \"--watch\"" : "";
 					Process process = new ProcessBuilder("/bin/bash", "-c",
-						"ps -e | grep -v \"sed -n\" | sed -n -E \"s, ([0-9]+).*node.*/"+ projectName + "/_private/.*,\\1,p\" | xargs kill"
+						"ps -e | grep -v \"sed -n\"" + prod + " | sed -n -E \"s, ([0-9]+).*node.*/"+ projectName + "/_private/.*,\\1,p\" | xargs kill"
 					).start();
 					int code = process.waitFor();
 					if (code == 0) {
@@ -1757,5 +1708,97 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 			}
 		);
+	}
+	
+	Job prodJob = null;
+	private void handleProdBuild() {
+		terminateNode(true);
+		if (prodJob != null) {
+			prodJob.cancel();
+			prodJob = null;
+		}
+		if (!prodBuild) {
+			return;
+		}
+		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
+		prodJob = Job.create("Production build for " + appName, monitor -> {
+			try {
+				Engine.logStudio.debug("Production build requested for " + appName);
+				monitor.beginTask("Removing previous build directory", 5);
+				monitor.worked(1);
+				
+				File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
+				displayObjectsMobile.mkdirs();
+
+				monitor.worked(1);
+				for (File f: displayObjectsMobile.listFiles()) {
+					if (!f.getName().equals("assets")) {
+						com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(f);
+					}
+				}
+				monitor.worked(3);
+				monitor.beginTask("Launching the production build", 200);
+				
+				String path = nodeDir.getAbsolutePath();
+				
+				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:build:prod");
+				
+				String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+				String baseHref = SERVER_C8O_URL.substring(SERVER_C8O_URL.lastIndexOf("/")) + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
+				String deployUrl = SERVER_C8O_URL + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
+				
+				List<String> cmd = pb.command();
+				cmd.add("--");
+				cmd.add("--progress=true");
+				cmd.add("--watch=true");
+				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
+				cmd.add("--baseHref=" + baseHref);
+				cmd.add("--deployUrl=" + deployUrl);
+
+
+				pb.redirectErrorStream(true);
+				pb.directory(ionicDir);
+				Process p = pb.start();
+				processes.add(p);
+				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				String line;
+				
+				Matcher matcher = Pattern.compile(" (\\d+)% (.*)").matcher("");
+				int lastProgress = 0;
+				
+				while ((line = br.readLine()) != null) {
+					line = pRemoveEchap.matcher(line).replaceAll("");
+					if (StringUtils.isNotBlank(line)) {
+						matcher.reset(line);
+						if (matcher.find()) {
+							if (lastProgress == 0) {
+								monitor.beginTask("Webpack in progress", 200);
+							}
+							int progress = Integer.parseInt(matcher.group(1));
+							int diff = progress - lastProgress;
+							lastProgress = progress;
+							monitor.subTask(matcher.group(2));
+							monitor.worked(diff);
+							if (progress == 100) {
+								lastProgress = 0;
+								monitor.beginTask("Build almost finish", 200);
+							}
+						} else {
+							monitor.worked(1);
+						}
+						Engine.logStudio.trace(line);
+						if (line.contains("- Hash:")) {
+							Engine.logStudio.debug("Production build finished for " + appName);
+							monitor.beginTask("Build finished, waiting for changes", 200);
+						}
+					}
+				}
+				monitor.done();
+				terminateNode(true);
+			} catch (Exception e) {
+				Engine.logStudio.error("Failed to init NPM: " + e.getMessage(), e);
+			}
+		});
+		prodJob.schedule();
 	}
 }
