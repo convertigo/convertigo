@@ -332,6 +332,12 @@ public class NgxConverter {
 	private static void handleIcon(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
+			if (jsonBean.has("IconName")) {
+				String name = jsonBean.getString("IconName");
+				if (name.equals("plain:more")) {
+					jsonBean.put("IconName", "plain:ellipsis-vertical-outline");
+				}
+			}
 			jsonBean.remove("IonColor");
 			jsonBean.remove("RangeLeft");
 			jsonBean.remove("RangeRight");
@@ -612,6 +618,8 @@ public class NgxConverter {
 			jsonBean.remove("progress");
 			setBeanData(beanEl, jsonBean.toString());
 		} catch (Exception e) {}
+		
+		setTagName(beanEl, "ion-progress-bar");
 	}
 
 	private static void handleRadioButton(Element beanEl) {
