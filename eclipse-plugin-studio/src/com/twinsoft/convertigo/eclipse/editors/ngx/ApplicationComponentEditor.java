@@ -119,6 +119,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -229,8 +230,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private DeviceOS deviceOS = DeviceOS.android;
 	private ZoomFactor zoomFactor = ZoomFactor.z100;
 	private boolean headlessBuild = false;
-	private boolean prodBuild = false;
+	private NgxBuilderBuildMode buildMode = null;
 	private int buildCount = 0;
+	private ToolItem buildItem;
 	
 	//private static Pattern pIsServerRunning = Pattern.compile(".*?server running: (http\\S*).*");
 	private static Pattern pIsBrowserOpenable = Pattern.compile(".*?open your browser on (http\\S*).*");
@@ -366,7 +368,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		try {
 			device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
 			headlessBuild = device.getBoolean("headlessBuild");
-			prodBuild = device.getBoolean("prodBuild");
 		} catch (Exception e) { }
 		
 		updateDevicesMenu();
@@ -837,24 +838,46 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 		item.setSelection(headlessBuild);
 		
-		item = new ToolItem(toolbar, SWT.CHECK);
-		item.setToolTipText("Prod build");
-		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/build_prod_p.png")));
+		final Menu mBuild = new Menu(toolbar);
+
+		for (NgxBuilderBuildMode mode: NgxBuilderBuildMode.values()) {
+			MenuItem menuItem = new MenuItem(mBuild, SWT.NONE);
+			menuItem.setText(mode.label());
+			menuItem.setToolTipText(mode.description());
+			menuItem.setData(mode);
+			menuItem.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream(mode.icon())));
+			menuItem.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					buildItem.setSelection(true);
+					buildMode = (NgxBuilderBuildMode) e.widget.getData();
+					handleProdBuild();
+				}
+				
+			});
+		}
+		
+		buildItem = item = new ToolItem(toolbar, SWT.CHECK);
+		item.setToolTipText("Build locally");
+		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/build_prod_b.png")));
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				prodBuild = ((ToolItem) e.widget).getSelection();
-				try {
-					JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
-					device.put("prodBuild", prodBuild);
-					FileUtils.write(devicePref, device.toString(4), "UTF-8");
-				} catch (Exception ex) {
-					// TODO: handle exception
+				boolean selected = ((ToolItem) e.widget).getSelection();
+				if (!selected) {
+					buildMode = null;
+					handleProdBuild();
+				} else {
+					ToolItem item = (ToolItem) e.widget;
+					Rectangle rect = item.getBounds(); 
+					Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+					mBuild.setLocation(pt);
+					mBuild.setVisible(true);
+					buildItem.setSelection(false);
 				}
-				handleProdBuild();
 			}
 		});
-		item.setSelection(prodBuild);
 		
 		new ToolItem(toolbar, SWT.SEPARATOR);
 		
@@ -1133,38 +1156,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}			
 		}
 	}
-	
-//	private void dialogBuild(ToolItem buildModeItem, MenuItem menuItem) {
-//		MobileBuilderBuildMode newBuildMode = (MobileBuilderBuildMode) menuItem.getData();
-//		if (dialogBuild(newBuildMode)) {
-//			buildModeItem.setImage(menuItem.getImage());
-//			buildModeItem.setToolTipText("Rebuild in: " + buildMode.label() + "\n" + buildMode.description());
-//			try {
-//				JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
-//				device.put("buildMode", buildMode.name());
-//				FileUtils.write(devicePref, device.toString(4), "UTF-8");
-//			} catch (Exception ex) {
-//				Engine.logStudio.debug("Cannot save build mode", ex);
-//			}	
-//		}
-//	}
-	
-//	private boolean dialogBuild(MobileBuilderBuildMode buildMode) {
-//		MessageDialog dialog = new MessageDialog(
-//			null, "Build '" + buildMode.label() + "'",
-//			null, "This action will build your application for '" + buildMode.label() + "':\n" + buildMode.description(),
-//			MessageDialog.QUESTION,
-//			new String[] {"Build", "Cancel"}, 0
-//		);
-//		int result = dialog.open();
-//		if (result == 0) {
-//			this.buildMode = buildMode;
-//			launchBuilder(false, false);
-//			return true;
-//		}
-//		return false;
-//	}
-	
+		
 	private void updateBrowserSize() {
 		int width = NumberUtils.toInt(deviceWidth.getText(), -1);
 		int height = NumberUtils.toInt(deviceHeight.getText(), -1);
@@ -1429,7 +1421,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					matcher.reset(line);
 					if (matcher.find()) {
 						progress(Integer.parseInt(matcher.group(1)));
-						appendOutput(matcher.group(2));
+						appendOutput(matcher.group(2).replaceFirst("(active).*", "$1"));
 					} else {
 						appendOutput(line);
 					}
@@ -1717,13 +1709,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			prodJob.cancel();
 			prodJob = null;
 		}
-		if (!prodBuild) {
+		if (buildMode == null) {
 			return;
 		}
 		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
-		prodJob = Job.create("Production build for " + appName, monitor -> {
+		prodJob = Job.create("Build in " + buildMode.label() + " mode for " + appName, monitor -> {
 			try {
-				Engine.logStudio.debug("Production build requested for " + appName);
+				Engine.logStudio.debug("Build in " + buildMode.label() + " mode requested for " + appName);
 				monitor.beginTask("Removing previous build directory", 5);
 				monitor.worked(1);
 				
@@ -1737,11 +1729,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				}
 				monitor.worked(3);
-				monitor.beginTask("Launching the production build", 200);
+				monitor.beginTask("Launching the " + buildMode.label() + " build", 200);
 				
 				String path = nodeDir.getAbsolutePath();
 				
-				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:build:prod");
+				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
 				
 				String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 				String baseHref = SERVER_C8O_URL.substring(SERVER_C8O_URL.lastIndexOf("/")) + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
@@ -1750,7 +1742,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				List<String> cmd = pb.command();
 				cmd.add("--");
 				cmd.add("--progress=true");
-				cmd.add("--watch=true");
+				cmd.add("--watch=" + (buildMode == NgxBuilderBuildMode.watch));
 				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
 				cmd.add("--baseHref=" + baseHref);
 				cmd.add("--deployUrl=" + deployUrl);
@@ -1788,15 +1780,22 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 						Engine.logStudio.trace(line);
 						if (line.contains("- Hash:")) {
-							Engine.logStudio.debug("Production build finished for " + appName);
-							monitor.beginTask("Build finished, waiting for changes", 200);
+							Engine.logStudio.debug("Build " + buildMode.label() + " finished for " + appName);
+							if (buildMode == NgxBuilderBuildMode.watch) {
+								monitor.beginTask("Build finished, waiting for changes or build cancel", 200);
+							}
 						}
 					}
 				}
+				buildItem.getDisplay().asyncExec(() -> {
+					if (!buildItem.isDisposed()) {
+						buildItem.setSelection(false);
+					}					
+				});
 				monitor.done();
 				terminateNode(true);
 			} catch (Exception e) {
-				Engine.logStudio.error("Failed to init NPM: " + e.getMessage(), e);
+				Engine.logStudio.error("Failed to process the build: " + e.getMessage(), e);
 			}
 		});
 		prodJob.schedule();
