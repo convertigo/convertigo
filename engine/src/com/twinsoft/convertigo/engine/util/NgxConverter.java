@@ -672,7 +672,7 @@ public class NgxConverter {
 			if (jsonBean.has("Debounce")) {
 				String value = jsonBean.getString("Debounce");
 				if (value.equals("plain:false")) {
-					jsonBean.put("Value", "plain:0");
+					jsonBean.put("Debounce", "plain:0");
 				}
 			}
 			if (jsonBean.has("Max")) {

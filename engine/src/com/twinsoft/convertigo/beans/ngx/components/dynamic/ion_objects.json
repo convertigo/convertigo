@@ -12507,7 +12507,7 @@
           ]
         },
         "Value": {
-          "attr": "Value",
+          "attr": "value",
           "label": "Default value",
           "description": "The default range value.",
           "category": "@Properties",
