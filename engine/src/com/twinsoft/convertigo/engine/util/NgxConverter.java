@@ -753,6 +753,10 @@ public class NgxConverter {
 	private static void handleSegment(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
+			if (jsonBean.has("Name")) {
+				String value = jsonBean.getString("Name");
+				jsonBean.put("Value", value);
+			}
 			jsonBean.remove("Name");
 			jsonBean.remove("IonColor");
 			setBeanData(beanEl, jsonBean.toString());
@@ -1199,7 +1203,7 @@ public class NgxConverter {
 					else if ("ResetButton".equalsIgnoreCase(ionBeanName) || "SubmitButton".equalsIgnoreCase(ionBeanName)) {
 						handleFormButton(beanEl);
 					}
-					else if (ionBeanName.startsWith("Segment")) {
+					else if (ionBeanName.startsWith("Segment") || ionBeanName.startsWith("SegmentButton")) {
 						handleSegment(beanEl);
 					}
 					else if ("Select".equalsIgnoreCase(ionBeanName)) {
