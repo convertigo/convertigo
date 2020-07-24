@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -275,6 +276,7 @@ public class XmlSchemaUtils {
 			int maxDepth = getDomMaxDepth();	// max depth from root
 			int maxCpt = getDomMaxDepth(); 		// max number of child per parent
 			
+			LinkedList<XmlSchemaElement> chain = new LinkedList<>();
 			int depth = 0;
 			int cpt = 0;
 			
@@ -299,16 +301,20 @@ public class XmlSchemaUtils {
 						parent = xElement; 	// set new parent
 						depth = depth + 1; 	// increase depth by one
 						cpt = 0;			// reset number of child
-						if (_depth < maxDepth) {
+						if (_depth < maxDepth && chain.stream().allMatch(o -> o != obj)) {
+							chain.add(obj);
 							super.walkElement(xmlSchema, obj);
+							chain.removeLast();
 						}
 						_cpt++; // increase parent number of child by one
 					}
 					cpt = _cpt; // set back number of child
 				} else {
-					if (_cpt < maxCpt) {
+					if (_cpt < maxCpt && chain.stream().allMatch(o -> o != obj)) {
 						if (_depth < maxDepth) {
+							chain.add(obj);
 							super.walkElement(xmlSchema, obj);
+							chain.removeLast();
 						}
 					}
 				}
