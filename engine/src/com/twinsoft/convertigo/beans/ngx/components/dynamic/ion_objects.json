@@ -13964,7 +13964,7 @@
 "It allows you to perform a given task when the user scrolls a specified distance from the bottom or top of the page.<br/>",
 "To do so, add the <b>ionInfinite</b> <i>Event</i> to your <i>InfiniteScroll</i> with a <i>CustomAction</i> inside.<br/>",
 "Copy/paste below code in your action and add yours.<br/>",
-"<code><pre>//disable scroll\nevent.target.disabled = true;\n\nlet isOK = true;\n//TODO: add your code\n//get next items and push them\n//...\nif (isOK) {\n\t//enable scroll\n\tevent.target.disabled = false;\n}\n\n//specify loading is complete\nevent.complete();\nresolve();\n</pre></code><br/>",
+"<code><pre>//disable scroll\nevent.target.disabled = true;\n\nlet isOK = true;\n//TODO: add your code\n//get next items and push them\n//...\nif (isOK) {\n\t//enable scroll\n\tevent.target.disabled = false;\n}\n\n//specify loading is complete\nevent.target.complete();\nresolve();\n</pre></code><br/>",
 "For more information: <a href='https://ionicframework.com/docs/v3/api/components/infinite-scroll/InfiniteScroll/'>InfiniteScroll</a>."],
       "group": "Lists",
       "icon16": "infinitescroll_color_16x16.png",
