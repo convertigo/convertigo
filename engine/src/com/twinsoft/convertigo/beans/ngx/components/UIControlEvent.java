@@ -201,10 +201,10 @@ public class UIControlEvent extends UIControlAttr implements IControl {
 	@Override
 	public String getAttrValue() {
 		String attrValue = super.getAttrValue();
-		String attrName = getAttrName();
-		if ("(ionInfinite)".equals(attrName)) {
-			attrValue = "$event.waitFor("+ attrValue + ")";
-		}
+//		String attrName = getAttrName();
+//		if ("(ionInfinite)".equals(attrName)) {
+//			attrValue = "$event.waitFor("+ attrValue + ")";
+//		}
 		return attrValue;
 	}
 
