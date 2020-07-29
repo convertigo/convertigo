@@ -1712,6 +1712,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		if (buildMode == null) {
 			return;
 		}
+		NgxBuilderBuildMode buildMode = this.buildMode;
+		
 		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
 		prodJob = Job.create("Build in " + buildMode.label() + " mode for " + appName, monitor -> {
 			try {
