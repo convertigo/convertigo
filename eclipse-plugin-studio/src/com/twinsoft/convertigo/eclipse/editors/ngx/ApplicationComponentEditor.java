@@ -1313,7 +1313,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						p.waitFor();
 					}
 					
-					pb = ProcessUtils.getNpmProcessBuilder(ionicDir.toString() + "/node_modules/.bin/", "yarn");
+					pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "yarn");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					p = pb.start();
