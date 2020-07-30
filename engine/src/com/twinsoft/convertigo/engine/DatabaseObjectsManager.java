@@ -1988,6 +1988,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public DatabaseObject getDatabaseObjectByQName(String qname) throws Exception {
+		qname = qname.replaceFirst("\\.\\w+?:$", "");
 		String[] name = qname.split("\\.");
 		String project = name[0];
 		DatabaseObject dbo = getOriginalProjectByName(project);

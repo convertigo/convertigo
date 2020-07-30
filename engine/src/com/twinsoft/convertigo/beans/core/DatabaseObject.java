@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
@@ -82,6 +83,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  */
 public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
+	private static final Pattern pIntSuffix = Pattern.compile("\\d+$");
 	protected final Object mutex = new Object();
 
 	@Retention(RetentionPolicy.RUNTIME)
@@ -427,10 +429,45 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					+ getClass().getSimpleName() + ")");
 		}
 
+		if (parent != null) {
+			FolderType fd = getFolderType();
+			try {
+				new WalkHelper() {
+
+					@Override
+					protected void walk(DatabaseObject databaseObject) throws Exception {
+						if (DatabaseObject.this.parent == databaseObject) {
+							super.walk(databaseObject);
+						} else if (DatabaseObject.this != databaseObject && fd.equals(databaseObject.getFolderType()) && name.equals(databaseObject.getName())) {
+							throw new ObjectWithSameNameException("Unable to add the object \""
+									+ name
+									+ "\" because an object with the same name already exists.");
+						}
+					}
+					
+				}.init(parent);
+			} catch (ObjectWithSameNameException e) {
+				throw e;
+			} catch (Exception e) {
+				// should not occurs
+			}
+		}
+		
 		// set new name and new computed file name
 		setBeanName(name);
 	}
-
+	
+	public static String incrementName(String name) {
+		Matcher m = pIntSuffix.matcher(name);
+		if (m.find()) {
+			int inc = Integer.parseInt(m.group()) + 1;
+			name = m.replaceFirst(Integer.toString(inc));
+		} else {
+			name += "1";
+		}
+		return name;
+	}
+	
 	/**
 	 * Returns an available name for a new child database object to add.
 	 * 
@@ -442,14 +479,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 */
 	public String getChildBeanName(Collection<? extends DatabaseObject> v, String dboName, boolean isNew) {
 		String newDatabaseObjectName = dboName;
-		boolean bContinue = isNew;
-		int index = 0;
+		boolean bContinue = isNew || true;
 		while (bContinue) {
-			if (index == 0) {
-				newDatabaseObjectName = dboName;
-			} else {
-				newDatabaseObjectName = dboName + index;
-			}
 			try {
 				for (DatabaseObject databaseObject : v) {
 					if (newDatabaseObjectName.equals(databaseObject.getName())) {
@@ -460,7 +491,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				}
 				bContinue = false;
 			} catch (ObjectWithSameNameException e) {
-				index++;
+				newDatabaseObjectName = incrementName(newDatabaseObjectName);
 			}
 		}
 		return newDatabaseObjectName;
