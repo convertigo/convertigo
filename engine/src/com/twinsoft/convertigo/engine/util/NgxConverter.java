@@ -1039,6 +1039,15 @@ public class NgxConverter {
 		} catch (Exception e) {}
 	}
 	
+	private static void handleScroll(Element beanEl) {
+		JSONObject jsonBean = getJsonBean(beanEl);
+		try {
+			jsonBean.put("ionBean", "DivTag");
+			setBeanData(beanEl, jsonBean.toString());
+		} catch (Exception e) {}
+		setTagName(beanEl, "div");
+	}
+
 	private static void handleAlertAction(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
@@ -1229,6 +1238,9 @@ public class NgxConverter {
 					}
 					else if ("Tooltips".equalsIgnoreCase(ionBeanName)) {
 						handleTooltips(beanEl);
+					}
+					else if ("Scroll".equalsIgnoreCase(ionBeanName)) {
+						handleScroll(beanEl);
 					}
 					else if ("AlertAction".equalsIgnoreCase(ionBeanName)) {
 						handleAlertAction(beanEl);
