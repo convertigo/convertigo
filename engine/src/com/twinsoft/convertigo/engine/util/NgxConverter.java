@@ -3,6 +3,8 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -278,9 +280,10 @@ public class NgxConverter {
 	}
 	
 	private static void handleButton(Element beanEl) {
-		boolean isMenuButton = false;
-
 		JSONObject jsonBean = getJsonBean(beanEl);
+		
+		// standard buttons
+		boolean isMenuButton = false;
 		try {
 			isMenuButton = jsonBean.has("MenuMode") ? jsonBean.get("MenuMode").equals("plain:menuToggle") : false;
 			if (isMenuButton) {
@@ -289,8 +292,18 @@ public class NgxConverter {
 			}
 			setBeanData(beanEl, jsonBean.toString());
 		} catch (Exception e) {}
-		
 		setTagName(beanEl, isMenuButton ? "ion-menu-button" : "ion-button");
+		
+		// sliding button
+		Element parentEl = (Element) beanEl.getParentNode();
+		if (parentEl != null && "ion-item-options".equals(getTagName(parentEl))) {
+			try {
+				jsonBean.put("ionBean", "SlidingButton");
+				setBeanData(beanEl, jsonBean.toString());
+			} catch (Exception e) {}
+			setTagName(beanEl, "ion-item-option");
+		}
+		
 	}
 	
 	private static void handleMenuItems(Element beanEl) {
@@ -1048,6 +1061,32 @@ public class NgxConverter {
 		setTagName(beanEl, "div");
 	}
 
+	private static void handleSliding(Element beanEl) {
+		JSONObject jsonBean = getJsonBean(beanEl);
+		try {
+			jsonBean.put("ionBean", "SlidingContainer");
+			setBeanData(beanEl, jsonBean.toString());
+		} catch (Exception e) {}
+	}
+	
+	private static void handleSlidingOption(Element beanEl) {
+		JSONObject jsonBean = getJsonBean(beanEl);
+		try {
+			jsonBean.put("ionBean", "SlidingButtonSet");			
+			if (jsonBean.has("side")) {
+				String value = jsonBean.getString("side");
+				jsonBean.remove("side");
+				if (value.equals("plain:left")) {
+					jsonBean.put("Side", "plain:start");
+				}
+				if (value.equals("plain:right")) {
+					jsonBean.put("Side", "plain:end");
+				}
+			}
+			setBeanData(beanEl, jsonBean.toString());
+		} catch (Exception e) {}
+	}
+	
 	private static void handleAlertAction(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
@@ -1242,6 +1281,12 @@ public class NgxConverter {
 					else if ("Scroll".equalsIgnoreCase(ionBeanName)) {
 						handleScroll(beanEl);
 					}
+					else if ("Sliding".equalsIgnoreCase(ionBeanName)) {
+						handleSliding(beanEl);
+					}
+					else if ("SlidingOption".equalsIgnoreCase(ionBeanName)) {
+						handleSlidingOption(beanEl);
+					}
 					else if ("AlertAction".equalsIgnoreCase(ionBeanName)) {
 						handleAlertAction(beanEl);
 					}
@@ -1277,46 +1322,28 @@ public class NgxConverter {
 		File yaml = new File(outputDir, "c8oProject.yaml");
 		
 		Document document = YamlConverter.readYaml(yaml);
-		//System.out.println(XMLUtils.prettyPrintDOM(document));
-		
 		Element root = document.getDocumentElement();
 		root.getAttributeNode("convertigo").setTextContent("7.9.0.m006");
-		
 		convertBean(root);
-		//System.out.println(XMLUtils.prettyPrintDOM(document));
 		
 		document = BeansDefaultValues.unshrinkProject(document);
-		//System.out.println(XMLUtils.prettyPrintDOM(document));
-		
 		Document shrink = BeansDefaultValues.shrinkProject(document);
-		//System.out.println(XMLUtils.prettyPrintDOM(shrink));
-		
 		YamlConverter.writeYaml(shrink, new File(outputDir, "c8oProject.yaml"), new File(outputDir, "_c8oProject"));
 	}
 
-	private static void makeProjectCopy(String projectsPath, String sourceProjectName, String targetProjectName) throws Exception {
-		// Copy project
-		File projectsDir = new File(projectsPath);
-		File sourceDir = new File(projectsDir, sourceProjectName);
-		File targetDir = new File(projectsDir, targetProjectName);
-		FileUtils.copyDirectory(sourceDir, targetDir);
-		
-		// Delete dirs
-		FileUtils.deleteQuietly(new File(targetDir, "_private"));
-		FileUtils.deleteQuietly(new File(targetDir, "DisplayObjects/mobile/build"));
-		
-		// Rename project
-		ProjectUtils.renameProjectFile(new File(targetDir, "c8oProject.yaml"), targetProjectName, false);
+	private static String time() {
+		return new SimpleDateFormat("HH:mm:ss").format(new Date(System.currentTimeMillis()));
 	}
-		
+	
 	public static void main(String[] args) {
+		PrintStream stdout = System.out;
+		PrintStream stderr = System.err;
 		try {
 			if (args.length > 0) {
-				String projectsPath = args[0];
+				File projectsDir = new File(args[0]);
 				String sourceProjectName = args[1];
 				String targetProjectName = args[2];
 				
-				File projectsDir = new File(args[0]);
 				if (!projectsDir.exists() || !projectsDir.isDirectory()) {
 					System.err.println("Directory " + projectsDir.getCanonicalPath() + " doesn't exists nor a directory.");
 					return;
@@ -1328,25 +1355,42 @@ public class NgxConverter {
 					return;
 				}
 				
-				try {
-					makeProjectCopy(projectsPath, sourceProjectName, targetProjectName);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				
+				// Copy project
 				File outputDir = new File(projectsDir, targetProjectName);
+				System.out.println(time() + "\tCopying from \""+ inputDir.getAbsolutePath() + "\" to \""+ outputDir.getAbsolutePath() +"\"");
+				FileUtils.copyDirectory(inputDir, outputDir);
 				if (!outputDir.exists() || !outputDir.isDirectory()) {
 					System.err.println("Directory " + outputDir.getCanonicalPath() + " doesn't exists nor a directory.");
 					return;
 				}
 				
-				System.setOut(new PrintStream(new File(outputDir, "ngx-conversion-out.txt")));
-				System.setErr(new PrintStream(new File(outputDir, "ngx-conversion-errors.txt")));
+				// Delete dirs
+				System.out.println(time() + "\tDeleting _private, DisplayObjects/mobile/build");
+				FileUtils.deleteQuietly(new File(outputDir, "_private"));
+				FileUtils.deleteQuietly(new File(outputDir, "DisplayObjects/mobile/build"));
 				
+				// Rename project
+				System.out.println(time() + "\tRenaming project in target files");
+				ProjectUtils.renameProjectFile(new File(outputDir, "c8oProject.yaml"), targetProjectName, false);
+				
+				// Convert project
+				System.out.println(time() + "\tConverting project");
+				File out = new File(outputDir, "ngx-conversion-out.txt");
+				File err = new File(outputDir, "ngx-conversion-errors.txt");
+				System.setOut(new PrintStream(out));
+				System.setErr(new PrintStream(err));
 				NgxConverter ngxConverter = new NgxConverter(outputDir);
 				ngxConverter.convertFile();
+				
+				System.setOut(stdout);
+				System.setErr(stderr);
+				System.out.println(time() + "\tConversion ended");
+				System.out.println("See conversion results in following files:");
+				System.out.println(" - " + out.getAbsolutePath());
+				System.out.println(" - " + err.getAbsolutePath());
 			}
 		} catch (Throwable t) {
+			System.setErr(stderr);
 			t.printStackTrace();
 		}
 	}
