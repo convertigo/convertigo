@@ -83,7 +83,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		
 		String computeConstructor(String functionName) {
 			if (type.equals(AppEventType.ionicObservable)) {
-				return "\t\tplatform."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
+				return "\t\tthis.platform."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
 			}
 			if (type.equals(AppEventType.c8oObservable)) {
 				if (this.equals(onSessionLost)) {
@@ -110,7 +110,7 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 		
 		String computeDestructor() {
 			if (type.equals(AppEventType.ionicObservable)) {
-				return "\t\tthis.getInstance(Platform)."+ event +".unsubscribe();"+ System.lineSeparator();
+				return "\t\tthis.platform."+ event +".unsubscribe();"+ System.lineSeparator();
 			}
 			if (type.equals(AppEventType.c8oObservable)) {
 				return "\t\tthis.c8o."+ event +".unsubscribe();"+ System.lineSeparator();
