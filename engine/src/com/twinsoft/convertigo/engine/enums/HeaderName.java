@@ -80,6 +80,7 @@ public enum HeaderName {
 	XConvertigoException("X-Convertigo-Exception"),
 	XConvertigoFrontal("X-Convertigo-Frontal"),
 	XConvertigoHttpsState("X-Convertigo-Https-State"),
+	XConvertigoNoLog("X-Convertigo-No-Log"),
 	XConvertigoRequestURI("X-Convertigo-Request-URI"),
 	XConvertigoRequestHost("X-Convertigo-Request-Host"),
 	XConvertigoSDK("X-Convertigo-SDK"),
