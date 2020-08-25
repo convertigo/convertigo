@@ -107,8 +107,14 @@ public class SqlRequester {
 	}
 	
 	public synchronized void checkConnection() throws ClassNotFoundException, SQLException {
-		if (connection == null || connection.isClosed() || !connection.isValid(30)) {
-			open();
+		try {
+			if (connection == null || connection.isClosed() || !connection.isValid(30)) {
+				open();
+			}
+		} catch (AbstractMethodError ame) { // jtds unimplemented isValid method : see #374
+			if (connection == null || connection.isClosed()) {
+				open();
+			}
 		}
 	}
 	
