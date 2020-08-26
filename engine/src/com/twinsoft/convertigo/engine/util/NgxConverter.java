@@ -1364,7 +1364,7 @@ public class NgxConverter {
 				
 				File inputDir = new File(projectsDir, sourceProjectName);
 				if (!inputDir.exists() || !inputDir.isDirectory()) {
-					System.err.println("Directory " + inputDir.getCanonicalPath() + " doesn't exists nor a directory.");
+					System.err.println("Directory " + inputDir.getCanonicalPath() + " doesn't exists nor is a directory.");
 					return;
 				}
 				
@@ -1373,7 +1373,7 @@ public class NgxConverter {
 				System.out.println(time() + "\tCopying from \""+ inputDir.getAbsolutePath() + "\" to \""+ outputDir.getAbsolutePath() +"\"");
 				FileUtils.copyDirectory(inputDir, outputDir, new CustomDirectoryFilter());
 				if (!outputDir.exists() || !outputDir.isDirectory()) {
-					System.err.println("Directory " + outputDir.getCanonicalPath() + " doesn't exists nor a directory.");
+					System.err.println("Directory " + outputDir.getCanonicalPath() + " doesn't exists nor is a directory.");
 					return;
 				}
 				
