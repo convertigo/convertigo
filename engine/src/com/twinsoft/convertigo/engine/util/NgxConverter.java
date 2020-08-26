@@ -38,6 +38,7 @@ public class NgxConverter {
 	
 	File outputDir;
 	String tplScss;
+	String indent = "";
 	
 	private NgxConverter() {
 		
@@ -45,7 +46,6 @@ public class NgxConverter {
 
 	private NgxConverter(File outputDir) {
 		this.outputDir = outputDir;
-		
 		this.tplScss = getThemeTplScss();
 	}
 
@@ -137,7 +137,8 @@ public class NgxConverter {
 			Class.forName(classname);
 			return true;
 		} catch (Exception e) {
-			System.err.println("Unhandled bean : "+ yaml_key);
+			System.out.println(yaml_key.replaceAll("ngx\\.components", "mobile.components") + " : ERROR");
+			System.err.println("Unhandled bean : "+ yaml_key.replaceAll("ngx\\.components", "mobile.components"));
 			System.err.println(XMLUtils.prettyPrintElement(beanEl).replaceAll("ngx\\.components", "mobile.components"));
 			beanEl.getParentNode().removeChild(beanEl);
 		}
@@ -154,8 +155,9 @@ public class NgxConverter {
 			if (isPseudoBean(beanEl)) {
 				String ionBeanName = getIonBeanName(beanEl);
 				if (com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName(ionBeanName) == null) {
+					System.out.println(yaml_key.replaceAll("ngx\\.components", "mobile.components") + " : ERROR");
 					if (ionBeanName.endsWith("Action")) {
-						System.err.println("Unhandled pseudo-action (replaced by a ToastAction) : "+ yaml_key);
+						System.err.println("Unhandled pseudo-action (replaced by a ToastAction) : "+ yaml_key.replaceAll("ngx\\.components", "mobile.components"));
 						System.err.println(XMLUtils.prettyPrintElement(beanEl).replaceAll("ngx\\.components", "mobile.components"));
 						
 						// replace action by a toast action
@@ -172,7 +174,7 @@ public class NgxConverter {
 			}
 			return true;
 		} catch (Exception e) {
-			System.err.println("Unhandled pseudo-bean : "+ yaml_key);
+			System.err.println("Unhandled pseudo-bean : "+ yaml_key.replaceAll("ngx\\.components", "mobile.components"));
 			System.err.println(XMLUtils.prettyPrintElement(beanEl).replaceAll("ngx\\.components", "mobile.components"));
 			beanEl.getParentNode().removeChild(beanEl);
 		}
@@ -1184,6 +1186,8 @@ public class NgxConverter {
 			Element beanEl = (Element) node;
 			boolean isTextFormat = false;
 			
+			String _indent = indent;
+			
 			String yaml_key = beanEl.getAttribute("yaml_key");
 			if (yaml_key.indexOf("mobile.components") != -1) {
 				beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("mobile\\.components", "ngx.components"));
@@ -1318,12 +1322,17 @@ public class NgxConverter {
 					else if (!checkPseudoBean(beanEl)) {
 						continue;
 					}
+					
+					System.out.println(indent+ yaml_key + " : SUCCESS");
 				} else {
 					continue;
 				}
+				
+				indent += "\t";
 			}
 			
 			convertBean(beanEl);
+			indent =_indent;
 			
 			if (isTextFormat) {
 				handleTextFormat(beanEl);
