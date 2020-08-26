@@ -27,7 +27,6 @@ import java.lang.reflect.Constructor;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +46,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
-import org.apache.log4j.spi.Filter;
-import org.apache.log4j.spi.LoggingEvent;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -431,18 +427,6 @@ public class Engine {
 			// Logger for compatibility issues
 			Engine.log = new LogWrapper(Engine.logConvertigo);
 			LogWrapper.initWrapper(Engine.logEmulators);
-			
-			Filter filter = new Filter() {
-				
-				@Override
-				public int decide(LoggingEvent event) {
-					return event.getMDC("nolog") == Boolean.TRUE ? Filter.DENY : Filter.NEUTRAL;
-				}
-			};
-			Enumeration<Appender> appenders = GenericUtils.cast(Engine.logConvertigo.getAllAppenders());
-			while(appenders.hasMoreElements()) {
-				appenders.nextElement().addFilter(filter);
-			}
 			
 			LogCleaner.start();
 			

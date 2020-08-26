@@ -32,15 +32,20 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Appender;
 import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
+import org.apache.log4j.spi.Filter;
+import org.apache.log4j.spi.LoggingEvent;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
@@ -1021,18 +1026,36 @@ public class EnginePropertiesManager {
         return msg;
     }
 
+    private static final Filter filterLog4J = new Filter() {
+		
+		@Override
+		public int decide(LoggingEvent event) {
+			return event.getMDC("nolog") == Boolean.TRUE ? Filter.DENY : Filter.NEUTRAL;
+		}
+	};
+    
     public static void configureLog4J() {
 		Properties log4jProperties = new Properties();
 		for (PropertyName propertyName : PropertyName.values()) {
 			String sPropertyName = propertyName.toString();
-			if (sPropertyName.startsWith("log4j."))
+			if (sPropertyName.startsWith("log4j.")) {
 				log4jProperties.setProperty(sPropertyName, getProperty(propertyName));
+			}
 		}
 		
 		log4jProperties.put("log.directory", Engine.LOG_PATH);
 		
 		LogManager.resetConfiguration();
 	    PropertyConfigurator.configure(log4jProperties);
+	    
+	    Logger cems = Logger.getLogger("cems");
+		Enumeration<Appender> appenders = GenericUtils.cast(cems.getAllAppenders());
+		while(appenders.hasMoreElements()) {
+			Appender appender = appenders.nextElement();
+			if (appender.getFilter() == null) {
+				appender.addFilter(filterLog4J);
+			}
+		}
 	    
 	    if (Engine.logEngine != null) {
 	    	Engine.logEngine.debug(getPropertiesAsString("Log4J properties:", log4jProperties));
