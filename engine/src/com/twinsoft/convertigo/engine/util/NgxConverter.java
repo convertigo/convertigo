@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
@@ -18,6 +19,18 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+
+class CustomDirectoryFilter implements FileFilter {
+	@Override
+	public boolean accept(File file) {
+	    if (file.isDirectory()) {
+	    	if (file.getName().equals("_private") || file.getName().equals("build")) {
+	    		return false;
+	    	}
+	    }
+	    return true; 
+	}
+}
 
 public class NgxConverter {
 	private static final Pattern patternBeanName = Pattern.compile("(.*) \\[(.*?)(?:-(.*))?\\]");
@@ -1358,16 +1371,11 @@ public class NgxConverter {
 				// Copy project
 				File outputDir = new File(projectsDir, targetProjectName);
 				System.out.println(time() + "\tCopying from \""+ inputDir.getAbsolutePath() + "\" to \""+ outputDir.getAbsolutePath() +"\"");
-				FileUtils.copyDirectory(inputDir, outputDir);
+				FileUtils.copyDirectory(inputDir, outputDir, new CustomDirectoryFilter());
 				if (!outputDir.exists() || !outputDir.isDirectory()) {
 					System.err.println("Directory " + outputDir.getCanonicalPath() + " doesn't exists nor a directory.");
 					return;
 				}
-				
-				// Delete dirs
-				System.out.println(time() + "\tDeleting _private, DisplayObjects/mobile/build");
-				FileUtils.deleteQuietly(new File(outputDir, "_private"));
-				FileUtils.deleteQuietly(new File(outputDir, "DisplayObjects/mobile/build"));
 				
 				// Rename project
 				System.out.println(time() + "\tRenaming project in target files");
