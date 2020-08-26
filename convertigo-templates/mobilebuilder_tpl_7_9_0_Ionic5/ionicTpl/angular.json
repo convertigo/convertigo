@@ -39,6 +39,11 @@
                 "glob": "**/*.svg",
                 "input": "node_modules/ionicons/dist/ionicons/svg",
                 "output": "./svg"
+              },
+              {
+                "glob": "animate.min.css",
+                "input": "node_modules/animate.css",
+                "output": "assets/css"
               }
             ],
             "styles": [
