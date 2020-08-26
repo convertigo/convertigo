@@ -5272,5 +5272,52 @@
     }
    }
   }
+ },
+ "AnimateAction": {
+  "   7   9   0": {
+   "name": "AnimateAction",
+   "properties": {
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": false
+    },
+    "timingFunction": {
+     "name": "timingFunction",
+     "mode": "plain",
+     "value": false
+    },
+    "playState": {
+     "name": "playState",
+     "mode": "plain",
+     "value": false
+    },
+    "direction": {
+     "name": "direction",
+     "mode": "plain",
+     "value": false
+    },
+    "fillMode": {
+     "name": "fillMode",
+     "mode": "plain",
+     "value": false
+    },
+    "iterationCount": {
+     "name": "iterationCount",
+     "mode": "plain",
+     "value": false
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": 1000
+    },
+    "delay": {
+     "name": "delay",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }

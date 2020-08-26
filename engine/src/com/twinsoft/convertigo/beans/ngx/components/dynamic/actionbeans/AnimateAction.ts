@@ -51,7 +51,7 @@
                     }, timeout);
 				}
 			}, 10);			
-                }
+        }
                 
 		return new Promise((resolve, reject)=> {
                 let animatable = props.animatable;
