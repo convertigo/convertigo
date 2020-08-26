@@ -40,7 +40,9 @@ public class UIAnimation extends UIAttribute {
 
 	@Override
 	protected String getAttrValue() {
-		return animationName.isEmpty() ? "":"animated "+ (isInfinite ? "infinite ":"") +animationName;
+		//return animationName.isEmpty() ? "":"animated "+ (isInfinite ? "infinite ":"") +animationName; // v3
+		String prefix = "animate__"; // v4 and older
+		return animationName.isEmpty() ? "": prefix+"animated "+ (isInfinite ? prefix+"infinite ":"") + prefix+animationName;
 	}
 	
 	private String animationName = "";

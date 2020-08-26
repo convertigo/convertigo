@@ -361,7 +361,7 @@ public class ComponentManager {
 			group = GROUP_CUSTOMS;
 			components.add(getDboComponent(UIElement.class,group));
 			components.add(getDboComponent(UIAttribute.class,group));
-//			components.add(getDboComponent(UIAnimation.class,group));
+			components.add(getDboComponent(UIAnimation.class,group));
 			components.add(getDboComponent(UICustom.class,group));
 			components.add(getDboComponent(UIText.class,group));
 			components.add(getDboComponent(UIStyle.class,group));
