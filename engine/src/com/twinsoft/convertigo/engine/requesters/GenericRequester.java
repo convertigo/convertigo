@@ -294,10 +294,7 @@ public abstract class GenericRequester extends Requester {
 		            }
 				}
     		} while (needRetry);
-    	} finally {
-    		// Remove all MDC values for clean release of the thread
-    		Log4jHelper.mdcClear();
-    		
+    	} finally {    		
     		if (context != null) {
     			String stats = null;
     			
@@ -323,6 +320,9 @@ public abstract class GenericRequester extends Requester {
         		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
     		}
     		Engine.logContext.debug("[" + getName() + "] end of request");
+    		
+    		// Remove all MDC values for clean release of the thread
+    		Log4jHelper.mdcClear();
     	}
 
     	return result;
