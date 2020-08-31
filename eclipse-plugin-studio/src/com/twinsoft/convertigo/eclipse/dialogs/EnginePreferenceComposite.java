@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ComboEnum;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyCategory;
@@ -78,6 +79,7 @@ public class EnginePreferenceComposite extends Composite {
 		}
 		
 		bar = new ExpandBar(this, SWT.VERTICAL);
+		bar.setData(SwtUtils.CSS_CLASS_KEY, "c8oEnginePreferenceExpandBar");
 		
 		GridData gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 		bar.setLayoutData(gridData);

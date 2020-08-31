@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 public class SwtUtils {
+	static final public String CSS_CLASS_KEY = "org.eclipse.e4.ui.css.CssClassName";
+	
 	static public GridLayout newGridLayout(int numColumns, boolean makeColumnsEqualWidth, int horizontalSpacing, int verticalSpacing, int marginWidth, int marginHeight) {
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = numColumns;
