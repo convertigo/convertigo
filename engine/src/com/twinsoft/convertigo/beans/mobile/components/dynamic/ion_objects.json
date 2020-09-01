@@ -1314,7 +1314,7 @@
           "value": "0", // optional value (default is 0)
           "values": [ // possible values (false means no set)
 	    	false,
-            true,
+            true
           ]
         },
         "leftOffset": {
@@ -1325,7 +1325,7 @@
           "value": "0", // optional value (default is 0)
           "values": [ // possible values (false means no set)
 	    	false,
-            true,
+            true
           ]
         },
         "duration": {
@@ -1409,7 +1409,7 @@
           "value": false,
           "label": "Duration",
           "description": "How long it takes to do one loop. (in ms)",
-          "category": "Attributes",
+          "category": "Attributes"
         },
         "name": {
           "attr": "name",
@@ -4057,7 +4057,7 @@
           "label": "Month values",
           "description": "Values used to create the list of selectable months. By default the month values range from 1 to 12. However, to control exactly which months to display, the monthValues input can take either an array of numbers, or string of comma separated numbers. For example, if only summer months should be shown, then this input value would be monthValues=\"6,7,8\". Note that month numbers do not have a zero-based index, meaning January's value is 1, and December's is 12.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
         "minuteValues": {
           "attr": "minuteValues",
@@ -4102,14 +4102,14 @@
           "label": "Day values",
           "description": "Values used to create the list of selectable days. By default every day is shown for the given month. However, to control exactly which days of the month to display, the dayValues input can take either an array of numbers, or string of comma separated numbers. Note that even if the array days have an invalid number for the selected month, like 31 in February, it will correctly not show days which are not valid for the selected month.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
         "hourValues": {
           "attr": "hourValues",
           "label": "Hour values",
           "description": "Values used to create the list of selectable hours. By default the hour values range from 0 to 23 for 24-hour, or 1 to 12 for 12-hour. However, to control exactly which hours to display, the hourValues input can take either an array of numbers, or string of comma separated numbers.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
     	"placeholder":{
     		"attr":"placeholder",
@@ -4172,14 +4172,14 @@
           "label": "Picker Options",
           "description": "Any additional options that the picker interface can accept. See the Ionic Picker API docs for the picker options.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
         "yearValues": {
           "attr": "yearValues",
           "label": "Year values",
           "description": "Values used to create the list of selectable years. By default the year values range between the min and max datetime inputs. However, to control exactly which years to display, the yearValues input can take either an array of numbers, or string of comma separated numbers. For example, to show upcoming and recent leap years, then this input's value would be yearValues=\"2024,2020,2016,2012,2008\".",
           "category": "@Properties",
-          "value": false,
+          "value": false
         }
       }
     },
@@ -6938,7 +6938,7 @@
           "type": "string",
 		  "mode": "script",
           "value": "[]"
-		},
+		}
 	  }
 	},
 	
