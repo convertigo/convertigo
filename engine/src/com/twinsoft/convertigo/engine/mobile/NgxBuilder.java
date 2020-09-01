@@ -695,22 +695,6 @@ public class NgxBuilder extends MobileBuilder {
 	@Override
 	protected void updateConfigurationFiles() throws EngineException {
 		super.updateConfigurationFiles();
-		try {
-			IOFileFilter fileFilter = FileFilterUtils.or(FileFilterUtils.suffixFileFilter("json"),FileFilterUtils.suffixFileFilter("xml"),FileFilterUtils.suffixFileFilter("js"));
-			IOFileFilter dirFilter = FileFilterUtils.or(FileFilterUtils.nameFileFilter("config"));
-			for (File f: FileUtils.listFiles(ionicWorkDir, fileFilter, dirFilter)) {
-				String content = FileUtils.readFileToString(f, "UTF-8");
-				content = content.replaceAll("\\.\\./DisplayObjects","../../DisplayObjects");
-				content = content.replaceAll("\\.\\./Flashupdate","../../Flashupdate");
-				// prevent assets copy : already done by copyAssetsToBuildDir()
-				content = content.replaceAll("/assets/\\*\\*/\\*","/_fake_/assets/**/*");
-				writeFile(f, content, "UTF-8");
-			}
-			Engine.logEngine.trace("(MobileBuilder) Configuration files updated for ionic project '"+ project.getName() +"'");
-		}
-		catch (Exception e) {
-			throw new EngineException("Unable to update configuration files for ionic project '"+ project.getName() +"'",e);
-		}
 	}
 	
 	private List<PageComponent> getEnabledPages(final ApplicationComponent application) {
