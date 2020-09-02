@@ -3022,21 +3022,38 @@
    }
   }
  },
- "PublishEventAction": {"   7   6   0": {
-  "name": "PublishEventAction",
-  "properties": {
-   "topic": {
-    "name": "topic",
-    "mode": "plain",
-    "value": false
-   },
-   "data": {
-    "name": "data",
-    "mode": "script",
-    "value": false
+ "PublishEventAction": {
+  "   7   6   0": {
+   "name": "PublishEventAction",
+   "properties": {
+    "topic": {
+     "name": "topic",
+     "mode": "plain",
+     "value": false
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": false
+    }
+   }
+  },
+  "   7   8   1": {
+   "name": "PublishEventAction",
+   "properties": {
+    "topic": {
+     "name": "topic",
+     "mode": "plain",
+     "value": false
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": "{}"
+    }
    }
   }
- }},
+ },
  "PushPageAction": {"   7   6   0": {
   "name": "PushPageAction",
   "properties": {
