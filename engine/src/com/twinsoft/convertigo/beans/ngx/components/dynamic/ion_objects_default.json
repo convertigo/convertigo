@@ -5268,7 +5268,7 @@
     "data": {
      "name": "data",
      "mode": "script",
-     "value": false
+     "value": "{}"
     }
    }
   }

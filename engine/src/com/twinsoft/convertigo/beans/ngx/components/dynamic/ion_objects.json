@@ -18191,8 +18191,9 @@
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
       "description": [
-"Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data.<br/>",
-"The event may be handled by an existing <i>Subscribe Handler</i> component in any available page.<br/>"],
+"Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data Object in (TS) mode, e.g.:</br>",
+"<code>{user: 'user89', id: 89}</code><br/>",
+"The event may be handled by an existing <i>Subscribe Handler</i> component in any available page."],
       "group": "Actions",
       "icon16": "publisheventaction_color_16x16.png",
       "icon32": "publisheventaction_color_32x32.png",
@@ -18207,11 +18208,11 @@
 	      },   
 	      "data": {
 	        "label": "Event data",
-	        "description": "The event data",
+	        "description": "The event data Object (be sure to use a json object) in (TS) mode.",
 	        "category": "@parameters",
 	        "type": "string",
 	        "mode": "script",
-	        "value": false,
+	        "value": "{}",
 	        "values": [false,true]
 	      }
       }
