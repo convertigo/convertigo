@@ -1737,17 +1737,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
 				
-				String SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-				String baseHref = SERVER_C8O_URL.substring(SERVER_C8O_URL.lastIndexOf("/")) + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
-				String deployUrl = SERVER_C8O_URL + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
-				
 				List<String> cmd = pb.command();
 				cmd.add("--");
 				cmd.add("--progress=true");
 				cmd.add("--watch=" + (buildMode == NgxBuilderBuildMode.watch));
 				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
-				cmd.add("--baseHref=" + baseHref);
-				cmd.add("--deployUrl=" + deployUrl);
+				cmd.add("--baseHref=./");
+				cmd.add("--deployUrl=./");
 
 
 				pb.redirectErrorStream(true);

@@ -36,6 +36,11 @@
                 "output": "/"
               },
               {
+                "glob": "cordova.js",
+                "input": "src",
+                "output": "/"
+              },
+              {
                 "glob": "env.json",
                 "input": "src",
                 "output": "/"
