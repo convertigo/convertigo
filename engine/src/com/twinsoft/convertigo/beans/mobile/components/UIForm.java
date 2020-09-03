@@ -197,4 +197,10 @@ public class UIForm extends UIElement {
 			super.computeScripts(jsonScripts);
 		}
 	}
+	
+	@Override
+	public String toString() {
+		String id = getIdentifier();
+		return getName() + (id.isEmpty() ? "":" #"+id);
+	}
 }
