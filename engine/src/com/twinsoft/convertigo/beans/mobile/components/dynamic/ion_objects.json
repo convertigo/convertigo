@@ -4852,6 +4852,21 @@
       }
     },
 
+    "CardTitle": {
+      "tag": "ion-card-title",
+	  "displayName": "CardTitle",
+      "label": "Card Title",
+      "description": [
+"ion-card-title| Defines a <i>Card Title</i> component.<br/>",
+"Use a <i>Card Title</i> component inside of a <i>Card Header</i> component.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/v3/components/#card-header'>Card Header</a>."],
+      "group": "Cards",
+      "icon16": "cardtitle_color_16x16.png",
+      "icon32": "cardtitle_color_32x32.png",
+      "properties": {
+      }
+    },
+
     "CardContent": {
       "tag": "ion-card-content",
 	  "displayName": "CardContent",
