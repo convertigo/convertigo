@@ -1282,7 +1282,7 @@ public class MobileSmartSource {
 		
 		MobileSmartSource mss = new MobileSmartSource(jsonString);
 		
-		// Migrate source : add a source model (since 7.8.0)
+		// Migrate source : add a source model (since 7.9.0)
 		if (!mss.hasModel()) {
 			String project = mss.getProjectName();
 			Filter filter = mss.getFilter();

@@ -405,7 +405,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								if (mss != null) {
-									smartValue = mss.getSources(msst.getValue(extended)).toString();
+									smartValue = mss.getSources().toString();
 								}
 							}
 						}
