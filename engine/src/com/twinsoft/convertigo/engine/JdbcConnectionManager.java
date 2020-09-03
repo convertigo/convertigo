@@ -145,11 +145,11 @@ public class JdbcConnectionManager implements AbstractManager {
 		Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
 		dataSourceSetUrl.invoke(pool, jdbcURL);
 
-		String user = connector.getJdbcUserName();
+		String user = connector.getRealJdbcUserName();
 		Engine.logEngine.debug("(JdbcConnectionManager) User: " + user);
 		dataSourceSetUsername.invoke(pool, user);
 
-		String password = connector.getJdbcUserPassword();
+		String password = connector.getRealJdbcUserPassword();
 		Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
 		dataSourceSetPassword.invoke(pool, password);
 
@@ -277,9 +277,9 @@ public class JdbcConnectionManager implements AbstractManager {
 
 				String jdbcURL = connector.getRealJdbcURL();
 				Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
-				String user = connector.getJdbcUserName();
+				String user = connector.getRealJdbcUserName();
 				Engine.logEngine.debug("(JdbcConnectionManager) User: " + user);
-				String password = connector.getJdbcUserPassword();
+				String password = connector.getRealJdbcUserPassword();
 				Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
 
 				if ("".equals(user)) {
