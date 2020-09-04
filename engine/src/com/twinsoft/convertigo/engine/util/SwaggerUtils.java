@@ -1085,7 +1085,7 @@ public class SwaggerUtils {
 	}
 
 	public static void testReadJson() {
-		Swagger swagger = read("http://petstore.swagger.io/v2/swagger.json");
+		Swagger swagger = read("https://petstore.swagger.io/v2/swagger.json");
 		if (swagger != null) {
 			Json.prettyPrint(swagger);
 			Yaml.prettyPrint(swagger);
@@ -1093,7 +1093,7 @@ public class SwaggerUtils {
 	}
 	
 	public static void testReadYaml() {
-		Swagger swagger = read("http://petstore.swagger.io/v2/swagger.yaml");
+		Swagger swagger = read("https://petstore.swagger.io/v2/swagger.yaml");
 		if (swagger != null) {
 			Json.prettyPrint(swagger);
 			Yaml.prettyPrint(swagger);

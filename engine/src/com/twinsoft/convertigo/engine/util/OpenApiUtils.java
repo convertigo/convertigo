@@ -1116,7 +1116,7 @@ public class OpenApiUtils {
 	}
 	
 	public static void testReadJson() {
-		OpenAPI openAPI = read("http://petstore.swagger.io/v2/swagger.json");
+		OpenAPI openAPI = read("https://petstore.swagger.io/v2/swagger.json");
 		if (openAPI != null) {
 			Json.prettyPrint(openAPI);
 			Yaml.prettyPrint(openAPI);
@@ -1124,7 +1124,7 @@ public class OpenApiUtils {
 	}
 	
 	public static void testReadYaml() {
-		OpenAPI openAPI = read("http://petstore.swagger.io/v2/swagger.yaml");
+		OpenAPI openAPI = read("https://petstore.swagger.io/v2/swagger.yaml");
 		if (openAPI != null) {
 			Json.prettyPrint(openAPI);
 			Yaml.prettyPrint(openAPI);
