@@ -501,6 +501,8 @@ public class SqlConnector extends Connector {
 			int index = overJdbcUrl.indexOf('?');
 			if (index != -1) {
 				return overJdbcUrl.substring(0, index);
+			} else {
+				return overJdbcUrl;
 			}
 		}
 		return getJdbcURL();
