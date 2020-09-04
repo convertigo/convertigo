@@ -32,6 +32,7 @@ function _c8o_remove_all_overlay() {
 	for (i in ol) {
 		_c8o_remove_overlay(ol[i]);
 	}
+	_c8o_highlight_class_previous = null;
 }
 
 function _c8o_remove_overlay(overlay) {

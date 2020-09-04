@@ -77,6 +77,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
@@ -101,6 +102,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.properties.PropertySheet;
 import org.eclipse.ui.views.properties.PropertySheetPage;
@@ -1598,34 +1600,43 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 * @param databaseObjectBeanInfo : BeanInfo of the selected databaseObject in the TreeExplorerView
 	 * @return PropertyDescriptor
 	 */
+	protected ShowInContext showInContext;
 	public PropertyDescriptor getSelectedPropertyDescriptor(BeanInfo databaseObjectBeanInfo) {
 		PropertyDescriptor propertyDescriptor = null;
 
 		// gets the properties editor
 		PropertySheet view = ConvertigoPlugin.getDefault().getPropertiesView();
-		Tree tree = (Tree) view.getCurrentPage().getControl();
-		// gets the property selected in the property editor if one is selected
-		TreeItem[] items = tree.getSelection();
-		if (items.length > 0) {
-			TreeItem selectedItem = items[0];
+		Control ctr = view.getCurrentPage().getControl();
+		if (!(ctr instanceof Tree)) {
+			view.show(showInContext);
+			ctr = view.getCurrentPage().getControl();			
+		}
+		if (ctr instanceof Tree) {
+			showInContext = view.getShowInContext();
+			Tree tree = (Tree) ctr;
+			// gets the property selected in the property editor if one is selected
+			TreeItem[] items = tree.getSelection();
+			if (items.length > 0) {
+				TreeItem selectedItem = items[0];
 
-			// gets the local name of the selected property
-			String text = selectedItem.getText();
+				// gets the local name of the selected property
+				String text = selectedItem.getText();
 
-			// gets the PropertyDescriptors of this databaseObject
-			PropertyDescriptor[] descriptors = databaseObjectBeanInfo.getPropertyDescriptors();
+				// gets the PropertyDescriptors of this databaseObject
+				PropertyDescriptor[] descriptors = databaseObjectBeanInfo.getPropertyDescriptors();
 
-			String displayName = null;
-			int i = 0;
+				String displayName = null;
+				int i = 0;
 
-			// gets the PropertyDescriptor of the selected property 
-			while (i < descriptors.length && propertyDescriptor == null) {
-				displayName = descriptors[i].getDisplayName();
-				if (displayName.equals(text))
-					propertyDescriptor = descriptors[i];
-				i++;
+				// gets the PropertyDescriptor of the selected property 
+				while (i < descriptors.length && propertyDescriptor == null) {
+					displayName = descriptors[i].getDisplayName();
+					if (displayName.equals(text))
+						propertyDescriptor = descriptors[i];
+					i++;
+				}
 			}
-		}	
+		}
 		return propertyDescriptor;
 	}
 

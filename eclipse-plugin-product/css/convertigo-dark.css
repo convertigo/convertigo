@@ -4,6 +4,10 @@
   background-color: #2f2f2f;
 }
 
+#com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack Tree {
+  background-color: #242424;
+}
+
 .MPartStack,
 #com-twinsoft-convertigo-eclipse-views-projectexplorer-ProjectExplorerViewMStack,
 #com-twinsoft-convertigo-eclipse-views-sourcepicker-SourcePickerViewMStack,
