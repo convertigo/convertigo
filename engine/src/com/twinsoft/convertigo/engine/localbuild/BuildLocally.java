@@ -78,6 +78,9 @@ public abstract class BuildLocally {
 	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
 	private String cordovaBinPath;
 	
+	private File jdk8Dir = null;
+	private File androidSdkDir = null;
+	
 	private enum OS {
 		generic,
 		linux,
@@ -99,14 +102,28 @@ public abstract class BuildLocally {
 		if (command.endsWith("cordova") && Engine.isWindows()) {
 			command += ".cmd";
 		}
+		String paths = getLocalBuildAdditionalPath();
+		if (jdk8Dir != null) {
+			paths = new File(jdk8Dir, "bin").getAbsolutePath() + File.pathSeparator + paths;
+		}
+		paths = ProcessUtils.getDefaultNodeDir().getAbsolutePath() + File.pathSeparator + paths;
+		
 		parameters.add(0, command);
 		ProcessBuilder pb = command.equals("npm") ?
-				ProcessUtils.getNpmProcessBuilder(String.join(File.pathSeparator, ProcessUtils.getDefaultNodeDir().getAbsolutePath(), getLocalBuildAdditionalPath()), parameters)
-				: ProcessUtils.getProcessBuilder(getLocalBuildAdditionalPath(), parameters);
+				ProcessUtils.getNpmProcessBuilder(paths, parameters)
+				: ProcessUtils.getProcessBuilder(paths, parameters);
 		// Set the directory from where the command will be executed
 		pb.directory(launchDir.getCanonicalFile());
 		
 		pb.redirectErrorStream(mergeError);
+		
+		if (jdk8Dir != null) {
+			pb.environment().put("JAVA_HOME", jdk8Dir.getAbsolutePath());
+		}
+		if (androidSdkDir != null) {
+			pb.environment().put("ANDROID_HOME", androidSdkDir.getAbsolutePath());
+			pb.environment().put("ANDROID_SDK_ROOT", androidSdkDir.getAbsolutePath());
+		}
 		
 		Engine.logEngine.info("Executing command : " + parameters + "\nEnv:" + pb.environment());
 		
@@ -590,6 +607,17 @@ public abstract class BuildLocally {
 				commandsList.add("--archs=" + archs);
 			}
 			
+			jdk8Dir = null;
+			if ("android".equals(mobilePlatform.getCordovaPlatform())) {
+				Engine.logEngine.info("Check or install for the JDK8 to build the Android application");
+				jdk8Dir = ProcessUtils.getJDK8((pBytesRead, pContentLength, pItems) -> {
+					Engine.logEngine.info("download JDK8: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+				});
+				androidSdkDir = ProcessUtils.getAndroidSDK((pBytesRead, pContentLength, pItems) -> {
+					Engine.logEngine.info("download Android SDK: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+				});
+			}
+			
 			runCordovaCommand(cordovaDir, "prepare", cordovaPlatform);
 
 			// Step 3: Build or Run using Cordova the specific platform.
@@ -649,10 +677,12 @@ public abstract class BuildLocally {
 	}
 	
 	public Status installCordova() {
-
 		try {
-
-			Engine.logEngine.info("Checking if node.js is installed.");
+			String nodeVersion = ProcessUtils.getDefaultNodeVersion();
+			ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
+				Engine.logEngine.info("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
+			});
+			Engine.logEngine.info("Checking if nodejs and npm are installed.");
 			File resourceFolder = mobilePlatform.getResourceFolder();
 			List<String> parameters = new LinkedList<String>();
 			parameters.add("--version");
@@ -662,7 +692,7 @@ public abstract class BuildLocally {
 			if (!matcher.find()){
 				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou must download nodes.js from https://nodejs.org/en/download/");
 			}
-			Engine.logEngine.info("OK, node.js is installed.");
+			Engine.logEngine.info("OK, nodejs (" + nodeVersion + ") and npm (" + npmVersion + ") are installed.");
 			
 			Engine.logEngine.info("Checking if this cordova version is already installed.");
 			File configFile = new File(resourceFolder, "config.xml");
@@ -707,7 +737,7 @@ public abstract class BuildLocally {
 						this.runCommand(cordovaInstallDir, "npm", parameters, true);
 					}
 					
-					Engine.logEngine.info("Cordova is now installed.");
+					Engine.logEngine.info("Cordova (" + cliVersion + ") is now installed.");
 					
 					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
 				} else {
