@@ -35,6 +35,7 @@ public class ConvertigoPlugin implements Plugin<Project> {
 	NativeBuild nativeBuild;
 	NativeBuildLaunch launchNativeBuild;
 	NativeBuildDownload downloadNativeBuild;
+	LocalBuild localBuild;
 	
 	CLI getCLI() throws Exception {
 		return CLI.instance;
@@ -103,6 +104,13 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.setGroup("build");
 			task.dependsOn(launchNativeBuild);
 			task.setDescription("Wait the remote build to finish, then download the native packages (iOS ipa or Android apk).");
+		});
+		
+		localBuild = tasks.create("localBuild", LocalBuild.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(load);
+			task.setDescription("Build native package for selected platforms.");
 		});
 	}
 }

@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.localbuild;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -61,7 +63,7 @@ public abstract class BuildLocally {
 	
 	/** Mobile platform */
 	protected final MobilePlatform mobilePlatform;
-	
+
 	// For minimal version of cordova required 3.4.x
 	private final int versionMinimalRequiredDecimalPart = 3;
 	private final int versionMinimalRequiredFractionalPart = 4;
@@ -77,6 +79,21 @@ public abstract class BuildLocally {
 	
 	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
 	private String cordovaBinPath;
+	
+	private File jdk8Dir = null;
+	private File androidSdkDir = null;
+	private File gradleDir = null;
+	
+	private File mobilePackage = null;
+	private Status lastStatus = null;
+	
+	private String iosProvisioningProfileUUID = null;
+	private String iosSignIdentity = null;
+	
+	private File androidKeystore = null;
+	private String androidKeystorePassword = null;
+	private String androidPassword = null;
+	private String androidAlias = null;
 	
 	private enum OS {
 		generic,
@@ -94,66 +111,91 @@ public abstract class BuildLocally {
 			cordovaInstallsDir.mkdir();
 		}
 	}
+	
+	public MobilePlatform getMobilePlatform() {
+		return mobilePlatform;
+	}
 
 	private String runCommand(File launchDir, String command, List<String> parameters, boolean mergeError) throws Throwable {
 		if (command.endsWith("cordova") && Engine.isWindows()) {
 			command += ".cmd";
 		}
+		String paths = getLocalBuildAdditionalPath();
+		if (jdk8Dir != null) {
+			paths = new File(jdk8Dir, "bin").getAbsolutePath() + File.pathSeparator + paths;
+		}
+		if (gradleDir != null) {
+			paths = new File(gradleDir, "bin").getAbsolutePath() + File.pathSeparator + paths;
+		}
+		paths = ProcessUtils.getNodeDir(ProcessUtils.getDefaultNodeVersion()).getAbsolutePath() + File.pathSeparator + paths;
+		
 		parameters.add(0, command);
 		ProcessBuilder pb = command.equals("npm") ?
-				ProcessUtils.getNpmProcessBuilder(String.join(File.pathSeparator, ProcessUtils.getDefaultNodeDir().getAbsolutePath(), getLocalBuildAdditionalPath()), parameters)
-				: ProcessUtils.getProcessBuilder(getLocalBuildAdditionalPath(), parameters);
+				ProcessUtils.getNpmProcessBuilder(paths, parameters)
+				: ProcessUtils.getProcessBuilder(paths, parameters);
 		// Set the directory from where the command will be executed
 		pb.directory(launchDir.getCanonicalFile());
 		
 		pb.redirectErrorStream(mergeError);
 		
+		if (jdk8Dir != null) {
+			pb.environment().put("JAVA_HOME", jdk8Dir.getAbsolutePath());
+		}
+		if (androidSdkDir != null) {
+			pb.environment().put("ANDROID_HOME", androidSdkDir.getAbsolutePath());
+			pb.environment().put("ANDROID_SDK_ROOT", androidSdkDir.getAbsolutePath());
+		}
+		
 		Engine.logEngine.info("Executing command : " + parameters + "\nEnv:" + pb.environment());
 		
 		process = pb.start();
 		
+		boolean[] done = {false};
+		
 		cmdOutput = "";
 		// Logs the output
-		Engine.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					String line;
-					processCanceled = false;
-					
-					BufferedReader bis = new BufferedReader(new InputStreamReader(process.getInputStream()));
-					while ((line = bis.readLine()) != null) {
-						Engine.logEngine.info(line);
-						BuildLocally.this.cmdOutput += line;
-					}
-				} catch (IOException e) {
-					Engine.logEngine.error("Error while executing command", e);
+		Engine.execute(() -> {
+			String line;
+			processCanceled = false;
+
+			try	(BufferedReader bis = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				while ((line = bis.readLine()) != null) {
+					Engine.logEngine.info(line);
+					BuildLocally.this.cmdOutput += line;
 				}
+			} catch (IOException e) {
+				Engine.logEngine.error("Error while executing command", e);
+			}
+			synchronized (done) {
+				done[0] = true;
+				done.notify();
 			}
 		});
 		
 		if (!mergeError) {
 			// Logs the error output
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						String line;
-						processCanceled = false;
-						
-						BufferedReader bis = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-						while ((line = bis.readLine()) != null) {
-							Engine.logEngine.error(line);
-							errorLines += line;
-						}
-					} catch (IOException e) {
-						Engine.logEngine.error("Error while executing command", e);
+			new Thread(() -> {
+				String line;
+				processCanceled = false;
+
+				try (BufferedReader bis = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+					while ((line = bis.readLine()) != null) {
+						Engine.logEngine.error(line);
+						errorLines += line;
 					}
+				} catch (IOException e) {
+					Engine.logEngine.error("Error while executing command", e);
 				}
 			}).start();			
 		}
 		
 		int exitCode = process.waitFor();
+
+		synchronized (done) {
+			if (!done[0]) {
+				done.wait();
+			}
+		}
 		
 		if (exitCode != 0 && exitCode != 127) {
 			throw new Exception("Exit code " + exitCode + " when running the command '" + command + 
@@ -561,6 +603,34 @@ public abstract class BuildLocally {
 			//
 			FileUtils.copyFile(new File(wwwDir, "config.xml"), new File(cordovaDir, "config.xml"));
 			FileUtils.deleteQuietly(new File(wwwDir, "config.xml"));
+			
+			if (iosProvisioningProfileUUID != null) {
+				boolean release = "release".equals(option);
+				JSONObject json = new JSONObject();
+				if (iosSignIdentity != null) {
+					json.put("codeSignIdentity", iosSignIdentity);
+				} else {
+					json.put("codeSignIdentity", release ? "iPhone Distribution" : "iPhone Developer");
+				}				
+				json.put("provisioningProfile", iosProvisioningProfileUUID);
+				json = new JSONObject().put(release ? "release" : "debug", json);
+				json = new JSONObject().put("ios", json);
+				FileUtils.write(new File(cordovaDir, "build.json"), json.toString(2), "utf-8");
+			}
+			
+
+			if (androidKeystore != null) {
+				boolean release = "release".equals(option);
+				JSONObject json = new JSONObject();
+				json.put("keystore", androidKeystore.getAbsolutePath());
+				json.put("storePassword", androidKeystorePassword);
+				json.put("alias", androidAlias);
+				json.put("password", androidPassword);
+				json.put("keystoreType", "");		
+				json = new JSONObject().put(release ? "release" : "debug", json);
+				json = new JSONObject().put("android", json);
+				FileUtils.write(new File(cordovaDir, "build.json"), json.toString(2), "utf-8");
+			}
 
 			processConfigXMLResources(wwwDir, cordovaDir);
 			
@@ -590,6 +660,20 @@ public abstract class BuildLocally {
 				commandsList.add("--archs=" + archs);
 			}
 			
+			jdk8Dir = null;
+			if ("android".equals(mobilePlatform.getCordovaPlatform())) {
+				Engine.logEngine.info("Check or install for the JDK8 to build the Android application");
+				jdk8Dir = ProcessUtils.getJDK8((pBytesRead, pContentLength, pItems) -> {
+					Engine.logEngine.info("download JDK8: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+				});
+				androidSdkDir = ProcessUtils.getAndroidSDK((pBytesRead, pContentLength, pItems) -> {
+					Engine.logEngine.info("download Android SDK: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+				});
+				gradleDir = ProcessUtils.getGradle((pBytesRead, pContentLength, pItems) -> {
+					Engine.logEngine.info("download Gradle: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+				});
+			}
+			
 			runCordovaCommand(cordovaDir, "prepare", cordovaPlatform);
 
 			// Step 3: Build or Run using Cordova the specific platform.
@@ -605,8 +689,28 @@ public abstract class BuildLocally {
 				commandsList.add(0, "build");
 				commandsList.add(1, cordovaPlatform);
 				commandsList.add(2, "--" + option);
+				commandsList.add(3, "--" + target);
 				
-				runCordovaCommand(cordovaDir, commandsList);
+				String out = runCordovaCommand(cordovaDir, commandsList);
+				
+				Matcher m = Pattern.compile("[^\\s]+(?:\\.apk|/build/device)").matcher(out);
+				if (m.find()) {
+					File pkg;
+					do {
+						pkg = new File(m.group());
+						if (pkg.exists()) {
+							if (pkg.getName().equals("device")) {
+								for (File f: pkg.listFiles()) {
+									if (f.getName().endsWith(".ipa")) {
+										pkg = f;
+										break;
+									}
+								}
+							}
+							mobilePackage = pkg;
+						}
+					} while (m.find());
+				}
 
 				// Step 4: Show dialog with path to apk/ipa/xap
 				if (!processCanceled) {
@@ -616,13 +720,13 @@ public abstract class BuildLocally {
 			
 			return Status.OK;
 		} catch (Throwable e) {
-			logException(e, "Error when processing Cordova build");
+			logException(e, "Error when processing Cordova build: " + e);
 			
 			return Status.CANCEL;
 		}
 	}
 	
-	public void cancelBuild(boolean run){
+	public void cancelBuild(boolean run) {
 		//Only for the "Run On Device" action
 		if (run) {
 			if (is(OS.win32) && (mobilePlatform instanceof WindowsPhone8) ) {
@@ -649,10 +753,12 @@ public abstract class BuildLocally {
 	}
 	
 	public Status installCordova() {
-
 		try {
-
-			Engine.logEngine.info("Checking if node.js is installed.");
+			String nodeVersion = ProcessUtils.getDefaultNodeVersion();
+			ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
+				Engine.logEngine.info("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
+			});
+			Engine.logEngine.info("Checking if nodejs and npm are installed.");
 			File resourceFolder = mobilePlatform.getResourceFolder();
 			List<String> parameters = new LinkedList<String>();
 			parameters.add("--version");
@@ -662,7 +768,7 @@ public abstract class BuildLocally {
 			if (!matcher.find()){
 				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou must download nodes.js from https://nodejs.org/en/download/");
 			}
-			Engine.logEngine.info("OK, node.js is installed.");
+			Engine.logEngine.info("OK, nodejs (" + nodeVersion + ") and npm (" + npmVersion + ") are installed.");
 			
 			Engine.logEngine.info("Checking if this cordova version is already installed.");
 			File configFile = new File(resourceFolder, "config.xml");
@@ -707,17 +813,19 @@ public abstract class BuildLocally {
 						this.runCommand(cordovaInstallDir, "npm", parameters, true);
 					}
 					
-					Engine.logEngine.info("Cordova is now installed.");
+					Engine.logEngine.info("Cordova (" + cliVersion + ") is now installed.");
 					
 					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
 				} else {
-					throw new Exception("The cordova version is not specified in config.xml.");
+					Engine.logEngine.info("The phonegap-version prefrence version is not specified in config.xml.");
+					throw new Exception("The phonegap-version prefrence version is not specified in config.xml.");
 				}
 			} else {
-				throw new Exception("The cordova version is not specified in config.xml.");
+				throw new Exception("The phonegap-version preference not found in config.xml.");
 			}
 		
 		} catch (Throwable e) {
+			Engine.logEngine.info("Error when installing Cordova: " + e);
 			logException(e, "Error when installing Cordova");			
 			return Status.CANCEL;
 		}
@@ -777,4 +885,52 @@ public abstract class BuildLocally {
 	 */
     abstract protected void showLocationInstallFile(final MobilePlatform mobilePlatform, 
 			final int exitValue, final String errorLines, final String buildOption);
+
+	public File getMobilePackage() {
+		return mobilePackage;
+	}
+
+	public Status getLastStatus() {
+		return lastStatus;
+	}
+	
+	public void configureSignIOS(File provisioningProfile, String signId) throws Exception {
+		if (mobilePlatform instanceof IOs || !Engine.isMac()) {
+			return;
+		}
+		String line;
+		String uuid = null;
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(provisioningProfile)))) {
+			while ((line = br.readLine()) != null) {
+				if (line.contains("UUID")) {
+					line = br.readLine();
+					Matcher m = Pattern.compile("[-A-F0-9]{36}", Pattern.CASE_INSENSITIVE).matcher(line);
+					if (m.find()) {
+						uuid = m.group();
+						break;
+					} else {
+						throw new EngineException("Cannot match UUID from " + provisioningProfile);
+					}
+				}
+			}
+		}
+		if (uuid == null) {
+			throw new EngineException("No UUID found in " + provisioningProfile);
+		}
+
+		File dir = new File(System.getProperty("user.home"), "Library/MobileDevice/Provisioning Profiles");
+		dir.mkdirs();
+		FileUtils.copyFile(provisioningProfile, new File(dir, uuid + ".mobileprovision"));
+		iosProvisioningProfileUUID = uuid;
+		iosSignIdentity = signId;
+	}
+	
+	public void configureSignAndroid(File keystore, String keystorePassword, String alias, String password) {
+		if (mobilePlatform instanceof Android) {
+			androidKeystore = keystore;
+			androidKeystorePassword = keystorePassword;
+			androidAlias = alias;
+			androidPassword = password;
+		}
+	}
 }

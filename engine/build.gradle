@@ -81,26 +81,10 @@ configurations {
 
 jar {
 	baseName 'convertigo-engine'
-	
 	include 'com/twinsoft/**'
 }
 
-task patchCopy(type: Copy, dependsOn: classes) {
-	group 'convertigo'
-	
-	into 'build/patchClasses'
-	from compileJava.destinationDir
-	exclude 'com/twinsoft/**'
-}
-
-task patchJar(type: Jar, dependsOn: patchCopy) {
-	group 'convertigo'
-	
-	baseName 'convertigo-patch'
-	from patchCopy.destinationDir
-}
-
-task dependenciesJar(type: Jar) {
+task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 	group 'convertigo'
 	
 	zip64 = true
@@ -128,14 +112,14 @@ task dependenciesJar(type: Jar) {
 	exclude 'META-INF/mailcap*', 'META-INF/MANIFEST.MF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'META-INF/*.SF'
 }
 
-tasks['publishToMavenLocal'].dependsOn(dependenciesJar)
-
+tasks['publishToMavenLocal'].dependsOn dependenciesJar
+tasks['publish'].dependsOn dependenciesJar
 compileJava.dependsOn dependenciesJar
 
 war {
 	baseName 'convertigo'
 	
-	classpath = files(configurations.runtime, jar, patchCopy.destinationDir).filter { it != patchJar.archivePath }
+	classpath = files(configurations.runtime, jar)
 	
 	doFirst {
 		project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
@@ -171,8 +155,7 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 			exclude '.placeholder'
-			srcDir 'src'
-			srcDir 'patch'
+			srcDirs = ['src']
 		}
 		resources {
 			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
@@ -180,13 +163,13 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 			exclude '.placeholder'
-			srcDir 'src'
-			srcDir 'patch'
+			srcDirs = ['src']
 		}
 	}
 }
 
 dependencies {
+	compileFlat project(path: ':patches')
 	compileFlat 'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
 	compileFlat 'com.convertigo.lib:ctgclient:2010.06.14'
 	compileFlat 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
@@ -269,21 +252,20 @@ dependencies {
 	compile files(dependenciesJar.archivePath)
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
-	runtime files(patchJar.archivePath)
 }
 
 task dependenciesSourceJar(type: Jar) {
 	group 'convertigo'
 	
-    def deps = configurations.compileFlat.incoming.dependencies.collect{ dependency ->
-    	def copy = dependency.copy()
-        copy.artifact { artifact ->
-                artifact.name = dependency.name
-                artifact.type = 'source'
-                artifact.extension = 'jar'
-                artifact.classifier = 'sources'
-            }
-        copy
+    def deps = configurations.compileFlat.incoming.dependencies.findAll { it instanceof ExternalModuleDependency }.collect{ dependency ->
+		def copy = dependency.copy()
+	    copy.artifact { artifact ->
+	            artifact.name = dependency.name
+	            artifact.type = 'source'
+	            artifact.extension = 'jar'
+	            artifact.classifier = 'sources'
+	        }
+	    copy
     }
     configurations.detachedConfiguration(deps as Dependency[]).resolvedConfiguration.lenientConfiguration.getFiles(Specs.SATISFIES_ALL).each {
     	if (it.name.endsWith('sources.jar')) {
@@ -517,4 +499,4 @@ task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClassp
 }
 
 compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
-jar.dependsOn(['patchJar', 'updateBeansDefaultValues'])
+jar.dependsOn('updateBeansDefaultValues')

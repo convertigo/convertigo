@@ -8,6 +8,7 @@ include 'eclipse-plugin-product'
 include 'eclipse-plugin-studio'
 include 'engine'
 include 'gradle-plugin'
+include 'patches'
 include 'placeholders'
 
 rootProject.name = 'convertigo'

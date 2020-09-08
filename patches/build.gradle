@@ -1,0 +1,23 @@
+plugins {
+	id 'eclipse'
+	id 'java'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src']
+		}
+		resources {
+			srcDirs = ['src']
+		}
+	}
+}
+
+dependencies {
+	compileOnly 'com.convertigo.lib:soapui-xmlbeans:3.5.1'
+	compileOnly 'com.convertigo.lib:soapui:3.5.1'
+	compileOnly 'org.apache.xmlbeans:xmlbeans:[2.6,2.7['
+	compileOnly 'commons-jxpath:commons-jxpath:1.3'
+	compileOnly 'xalan:xalan:2.7.2'
+}

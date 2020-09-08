@@ -19,8 +19,8 @@ sourceSets {
 
 eclipse {
 	project {
-		linkedResource name: 'patch/com', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/patch/com'
-		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/patch/org'
+		linkedResource name: 'patch/com', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/com'
+		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/org'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
 		linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'

@@ -63,6 +63,12 @@ public class TwsCachedXPathAPI implements EventListener {
 	public TwsCachedXPathAPI() {
 	}
 	
+	public TwsCachedXPathAPI(XPathEngine xpathEngine) {
+		if (xpathEngine != null) {
+			this.xpathEngine = xpathEngine;
+		}
+	}
+	
 	public TwsCachedXPathAPI(Project project) {
 		if (project != null) {
 			xpathEngine = project.getXpathEngine();

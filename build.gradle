@@ -8,6 +8,11 @@ buildscript {
 	}
 }
 
+//plugins {
+//	//// tool to see tasks dependencies, use: gradlew <mytask> taskTree
+//    id 'com.dorongold.task-tree' version '1.5'
+//}
+
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
 import groovy.xml.XmlUtil
@@ -73,11 +78,11 @@ allprojects {
 			main {
 				java {
 					exclude '.placeholder'
-					srcDir 'src'
+					srcDirs = ['src']
 				}
 				resources {
 					exclude '.placeholder'
-					srcDir 'src'
+					srcDirs = ['src']
 				}
 			}
 		}
@@ -107,25 +112,26 @@ allprojects {
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}
-		
-		task cleanBin(type: Delete) {
-			group 'convertigo'
-			
-			def f = file('bin')
-			if (f.exists()) {
-				f.eachFile {
-					if (it.getName() != 'main') {
-						delete it
-					}
-				}
-			}
-		}
 	}
 	
 	plugins.withId('java') {
 		compileJava.options.encoding = 'UTF-8'
 		sourceCompatibility = '1.8'
 		targetCompatibility = '1.8'
+		
+		task cleanBin(type: Delete) {
+			group 'convertigo'
+			
+			def f = project.file('bin')
+			if (f.exists()) {
+				f.eachFile {
+					if (it.getName() != 'main') {
+						println it
+						delete it
+					}
+				}
+			}
+		}
 	}
 	
 	afterEvaluate {
