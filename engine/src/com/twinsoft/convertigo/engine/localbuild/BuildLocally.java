@@ -80,6 +80,7 @@ public abstract class BuildLocally {
 	
 	private File jdk8Dir = null;
 	private File androidSdkDir = null;
+	private File gradleDir = null;
 	
 	private enum OS {
 		generic,
@@ -106,7 +107,10 @@ public abstract class BuildLocally {
 		if (jdk8Dir != null) {
 			paths = new File(jdk8Dir, "bin").getAbsolutePath() + File.pathSeparator + paths;
 		}
-		paths = ProcessUtils.getDefaultNodeDir().getAbsolutePath() + File.pathSeparator + paths;
+		if (gradleDir != null) {
+			paths = new File(gradleDir, "bin").getAbsolutePath() + File.pathSeparator + paths;
+		}
+		paths = ProcessUtils.getNodeDir(ProcessUtils.getDefaultNodeVersion()).getAbsolutePath() + File.pathSeparator + paths;
 		
 		parameters.add(0, command);
 		ProcessBuilder pb = command.equals("npm") ?
@@ -615,6 +619,9 @@ public abstract class BuildLocally {
 				});
 				androidSdkDir = ProcessUtils.getAndroidSDK((pBytesRead, pContentLength, pItems) -> {
 					Engine.logEngine.info("download Android SDK: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+				});
+				gradleDir = ProcessUtils.getGradle((pBytesRead, pContentLength, pItems) -> {
+					Engine.logEngine.info("download Gradle: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 				});
 			}
 			

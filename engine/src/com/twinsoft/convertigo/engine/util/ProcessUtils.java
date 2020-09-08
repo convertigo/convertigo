@@ -540,4 +540,65 @@ public class ProcessUtils {
 		
 		return dir;
 	}
+	
+	public static File getGradle(ProgressListener progress) throws Exception {
+		File dir = new File(Engine.USER_WORKSPACE_PATH, "gradle");
+		File gradle = new File(dir, "bin/gradle");
+		
+		if (!gradle.exists()) {
+			HttpGet get = new HttpGet("https://gradle.org/install");
+			String content;
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				content = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+			}
+			Matcher m = Pattern.compile("(gradle-.*?)-bin\\.zip").matcher(content);
+			if (!m.find()) {
+				Engine.logEngine.error("Cannot find Gradle link");
+			}
+			Engine.logEngine.info("Will download Gradle from: https://downloads.gradle-dn.com/distributions/" + m.group());
+			File archive = new File(Engine.USER_WORKSPACE_PATH, m.group());
+			
+			archive.delete();
+			
+			get = new HttpGet("https://downloads.gradle-dn.com/distributions/" + m.group());
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				FileUtils.deleteQuietly(archive);
+				archive.getParentFile().mkdirs();
+				if (progress != null) {
+					long length = response.getEntity().getContentLength();
+					try (FileOutputStream fos = new FileOutputStream(archive)) {
+						InputStream is = response.getEntity().getContent();
+						byte[] buf = new byte[1024 * 1024];
+						int n;
+						long t = 0, now, ts = 0;
+						while ((n = is.read(buf)) > -1) {
+							fos.write(buf, 0, n);
+							t += n;
+							now = System.currentTimeMillis();
+							if (now > ts) {
+								progress.update(t, length, 1);
+								ts = now + 2000;
+							}
+						}
+						progress.update(t, length, 1);
+					}
+				} else {
+					FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+				}
+			}
+			Level l = Engine.logEngine.getLevel();
+			try {
+				Engine.logEngine.setLevel(Level.OFF);
+				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), m.group(1));
+				Engine.logEngine.info("unzip terminated!");
+			} finally {
+				Engine.logEngine.setLevel(l);
+			}
+			archive.delete();
+		}
+		gradle.setExecutable(true);
+		
+		return dir;
+	}
 }
