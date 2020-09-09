@@ -192,7 +192,7 @@ public class JdbcConnectionManager implements AbstractManager {
 				query = "SELECT * FROM SYSIBM.SQLSCHEMAS FETCH FIRST 1 ROWS ONLY";
 			/* ORACLE (limit 1 row) */
 			else if ("oracle.jdbc.driver.OracleDriver".equals(jdbcDriverClassName))
-				query = "SELECT * FROM ALL_TABLES WHERE ROWNUM <= 1";
+				query = "SELECT 1 FROM DUAL";//"SELECT * FROM ALL_TABLES WHERE ROWNUM <= 1";
 			/* Initialize the query by default with no limitation on returned resultset */
 			else {
 				query = "SELECT 1 AS dbcp_connection_test";
