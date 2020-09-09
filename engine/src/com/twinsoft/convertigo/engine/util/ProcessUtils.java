@@ -546,6 +546,25 @@ public class ProcessUtils {
 		File gradle = new File(dir, "bin/gradle");
 		
 		if (!gradle.exists()) {
+			File dists = new File(System.getProperty("user.home"), ".gradle/wrapper/dists");
+			if (dists.exists()) {
+				File[] gradles = dists.listFiles();
+				Arrays.sort(gradles);
+				for (int i = gradles.length - 1; i > 0; i--) {
+					try {
+						File eGradle = new File(gradles[i].listFiles()[0], "bin/gradle");
+						if (eGradle.exists()) {
+							gradle = eGradle;
+							dir = gradles[i].listFiles()[0];
+							Engine.logEngine.info("Will existing gradle from: " + dir);
+						}
+					} catch (Exception e) {
+					}
+				}
+			}
+		}
+		
+		if (!gradle.exists()) {
 			HttpGet get = new HttpGet("https://gradle.org/install");
 			String content;
 			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {

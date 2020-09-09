@@ -47,6 +47,7 @@ import org.apache.log4j.Logger;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.GetBuildStatus;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.GetPackage;
@@ -92,7 +93,7 @@ public class CLI {
 		Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 		Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
 		Engine.logSecurityFilter = Logger.getLogger("cems.SecurityFilter");
-		Engine.logConvertigo = Logger.getLogger("cems.Studio");
+		Engine.logStudio = Logger.getLogger("cems.Studio");
 		Engine.logAudit = Logger.getLogger("cems.Context.Audit");
 		
 		// Managers
@@ -119,6 +120,8 @@ public class CLI {
 		Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
 		Engine.theApp.httpClient = HttpUtils.makeHttpClient3(true);
 		
+		Engine.logEngine.info("Using Properties: " + System.getProperties());
+		
 		Engine.isStarted = true;
 	}
 	
@@ -141,11 +144,11 @@ public class CLI {
 				ok = testFile.delete();
 				if (ok) {
 					EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
-					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+					Engine.logConvertigo.info("Use GitContainer to: " + testFile.getParent());
 				}
 			}
 			if (!ok) {
-				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
+				Engine.logConvertigo.info("Cannot write to: " + testFile.getParent());
 			}
 		}
 		
@@ -154,11 +157,11 @@ public class CLI {
 			if (ok = testFile.mkdirs()) {
 				ok = testFile.delete();
 				if (ok) {
-					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+					Engine.logConvertigo.info("Use GitContainer to: " + testFile.getParent());
 				}
 			}
 			if (!ok) {
-				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
+				Engine.logConvertigo.info("Cannot write to: " + testFile.getParent());
 			}
 		}
 		
@@ -169,10 +172,10 @@ public class CLI {
 			}
 			if (ok) {
 				EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
-				Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+				Engine.logConvertigo.info("Use GitContainer to: " + testFile.getParent());
 			}
 			if (!ok) {
-				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
+				Engine.logConvertigo.info("Cannot write to: " + testFile.getParent());
 			}
 		}
 		
@@ -187,9 +190,9 @@ public class CLI {
 				}
 				if (ok) {
 					EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
-					Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+					Engine.logConvertigo.info("Use GitContainer to: " + testFile.getParent());
 				} else {
-					Engine.logEngine.info("Cannot write to: " + testFile.getParent());
+					Engine.logConvertigo.info("Cannot write to: " + testFile.getParent());
 				}
 			} catch (IOException e) {
 			}
@@ -203,9 +206,9 @@ public class CLI {
 			}
 			if (ok) {
 				EnginePropertiesManager.setProperty(PropertyName.GIT_CONTAINER, testFile.getParent());
-				Engine.logEngine.info("Use GitContainer to: " + testFile.getParent());
+				Engine.logConvertigo.info("Use GitContainer to: " + testFile.getParent());
 			} else {
-				Engine.logEngine.info("Cannot write to: " + testFile.getParent());
+				Engine.logConvertigo.info("Cannot write to: " + testFile.getParent());
 			}
 		}
 		
@@ -367,11 +370,11 @@ public class CLI {
 		boolean isHttps = server.startsWith("https://");
 		String convertigoServer = server.substring(isHttps ? 8 : 7);
 		RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
-		Engine.logEngine.info("Trying to connect the user '" + user + "' to the Convertigo remote server: " + server);
+		Engine.logConvertigo.info("Trying to connect the user '" + user + "' to the Convertigo remote server: " + server);
 		remoteAdmin.login(user, password);
-		Engine.logEngine.info("Deployement of '" + file + "' to the Convertigo remote server: " + server);
+		Engine.logConvertigo.info("Deployement of '" + file + "' to the Convertigo remote server: " + server);
 		remoteAdmin.deployArchive(file, assembleXsl);
-		Engine.logEngine.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
+		Engine.logConvertigo.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
 	}
 	
 	public void launchBuild(Project project, List<String> platforms) {
@@ -383,11 +386,11 @@ public class CLI {
 				if (platforms.isEmpty() || platforms.contains(platformName)) {
 					MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(null, buildFolder, project.getName(), platformName);
 					String sResult = LaunchBuild.perform(mobileResourceHelper, null);
-					Engine.logEngine.info("build: " + sResult);
+					Engine.logConvertigo.info("build: " + sResult);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				Engine.logEngine.error("failed to launch build for " + platformName, e);
+				Engine.logConvertigo.error("failed to launch build for " + platformName, e);
 			}
 		}
 	}
@@ -411,7 +414,7 @@ public class CLI {
 				
 				try {
 					String sResult = GetBuildStatus.perform(mobileApplication, platformName, null);
-					Engine.logEngine.info("build status: " + sResult);
+					Engine.logConvertigo.info("build status: " + sResult);
 
 					if (sResult.contains("status\": \"pending\"")) {
 						hasMore = true;
@@ -423,7 +426,7 @@ public class CLI {
 						method = GetPackage.perform(mobileApplication, platformName, null);
 						String filename = mobileApplication.getComputedApplicationName() + "_" + platformName + "." + platform.getPackageType();
 //						try {
-//							Engine.logEngine.info("ContentDisposition : " + method.getResponseHeader(HeaderName.ContentDisposition.value()));
+//							Engine.logConvertigo.info("ContentDisposition : " + method.getResponseHeader(HeaderName.ContentDisposition.value()));
 //							filename = method.getResponseHeader(HeaderName.ContentDisposition.value()).getValue().replaceFirst(".*filename=\"(.*)\".*", "$1");
 //						} catch (Exception e) {}
 						File file = new File(destinationDir, filename);
@@ -434,7 +437,7 @@ public class CLI {
 					}
 				} catch (Exception e) {
 					it.remove();
-					Engine.logEngine.error("failed to retrieve " + platformName, e);
+					Engine.logConvertigo.error("failed to retrieve " + platformName, e);
 				} finally {
 					if (method != null) {
 						method.releaseConnection();
@@ -450,35 +453,38 @@ public class CLI {
 		return files;
 	}
 	
-	public List<BuildLocally> installCordova(Project project, String platforms) throws EngineException {
+	public List<BuildLocally> installCordova(Project project, List<String> platforms) throws EngineException {
 		List<MobilePlatform> mobilePlatforms;
 		MobileApplication mobileApplication = project.getMobileApplication();
-		if (platforms == null) {
+		if (platforms == null || platforms.isEmpty()) {
 			mobilePlatforms = mobileApplication.getMobilePlatformList();
 		} else {
-			String[] array = platforms.split(",");
-			mobilePlatforms = new ArrayList<>(array.length);
-			for (String platform : array) {
+			mobilePlatforms = new ArrayList<>(platforms.size());
+			for (String platform : platforms) {
 				try {
 					mobilePlatforms.add(mobileApplication.getMobilePlatformByName(platform));
 				} catch (EngineException e) {
-					Engine.logEngine.error("Failed to find the mobile platform: " + platform, e);
+					Engine.logConvertigo.error("Failed to find the mobile platform: " + platform, e);
 				}
 			}
 		}
 		List<BuildLocally> localBuilders = new ArrayList<>(mobilePlatforms.size());
 		for (MobilePlatform platform: mobilePlatforms) {
+			if (platform instanceof IOs && !Engine.isMac()) {
+				Engine.logConvertigo.info("Skip IOs build because this is not Mac OS.");
+				continue;
+			}
 			BuildLocally localBuilder = new BuildLocally(platform) {
 
 				@Override
 				protected void showLocationInstallFile(MobilePlatform mobilePlatform, int exitValue, String errorLines,
 						String buildOption) {
-					Logger.getRootLogger().error("BuildLocally location: " + exitValue + " error: " + errorLines + " options: " + buildOption);
+					Engine.logConvertigo.error("BuildLocally location: " + exitValue + " error: " + errorLines + " options: " + buildOption);
 				}
 
 				@Override
 				protected void logException(Throwable e, String message) {
-					Logger.getRootLogger().error("BuildLocally exception: " + message, e);
+					Engine.logConvertigo.error("BuildLocally exception: " + message, e);
 				}
 
 				@Override
@@ -487,9 +493,9 @@ public class CLI {
 					return null;
 				}
 			};
-			Logger.getRootLogger().info("Checking cordova ...");
+			Engine.logConvertigo.info("Checking cordova ...");
 			Status status = localBuilder.installCordova();
-			Logger.getRootLogger().info("Cordova: " + status);
+			Engine.logConvertigo.info("Cordova: " + status);
 			localBuilders.add(localBuilder);
 		}
 		return localBuilders;
@@ -497,7 +503,7 @@ public class CLI {
 	
 	public void cordovaBuild(List<BuildLocally> localBuilders, String mode) throws EngineException {
 		for (BuildLocally localBuilder: localBuilders) {
-			Logger.getRootLogger().info("Build and run on emulator ...");
+			Engine.logConvertigo.info("Build and run on emulator ...");
 			Status status;
 			switch (mode) {
 			case "release": status = localBuilder.runBuild("release", false, null); break;
@@ -505,7 +511,7 @@ public class CLI {
 			case "device": status = localBuilder.runBuild("debug", true, "device"); break;
 			default: status = localBuilder.runBuild("debug", false, null); break;
 			}
-			Logger.getRootLogger().info("Build and run status: " + status);
+			Engine.logConvertigo.info("Build and run status: " + status);
 		}
 	}
 	
@@ -580,13 +586,13 @@ public class CLI {
 			if (cmd.hasOption("car") || cmd.hasOption("deploy")) {
 				cli.export(project);
 				File out = new File(projectDir, "build");
-				Logger.getRootLogger().info("Building  : " + projectDir);
+				Engine.logConvertigo.info("Building  : " + projectDir);
 				
 				file = cli.exportToCar(project, out, !cmd.hasOption("excludeTestCases"),
 						!cmd.hasOption("excludeStubs"), !cmd.hasOption("excludeMobileApp"),
 						!cmd.hasOption("excludeMobileAppAssets"), !cmd.hasOption("excludeDataset"),
 						!cmd.hasOption("excludePlatformAssets"));
-				Logger.getRootLogger().info("Built to: " + file);	
+				Engine.logConvertigo.info("Built to: " + file);	
 			}
 			
 			if (cmd.hasOption("deploy")) {
@@ -614,13 +620,14 @@ public class CLI {
 				}
 				List<String> platforms = opt == null ? Collections.emptyList() : Arrays.asList(opt.split(","));
 				List<File> files = cli.downloadBuild(project, platforms, new File(project.getDirFile(), "build"));
-				Logger.getRootLogger().info("Downloaded application: " + files);
+				Engine.logConvertigo.info("Downloaded application: " + files);
 			}
 			
 			List<BuildLocally> localBuilders = null;
 			if (cmd.hasOption("icdv") || cmd.hasOption("cdv")) {
 				String opt = cmd.getOptionValue("icdv");
-				localBuilders = cli.installCordova(project, opt);
+				List<String> platforms = opt == null ? Collections.emptyList() : Arrays.asList(opt.split(","));
+				localBuilders = cli.installCordova(project, platforms);
 			}
 			
 			if (cmd.hasOption("cdv")) {
@@ -628,7 +635,7 @@ public class CLI {
 				cli.cordovaBuild(localBuilders, opt);
 			}
 			
-			Logger.getRootLogger().info("Operations terminated!");
+			Engine.logConvertigo.info("Operations terminated!");
 		} finally {
 		}
 	}

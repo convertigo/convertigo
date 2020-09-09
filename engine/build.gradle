@@ -269,21 +269,21 @@ dependencies {
 	compile files(dependenciesJar.archivePath)
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
-	runtime files(patchJar.archivePath)
+	compileFlat files(patchJar.archivePath)
 }
 
 task dependenciesSourceJar(type: Jar) {
 	group 'convertigo'
 	
-    def deps = configurations.compileFlat.incoming.dependencies.collect{ dependency ->
-    	def copy = dependency.copy()
-        copy.artifact { artifact ->
-                artifact.name = dependency.name
-                artifact.type = 'source'
-                artifact.extension = 'jar'
-                artifact.classifier = 'sources'
-            }
-        copy
+    def deps = configurations.compileFlat.incoming.dependencies.findAll { it instanceof ExternalModuleDependency }.collect{ dependency ->
+		def copy = dependency.copy()
+	    copy.artifact { artifact ->
+	            artifact.name = dependency.name
+	            artifact.type = 'source'
+	            artifact.extension = 'jar'
+	            artifact.classifier = 'sources'
+	        }
+	    copy
     }
     configurations.detachedConfiguration(deps as Dependency[]).resolvedConfiguration.lenientConfiguration.getFiles(Specs.SATISFIES_ALL).each {
     	if (it.name.endsWith('sources.jar')) {
