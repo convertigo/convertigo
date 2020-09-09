@@ -593,6 +593,8 @@ public class SqlConnector extends Connector {
 
 	public void setJdbcMaxConnection(int maxConnection) {
 		this.jdbcMaxConnection = maxConnection;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 
 	public String getRealJdbcURL() {
@@ -601,6 +603,8 @@ public class SqlConnector extends Connector {
 	
 	public void setSystemTablesQuery(String systemTablesQuery) {
 		this.systemTablesQuery = systemTablesQuery;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 	
 	public String getSystemTablesQuery() {
@@ -665,6 +669,8 @@ public class SqlConnector extends Connector {
 
 	public void setIdleConnectionTestTime(long idleConnectionTestTime) {
 		this.idleConnectionTestTime = idleConnectionTestTime;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 
 	public boolean getConnectionPool() {
@@ -681,6 +687,8 @@ public class SqlConnector extends Connector {
 
 	public void setTestOnBorrow(boolean testOnBorrow) {
 		this.testOnBorrow = testOnBorrow;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 	
 	static public Object getParameterJavaValue(int param_type, String value) throws UnsupportedEncodingException, MalformedURLException, SQLException {
