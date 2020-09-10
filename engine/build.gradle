@@ -81,26 +81,10 @@ configurations {
 
 jar {
 	baseName 'convertigo-engine'
-	
 	include 'com/twinsoft/**'
 }
 
-task patchCopy(type: Copy, dependsOn: classes) {
-	group 'convertigo'
-	
-	into 'build/patchClasses'
-	from compileJava.destinationDir
-	exclude 'com/twinsoft/**'
-}
-
-task patchJar(type: Jar, dependsOn: patchCopy) {
-	group 'convertigo'
-	
-	baseName 'convertigo-patch'
-	from patchCopy.destinationDir
-}
-
-task dependenciesJar(type: Jar) {
+task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 	group 'convertigo'
 	
 	zip64 = true
@@ -135,7 +119,7 @@ compileJava.dependsOn dependenciesJar
 war {
 	baseName 'convertigo'
 	
-	classpath = files(configurations.runtime, jar, patchCopy.destinationDir).filter { it != patchJar.archivePath }
+	classpath = files(configurations.runtime, jar)
 	
 	doFirst {
 		project.webAppDirName = '../eclipse-plugin-studio/tomcat/webapps/convertigo'
@@ -172,7 +156,6 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 			exclude '.placeholder'
 			srcDir 'src'
-			srcDir 'patch'
 		}
 		resources {
 			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
@@ -181,7 +164,6 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 			exclude '.placeholder'
 			srcDir 'src'
-			srcDir 'patch'
 		}
 	}
 }
@@ -269,7 +251,7 @@ dependencies {
 	compile files(dependenciesJar.archivePath)
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
-	compileFlat files(patchJar.archivePath)
+	compileFlat project(path: ':patches')
 }
 
 task dependenciesSourceJar(type: Jar) {
@@ -518,4 +500,4 @@ task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClassp
 }
 
 compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
-jar.dependsOn(['patchJar', 'updateBeansDefaultValues'])
+jar.dependsOn('updateBeansDefaultValues')

@@ -109,25 +109,26 @@ allprojects {
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}
-		
-		task cleanBin(type: Delete) {
-			group 'convertigo'
-			
-			def f = file('bin')
-			if (f.exists()) {
-				f.eachFile {
-					if (it.getName() != 'main') {
-						delete it
-					}
-				}
-			}
-		}
 	}
 	
 	plugins.withId('java') {
 		compileJava.options.encoding = 'UTF-8'
 		sourceCompatibility = '1.8'
 		targetCompatibility = '1.8'
+		
+		task cleanBin(type: Delete) {
+			group 'convertigo'
+			
+			def f = project.file('bin')
+			if (f.exists()) {
+				f.eachFile {
+					if (it.getName() != 'main') {
+						println it
+						delete it
+					}
+				}
+			}
+		}
 	}
 	
 	afterEvaluate {
