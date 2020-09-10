@@ -7,7 +7,9 @@ buildscript {
 		classpath "com.monochromeroad.gradle-plugins:gradle-aws-s3-sync:0.10"
 	}
 }
-
+plugins {
+    id "com.dorongold.task-tree" version "1.5"
+}
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
 import groovy.xml.XmlUtil
@@ -75,11 +77,11 @@ allprojects {
 			main {
 				java {
 					exclude '.placeholder'
-					srcDir 'src'
+					srcDirs = ['src']
 				}
 				resources {
 					exclude '.placeholder'
-					srcDir 'src'
+					srcDirs = ['src']
 				}
 			}
 		}

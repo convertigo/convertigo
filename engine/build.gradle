@@ -112,8 +112,8 @@ task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {
 	exclude 'META-INF/mailcap*', 'META-INF/MANIFEST.MF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'META-INF/*.SF'
 }
 
-tasks['publishToMavenLocal'].dependsOn(dependenciesJar)
-
+tasks['publishToMavenLocal'].dependsOn dependenciesJar
+tasks['publish'].dependsOn dependenciesJar
 compileJava.dependsOn dependenciesJar
 
 war {
@@ -155,7 +155,7 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 			exclude '.placeholder'
-			srcDir 'src'
+			srcDirs = ['src']
 		}
 		resources {
 			exclude 'com/twinsoft/convertigo/engine/plugins/EnvoiSMSBiller.java'
@@ -163,7 +163,7 @@ sourceSets {
 			exclude 'com/twinsoft/convertigo/engine/plugins/InseeBiller.java'
 			exclude 'com/twinsoft/convertigo/engine/plugins/LCABiller.java'
 			exclude '.placeholder'
-			srcDir 'src'
+			srcDirs = ['src']
 		}
 	}
 }

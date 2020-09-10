@@ -6,10 +6,10 @@ plugins {
 sourceSets {
 	main {
 		java {
-			srcDir 'src'
+			srcDirs = ['src']
 		}
 		resources {
-			srcDir 'src'
+			srcDirs = ['src']
 		}
 	}
 }
