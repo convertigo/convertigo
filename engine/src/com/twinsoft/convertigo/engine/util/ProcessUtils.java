@@ -483,26 +483,27 @@ public class ProcessUtils {
 					FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
 				}
 			}
-			if (Engine.isWindows()) {
-				Level l = Engine.logEngine.getLevel();
-				try {
-					Engine.logEngine.setLevel(Level.OFF);
-					Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
-					ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), null);
-					Engine.logEngine.info("unzip terminated!");
-				} finally {
-					Engine.logEngine.setLevel(l);
-				}
-			} else {
-				Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
-				dir.mkdirs();
-				ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(dir).start().waitFor();
+			Level l = Engine.logEngine.getLevel();
+			try {
+				Engine.logEngine.setLevel(Level.OFF);
+				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), null);
+				Engine.logEngine.info("unzip terminated!");
+			} finally {
+				Engine.logEngine.setLevel(l);
 			}
 			archive.delete();
 		}
+		
+		File binDir = new File(dir, "tools/bin");
+		if (!Engine.isWindows()) {
+			for (File bin: binDir.listFiles()) {
+				bin.setExecutable(true);
+			}
+		}
 
 		Engine.logEngine.info("Android commands");
-		Process p = ProcessUtils.getProcessBuilder(new File(dir, "tools/bin").getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).start();
+		Process p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).start();
 		BufferedOutputStream bos = new BufferedOutputStream(p.getOutputStream());
 		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
 		Engine.execute(() -> {

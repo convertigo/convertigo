@@ -651,7 +651,7 @@ public abstract class BuildLocally {
 			
 			return Status.OK;
 		} catch (Throwable e) {
-			logException(e, "Error when processing Cordova build");
+			logException(e, "Error when processing Cordova build: " + e);
 			
 			return Status.CANCEL;
 		}
@@ -748,13 +748,15 @@ public abstract class BuildLocally {
 					
 					this.cordovaBinPath = cordovaBinFile.getAbsolutePath();
 				} else {
-					throw new Exception("The cordova version is not specified in config.xml.");
+					Engine.logEngine.info("The phonegap-version prefrence version is not specified in config.xml.");
+					throw new Exception("The phonegap-version prefrence version is not specified in config.xml.");
 				}
 			} else {
-				throw new Exception("The cordova version is not specified in config.xml.");
+				throw new Exception("The phonegap-version preference not found in config.xml.");
 			}
 		
 		} catch (Throwable e) {
+			Engine.logEngine.info("Error when installing Cordova: " + e);
 			logException(e, "Error when installing Cordova");			
 			return Status.CANCEL;
 		}

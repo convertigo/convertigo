@@ -169,6 +169,7 @@ sourceSets {
 }
 
 dependencies {
+	compileFlat project(path: ':patches')
 	compileFlat 'ca.juliusdavies:not-yet-commons-ssl:0.3.11'
 	compileFlat 'com.convertigo.lib:ctgclient:2010.06.14'
 	compileFlat 'com.convertigo.lib:httpclientAuthHelper:2014.12.23'
@@ -251,7 +252,6 @@ dependencies {
 	compile files(dependenciesJar.archivePath)
 	swtLinux32 'com.convertigo.lib:swt:4.4.2-linux32'
 	runtime project(path: ':placeholders', configuration: 'allPlaceholders')
-	compileFlat project(path: ':patches')
 }
 
 task dependenciesSourceJar(type: Jar) {
