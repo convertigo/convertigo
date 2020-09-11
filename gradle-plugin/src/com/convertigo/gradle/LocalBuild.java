@@ -19,9 +19,11 @@
 
 package com.convertigo.gradle;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -40,7 +42,8 @@ public class LocalBuild extends ConvertigoTask {
 	String androidCertificateTitle = null;
 	String androidCertificatePassword = null;
 	String androidCertificateKeystorePassword = null;
-	
+	File packageDestinationDir = null;
+
 	@Input @Optional
 	public List<String> getPlatforms() {
 		return platforms;
@@ -126,6 +129,15 @@ public class LocalBuild extends ConvertigoTask {
 		this.androidCertificateKeystorePassword = androidCertificateKeystorePassword;
 	}
 
+	@Input @Optional
+	public File getPackageDestinationDir() {
+		return packageDestinationDir;
+	}
+
+	public void setPackageDestinationDir(File packageDestinationDir) {
+		this.packageDestinationDir = packageDestinationDir;
+	}
+
 	public LocalBuild() {
 		try {
 			String platforms = getProject().getProperties().get("convertigo.localBuild.platforms").toString();
@@ -159,12 +171,18 @@ public class LocalBuild extends ConvertigoTask {
 		try {
 			androidCertificateKeystorePassword = getProject().getProperties().get("convertigo.localBuild.androidCertificateKeystorePassword").toString();
 		} catch (Exception e) {}
+		
+		packageDestinationDir = new File(getProject().getBuildDir(), "localBuild");
+		try {
+			packageDestinationDir = new File(getProject().getProperties().get("convertigo.localBuild.packageDestinationDir").toString());
+		} catch (Exception e) {}
 	}
 	
 	@TaskAction
 	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
-		List<BuildLocally> builds = cli.installCordova(plugin.load.getConvertigoProject(), platforms);
+		Map<String, BuildLocally> builds = cli.installCordova(plugin.load.getConvertigoProject(), platforms);
 		cli.cordovaBuild(builds, mode);
+		cli.movePackage(builds, packageDestinationDir);
 	}
 }

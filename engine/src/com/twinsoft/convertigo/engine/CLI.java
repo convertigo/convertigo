@@ -27,9 +27,12 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -44,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.google.common.io.Files;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -59,6 +63,7 @@ import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally.Status;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CarUtils;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 import com.twinsoft.convertigo.engine.util.RemoteAdmin;
@@ -453,7 +458,7 @@ public class CLI {
 		return files;
 	}
 	
-	public List<BuildLocally> installCordova(Project project, List<String> platforms) throws EngineException {
+	public Map<String, BuildLocally> installCordova(Project project, List<String> platforms) throws EngineException {
 		List<MobilePlatform> mobilePlatforms;
 		MobileApplication mobileApplication = project.getMobileApplication();
 		if (platforms == null || platforms.isEmpty()) {
@@ -468,7 +473,7 @@ public class CLI {
 				}
 			}
 		}
-		List<BuildLocally> localBuilders = new ArrayList<>(mobilePlatforms.size());
+		Map<String, BuildLocally> localBuilders = new HashMap<>(mobilePlatforms.size());
 		for (MobilePlatform platform: mobilePlatforms) {
 			if (platform instanceof IOs && !Engine.isMac()) {
 				Engine.logConvertigo.info("Skip IOs build because this is not Mac OS.");
@@ -496,22 +501,44 @@ public class CLI {
 			Engine.logConvertigo.info("Checking cordova ...");
 			Status status = localBuilder.installCordova();
 			Engine.logConvertigo.info("Cordova: " + status);
-			localBuilders.add(localBuilder);
+			localBuilders.put(platform.getName(), localBuilder);
 		}
 		return localBuilders;
 	}
 	
-	public void cordovaBuild(List<BuildLocally> localBuilders, String mode) throws EngineException {
-		for (BuildLocally localBuilder: localBuilders) {
+	public void cordovaBuild(Map<String, BuildLocally> localBuilders, String mode) throws EngineException {
+		for (Entry<String, BuildLocally> localBuilder: localBuilders.entrySet()) {
 			Engine.logConvertigo.info("Build and run on emulator ...");
 			Status status;
 			switch (mode) {
-			case "release": status = localBuilder.runBuild("release", false, null); break;
-			case "emulator": status = localBuilder.runBuild("debug", true, "emulator"); break;
-			case "device": status = localBuilder.runBuild("debug", true, "device"); break;
-			default: status = localBuilder.runBuild("debug", false, null); break;
+			case "release": status = localBuilder.getValue().runBuild("release", false, "device"); break;
+			case "emulator": status = localBuilder.getValue().runBuild("debug", true, "emulator"); break;
+			case "device": status = localBuilder.getValue().runBuild("debug", true, "device"); break;
+			default: status = localBuilder.getValue().runBuild("debug", false, "emulator"); break;
 			}
-			Engine.logConvertigo.info("Build and run status: " + status);
+			Engine.logConvertigo.info("Build and run status for " + localBuilder.getKey() + ": " + status);
+			File pkg = localBuilder.getValue().getMobilePackage();
+			if (pkg != null) {
+				Engine.logConvertigo.info("Mobile package for " + localBuilder.getKey() + ": " + pkg);
+			}
+		}
+	}
+	
+	public void movePackage(Map<String, BuildLocally> localBuilders, File dir) {
+		for (Entry<String, BuildLocally> localBuilder: localBuilders.entrySet()) {
+			File pkg = localBuilder.getValue().getMobilePackage();
+			if (pkg != null && pkg.exists()) {
+				try {
+					String ext = pkg.getName().replaceAll(".*(\\..*?)$", "$1");
+					File dest = new File(dir, localBuilder.getValue().getMobilePlatform().getParent().getComputedApplicationName() + "_" + localBuilder.getKey() + ext);
+					Engine.logEngine.info("Move package from " + pkg + " to " + dest);
+					FileUtils.deleteQuietly(dest);
+					dest.getParentFile().mkdirs();
+					Files.move(pkg, dest);
+				} catch (IOException e) {
+					Engine.logConvertigo.error("Failed to move for " + localBuilder.getKey() + " package " + pkg + " to " + dir + " cause by " + e, e);
+				}
+			}
 		}
 	}
 	
@@ -524,6 +551,7 @@ public class CLI {
 			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").build())
 			.addOption(Option.builder("icdv").longOpt("installCordova").optionalArg(true).argName("platforms").hasArg().desc("check and install the cordova needed by the project for a specific platform, a list of platform separated by comma, or empty for all.").build())
 			.addOption(Option.builder("cdv").longOpt("cordovaBuild").optionalArg(true).argName("mode").hasArg().desc("perform a cordova build need parameter: debug (default), release, emulator, device.").build())
+			.addOption(Option.builder("mp").longOpt("movePackage").optionalArg(false).argName("dir").hasArg().desc("move native mobile package after a cordova build to the <dir> folder.").build())
 			.addOption(Option.builder("nb").longOpt("nativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform and download a remote cordova build of the application. Launch build and download for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
 			.addOption(Option.builder("lnb").longOpt("launchNativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform a remote cordova build of the application. Launch build for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
 			.addOption(Option.builder("dnb").longOpt("downloadNativeBuild").optionalArg(true).argName("platforms").hasArg().desc("download a remote cordova build of the application. Download from previous launch, all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
@@ -623,7 +651,7 @@ public class CLI {
 				Engine.logConvertigo.info("Downloaded application: " + files);
 			}
 			
-			List<BuildLocally> localBuilders = null;
+			Map<String, BuildLocally> localBuilders = null;
 			if (cmd.hasOption("icdv") || cmd.hasOption("cdv")) {
 				String opt = cmd.getOptionValue("icdv");
 				List<String> platforms = opt == null ? Collections.emptyList() : Arrays.asList(opt.split(","));
@@ -633,6 +661,11 @@ public class CLI {
 			if (cmd.hasOption("cdv")) {
 				String opt = cmd.getOptionValue("cdv");
 				cli.cordovaBuild(localBuilders, opt);
+			}
+			
+			if (cmd.hasOption("mp")) {
+				File dir = new File(cmd.getOptionValue("mp"));
+				cli.movePackage(localBuilders, dir);
 			}
 			
 			Engine.logConvertigo.info("Operations terminated!");

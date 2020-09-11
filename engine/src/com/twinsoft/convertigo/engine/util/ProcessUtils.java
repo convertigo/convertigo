@@ -361,8 +361,17 @@ public class ProcessUtils {
 	}
 	
 	public static File getJDK8(ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {
+		File dir;
+		String env = System.getenv("JAVA_HOME_8_X64");
+		if (env != null) {
+			dir = new File(env);
+			if (dir.exists() && new File(dir, "bin").exists()) {
+				Engine.logEngine.info("Use the JDK 8 from env JAVA_HOME_8_X64: " + dir);
+				return dir;
+			}
+		}
 		String os = Engine.isWindows() ? "windows" : Engine.isLinux() ? "linux" : "mac";
-		File dir = new File(Engine.USER_WORKSPACE_PATH, "jdk/jdk-" + 8 + "-" + os);
+		dir = new File(Engine.USER_WORKSPACE_PATH, "jdk/jdk-" + 8 + "-" + os);
 		if (dir.exists()) {
 			return dir;
 		}
@@ -438,7 +447,17 @@ public class ProcessUtils {
 	}
 	
 	public static File getAndroidSDK(ProgressListener progress) throws Exception {
-		File dir = new File(Engine.USER_WORKSPACE_PATH, "android-sdk");
+		File dir;
+		String env = System.getenv("ANDROID_HOME");
+		if (env != null) {
+			dir = new File(env);
+			if (dir.exists() && new File(dir, "tools").exists()) {
+				Engine.logEngine.info("Use the ANDROID SDK from env ANDROID_HOME: " + dir);
+				return dir;
+			}
+		}
+		
+		dir = new File(Engine.USER_WORKSPACE_PATH, "android-sdk");
 		File tools = new File(dir, "tools");
 		
 		if (!tools.exists()) {
@@ -547,11 +566,18 @@ public class ProcessUtils {
 		File gradle = new File(dir, "bin/gradle");
 		
 		if (!gradle.exists()) {
+			gradle = new File(searchFullPath(getAllPaths(null), "gradle"));
+			Engine.logEngine.info("Found system Gradle: " + gradle.getAbsolutePath());
+		}
+		
+		if (!gradle.exists()) {
 			File dists = new File(System.getProperty("user.home"), ".gradle/wrapper/dists");
+			Engine.logEngine.info("Check gradle at: " + dists + " " + dists.exists());
 			if (dists.exists()) {
 				File[] gradles = dists.listFiles();
 				Arrays.sort(gradles);
-				for (int i = gradles.length - 1; i > 0; i--) {
+				Engine.logEngine.info("Gradles: " + gradles);
+				for (int i = gradles.length - 1; i >= 0; i--) {
 					try {
 						File eGradle = new File(gradles[i].listFiles()[0], "bin/gradle");
 						if (eGradle.exists()) {
@@ -560,6 +586,7 @@ public class ProcessUtils {
 							Engine.logEngine.info("Will existing gradle from: " + dir);
 						}
 					} catch (Exception e) {
+						Engine.logEngine.info("Check gradle failed for " + gradles[i] + ": " + e);
 					}
 				}
 			}

@@ -61,7 +61,7 @@ public abstract class BuildLocally {
 	
 	/** Mobile platform */
 	protected final MobilePlatform mobilePlatform;
-	
+
 	// For minimal version of cordova required 3.4.x
 	private final int versionMinimalRequiredDecimalPart = 3;
 	private final int versionMinimalRequiredFractionalPart = 4;
@@ -82,6 +82,9 @@ public abstract class BuildLocally {
 	private File androidSdkDir = null;
 	private File gradleDir = null;
 	
+	private File mobilePackage = null;
+	private Status lastStatus = null;
+	
 	private enum OS {
 		generic,
 		linux,
@@ -97,6 +100,10 @@ public abstract class BuildLocally {
 		if (!cordovaInstallsDir.exists()) {
 			cordovaInstallsDir.mkdir();
 		}
+	}
+	
+	public MobilePlatform getMobilePlatform() {
+		return mobilePlatform;
 	}
 
 	private String runCommand(File launchDir, String command, List<String> parameters, boolean mergeError) throws Throwable {
@@ -133,48 +140,52 @@ public abstract class BuildLocally {
 		
 		process = pb.start();
 		
+		boolean[] done = {false};
+		
 		cmdOutput = "";
 		// Logs the output
-		Engine.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					String line;
-					processCanceled = false;
-					
-					BufferedReader bis = new BufferedReader(new InputStreamReader(process.getInputStream()));
-					while ((line = bis.readLine()) != null) {
-						Engine.logEngine.info(line);
-						BuildLocally.this.cmdOutput += line;
-					}
-				} catch (IOException e) {
-					Engine.logEngine.error("Error while executing command", e);
+		Engine.execute(() -> {
+			String line;
+			processCanceled = false;
+
+			try	(BufferedReader bis = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				while ((line = bis.readLine()) != null) {
+					Engine.logEngine.info(line);
+					BuildLocally.this.cmdOutput += line;
 				}
+			} catch (IOException e) {
+				Engine.logEngine.error("Error while executing command", e);
+			}
+			synchronized (done) {
+				done[0] = true;
+				done.notify();
 			}
 		});
 		
 		if (!mergeError) {
 			// Logs the error output
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						String line;
-						processCanceled = false;
-						
-						BufferedReader bis = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-						while ((line = bis.readLine()) != null) {
-							Engine.logEngine.error(line);
-							errorLines += line;
-						}
-					} catch (IOException e) {
-						Engine.logEngine.error("Error while executing command", e);
+			new Thread(() -> {
+				String line;
+				processCanceled = false;
+
+				try (BufferedReader bis = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+					while ((line = bis.readLine()) != null) {
+						Engine.logEngine.error(line);
+						errorLines += line;
 					}
+				} catch (IOException e) {
+					Engine.logEngine.error("Error while executing command", e);
 				}
 			}).start();			
 		}
 		
 		int exitCode = process.waitFor();
+
+		synchronized (done) {
+			if (!done[0]) {
+				done.wait();
+			}
+		}
 		
 		if (exitCode != 0 && exitCode != 127) {
 			throw new Exception("Exit code " + exitCode + " when running the command '" + command + 
@@ -640,8 +651,20 @@ public abstract class BuildLocally {
 				commandsList.add(0, "build");
 				commandsList.add(1, cordovaPlatform);
 				commandsList.add(2, "--" + option);
+				commandsList.add(3, "--" + target);
 				
-				runCordovaCommand(cordovaDir, commandsList);
+				String out = runCordovaCommand(cordovaDir, commandsList);
+				
+				Matcher m = Pattern.compile("[^\\s]+\\.[^\\s]+").matcher(out);
+				if (m.find()) {
+					File pkg;
+					do {
+						pkg = new File(m.group());
+						if (pkg.exists()) {
+							mobilePackage = pkg;
+						}
+					} while (m.find());
+				}
 
 				// Step 4: Show dialog with path to apk/ipa/xap
 				if (!processCanceled) {
@@ -816,4 +839,12 @@ public abstract class BuildLocally {
 	 */
     abstract protected void showLocationInstallFile(final MobilePlatform mobilePlatform, 
 			final int exitValue, final String errorLines, final String buildOption);
+
+	public File getMobilePackage() {
+		return mobilePackage;
+	}
+
+	public Status getLastStatus() {
+		return lastStatus;
+	}
 }
