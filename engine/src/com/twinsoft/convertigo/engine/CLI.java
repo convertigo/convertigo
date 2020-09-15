@@ -514,7 +514,7 @@ public class CLI {
 			case "release": status = localBuilder.getValue().runBuild("release", false, "device"); break;
 			case "emulator": status = localBuilder.getValue().runBuild("debug", true, "emulator"); break;
 			case "device": status = localBuilder.getValue().runBuild("debug", true, "device"); break;
-			default: status = localBuilder.getValue().runBuild("debug", false, "emulator"); break;
+			default: status = localBuilder.getValue().runBuild("debug", false, "device"); break;
 			}
 			Engine.logConvertigo.info("Build and run status for " + localBuilder.getKey() + ": " + status);
 			File pkg = localBuilder.getValue().getMobilePackage();

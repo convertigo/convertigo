@@ -593,6 +593,12 @@ public abstract class BuildLocally {
 			//
 			FileUtils.copyFile(new File(wwwDir, "config.xml"), new File(cordovaDir, "config.xml"));
 			FileUtils.deleteQuietly(new File(wwwDir, "config.xml"));
+			
+			File buildJson = new File(wwwDir, "build.json");
+			if (buildJson.exists()) {
+				FileUtils.copyFile(buildJson, new File(cordovaDir, "build.json"));
+				FileUtils.deleteQuietly(buildJson);
+			}
 
 			processConfigXMLResources(wwwDir, cordovaDir);
 			
@@ -655,12 +661,20 @@ public abstract class BuildLocally {
 				
 				String out = runCordovaCommand(cordovaDir, commandsList);
 				
-				Matcher m = Pattern.compile("[^\\s]+\\.[^\\s]+").matcher(out);
+				Matcher m = Pattern.compile("[^\\s]+(?:\\.apk|/build/device)").matcher(out);
 				if (m.find()) {
 					File pkg;
 					do {
 						pkg = new File(m.group());
 						if (pkg.exists()) {
+							if (pkg.getName().equals("device")) {
+								for (File f: pkg.listFiles()) {
+									if (f.getName().endsWith(".ipa")) {
+										pkg = f;
+										break;
+									}
+								}
+							}
 							mobilePackage = pkg;
 						}
 					} while (m.find());
