@@ -35,13 +35,15 @@ import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 public class LocalBuild extends ConvertigoTask {
 	List<String> platforms = Collections.emptyList();
 	String mode = "debug";
-	String authenticationToken = null;
-	String platformURL = null;
-	String iosCertificateTitle = null;
-	String iosCertificatePassword = null;
-	String androidCertificateTitle = null;
-	String androidCertificatePassword = null;
-	String androidCertificateKeystorePassword = null;
+
+	File iosProvisioningProfile = null;
+	String iosSignIdentity = null;
+	
+	File androidKeystore = null;
+	String androidKeystorePassword = null;
+	String androidPassword = null;
+	String androidAlias = null;
+	
 	File packageDestinationDir = null;
 
 	@Input @Optional
@@ -67,75 +69,60 @@ public class LocalBuild extends ConvertigoTask {
 	}
 
 	@Input @Optional
-	public String getAuthenticationToken() {
-		return authenticationToken;
-	}
-
-	public void setAuthenticationToken(String authenticationToken) {
-		this.authenticationToken = authenticationToken;
-	}
-
-	@Input @Optional
-	public String getPlatformURL() {
-		return platformURL;
-	}
-
-	public void setPlatformURL(String platformURL) {
-		this.platformURL = platformURL;
-	}
-
-	@Input @Optional
-	public String getIosCertificateTitle() {
-		return iosCertificateTitle;
-	}
-
-	public void setIosCertificateTitle(String iosCertificateTitle) {
-		this.iosCertificateTitle = iosCertificateTitle;
-	}
-
-	@Input @Optional
-	public String getIosCertificatePassword() {
-		return iosCertificatePassword;
-	}
-
-	public void setIosCertificatePassword(String iosCertificatePassword) {
-		this.iosCertificatePassword = iosCertificatePassword;
-	}
-
-	@Input @Optional
-	public String getAndroidCertificateTitle() {
-		return androidCertificateTitle;
-	}
-
-	public void setAndroidCertificateTitle(String androidCertificateTitle) {
-		this.androidCertificateTitle = androidCertificateTitle;
-	}
-
-	@Input @Optional
-	public String getAndroidCertificatePassword() {
-		return androidCertificatePassword;
-	}
-
-	public void setAndroidCertificatePassword(String androidCertificatePassword) {
-		this.androidCertificatePassword = androidCertificatePassword;
-	}
-
-	@Input @Optional
-	public String getAndroidCertificateKeystorePassword() {
-		return androidCertificateKeystorePassword;
-	}
-
-	public void setAndroidCertificateKeystorePassword(String androidCertificateKeystorePassword) {
-		this.androidCertificateKeystorePassword = androidCertificateKeystorePassword;
-	}
-
-	@Input @Optional
 	public File getPackageDestinationDir() {
 		return packageDestinationDir;
 	}
 
 	public void setPackageDestinationDir(File packageDestinationDir) {
 		this.packageDestinationDir = packageDestinationDir;
+	}
+	
+	public File getIosProvisioningProfile() {
+		return iosProvisioningProfile;
+	}
+
+	public void setIosProvisioningProfile(File iosProvisioningProfile) {
+		this.iosProvisioningProfile = iosProvisioningProfile;
+	}
+
+	public String getIosSignIdentity() {
+		return iosSignIdentity;
+	}
+
+	public void setIosSignIdentity(String iosSignIdentity) {
+		this.iosSignIdentity = iosSignIdentity;
+	}
+
+	public File getAndroidKeystore() {
+		return androidKeystore;
+	}
+
+	public void setAndroidKeystore(File androidKeystore) {
+		this.androidKeystore = androidKeystore;
+	}
+
+	public String getAndroidKeystorePassword() {
+		return androidKeystorePassword;
+	}
+
+	public void setAndroidKeystorePassword(String androidKeystorePassword) {
+		this.androidKeystorePassword = androidKeystorePassword;
+	}
+
+	public String getAndroidPassword() {
+		return androidPassword;
+	}
+
+	public void setAndroidPassword(String androidPassword) {
+		this.androidPassword = androidPassword;
+	}
+
+	public String getAndroidAlias() {
+		return androidAlias;
+	}
+
+	public void setAndroidAlias(String androidAlias) {
+		this.androidAlias = androidAlias;
 	}
 
 	public LocalBuild() {
@@ -145,31 +132,31 @@ public class LocalBuild extends ConvertigoTask {
 		} catch (Exception e) {}
 		
 		try {
-			authenticationToken = getProject().getProperties().get("convertigo.localBuild.authenticationToken").toString();
+			iosProvisioningProfile = new File(getProject().getProperties().get("convertigo.localBuild.iosProvisioningProfile").toString());
 		} catch (Exception e) {}
 		
 		try {
-			platformURL = getProject().getProperties().get("convertigo.localBuild.platformURL").toString();
+			iosSignIdentity = getProject().getProperties().get("convertigo.localBuild.iosSignIdentity").toString();
 		} catch (Exception e) {}
 		
 		try {
-			iosCertificateTitle = getProject().getProperties().get("convertigo.localBuild.iosCertificateTitle").toString();
+			androidKeystore = new File(getProject().getProperties().get("convertigo.localBuild.androidKeystore").toString());
 		} catch (Exception e) {}
 		
 		try {
-			iosCertificatePassword = getProject().getProperties().get("convertigo.localBuild.iosCertificatePassword").toString();
+			androidKeystorePassword = getProject().getProperties().get("convertigo.localBuild.androidKeystorePassword").toString();
 		} catch (Exception e) {}
 		
 		try {
-			androidCertificateTitle = getProject().getProperties().get("convertigo.localBuild.androidCertificateTitle").toString();
+			androidAlias = getProject().getProperties().get("convertigo.localBuild.androidAlias").toString();
 		} catch (Exception e) {}
 		
 		try {
-			androidCertificatePassword = getProject().getProperties().get("convertigo.localBuild.androidCertificatePassword").toString();
+			androidPassword = getProject().getProperties().get("convertigo.localBuild.androidPassword").toString();
 		} catch (Exception e) {}
 		
 		try {
-			androidCertificateKeystorePassword = getProject().getProperties().get("convertigo.localBuild.androidCertificateKeystorePassword").toString();
+			mode = getProject().getProperties().get("convertigo.localBuild.mode").toString();
 		} catch (Exception e) {}
 		
 		packageDestinationDir = new File(getProject().getBuildDir(), "localBuild");
@@ -182,6 +169,8 @@ public class LocalBuild extends ConvertigoTask {
 	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
 		Map<String, BuildLocally> builds = cli.installCordova(plugin.load.getConvertigoProject(), platforms);
+		cli.configureSignIOS(builds, iosProvisioningProfile, iosSignIdentity);
+		cli.configureSignAndroid(builds, androidKeystore, androidKeystorePassword, androidAlias, androidPassword);
 		cli.cordovaBuild(builds, mode);
 		cli.movePackage(builds, packageDestinationDir);
 	}

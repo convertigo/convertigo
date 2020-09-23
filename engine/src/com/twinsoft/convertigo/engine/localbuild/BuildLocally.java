@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.engine.localbuild;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -84,6 +86,14 @@ public abstract class BuildLocally {
 	
 	private File mobilePackage = null;
 	private Status lastStatus = null;
+	
+	private String iosProvisioningProfileUUID = null;
+	private String iosSignIdentity = null;
+	
+	private File androidKeystore = null;
+	private String androidKeystorePassword = null;
+	private String androidPassword = null;
+	private String androidAlias = null;
 	
 	private enum OS {
 		generic,
@@ -594,10 +604,32 @@ public abstract class BuildLocally {
 			FileUtils.copyFile(new File(wwwDir, "config.xml"), new File(cordovaDir, "config.xml"));
 			FileUtils.deleteQuietly(new File(wwwDir, "config.xml"));
 			
-			File buildJson = new File(wwwDir, "build.json");
-			if (buildJson.exists()) {
-				FileUtils.copyFile(buildJson, new File(cordovaDir, "build.json"));
-				FileUtils.deleteQuietly(buildJson);
+			if (iosProvisioningProfileUUID != null) {
+				boolean release = "release".equals(option);
+				JSONObject json = new JSONObject();
+				if (iosSignIdentity != null) {
+					json.put("codeSignIdentity", iosSignIdentity);
+				} else {
+					json.put("codeSignIdentity", release ? "iPhone Distribution" : "iPhone Developer");
+				}				
+				json.put("provisioningProfile", iosProvisioningProfileUUID);
+				json = new JSONObject().put(release ? "release" : "debug", json);
+				json = new JSONObject().put("ios", json);
+				FileUtils.write(new File(cordovaDir, "build.json"), json.toString(2), "utf-8");
+			}
+			
+
+			if (androidKeystore != null) {
+				boolean release = "release".equals(option);
+				JSONObject json = new JSONObject();
+				json.put("keystore", androidKeystore.getAbsolutePath());
+				json.put("storePassword", androidKeystorePassword);
+				json.put("alias", androidAlias);
+				json.put("password", androidPassword);
+				json.put("keystoreType", "");		
+				json = new JSONObject().put(release ? "release" : "debug", json);
+				json = new JSONObject().put("android", json);
+				FileUtils.write(new File(cordovaDir, "build.json"), json.toString(2), "utf-8");
 			}
 
 			processConfigXMLResources(wwwDir, cordovaDir);
@@ -694,7 +726,7 @@ public abstract class BuildLocally {
 		}
 	}
 	
-	public void cancelBuild(boolean run){
+	public void cancelBuild(boolean run) {
 		//Only for the "Run On Device" action
 		if (run) {
 			if (is(OS.win32) && (mobilePlatform instanceof WindowsPhone8) ) {
@@ -860,5 +892,45 @@ public abstract class BuildLocally {
 
 	public Status getLastStatus() {
 		return lastStatus;
+	}
+	
+	public void configureSignIOS(File provisioningProfile, String signId) throws Exception {
+		if (mobilePlatform instanceof IOs || !Engine.isMac()) {
+			return;
+		}
+		String line;
+		String uuid = null;
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(provisioningProfile)))) {
+			while ((line = br.readLine()) != null) {
+				if (line.contains("UUID")) {
+					line = br.readLine();
+					Matcher m = Pattern.compile("[-A-F0-9]{36}", Pattern.CASE_INSENSITIVE).matcher(line);
+					if (m.find()) {
+						uuid = m.group();
+						break;
+					} else {
+						throw new EngineException("Cannot match UUID from " + provisioningProfile);
+					}
+				}
+			}
+		}
+		if (uuid == null) {
+			throw new EngineException("No UUID found in " + provisioningProfile);
+		}
+
+		File dir = new File(System.getProperty("user.home"), "Library/MobileDevice/Provisioning Profiles");
+		dir.mkdirs();
+		FileUtils.copyFile(provisioningProfile, new File(dir, uuid + ".mobileprovision"));
+		iosProvisioningProfileUUID = uuid;
+		iosSignIdentity = signId;
+	}
+	
+	public void configureSignAndroid(File keystore, String keystorePassword, String alias, String password) {
+		if (mobilePlatform instanceof Android) {
+			androidKeystore = keystore;
+			androidKeystorePassword = keystorePassword;
+			androidAlias = alias;
+			androidPassword = password;
+		}
 	}
 }

@@ -541,6 +541,18 @@ public class CLI {
 			}
 		}
 	}
+
+	public void configureSignIOS(Map<String, BuildLocally> localBuilders, File provisioningProfile, String signId) throws Exception {
+		for (BuildLocally builder: localBuilders.values()) {
+			builder.configureSignIOS(provisioningProfile, signId);
+		}
+	}
+
+	public void configureSignAndroid(Map<String, BuildLocally> localBuilders, File keystore, String keystorePassword, String alias, String password) {
+		for (BuildLocally builder: localBuilders.values()) {
+			builder.configureSignAndroid(keystore, keystorePassword, alias, password);
+		}
+	}
 	
 	public static void main(String[] args) throws Exception {
 		Options opts = new Options()
@@ -550,6 +562,12 @@ public class CLI {
 			.addOption(Option.builder("b").longOpt("build").optionalArg(true).argName("mode").hasArg().desc("build generated mobilebuilder code with NPM into DisplayObject/mobile: <mode> can be production (default) or debug. If omitted, generate mode is used.").build())
 			.addOption(Option.builder("c").longOpt("car").desc("export as <projectName>.car file").build())
 			.addOption(Option.builder("icdv").longOpt("installCordova").optionalArg(true).argName("platforms").hasArg().desc("check and install the cordova needed by the project for a specific platform, a list of platform separated by comma, or empty for all.").build())
+			.addOption(Option.builder("iosprof").longOpt("iosProfile").optionalArg(false).argName("provisioningProfile").hasArg().desc("use the specified provisioningProfile for iOS builds.").build())
+			.addOption(Option.builder("iossignid").longOpt("iosSignIdentity").optionalArg(false).argName("signIdentity").hasArg().desc("override default sign identity for ios builds (iPhone Developer / iPhone Distribution).").build())
+			.addOption(Option.builder("andks").longOpt("androidKeystore").optionalArg(false).argName("keystore").hasArg().desc("use the specified keystore for Android builds.").build())
+			.addOption(Option.builder("andkspass").longOpt("androidKeystorePassword").optionalArg(false).argName("keystorePassword").hasArg().desc("use this password to unlock the Android keystore.").build())
+			.addOption(Option.builder("andalias").longOpt("androidAlias").optionalArg(false).argName("alias").hasArg().desc("use this alias to choose the right certificate in the Android keystore.").build())
+			.addOption(Option.builder("andpass").longOpt("androidPassword").optionalArg(false).argName("password").hasArg().desc("use this password to unlock the Android private key.").build())
 			.addOption(Option.builder("cdv").longOpt("cordovaBuild").optionalArg(true).argName("mode").hasArg().desc("perform a cordova build need parameter: debug (default), release, emulator, device.").build())
 			.addOption(Option.builder("mp").longOpt("movePackage").optionalArg(false).argName("dir").hasArg().desc("move native mobile package after a cordova build to the <dir> folder.").build())
 			.addOption(Option.builder("nb").longOpt("nativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform and download a remote cordova build of the application. Launch build and download for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
@@ -658,6 +676,20 @@ public class CLI {
 				localBuilders = cli.installCordova(project, platforms);
 			}
 			
+			if (cmd.hasOption("iosprof") && cmd.hasOption("cdv")) {
+				String provisioningProfile = cmd.getOptionValue("iosprof");
+				String signId = cmd.getOptionValue("iossignid");
+				cli.configureSignIOS(localBuilders, new File(provisioningProfile), signId);
+			}
+			
+			if (cmd.hasOption("andks") && cmd.hasOption("cdv")) {
+				String keystore = cmd.getOptionValue("andks");
+				String keystorePassword = cmd.getOptionValue("andkspass");
+				String alias = cmd.getOptionValue("alias");
+				String password = cmd.getOptionValue("andpass");
+				cli.configureSignAndroid(localBuilders, new File(keystore), keystorePassword, alias, password);
+			}
+			
 			if (cmd.hasOption("cdv")) {
 				String opt = cmd.getOptionValue("cdv");
 				cli.cordovaBuild(localBuilders, opt);
@@ -672,5 +704,4 @@ public class CLI {
 		} finally {
 		}
 	}
-
 }
