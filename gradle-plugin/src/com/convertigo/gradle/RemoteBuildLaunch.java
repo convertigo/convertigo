@@ -23,14 +23,14 @@ import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
 
-public class NativeBuildLaunch extends ConvertigoTask {
+public class RemoteBuildLaunch extends ConvertigoTask {
 
-	public NativeBuildLaunch() {
+	public RemoteBuildLaunch() {
 	}
 	
 	@TaskAction
 	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
-		cli.launchBuild(plugin.load.getConvertigoProject(), plugin.nativeBuild.getPlatforms());
+		cli.launchRemoteBuild(plugin.load.getConvertigoProject(), plugin.remoteBuild.getPlatforms());
 	}
 }

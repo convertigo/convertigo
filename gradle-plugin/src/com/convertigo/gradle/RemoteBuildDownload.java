@@ -30,7 +30,7 @@ import org.gradle.api.tasks.TaskAction;
 
 import com.twinsoft.convertigo.engine.CLI;
 
-public class NativeBuildDownload extends ConvertigoTask {
+public class RemoteBuildDownload extends ConvertigoTask {
 	
 	private File destinationDir;
 	private List<File> destinationFiles;
@@ -53,7 +53,7 @@ public class NativeBuildDownload extends ConvertigoTask {
 		return destinationFiles;
 	}
 
-	public NativeBuildDownload() {
+	public RemoteBuildDownload() {
 		Project project = getProject();
 		try {
 			destinationDir = project.file(project.getProperties().get("convertigo.downloadNativeDir.destinationDir"));
@@ -65,6 +65,6 @@ public class NativeBuildDownload extends ConvertigoTask {
 	@TaskAction
 	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
-		destinationFiles = cli.downloadBuild(plugin.load.getConvertigoProject(), plugin.nativeBuild.getPlatforms(), destinationDir);
+		destinationFiles = cli.downloadRemoteBuild(plugin.load.getConvertigoProject(), plugin.remoteBuild.getPlatforms(), destinationDir);
 	}
 }

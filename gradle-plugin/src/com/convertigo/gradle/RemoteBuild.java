@@ -31,7 +31,7 @@ import org.gradle.api.tasks.TaskAction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
-public class NativeBuild extends ConvertigoTask {
+public class RemoteBuild extends ConvertigoTask {
 	List<String> platforms = Collections.emptyList();
 	String authenticationToken = null;
 	String platformURL = null;
@@ -117,7 +117,7 @@ public class NativeBuild extends ConvertigoTask {
 		this.androidCertificateKeystorePassword = androidCertificateKeystorePassword;
 	}
 
-	public NativeBuild() {
+	public RemoteBuild() {
 		try {
 			String platforms = getProject().getProperties().get("convertigo.nativeBuild.platforms").toString();
 			setPlatforms(platforms);
