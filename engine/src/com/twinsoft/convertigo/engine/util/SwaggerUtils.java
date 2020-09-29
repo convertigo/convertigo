@@ -525,12 +525,20 @@ public class SwaggerUtils {
 			title = title == null || title.isEmpty() ? "RestConnector":title;
 			httpConnector.setName(StringUtils.normalize(title));
 			
+			boolean isHttps = false;
+			for (Scheme scheme: swagger.getSchemes()) {
+				if (scheme.equals(Scheme.HTTPS)) {
+					isHttps = true;
+				}
+			}
+			
 			String host = swagger.getHost();
 			int index = host.indexOf(":");
 			String server = index == -1 ? host : host.substring(0, index);
 			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1),10);
+			httpConnector.setHttps(isHttps);
 			httpConnector.setServer(server);
-			httpConnector.setPort(port <= 0 ? 80:port);
+			httpConnector.setPort(port <= 0 ? (isHttps ? 443:80) : port);
 			
 			String basePath = swagger.getBasePath();
 			httpConnector.setBaseDir(basePath);
@@ -1085,7 +1093,7 @@ public class SwaggerUtils {
 	}
 
 	public static void testReadJson() {
-		Swagger swagger = read("http://petstore.swagger.io/v2/swagger.json");
+		Swagger swagger = read("https://petstore.swagger.io/v2/swagger.json");
 		if (swagger != null) {
 			Json.prettyPrint(swagger);
 			Yaml.prettyPrint(swagger);
@@ -1093,7 +1101,7 @@ public class SwaggerUtils {
 	}
 	
 	public static void testReadYaml() {
-		Swagger swagger = read("http://petstore.swagger.io/v2/swagger.yaml");
+		Swagger swagger = read("https://petstore.swagger.io/v2/swagger.yaml");
 		if (swagger != null) {
 			Json.prettyPrint(swagger);
 			Yaml.prettyPrint(swagger);

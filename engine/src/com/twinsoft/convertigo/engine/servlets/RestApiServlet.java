@@ -348,6 +348,18 @@ public class RestApiServlet extends GenericServlet {
 			    			Engine.logEngine.debug(buf.toString());
 						}
 						
+						// terminate session to avoid max session exceeded (case new session initiated for authentication)
+						if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+							if (urlMappingOperation instanceof com.twinsoft.convertigo.beans.rest.AbstractRestOperation) {
+								com.twinsoft.convertigo.beans.rest.AbstractRestOperation aro = 
+										(com.twinsoft.convertigo.beans.rest.AbstractRestOperation)urlMappingOperation;
+								if (aro.isTerminateSession()) {
+									Engine.logEngine.debug("(RestApiServlet) requireEndOfContext because of required authentication");
+									request.setAttribute("convertigo.requireEndOfContext", true);
+								}
+							}
+						}
+						
 						if (content != null) {
 							Writer writer = response.getWriter();
 				            writer.write(content);
@@ -367,8 +379,16 @@ public class RestApiServlet extends GenericServlet {
     		} finally {
     			Requester requester = (Requester) request.getAttribute("convertigo.requester");
     			if (requester != null) {
+    				Engine.logEngine.debug("(RestApiServlet) processRequestEnd, onFinally");
 	                processRequestEnd(request, requester);
 	    			onFinally(request);
+    			} else {
+    				Engine.logEngine.debug("(RestApiServlet) terminate session");
+    				try {
+    					HttpUtils.terminateSession(httpSession);
+    				} catch (Exception e) {
+    					Engine.logEngine.warn("(RestApiServlet) unabled to terminate session", e);
+    				}
     			}
     			
     			long t1 = System.currentTimeMillis();

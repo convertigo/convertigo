@@ -82,6 +82,8 @@ public class SqlConnector extends Connector {
 	
 	transient private String realJdbcURL = null;
 	
+	transient private String overJdbcUrl = null;
+	
 	/** Holds keys/values of driver/url. */
 	transient private Map<String, String> jdbc = new HashMap<String, String>();
 	 
@@ -118,6 +120,10 @@ public class SqlConnector extends Connector {
 	public SqlConnector clone() throws CloneNotSupportedException {
 		SqlConnector clonedObject = (SqlConnector) super.clone();
 		clonedObject.jdbc = new HashMap<String, String>();
+		clonedObject.connection = null;
+		clonedObject.realJdbcURL = null;
+		clonedObject.overJdbcUrl = null;
+		clonedObject.needReset = false;
 		return clonedObject;
 	}
 	
@@ -211,28 +217,35 @@ public class SqlConnector extends Connector {
 			text = "Reconnected to the database";
 		} else text = "Connected to the database";
 		
-		realJdbcURL = jdbcURL;
+		String currentJdbcURL = getConnectionJdbcURL();
 		
-		if(jdbcURL.startsWith("jdbc:hsqldb:file:")){ // make relativ path for hsqldb driver
-			String fileURL = jdbcURL.substring("jdbc:hsqldb:file:".length());
+		realJdbcURL = currentJdbcURL;
+		
+		if (currentJdbcURL.startsWith("jdbc:hsqldb:file:")){ // make relativ path for hsqldb driver
+			String fileURL = currentJdbcURL.substring("jdbc:hsqldb:file:".length());
 			fileURL = Engine.theApp.filePropertyManager.getFilepathFromProperty(fileURL, getProject().getName());
 			realJdbcURL = "jdbc:hsqldb:file:"+fileURL;
 		}
 		
 		// Now attempt to create a database connection
 		Engine.logBeans.debug("(SqlConnector)  JDBC URL: " + realJdbcURL);//jdbc:hsqldb:file:C:\projets\Convertigo4\tomcat\webapps\convertigo\minime\crawlingDatabase
-		Engine.logBeans.debug("(SqlConnector)  User name: " + jdbcUserName);
+		Engine.logBeans.debug("(SqlConnector)  User name: " + getRealJdbcUserName());
 		Engine.logBeans.debug("(SqlConnector)  User password: ******");
 
+		Exception ex = null; 
 		try {
 			Engine.logBeans.debug("[SqlConnector] Connecting...");
 			connection = Engine.theApp.sqlConnectionManager.getConnection(this);// manager handles retry
 		} catch (SQLException e) {
-			throw new EngineException("Unable to retrieve a valid connection from pool", e);
+			throw new EngineException("Unable to retrieve a valid connection from pool", ex = e);
 		} catch (NamingException e) {
-			throw new EngineException("Unable to find the JNDI resource", e);
+			throw new EngineException("Unable to find the JNDI resource", ex = e);
 		} catch (Exception e) {
-			throw new EngineException("Unable to get a connection", e);
+			throw new EngineException("Unable to get a connection", ex = e);
+		} finally {
+			if (Engine.isStudioMode() && ex != null) {
+				setOverJdbcURL(null); // reset overJdbcURL for use in Studio only
+			}
 		}
 
 		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + realJdbcURL);
@@ -261,7 +274,7 @@ public class SqlConnector extends Connector {
 	public synchronized void close() {
 		try {
 			if (connection != null) {
-				if(jdbcURL.startsWith("jdbc:hsqldb:file:")){
+				if (realJdbcURL.startsWith("jdbc:hsqldb:file:")) {
 					Statement statement = connection.createStatement();
 					statement.executeQuery("SHUTDOWN");
 					statement.close();
@@ -282,6 +295,7 @@ public class SqlConnector extends Connector {
 		}
 		finally {
 			connection = null;
+			overJdbcUrl = null;
 			needReset = false;
 		}
 	}
@@ -393,16 +407,16 @@ public class SqlConnector extends Connector {
 			throw new MaxCvsExceededException(msg);
 		}
 
-		// Overwrites JDBC url if needed
+		// Overwrites JDBC url, user and password if needed (#369)
 		String variableValue = sqlTransaction.getParameterStringValue(Parameter.ConnectorConnectionString.getName());
 		if (variableValue != null && !variableValue.isEmpty()) {
-			if (!getJdbcURL().equals(variableValue)) {// Fix #2926 
-				setJdbcURL(variableValue);
+			if (!variableValue.equals(getJdbcURL()) && !variableValue.equals(getOverJdbcURL())) { 
+				setOverJdbcURL(variableValue);
 				Engine.logBeans.debug("(SqlConnector) Connection string overriden!");
 			}
 		}
 
-		Engine.logBeans.debug("(SqlConnector) JDBC URL: " + jdbcURL);
+		Engine.logBeans.debug("(SqlConnector) JDBC URL: " + getConnectionJdbcURL());
 	}
 
 	public void setData(List<List<String>> data, List<String> columnHeaders) {
@@ -472,6 +486,60 @@ public class SqlConnector extends Connector {
 		removeDatabasePool();
 	}
 
+	public String getOverJdbcURL() {
+		return overJdbcUrl;
+	}
+	
+	public void setOverJdbcURL(String overJdbcURL) {
+		this.overJdbcUrl = overJdbcURL;
+		if (connection != null) needReset = true;
+		removeDatabasePool();	
+	}
+	
+	public String getConnectionJdbcURL() {
+		if (overJdbcUrl != null && !overJdbcUrl.isBlank()) {
+			int index = overJdbcUrl.indexOf('?');
+			if (index != -1) {
+				return overJdbcUrl.substring(0, index);
+			} else {
+				return overJdbcUrl;
+			}
+		}
+		return getJdbcURL();
+	}
+	
+	public String getRealJdbcUserName() {
+		if (overJdbcUrl != null && !overJdbcUrl.isBlank()) {
+			int index = overJdbcUrl.indexOf('?');
+			if (index != -1) {
+				String query = overJdbcUrl.substring(index + 1);
+				String[] params = query.split("&");
+				for (String param: params) {
+					if (param.startsWith("user=")) {
+						return param.substring("user=".length());
+					}
+				}
+			}
+		}
+		return getJdbcUserName();
+	}
+	
+	public String getRealJdbcUserPassword() {
+		if (overJdbcUrl != null && !overJdbcUrl.isBlank()) {
+			int index = overJdbcUrl.indexOf('?');
+			if (index != -1) {
+				String query = overJdbcUrl.substring(index + 1);
+				String[] params = query.split("&");
+				for (String param: params) {
+					if (param.startsWith("password=")) {
+						return param.substring("password=".length());
+					}
+				}
+			}
+		}
+		return getJdbcUserPassword();
+	}
+	
 	/**
 	 * Getter for property jdbcUserName
 	 * @return
@@ -487,8 +555,7 @@ public class SqlConnector extends Connector {
 	public void setJdbcUserName(String string) {
 		jdbcUserName = string;
 		if (connection != null) needReset = true;
-		removeDatabasePool();
-			
+		removeDatabasePool();	
 	}
 
 	/**
@@ -526,6 +593,8 @@ public class SqlConnector extends Connector {
 
 	public void setJdbcMaxConnection(int maxConnection) {
 		this.jdbcMaxConnection = maxConnection;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 
 	public String getRealJdbcURL() {
@@ -534,6 +603,8 @@ public class SqlConnector extends Connector {
 	
 	public void setSystemTablesQuery(String systemTablesQuery) {
 		this.systemTablesQuery = systemTablesQuery;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 	
 	public String getSystemTablesQuery() {
@@ -598,6 +669,8 @@ public class SqlConnector extends Connector {
 
 	public void setIdleConnectionTestTime(long idleConnectionTestTime) {
 		this.idleConnectionTestTime = idleConnectionTestTime;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 
 	public boolean getConnectionPool() {
@@ -614,6 +687,8 @@ public class SqlConnector extends Connector {
 
 	public void setTestOnBorrow(boolean testOnBorrow) {
 		this.testOnBorrow = testOnBorrow;
+		if (connection != null) needReset = true;
+		removeDatabasePool();
 	}
 	
 	static public Object getParameterJavaValue(int param_type, String value) throws UnsupportedEncodingException, MalformedURLException, SQLException {

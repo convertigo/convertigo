@@ -19,8 +19,11 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.sql.CallableStatement;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -632,22 +635,42 @@ public class SqlTransaction extends TransactionWithVariables {
 				for (List<Object> col : entry.getValue()) {
 					String columnName = (String) col.get(1);
 					int index = (Integer) col.get(0);
+					
 					Object ob = null;
 					try {
 						ob = ((CallableStatement)preparedStatement).getObject(index);
 					} catch (Exception e) {
 						Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
 					}
+					
 					String resu = "";
 					if (ob != null) {
-						if (ob instanceof byte[]) {
+						if (ob instanceof Clob) {
+						    Clob clob = (Clob) ob;
+						    Reader reader = null;
+						    try {
+						      reader = clob.getCharacterStream();
+						      char[] buffer = new char[(int)clob.length()];
+						      reader.read(buffer);
+						      resu = new String(buffer);
+						    } catch (Exception e) {
+						    	Engine.logBeans.error("(SqlTransaction) Exception while getting value for column " + index, e);
+						    } finally {
+						      if (reader != null) {
+						        try {
+						        	reader.close();
+						        } catch (IOException e) {
+						        	;
+						        }
+						      }
+						    }							    
+						} else if (ob instanceof byte[]) {
 							try {
 								resu = new String((byte[]) ob, "UTF-8"); // See #3043
 							} catch (UnsupportedEncodingException e) {
 								Engine.logBeans.error("(SqlTransaction) Exception while getting value for column " + index, e);
 							} 
-						}
-						else {
+						} else {
 							resu = ob.toString();
 						}
 					}
@@ -777,18 +800,42 @@ public class SqlTransaction extends TransactionWithVariables {
 					for (List<Object> col : entry.getValue()) {
 						String columnName = (String) col.get(1);
 						int index = (Integer) col.get(0);
+						
 						Object ob = null;
 						try {
 							ob = rs.getObject(index);
 						} catch (Exception e) {
 							Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
 						}
+						
 						String resu = "";
 						if (ob != null) {
-							if (ob instanceof byte[]) {
-								resu = new String((byte[]) ob, "UTF-8"); // See #3043
-							}
-							else {
+							if (ob instanceof Clob) {
+							    Clob clob = (Clob) ob;
+							    Reader reader = null;
+							    try {
+							      reader = clob.getCharacterStream();
+							      char[] buffer = new char[(int)clob.length()];
+							      reader.read(buffer);
+							      resu = new String(buffer);
+							    } catch (Exception e) {
+							    	Engine.logBeans.error("(SqlTransaction) Exception while getting value for column " + index, e);
+							    } finally {
+							      if (reader != null) {
+							        try {
+							        	reader.close();
+							        } catch (IOException e) {
+							        	;
+							        }
+							      }
+							    }							    
+							} else if (ob instanceof byte[]) {
+								try {
+									resu = new String((byte[]) ob, "UTF-8"); // See #3043
+								} catch (UnsupportedEncodingException e) {
+									Engine.logBeans.error("(SqlTransaction) Exception while getting value for column " + index, e);
+								} 
+							} else {
 								resu = ob.toString();
 							}
 						}

@@ -53,8 +53,10 @@ public class WsReferenceComposite extends Composite {
 					"http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
 	
 	private static final List<String> restUrls = Arrays.asList(
-			"http://petstore.swagger.io/v2/swagger.yaml",
-			"http://petstore.swagger.io/v2/swagger.json");
+			"https://petstore3.swagger.io/api/v3/openapi.yaml",
+			"https://petstore3.swagger.io/api/v3/openapi.json",
+			"https://petstore.swagger.io/v2/swagger.yaml",
+			"https://petstore.swagger.io/v2/swagger.json");
 	
 	public WsReferenceComposite(Composite parent, int style, GridData gridData) {
 		super(parent, style);

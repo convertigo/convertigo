@@ -86,6 +86,7 @@ import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.UrlParser.UrlFields;
 
 import io.swagger.v3.core.jackson.SchemaSerializer;
 import io.swagger.v3.core.jackson.mixin.ComponentsMixin;
@@ -697,19 +698,17 @@ public class OpenApiUtils {
 			}
 			httpUrl = httpUrl.isEmpty() ? getConvertigoServeurUrl(): httpUrl;
 			
-			Matcher matcher = parseRequestUrl.matcher(httpUrl);
-			if (matcher.find()) {
-				String scheme = matcher.group(1) == null ? "http":"https";
-				String host = matcher.group(2);
-				String basePath = matcher.group(3);
+			UrlFields urlFields = UrlParser.parse(httpUrl);
+			if (urlFields != null) {
+				String scheme = urlFields.getScheme();
+				String host = urlFields.getHost();
+				String port = urlFields.getPort();
+				String basePath = urlFields.getPath();
 				
-				int index = host.indexOf(":");
-				String server = index == -1 ? host : host.substring(0, index);
-				int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1),10);
-				
-				httpConnector.setHttps("https".equals(scheme));
-				httpConnector.setServer(server);
-				httpConnector.setPort(port <= 0 ? 80:port);
+				boolean isHttps = "https".equals(scheme);
+				httpConnector.setHttps(isHttps);
+				httpConnector.setServer(host);
+				httpConnector.setPort(port == null ? (isHttps ? 443:80) : Integer.valueOf(port));
 				httpConnector.setBaseDir(basePath);
 			}
 			httpConnector.setBaseUrl(httpUrl);
@@ -849,38 +848,40 @@ public class OpenApiUtils {
 									if (contentType.equals("application/x-www-form-urlencoded")) {
 										@SuppressWarnings("rawtypes")
 										Map<String, Schema> properties = mediaSchema.getProperties();
-										for (String p_name : properties.keySet()) {
-											Schema<?> schema = properties.get(p_name);
-											String p_description = schema.getDescription();
-											boolean p_required = requiredList == null ? false:requiredList.contains(p_name);
-											
-											boolean isMultiValued = false;
-											if (schema instanceof ArraySchema) {
-												isMultiValued = true;
+										if (properties != null) {
+											for (String p_name : properties.keySet()) {
+												Schema<?> schema = properties.get(p_name);
+												String p_description = schema.getDescription();
+												boolean p_required = requiredList == null ? false:requiredList.contains(p_name);
+												
+												boolean isMultiValued = false;
+												if (schema instanceof ArraySchema) {
+													isMultiValued = true;
+												}
+												
+												RequestableHttpVariable httpVariable = isMultiValued ? 
+														new RequestableHttpMultiValuedVariable():
+														new RequestableHttpVariable();
+												httpVariable.bNew = true;
+												httpVariable.setHttpMethod(HttpMethodType.POST.name());
+												httpVariable.setName(p_name);
+												httpVariable.setDescription(p_name);
+												httpVariable.setHttpName(p_name);
+												httpVariable.setRequired(p_required);
+												httpVariable.setComment(p_description == null ? "":p_description);
+												
+												if (schema instanceof FileSchema) {
+													httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
+												}
+												
+												Object defaultValue = schema.getDefault();
+												if (defaultValue == null && p_required) {
+													defaultValue = "";
+												}
+												httpVariable.setValueOrNull(defaultValue);
+												
+												transaction.addVariable(httpVariable);
 											}
-											
-											RequestableHttpVariable httpVariable = isMultiValued ? 
-													new RequestableHttpMultiValuedVariable():
-													new RequestableHttpVariable();
-											httpVariable.bNew = true;
-											httpVariable.setHttpMethod(HttpMethodType.POST.name());
-											httpVariable.setName(p_name);
-											httpVariable.setDescription(p_name);
-											httpVariable.setHttpName(p_name);
-											httpVariable.setRequired(p_required);
-											httpVariable.setComment(p_description == null ? "":p_description);
-											
-											if (schema instanceof FileSchema) {
-												httpVariable.setDoFileUploadMode(DoFileUploadMode.multipartFormData);
-											}
-											
-											Object defaultValue = schema.getDefault();
-											if (defaultValue == null && p_required) {
-												defaultValue = "";
-											}
-											httpVariable.setValueOrNull(defaultValue);
-											
-											transaction.addVariable(httpVariable);
 										}
 									} else if (!hasBodyVariable) {
 										RequestableHttpVariable httpVariable = new RequestableHttpVariable();
@@ -1118,7 +1119,7 @@ public class OpenApiUtils {
 	}
 	
 	public static void testReadJson() {
-		OpenAPI openAPI = read("http://petstore.swagger.io/v2/swagger.json");
+		OpenAPI openAPI = read("https://petstore3.swagger.io/api/v3/openapi.json");
 		if (openAPI != null) {
 			Json.prettyPrint(openAPI);
 			Yaml.prettyPrint(openAPI);
@@ -1126,7 +1127,7 @@ public class OpenApiUtils {
 	}
 	
 	public static void testReadYaml() {
-		OpenAPI openAPI = read("http://petstore.swagger.io/v2/swagger.yaml");
+		OpenAPI openAPI = read("https://petstore3.swagger.io/api/v3/openapi.yaml");
 		if (openAPI != null) {
 			Json.prettyPrint(openAPI);
 			Yaml.prettyPrint(openAPI);

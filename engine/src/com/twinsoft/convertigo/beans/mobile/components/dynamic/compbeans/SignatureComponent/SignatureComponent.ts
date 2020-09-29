@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, forwardRef, ElementRef, Renderer2} 	from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, forwardRef, ElementRef, Renderer2} 	from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } 							from '@angular/forms';
 import { SignaturePad }                            							from 'angular2-signaturepad/signature-pad';
 
@@ -15,6 +15,8 @@ import { SignaturePad }                            							from 'angular2-signatu
 })
 export class SignatureComponent implements ControlValueAccessor {
   @Input() public options: Object = {};
+  @Output() private onBeginEvent = new EventEmitter<any>();
+  @Output() private onEndEvent = new EventEmitter<any>();
   @ViewChild(SignaturePad) public signaturePad: SignaturePad;
 
   public _signature: any = null;
@@ -32,8 +34,8 @@ export class SignatureComponent implements ControlValueAccessor {
   set signature(value: any) {
     this._signature = value;
     //console.log('set signature to ' + this._signature);
-    console.log('signature data :');
-    console.log(this.signaturePad.toData());
+    //console.log('signature data :');
+    //console.log(this.signaturePad.toData());
     if (this.propagateChange) {
         this.propagateChange(this.signature);
     }
@@ -75,14 +77,15 @@ export class SignatureComponent implements ControlValueAccessor {
 	}
   }
   
-  public drawBegin(): void {
-    
-  }
+  public drawBegin($event): void {
+      this.onBeginEvent.emit($event)
+    }
 
-  public drawComplete(): void {
-    this.signature = this.signaturePad.toDataURL('image/png', 0.5);
-    //console.log('signature completed: ' + this._signature);
-  }
+    public drawComplete($event): void {
+      this.signature = this.signaturePad.toDataURL('image/png', 0.5);
+      //console.log('signature completed: ' + this._signature);
+      this.onEndEvent.emit($event)
+    }
 
   public clear(): void {
     this.signaturePad.clear();

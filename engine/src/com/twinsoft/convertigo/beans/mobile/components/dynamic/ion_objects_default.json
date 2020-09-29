@@ -3187,6 +3187,21 @@
      "value": false
     }
    }
+  },
+  "   7   9   0": {
+   "name": "PublishEventAction",
+   "properties": {
+    "topic": {
+     "name": "topic",
+     "mode": "plain",
+     "value": false
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": "{}"
+    }
+   }
   }
  },
  "PushPageAction": {
@@ -4881,6 +4896,12 @@
      "value": "1000"
     }
    }
+  }
+ },
+ "CardTitle": {
+  "   7   9   0": {
+   "name": "CardTitle",
+   "properties": {}
   }
  }
 }

@@ -4852,6 +4852,21 @@
       }
     },
 
+    "CardTitle": {
+      "tag": "ion-card-title",
+	  "displayName": "CardTitle",
+      "label": "Card Title",
+      "description": [
+"ion-card-title| Defines a <i>Card Title</i> component.<br/>",
+"Use a <i>Card Title</i> component inside of a <i>Card Header</i> component.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/v3/components/#card-header'>Card Header</a>."],
+      "group": "Cards",
+      "icon16": "cardtitle_color_16x16.png",
+      "icon32": "cardtitle_color_32x32.png",
+      "properties": {
+      }
+    },
+
     "CardContent": {
       "tag": "ion-card-content",
 	  "displayName": "CardContent",
@@ -9620,7 +9635,9 @@
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
       "description": [
-"Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data. The event may be handled by an existing <i>Subscribe Handler</i> component in any available page.<br/>",
+"Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data Object in (TS) mode, e.g.:</br>",
+"<code>{user: 'user89', id: 89}</code><br/>",
+"The event may be handled by an existing <i>Subscribe Handler</i> component in any available page.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/v3/api/util/Events/'>Events</a>"],
       "group": "Actions",
       "icon16": "publisheventaction_color_16x16.png",
@@ -9636,11 +9653,11 @@
 	      },   
 	      "data": {
 	        "label": "Event data",
-	        "description": "The event data",
+	        "description": "The event data Object (be sure to use a json object) in (TS) mode.",
 	        "category": "@parameters",
 	        "type": "string",
 	        "mode": "script",
-	        "value": false,
+	        "value": "{}",
 	        "values": [false,true]
 	      }
       },
