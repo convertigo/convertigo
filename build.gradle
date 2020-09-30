@@ -62,7 +62,7 @@ allprojects {
 			url "https://m2.convertigo.com"
 		}
 		maven {
-			url "http://maven.teamdev.com/repository/products"
+			url "https://maven.teamdev.com/repository/products"
 		}
 		jcenter()
 	}
@@ -108,7 +108,7 @@ allprojects {
 			group 'convertigo'
 			
 			into 'lib'
-			from configurations.runtime
+			from configurations.runtimeClasspath
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}

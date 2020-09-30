@@ -49,15 +49,13 @@ eclipse {
 tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 
 dependencies {
-	runtime project(':engine')
-	runtime 'com.convertigo.lib:jxbrowser-license:2019.04.02'
-	runtime 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
-	//runtime 'com.teamdev.jxbrowser:jxbrowser-swing:' + jxBrowserVersion
-	runtime 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
-	//runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
-	runtime 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
-	runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
-	runtime project.property('sapjco3Version')
+	runtimeOnly project(':engine')
+	runtimeOnly 'com.convertigo.lib:jxbrowser-license:2019.04.02'
+	runtimeOnly 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
+	runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	runtimeOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
+	runtimeOnly 'org.apache.axis2:axis2-adb:1.6.2@jar'
+	runtimeOnly project.property('sapjco3Version')
 }
 
 task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {
@@ -112,6 +110,6 @@ task copyLicense(type: Copy) {
 
 project(':engine').afterEvaluate {
 	syncLib {
-		inputs.property('engine-dependency', '' + project(':engine').configurations.runtime.getAllDependencies())
+		inputs.property('engine-dependency', '' + project(':engine').configurations.runtimeClasspath.getAllDependencies())
 	}
 }
