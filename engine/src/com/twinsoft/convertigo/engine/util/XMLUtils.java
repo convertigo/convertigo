@@ -887,6 +887,7 @@ public class XMLUtils {
 
 	public static EntityResolver getEntityResolver() {
 		return new EntityResolver() {
+			@SuppressWarnings("resource")
 			public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 				if ("-//W3C//ENTITIES Latin 1 for XHTML//EN".equals(publicId))
 					return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-lat1.ent"));
@@ -921,6 +922,7 @@ public class XMLUtils {
 				return super.resolve(href, base);
 			}
 
+			@SuppressWarnings("resource")
 			@Override
 			public InputSource resolveEntity(String publicId, String systemId) {
 				try {
@@ -1289,31 +1291,77 @@ public class XMLUtils {
 			}
 		}
 
+		JSONObject c8o = new JSONObject();
 		JSONObject attr = new JSONObject();
 		NamedNodeMap nnm = elt.getAttributes();
 		
 		for (int i = 0; i < nnm.getLength(); i++) {
 			Node node = nnm.item(i);
-			if (ignoreStepIds && (node.getNodeName() != "step_id")) {
-				attr.accumulate(node.getNodeName(), node.getNodeValue());
+			if (ignoreStepIds && (!node.getNodeName().equals("step_id"))) {
+				if (node.getNodeName().startsWith("c8o_")) {
+					c8o.accumulate(node.getNodeName(), node.getNodeValue());
+				} else {
+					attr.accumulate(node.getNodeName(), node.getNodeValue());
+				}
 			}
 		}
 
-		if (value.length() == 0) {
-			String content = elt.getTextContent();
-			if (attr.length() == 0) {
-				obj.accumulate(key, content);
-			} else {
-				value.accumulate("text", content);
+		// using 'type' attribute only
+		if (c8o.length() == 0) {
+			if (value.length() == 0) {
+				String content = elt.getTextContent();
+				if (attr.length() == 0) {
+					obj.accumulate(key, content);
+				} else {
+					value.accumulate("text", content);
+				}
+			}
+
+			if (attr.length() != 0) {
+				value.accumulate("attr", attr);
+			}
+
+			if (value.length() != 0) {
+				obj.accumulate(key, value);
 			}
 		}
+		// using 'type' attribute and/or 'c8o_xxxx' attributes (for REST compliance)
+		else {
+			if (value.length() == 0) {
+				if (c8o.has("c8o_emptyObject")) {
+					value = new JSONObject();
+					if (attr.length() == 0 && !c8o.has("c8o_needAttr")) {
+						if (c8o.has("c8o_arrayOfSingle")) {
+							obj.accumulate(key, new JSONArray().put(value));
+						} else {
+							obj.accumulate(key, value);
+						}
+					}
+				} else {
+					Object content = c8o.has("c8o_nullObject") ? JSONObject.NULL : elt.getTextContent();
+					if (attr.length() == 0 && !c8o.has("c8o_needAttr")) {
+						if (c8o.has("c8o_arrayOfSingle")) {
+							obj.accumulate(key, new JSONArray().put(content));
+						} else {
+							obj.accumulate(key, content);
+						}
+					} else {
+						value.accumulate("text", content);
+					}
+				}
+			}
 
-		if (attr.length() != 0) {
-			value.accumulate("attr", attr);
-		}
+			if (attr.length() != 0 || c8o.has("c8o_needAttr")) {
+				value.accumulate("attr", attr);
+			}
 
-		if (value.length() != 0) {
-			obj.accumulate(key, value);
+			if (value.length() != 0) {
+				if (c8o.has("c8o_arrayOfSingle")) {
+					obj.accumulate(key, new JSONArray().put(value));
+				} else {
+					obj.accumulate(key, value);
+				}
+			}
 		}
 	}
 	

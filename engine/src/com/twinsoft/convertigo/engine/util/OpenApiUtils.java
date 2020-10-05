@@ -153,14 +153,12 @@ public class OpenApiUtils {
 		return new OpenAPIV3Parser().read(url);
 	}
 	
-	@SuppressWarnings("unused")
 	private static void toOas3Content(File jsonschemaFile) {
 		try {
 			File targetDir = jsonschemaFile.getParentFile();
 			String name = jsonschemaFile.getName().substring(0, jsonschemaFile.getName().indexOf('.'));
 			
 			String content = FileUtils.readFileToString(jsonschemaFile, "UTF-8");
-			content = content.replaceAll(name+"\\.jsonschema#", "#");
 			content = content.replaceAll("\"#\\\\/definitions", "\"#/components/schemas");
 			content = content.replaceAll("\\.jsonschema#\\\\/definitions", ".json#/components/schemas");
 			
@@ -213,13 +211,6 @@ public class OpenApiUtils {
 		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
 		if (doIt) {
 			try {
-				
-				File xsdFile = new File(targetDir, "xsd.jsonschema");
-				if (!xsdFile.exists()) {
-					FileUtils.copyFile(new File(Engine.WEBAPP_PATH + "/oas/xsd3.jsonschema"), xsdFile, true);
-					//toOas3Content(xsdFile);
-				}
-				
 				XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.noCache);
 				NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
 				for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
@@ -228,11 +219,11 @@ public class OpenApiUtils {
 					if (tns.equals(SchemaUtils.URI_SOAP_ENC)) continue;
 	
 					String prefix = nsMap.getPrefix(tns);
-					File jsonschemaFile = new File(targetDir, prefix+".jsonschema" );
-					JSONObject jsonObject = JsonSchemaUtils.getJsonSchema(xmlSchemaCollection, xmlSchema, oasDirUrl, false);
-					String content = jsonObject.toString(4);
-					FileUtils.write(jsonschemaFile, content, "UTF-8");
-					//toOas3Content(jsonschemaFile);
+					File oasschemaFile = new File(targetDir, prefix+".jsonschema" );
+					JSONObject oasObject = JsonSchemaUtils.getOasSchema(xmlSchemaCollection, xmlSchema, oasDirUrl, false);
+					String content = oasObject.toString(4);
+					FileUtils.write(oasschemaFile, content, "UTF-8");
+					toOas3Content(oasschemaFile);
 					//System.out.println(content);
 				}
 			} catch (Exception e) {
@@ -394,6 +385,23 @@ public class OpenApiUtils {
 		}		
 	}
 	
+	private static String getOperationId(List<String> idList, UrlMappingOperation umo, boolean useQName) {
+		if (useQName) {
+			return umo.getQName();
+		} else {
+			String prefix = umo.getProject().getName().toLowerCase();
+			String operationId = prefix + "__" + umo.getName();
+			
+			int index = 1;
+			while (idList.contains(operationId)) {
+				operationId = operationId + "_n" + index;
+				index++;
+			}
+			idList.add(operationId);
+			return operationId;
+		}
+	}
+	
 	public static OpenAPI parse(String requestUrl, UrlMapper urlMapper) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
@@ -453,6 +461,8 @@ public class OpenApiUtils {
 			t.printStackTrace();
 		}
 		
+		List<String> opIdList = new ArrayList<String>();
+		
 		// Paths
 		Paths paths = new Paths();
 		try {
@@ -460,7 +470,7 @@ public class OpenApiUtils {
 				PathItem item = new PathItem();
 				for (UrlMappingOperation umo : urlMapping.getOperationList()) {
 					Operation operation = new Operation();
-					operation.setOperationId(umo.getQName());
+					operation.setOperationId(getOperationId(opIdList, umo, false)/*umo.getQName()*/);
 					operation.setDescription(umo.getComment());
 					operation.setSummary(umo.getComment());
 					
@@ -550,8 +560,7 @@ public class OpenApiUtils {
 								String modelReference = ((IMappingRefModel)umr).getModelReference();
 								if (!modelReference.isEmpty() && !produces.isEmpty()) {
 									if (modelReference.indexOf(".jsonschema") != -1) {
-										//modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
-										modelReference = oasDirUrl + modelReference;
+										modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
 									}
 									Content content = new Content();
 									response.setContent(content);
@@ -591,6 +600,15 @@ public class OpenApiUtils {
 			Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate definition", e);
 		}
 		openAPI.setPaths(paths);
+		
+		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
+		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
+		if (doIt) {
+			try {
+				File yamlFile = new File(targetDir, projectName+".yaml" );
+				FileUtils.write(yamlFile, prettyPrintYaml(openAPI), "UTF-8");
+			} catch (Exception e) {}
+		}
 		
 		return openAPI;
 	}

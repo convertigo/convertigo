@@ -20,7 +20,10 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -44,6 +47,8 @@ import org.apache.ws.commons.schema.XmlSchemaEnumerationFacet;
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaGroupRef;
+import org.apache.ws.commons.schema.XmlSchemaImport;
+import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaLengthFacet;
 import org.apache.ws.commons.schema.XmlSchemaMaxExclusiveFacet;
 import org.apache.ws.commons.schema.XmlSchemaMaxInclusiveFacet;
@@ -51,6 +56,7 @@ import org.apache.ws.commons.schema.XmlSchemaMaxLengthFacet;
 import org.apache.ws.commons.schema.XmlSchemaMinExclusiveFacet;
 import org.apache.ws.commons.schema.XmlSchemaMinInclusiveFacet;
 import org.apache.ws.commons.schema.XmlSchemaMinLengthFacet;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaPatternFacet;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
@@ -1102,6 +1108,1424 @@ public class JsonSchemaUtils {
 			}.walk(xmlSchema);
 			
 		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+				
+		return jsonSchema;
+	}
+	
+	
+	protected static JSONObject getOasSchema(XmlSchemaCollection xmlSchemaCollection, XmlSchema xmlSchema, String oasDirUrl, boolean isOas2) {
+		final NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
+		final JSONObject jsonSchema = new JSONObject();
+		try {
+			String prefix = nsMap.getPrefix(xmlSchema.getTargetNamespace());
+			
+			jsonSchema.put("id", oasDirUrl + prefix + ".jsonschema#");
+			jsonSchema.put("ns", xmlSchema.getTargetNamespace());
+			jsonSchema.put("definitions", new JSONObject());
+			
+			new XmlSchemaWalker(false, false) {
+				final Map<String, JSONObject> refs = new HashMap<String, JSONObject>(50);
+				final JSONObject definitions = jsonSchema.getJSONObject("definitions");
+				JSONObject parent = definitions;
+				
+				private boolean isGlobal(JSONObject jParent) {
+					if (jParent != null) {
+						return jParent.equals(definitions);
+					}
+					return false;
+				}
+				
+				private JSONObject getRefObject(String ref) throws JSONException {
+					JSONObject refObject =  refs.get(ref);
+					if (refObject != null && refObject.getString("objType").equals("simpleType")) {
+						if (refObject.has("value")) {
+							JSONObject ob = new JSONObject();
+							copyOKeys(refObject.getJSONObject("value"), ob);
+							return ob;
+						}
+					}
+					return new JSONObject().put("$ref", ref);
+				}
+				
+				private String normalize(String key) {
+					return key.replaceAll("[^a-zA-Z0-9]", "x");
+				}
+				
+				private void addGlobalObject(JSONObject jParent, JSONObject jElement, String key) throws JSONException {
+					if (jParent != null) {
+						jParent.put(normalize(key), jElement);
+						refs.put(jElement.getString("objKey"), jElement);
+					}
+				}
+				
+				private String toOasType(String baseType) {
+					String oasType = baseType;
+					switch (baseType) {
+						case "NMTOKEN":
+						case "token":
+						case "IDREF":
+						case "ID":
+							oasType = "string";
+							break;
+							
+						case "decimal":
+							oasType = "number";
+							break;
+							
+						case "int":
+						case "nonNegativeInteger":
+						case "positiveInteger":
+							oasType = "integer";
+							break;
+					}
+					return oasType;
+				}
+				
+				private String getDefinitionRef(QName rname) {
+					if (rname != null) {
+						String local = rname.getLocalPart();
+						String ns = rname.getNamespaceURI();
+						return oasDirUrl + nsMap.getPrefix(ns)+ ".jsonschema#/definitions/"+ normalize(local);
+					}
+					return null;
+				}
+				
+				private void addChild(JSONObject jParent, JSONObject jElement) throws JSONException {
+					if (!jParent.has("children")) {
+						jParent.put("children", new JSONArray());
+					}
+					
+					jParent.getJSONArray("children").put(jElement);
+				}
+				
+				private void handleElement(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
+					if (!jsonOb.has("type")) {
+						jsonOb.put("type", "object");
+					}
+					if (!jsonOb.has("required")) {
+						jsonOb.put("required", new JSONArray());
+					}
+					if (!jsonOb.has("properties")) {
+						jsonOb.put("properties", new JSONObject());
+					}
+					JSONArray required = jsonOb.getJSONArray("required");
+					JSONObject properties = jsonOb.getJSONObject("properties");
+					
+					String propertyName = jsonChild.getString("name");
+					long minOccurs = jsonChild.has("minOccurs") ? jsonChild.getLong("minOccurs") : 0;
+					long maxOccurs = jsonChild.has("maxOccurs") ? jsonChild.getLong("maxOccurs") : minOccurs;
+					boolean isRequired = Math.min(minOccurs, minItems) > 0;
+					boolean isArray = maxOccurs > 1 || maxItems > 1;
+					
+					JSONObject property = new JSONObject();
+					
+					// fill required
+					if (isRequired) {
+						if (required.join(",").indexOf(propertyName) == -1) {
+							required.put(propertyName);
+						}
+					} else if (!isArray) {
+						property.put("nullable",true);
+					}
+					
+					// fill properties
+					if (isArray) {
+						property.put("type","array");
+						property.put("minItems", minOccurs);
+						property.put("maxItems", Math.max(maxOccurs, maxItems));
+						property.put("items", new JSONObject());
+					}
+					JSONObject prop = isArray ? property.getJSONObject("items") : property;
+					if (jsonChild.has("value")) {
+						JSONObject value = jsonChild.getJSONObject("value");
+						@SuppressWarnings("unchecked")
+						Iterator<String> it = value.keys();
+						while (it.hasNext()) {
+							String pkey = it.next();
+							if (!pkey.isEmpty()) {
+								prop.put(pkey, value.get(pkey));
+							}
+						}
+					} else if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							if (!child.has("objType")) {
+								@SuppressWarnings("unchecked")
+								Iterator<String> it = child.keys();
+								while (it.hasNext()) {
+									String pkey = it.next();
+									if (!pkey.isEmpty()) {
+										prop.put(pkey, child.get(pkey));
+									}
+								}
+							}
+						}
+					}
+					
+					if (!isRequired && prop.has("$ref")) {
+						JSONArray allOf = new JSONArray().put(new JSONObject().put("$ref", prop.remove("$ref")));
+						prop.put("nullable", true).put("allOf", allOf);
+					}
+					
+					properties.put(propertyName, property);
+					
+					// handle children
+					if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							if (child.has("objType")) {
+								handleChild(prop.has("type") || prop.has("$ref") ? jsonOb : prop, child);
+							}
+						}
+					}
+					
+				}
+				
+				private void handleAttribute(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
+					if (!jsonOb.has("required")) {
+						jsonOb.put("required", new JSONArray());
+					}
+					if (!jsonOb.has("properties")) {
+						jsonOb.put("properties", new JSONObject());
+					}
+					
+					JSONObject attrObject = null;
+					if (jsonOb.getJSONObject("properties").has("attr")) {
+						attrObject = jsonOb.getJSONObject("properties").getJSONObject("attr");
+					} else {
+						attrObject = new JSONObject()
+										.put("type", "object")
+										.put("required", new JSONArray())
+										.put("properties", new JSONObject());
+						jsonOb.getJSONObject("properties").put("attr", attrObject);
+					}
+					
+					JSONArray required = attrObject.getJSONArray("required");
+					JSONObject properties = attrObject.getJSONObject("properties");
+					
+					String attrName = jsonChild.getString("name");
+					long minOccurs = jsonChild.has("minOccurs") ? jsonChild.getLong("minOccurs") : 0;
+					long maxOccurs = jsonChild.has("maxOccurs") ? jsonChild.getLong("maxOccurs") : minOccurs;
+					boolean isRequired = minOccurs > 0;
+					boolean isArray = maxOccurs > 1;
+					
+					// fill required
+					if (isRequired) {
+						if (required.join(",").indexOf(attrName) == -1) {
+							required.put(attrName);
+							// if attribute is required then attr object is required also
+							if (jsonOb.getJSONArray("required").join(",").indexOf("attr") == -1) {
+								jsonOb.getJSONArray("required").put("attr");
+							}
+						}
+					}
+					
+					// fill properties
+					JSONObject attribute = new JSONObject();
+					if (isArray) {
+						attribute.put("type","array");
+						attribute.put("minItems", minOccurs);
+						attribute.put("maxItems", maxOccurs);
+						attribute.put("items", new JSONObject());
+					}
+					JSONObject attr = isArray ? attribute.getJSONObject("items") : attribute;
+					if (jsonChild.has("value")) {
+						JSONObject value = jsonChild.getJSONObject("value");
+						copyOKeys(value, attr);
+					} else if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							if (!child.has("objType")) {
+								copyOKeys(child, attr);
+							}
+						}
+					}
+					properties.put(attrName, attribute);
+
+					// handle children
+					if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							if (child.has("objType")) {
+								handleChild(attr, child);
+							}
+						}
+					}
+				}
+				
+				private void handleChoice(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
+					//note: oneOf with complex inline model is baddly supported: minTems forced to 0L
+					
+					// handle children
+					if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							handleChild(jsonOb, child, 0L, maxItems); // minTems forced to 0L
+						}
+						
+					}
+				}
+				
+				private void handleUnion(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
+					if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							handleChild(jsonOb, child, minItems, maxItems);
+						}
+					} 
+				}
+				
+				private void handleExtension(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
+					boolean hasAllOf = jsonOb.has("allOf");
+					if (!hasAllOf) {
+						jsonOb.put("allOf", new JSONArray());
+					}
+					JSONArray allOf = jsonOb.getJSONArray("allOf");
+					
+					// handle children
+					if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							JSONObject ob = new JSONObject();
+							handleChild(ob, child);
+							merge(ob);
+							allOf.put(ob);
+						}
+					}
+					
+					merge(jsonOb);
+				}
+				
+				private void handleSequence(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
+					long minOccurs = jsonChild.has("minOccurs") ? jsonChild.getLong("minOccurs") : 0;
+					long maxOccurs = jsonChild.has("maxOccurs") ? jsonChild.getLong("maxOccurs") : minOccurs;
+					
+					boolean hasAllOf = jsonOb.has("allOf");
+					if (!hasAllOf) {
+						jsonOb.put("allOf", new JSONArray());
+					}
+					JSONArray allOf = jsonOb.getJSONArray("allOf");
+					
+					// handle children
+					if (jsonChild.has("children")) {
+						JSONArray children = jsonChild.getJSONArray("children");
+						for (int i = 0; i <children.length(); i++) {
+							JSONObject child = children.getJSONObject(i);
+							JSONObject ob = new JSONObject();
+							handleChild(ob, child, Math.min(minOccurs, minItems), Math.max(maxOccurs, maxItems));
+							merge(ob);
+							allOf.put(ob);
+						}
+						
+						merge(jsonOb);
+					}					
+				}
+				
+				private void merge(JSONObject jsonOb) throws JSONException {
+					if (jsonOb.has("allOf")) {
+						JSONArray allOf = jsonOb.getJSONArray("allOf");
+						int len = allOf.length();
+						if (len > 0) {
+							JSONObject merge = new JSONObject()
+												.put("type", "object")
+												.put("required", new JSONArray())
+												.put("properties", new JSONObject());
+							
+							List<JSONObject> merged = new ArrayList<JSONObject>();
+							List<JSONObject> others = new ArrayList<JSONObject>();
+							for (int i = 0; i < len; i++) {
+								JSONObject ob = allOf.getJSONObject(i);
+								if (ob.has("description") && ob.length() == 1) {
+									merge.put("description", ob.getString("description"));
+									merged.add(ob);
+								}
+								if (ob.has("properties")) {
+									copyOKeys(ob.getJSONObject("properties"), merge.getJSONObject("properties"));
+								}
+								if (ob.has("required")) {
+									copyAKeys(ob.getJSONArray("required"), merge.getJSONArray("required"));
+								}
+								
+								if (!ob.has("properties") &&  !ob.has("required")) {
+									others.add(ob);
+								} else {
+									merged.add(ob);
+								}
+							}
+							
+							for (JSONObject ob: merged) {
+								allOf.remove(ob);
+							}
+							if (merged.size() > 0) {
+								allOf.put(merge);
+							}
+							
+							// merge in parent
+							if (allOf.length() == 1) {
+								JSONObject ob = allOf.getJSONObject(0);
+								if (jsonOb.has("properties")) {
+									if (ob.has("description") && ob.length() == 1) {
+										jsonOb.put("description", ob.getString("description"));
+									}
+									if (ob.has("properties")) {
+										copyOKeys(ob.getJSONObject("properties"), jsonOb.getJSONObject("properties"));
+									}
+									if (ob.has("required")) {
+										copyAKeys(ob.getJSONArray("required"), jsonOb.getJSONArray("required"));
+									}
+									jsonOb.remove("allOf");
+								} else {
+									copyOKeys(ob, jsonOb);
+									jsonOb.remove("allOf");
+								}
+							} else {
+								;
+							}
+						}
+					}
+				}
+				
+				private void handleChild(JSONObject jsonOb, JSONObject jsonChild) throws JSONException {
+					handleChild(jsonOb, jsonChild, 1L, 1L);
+				}
+				
+				private void handleChild(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
+					if (jsonChild.has("objType")) {
+						String objType = jsonChild.getString("objType");
+						switch (objType) {
+							case "elementType":
+								handleElement(jsonOb, jsonChild, minItems, maxItems);
+								break;
+								
+							case "attributeType":
+								handleAttribute(jsonOb, jsonChild, minItems, maxItems);
+								break;
+							
+							case "choiceType":
+								handleChoice(jsonOb, jsonChild, minItems, maxItems);
+								break;
+								
+							case "sequenceType":
+								handleSequence(jsonOb, jsonChild, minItems, maxItems);
+								break;
+								
+							case "simpleUnionType":
+								handleUnion(jsonOb, jsonChild, minItems, maxItems);
+								break;
+								
+							case "complexContentExtensionType":
+								handleExtension(jsonOb, jsonChild, minItems, maxItems);
+								break;
+							
+							case "allType":
+							case "groupType":
+							case "complexType":
+							case "simpleRestrictionType":
+							case "simpleType":
+								if (jsonChild.has("children")) {
+									JSONArray children = jsonChild.getJSONArray("children");
+									for (int i = 0; i <children.length(); i++) {
+										handleChild(jsonOb, (JSONObject)children.get(i), minItems, maxItems);
+									}
+								} else {
+									System.out.println("ObjType: " + objType + " has no children");
+								}
+								break;
+							default:
+								System.out.println("Unhandled objType: " + objType);
+								break;
+						}
+					} else {
+						copyOKeys(jsonChild, jsonOb);
+					}
+				}
+				
+				private void copyOKeys(JSONObject from, JSONObject to) throws JSONException {
+					@SuppressWarnings("unchecked")
+					Iterator<String> it = from.keys();
+					while (it.hasNext()) {
+						String pkey = it.next();
+						if (!pkey.isEmpty()) {
+							to.put(pkey, from.get(pkey));
+						}
+					}
+				}
+				
+				private void copyAKeys(JSONArray from, JSONArray to) throws JSONException {
+					for (int i = 0; i < from.length(); i++) {
+						to.put(from.get(i));
+					}
+				}
+				
+				private void handle(JSONObject jParent) {
+					boolean debug = false;
+					try {
+						if (jParent != null) {
+							if (!jParent.has("value")) {
+								JSONObject value = new JSONObject();
+								jParent.put("value", value);
+								
+								JSONObject jsonOb = jParent.getJSONObject("value");
+								if (jParent.has("children")) {
+									JSONArray children = jParent.getJSONArray("children");
+									int len = children.length();
+									for (int i = 0; i <len; i++) {
+										handleChild(jsonOb, (JSONObject)children.get(i));
+										merge(jsonOb);
+									}
+								} else {
+									
+								}
+								
+								if (!debug) {
+									jParent.remove("objKey");
+									jParent.remove("objType");
+									jParent.remove("QName");
+									jParent.remove("children");
+									jParent.remove("name");
+									jParent.remove("maxOccurs");
+									jParent.remove("minOccurs");
+									jParent.remove("value");
+								}
+								
+								if (value.has("properties")) {
+									jParent.put("type", "object");
+								}
+								copyOKeys(value, jParent);
+							}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+						Engine.logEngine.warn("(JSonSchemaUtils) Unexpected exception while generating jsonchema models", e);
+					}
+				}
+				
+				@Override
+				protected void walkChoice(XmlSchema xmlSchema, XmlSchemaChoice obj) {
+					JSONObject jParent = parent;
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						jElement.put("objType", "choiceType")
+								.put("minOccurs", obj.getMinOccurs())
+								.put("maxOccurs", obj.getMaxOccurs());				
+						
+						addChild(jParent, jElement);
+						parent = jElement;
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkChoice(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+
+				@Override
+				protected void walkGroup(XmlSchema xmlSchema, XmlSchemaGroup obj) {
+					JSONObject jParent = parent;
+					
+					QName qname = obj.getName();
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						if (isGlobal(jParent)) {
+							if (qname != null) {
+								jElement.put("objType", "groupType");
+								
+								String id = jsonSchema.getString("id");
+								jElement.put("objKey", id + "/definitions/" + normalize(qname.getLocalPart()));
+								
+								jElement.put("QName",new JSONObject()
+										.put("localPart", qname.getLocalPart())
+										.put("namespaceURI", qname.getNamespaceURI()));
+								
+								addGlobalObject(jParent, jElement, qname.getLocalPart());
+								parent = jElement;
+							}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkGroup(xmlSchema, obj);
+					
+					if (isGlobal(jParent)) {
+						handle(jElement);
+					}
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkGroupRef(XmlSchema xmlSchema, XmlSchemaGroupRef obj) {
+					JSONObject jParent = parent;
+					
+					QName refName = obj.getRefName();
+					
+					long minOccurs = obj.getMinOccurs();
+					long maxOccurs = obj.getMaxOccurs();
+					
+					JSONObject jElement = new JSONObject();
+	        		try {
+						if (refName != null) {
+			        		String ref = getDefinitionRef(refName);
+			        		if (ref != null) {
+			        			JSONObject jRef = null;
+								if (maxOccurs > 1) {
+									if (ref.indexOf("xsd.jsonschema") != -1) {
+										jRef = new JSONObject()
+												.put("type", "array")
+												.put("items", new JSONObject().put("type", toOasType(refName.getLocalPart())))
+												.put("minItems", minOccurs);
+									} else {
+										JSONObject refObject = getRefObject(ref);
+										jRef = new JSONObject()
+												.put("type", "array")
+												.put("items", refObject)
+												.put("minItems", minOccurs);
+									}
+								} else {
+									if (ref.indexOf("xsd.jsonschema") != -1) {
+										jRef = new JSONObject().put("type", toOasType(refName.getLocalPart()));
+										if (minOccurs == 0) {
+											jRef.put("nullable", "true");
+										}
+									} else {
+										JSONObject refObject = getRefObject(ref);
+										if (minOccurs == 0) {
+											jRef = new JSONObject().put("nullable", "true")
+													.put("allOf", new JSONArray().put(refObject));
+										} else {
+											jRef = refObject;
+										}
+									}
+								}
+			        			
+								jElement.put("objType", "groupType")
+										.put("minOccurs", minOccurs)
+										.put("maxOccurs", maxOccurs)
+										.put("name", refName.getLocalPart());
+								
+								addChild(jElement, jRef);
+								
+								addChild(jParent, jElement);
+								parent = jElement;
+			        		}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkGroupRef(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				
+				@Override
+				protected void walkAll(XmlSchema xmlSchema, XmlSchemaAll obj) {
+					JSONObject jParent = parent;
+
+					JSONObject jElement = new JSONObject();
+					try {
+						jElement.put("objType", "allType")
+								.put("minOccurs", obj.getMinOccurs())
+								.put("maxOccurs", obj.getMaxOccurs());
+						
+						addChild(jParent, jElement);
+						parent = jElement;
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkAll(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+
+				@Override
+				protected void walkSequence(XmlSchema xmlSchema, XmlSchemaSequence obj) {
+					JSONObject jParent = parent;
+
+					JSONObject jElement = new JSONObject();
+					try {
+						jElement.put("objType", "sequenceType")
+								.put("minOccurs", obj.getMinOccurs())
+								.put("maxOccurs", obj.getMaxOccurs());
+						
+						addChild(jParent, jElement);
+						parent = jElement;
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkSequence(xmlSchema, obj);
+
+					parent = jParent;
+				}
+
+				@Override
+				protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
+					JSONObject jParent = parent;
+					
+					String name = obj.getName();
+					
+					QName qname = obj.getQName();
+					QName refName = obj.getRefName();
+					QName typeName = obj.getSchemaTypeName();
+					XmlSchemaType xmlSchemaType = obj.getSchemaType();
+					
+					long minOccurs = obj.getMinOccurs();
+					long maxOccurs = obj.getMaxOccurs();
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						if (isGlobal(jParent)) {
+							jElement.put("objType", "elementType");
+						} else {
+							jElement.put("objType", "elementType")
+									.put("minOccurs", minOccurs)
+									.put("maxOccurs", maxOccurs);
+						}
+						
+						
+						if (refName == null && typeName == null) {
+							// pass though
+						} else {
+							QName rname = refName != null ? refName : 
+								(typeName != null ? typeName: 
+								(xmlSchemaType != null ? xmlSchemaType.getQName() : new QName("")));
+					
+							String ref = getDefinitionRef(rname);
+							if (ref != null) {
+								if (name.isEmpty()) {
+									name = rname.getLocalPart();
+								}
+								if (ref.indexOf("xsd.jsonschema") != -1) {
+									addChild(jElement, new JSONObject().put("type", toOasType(rname.getLocalPart())));
+								} else {
+									JSONObject refObject = getRefObject(ref);
+									addChild(jElement, refObject);
+								}
+							}
+						}
+						
+						jElement.put("name", name);
+						
+						if (isGlobal(jParent)) {
+							if (qname != null) {
+								String id = jsonSchema.getString("id");
+								jElement.put("objKey", id + "/definitions/" + normalize(qname.getLocalPart()));
+								
+								jElement.put("QName",new JSONObject()
+										.put("localPart", qname.getLocalPart())
+										.put("namespaceURI", qname.getNamespaceURI()));
+							}
+							
+							addGlobalObject(jParent, jElement, name);
+							parent = jElement;
+						} else {
+							addChild(jParent, jElement);
+							parent = jElement;
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkElement(xmlSchema, obj);
+					
+					if (isGlobal(jParent)) {
+						handle(jElement);
+					}
+					
+					parent = jParent;
+				}
+
+				@Override
+				protected void walkAny(XmlSchema xmlSchema, XmlSchemaAny obj) {
+					JSONObject jParent = parent;
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						JSONObject value = new JSONObject()
+											.put("type", "string")
+											.put("description", "any element");
+						
+						jElement.put("objType", "elementType")
+								.put("minOccurs", 1)
+								.put("maxOccurs", 1)
+								.put("name", "any")
+								.put("value", value);
+						
+						jParent.put("additionalProperties", true);
+						
+						addChild(jParent, jElement);
+						parent = jElement;								
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkAny(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkAnyAttribute(XmlSchema xmlSchema, XmlSchemaAnyAttribute obj) {
+					JSONObject jParent = parent;
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						JSONObject value = new JSONObject()
+								.put("type", "string")
+								.put("xml", new JSONObject().put("attribute", true))
+								.put("description", "any attribute");
+			
+						jElement.put("objType", "attributeType")
+								.put("minOccurs", 0)
+								.put("name", "any")
+								.put("value", value);
+						
+						addChild(jParent, jElement);
+						parent = jElement;								
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkAnyAttribute(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkAppInfo(XmlSchema xmlSchema, XmlSchemaAppInfo item) {
+					JSONObject jParent = parent;
+					
+					try {
+						String description = "";
+						NodeList nodeList = item.getMarkup();
+						for (int i=0; i<nodeList.getLength(); i++) {
+							Node node = nodeList.item(i);
+							if (node.getNodeType() == Node.TEXT_NODE) {
+								description += node.getNodeValue();
+							}
+						}
+						
+						if (!description.isEmpty()) {
+							addChild(jParent, new JSONObject().put("title", description));
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkAppInfo(xmlSchema, item);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkDocumentation(XmlSchema xmlSchema, XmlSchemaDocumentation item) {
+					JSONObject jParent = parent;
+					
+					try {
+						String description = "";
+						NodeList nodeList = item.getMarkup();
+						for (int i=0; i<nodeList.getLength(); i++) {
+							Node node = nodeList.item(i);
+							if (node.getNodeType() == Node.TEXT_NODE) {
+								description += node.getNodeValue();
+							}
+						}
+						
+						if (!description.isEmpty()) {
+							addChild(jParent, new JSONObject().put("description", description));
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkDocumentation(xmlSchema, item);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+					JSONObject jParent = parent;
+					
+					String name = obj.getName();
+					
+					QName qname = obj.getQName();
+					QName refName = obj.getRefName();
+					QName typeName = obj.getSchemaTypeName();
+					XmlSchemaSimpleType xmlSchemaSimpleType = obj.getSchemaType();
+					
+					boolean isRequired = obj.getUse().equals(XmlSchemaUtils.attributeUseRequired);
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						jElement.put("objType", "attributeType")
+								.put("minOccurs", isRequired ? 1:0);
+						
+						if (refName == null && typeName == null) {
+							// pass through
+						} else {
+							QName rname = refName != null ? refName : 
+								(typeName != null ? typeName: 
+								(xmlSchemaSimpleType != null ? xmlSchemaSimpleType.getQName() : new QName("")));
+					
+							String ref = getDefinitionRef(rname);
+							if (ref != null) {
+								if (name.isEmpty()) {
+									name = rname.getLocalPart();
+								}
+								
+								JSONObject value = new JSONObject();
+								if (ref.indexOf("xsd.jsonschema") != -1) {
+									value.put("type", toOasType(rname.getLocalPart()));
+									value.put("xml", new JSONObject().put("attribute", true));
+								} else {
+									JSONObject refObject = getRefObject(ref);
+									copyOKeys(refObject, value);
+									value.put("xml", new JSONObject().put("attribute", true));
+								}
+								
+								addChild(jElement, value);
+							}
+						}
+						
+						jElement.put("name", name);
+						
+						if (isGlobal(jParent)) {
+							if (qname != null) {
+								String id = jsonSchema.getString("id");
+								jElement.put("objKey", id + "/definitions/" + normalize(qname.getLocalPart()));
+								
+								jElement.put("QName",new JSONObject()
+										.put("localPart", qname.getLocalPart())
+										.put("namespaceURI", qname.getNamespaceURI()));
+							}
+							
+							addGlobalObject(jParent, jElement, name);
+							parent = jElement;
+						} else {
+							addChild(jParent, jElement);
+							parent = jElement;
+						}
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkAttribute(xmlSchema, obj);
+
+					if (isGlobal(jParent)) {
+						handle(jElement);
+					}
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkAttributeGroup(XmlSchema xmlSchema, XmlSchemaAttributeGroup obj) {
+					JSONObject jParent = parent;
+					
+					QName qname = obj.getName();
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						if (isGlobal(jParent)) {
+							if (qname != null) {
+								jElement.put("objType", "attributeGroupType");
+								
+								String id = jsonSchema.getString("id");
+								jElement.put("objKey", id + "/definitions/" + normalize(qname.getLocalPart()));
+								
+								jElement.put("QName",new JSONObject()
+										.put("localPart", qname.getLocalPart())
+										.put("namespaceURI", qname.getNamespaceURI()));
+								
+								addGlobalObject(jParent, jElement, qname.getLocalPart());
+								parent = jElement;
+							}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkAttributeGroup(xmlSchema, obj);
+
+					if (isGlobal(jParent)) {
+						handle(jElement);
+					}
+					
+					parent = jParent;
+				}
+
+				@Override
+				protected void walkAttributeGroupRef(XmlSchema xmlSchema, XmlSchemaAttributeGroupRef obj) {
+					JSONObject jParent = parent;
+					
+					QName refName = obj.getRefName();
+					
+					JSONObject jElement = new JSONObject();
+	        		try {
+						if (refName != null) {
+			        		String ref = getDefinitionRef(refName);
+			        		if (ref != null) {
+								jElement.put("objType", "attributeGroupType")
+										.put("name", refName.getLocalPart());
+			        			
+								addChild(jElement, new JSONObject().put("$ref", ref));
+								
+								addChild(jParent, jElement);
+								parent = jElement;
+			        		}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkAttributeGroupRef(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkSimpleContent(XmlSchema xmlSchema, XmlSchemaSimpleContent obj) {
+					JSONObject jParent = parent;
+					
+					QName qname = null;
+					XmlSchemaContent xmlSchemaContent = obj.getContent();
+			        if (xmlSchemaContent instanceof XmlSchemaSimpleContentRestriction) {
+			        	qname = ((XmlSchemaSimpleContentRestriction)xmlSchemaContent).getBaseTypeName();
+			        } else if (xmlSchemaContent instanceof XmlSchemaSimpleContentExtension) {
+			        	qname = ((XmlSchemaSimpleContentExtension)xmlSchemaContent).getBaseTypeName();
+			        }
+			        
+					JSONObject jElement = new JSONObject();
+					try {
+						if (qname != null) {
+							String ref = getDefinitionRef(qname);
+							if (ref != null) {
+								if (ref.indexOf("xsd.jsonschema") != -1) {
+									jElement.put("objType", "elementType")
+											.put("minOccurs", 1)
+											.put("maxOccurs", 1)
+											.put("name", "text")
+											.put("value", new JSONObject().put("type", toOasType(qname.getLocalPart())));
+								} else {
+									JSONObject refObject = getRefObject(ref);
+									jElement.put("objType", "elementType")
+											.put("minOccurs", 1)
+											.put("maxOccurs", 1)
+											.put("name", "text")
+											.put("value", refObject);
+								}
+								
+								addChild(jParent, jElement);
+								parent = jElement;								
+							}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkSimpleContent(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkSimpleType(XmlSchema xmlSchema, XmlSchemaSimpleType obj) {
+					JSONObject jParent = parent;
+					
+					QName qname = obj.getQName();
+					QName bname = obj.getBaseSchemaTypeName();
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						jElement.put("objType", "simpleType");
+						
+						if (bname != null) {
+							String ref = getDefinitionRef(bname);
+							if (ref != null) {
+								if (ref.indexOf("xsd.jsonschema") != -1) {
+									jElement.put("value", new JSONObject().put("type", toOasType(bname.getLocalPart())));
+								} else {
+									JSONObject refObject = getRefObject(ref);
+									jElement.put("value", refObject);
+								}
+							}
+						}
+						
+						if (isGlobal(jParent)) {
+							if (qname != null) {
+								String id = jsonSchema.getString("id");
+								jElement.put("objKey", id + "/definitions/" + normalize(qname.getLocalPart()));
+								
+								jElement.put("QName",new JSONObject()
+										.put("localPart", qname.getLocalPart())
+										.put("namespaceURI", qname.getNamespaceURI()));
+							}
+							
+							addGlobalObject(jParent, jElement, obj.getName());
+							parent = jElement;
+						} else {
+							addChild(jParent, jElement);
+							parent = jElement;
+						}
+						
+					} catch (JSONException e1) {
+						e1.printStackTrace();
+					}
+					
+					super.walkSimpleType(xmlSchema, obj);
+					
+					if (isGlobal(jParent)) {
+						handle(jElement);
+					}
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkSimpleTypeRestriction(XmlSchema xmlSchema, XmlSchemaSimpleTypeRestriction obj) {
+					JSONObject jParent = parent;
+					
+					QName qname = obj.getBaseTypeName();
+					
+					JSONObject jElement = new JSONObject();
+		        	try {
+						if (qname != null) {
+				        	String ref = getDefinitionRef(qname);
+				        	if (ref != null) {
+								jElement.put("objType", "simpleRestrictionType");
+								
+								if (ref.indexOf("xsd.jsonschema") != -1) {
+									addChild(jElement, new JSONObject().put("type", toOasType(qname.getLocalPart())));
+								} else {
+									JSONObject refObject = getRefObject(ref);
+									addChild(jElement, refObject);
+								}
+								
+								addChild(jParent, jElement);
+								parent = jElement;								
+				        	}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkSimpleTypeRestriction(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkSimpleTypeUnion(XmlSchema xmlSchema, XmlSchemaSimpleTypeUnion obj) {
+					JSONObject jParent = parent;
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						jElement.put("objType", "simpleUnionType");
+
+						QName[] members = obj.getMemberTypesQNames();
+						if (members != null) {
+							for (QName qname : members) {
+				        		String ref = getDefinitionRef(qname);
+				        		if (ref.indexOf("xsd.jsonschema") != -1) {
+				        			addChild(jElement, new JSONObject().put("type", toOasType(qname.getLocalPart())));
+				        		} else {
+				        			parent = jElement;
+				        			walkByTypeName(xmlSchema, qname);
+				        		}
+							}
+						} else {
+							parent = jElement;
+							super.walkSimpleTypeUnion(xmlSchema, obj);
+						}
+						
+						addChild(jParent, jElement);						
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkFacets(XmlSchema xmlSchema, XmlSchemaObjectCollection facets) {
+					JSONObject jParent = parent;
+					
+					JSONArray array = new JSONArray();
+	        		boolean arrayWithDuplicates = false;
+					for (int i = 0; i < facets.getCount(); i++) {
+			        	XmlSchemaFacet facet = (XmlSchemaFacet) facets.getItem(i);
+			        	Object value = facet.getValue();
+			        	try {
+			        		JSONObject jFacet = new JSONObject();
+			        		
+			        		if (facet instanceof XmlSchemaEnumerationFacet) {
+			        			if ("".equals(value)) {
+			        				jFacet.put("minLength", 0);
+			        				array.put(value);
+			        				array.put(JSONObject.NULL);
+			        			} else {
+			        				if (array.join(",").toLowerCase().indexOf(String.valueOf(value).toLowerCase()) != -1) {
+			        					arrayWithDuplicates = true;
+			        				}
+			        				array.put(value);
+			        			}
+			        			if (i < facets.getCount() - 1) {
+			        				continue;
+			        			}
+							} else if (facet instanceof XmlSchemaPatternFacet) {
+								jFacet.put("pattern", value);
+							} else if (facet instanceof XmlSchemaLengthFacet) {
+								jFacet.put("length", Integer.valueOf(value.toString(), 10));
+							} else if (facet instanceof XmlSchemaMinLengthFacet) {
+								jFacet.put("minLength", Integer.valueOf(value.toString(), 10));
+							} else if (facet instanceof XmlSchemaMaxLengthFacet) {
+								jFacet.put("maxLength", Integer.valueOf(value.toString(), 10));
+							} else if (facet instanceof XmlSchemaMaxExclusiveFacet) {
+								jFacet.put("maximum", Integer.valueOf(value.toString(), 10)).put("exclusiveMaximum", true);
+							} else if (facet instanceof XmlSchemaMaxInclusiveFacet) {
+								jFacet.put("maximum", Integer.valueOf(value.toString(), 10)).put("exclusiveMaximum", false);
+							} else if (facet instanceof XmlSchemaMinExclusiveFacet) {
+								jFacet.put("minimum", Integer.valueOf(value.toString(), 10)).put("exclusiveMinimum", true);
+							} else if (facet instanceof XmlSchemaMinInclusiveFacet) {
+								jFacet.put("minimum", Integer.valueOf(value.toString(), 10)).put("exclusiveMinimum", false);
+							} else if (facet instanceof XmlSchemaTotalDigitsFacet) {
+								jFacet.put("maxLength", Integer.valueOf(value.toString(), 10));
+							}
+
+			        		if (facet instanceof XmlSchemaEnumerationFacet) {
+			        			if (array.length() > 0) {
+			        				jFacet.put("nullable", true);
+			        				if (facets.getCount() > 1) {
+			        					if (arrayWithDuplicates) {
+			        						jFacet.put("pattern", array.join("|"));
+			        					} else {
+			        						jFacet.put("enum", array);
+			        					}
+			        				}
+			        			}
+			        		}
+			        		
+			        		if (jFacet.length() > 0) {
+			        			addChild(jParent, jFacet);
+			        		}
+			        		
+				        	parent = jFacet;
+				        	
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+			        }
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkSimpleTypeList(XmlSchema xmlSchema, XmlSchemaSimpleTypeList obj) {
+					JSONObject jParent = parent;
+					
+					QName qname = obj.getItemTypeName();
+					
+					JSONObject jElement = new JSONObject();
+		        	try {
+						if (qname != null) {
+				        	String ref = getDefinitionRef(qname);
+				        	if (ref != null) {
+								JSONObject value = new JSONObject();
+								
+								if (ref.indexOf("xsd.jsonschema") != -1) {
+									value.put("type", "array")
+									.put("items", new JSONObject().put("type", toOasType(qname.getLocalPart())));
+								} else {
+									JSONObject refObject = getRefObject(ref);
+									value.put("type", "array")
+											.put("items", refObject);
+								}
+								
+								jElement.put("objType", "simpleListType")
+										.put("value", value);
+								
+								addChild(jParent, jElement);
+								parent = jElement;								
+				        	}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkSimpleTypeList(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkComplexContentExtension(XmlSchema xmlSchema, XmlSchemaComplexContentExtension obj) {
+					JSONObject jParent = parent;
+					
+					QName baseTypeName = obj.getBaseTypeName();
+					
+					JSONObject jElement = new JSONObject();
+	        		try {
+						if (baseTypeName != null) {
+			        		String ref = getDefinitionRef(baseTypeName);
+			        		if (ref != null) {
+								jElement.put("objType", "complexContentExtensionType");
+								addChild(jElement, new JSONObject().put("$ref", ref));
+								
+								addChild(jParent, jElement);
+								parent = jElement;								
+			        		}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkComplexContentExtension(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkComplexContentRestriction(XmlSchema xmlSchema, XmlSchemaComplexContentRestriction obj) {
+					JSONObject jParent = parent;
+					
+					QName baseTypeName = obj.getBaseTypeName();
+					
+					JSONObject jElement = new JSONObject();
+	        		try {
+						if (baseTypeName != null) {
+			        		String ref = getDefinitionRef(baseTypeName);
+			        		if (ref != null) {
+								jElement.put("objType", "complexContentRestrictionType");
+								addChild(jElement, new JSONObject().put("$ref", ref));
+								
+								addChild(jParent, jElement);
+								parent = jElement;								
+			        		}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkComplexContentRestriction(xmlSchema, obj);
+					
+					parent = jParent;
+				}
+				
+				@Override
+				protected void walkComplexType(XmlSchema xmlSchema, XmlSchemaComplexType obj) {
+					JSONObject jParent = parent;
+					
+					QName qname = obj.getQName();
+					
+					JSONObject jElement = new JSONObject();
+					try {
+						jElement.put("objType", "complexType");
+						
+						if (obj.isMixed()) {
+							JSONObject jText = new JSONObject();
+							jText.put("objType", "elementType")
+									.put("name", "text")
+									.put("minOccurs", 0)
+									.put("maxOccurs", 1)
+									.put("value", new JSONObject()
+													.put("description", "the mixed content string")
+													.put("type", "string"));
+							
+							addChild(jElement, jText);
+						}
+						
+						if (isGlobal(jParent)) {
+							if (qname != null) {
+								String id = jsonSchema.getString("id");
+								jElement.put("objKey", id + "/definitions/" + normalize(qname.getLocalPart()));
+								
+								jElement.put("QName",new JSONObject()
+										.put("localPart", qname.getLocalPart())
+										.put("namespaceURI", qname.getNamespaceURI()));
+							}
+							
+							addGlobalObject(jParent, jElement, obj.getName());
+							parent = jElement;
+						} else {
+							addChild(jParent, jElement);
+							parent = jElement;
+						}
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					
+					super.walkComplexType(xmlSchema, obj);
+					
+					if (isGlobal(jParent)) {
+						handle(jElement);
+					}
+					
+					parent = jParent;
+				}
+
+				@Override
+				protected void walk(XmlSchema xmlSchema) {
+					XmlSchemaObjectCollection items = xmlSchema.getItems();
+					for (Iterator<XmlSchemaObject> i = GenericUtils.cast(items.getIterator()); i.hasNext(); ) {
+						XmlSchemaObject obj = i.next();
+						if (obj instanceof XmlSchemaInclude) {
+							walkInclude(xmlSchema, (XmlSchemaInclude) obj);
+						} else if (obj instanceof XmlSchemaImport) {
+							walkImport(xmlSchema, (XmlSchemaImport) obj);
+						}
+					}
+					
+					// walk simple types first
+					for (Iterator<XmlSchemaType> i = GenericUtils.cast(xmlSchema.getSchemaTypes().getValues()); i.hasNext(); ) {
+						XmlSchemaObject obj = i.next();
+						if (obj instanceof XmlSchemaSimpleType) {
+							walk(xmlSchema, obj);
+						}
+					}
+					
+					// walk others
+					for (Iterator<XmlSchemaType> i = GenericUtils.cast(xmlSchema.getSchemaTypes().getValues()); i.hasNext(); ) {
+						XmlSchemaObject obj = i.next();
+						if (!(obj instanceof XmlSchemaSimpleType)) {
+							walk(xmlSchema, obj);
+						}
+					}
+					for (Iterator<XmlSchemaObject> i = GenericUtils.cast(items.getIterator()); i.hasNext(); ) {
+						XmlSchemaObject obj = i.next();
+						if (!(obj instanceof XmlSchemaInclude || obj instanceof XmlSchemaImport || obj instanceof XmlSchemaType)) {
+							walk(xmlSchema, obj);
+						}
+					}
+				}
+				
+			}.walk(xmlSchema);
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 				
