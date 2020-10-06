@@ -35,14 +35,14 @@
 	<preference name="cordova-version"            value="10.0.0" />         <!-- all: version of Cordova CLI -->
 <!--<preference name="target-device"              value="universal" />      all: possible values handset, tablet, or universal -->
 	<preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
-	<preference name="SplashScreen"    			  value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
+	<preference name="SplashScreen"               value="screen" />         <!-- all: the splash screen resource if built without phonegap build -->
 	<preference name="ShowSplashScreenSpinner"    value="false"/>           <!-- all: show the splash screen spinner -->
 	<preference name="AutoHideSplashScreen"       value="false" />          <!-- ios: set to false, the splash screen must be hidden using a JavaScript API (navigator.splashscreen API)  -->
 	<preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
 	<preference name="detect-data-types"          value="true" />           <!-- ios: controls whether data types (such as phone no. and dates) are automatically turned into links by the system -->
 	<preference name="exit-on-suspend"            value="false" />          <!-- ios: if set to true, app will terminate when home button is pressed -->
-	<preference name="webviewbounce"			  value="false" />			<!-- ios: Prevent WebView to Bounce  -->
-	<preference name="BackupWebStorage"			  value="local" />			<!-- ios: Prevent Webstorage back to cloud  -->
+	<preference name="webviewbounce"              value="false" />          <!-- ios: Prevent WebView to Bounce  -->
+	<preference name="BackupWebStorage"           value="local" />          <!-- ios: Prevent Webstorage back to cloud  -->
 	
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="iosPersistentFileLocation" value="Library" />
