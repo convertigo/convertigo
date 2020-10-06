@@ -19,7 +19,7 @@
 	<description>$(ApplicationDescription)$</description>
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
-	 
+	
 	<engine name="$(CordovaPlatform)$" spec="9.0.0" />
 
 	
@@ -27,8 +27,8 @@
 	<content src="index-fu.html" />
 	
 	<!-- Customize your app and platform with the preference element. -->
-	<preference name="nodejs-version"             value="v12.18.4" />       <!-- all: current version of PhoneGap CLI -->
-	<preference name="cordova-version"            value="10.0.0" />         <!-- all: current version of Cordova CLI -->
+	<preference name="nodejs-version"             value="v12.18.4" />       <!-- all: version of NodeJS that run Cordova -->
+	<preference name="cordova-version"            value="10.0.0" />         <!-- all: version of Cordova CLI -->
 	<preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
 	<preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
 	<preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->

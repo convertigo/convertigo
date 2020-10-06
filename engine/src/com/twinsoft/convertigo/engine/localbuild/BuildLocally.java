@@ -123,7 +123,7 @@ public abstract class BuildLocally {
 		}
 		String paths = getLocalBuildAdditionalPath();
 		if (nodeDir != null) {
-			paths = new File(nodeDir, "bin").getAbsolutePath() + File.pathSeparator + paths;
+			paths = nodeDir.getAbsolutePath() + File.pathSeparator + paths;
 		} else {
 			paths = ProcessUtils.getNodeDir(ProcessUtils.getDefaultNodeVersion()).getAbsolutePath() + File.pathSeparator + paths;
 		}
@@ -904,7 +904,7 @@ public abstract class BuildLocally {
 	}
 	
 	public void configureSignIOS(File provisioningProfile, String signId) throws Exception {
-		if (mobilePlatform instanceof IOs || !Engine.isMac()) {
+		if (!(mobilePlatform instanceof IOs && Engine.isMac())) {
 			return;
 		}
 		String line;
