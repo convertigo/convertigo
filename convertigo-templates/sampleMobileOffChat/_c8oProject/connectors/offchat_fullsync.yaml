@@ -44,10 +44,12 @@ databaseName: offchat_fullsync
   accessibility: Private
   ↓_use_attname [variables.RequestableVariable-1433425006835]: 
     description: Attachment name
-  ↓_use_attpath [variables.RequestableVariable-1433425006837]: 
-    description: Attachment path | This path is either absolute or relative to Convertigo environment. Relative paths starting with:<br/><br/>• <span class="computer">./</span> are relative to Convertigo workspace,<br/>• <span class="computer">.//</span> are relative to current project folder. <br/><br/>
   ↓_use_docid [variables.RequestableVariable-1433425006839]: 
     description: Document ID
+  ↓_use_attbase64 [variables.RequestableVariable-1602054003698]: 
+    description: Attachment base64 encoded  The value is converted from a base64 string to a binary content. Used if attpath parameter is blank or if the file doesn't exist.
+  ↓_use_attcontent_type [variables.RequestableVariable-1602054003700]: 
+    description: Attachment ContentType  Define the ContentType of the attachment. This is the ContentType returned when the attachment is requested.
 ↓ResetDatabase [transactions.couchdb.ResetDatabaseTransaction]: 
   accessibility: Private
 ↓UserAdd [transactions.couchdb.PostDocumentTransaction]: 
