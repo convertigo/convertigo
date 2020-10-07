@@ -29,7 +29,7 @@ import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncContext;
 public class FullSyncConnector extends CouchDbConnector {
 	private static final long serialVersionUID = 4063707392313093177L;
 	
-	private FullSyncAnonymousReplication anonymousReplication = FullSyncAnonymousReplication.allow; 
+	private FullSyncAnonymousReplication anonymousReplication = FullSyncAnonymousReplication.deny; 
 	
 	@Override
 	public CouchClient getCouchClient() {
