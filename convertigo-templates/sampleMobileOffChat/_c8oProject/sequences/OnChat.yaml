@@ -142,5 +142,5 @@ accessibility: Private
     - xmlizable: 
       - ↑classname: com.twinsoft.convertigo.beans.common.XmlQName
       - schemaDefinition: 
-        - ↑pLocalPart: arrayType
+        - ↑pLocalPart: arrayDocumentType
         - ↑pNamespace: http://www.convertigo.com/convertigo/couchdb

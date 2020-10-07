@@ -66,6 +66,7 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 			Map<String, String> query = new HashMap<String, String>(2);
 			query.put("reduce", "false");
 			query.put("include_docs", "true");
+			query.put("conflicts", "true");
 	
 			try {
 				for (int i = 0; i < len;) {
