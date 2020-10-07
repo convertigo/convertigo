@@ -1547,6 +1547,14 @@ public class JsonSchemaUtils {
 					} else {
 						copyOKeys(jsonChild, jsonOb);
 					}
+					
+					// remove pattern for integer (not supported)
+					if (jsonOb.has("type") && jsonOb.has("pattern")) {
+						if (!jsonOb.getString("type").equals("string")) {
+							jsonOb.remove("pattern");
+						}
+					}
+					
 				}
 				
 				private void copyOKeys(JSONObject from, JSONObject to) throws JSONException {
