@@ -38,7 +38,7 @@ public class PutDocumentAttachmentTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/putdocumentattachment_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/putdocumentattachment_color_32x32.png";
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[5];
 			
 			properties[0] = new PropertyDescriptor("p_attname", beanClass, "getP_attname", "setP_attname");
 			properties[0].setDisplayName(getExternalizedString("property.p_attname.display_name"));
@@ -51,6 +51,14 @@ public class PutDocumentAttachmentTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("q_rev", beanClass, "getQ_rev", "setQ_rev");
 			properties[2].setDisplayName(getExternalizedString("property.q_rev.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.q_rev.short_description"));
+			
+			properties[3] = new PropertyDescriptor("p_attbase64", beanClass, "getP_attbase64", "setP_attbase64");
+			properties[3].setDisplayName(getExternalizedString("property.p_attbase64.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.p_attbase64.short_description"));
+			
+			properties[4] = new PropertyDescriptor("p_attcontent_type", beanClass, "getP_attcontent_type", "setP_attcontent_type");
+			properties[4].setDisplayName(getExternalizedString("property.p_attcontent_type.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.p_attcontent_type.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

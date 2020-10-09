@@ -72,6 +72,7 @@ public class FullSyncDeleteViewListener extends AbstractFullSyncViewListener imp
 			Map<String, String> query = new HashMap<String, String>(2);
 			query.put("reduce", "false");
 			query.put("include_docs", "true");
+			query.put("conflicts", "true");
 			
 			Engine.logBeans.debug("(FullSyncDeleteViewListener) Listener \"" + getName() + "\" : post view for _id keys " + deletedIds);
 			JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, deletedIds);

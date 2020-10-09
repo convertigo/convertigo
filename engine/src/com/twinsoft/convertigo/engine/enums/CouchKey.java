@@ -31,6 +31,7 @@ public enum CouchKey {
 	_global("_global/"),
 	_attachments,
 	_c8oMeta,
+	_c8oEntity,
 	id,
 	items,
 	cancel,

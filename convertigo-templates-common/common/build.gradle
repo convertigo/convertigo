@@ -121,54 +121,97 @@ deploy {
 	// assembleXsl false
 }
 
-//// the 'nativeBuild' task depends on 'load' and it's just a configurator for 'launchNativeBuild' and 'downloadNativeBuild'
-nativeBuild {
+//// the 'remoteBuild' task depends on 'load' and it's just a configurator for 'launchRemoteBuild' and 'downloadRemoteBuild'
+remoteBuild {
 	if (performsMobileBuild) {
 		dependsOn compileMobileBuilder
 	}
 	
 	//// set an array of platforms (Convertigo Platforms object) names to build, empty means all declared platforms
-	//// can also be configured with a -Pconvertigo.nativeBuild.platforms as Gradle parameter (names separated by comma)
+	//// can also be configured with a -Pconvertigo.remoteBuild.platforms as Gradle parameter (names separated by comma)
 	// platforms = []
 	
 	//// set authenticationToken from your phonegapbuild account, default use Convertigo one
-	//// can also be configured with a -Pconvertigo.nativeBuild.authenticationToken
+	//// can also be configured with a -Pconvertigo.remoteBuild.authenticationToken
 	// authenticationToken ''
 	
 	//// set the platform used to build application, default is https://build.convertigo.net
-	//// can also be configured with a -Pconvertigo.nativeBuild.mobileBuilderPlatformURL
+	//// can also be configured with a -Pconvertigo.remoteBuild.mobileBuilderPlatformURL
 	// mobileBuilderPlatformURL ''
 	
 	//// set the iOS certificate title declared on your phonegapbuild account, default use Convertigo one
-	//// can also be configured with a -Pconvertigo.nativeBuild.iosCertificateTitle
+	//// can also be configured with a -Pconvertigo.remoteBuild.iosCertificateTitle
 	// iosCertificateTitle ''
 	
 	//// set the iOS certificate password declared on your phonegapbuild account, default use Convertigo one
-	//// can also be configured with a -Pconvertigo.nativeBuild.iosCertificatePassword
+	//// can also be configured with a -Pconvertigo.remoteBuild.iosCertificatePassword
 	// iosCertificatePassword ''
 	
 	//// set the Android certificate title declared on your phonegapbuild account, default use Convertigo one
-	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificateTitle
+	//// can also be configured with a -Pconvertigo.remoteBuild.androidCertificateTitle
 	// androidCertificateTitle ''
 	
 	//// set the Android certificate password declared on your phonegapbuild account, default use Convertigo one
-	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificatePassword
+	//// can also be configured with a -Pconvertigo.remoteBuild.androidCertificatePassword
 	// androidCertificatePassword ''
 	
 	//// set the Android certificate keystore password declared on your phonegapbuild account, default use Convertigo one
-	//// can also be configured with a -Pconvertigo.nativeBuild.androidCertificateKeystorePassword
+	//// can also be configured with a -Pconvertigo.remoteBuild.androidCertificateKeystorePassword
 	// androidCertificateKeystorePassword ''
 }
 
-//// the 'launchNativeBuild' task depends on 'nativeBuild' and uploads the mobile source package to the Convertigo Phonegap Build Gateway
-launchNativeBuild {
+//// the 'localBuild' task depends on 'load' and allows to build mobile native package locally
+localBuild {
+	if (performsMobileBuild) {
+		dependsOn compileMobileBuilder
+	}
+	
+	//// list platforms to build
+	// platforms = []
+	
+	//// build mode of the native package, can be 'release' or 'debug' (default)
+	//// can also be configured with a -Pconvertigo.localBuild.mode as Gradle parameter
+	//// the Android 'debug' mode doesn't need signing configuration
+	// mode = 'debug'
+	
+	//// define where are moved mobile package when the build success
+	//// can also be configured with a -Pconvertigo.localBuild.packageDestinationDir as Gradle parameter
+	// packageDestinationDir = file('build/localDir')
+	
+	//// define the IOS Provisioning Profile file used to sign the IPA package
+	//// can also be configured with a -Pconvertigo.localBuild.iosProvisioningProfile as Gradle parameter
+	// iosProvisioningProfile = file('ios.mobileprovision')
+	
+	//// define the IOS Sign Identity used to sign the IPA package
+	//// can also be configured with a -Pconvertigo.localBuild.iosSignIdentity as Gradle parameter
+	// iosSignIdentity = (mode == 'release' ? 'iPhone Distribution' : 'iPhone Developer')
+	
+	//// define the Android Keystore file used to sign the release APK package
+	//// can also be configured with a -Pconvertigo.localBuild.androidKeystore as Gradle parameter
+	// androidKeystore = file('android.keystore')
+		
+	//// define the Android Keystore password
+	//// can also be configured with a -Pconvertigo.localBuild.androidKeystorePassword as Gradle parameter
+	// androidKeystorePassword = ''
+		
+	//// define the certificate alias, inside the Android Keystore, that sign the release APK package
+	//// can also be configured with a -Pconvertigo.localBuild.androidAlias as Gradle parameter
+	// androidAlias = ''
+		
+	//// define the certificate password, inside the Android Keystore, that sign the release APK package
+	//// can also be configured with a -Pconvertigo.localBuild.androidPassword as Gradle parameter
+	// androidPassword = ''
+}
+
+//// the 'launchRemoteBuild' task depends on 'remoteBuild' and uploads the mobile source package to the Convertigo Build Gateway
+launchRemoteBuild {
 
 }
 
-//// the 'downloadNativeBuild' task depends on 'launchNativeBuild' and waits the remote build to finish, then download the native packages (iOS ipa or Android apk)
-downloadNativeBuild {
+//// the 'downloadRemoteBuild' task depends on 'launchRemoteBuild' and waits the remote build to finish, then download the native packages (iOS ipa or Android apk)
+downloadRemoteBuild {
 	//// configure the destination of built mobile application packages (default 'build' folder)
-	//// can also be configured with a -Pconvertigo.downloadNativeBuild.destinationDir as Gradle parameter
+	//// can also be configured with a -Pconvertigo.downloadRemoteBuild.destinationDir as Gradle parameter
 	// destinationDir 'build'
 	
 	doLast {
@@ -185,4 +228,4 @@ if (!tasks.findByName('wrapper')) {
 		description 'Generates Gradle wrapper files.'
 	}
 }
-wrapper.gradleVersion = '6.1.1'
+wrapper.gradleVersion = '6.6.1'

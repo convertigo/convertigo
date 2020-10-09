@@ -73,12 +73,8 @@ accessibility: Private
             - ↑value: 1433337431883
           - java.lang.String: 
             - ↑value: ./_attachments/attachment
-    ↓TemporaryFile [steps.SimpleStep-1433425560965]: 
-      expression: var _use_attpath = "" + java.io.File.createTempFile("attachment", ".tmp").getAbsolutePath();
     ↓Call_Transaction [steps.TransactionStep-1433425089216]: 
       sourceTransaction: sampleMobileOffChat.offchat_fullsync.GetDocumentAttachment
-      ↓_use_attpath [variables.StepVariable-1433425089218]: 
-        description: Attachment path | This path is either absolute or relative to Convertigo environment. Relative paths starting with:<br/><br/>• <span class="computer">./</span> are relative to Convertigo workspace,<br/>• <span class="computer">.//</span> are relative to current project folder. <br/><br/>
       ↓_use_attname [variables.StepVariable-1433425089220]: 
         description: Attachment name
         sourceDefinition: 
@@ -111,8 +107,6 @@ accessibility: Private
                 - ↑value: 1433425036105
               - java.lang.String: 
                 - ↑value: ./name/text()
-      ↓_use_attpath [variables.StepVariable-1433425091986]: 
-        description: Attachment path | This path is either absolute or relative to Convertigo environment. Relative paths starting with:<br/><br/>• <span class="computer">./</span> are relative to Convertigo workspace,<br/>• <span class="computer">.//</span> are relative to current project folder. <br/><br/>
       ↓_use_docid [variables.StepVariable-1433425091988]: 
         description: Document ID
         sourceDefinition: 
@@ -123,6 +117,30 @@ accessibility: Private
                 - ↑value: 1517924622885
               - java.lang.String: 
                 - ↑value: ./document/couchdb_output/id/text()
-    ↓Delete_file [steps.DeleteStep-1433425543707]: 
-      sourcePath: _use_attpath
+      ↓_use_attbase64 [variables.StepVariable-1602054309410]: 
+        description: Attachment base64 encoded  The value is converted from a base64 string to a binary content. Used if attpath parameter is blank or if the file doesn't exist.
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1433425089216
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/data/text()
+      ↓_use_attcontent_type [variables.StepVariable-1602054309412]: 
+        description: Attachment ContentType  Define the ContentType of the attachment. This is the ContentType returned when the attachment is requested.
+        sourceDefinition: 
+          - xmlizable: 
+            - ↑classname: com.twinsoft.convertigo.beans.common.XMLVector
+            - com.twinsoft.convertigo.beans.common.XMLVector: 
+              - java.lang.String: 
+                - ↑value: 1433425089216
+              - java.lang.String: 
+                - ↑value: ./document/couchdb_output/_c8oMeta/headers/Content_Type/text()
 ↓doc [variables.RequestableMultiValuedVariable-1433336837323]: 
+  xmlTypeAffectation: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.XmlQName
+      - schemaDefinition: 
+        - ↑pLocalPart: arrayDocumentType
+        - ↑pNamespace: http://www.convertigo.com/convertigo/couchdb

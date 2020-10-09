@@ -74,7 +74,7 @@ public abstract class BuildLocally {
 	
 	private boolean processCanceled = false;
 	private Process process;
-    
+	
 	private OS osLocal = null;
 	
 	private final static String cordovaInstallsPath = Engine.USER_WORKSPACE_PATH + File.separator + "cordovas";
@@ -83,6 +83,7 @@ public abstract class BuildLocally {
 	private File jdk8Dir = null;
 	private File androidSdkDir = null;
 	private File gradleDir = null;
+	private File nodeDir = null;
 	
 	private File mobilePackage = null;
 	private Status lastStatus = null;
@@ -121,13 +122,17 @@ public abstract class BuildLocally {
 			command += ".cmd";
 		}
 		String paths = getLocalBuildAdditionalPath();
+		if (nodeDir != null) {
+			paths = nodeDir.getAbsolutePath() + File.pathSeparator + paths;
+		} else {
+			paths = ProcessUtils.getNodeDir(ProcessUtils.getDefaultNodeVersion()).getAbsolutePath() + File.pathSeparator + paths;
+		}
 		if (jdk8Dir != null) {
 			paths = new File(jdk8Dir, "bin").getAbsolutePath() + File.pathSeparator + paths;
 		}
 		if (gradleDir != null) {
 			paths = new File(gradleDir, "bin").getAbsolutePath() + File.pathSeparator + paths;
 		}
-		paths = ProcessUtils.getNodeDir(ProcessUtils.getDefaultNodeVersion()).getAbsolutePath() + File.pathSeparator + paths;
 		
 		parameters.add(0, command);
 		ProcessBuilder pb = command.equals("npm") ?
@@ -754,40 +759,44 @@ public abstract class BuildLocally {
 	
 	public Status installCordova() {
 		try {
-			String nodeVersion = ProcessUtils.getDefaultNodeVersion();
-			ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
+			File resourceFolder = mobilePlatform.getResourceFolder();
+			File configFile = new File(resourceFolder, "config.xml");
+			Document doc = XMLUtils.loadXml(configFile);
+			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
+			
+			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='nodejs-version']");
+			String nodeVersion = (singleElement != null) ? singleElement.getAttribute("value") : ProcessUtils.getDefaultNodeVersion();
+			nodeDir = ProcessUtils.getNodeDir(nodeVersion, (r , t, x) -> {
 				Engine.logEngine.info("Downloading nodejs " + nodeVersion + ": " + Math.round((r * 100f) / t) + "%");
 			});
 			Engine.logEngine.info("Checking if nodejs and npm are installed.");
-			File resourceFolder = mobilePlatform.getResourceFolder();
 			List<String> parameters = new LinkedList<String>();
 			parameters.add("--version");
 			String npmVersion = runCommand(resourceFolder, "npm", parameters, false);
 			Pattern pattern = Pattern.compile("^([0-9])+\\.([0-9])+\\.([0-9])+$");
-			Matcher matcher = pattern.matcher(npmVersion);			
+			Matcher matcher = pattern.matcher(npmVersion);
 			if (!matcher.find()){
 				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou must download nodes.js from https://nodejs.org/en/download/");
 			}
 			Engine.logEngine.info("OK, nodejs (" + nodeVersion + ") and npm (" + npmVersion + ") are installed.");
 			
 			Engine.logEngine.info("Checking if this cordova version is already installed.");
-			File configFile = new File(resourceFolder, "config.xml");
-			Document doc = XMLUtils.loadXml(configFile);
-			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
-			
-			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
+			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='cordova-version']");
+			if (singleElement == null) {
+				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
+			}
 			if (singleElement != null) {
 				String cliVersion = singleElement.getAttribute("value");
 				if (cliVersion != null) {
 					
-					pattern = Pattern.compile("^cli-[0-9]+\\.[0-9]+\\.[0-9]+$");
+					pattern = Pattern.compile("^(?:cli-)?([0-9]+\\.[0-9]+\\.[0-9]+)$");
 					matcher = pattern.matcher(cliVersion);			
 					if (!matcher.find()){
 						throw new Exception("The cordova version is specified but its value has not the right format.");
 					}
 					
 					// Remove 'cli-' from 'cli-x.x.x'
-					cliVersion = cliVersion.substring(4);
+					cliVersion = matcher.group(1);
 					String cordovaInstallPath = BuildLocally.cordovaInstallsPath + File.separator + 
 							"cordova" + cliVersion;
 					File cordovaBinFile = new File(cordovaInstallPath + File.separator + 

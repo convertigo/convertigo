@@ -73,7 +73,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     private boolean httpInfo = false;
     private String httpInfoTagName = "HttpInfo";
     
-	private HttpPool httpPool = HttpPool.global;
+	private HttpPool httpPool = HttpPool.no;
     
     /** Holds value of property httpVerb. */
     private HttpMethodType httpVerb = HttpMethodType.GET;

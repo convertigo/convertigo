@@ -24,9 +24,11 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 
 public class GetDocumentAttachmentTransaction extends AbstractDocumentTransaction {
@@ -49,15 +51,23 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		
 	@Override
 	protected Object invoke() throws Exception {
+		File attfile = null;
 		String db = getTargetDatabase();
 		String docid = getParameterStringValue(CouchParam.docid);
 		String attname = getParameterStringValue(CouchParam.attname);
 		String attpath = getParameterStringValue(CouchParam.attpath);
-		attpath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attpath, getProject().getName());
+		if (StringUtils.isNotBlank(attpath)) {
+			attpath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attpath, getProject().getName());
+			attfile = new File(attpath);
+		}
 		
 		Map<String, String> query = getQueryVariableValues();
 		
-		JSONObject response = getCouchClient().getDocumentAttachment(db, docid, attname, query, new File(attpath));
+		JSONObject response = getCouchClient().getDocumentAttachment(db, docid, attname, query, attfile);
+		if (CouchKey._c8oEntity.has(response)) {
+			CouchKey.data.put(response, CouchKey._c8oEntity.String(response));
+			CouchKey._c8oEntity.remove(response);
+		}
 		
 		return response;
 	}

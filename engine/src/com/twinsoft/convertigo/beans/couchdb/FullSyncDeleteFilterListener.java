@@ -70,6 +70,7 @@ public class FullSyncDeleteFilterListener extends AbstractFullSyncFilterListener
 			Map<String, String> query = new HashMap<String, String>(2);
 			query.put("filter", filter);
 			query.put("include_docs", "true");
+			query.put("conflicts", "true");
 			
 			Engine.logBeans.debug("(FullSyncDeleteFilterListener) Listener \"" + getName() + "\" : post filter for _id keys " + deletedIds);
 			JSONObject json = getCouchClient().postChanges(getDatabaseName(), query, CouchKey.doc_ids.put(new JSONObject(), deletedIds));

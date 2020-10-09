@@ -64,7 +64,7 @@ allprojects {
 			url "https://m2.convertigo.com"
 		}
 		maven {
-			url "http://maven.teamdev.com/repository/products"
+			url "https://maven.teamdev.com/repository/products"
 		}
 		jcenter()
 	}
@@ -110,7 +110,7 @@ allprojects {
 			group 'convertigo'
 			
 			into 'lib'
-			from configurations.runtime
+			from configurations.runtimeClasspath
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}
@@ -336,7 +336,7 @@ task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group 'convertigo'
 }
 
-task ciFirstStep(dependsOn: [':convertigo-templates:buildTemplates', ':engine:jar', ':gradle-plugin:publish']) {
+task ciFirstStep(dependsOn: [':convertigo-templates-common:buildTemplates', ':engine:jar', ':gradle-plugin:publish']) {
 	group 'convertigo'
 }
 

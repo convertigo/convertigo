@@ -20,11 +20,11 @@ sourceSets {
 }
 
 dependencies {
-	compile project(':engine'), {
+	implementation project(':engine'), {
 		exclude group: 'convertigo', module: 'placeholders'
 	}
-	runtime "com.convertigo:dependencies:$version"
-	runtime 'javax.servlet:servlet-api:2.5'
+	implementation "com.convertigo:dependencies:$version"
+	runtimeOnly    'javax.servlet:servlet-api:2.5'
 }
 
 gradlePlugin {

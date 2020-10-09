@@ -1,4 +1,4 @@
-↑convertigo: 7.7.0.m006
+↑convertigo: 7.8.1.m006
 ↓lib_UserManager [core.Project]: 
   comment: |
     'The lib_UserManager enables your projects to include user management and authentication in your apps. This library will handle :

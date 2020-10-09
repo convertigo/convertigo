@@ -1,4 +1,4 @@
-↑convertigo: 7.7.0.m006
+↑convertigo: 7.8.1.m006
 ↓lib_FileTransfer [core.Project]: 
   comment: |
     'Library used by the mobile Convertigo SDK do handle large file transfers.

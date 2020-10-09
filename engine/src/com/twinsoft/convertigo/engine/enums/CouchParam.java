@@ -25,6 +25,8 @@ public enum CouchParam {
 	all_or_nothing,
 	attname,
 	attpath,
+	attbase64,
+	attcontent_type,
 	bookmark,
 	cancel,
 	continuous,

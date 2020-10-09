@@ -64,6 +64,7 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 			Map<String, String> query = new HashMap<String, String>(2);
 			query.put("filter", filter);
 			query.put("include_docs", "true");
+			query.put("conflicts", "true");
 			try {
 				for (int i = 0; i < len;) {
 					JSONArray doc_ids = getChunk(ids, i);

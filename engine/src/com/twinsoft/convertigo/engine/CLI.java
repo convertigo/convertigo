@@ -79,7 +79,7 @@ public class CLI {
 	private synchronized void checkInit() throws EngineException {
 		if (Engine.bCliMode) {
 			return;
-		}		
+		}
 		Engine.bCliMode = true;
 		
 		Engine.startStopDate = System.currentTimeMillis();
@@ -382,7 +382,7 @@ public class CLI {
 		Engine.logConvertigo.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
 	}
 	
-	public void launchBuild(Project project, List<String> platforms) {
+	public void launchRemoteBuild(Project project, List<String> platforms) {
 		String buildFolder = "mobile/www";
 		MobileApplication mobileApplication = project.getMobileApplication();
 		for (MobilePlatform mobilePlatform : mobileApplication.getMobilePlatformList()) {
@@ -400,7 +400,7 @@ public class CLI {
 		}
 	}
 	
-	public List<File> downloadBuild(Project project, List<String> platforms, File destinationDir) {
+	public List<File> downloadRemoteBuild(Project project, List<String> platforms, File destinationDir) {
 		MobileApplication mobileApplication = project.getMobileApplication();
 		List<MobilePlatform> platformList = new ArrayList<>(mobileApplication.getMobilePlatformList());
 		List<File> files = new ArrayList<File>(platformList.size());
@@ -571,8 +571,8 @@ public class CLI {
 			.addOption(Option.builder("cdv").longOpt("cordovaBuild").optionalArg(true).argName("mode").hasArg().desc("perform a cordova build need parameter: debug (default), release, emulator, device.").build())
 			.addOption(Option.builder("mp").longOpt("movePackage").optionalArg(false).argName("dir").hasArg().desc("move native mobile package after a cordova build to the <dir> folder.").build())
 			.addOption(Option.builder("nb").longOpt("nativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform and download a remote cordova build of the application. Launch build and download for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
-			.addOption(Option.builder("lnb").longOpt("launchNativeBuild").optionalArg(true).argName("platforms").hasArg().desc("perform a remote cordova build of the application. Launch build for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
-			.addOption(Option.builder("dnb").longOpt("downloadNativeBuild").optionalArg(true).argName("platforms").hasArg().desc("download a remote cordova build of the application. Download from previous launch, all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
+			.addOption(Option.builder("lrb").longOpt("launchRemoteBuild").optionalArg(true).argName("platforms").hasArg().desc("perform a remote cordova build of the application. Launch build for all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
+			.addOption(Option.builder("drb").longOpt("downloadRemoteBuild").optionalArg(true).argName("platforms").hasArg().desc("download a remote cordova build of the application. Download from previous launch, all mobile platforms or add the optional <platforms> parameter with list of plaform separated by coma: Android,IOs.").build())
 			.addOption(Option.builder("noTC").longOpt("excludeTestCases").desc("when export or deploy, do not include TestCases.").build())
 			.addOption(Option.builder("noS").longOpt("excludeStubs").desc("when export or deploy, do not include Stubs.").build())
 			.addOption(Option.builder("noMA").longOpt("excludeMobileApp").desc("when export or deploy, do not include built MobileApp.").build())
@@ -650,22 +650,22 @@ public class CLI {
 				cli.deploy(file, server, user, password, trustAllCertificates, assembleXsl);
 			}
 			
-			if (cmd.hasOption("launchNativeBuild") || cmd.hasOption("nativeBuild")) {
-				String opt = cmd.getOptionValue("nativeBuild");
+			if (cmd.hasOption("launchRemoteBuild") || cmd.hasOption("remoteBuild")) {
+				String opt = cmd.getOptionValue("remoteBuild");
 				if (opt == null) {
-					opt = cmd.getOptionValue("launchNativeBuild");
+					opt = cmd.getOptionValue("launchRemoteBuild");
 				}
 				List<String> platforms = opt == null ? Collections.emptyList() : Arrays.asList(opt.split(","));
-				cli.launchBuild(project, platforms);
+				cli.launchRemoteBuild(project, platforms);
 			}
 			
-			if (cmd.hasOption("downloadNativeBuild") || cmd.hasOption("nativeBuild")) {
-				String opt = cmd.getOptionValue("nativeBuild");
+			if (cmd.hasOption("downloadRemoteBuild") || cmd.hasOption("remoteBuild")) {
+				String opt = cmd.getOptionValue("remoteBuild");
 				if (opt == null) {
-					opt = cmd.getOptionValue("downloadNativeBuild");
+					opt = cmd.getOptionValue("downloadRemoteBuild");
 				}
 				List<String> platforms = opt == null ? Collections.emptyList() : Arrays.asList(opt.split(","));
-				List<File> files = cli.downloadBuild(project, platforms, new File(project.getDirFile(), "build"));
+				List<File> files = cli.downloadRemoteBuild(project, platforms, new File(project.getDirFile(), "build"));
 				Engine.logConvertigo.info("Downloaded application: " + files);
 			}
 			

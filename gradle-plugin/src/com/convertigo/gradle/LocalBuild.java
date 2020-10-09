@@ -131,6 +131,7 @@ public class LocalBuild extends ConvertigoTask {
 			setPlatforms(platforms);
 		} catch (Exception e) {}
 		
+		iosProvisioningProfile = new File(getProject().getBuildDir(), "ios.mobileprovision");
 		try {
 			iosProvisioningProfile = new File(getProject().getProperties().get("convertigo.localBuild.iosProvisioningProfile").toString());
 		} catch (Exception e) {}
@@ -139,6 +140,7 @@ public class LocalBuild extends ConvertigoTask {
 			iosSignIdentity = getProject().getProperties().get("convertigo.localBuild.iosSignIdentity").toString();
 		} catch (Exception e) {}
 		
+		androidKeystore = new File(getProject().getBuildDir(), "android.keystore");
 		try {
 			androidKeystore = new File(getProject().getProperties().get("convertigo.localBuild.androidKeystore").toString());
 		} catch (Exception e) {}
