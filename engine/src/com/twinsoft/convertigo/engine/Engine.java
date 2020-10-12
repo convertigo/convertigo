@@ -113,6 +113,12 @@ public class Engine {
 			USER_WORKSPACE_PATH = new File(USER_WORKSPACE_PATH).getCanonicalPath();
 		} catch (IOException e) {
 		}
+		
+    	// fix log4j 1.x init with new java version without dot
+		String javaVersion = System.getProperty("java.version", null);
+		if (javaVersion != null && javaVersion.indexOf('.') == -1) {
+			System.setProperty("java.version", javaVersion + ".0");
+		}
 	}
 	/**
 	 * This is the application reference.

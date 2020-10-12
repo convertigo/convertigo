@@ -27,10 +27,10 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.xsl.XslFileEditorInput;
 
 public class SheetTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 
@@ -64,7 +64,6 @@ public class SheetTreeObject extends DatabaseObjectTreeObject implements IEditab
 	
 	public void openXslEditor(IProject project) {
 		Sheet sheet = getObject();
-		String projectName = sheet.getProject().getName();
 		String parentStyleSheet = sheet.getUrl();
 		Path filePath = new Path(sheet.getUrl());
 		IFile file = project.getFile(filePath);
@@ -75,8 +74,8 @@ public class SheetTreeObject extends DatabaseObjectTreeObject implements IEditab
 										.getActivePage();
 		if (activePage != null) {
 			try {
-				activePage.openEditor(new XslFileEditorInput(file, projectName, sheet),
-						"com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor");
+				activePage.openEditor(new FileEditorInput(file),
+						"org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart");
 			}
 			catch(PartInitException e) {
 				ConvertigoPlugin.logException(e, "Error while loading the xsl editor '" + parentStyleSheet + "'");

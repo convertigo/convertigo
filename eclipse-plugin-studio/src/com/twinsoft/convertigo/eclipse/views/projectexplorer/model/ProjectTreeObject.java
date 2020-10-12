@@ -75,9 +75,6 @@ import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.text.TraceFileEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xsl.XslFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NamespaceUriValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -666,28 +663,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							if (((SequenceEditorInput) editorInput).is(project)) {
 								closeEditor(activePage, editorRef);
 							}
-						}						
-						// close xsl editors
-						else if (editorInput instanceof XslFileEditorInput) {
-							if (((XslFileEditorInput)editorInput).getProjectName().equals(project.getName())) {
-								closeEditor(activePage, editorRef);
-							}
 						}
 						// close js editors
 						else if (editorInput instanceof JScriptEditorInput) {
 							DatabaseObject dbo = ((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject();
 							if (dbo != null && project.equals(dbo.getProject())) {
-								closeEditor(activePage, editorRef);
-							}
-						}
-						// close xml editors
-						else if (editorInput instanceof XMLTransactionEditorInput) {
-							if (((XMLTransactionEditorInput)editorInput).getTransaction().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
-							}
-						}						
-						else if (editorInput instanceof XMLTransactionStepEditorInput) {
-							if (((XMLTransactionStepEditorInput)editorInput).getTransactionStep().getProject().equals(project)) {
 								closeEditor(activePage, editorRef);
 							}
 						}						

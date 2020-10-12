@@ -32,9 +32,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -51,7 +49,6 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -392,24 +389,9 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 			// Open editor
 			if (editorType == null || (editorType != null && editorType.equals("JscriptTransactionEditor"))) {
 				JScriptEditorInput.openJScriptEditor(this);
-			} else if (editorType.equals("XMLTransactionEditor")) {
-				openXMLTransactionEditor();
 			}
 		} catch (PartInitException e) {
 			ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + getObject().getName() + "'");
-		}
-	}
-
-	public void openXMLTransactionEditor() throws PartInitException {
-		Transaction transaction = getObject();
-		IFile file = getProjectTreeObject().getFile("_private/"+transaction.getName()+".xml");
-		IWorkbenchPage activePage = PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
-		if (activePage != null) {
-			activePage.openEditor(new XMLTransactionEditorInput(file,transaction),
-					"com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor");
 		}
 	}
 	

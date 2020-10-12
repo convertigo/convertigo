@@ -22,11 +22,8 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -36,8 +33,6 @@ import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
 public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSourceSelectorTreeObject, IEditableTreeObject, IOrderableTreeObject {
@@ -224,40 +219,10 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 			// Open editor
 			if (editorType.equals("JscriptStepEditor")) {
 				JScriptEditorInput.openJScriptEditor(this);
-			} else if ((editorType != null) && (editorType.equals("XMLTransactionStepEditor"))) {
-				openXMLTransactionStepEditor();
-			} else if ((editorType != null) && (editorType.equals("XMLSequenceStepEditor"))) {
-				openXMLSequenceStepEditor();
 			}
 
 		} catch (PartInitException e) {
 			ConvertigoPlugin.logException(e, "Error while loading the step editor '" + getObject().getName() + "'");
-		}
-	}
-	
-	public void openXMLTransactionStepEditor() throws PartInitException {
-		TransactionStep transactionStep = (TransactionStep) getObject();
-		IFile file = getProjectTreeObject().getFile("_private/" + transactionStep.getName() + ".xml");
-		IWorkbenchPage activePage = PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
-		if (activePage != null) {
-			activePage.openEditor(new XMLTransactionStepEditorInput(file,transactionStep),
-					"com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditor"); 
-		}
-	}
-
-	public void openXMLSequenceStepEditor() throws PartInitException {
-		SequenceStep sequenceStep = (SequenceStep) getObject();
-		IFile file = getProjectTreeObject().getFile("_private/" + sequenceStep.getName() + ".xml");
-		IWorkbenchPage activePage = PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
-		if (activePage != null) {
-			activePage.openEditor(new XMLSequenceStepEditorInput(file,sequenceStep),
-					"com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditor");
 		}
 	}
 

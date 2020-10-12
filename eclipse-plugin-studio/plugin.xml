@@ -5,13 +5,6 @@
      <extension
          point="org.eclipse.ui.editors">
       <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xsl"
-            icon="icons/convertigo_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor"
-            name="Xsl rule editor"/>
-      <editor
             class="com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor"
             default="false"
             icon="icons/connector_color_16x16.gif"
@@ -23,43 +16,6 @@
             icon="icons/connector_color_16x16.gif"
             id="com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor"
             name="Sequence Editor">
-      </editor>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            icon="icons/studio/handlers_sc_entry.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor"
-            name="Javascript convertigo Editor"/>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
-            name="Xml transaction Editor"/>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditor"
-            name="Xml transaction Step Editor">
-      </editor>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditor"
-            name="Xml sequence Step Editor">
-      </editor>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor"
-            name="Xml sequence Editor">
       </editor>
       <editor
             class="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"

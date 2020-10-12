@@ -29,9 +29,9 @@ ext.convertigoCode = 'Au'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
-ext.jxBrowserVersion = '7.8'
+ext.jxBrowserVersion = '7.11'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.36'
+ext.tomcatVersion = '9.0.38'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
@@ -64,7 +64,7 @@ allprojects {
 			url "https://m2.convertigo.com"
 		}
 		maven {
-			url "https://maven.teamdev.com/repository/products"
+			url "https://europe-maven.pkg.dev/jxbrowser/releases"
 		}
 		jcenter()
 	}
@@ -118,8 +118,8 @@ allprojects {
 	
 	plugins.withId('java') {
 		compileJava.options.encoding = 'UTF-8'
-		sourceCompatibility = '1.8'
-		targetCompatibility = '1.8'
+		sourceCompatibility = '11'
+		targetCompatibility = '11'
 		
 		task cleanBin(type: Delete) {
 			group 'convertigo'
@@ -236,7 +236,7 @@ afterEvaluate {
 			'Bundle-ManifestVersion': '2',
 			'Bundle-Vendor': 'Convertigo',
 			'Bundle-Version': "${convertigoVersion}.qualifier",
-			'Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8',
+			'Bundle-RequiredExecutionEnvironment': 'JavaSE-11',
 		)
 	}
 }
@@ -345,7 +345,7 @@ task generateDockerfile {
 	
 	doLast {
 		def base = file('docker/Dockerfile.tpl').text
-		base = base.replace('%VERSION%', convertigoVersion).replace('%FROM%', 'tomcat:9-jdk11-openjdk')
+		base = base.replace('%VERSION%', convertigoVersion)
 		
 		file('docker/default/Dockerfile').text = base.replace('%BEGIN%', '')
 		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', '')

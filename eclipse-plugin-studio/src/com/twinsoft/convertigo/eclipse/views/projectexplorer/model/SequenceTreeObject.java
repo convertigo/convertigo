@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorInput;
@@ -33,9 +31,8 @@ import org.eclipse.ui.PlatformUI;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditorInput;
 
-public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
+public class SequenceTreeObject extends DatabaseObjectTreeObject implements IClosableTreeObject {
 
 	public SequenceTreeObject(Viewer viewer, Sequence object) {
 		this(viewer, object, false);
@@ -62,44 +59,6 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 
 		} catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
-		}
-	}
-
-	public void launchEditor(String editorType) {
-		// Retrieve the project name
-		String projectName = getObject().getProject().getName();
-		try {
-			// Refresh project resource
-			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-
-			// Open editor
-			if ((editorType == null) || (editorType.equals("XMLSequenceEditor")))
-				openXMLSequenceEditor(project);
-
-			
-		} catch (CoreException e) {
-			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
-		}
-	}
-	
-	public void openXMLSequenceEditor(IProject project) {
-		Sequence sequence = getObject();
-		
-		IFile	file = project.getFile("_private/"+sequence.getName()+".xml");
-		
-		
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
-		if (activePage != null) {
-			try {
-				activePage.openEditor(new XMLSequenceEditorInput(file,sequence),
-										"com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor");
-			}
-			catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the step editor '" + sequence.getName() + "'");
-			} 
 		}
 	}
 	
