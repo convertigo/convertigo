@@ -595,7 +595,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 					while (!shell.isDisposed() && !Engine.isStartFailed && !Engine.isStarted) {
 						if (!display.readAndDispatch()) {
-							Thread.sleep(100);
+							display.sleep();
 						}
 					}
 
@@ -630,7 +630,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 					while (!shell.isDisposed() && System.currentTimeMillis() < timeout[0]) {
 						if (!display.readAndDispatch()) {
-							Thread.sleep(100);
+							display.sleep();
 						}
 					}
 
