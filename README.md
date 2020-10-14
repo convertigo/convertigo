@@ -3,7 +3,7 @@
 
 [![CircleCI][ci-image]][ci-url]
 
-Convertigo Community edition is an open source fullstack Low Code platform. The platform is used to build and run complex Cross-platform Enterprise Mobile and web apps in a few days. Convertigo platform is composed of several components:
+Convertigo Community edition is an open source fullstack Low Code & No Code platform. The platform is used to build and run complex Cross-platform Enterprise Mobile and web apps in a few days. Convertigo platform is composed of several components:
 
 1.	**Convertigo Server**: The back-end server MBaaS part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Mobile Web apps.
 2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program MBaaS micro-services workflows and use the "Mobile Builder" to build Mobile apps UIs in Low code mode. Can be directly downloaded from [GitHub](https://github.com/convertigo/convertigo/releases/latest)
