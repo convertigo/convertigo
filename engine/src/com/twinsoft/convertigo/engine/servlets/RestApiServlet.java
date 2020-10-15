@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -210,6 +211,24 @@ public class RestApiServlet extends GenericServlet {
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
     			String requestUrl = HttpUtils.originalRequestURL(request);
+    			
+    			// force endpoint in definition
+    			try {
+	    			String endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
+	    			if (endPointUrl != null && !endPointUrl.isEmpty()) {
+	    				requestUrl = endPointUrl + (uri.indexOf("/"+ SwaggerUtils.servletMappingPath) != -1 ?
+										uri.substring(uri.indexOf("/"+ SwaggerUtils.servletMappingPath)) :
+											uri.substring(uri.indexOf("/"+ OpenApiUtils.servletMappingPath)));
+	    				Engine.logEngine.debug("(RestApiServlet) Force requestUrl: "+ requestUrl);
+	    			} else {
+	    				Engine.logEngine.debug("(RestApiServlet) Set requestUrl: "+ requestUrl);
+	    			}
+    			} catch (Throwable t) {
+    				Engine.logEngine.error("(RestApiServlet) Unable to retrieve server endpoint url: ", t);
+    			}
+    			
+    			Engine.logEngine.debug("(RestApiServlet) Projects path: "+ new File(Engine.PROJECTS_PATH).getAbsolutePath());
+    			
     			String output = uri.indexOf("/"+ SwaggerUtils.servletMappingPath) != -1 ?
     								buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml):
     									buildOpenApiDefinition(requestUrl, request.getParameter("__project"), isYaml);
