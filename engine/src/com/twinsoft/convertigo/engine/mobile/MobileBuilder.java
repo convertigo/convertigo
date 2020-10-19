@@ -330,7 +330,6 @@ public class MobileBuilder {
 		if (project != null) {
 			try {
 				project.getMobileApplication().getApplicationComponent().markPwaAsDirty();
-				project.getMobileApplication().getApplicationComponent().markComponentTsAsDirty();
 			} catch (Exception e) {
 				Engine.logEngine.warn("(MobileBuilder) enabled to change build mode");
 			}
@@ -352,7 +351,9 @@ public class MobileBuilder {
 		
 	public synchronized void appPwaChanged(final ApplicationComponent app) throws EngineException {
 		if (app != null && initDone) {
-			configurePwaApp(app);
+			configurePwaApp(app);		// for worker
+			writeAppComponentTs(app);	// for prod mode
+			writeAppModuleTs(app); 		// for worker
 			moveFiles();
 			Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
 		}
@@ -582,6 +583,16 @@ public class MobileBuilder {
 		ionicTplDir = application.getIonicTplDir();
 		if (!ionicTplDir.exists()) {
 			throw new EngineException("Missing template project '" + application.getTplProjectName() + "'\nThe template folder should be in: " + ionicTplDir.getPath());
+		}
+		
+		if (Engine.isStudioMode()) {
+			File devicePref = new File(Engine.USER_WORKSPACE_PATH, "studio/device-" + project.getName() + ".json");
+			if (devicePref.exists()) {
+				try {
+					JSONObject device = new JSONObject(FileUtils.readFileToString(devicePref, "UTF-8"));
+					buildMode = MobileBuilderBuildMode.get(device.getString("buildMode"));
+				} catch (Exception e) { }
+			}
 		}
 		
 		if (isIonicTemplateBased()) {
@@ -2350,10 +2361,8 @@ public class MobileBuilder {
 				String tpl_index_content = FileUtils.readFileToString(tpl_index, "UTF-8");
 				String index_content = tpl_index_content;
 				
-				if (isPWA) {
-					String pwaAppName = app.getParent().getApplicationName();
-					index_content = index_content.replace("<!--c8o_App_Name-->", pwaAppName);
-				}
+				String pwaAppName = app.getParent().getApplicationName();
+				index_content = index_content.replace("<!--c8o_App_Name-->", pwaAppName);
 				
 				File index = new File(ionicWorkDir, "src/index.html");
 				writeFile(index, index_content, "UTF-8");
