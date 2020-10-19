@@ -1,0 +1,32 @@
+{
+  "index": "/index.html",
+  "assetGroups": [{
+    "name": "app",
+    "installMode": "prefetch",
+    "resources": {
+      "files": [
+        "/index.html",
+        "/manifest.json",
+        "/ngsw-worker.js",
+        "/ngsw.json"
+      ],
+      "versionedFiles": [
+        "/build/*.js",
+        "/build/*.css"
+      ],
+      "urls": []
+   }
+  }, {
+    "name": "assets",
+    "installMode": "lazy",
+    "updateMode": "prefetch",
+    "resources": {
+      "files": [
+        "/assets/**"
+      ],
+      "urls": [
+        "https://fonts.googleapis.com/**"
+      ]
+    }
+  }]
+}

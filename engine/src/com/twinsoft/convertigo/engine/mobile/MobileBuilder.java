@@ -1619,7 +1619,8 @@ public class MobileBuilder {
 				
 				File appPkgJsonTpl = new File(ionicTplDir, "package.json");
 				String mContent = FileUtils.readFileToString(appPkgJsonTpl, "UTF-8");
-				mContent = mContent.replaceAll("../DisplayObjects","../../DisplayObjects");
+				mContent = mContent.replaceAll("\\.\\./DisplayObjects","../../DisplayObjects");
+				mContent = mContent.replaceAll("\\{\\{c8o_project\\}\\}", app.getProject().getName());
 				
 				JSONObject jsonPackage = new JSONObject(mContent);
 				JSONObject jsonDependencies = jsonPackage.getJSONObject("dependencies");
@@ -1844,8 +1845,11 @@ public class MobileBuilder {
 					}
 				}
 
+				boolean c8o_RegisterWorker = isAppWpaAble() && isBuildProdMode();
+				
 				File appModuleTpl = new File(ionicTplDir, "src/app/app.module.ts");
 				String mContent = FileUtils.readFileToString(appModuleTpl, "UTF-8");
+				mContent = mContent.replaceAll("/\\*\\=c8o_RegisterWorker\\*/", String.valueOf(c8o_RegisterWorker));
 				mContent = mContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
@@ -2280,35 +2284,78 @@ public class MobileBuilder {
 		return this.isPWA;
 	}
 	
+	public boolean isBuildProdMode() {
+		return MobileBuilderBuildMode.production.equals(this.buildMode);
+	}
+	
 	private void configurePwaApp(ApplicationComponent app) {
 		this.isPWA = app.isPWA();
 		
 		try {
-			File tpl_index = new File(ionicTplDir, "src/index.html");
-			String tpl_content = FileUtils.readFileToString(tpl_index, "UTF-8");
-			String content = tpl_content;
-			
-			// Register service worker
-			if (isPWA) {
-				String replacement = "";
-				replacement += "<script>\n"
-								+"\tif ('serviceWorker' in navigator) {\n"
-									+"\t\tnavigator.serviceWorker.register('service-worker.js')\n"
-										+"\t\t\t.then(() => console.log('service worker installed'))\n"
-										+"\t\t\t.catch(err => console.log('Error', err));\n"
-								+"\t}\n"
-								+"</script>\n";
-				content = tpl_content.replace("<!--c8o_PWA-->", replacement);
+			// case _tpl <= 7.8.0.2
+			File jsworker = new File(ionicWorkDir, "src/service-worker.js");
+			if (jsworker.exists()) {
+				File tpl_index = new File(ionicTplDir, "src/index.html");
+				String tpl_content = FileUtils.readFileToString(tpl_index, "UTF-8");
+				String content = tpl_content;
+				
+				// Register service worker
+				if (isPWA) {
+					String replacement = "";
+					replacement += "<script>\n"
+									+"\tif ('serviceWorker' in navigator) {\n"
+										+"\t\tnavigator.serviceWorker.register('service-worker.js')\n"
+											+"\t\t\t.then(() => console.log('service worker installed'))\n"
+											+"\t\t\t.catch(err => console.log('Error', err));\n"
+									+"\t}\n"
+									+"</script>\n";
+					content = tpl_content.replace("<!--c8o_PWA-->", replacement);
+				}
+				
+				// Set application name
+				String pwaAppName = app.getParent().getApplicationName();
+				content = content.replace("<!--c8o_App_Name-->", pwaAppName);
+				
+				File index = new File(ionicWorkDir, "src/index.html");
+				writeFile(index, content, "UTF-8");
+				if (!initDone || !isPWA) {
+					writeWorker(index, true);
+				}
 			}
 			
-			// Set application name
-			String pwaAppName = app.getParent().getApplicationName();
-			content = content.replace("<!--c8o_App_Name-->", pwaAppName);
-			
-			File index = new File(ionicWorkDir, "src/index.html");
-			writeFile(index, content, "UTF-8");
-			if (!initDone || !isPWA) {
-				writeWorker(index, true);
+			// case _tpl > 7.8.0.2
+			File workerConfig = new File(ionicWorkDir, "src/ngsw-config.json");
+			if (workerConfig.exists()) {
+				
+				// Register service worker (main.ts)
+				File tpl_main = new File(ionicTplDir, "src/app/main.ts");
+				String tpl_main_content = FileUtils.readFileToString(tpl_main, "UTF-8");
+				String main_content = tpl_main_content;
+				
+				if (isPWA && isBuildProdMode()) {
+					String replacement = "";
+					replacement += 	"    if ('serviceWorker' in navigator) {\n" + 
+									"        console.log(\"trying to register\");\n" + 
+									"        navigator.serviceWorker.register('ngsw-worker.js');\n" + 
+									"    }\n";
+					main_content = tpl_main_content.replaceAll("/\\*\\=c8o_PwaWorker\\*/", replacement);
+				}
+				
+				File main = new File(ionicWorkDir, "src/app/main.ts");
+				writeFile(main, main_content, "UTF-8");
+
+				// Set application name (index.html)
+				File tpl_index = new File(ionicTplDir, "src/index.html");
+				String tpl_index_content = FileUtils.readFileToString(tpl_index, "UTF-8");
+				String index_content = tpl_index_content;
+				
+				if (isPWA) {
+					String pwaAppName = app.getParent().getApplicationName();
+					index_content = index_content.replace("<!--c8o_App_Name-->", pwaAppName);
+				}
+				
+				File index = new File(ionicWorkDir, "src/index.html");
+				writeFile(index, index_content, "UTF-8");
 			}
 		} catch (Exception e) {
 			;
@@ -2320,8 +2367,9 @@ public class MobileBuilder {
 	}
 	
 	private void writeWorker(File file, boolean bForce) throws IOException {
+		// for _tpl <= 7.8.0.2
 		File jsworker = new File(ionicWorkDir, "src/service-worker.js");
-		if ((isAppWpaAble() || bForce) && jsworker.exists()) {
+		if (jsworker.exists() && (isAppWpaAble() || bForce)) {
 			long time = System.currentTimeMillis();
 			String content = FileUtils.readFileToString(jsworker, "UTF-8");
 			content = CacheVersion.matcher(content).replaceFirst("const CACHE_VERSION = "+ time);
