@@ -329,6 +329,7 @@ public class MobileBuilder {
 		
 		if (project != null) {
 			try {
+				project.getMobileApplication().getApplicationComponent().markPwaAsDirty();
 				project.getMobileApplication().getApplicationComponent().markComponentTsAsDirty();
 			} catch (Exception e) {
 				Engine.logEngine.warn("(MobileBuilder) enabled to change build mode");
