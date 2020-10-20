@@ -133,41 +133,6 @@ export class MyApp extends C8oPageBase {
             this.c8o.finalizeInit().then(()=>{
                 this.resetImageCache();
                 
-                let updates = this.getInstance(SwUpdate);
-                let alertCtrl = this.getInstance(AlertController);
-                let fu = ()=>{
-                    this.c8o.log._debug("[SW] checking for updates each 60000 ms")
-                    updates.checkForUpdate()
-                    .then((res)=>{
-                        this.c8o.log._debug("[SW] updates checked")
-                    })
-                    .catch((e)=>{
-                        this.c8o.log._error("[SW] updates error")
-                        console.log(JSON.stringify(e));
-                    });
-                    
-                }
-                setInterval(fu, 60000)
-                
-                updates.available.subscribe(event => {
-                    this.c8o.log._debug("[SW] update available");
-                    this.c8o.log._debug('new version is '+ event.current);
-                    const prompt = alertCtrl.create({
-                        title: 'Convertigo Update Service',
-                        message: "A new version is available for for your app.",
-                        buttons: [
-                          {
-                            text: 'Restart app',
-                            handler: data => {
-                                this.c8o.log._debug("update available we will reload app");
-                                updates.activateUpdate().then(() => document.location.reload());
-                            }
-                          }
-                        ]
-                      });
-                      prompt.present();
-                  });
-                
                 /*Begin_c8o_AppInitialization*/
                 /*End_c8o_AppInitialization*/
             });
