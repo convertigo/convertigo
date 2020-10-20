@@ -2340,7 +2340,7 @@ public class MobileBuilder {
 			if (workerConfig.exists()) {
 				
 				// Register service worker (main.ts)
-				File tpl_main = new File(ionicTplDir, "src/main.ts");
+				File tpl_main = new File(ionicTplDir, "src/app/main.ts");
 				String tpl_main_content = FileUtils.readFileToString(tpl_main, "UTF-8");
 				String main_content = tpl_main_content;
 				
@@ -2353,7 +2353,7 @@ public class MobileBuilder {
 					main_content = tpl_main_content.replaceAll("/\\*\\=c8o_PwaWorker\\*/", replacement);
 				}
 				
-				File main = new File(ionicWorkDir, "src/main.ts");
+				File main = new File(ionicWorkDir, "src/app/main.ts");
 				writeFile(main, main_content, "UTF-8");
 
 				// Set application name (index.html)
