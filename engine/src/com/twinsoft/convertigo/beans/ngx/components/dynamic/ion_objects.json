@@ -13880,7 +13880,8 @@
           "CalendarModule"
         ],
         "package_dependencies": [
-            {"package":"ion2-calendar", "version":"3.0.0-rc.0"}
+            {"package":"ion2-calendar", "version":"3.0.0-rc.0"},
+            {"package":"moment", "version":"^2.23.0"}
         ]
       },
       "events": {
