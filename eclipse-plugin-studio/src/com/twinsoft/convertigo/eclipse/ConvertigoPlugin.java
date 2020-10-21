@@ -1944,6 +1944,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		try {
 			IProject iProject = getIProject(projectName);
 			if (iProject != null) {
+				File projectFile = getProjectFile(iProject);
+				if (projectFile == null || !projectFile.exists()) {
+					iProject.delete(false, true, null);
+					iProject = createProjectPluginResource(projectName, null);
+					projectFile = getProjectFile(iProject);
+				}
 				//				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
 				//					resourceProject = createProjectPluginResource(projectName, null);
 				//				}
