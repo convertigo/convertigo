@@ -3,6 +3,7 @@ import { HttpClient, HttpClientModule }                                       fr
 import { BrowserModule }                                                      from '@angular/platform-browser';
 import { BrowserAnimationsModule }                                            from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule }   								  from '@angular/forms';
+import { ServiceWorkerModule }                                                from '@angular/service-worker';
 
 import { IonicApp, IonicModule, IonicErrorHandler, DeepLinkConfig }           from 'ionic-angular';
 import { StatusBar }                                                          from '@ionic-native/status-bar';
@@ -51,6 +52,7 @@ export function createTranslateLoader(http: HttpClient) {
           deps: [HttpClient]
         }
 	}),
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: /*=c8o_RegisterWorker*/ }),
     IonicModule.forRoot(MyApp, {preloadModules: true})
   /*End_c8o_NgModules*/],
   bootstrap: [IonicApp],

@@ -19,8 +19,11 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import com.twinsoft.convertigo.engine.EngineException;
+
 public interface IApplicationComponent extends IMobileObject {
 
 	String getTplProjectName();
+	public void markPwaAsDirty() throws EngineException;
 
 }

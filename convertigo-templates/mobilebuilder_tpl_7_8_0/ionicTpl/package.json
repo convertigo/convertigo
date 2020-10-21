@@ -4,13 +4,14 @@
   "homepage": "http://www.convertigo.com/",
   "private": true,
   "scripts": {
+    "ngsw-config": "node_modules/.bin/ngsw-config ../DisplayObjects/mobile src/ngsw-config.json /convertigo/projects/{{c8o_project}}/DisplayObjects/mobile/",
     "clean": "ionic-app-scripts clean",
     "build": "ionic-app-scripts build --enableLint false --generateSourceMap false",
     "ionic:build": "ionic-app-scripts build --enableLint false",
-    "ionic:build:prod":"node --max_old_space_size=8192 ./node_modules/@ionic/app-scripts/bin/ionic-app-scripts.js  build --prod --enableLint false",
+    "ionic:build:prod":"node --max_old_space_size=8192 ./node_modules/@ionic/app-scripts/bin/ionic-app-scripts.js  build --prod --enableLint false && npm run ngsw-config",
     "ionic:serve:eval": "ionic-app-scripts serve --enableLint false --sourceMapType eval",
     "ionic:serve:nosourcemap": "ionic-app-scripts serve --enableLint false --generateSourceMap false",
-    "ionic:serve": "ionic-app-scripts serve --enablelint false"
+    "ionic:serve": "ionic-app-scripts serve --enablelint false && npm run ngsw-config"
   },
   "dependencies": {
     "@angular/animations": "5.2.11",
@@ -22,6 +23,7 @@
     "@angular/http": "5.2.11",
     "@angular/platform-browser": "5.2.11",
     "@angular/platform-browser-dynamic": "5.2.11",
+    "@angular/service-worker":"5.2.11",
     "@ionic-native/core": "~4.20.0",
     "@ionic-native/splash-screen": "~4.20.0",
     "@ionic-native/status-bar": "~4.20.0",

@@ -37,6 +37,8 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -154,7 +156,44 @@ public class OpenApiUtils {
 		return new OpenAPIV3Parser().read(url);
 	}
 	
-	private static void toOas3Content(File jsonschemaFile) {
+	private static void walkRefs(Object ob, List<String> refList) {
+		try {
+			if (ob instanceof JSONObject) {
+				JSONObject jsonOb = (JSONObject)ob;
+				if (jsonOb.has("$ref")) {
+					String ref = jsonOb.getString("$ref");
+					if (!refList.contains(ref)) {
+						refList.add(ref);
+					}
+					jsonOb.put("$ref", ref.substring(ref.indexOf('#')));
+				}
+				
+				@SuppressWarnings("unchecked")
+				Iterator<String> it = jsonOb.keys();
+				while (it.hasNext()) {
+					String pkey = it.next();
+					walkRefs(jsonOb.get(pkey), refList);
+				}
+			} else if (ob instanceof JSONArray) {
+				JSONArray jsonArray = (JSONArray)ob;
+				for (int i = 0; i < jsonArray.length(); i++) {
+					walkRefs(jsonArray.get(i), refList);
+				}
+			}
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static JSONObject makeCopy(JSONObject jsonOb) throws JSONException {
+		if (jsonOb != null) {
+			return new JSONObject(jsonOb.toString());
+		}
+		return null;
+	}
+	
+	private static void toOas3Content(File jsonschemaFile, String oasDirUrl, Map<String, JSONObject> modelMap) {
 		try {
 			File targetDir = jsonschemaFile.getParentFile();
 			String name = jsonschemaFile.getName().substring(0, jsonschemaFile.getName().indexOf('.'));
@@ -164,17 +203,29 @@ public class OpenApiUtils {
 			content = content.replaceAll("\\.jsonschema#\\\\/definitions", ".json#/components/schemas");
 			
 			JSONObject jsonModels = new JSONObject();
-			JSONObject jsonSchemas = new JSONObject(content).getJSONObject("definitions");
+			JSONObject jsonDefinition = new JSONObject(content).getJSONObject("definitions");
 			@SuppressWarnings("rawtypes")
-			Iterator it = jsonSchemas.keys();
+			Iterator it = jsonDefinition.keys();
 			while (it.hasNext()) {
 				String key = (String) it.next();
-				Object ob = jsonSchemas.get(key);
+				JSONObject ob = jsonDefinition.getJSONObject(key);
 				if (ob != null) {
 					jsonModels.put(key, ob);
+					
+					// fill model map
+					String pKey = oasDirUrl + name + ".json#/components/schemas/" + key;
+					if (!modelMap.containsKey(pKey)) {
+						List<String> refList = new ArrayList<String>();
+						JSONArray refs = new JSONArray();
+						JSONObject copy = makeCopy(ob);
+						walkRefs(copy, refList);
+						for (String ref: refList) {
+							refs.put(ref);
+						}
+						modelMap.put(pKey, new JSONObject().put("model", copy).put("refs", refs));
+					}
 				}
 			}
-			//models = jsonModels.toString();
 			
 			OpenAPI oa = new OpenAPI();
 			String s = Json.pretty(oa.info(new Info()));
@@ -188,15 +239,15 @@ public class OpenApiUtils {
 			
 			String openApiContent = Json.pretty(result.getOpenAPI());
 			//System.out.println(openApiContent);
-			
 			File jsonFile = new File(targetDir, name+".json");
 			FileUtils.write(jsonFile, openApiContent, "UTF-8");
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private static String getModels(String oasDirUrl, UrlMapper urlMapper) {
+	private static String getModels(String oasDirUrl, UrlMapper urlMapper, Map<String, JSONObject> modelMap) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
@@ -206,10 +257,12 @@ public class OpenApiUtils {
 		if (!mapperModels.isEmpty()) {
 			models = mapperModels;
 		}
-		
-		// Generated models from XSD
+
+		// Generated models from XmlSchema
 		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
-		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
+		File yamlFile = new File(targetDir, projectName+".yaml" );
+		boolean doIt = Engine.isStudioMode() || !yamlFile.exists();
+		
 		if (doIt) {
 			try {
 				XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.noCache);
@@ -218,13 +271,18 @@ public class OpenApiUtils {
 					String tns = xmlSchema.getTargetNamespace();
 					if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
 					if (tns.equals(SchemaUtils.URI_SOAP_ENC)) continue;
-	
-					String prefix = nsMap.getPrefix(tns);
-					File oasschemaFile = new File(targetDir, prefix+".jsonschema" );
+
+					// generate models
 					JSONObject oasObject = JsonSchemaUtils.getOasSchema(xmlSchemaCollection, xmlSchema, oasDirUrl, false);
 					String content = oasObject.toString(4);
-					FileUtils.write(oasschemaFile, content, "UTF-8");
-					toOas3Content(oasschemaFile);
+					
+					// generate .jsonschema (working file for .json generation)
+					String prefix = nsMap.getPrefix(tns);
+					File jsonSchemaFile = new File(targetDir, prefix+".jsonschema" );
+					FileUtils.write(jsonSchemaFile, content, "UTF-8");
+					
+					// generate .json (oas3 compliant)
+					toOas3Content(jsonSchemaFile, oasDirUrl, modelMap);
 					//System.out.println(content);
 				}
 			} catch (Exception e) {
@@ -360,7 +418,7 @@ public class OpenApiUtils {
 		
 	}
 	
-	private static void addBodyParameter(Operation operation, UrlMappingParameter ump, String oasDirUrl) {
+	private static void addBodyParameter(Operation operation, UrlMappingParameter ump, String oasDirUrl, List<String> refList, boolean useExternalRef) {
 		RequestBody requestBody = operation.getRequestBody();
 		if (requestBody == null) {
 			operation.setRequestBody(new RequestBody());
@@ -370,7 +428,14 @@ public class OpenApiUtils {
 			String modelReference = ((IMappingRefModel)ump).getModelReference();
 			if (!modelReference.isEmpty()) {
 				if (modelReference.indexOf(".jsonschema") != -1) {
+					modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
 					modelReference = oasDirUrl + modelReference;
+				}
+				if (!refList.contains(modelReference)) {
+					refList.add(modelReference);
+				}
+				if (!useExternalRef  && modelReference.indexOf('#') != -1) {
+					modelReference = modelReference.substring(modelReference.indexOf('#'));
 				}
 				ObjectSchema oschema = new ObjectSchema();
 				oschema.set$ref(modelReference);
@@ -405,216 +470,285 @@ public class OpenApiUtils {
 	}
 	
 	public static OpenAPI parse(String requestUrl, UrlMapper urlMapper) {
+		return parse(requestUrl, urlMapper, false);
+	}
+	
+	public static OpenAPI parse(String requestUrl, UrlMapper urlMapper, boolean useExternalRef) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
 		String oasDirUrl = requestUrl.substring(0,requestUrl.indexOf("/"+servletMappingPath)) + 
 										"/projects/"+ projectName + "/"+ jsonSchemaDirectory +"/";
 		
-		OpenAPI openAPI = parseCommon(requestUrl, project);
+
+		OpenAPI openAPI = null;
 		
-		List<Tag> tags = new ArrayList<>();
-		Tag tag = new Tag();
-		tag.setName(project.getName());
-		tag.setDescription(project.getComment());
-		tags.add(tag);
-		openAPI.setTags(tags);
+		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
+		File yamlFile = new File(targetDir, projectName+".yaml" );
+		boolean doIt = Engine.isStudioMode() || !yamlFile.exists();
 		
-		if (openAPI.getComponents() == null) {
-			openAPI.components(new Components());
-		}
-		
-		// Security
-		Map<String, SecurityScheme> securitySchemes = openAPI.getComponents().getSecuritySchemes();
-		for (UrlAuthentication authentication: urlMapper.getAuthenticationList()) {
-			if (AuthenticationType.Basic.equals(authentication.getType())) {
-				if (securitySchemes == null || !securitySchemes.containsKey("basicAuth")) {
-					SecurityScheme securitySchemesItem = new SecurityScheme();
-					securitySchemesItem.setType(SecurityScheme.Type.HTTP);
-					securitySchemesItem.setScheme("basic");
-					openAPI.getComponents().addSecuritySchemes("basicAuth", securitySchemesItem);
-					
-					SecurityRequirement securityRequirement = new SecurityRequirement();
-					securityRequirement.addList("basicAuth", new ArrayList<String>());
-					openAPI.addSecurityItem(securityRequirement);
+		if (doIt) {
+			openAPI = parseCommon(requestUrl, project);
+			
+			List<Tag> tags = new ArrayList<>();
+			Tag tag = new Tag();
+			tag.setName(project.getName());
+			tag.setDescription(project.getComment());
+			tags.add(tag);
+			openAPI.setTags(tags);
+			
+			if (openAPI.getComponents() == null) {
+				openAPI.components(new Components());
+			}
+			
+			// Security
+			Map<String, SecurityScheme> securitySchemes = openAPI.getComponents().getSecuritySchemes();
+			for (UrlAuthentication authentication: urlMapper.getAuthenticationList()) {
+				if (AuthenticationType.Basic.equals(authentication.getType())) {
+					if (securitySchemes == null || !securitySchemes.containsKey("basicAuth")) {
+						SecurityScheme securitySchemesItem = new SecurityScheme();
+						securitySchemesItem.setType(SecurityScheme.Type.HTTP);
+						securitySchemesItem.setScheme("basic");
+						openAPI.getComponents().addSecuritySchemes("basicAuth", securitySchemesItem);
+						
+						SecurityRequirement securityRequirement = new SecurityRequirement();
+						securityRequirement.addList("basicAuth", new ArrayList<String>());
+						openAPI.addSecurityItem(securityRequirement);
+					}
 				}
 			}
-		}
-		
-		// Models and Schemas
-		try {
-			String models = getModels(oasDirUrl, urlMapper);
-			JSONObject jsonModels = new JSONObject(models);
 			
-			OpenAPI oa = new OpenAPI();
-			String s = Json.pretty(oa.info(new Info()));
-			JSONObject json = new JSONObject(s);
-			json.put("components", new JSONObject());
-			json.getJSONObject("components").put("schemas", jsonModels);
+			List<String> refList = new ArrayList<String>();
+			List<String> opIdList = new ArrayList<String>();
 			
-			JsonNode rootNode = Json.mapper().readTree(json.toString());
-			OpenAPIDeserializer ds = new OpenAPIDeserializer();
-			SwaggerParseResult result = ds.deserialize(rootNode);
-			
-			@SuppressWarnings("rawtypes")
-			Map<String, Schema> map = result.getOpenAPI().getComponents().getSchemas();
-			openAPI.getComponents().schemas(map);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-		
-		List<String> opIdList = new ArrayList<String>();
-		
-		// Paths
-		Paths paths = new Paths();
-		try {
-			for (UrlMapping urlMapping: urlMapper.getMappingList()) {
-				PathItem item = new PathItem();
-				for (UrlMappingOperation umo : urlMapping.getOperationList()) {
-					Operation operation = new Operation();
-					operation.setOperationId(getOperationId(opIdList, umo, false)/*umo.getQName()*/);
-					operation.setDescription(umo.getComment());
-					operation.setSummary(umo.getComment());
-					
-					// Tags
-					List<String> list = Arrays.asList(""+ project.getName());
-					operation.setTags(list);
-					
-					// Parameters
-					//  1 - add path parameters
-					for (String pathVarName: urlMapping.getPathVariableNames()) {
-						PathParameter parameter = new PathParameter();
-						parameter.setName(pathVarName);
+			// Paths
+			Paths paths = new Paths();
+			try {
+				for (UrlMapping urlMapping: urlMapper.getMappingList()) {
+					PathItem item = new PathItem();
+					for (UrlMappingOperation umo : urlMapping.getOperationList()) {
+						Operation operation = new Operation();
+						operation.setOperationId(getOperationId(opIdList, umo, false)/*umo.getQName()*/);
+						operation.setDescription(umo.getComment());
+						operation.setSummary(umo.getComment());
 						
-						// retrieve parameter description from bean
-						UrlMappingParameter ump = null;
-						try {
-							ump = umo.getParameterByName(pathVarName);
-						} catch (Exception e) {}
-						if (ump != null && ump.getType() == Type.Path) {
-							parameter.setDescription(ump.getComment());
-							Schema<?> schema = getSchema(ump);
-							if (schema != null) {
-								parameter.setSchema(schema);
+						// Tags
+						List<String> list = Arrays.asList(""+ project.getName());
+						operation.setTags(list);
+						
+						// Parameters
+						//  1 - add path parameters
+						for (String pathVarName: urlMapping.getPathVariableNames()) {
+							PathParameter parameter = new PathParameter();
+							parameter.setName(pathVarName);
+							
+							// retrieve parameter description from bean
+							UrlMappingParameter ump = null;
+							try {
+								ump = umo.getParameterByName(pathVarName);
+							} catch (Exception e) {}
+							if (ump != null && ump.getType() == Type.Path) {
+								parameter.setDescription(ump.getComment());
+								Schema<?> schema = getSchema(ump);
+								if (schema != null) {
+									parameter.setSchema(schema);
+								}
 							}
+							operation.addParametersItem(parameter);
 						}
-						operation.addParametersItem(parameter);
-					}
-						
-					//  2 - add other parameters
-					for (UrlMappingParameter ump: umo.getParameterList()) {
-						Parameter parameter = null;
-						if (ump.getType() == Type.Query) {
-							parameter = new QueryParameter();
-						} else if (ump.getType() == Type.Form) {
-							addFormParameter(operation, ump);
-						} else if (ump.getType() == Type.Body) {
-							addBodyParameter(operation, ump, oasDirUrl);
-						} else if (ump.getType() == Type.Header) {
-							parameter = new HeaderParameter();
-						} else if (ump.getType() == Type.Path) {
-							// ignore : should have been treated before
-						}
-						
-						if (parameter != null) { // Query | Header
-							parameter.setName(ump.getName());
-							parameter.setDescription(ump.getComment());
-							parameter.setRequired(ump.isRequired());
-							//parameter.setAllowEmptyValue(allowEmptyValue);
-							Schema<?> schema = getSchema(ump);
-							if (schema != null) {
-								parameter.setSchema(schema);
+							
+						//  2 - add other parameters
+						for (UrlMappingParameter ump: umo.getParameterList()) {
+							Parameter parameter = null;
+							if (ump.getType() == Type.Query) {
+								parameter = new QueryParameter();
+							} else if (ump.getType() == Type.Form) {
+								addFormParameter(operation, ump);
+							} else if (ump.getType() == Type.Body) {
+								addBodyParameter(operation, ump, oasDirUrl, refList, useExternalRef);
+							} else if (ump.getType() == Type.Header) {
+								parameter = new HeaderParameter();
+							} else if (ump.getType() == Type.Path) {
+								// ignore : should have been treated before
 							}
 							
-							// add parameter
-							if (ump.isExposed()) {
-								operation.addParametersItem(parameter);
+							if (parameter != null) { // Query | Header
+								parameter.setName(ump.getName());
+								parameter.setDescription(ump.getComment());
+								parameter.setRequired(ump.isRequired());
+								//parameter.setAllowEmptyValue(allowEmptyValue);
+								Schema<?> schema = getSchema(ump);
+								if (schema != null) {
+									parameter.setSchema(schema);
+								}
+								
+								// add parameter
+								if (ump.isExposed()) {
+									operation.addParametersItem(parameter);
+								}
 							}
 						}
-					}
-					
-					// Responses
-					List<String> produces = new ArrayList<String>();
-					if (umo instanceof AbstractRestOperation) {
-						DataContent dataOutput = ((AbstractRestOperation)umo).getOutputContent();
-						if (dataOutput.equals(DataContent.toJson)) {
-							produces = Arrays.asList(MimeType.Json.value());
+						
+						// Responses
+						List<String> produces = new ArrayList<String>();
+						if (umo instanceof AbstractRestOperation) {
+							DataContent dataOutput = ((AbstractRestOperation)umo).getOutputContent();
+							if (dataOutput.equals(DataContent.toJson)) {
+								produces = Arrays.asList(MimeType.Json.value());
+							}
+							else if (dataOutput.equals(DataContent.toXml)) {
+								produces = Arrays.asList(MimeType.Xml.value());
+							}
+							else {
+								produces = Arrays.asList(MimeType.Json.value(), MimeType.Xml.value());
+							}
 						}
-						else if (dataOutput.equals(DataContent.toXml)) {
-							produces = Arrays.asList(MimeType.Xml.value());
-						}
-						else {
-							produces = Arrays.asList(MimeType.Json.value(), MimeType.Xml.value());
-						}
-					}
-					
-					
-					ApiResponses responses = new ApiResponses();
-					operation.setResponses(responses);
-					for (UrlMappingResponse umr: umo.getResponseList()) {
-						String statusCode = umr.getStatusCode();
-						if (!statusCode.isEmpty()) {
-							if (!responses.containsKey(statusCode)) {
-								ApiResponse response = new ApiResponse();
-								response.setDescription(umr.getStatusText());
-								responses.addApiResponse(statusCode, response);
-								
-								String modelReference = ((IMappingRefModel)umr).getModelReference();
-								if (!modelReference.isEmpty() && !produces.isEmpty()) {
-									if (modelReference.indexOf(".jsonschema") != -1) {
-										modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
-									}
-									Content content = new Content();
-									response.setContent(content);
-									for (String mt: produces) {
-										MediaType mediaType = new MediaType();
-										content.addMediaType(mt, mediaType);
-										ObjectSchema schema = new ObjectSchema();
-										schema.set$ref(modelReference);
-										mediaType.setSchema(schema);
+						
+						ApiResponses responses = new ApiResponses();
+						operation.setResponses(responses);
+						for (UrlMappingResponse umr: umo.getResponseList()) {
+							String statusCode = umr.getStatusCode();
+							if (!statusCode.isEmpty()) {
+								if (!responses.containsKey(statusCode)) {
+									ApiResponse response = new ApiResponse();
+									response.setDescription(umr.getStatusText());
+									responses.addApiResponse(statusCode, response);
+									
+									String modelReference = ((IMappingRefModel)umr).getModelReference();
+									if (!modelReference.isEmpty() && !produces.isEmpty()) {
+										if (modelReference.indexOf(".jsonschema") != -1) {
+											modelReference = modelReference.replace(".jsonschema#/definitions/", ".json#/components/schemas/");
+											modelReference = oasDirUrl + modelReference;
+										}
+										Content content = new Content();
+										response.setContent(content);
+										for (String mt: produces) {
+											MediaType mediaType = new MediaType();
+											content.addMediaType(mt, mediaType);
+											ObjectSchema schema = new ObjectSchema();
+											if (!refList.contains(modelReference)) {
+												refList.add(modelReference);
+											}
+											if (!useExternalRef  && modelReference.indexOf('#') != -1) {
+												modelReference = modelReference.substring(modelReference.indexOf('#'));
+											}
+											schema.set$ref(modelReference);
+											mediaType.setSchema(schema);
+										}
 									}
 								}
 							}
 						}
+						
+						if (umo.getMethod().equals(HttpMethodType.DELETE.name())) {
+							item.setDelete(operation);
+						} else if (umo.getMethod().equals(HttpMethodType.GET.name())) {
+							item.setGet(operation);
+						} else if (umo.getMethod().equals(HttpMethodType.HEAD.name())) {
+							item.setHead(operation);
+						} else if (umo.getMethod().equals(HttpMethodType.OPTIONS.name())) {
+							item.setOptions(operation);
+						} else if (umo.getMethod().equals(HttpMethodType.POST.name())) {
+							item.setPost(operation);
+						} else if (umo.getMethod().equals(HttpMethodType.PUT.name())) {
+							item.setPut(operation);
+						} else if (umo.getMethod().equals(HttpMethodType.TRACE.name())) {
+							item.setTrace(operation);
+						}
 					}
 					
-					if (umo.getMethod().equals(HttpMethodType.DELETE.name())) {
-						item.setDelete(operation);
-					} else if (umo.getMethod().equals(HttpMethodType.GET.name())) {
-						item.setGet(operation);
-					} else if (umo.getMethod().equals(HttpMethodType.HEAD.name())) {
-						item.setHead(operation);
-					} else if (umo.getMethod().equals(HttpMethodType.OPTIONS.name())) {
-						item.setOptions(operation);
-					} else if (umo.getMethod().equals(HttpMethodType.POST.name())) {
-						item.setPost(operation);
-					} else if (umo.getMethod().equals(HttpMethodType.PUT.name())) {
-						item.setPut(operation);
-					} else if (umo.getMethod().equals(HttpMethodType.TRACE.name())) {
-						item.setTrace(operation);
-					}
+					paths.addPathItem(urlMapping.getPathWithPrefix(), item);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate definition", e);
+			}
+			openAPI.setPaths(paths);
+	
+			// Models and Schemas
+			try {
+				Map<String, JSONObject> modelMap = new HashMap<String, JSONObject>(1000);
+				String models = getModels(oasDirUrl, urlMapper, modelMap);
+				
+				/*System.out.println("refList");
+				for (String keyRef: refList) {
+					System.out.println(keyRef);
+				}
+				System.out.println("modelMap");
+				for (String keyRef: modelMap.keySet()) {
+					System.out.println(keyRef);
+				}*/
+				
+				JSONObject jsonModels = new JSONObject(models);
+				for (String keyRef: refList) {
+					addModelsFromMap(modelMap, keyRef, jsonModels);
 				}
 				
-				paths.addPathItem(urlMapping.getPathWithPrefix(), item);
+				OpenAPI oa = new OpenAPI();
+				String s = Json.pretty(oa.info(new Info()));
+				JSONObject json = new JSONObject(s);
+				json.put("components", new JSONObject());
+				json.getJSONObject("components").put("schemas", jsonModels);
+				
+				JsonNode rootNode = Json.mapper().readTree(json.toString());
+				OpenAPIDeserializer ds = new OpenAPIDeserializer();
+				SwaggerParseResult result = ds.deserialize(rootNode);
+				
+				@SuppressWarnings("rawtypes")
+				Map<String, Schema> map = result.getOpenAPI().getComponents().getSchemas();
+				openAPI.getComponents().schemas(map);
+				
+				modelMap.clear();
+				
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate definition", e);
-		}
-		openAPI.setPaths(paths);
-		
-		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
-		boolean doIt = Engine.isStudioMode() || !targetDir.exists();
-		if (doIt) {
+			
+			// write yaml
 			try {
-				File yamlFile = new File(targetDir, projectName+".yaml" );
 				FileUtils.write(yamlFile, prettyPrintYaml(openAPI), "UTF-8");
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			
+			// read yaml
+			try {
+				String content = FileUtils.readFileToString(yamlFile, "UTF-8");
+				JsonNode rootNode = Yaml.mapper().readTree(content);
+				OpenAPIDeserializer ds = new OpenAPIDeserializer();
+				SwaggerParseResult result = ds.deserialize(rootNode);
+				
+				openAPI = result.getOpenAPI();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		return openAPI;
 	}
 	
+	public static void addModelsFromMap(Map<String, JSONObject> modelMap, String keyRef, JSONObject jsonModels) {
+		try {
+			if (modelMap.containsKey(keyRef)) {
+				JSONObject ob = modelMap.get(keyRef);
+				String pkey = keyRef.substring(keyRef.lastIndexOf('/')+1);
+				if (ob.has("model")) {
+					jsonModels.put(pkey, ob.getJSONObject("model"));
+				}
+				
+				if (ob.has("refs")) {
+					JSONArray refs = ob.getJSONArray("refs");
+					for (int i = 0; i < refs.length(); i++) {
+						addModelsFromMap(modelMap, refs.getString(i), jsonModels);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+		
 	@SuppressWarnings("rawtypes")
 	public static OpenAPI parse(String requestUrl, Collection<UrlMapper> collection) {
 		OpenAPI openAPI = parseCommon(requestUrl, null);

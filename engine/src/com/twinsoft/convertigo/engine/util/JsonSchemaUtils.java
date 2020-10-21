@@ -1139,11 +1139,17 @@ public class JsonSchemaUtils {
 				
 				private JSONObject getRefObject(String ref) throws JSONException {
 					JSONObject refObject =  refs.get(ref);
-					if (refObject != null && refObject.getString("objType").equals("simpleType")) {
+					if (refObject != null) {
+						if (!refObject.has("value")) {
+							handle(refObject);
+						}
 						if (refObject.has("value")) {
-							JSONObject ob = new JSONObject();
-							copyOKeys(refObject.getJSONObject("value"), ob);
-							return ob;
+							JSONObject value = refObject.getJSONObject("value");
+							if (value.has("type") && !value.getString("type").equals("object")) {
+								JSONObject ob = new JSONObject();
+								copyOKeys(value, ob);
+								return ob;
+							}
 						}
 					}
 					return new JSONObject().put("$ref", ref);
@@ -1574,8 +1580,43 @@ public class JsonSchemaUtils {
 					}
 				}
 				
+				private void handleRefs(Object ob) {
+					try {
+						if (ob instanceof JSONObject) {
+							JSONObject jsonOb = (JSONObject)ob;
+							if (jsonOb.has("$ref")) {
+								String ref = jsonOb.getString("$ref");
+								JSONObject refObject = getRefObject(ref);
+								if (!refObject.has("$ref")) {
+									jsonOb.remove("$ref");
+									copyOKeys(refObject, jsonOb);
+								}
+							}
+							
+							@SuppressWarnings("unchecked")
+							Iterator<String> it = jsonOb.keys();
+							while (it.hasNext()) {
+								String pkey = it.next();
+								handleRefs(jsonOb.get(pkey));
+							}
+							
+							if (jsonOb.has("allOf")) {
+								merge(jsonOb);
+							}
+							
+						} else if (ob instanceof JSONArray) {
+							JSONArray jsonArray = (JSONArray)ob;
+							for (int i = 0; i < jsonArray.length(); i++) {
+								handleRefs(jsonArray.get(i));
+							}
+						}
+						
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				
 				private void handle(JSONObject jParent) {
-					boolean debug = false;
 					try {
 						if (jParent != null) {
 							if (!jParent.has("value")) {
@@ -1591,24 +1632,8 @@ public class JsonSchemaUtils {
 										merge(jsonOb);
 									}
 								} else {
-									
+									//
 								}
-								
-								if (!debug) {
-									jParent.remove("objKey");
-									jParent.remove("objType");
-									jParent.remove("QName");
-									jParent.remove("children");
-									jParent.remove("name");
-									jParent.remove("maxOccurs");
-									jParent.remove("minOccurs");
-									jParent.remove("value");
-								}
-								
-								if (value.has("properties")) {
-									jParent.put("type", "object");
-								}
-								copyOKeys(value, jParent);
 							}
 						}
 					} catch (JSONException e) {
@@ -1669,7 +1694,7 @@ public class JsonSchemaUtils {
 					super.walkGroup(xmlSchema, obj);
 					
 					if (isGlobal(jParent)) {
-						handle(jElement);
+						//handle(jElement);
 					}
 					
 					parent = jParent;
@@ -1856,7 +1881,7 @@ public class JsonSchemaUtils {
 					super.walkElement(xmlSchema, obj);
 					
 					if (isGlobal(jParent)) {
-						handle(jElement);
+						//handle(jElement);
 					}
 					
 					parent = jParent;
@@ -2043,7 +2068,7 @@ public class JsonSchemaUtils {
 					super.walkAttribute(xmlSchema, obj);
 
 					if (isGlobal(jParent)) {
-						handle(jElement);
+						//handle(jElement);
 					}
 					
 					parent = jParent;
@@ -2079,7 +2104,7 @@ public class JsonSchemaUtils {
 					super.walkAttributeGroup(xmlSchema, obj);
 
 					if (isGlobal(jParent)) {
-						handle(jElement);
+						//handle(jElement);
 					}
 					
 					parent = jParent;
@@ -2206,7 +2231,7 @@ public class JsonSchemaUtils {
 					super.walkSimpleType(xmlSchema, obj);
 					
 					if (isGlobal(jParent)) {
-						handle(jElement);
+						//handle(jElement);
 					}
 					
 					parent = jParent;
@@ -2490,7 +2515,7 @@ public class JsonSchemaUtils {
 					super.walkComplexType(xmlSchema, obj);
 					
 					if (isGlobal(jParent)) {
-						handle(jElement);
+						//handle(jElement);
 					}
 					
 					parent = jParent;
@@ -2529,6 +2554,58 @@ public class JsonSchemaUtils {
 							walk(xmlSchema, obj);
 						}
 					}
+					
+					List<String> toRemove = new ArrayList<String>();
+					@SuppressWarnings("unchecked")
+					Iterator<String> it = definitions.keys();
+					while (it.hasNext()) {
+						String pkey = it.next();
+						try {
+							JSONObject jsonOb = definitions.getJSONObject(pkey);
+							handle(jsonOb);
+							
+							JSONObject value = jsonOb.getJSONObject("value");
+							if (value.has("properties") || value.has("allOf") || value.has("$ref")) {
+								jsonOb.put("type", "object");
+								handleRefs(value);
+							}
+							copyOKeys(value, jsonOb);
+							
+							if (jsonOb.has("type")) {
+								if (!jsonOb.getString("type").equals("object")) {
+									toRemove.add(pkey);
+								}
+							}
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+					for (String pkey: toRemove) {
+						definitions.remove(pkey);
+					}
+					
+					boolean debug = false;
+					if (!debug) {
+						try {
+							@SuppressWarnings("unchecked")
+							Iterator<String> ita = definitions.keys();
+							while (ita.hasNext()) {
+								JSONObject jsonOb = definitions.getJSONObject(ita.next());
+								jsonOb.remove("objKey");
+								jsonOb.remove("objType");
+								jsonOb.remove("QName");
+								jsonOb.remove("children");
+								jsonOb.remove("name");
+								jsonOb.remove("maxOccurs");
+								jsonOb.remove("minOccurs");
+								jsonOb.remove("value");
+							}
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+					
+					refs.clear();					
 				}
 				
 			}.walk(xmlSchema);
