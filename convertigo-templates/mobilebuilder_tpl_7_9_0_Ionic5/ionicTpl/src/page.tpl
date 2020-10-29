@@ -44,7 +44,10 @@ export class /*=c8o_PageName*/  extends C8oPage {
 			this.navParams = new NavParams(this.getInstance(NavParams).data)
 		} catch (e) {
 			// for NavController (based on angular router)
-			this.navParams = new NavParams(this.route.snapshot.queryParams)
+			let params = {}
+			this.merge(params, this.route.snapshot.params)
+			this.merge(params, this.route.snapshot.queryParams)
+			this.navParams = new NavParams(params)
 		}
 		
 		/*=c8o_PageConstructors*/
