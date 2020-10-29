@@ -38,8 +38,23 @@
             let p:string = q.substring(q.lastIndexOf('.')+1);
 			let path = getPageSegment(p);
             
+			let url = ""
+			let queryParams = props.data
+			let segments = path.split("/")
+			segments.forEach(function (segment) {
+				if (segment.startsWith(":")) {
+					let key = segment.substring(1)
+					if (props.data[key]) {
+						url = url + "/" + props.data[key]
+						delete queryParams[key]
+					}
+				} else {
+					url = url + "/" + segment
+				}
+			})
+
             let navController = page.getInstance(NavController)
-            navController.navigateRoot(path, { queryParams: props.data })
+            navController.navigateRoot(url, { queryParams: queryParams })
             .then((res:any) => {
                 resolve(res)
             }).catch((error:any) => {
