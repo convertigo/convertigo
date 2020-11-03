@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceData
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
+import com.twinsoft.convertigo.beans.ngx.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirective;
@@ -540,7 +541,10 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 		if (object != null) {
 			List<? extends UIComponent> list = null;
 			if (object instanceof ApplicationComponent) {
-				list = ((ApplicationComponent)object).getSharedActionList();
+				ApplicationComponent app = (ApplicationComponent)object;
+				list = app.getUIAppEventList();
+				list.addAll(GenericUtils.cast(app.getUIEventSubscriberList()));
+				list.addAll(GenericUtils.cast(app.getSharedActionList()));
 			} else if (object instanceof UIActionStack) {
 				if (tvi != null && "actions".equals(tvi.getName())) {
 					list = new ArrayList<>(Arrays.asList((UIActionStack)object));
@@ -578,7 +582,7 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 					}
 					
 					if (showInPicker) {
-						if (uic instanceof UIPageEvent || uic instanceof UIEventSubscriber) {
+						if (uic instanceof UIAppEvent || uic instanceof UIPageEvent || uic instanceof UIEventSubscriber) {
 							TVObject tve = tvEvents == null ?
 									tvi.add(new TVObject(uic.toString(), uic, null)) :
 										tvEvents.add(new TVObject(uic.toString(), uic, null));
@@ -602,8 +606,8 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 						} else {
 							addActions(tvi, uic);
 						}
-					} else {
-						addActions(tvi, uic);
+					//} else {
+					//	addActions(tvi, uic);
 					}
 				}
 				
