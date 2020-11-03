@@ -41,9 +41,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.fileupload.ProgressListener;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.log4j.Level;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -314,7 +313,7 @@ public class ProcessUtils {
 		File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
 		HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
 		
-		Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
+		Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getUri().toString());
 		
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 			FileUtils.deleteQuietly(archive);
@@ -360,7 +359,7 @@ public class ProcessUtils {
 		return dir;
 	}
 	
-	public static File getJDK8(ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {
+	public static File getJDK8(ProgressListener progress) throws IOException, JSONException, InterruptedException {
 		File dir;
 		String env = System.getenv("JAVA_HOME_8_X64");
 		if (env != null) {

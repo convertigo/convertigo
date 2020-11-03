@@ -51,8 +51,8 @@ import java.util.regex.Pattern;
 import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

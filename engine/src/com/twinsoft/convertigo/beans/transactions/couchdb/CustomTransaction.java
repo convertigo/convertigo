@@ -24,8 +24,8 @@ import java.net.URI;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.HttpEntityContainer;
 import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
@@ -123,16 +123,16 @@ public class CustomTransaction extends AbstractCouchDbTransaction {
 			Engine.logBeans.debug("(CustomTransaction) CouchDb request data: "+ jsonString);
 		}
 		
-		HttpRequestBase request = getHttpVerb().newInstance();
+		HttpUriRequestBase request = getHttpVerb().newInstance();
 		
 		if (request == null) {
 			throw new EngineException("Unsupported HTTP method");
 		}
 		
-		request.setURI(uri);
+		request.setUri(uri);
 		
-		if (jsonString != null && request instanceof HttpEntityEnclosingRequest) {
-			provider.setJsonEntity((HttpEntityEnclosingRequest) request, jsonString);
+		if (jsonString != null && request instanceof HttpEntityContainer) {
+			provider.setJsonEntity(request, jsonString);
 		}
 		
 		return provider.execute(request);

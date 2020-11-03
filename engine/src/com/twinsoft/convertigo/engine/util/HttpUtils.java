@@ -41,22 +41,19 @@ import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -234,17 +231,17 @@ public class HttpUtils {
 						HttpHost proxy = new HttpHost(Engine.theApp.proxyManager.getProxyServer(), Engine.theApp.proxyManager.getProxyPort());
 						httpClientBuilder.setProxy(proxy);
 						if (Engine.theApp.proxyManager.proxyMethod == ProxyMethod.basic) {
-							CredentialsProvider credsProvider = new BasicCredentialsProvider();
+							BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
 							credsProvider.setCredentials(
 									new AuthScope(proxy.getHostName(), proxy.getPort()),
-									new UsernamePasswordCredentials(Engine.theApp.proxyManager.getProxyUser(), Engine.theApp.proxyManager.getProxyPassword()));
+									new UsernamePasswordCredentials(Engine.theApp.proxyManager.getProxyUser(), Engine.theApp.proxyManager.getProxyPassword().toCharArray()));
 							httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
 						};
 					}
 					
-					@SuppressWarnings("deprecation")
-					String spec = CookieSpecs.BROWSER_COMPATIBILITY;
-					httpClientBuilder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(spec).build());
+//					@SuppressWarnings("deprecation")
+//					String spec = CookieSpecs.BROWSER_COMPATIBILITY;
+//					httpClientBuilder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(spec).build());
 					
 					if (usePool) {
 						PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
@@ -313,12 +310,12 @@ public class HttpUtils {
 		}
 	}
 	
-	public static JSONObject requestToJSON(CloseableHttpClient httpClient, HttpRequestBase request) throws ClientProtocolException, IOException, UnsupportedOperationException, JSONException {
+	public static JSONObject requestToJSON(CloseableHttpClient httpClient, HttpUriRequestBase request) throws ClientProtocolException, IOException, UnsupportedOperationException, JSONException {
 		CloseableHttpResponse response = httpClient.execute(request);
 		HttpEntity responseEntity = response.getEntity();
 		JSONObject json;
 		if (responseEntity != null) {
-			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
+			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity.getContentType() == null  ? "" : responseEntity.getContentType());
 			json = new JSONObject(IOUtils.toString(responseEntity.getContent(), contentType.charset("UTF-8")));
 		} else {
 			json = new JSONObject();

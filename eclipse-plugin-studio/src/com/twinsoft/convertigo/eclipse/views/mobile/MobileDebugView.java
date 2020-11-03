@@ -20,8 +20,8 @@
 package com.twinsoft.convertigo.eclipse.views.mobile;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.codehaus.jettison.json.JSONArray;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;

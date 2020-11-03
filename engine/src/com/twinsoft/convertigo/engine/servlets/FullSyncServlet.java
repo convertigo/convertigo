@@ -32,6 +32,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -54,22 +55,23 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpOptions;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpTrace;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpEntityContainer;
+import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URIBuilder;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -98,8 +100,8 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
-import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.StreamUtils;
 
 public class FullSyncServlet extends HttpServlet {
@@ -242,7 +244,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			debug.append("dbName=" + dbName + " special=" + special + " couchdb=" + version + (requestParser.hasAttachment() ? " attachment=true" : "") + "\n");
 			
-			HttpRequestBase newRequest;
+			HttpUriRequestBase newRequest;
 			
 			switch (method) {
 			case DELETE: 
@@ -274,31 +276,31 @@ public class FullSyncServlet extends HttpServlet {
 						} catch (Exception e) {
 						}
 					}
-					newRequest = new HttpDelete();
+					newRequest = new HttpDelete(uri);
 				} else {
 					// disabled to prevent db delete
 					throw new ServletException("Invalid HTTP method");
 				}
 				break;
-			case GET: newRequest = new HttpGet(); break;
-			case HEAD: newRequest = new HttpHead(); break;
-			case OPTIONS: newRequest = new HttpOptions(); break;
+			case GET: newRequest = new HttpGet(uri); break;
+			case HEAD: newRequest = new HttpHead(uri); break;
+			case OPTIONS: newRequest = new HttpOptions(uri); break;
 			case POST:
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 				}
-				newRequest = new HttpPost();
+				newRequest = new HttpPost(uri);
 				break;
 			case PUT:
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 				}
-				newRequest = new HttpPut(); break;
-			case TRACE: newRequest = new HttpTrace(); break;
+				newRequest = new HttpPut(uri); break;
+			case TRACE: newRequest = new HttpTrace(uri); break;
 			default: throw new ServletException("Invalid HTTP method");
 			}
 			
-			newRequest.setURI(uri);
+			newRequest.setUri(uri);
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
 			
 			String requestStringEntity = null;
@@ -418,33 +420,33 @@ public class FullSyncServlet extends HttpServlet {
 
 					debug.append("; new size of " + size[0] + "\n");
 					
-					httpEntity = new AbstractHttpEntity() {
-						
+					httpEntity = new AbstractHttpEntity(mp.getContentType(), null) {
+
 						@Override
-							public void writeTo(OutputStream output) throws IOException {
-								if (chunked) {
-									try (FileInputStream fis = new FileInputStream(mpTmp)) {
-										IOUtils.copyLarge(fis, output);
-									}								
-								} else {
-							try {
-										mp.writeTo(output);
-							} catch (MessagingException e) {
-								new IOException(e);
+						public void writeTo(OutputStream output) throws IOException {
+							if (chunked) {
+								try (FileInputStream fis = new FileInputStream(mpTmp)) {
+									IOUtils.copyLarge(fis, output);
+								}
+							} else {
+								try {
+									mp.writeTo(output);
+								} catch (MessagingException e) {
+									new IOException(e);
+								}
 							}
 						}
-							}
-						
+
 						@Override
 						public boolean isStreaming() {
 							return false;
 						}
-						
+
 						@Override
 						public boolean isRepeatable() {
 							return true;
 						}
-						
+
 						@Override
 						public long getContentLength() {
 							return size[0];
@@ -453,6 +455,10 @@ public class FullSyncServlet extends HttpServlet {
 						@Override
 						public InputStream getContent() throws IOException, IllegalStateException {
 							return null;
+						}
+
+						@Override
+						public void close() throws IOException {
 						}
 					};
 
@@ -497,12 +503,12 @@ public class FullSyncServlet extends HttpServlet {
 				if (requestStringEntity != null) {
 					debug.append("request new Entity:\n" + requestStringEntity + "\n");
 				}
-				uri = newRequest.getURI();
+				uri = newRequest.getUri();
 				debug.append("Changed to " + newRequest.getMethod() + " URI: " + uri + "\n");
 			}
 			
-			if (!isChanges && newRequest instanceof HttpEntityEnclosingRequest) {
-				HttpEntityEnclosingRequest entityRequest = ((HttpEntityEnclosingRequest) newRequest);
+			if (!isChanges && newRequest instanceof HttpEntityContainer) {
+				HttpEntityContainer entityRequest = ((HttpEntityContainer) newRequest);
 				
 				if (entityRequest.getEntity() == null) {
 					if (httpEntity != null) {
@@ -511,9 +517,9 @@ public class FullSyncServlet extends HttpServlet {
 						if (isNewStringEntity) {
 						debug.append("request new Entity:\n" + requestStringEntity + "\n");
 						}
-						httpEntity = new StringEntity(requestStringEntity, "UTF-8");
+						httpEntity = new StringEntity(requestStringEntity, StandardCharsets.UTF_8);
 					} else {
-						httpEntity = new InputStreamEntity(request.getInputStream());
+						httpEntity = new InputStreamEntity(request.getInputStream(), ContentType.parse(request.getContentType()));
 					}
 					
 					entityRequest.setEntity(httpEntity);
@@ -534,7 +540,7 @@ public class FullSyncServlet extends HttpServlet {
 			
 			requestTime = System.currentTimeMillis() - requestTime;
 			
-			int code = newResponse.getStatusLine().getStatusCode();
+			int code = newResponse.getCode();
 			debug.append("response Code: " + code + " in " + requestTime + " ms\n");
 			if (isCBLiOS && code == 400) {
 				code = 500;
@@ -545,7 +551,7 @@ public class FullSyncServlet extends HttpServlet {
 			boolean isCblBulkGet = isCBL && version.compareTo("2.3.") < 0 &&"_bulk_get".equals(special);
 			
 			if (!isCblBulkGet) {
-				for (Header header: newResponse.getAllHeaders()) {
+				for (Header header: newResponse.getHeaders()) {
 					if (isCBL && HeaderName.Server.is(header)) {
 						response.addHeader("Server", "Couchbase Sync Gateway/0.81");
 						debug.append("response Header: Server=Couchbase Sync Gateway/0.81\n");
@@ -566,7 +572,7 @@ public class FullSyncServlet extends HttpServlet {
 			}
 			
 			HttpEntity responseEntity = newResponse.getEntity();
-			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType().getValue());
+			ContentTypeDecoder contentType = new ContentTypeDecoder(responseEntity == null || responseEntity.getContentType() == null  ? "" : responseEntity.getContentType());
 			debug.append("response ContentType charset=" + contentType.getCharset("n/a") + " mime=" + contentType.getMimeType() + "\n");
 			
 			OutputStream os = response.getOutputStream();

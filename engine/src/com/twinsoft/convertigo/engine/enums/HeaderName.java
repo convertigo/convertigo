@@ -28,10 +28,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpMethod;
-import org.apache.http.Header;
-import org.apache.http.HttpMessage;
-import org.apache.http.HttpRequest;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpMessage;
+import org.apache.hc.core5.http.HttpRequest;
 
 public enum HeaderName {
 	Accept("Accept"),
@@ -144,7 +144,7 @@ public enum HeaderName {
 		response.setHeader(value, headerValue);
 	}
 	
-	public boolean has(HttpRequestBase request) {
+	public boolean has(HttpUriRequestBase request) {
 		Header[] headers = request.getHeaders(value);
 		return headers != null && headers.length > 0;
 	}
@@ -171,5 +171,25 @@ public enum HeaderName {
 
 	public void addHeader(BodyPart part, String headerValue) throws MessagingException {
 		part.addHeader(value, headerValue);
+	}
+
+	public Header newHeader(String value) {
+		return new Header() {
+			
+			@Override
+			public String getValue() {
+				return value;
+			}
+			
+			@Override
+			public String getName() {
+				return HeaderName.this.value;
+			}
+			
+			@Override
+			public boolean isSensitive() {
+				return false;
+			}
+		};
 	}
 }
