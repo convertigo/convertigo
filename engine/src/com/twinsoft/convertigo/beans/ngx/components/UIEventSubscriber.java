@@ -59,7 +59,7 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		return this.finallyEvent;
 	}
 	
-	private String topic = "";
+	protected String topic = "";
 	
 	/**
 	 * @return the topic
@@ -199,7 +199,7 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		}
 	}
 
-	private String computeListenerFunction() {
+	protected String computeListenerFunction() {
 		String computed = "";
 		if (isEnabled()) {
 			String functionName = getFunctionName();

@@ -41,9 +41,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		onDidEnter("ionViewDidEnter"),
 		onWillLeave("ionViewWillLeave"),
 		onDidLeave("ionViewDidLeave"),
-		onWillUnload("ionViewWillUnload"),
-		onCanEnter("ionViewCanEnter"),
-		onCanLeave("ionViewCanLeave");
+		onWillUnload("ionViewWillUnload");
 		
 		String event;
 		ViewEvent(String event) {
@@ -56,9 +54,6 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 				if (pageEvent.getViewEvent().equals(this)) {
 					String computed = pageEvent.computeEvent();
 					if (!computed.isEmpty()) {
-						if (this.equals(ViewEvent.onCanEnter) || this.equals(ViewEvent.onCanLeave)) {
-							children.append(children.length() > 0 ? "," : "");
-						}
 						children.append(computed.replace("$event", "'"+this.event+"'"));
 					}
 				}
@@ -67,32 +62,12 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			StringBuffer sb = new StringBuffer();
 			if (children.length() > 0) {
 				sb.append(System.lineSeparator());
-				
-				//Supporting ionViewCan Events
-				if (this.equals(ViewEvent.onCanEnter) || this.equals(ViewEvent.onCanLeave)) {
-					sb.append("\t"+event).append("() {").append(System.lineSeparator());
-					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
-					sb.append("\t\treturn new Promise((resolve, reject)=>{").append(System.lineSeparator());
-					sb.append("\t\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());
-					sb.append("\t\t\t\tPromise.all([").append(System.lineSeparator());
-					sb.append(children);
-					sb.append("\t\t\t\t])").append(System.lineSeparator());
-					sb.append("\t\t\t\t.then((resp)=>{").append(System.lineSeparator());
-					sb.append("\t\t\t\t\tlet ret = resp.find((item) => {return item === false;});").append(System.lineSeparator());
-					sb.append("\t\t\t\t\tresolve(ret === false ? false : true);").append(System.lineSeparator());
-					sb.append("\t\t\t\t});").append(System.lineSeparator());
-					sb.append("\t\t\t});").append(System.lineSeparator());
-					sb.append("\t\t});").append(System.lineSeparator());
-					sb.append("\t}").append(System.lineSeparator());
-				}
-				else {
-					sb.append("\t"+event).append("() {").append(System.lineSeparator());
-					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
-					sb.append("\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());				
-					sb.append(children);	
-					sb.append("\t\t});").append(System.lineSeparator());
-					sb.append("\t}").append(System.lineSeparator());
-				}
+				sb.append("\t"+event).append("() {").append(System.lineSeparator());
+				sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
+				sb.append("\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());				
+				sb.append(children);	
+				sb.append("\t\t});").append(System.lineSeparator());
+				sb.append("\t}").append(System.lineSeparator());
 			}
 			return sb.toString();
 		}
@@ -212,13 +187,8 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			
 			StringBuilder sb = new StringBuilder();
 			if (!list.isEmpty()) {
-				String last = list.get(list.size()-1);
 				for (String s: list) {
-					if (viewEvent.equals(ViewEvent.onCanEnter) || viewEvent.equals(ViewEvent.onCanLeave)) {
-						sb.append("\t\t\t\t\t").append(s).append(s.equals(last) ? "":",").append(System.lineSeparator());
-					} else {
-						sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
-					}
+					sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
 				}
 			}
 			return sb.toString();

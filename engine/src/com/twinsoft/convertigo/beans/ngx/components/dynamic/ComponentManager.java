@@ -73,6 +73,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
+import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
@@ -383,6 +384,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlEvent.class,group));
 			components.add(getDboComponent(UIAppEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
+			components.add(getDboComponent(UIAppGuard.class,group));
 			components.add(getDboComponent(UIEventSubscriber.class,group));
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
@@ -578,7 +580,11 @@ public class ComponentManager {
 				}
 				if (UIEventSubscriber.class.isAssignableFrom(dboClass)) {
 					ApplicationComponent app = (ApplicationComponent)dboParent;
-					if (app.compareToTplVersion("7.6.0.1") >= 0) {
+					if (UIAppGuard.class.isAssignableFrom(dboClass)) {
+						if (app.compareToTplVersion("7.9.0.6") >= 0) {
+							return true;
+						}
+					} else if (app.compareToTplVersion("7.6.0.1") >= 0) {
 						return true;
 					}
 				}
@@ -587,6 +593,7 @@ public class ComponentManager {
 					!UIDynamicMenu.class.isAssignableFrom(dboClass) &&
 					!UIDynamicMenuItem.class.isAssignableFrom(dboClass) &&
 					!UIAppEvent.class.isAssignableFrom(dboClass) &&
+					!UIAppGuard.class.isAssignableFrom(dboClass) &&
 					!UIActionStack.class.isAssignableFrom(dboClass) &&
 					!UISharedComponent.class.isAssignableFrom(dboClass) &&
 					!UIAttribute.class.isAssignableFrom(dboClass) &&
@@ -621,7 +628,8 @@ public class ComponentManager {
 						UIPageEvent.class.isAssignableFrom(dboClass) ||
 						UIEventSubscriber.class.isAssignableFrom(dboClass) ||
 						UICompVariable.class.isAssignableFrom(dboClass)) {
-						if (!IAction.class.isAssignableFrom(dboClass)) {
+						if (!IAction.class.isAssignableFrom(dboClass) && 
+							!UIAppGuard.class.isAssignableFrom(dboClass)) {
 							return true;
 						}
 					}					

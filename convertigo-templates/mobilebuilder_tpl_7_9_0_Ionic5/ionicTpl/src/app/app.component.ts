@@ -45,6 +45,7 @@ export class AppComponent extends C8oPageBase {
 	rootPage : any = /*=c8o_RootPage*/;
 	public appPages : /*=c8o_PageArrayDef*/;
     pagesKeyValue: any;
+	public navParams : NavParams;
 	public events: Events;
 	public subscriptions = {};
     public actionBeans: ActionBeans;
@@ -59,6 +60,16 @@ export class AppComponent extends C8oPageBase {
         super(injector, routerProvider, loadingCtrl, ref);
         this.events = this.getInstance(Events);
         this.actionBeans = this.getInstance(ActionBeans);
+		try {
+			// for PopoverController, ModalController
+			this.navParams = new NavParams(this.getInstance(NavParams).data)
+		} catch (e) {
+			// for NavController (based on angular router)
+			let params = {}
+			this.merge(params, this.route.snapshot.params)
+			this.merge(params, this.route.snapshot.queryParams)
+			this.navParams = new NavParams(params)
+		}
 
 		this.angularRouter.events.subscribe((event: any) => {
 			if (event && event.urlAfterRedirects) {
@@ -117,7 +128,23 @@ export class AppComponent extends C8oPageBase {
     instance() {
         return this;
     }
-    
+
+	public merge(firstObj: Object, secondObj): Object{
+	    return Object.assign(firstObj, secondObj);
+	}
+	
+	public log(val) {
+	    console.log(val);
+	}
+	
+	public navigate(url: string, data: any) {
+	    this.angularRouter.navigate([url], { queryParams: data });
+	}
+	
+	public navigateByUrl(url: string){
+	    this.angularRouter.navigateByUrl(url);
+	}
+	    
     /*Begin_c8o_AppFunction*/
     /*End_c8o_AppFunction*/
     

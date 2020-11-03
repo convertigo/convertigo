@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAppGuard" priority="0" version="   7   9   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="guardType">
+            <java.lang.String value="onCanActivate"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="AppGuard"/>
+        </property>
+        <property name="topic">
+            <java.lang.String value="canActivate"/>
+        </property>
+    </mobilecomponent>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction" default="false" priority="0" version="   7   9   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>

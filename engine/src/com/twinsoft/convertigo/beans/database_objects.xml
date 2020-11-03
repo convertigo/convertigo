@@ -516,6 +516,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppGuard">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>

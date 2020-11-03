@@ -35,8 +35,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
@@ -1032,7 +1030,7 @@ public class NgxBuilder extends MobileBuilder {
 				}
 				
 				String c8o_PageRoutes = "";
-				c8o_PageRoutes += "{ path: '', component: "+ pageName +", children: [";
+				c8o_PageRoutes += "{ path: '', component: "+ pageName +", canActivate: [GuardsService], canDeactivate: [GuardsService], children: [";
 				c8o_PageRoutes += c8o_PageChildRoutes;
 				c8o_PageRoutes += c8o_PageChildRoute;
 				c8o_PageRoutes += "]}," + System.lineSeparator();

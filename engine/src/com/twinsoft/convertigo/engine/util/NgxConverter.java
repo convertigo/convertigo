@@ -1042,6 +1042,43 @@ public class NgxConverter {
 		} catch (Exception e) {}
 	}
 	
+	private static void handlePageEvent(Element beanEl) {
+		try {
+			String yaml_key = beanEl.getAttribute("yaml_key");
+			Matcher matcherBeanName = patternBeanName.matcher(yaml_key);
+			matcherBeanName.matches();
+			String beanName = matcherBeanName.group(1);
+			if (beanName != null && !beanName.isEmpty()) {
+				String viewEvent = xpath.selectList(beanEl, "viewEvent").get(0).getTextContent();
+				if (viewEvent != null && !viewEvent.isEmpty()) {
+					if ("onCanEnter".equals(viewEvent) || "onCanLeave".equals(viewEvent)) {
+						try {
+							Element parentEl = (Element) beanEl.getParentNode();
+							DatabaseObject dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
+									com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("UIEventSubscriber"));
+							if (dbo != null) {
+								Element eventSubscriberEl = beanEl.getOwnerDocument().createElement("bean");
+								eventSubscriberEl.setAttribute("yaml_key", beanName + " [ngx.components.UIEventSubscriber-"+ dbo.priority +"]");
+								Element fchild1 = beanEl.getOwnerDocument().createElement("comment");
+								fchild1.appendChild(beanEl.getOwnerDocument().createTextNode("Old implementation of "+ viewEvent + ". Prefer using AppGuard now."));
+								eventSubscriberEl.appendChild(fchild1);
+								Element fchild2 = beanEl.getOwnerDocument().createElement("topic");
+								fchild2.appendChild(beanEl.getOwnerDocument().createTextNode(viewEvent.substring(2)));
+								eventSubscriberEl.appendChild(fchild2);
+								
+								parentEl.insertBefore(eventSubscriberEl, beanEl);
+								for (Node child: xpath.selectList(beanEl, "bean")) {
+									eventSubscriberEl.appendChild(child.cloneNode(true));
+								}
+								parentEl.removeChild(beanEl);
+							}
+						} catch (Exception e) {}
+					}
+				}
+			}
+		} catch (Exception e) {}
+	}
+	
 	private static void handleToggle(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
@@ -1185,11 +1222,17 @@ public class NgxConverter {
 		for (Node node: xpath.selectList(element, "bean[@yaml_key]")) {
 			Element beanEl = (Element) node;
 			boolean isTextFormat = false;
+			boolean isPageEvent = false;
 			
 			String _indent = indent;
 			
 			String yaml_key = beanEl.getAttribute("yaml_key");
 			if (yaml_key.indexOf("mobile.components") != -1) {
+				
+				if (yaml_key.indexOf("mobile.components.UIPageEvent") != -1) {
+					isPageEvent = true;
+				}
+				
 				beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("mobile\\.components", "ngx.components"));
 				
 				if (checkBean(beanEl)) {
@@ -1197,7 +1240,7 @@ public class NgxConverter {
 					// Generals
 					handleBean(beanEl);
 					
-					// Specifics
+					// Pseudo-beans Specifics
 					String ionBeanName = getIonBeanName(beanEl);
 					if ("NavBar".equalsIgnoreCase(ionBeanName)) {
 						handleNavBar(beanEl);
@@ -1336,6 +1379,10 @@ public class NgxConverter {
 			
 			if (isTextFormat) {
 				handleTextFormat(beanEl);
+			}
+			
+			if (isPageEvent) {
+				handlePageEvent(beanEl); // for removed canEnter, canLeave
 			}
 		}
 	}
