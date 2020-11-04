@@ -821,11 +821,35 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return computed;
 	}
 	
-	private String computeNgDestroy(List<UIEventSubscriber> subscriberList) {
+	private boolean hasEvent(ViewEvent viewEvent) {
+		for (UIPageEvent pageEvent: getUIPageEventList()) {
+			if (pageEvent.getViewEvent().equals(viewEvent)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private String computeNgInit() {
 		String computed = "";
+		computed += "\tngOnInit() {"+ System.lineSeparator();
+		if (hasEvent(ViewEvent.onDidLoad)) {
+			computed += "\t\tthis."+ ViewEvent.onDidLoad.event + "()" + System.lineSeparator();
+		}
+		computed += "\t}"+ System.lineSeparator();
+		computed += "\t";
+		return computed;
+	}
+	
+	private String computeNgDestroy() {
+		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
+		String computed = "";
+		computed += "ngOnDestroy() {"+ System.lineSeparator();
+		if (hasEvent(ViewEvent.onWillUnload)) {
+			computed += "\t\tthis."+ ViewEvent.onWillUnload.event + "()" + System.lineSeparator();
+		}
 		if (!subscriberList.isEmpty()) {
-			String nbi = getName() +".nbInstance";
-			computed += "ngOnDestroy() {"+ System.lineSeparator();
+			String nbi = getName() +".nbInstance"; // declared in constructor
 			computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
 			computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
 			for (UIEventSubscriber subscriber: subscriberList) {
@@ -834,11 +858,11 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			}
 			computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
 			computed += "\t\t}"+ System.lineSeparator();
-			computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
-			computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
-			computed += "\t}"+ System.lineSeparator();
-			computed += "\t";
 		}
+		computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
+		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+		computed += "\t}"+ System.lineSeparator();
+		computed += "\t";
 		return computed;
 	}
 	
@@ -900,18 +924,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-			
-			try {
-				String functions = jsonScripts.getString("functions");
-				String fname = "ngOnDestroy";
-				String fcode = computeNgDestroy(subscriberList);
-				if (addFunction(fname, fcode)) {
-					functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
-				}
-				jsonScripts.put("functions", functions);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
 		}
 		
 		// Page events
@@ -936,6 +948,30 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 					}
 				}
 			}
+		}
+		
+		// ngOnInit, ngOnDestroy
+		try {
+			String functions = jsonScripts.getString("functions");
+			String fname = "ngOnInit";
+			String fcode = computeNgInit();
+			if (addFunction(fname, fcode)) {
+				functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
+			}
+			jsonScripts.put("functions", functions);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		try {
+			String functions = jsonScripts.getString("functions");
+			String fname = "ngOnDestroy";
+			String fcode = computeNgDestroy();
+			if (addFunction(fname, fcode)) {
+				functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
+			}
+			jsonScripts.put("functions", functions);
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
 		
 		// Component typescripts

@@ -36,12 +36,13 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	private transient UIActionFinallyEvent finallyEvent = null;
 	
 	public enum ViewEvent {
-		onDidLoad("ionViewDidLoad"),
+		onDidLoad("ionViewDidLoad"),		// ngOnInit
 		onWillEnter("ionViewWillEnter"),
 		onDidEnter("ionViewDidEnter"),
 		onWillLeave("ionViewWillLeave"),
 		onDidLeave("ionViewDidLeave"),
-		onWillUnload("ionViewWillUnload");
+		onWillUnload("ionViewWillUnload")	// ngOnDestroy
+		;
 		
 		String event;
 		ViewEvent(String event) {
@@ -59,11 +60,14 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 				}
 			}
 			
+			boolean hasSuper = !ViewEvent.onDidLoad.equals(this) && !ViewEvent.onWillUnload.equals(this);
 			StringBuffer sb = new StringBuffer();
 			if (children.length() > 0) {
 				sb.append(System.lineSeparator());
 				sb.append("\t"+event).append("() {").append(System.lineSeparator());
-				sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
+				if (hasSuper) {
+					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
+				}
 				sb.append("\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());				
 				sb.append(children);	
 				sb.append("\t\t});").append(System.lineSeparator());
