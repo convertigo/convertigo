@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -668,6 +669,17 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		return "";
 	}
 	
+	public boolean hasGuard(AppGuardType guardType) {
+		for (UIComponent uic: getUIComponentList()) {
+			if (uic instanceof UIAppGuard) {
+				if (guardType.equals(((UIAppGuard)uic).getGuardType())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * The application's theme
 	 */
@@ -693,6 +705,22 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
     				}
     			}
     			this.theme = uiTheme;
+    		}
+    	}
+    	
+    	if (uiComponent instanceof UIAppGuard) {
+    		UIAppGuard guard = (UIAppGuard)uiComponent;
+    		if (guard.bNew) {
+    			AppGuardType guardType = guard.getGuardType();
+    			if (hasGuard(AppGuardType.onCanActivate) && hasGuard(AppGuardType.onCanDeactivate)) {
+    				throw new EngineException("The mobile application \"" + getName() + "\" already contains a \""+ guardType.getTopic() +"\" guard! Please delete it first.");
+    			}
+    			if (guardType.equals(AppGuardType.onCanActivate) && hasGuard(AppGuardType.onCanActivate)) {
+    				guard.setGuardType(AppGuardType.onCanDeactivate);
+    			}
+    			if (guardType.equals(AppGuardType.onCanDeactivate) && hasGuard(AppGuardType.onCanDeactivate)) {
+    				guard.setGuardType(AppGuardType.onCanActivate);
+    			}
     		}
     	}
 		

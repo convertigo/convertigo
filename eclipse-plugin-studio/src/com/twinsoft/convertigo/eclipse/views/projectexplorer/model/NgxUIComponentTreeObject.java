@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
+import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
@@ -80,6 +81,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
+import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -491,6 +493,17 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 	        			}
 	        		}
 	        	}
+        	}
+        }
+        if (dbo instanceof UIAppGuard) {
+        	UIAppGuard dboGuard = (UIAppGuard)dbo;
+        	if ("guardType".equals(id)) {
+        		String guardType = (String)value;
+        		if (!guardType.equals(dboGuard.getGuardType().name())) {
+        			if (dboGuard.getApplication().hasGuard(AppGuardType.valueOf(guardType))) {
+        				return;
+        			}
+        		}
         	}
         }
 		super.setPropertyValue(id, value);
