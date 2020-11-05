@@ -383,6 +383,7 @@ public class NgxBuilder extends MobileBuilder {
 			writeAppPluginsConfig(app);
 			writeAppServiceTs(app);
 			writeAppModuleTs(app);
+			writeAppRoutingTs(app);
 			moveFiles();
 			Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
 		}
