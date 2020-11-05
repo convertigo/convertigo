@@ -15375,6 +15375,38 @@
 	  }
 	},
 
+	"NavigatePageAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
+	  "displayName": "NavigatePage",
+      "label": "NavigatePage",
+      "description": [
+"Defines a <i>NavigatePage</i> action component. | This component helps navigating to a page giving its URL.<br/>",
+"For more information : <a href='https://ionicframework.com/docs/angular/navigation'>Navigation</a>."],
+      "group": "Actions",
+      "icon16": "navigatepageaction_color_16x16.png",
+      "icon32": "navigatepageaction_color_32x32.png",
+      "properties": {
+        "url": {
+          "label": "Page url",
+          "description": "Defines the target url.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "",
+          "values": [
+            false,
+			true
+          ]
+        },
+        "data": {
+          "label": "Page data",
+          "description": "Additional page data object passed to the navigated page. You can access this data in the navigated page by using a (TS) expression <code>this.navParams.data</code>.",
+          "category": "@Properties",
+          "type": "string",
+          "value": false
+        }
+	  }
+	},
+	
 	"RootPageAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
 	  "displayName": "RootPage",
