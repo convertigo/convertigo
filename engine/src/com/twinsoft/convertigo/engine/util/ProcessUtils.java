@@ -51,6 +51,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
@@ -514,7 +515,18 @@ public class ProcessUtils {
 			archive.delete();
 		}
 		
-		File binDir = new File(dir, "tools/bin");
+		File binDir = null;
+		for (File f: dir.listFiles()) {
+			binDir = new File(f, "bin");
+			if (binDir.exists()) {
+				break;
+			}
+		}
+		if (binDir == null) {
+			String msg = "no bin folder found in: " + Arrays.toString(dir.list());
+			Engine.logEngine.error(msg);
+			throw new EngineException(msg);
+		}
 		if (!Engine.isWindows()) {
 			for (File bin: binDir.listFiles()) {
 				bin.setExecutable(true);
@@ -531,6 +543,8 @@ public class ProcessUtils {
 					bos.write("y\n".getBytes("UTF-8"));
 					bos.flush();
 				}
+			} catch (IOException e) {
+				// end of process
 			} catch (Exception e) {
 				Engine.logEngine.info("Boom: " + e);
 			}
@@ -542,7 +556,7 @@ public class ProcessUtils {
 		}
 		int code = p.waitFor();
 		Engine.logEngine.info("Android licenses: " + code + "\n" + output);
-		p = ProcessUtils.getProcessBuilder(new File(dir, "tools/bin").getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+		p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
 		output = IOUtils.toString(p.getInputStream(), "UTF-8");
 		code = p.waitFor();
 		Engine.logEngine.info("Android package list: " + code + "\n" + output);
@@ -553,7 +567,7 @@ public class ProcessUtils {
 			buildTools = m.group(1);
 		}
 		Engine.logEngine.info("build-tools: " + buildTools);
-		p = ProcessUtils.getProcessBuilder(new File(dir, "tools/bin").getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true).start();
+		p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true).start();
 		output = IOUtils.toString(p.getInputStream(), "UTF-8");
 		code = p.waitFor();
 		Engine.logEngine.info("Android install build-tools: " + code + "\n" + output);
