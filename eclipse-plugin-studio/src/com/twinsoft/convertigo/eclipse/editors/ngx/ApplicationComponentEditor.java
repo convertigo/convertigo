@@ -1744,10 +1744,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
 				cmd.add("--baseHref=./");
 				cmd.add("--deployUrl=./");
-
-
+				
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
+				pb.environment().put("NODE_OPTIONS", "max-old-space-size=8192");
 				Process p = pb.start();
 				processes.add(p);
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
