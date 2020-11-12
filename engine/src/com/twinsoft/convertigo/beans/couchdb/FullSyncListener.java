@@ -28,6 +28,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 
 public class FullSyncListener extends AbstractFullSyncViewListener {
@@ -67,16 +68,27 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 			query.put("reduce", "false");
 			query.put("include_docs", "true");
 			query.put("conflicts", "true");
-	
+			
+			Map<String, String> query_r = new HashMap<String, String>(2);
+			query.put("r", "100");
+			
 			try {
+				CouchClient client = getCouchClient();
+				String db = getDatabaseName();
 				for (int i = 0; i < len;) {
 					JSONArray doc_ids = getChunk(ids, i);
-					i += doc_ids.length();
-	
+					int ids_len = doc_ids.length();
+					i += ids_len;
+					
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : request heads of " + ids_len + " id(s)");
+					for (int j = 0; j < ids_len; j++) {
+						client.headDocument(db, doc_ids.getString(j), query_r);
+					}
+					
 					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view for _id keys " + doc_ids);
-					JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
+					JSONObject json = client.postView(db, ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
 					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
-	
+					
 					if (json != null) {
 						if (CouchKey.error.has(json)) {
 							String error = CouchKey.error.String(json);
