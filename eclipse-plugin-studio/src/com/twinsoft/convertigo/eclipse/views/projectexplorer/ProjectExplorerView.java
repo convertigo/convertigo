@@ -3113,7 +3113,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 		boolean doImport;
 		if (Engine.isProjectFile(filePath)) {
-			ConvertigoPlugin.getDefault().createProjectPluginResource(targetProjectName, new File(filePath).getParent());
+			ConvertigoPlugin.getDefault().declareProject(targetProjectName, new File(filePath));
 			doImport = true;
 		} else if (((filePath.endsWith(".car") || filePath.endsWith(".zip")) && (targetProjectName != null)) ||
 				filePath.matches("https?://.+")) {

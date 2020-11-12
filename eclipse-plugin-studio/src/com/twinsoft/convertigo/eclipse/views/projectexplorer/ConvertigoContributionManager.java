@@ -77,10 +77,10 @@ class ConvertigoContributionManager implements IContributionManagerOverrides {
 		
 		String cn = item.getClass().getSimpleName();
 		if (Pattern.matches("DynamicMenuContributionItem|HandledContributionItem", cn)) {
-			return id.startsWith("org.eclipse.egit.");
+			return id.startsWith("org.eclipse.egit.") || id.startsWith("org.eclipse.buildship.ui");
 		}
 		if (cn.equals("MenuManager")) {
-			return Pattern.matches("\\d+|egit\\..*|team\\..*|compareWithMenu|replaceWithMenu", id);
+			return Pattern.matches("\\d+|egit\\..*|team\\..*|org\\.eclipse\\.buildship\\..*|compareWithMenu|replaceWithMenu", id);
 		}
 		if (cn.equals("PluginActionContributionItem")) {
 			return id.contains("org.eclipse.team");

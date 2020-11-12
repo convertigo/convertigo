@@ -43,8 +43,12 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
+import org.eclipse.core.resources.FileInfoMatcherDescription;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceFilterDescription;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -53,6 +57,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
@@ -162,6 +167,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
 
 	public static final String PLUGIN_PERSPECTIVE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective"; //$NON-NLS-1$
+	
+	public static final String GRADLE_NATURE_ID = "org.eclipse.buildship.core.gradleprojectnature";
 
 	public static ProjectManager projectManager = null;
 
@@ -1671,7 +1678,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
 					description.setLocation(projectPath);
 					resourceProject.create(description, monitor);
-					resourceProject.open(monitor);
+					openProject(resourceProject, monitor);
 				}
 			} else {
 				sb = null;
@@ -1683,6 +1690,41 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 		return resourceProject;
 	}
+	
+	private void openProject(IProject iproject, IProgressMonitor monitor) throws CoreException {
+		if (!iproject.isOpen()) {
+			if (iproject.getFilters().length == 0) {
+				iproject.createFilter(
+						IResourceFilterDescription.EXCLUDE_ALL
+						| IResourceFilterDescription.FOLDERS
+						| IResourceFilterDescription.INHERITABLE,
+						new FileInfoMatcherDescription("org.eclipse.ui.ide.multiFilter", "1.0-name-matches-false-false-node_modules"),
+						IResource.BACKGROUND_REFRESH, null);
+			}
+			iproject.open(monitor);
+			
+			if (new File(iproject.getLocation().toOSString(), "build.gradle").exists() && !iproject.hasNature(GRADLE_NATURE_ID)) {
+				IProjectDescription description = iproject.getDescription();
+				String[] natures = description.getNatureIds();
+				String[] newNatures = new String[natures.length + 1];
+				System.arraycopy(natures, 0, newNatures, 0, natures.length);
+				newNatures[natures.length] = GRADLE_NATURE_ID;
+				IWorkspace workspace = ResourcesPlugin.getWorkspace();
+				IStatus status = workspace.validateNatureSet(newNatures);
+				if (status.getCode() == IStatus.OK) {
+					description.setNatureIds(newNatures);
+					ICommand bc = description.newCommand();
+					bc.setBuilderName("org.eclipse.buildship.core.gradleprojectbuilder");
+					ICommand[] cmds = description.getBuildSpec();
+					ICommand[] newCmds = new ICommand[cmds.length + 1];
+					System.arraycopy(cmds, 0, newCmds, 0, cmds.length);
+					newCmds[cmds.length] = bc;
+					description.setBuildSpec(newCmds);
+					iproject.setDescription(description, IProject.FORCE, monitor);
+				}
+			}
+		}
+	}
 
 	public IProject getProjectPluginResource(String projectName) throws CoreException {
 		return getProjectPluginResource(projectName, null);
@@ -1693,7 +1735,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (resourceProject.exists()) {
 			if (!resourceProject.isOpen()) {
 				try {
-					resourceProject.open(monitor);
+					openProject(resourceProject, monitor);
 				} catch (CoreException e) {
 					// case of missing .project on existing project
 					IPath projectPath = resourceProject.getLocation();
@@ -1702,7 +1744,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					description.setLocation(projectPath);
 					resourceProject.delete(false, false, monitor);
 					resourceProject.create(description, monitor);
-					resourceProject.open(monitor);
+					openProject(resourceProject, monitor);
 				}
 			}
 		}
@@ -1950,10 +1992,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					iProject = createProjectPluginResource(projectName, null);
 					projectFile = getProjectFile(iProject);
 				}
-				//				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
-				//					resourceProject = createProjectPluginResource(projectName, null);
-				//				}
-				isOpen = iProject.isOpen();
+				isOpen = projectFile != null && projectFile.exists() && iProject.isOpen();
 			}
 		} catch (Exception e) {
 			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
