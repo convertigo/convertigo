@@ -37,7 +37,6 @@ public class ProjectUrlParser {
 	private String gitRepo;
 	private String projectPath;
 	private String gitBranch;
-	private String projectUrl;
 	private boolean autoPull = false;
 	private Matcher matcherGit = patternGit.matcher("");
 	private Matcher matcherOpt = patternOpt.matcher("");
@@ -48,11 +47,12 @@ public class ProjectUrlParser {
 	}
 
 	public boolean isValid() {
-		return projectUrl != null;
+		return StringUtils.isNotBlank(projectName);
 	}
 
 	public void setUrl(String projectUrl) {
-		this.projectUrl = projectName = gitUrl = gitRepo = projectPath = gitBranch = null;
+		projectName = gitUrl = gitRepo = projectPath = gitBranch = null;
+		autoPull = false;
 
 		synchronized (matcherGit) {
 			matcherGit.reset(projectUrl);
@@ -69,16 +69,14 @@ public class ProjectUrlParser {
 					case "branch": gitBranch = value; break;
 					case "autoPull": autoPull = "true".equalsIgnoreCase(value); break;
 					}
-				}
-				this.projectUrl = projectUrl; 
+				} 
 			} else {
 				matcherHttp.reset(projectUrl);
-				if (matcherHttp.matches() && matcherHttp.group(4) == null) {
+				if (matcherHttp.matches()) {
 					projectName = matcherHttp.group(1) != null ? matcherHttp.group(1) : matcherHttp.group(3);
 					gitUrl = matcherHttp.group(2);
-					this.projectUrl = projectUrl; 
 				} else {
-					projectName = projectUrl;
+					projectName = projectUrl.replaceFirst("=.*", "");
 				}
 			}
 		}
@@ -105,7 +103,7 @@ public class ProjectUrlParser {
 	}
 
 	public String getProjectUrl() {
-		return projectUrl;
+		return makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
 	}
 
 	public boolean isAutoPull() {
@@ -117,57 +115,40 @@ public class ProjectUrlParser {
 	}
 
 	public void setProjectName(String projectName) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
-		this.projectName = projectName;
-		if (parser.isValid()) {
-			setUrl(parser.getProjectUrl());
-		}
+		setUrl(makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull));
 	}
 
 	public void setGitUrl(String gitUrl) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
-		this.gitUrl = gitUrl;
-		if (parser.isValid()) {
-			setUrl(parser.getProjectUrl());
-		}
+		setUrl(makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull));
 	}
 
 	public void setProjectPath(String projectPath) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
-		this.projectPath = projectPath;
-		if (parser.isValid()) {
-			setUrl(parser.getProjectUrl());
-		}
+		setUrl(makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull));
 	}
 
 	public void setGitBranch(String gitBranch) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
-		this.gitBranch = gitBranch;
-		if (parser.isValid()) {
-			setUrl(parser.getProjectUrl());
-		}
+		setUrl(makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull));
 	}
 
 	public void setAutoPull(boolean autoPull) {
-		ProjectUrlParser parser = makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull);
-		this.autoPull = autoPull;
-		if (parser.isValid()) {
-			setUrl(parser.getProjectUrl());
-		}
+		setUrl(makeUrl(projectName, gitUrl, projectPath, gitBranch, autoPull));
 	}
 
-	static public ProjectUrlParser makeUrl(String projectName, String gitUrl, String projectPath, String gitBranch, boolean autoPull) {
-		StringBuilder url = new StringBuilder(projectName).append('=').append(gitUrl);
-		if (projectPath != null && !projectPath.isEmpty()) {
-			url.append(":path=").append(projectPath);
+	static public String makeUrl(String projectName, String gitUrl, String projectPath, String gitBranch, boolean autoPull) {
+		StringBuilder url = new StringBuilder(projectName);
+		if (StringUtils.isNotBlank(gitUrl)) {
+			url.append('=').append(gitUrl);
+			if (StringUtils.isNotBlank(projectPath)) {
+				url.append(":path=").append(projectPath);
+			}
+			if (StringUtils.isNotBlank(gitBranch)) {
+				url.append(":branch=").append(gitBranch);
+			}
+			if (autoPull) {
+				url.append(":autoPull=true");
+			}
 		}
-		if (gitBranch != null && !gitBranch.isEmpty()) {
-			url.append(":branch=").append(gitBranch);
-		}
-		if (autoPull) {
-			url.append(":autoPull=true");
-		}
-		return new ProjectUrlParser(url.toString());
+		return url.toString();
 	}
 
 	static public String getUrl(String projectName) {
