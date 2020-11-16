@@ -60,6 +60,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.ModalContext;
@@ -190,7 +191,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_LOCAL_BUILD_FOLDER = "localBuild.folder";
 	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
 	public static final String PREFERENCE_MOBILE_BUILDER_THRESHOLD = "mobileBuilder.threshold";
-
+	
+	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 
 	private static Display display = null;
 	public static synchronized Display getDisplay() {
@@ -1678,8 +1680,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
 					description.setLocation(projectPath);
 					resourceProject.create(description, monitor);
-					openProject(resourceProject, monitor);
 				}
+				openProject(resourceProject, monitor);
 			} else {
 				sb = null;
 			}
@@ -1692,7 +1694,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 	
 	private void openProject(IProject iproject, IProgressMonitor monitor) throws CoreException {
-		if (!iproject.isOpen()) {
+		boolean doInit = !iproject.isOpen() || iproject.getSessionProperty(qnInit) == null;
+		if (doInit) {
 			if (iproject.getFilters().length == 0) {
 				iproject.createFilter(
 						IResourceFilterDescription.EXCLUDE_ALL
@@ -1702,25 +1705,45 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 						IResource.BACKGROUND_REFRESH, null);
 			}
 			iproject.open(monitor);
+			iproject.setSessionProperty(qnInit, true);
 			
-			if (new File(iproject.getLocation().toOSString(), "build.gradle").exists() && !iproject.hasNature(GRADLE_NATURE_ID)) {
-				IProjectDescription description = iproject.getDescription();
-				String[] natures = description.getNatureIds();
-				String[] newNatures = new String[natures.length + 1];
-				System.arraycopy(natures, 0, newNatures, 0, natures.length);
-				newNatures[natures.length] = GRADLE_NATURE_ID;
-				IWorkspace workspace = ResourcesPlugin.getWorkspace();
-				IStatus status = workspace.validateNatureSet(newNatures);
-				if (status.getCode() == IStatus.OK) {
-					description.setNatureIds(newNatures);
-					ICommand bc = description.newCommand();
-					bc.setBuilderName("org.eclipse.buildship.core.gradleprojectbuilder");
-					ICommand[] cmds = description.getBuildSpec();
-					ICommand[] newCmds = new ICommand[cmds.length + 1];
-					System.arraycopy(cmds, 0, newCmds, 0, cmds.length);
-					newCmds[cmds.length] = bc;
-					description.setBuildSpec(newCmds);
-					iproject.setDescription(description, IProject.FORCE, monitor);
+			if (new File(iproject.getLocation().toOSString(), "build.gradle").exists()) {
+				File pref = new File(iproject.getLocation().toOSString(), ".settings/org.eclipse.buildship.core.prefs");
+				if (!pref.exists()) {
+					try {
+						FileUtils.write(pref, "connection.project.dir=\n"
+								+ "eclipse.preferences.version=1", "UTF-8");
+						iproject.refreshLocal(1, monitor);
+					} catch (IOException e) {
+					}
+				}
+				pref = new File(iproject.getLocation().toOSString(), "settings.gradle");
+				if (!pref.exists()) {
+					try {
+						FileUtils.write(pref, "", "UTF-8");
+						iproject.refreshLocal(1, monitor);
+					} catch (IOException e) {
+					}
+				}
+				if (!iproject.hasNature(GRADLE_NATURE_ID)) {
+					IProjectDescription description = iproject.getDescription();
+					String[] natures = description.getNatureIds();
+					String[] newNatures = new String[natures.length + 1];
+					System.arraycopy(natures, 0, newNatures, 0, natures.length);
+					newNatures[natures.length] = GRADLE_NATURE_ID;
+					IWorkspace workspace = ResourcesPlugin.getWorkspace();
+					IStatus status = workspace.validateNatureSet(newNatures);
+					if (status.getCode() == IStatus.OK) {
+						description.setNatureIds(newNatures);
+						ICommand bc = description.newCommand();
+						bc.setBuilderName("org.eclipse.buildship.core.gradleprojectbuilder");
+						ICommand[] cmds = description.getBuildSpec();
+						ICommand[] newCmds = new ICommand[cmds.length + 1];
+						System.arraycopy(cmds, 0, newCmds, 0, cmds.length);
+						newCmds[cmds.length] = bc;
+						description.setBuildSpec(newCmds);
+						iproject.setDescription(description, IProject.FORCE, monitor);
+					}
 				}
 			}
 		}
@@ -1733,19 +1756,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
 		IProject resourceProject = createProjectPluginResource(projectName);
 		if (resourceProject.exists()) {
-			if (!resourceProject.isOpen()) {
-				try {
-					openProject(resourceProject, monitor);
-				} catch (CoreException e) {
-					// case of missing .project on existing project
-					IPath projectPath = resourceProject.getLocation();
-					IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
-					description.setLocation(projectPath);
-					resourceProject.delete(false, false, monitor);
-					resourceProject.create(description, monitor);
-					openProject(resourceProject, monitor);
-				}
+			try {
+				openProject(resourceProject, monitor);
+			} catch (CoreException e) {
+				// case of missing .project on existing project
+				IPath projectPath = resourceProject.getLocation();
+				IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
+				description.setLocation(projectPath);
+				resourceProject.delete(false, false, monitor);
+				resourceProject.create(description, monitor);
+				openProject(resourceProject, monitor);
 			}
 		}
 		return resourceProject;
