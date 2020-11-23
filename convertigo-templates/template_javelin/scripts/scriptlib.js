@@ -20,9 +20,9 @@
 /*
  * $Workfile: scriptlib.js $
  * $Author: Davidm $
- * $Modifications jmc $
- * $Revision: 9 $
- * $Date: 16/04/06 15:36 $
+ * $Modifications gv $
+ * $Revision: 10 $
+ * $Date: 23/11/20 18:19 $
  */
 
 /*******************************************************************************
@@ -68,6 +68,15 @@ var checkDomDirty; // window timer object for domDirty check
 var bCheckDomDirty = false; // boolean for domDirty check
 
 var isIE = navigator.userAgent.indexOf('Gecko') == -1 ? true : false;
+var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+/*
+IE Doesn't have a .startsWith 
+*/*
+if (!String.prototype.startsWith) {
+	String.prototype.startsWith = function (str) {
+		return this.lastIndexOf(str, 0) === 0;
+	};
+}
 
 /**
  * called from the <head> of index.html
@@ -587,19 +596,19 @@ function isKeydown(e) {
 
 	switch (e.keyCode) {
 	case 9: // Tabulation
-	case 13: // Entr�e
+	case 13: // Entree
 	case 27: // Echap
-	case 33: // Page pr�c�dente
+	case 33: // Page precedente
 	case 34: // Page suivante
-	case 38: // Fl�che haut
-	case 40: // Fl�che bas
+	case 38: // Fleche haut
+	case 40: // Fleche bas
 	case 45: // Inser
-	case 107: // + du pav� num�rique
-	case 109: // - du pav� num�rique
-	case 110: // . du pav� num�rique
+	case 107: // + du pave numerique
+	case 109: // - du pave numerique
+	case 110: // . du pave numerique
 		return true;
 		break;
-	case 106: // * du pav� num�rique
+	case 106: // * du pave numerique
 
 		// Recherche champ courant
 		var fieldCurrent = document.getElementById(currentFieldOnFocus).name;
@@ -625,13 +634,13 @@ function isKeydown(e) {
 		break;
 
 	// necessary to handle dirty field flag
-	case 8: // Retour arri�re
+	case 8: // Retour arriere
 	case 46: // Suppr
 		addToModifiedFieldsList(document.getElementById(currentFieldOnFocus));
 		return false;
 
 	default:
-		if ((e.keyCode > 111) && (e.keyCode < 124)) // F1 � F12
+		if ((e.keyCode > 111) && (e.keyCode < 124)) // F1 a F12
 			return true;
 		return false;
 	}
@@ -878,11 +887,13 @@ function doAutoTab(key) {
 function checkInputChars(event, size, bAutoEnter, Object) {
 }
 
+function checkInput(event, numeric, size, bAutoEnter, Object) {}
+
 // function checkInput(event, numeric, size, bAutoEnter, Object) {
 //
-// // On ne teste que les num�riques
-// // Les caract�re blanc s�cables des champs alpha sont transform�s en
-// // caract�re blanc simple
+// // On ne teste que les numeriques
+// // Les caracteres blancs secables des champs alpha sont transformes en
+// // caractere blanc simple
 // if (!numeric) {
 // return;
 // }
@@ -1151,8 +1162,11 @@ function XSLT_transformation() {
 			strResult = xmlDocument.transformNode(xslDom);
 		} else {
 			try {
-				var xslt = new ActiveXObject("Msxml2.XSLTemplate");
-				var xslDoc = new ActiveXObject("Msxml2.FreeThreadedDOMDocument");
+				var xslt = new ActiveXObject("Msxml2.XSLTemplate.6.0");
+				var xslDoc = new ActiveXObject("Msxml2.FreeThreadedDOMDocument.6.0");
+				xslDoc.setProperty("AllowDocumentFunction", true);
+				xslDoc.setProperty("AllowXsltScript", true);
+				xslDoc.resolveExternals = true;
 				xslDoc.load(xslDom);
 				xslt.stylesheet = xslDoc;
 				var xslProc = xslt.createProcessor();
@@ -1257,11 +1271,11 @@ function ajaxReadyStateListener() {
 							.getAttribute("connector"), 0);
 				}
 
-				// On force le mode de saisie en remplacement � chaque nouvelle
+				// On force le mode de saisie en remplacement a chaque nouvelle
 				// page
 				insertMode = false;
 
-				// R�solution automatique d'une URL dans une navigateur
+				// Resolution automatique d'une URL dans une navigateur
 				var urlelt = "";
 
 				for (var i = 0; i < rEl.getElementsByTagName("URL").length; i++) {
@@ -1271,11 +1285,11 @@ function ajaxReadyStateListener() {
 
 				if (urlelt.length !== 0) {
 
-					// R�solution dans un nouvel onglet du butineur
+					// Resolution dans un nouvel onglet du butineur
 					console.log("URL: " + urlelt);
 					window.open(urlelt, "_blank");
 
-					// Entr�e sur la fen�tre affich�e au niveau de l'�mulation
+					// Entree sur la fenetre affichee au niveau de l'emulation
 					// web
 					setTimeout(function() {
 						doAction("KEY_ENTER");
@@ -1312,8 +1326,8 @@ function ajaxReadyStateListener() {
 }
 
 // ********************************************************************************************
-// propri�t� textContent : indisponible sur IE9
-// propri�t� text : indisponible apr�s IE9
+// propriete textContent : indisponible sur IE9
+// propriete text : indisponible apres IE9
 // Cette fontion assure de renvoyer le texte quelle que soit la version de IE
 // ********************************************************************************************
 function getText(el) {
@@ -1335,7 +1349,7 @@ function ajaxXmlPost(xmlRequester) {
 
 function ajaxXmlPost(xmlRequester, form) {
 	if (xmlRequester) {
-		if (form) {
+		if (form && form.__javelin_modified_fields) {
 			form.__javelin_modified_fields.value = JSON
 					.stringify(formFieldsList);
 			// reset the dirty list
@@ -1504,13 +1518,13 @@ function serializeForm(theform) {
 				queryString += "&";
 			}
 			
-			// Pour les num�riques, on encode directement la valeur (espaces � gauche compris)
+			// Pour les numeriques, on encode directement la valeur (espaces a gauche compris)
 			if (el.getAttribute("type2") === "number") {
 				queryString += encodeURIComponent(name) + "=" + encodeURIComponent(value);
 			}
 			
-			// Pour les alphanum�riques, on encode la valeur, puis on converti les blancs non s�cables (EBCDIC x'41') par des blancs s�cables (EBCDIC x'40').
-			// Cela permet de ne pas avoir de caract�re mal transmis aux logiciels tiers (ex. : WORD qui fait des mises en pages fantiasistes avec des blancs non s�cables)
+			// Pour les alphanumeriques, on encode la valeur, puis on converti les blancs non secables (EBCDIC x'41') par des blancs secables (EBCDIC x'40').
+			// Cela permet de ne pas avoir de caractere mal transmis aux logiciels tiers (ex. : WORD qui fait des mises en pages fantiasistes avec des blancs non secables)
 			else {
 				queryString += encodeURIComponent(name) + "=" + encodeURIComponent(value).replace(/(\u00A0|%C2%A0)/g, ' ');
 			}
