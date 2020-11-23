@@ -159,6 +159,7 @@ import com.twinsoft.convertigo.eclipse.dnd.TreeDragListener;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
+import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
@@ -407,8 +408,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
-				viewer.getTree().getDisplay().asyncExec(() -> super.refresh(element));
-				packColumns();
+				if (Engine.objectsProvider != null) {
+					viewer.getTree().getDisplay().asyncExec(() -> super.refresh(element));
+					packColumns();
+				}
 			}
 
 			@Override
@@ -476,7 +479,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				for (int i = 0; i < editorRefs.length; i++) {
 					IEditorReference editorRef = (IEditorReference) editorRefs[i];
 					IEditorPart editor = editorRef.getEditor(false);
-					activePage.closeEditor(editor, false);
+					if (!(editor instanceof StartupEditor)) {
+						activePage.closeEditor(editor, false);
+					}
 				}
 			}
 

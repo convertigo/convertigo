@@ -31,6 +31,13 @@
             id="com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor"
             name="Application Editor">
       </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
+            default="false"
+            icon="icons/convertigo_doc_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
+            name="Convertigo Startup">
+      </editor>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">
