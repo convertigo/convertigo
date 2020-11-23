@@ -20,17 +20,14 @@
 package com.twinsoft.convertigo.engine;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.xml.namespace.QName;
@@ -38,16 +35,13 @@ import javax.xml.namespace.QName;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
-import org.apache.ws.commons.schema.XmlSchemaChoice;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaImport;
-import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
@@ -56,7 +50,6 @@ import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
 import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -65,25 +58,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
-import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
-import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaImportGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
-import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.steps.SequenceStep;
-import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
-import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -402,6 +382,7 @@ public class SchemaManager implements AbstractManager {
 		XmlSchema schema;
 		XmlSchema fullSchema;
 		long lastChange;
+		long lastBuildTime;
 	}
 	
 	Map<String, XmlSchemaCacheEntry> schemaCache = Collections.synchronizedMap(new HashMap<String, XmlSchemaCacheEntry>());
@@ -418,7 +399,95 @@ public class SchemaManager implements AbstractManager {
 		return SchemaMeta.getCollection(getSchemaForProject(projectName, options));
 	}
 
+	protected static void getProjectReferences(List<String> refs, String projectName) {
+		if (refs == null) return;
+		try {
+			Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			if (p != null) {
+				if (!refs.contains(projectName)) {
+					refs.add(projectName);
+					for (Reference ref: p.getReferenceList()) {
+						if (ref instanceof ProjectSchemaReference) {
+							ProjectSchemaReference psr = (ProjectSchemaReference)ref;
+							getProjectReferences(refs, psr.getParser().getProjectName());
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static boolean needSchemaRebuild(String projectName, long lastBuildTime) {
+		if (lastBuildTime > 0) {
+			List<String> refs = new ArrayList<String>();
+			SchemaManager.getProjectReferences(refs, projectName);
+			
+			for (String pname: refs) {
+				try {
+					Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname);
+					if (p != null && p.getLastChange() > lastBuildTime) {
+						return true;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return false;
+	}
+	
 	public XmlSchema getSchemaForProject(final String projectName, Option... options) throws Exception {
+		
+		final boolean fullSchema = Option.fullSchema.is(options);
+		
+		final Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		
+		XmlSchemaCacheEntry cacheEntry = getCacheEntry(projectName);
+		
+		synchronized (cacheEntry) {
+			
+			boolean forceRebuild = needSchemaRebuild(projectName, cacheEntry.lastBuildTime);
+			
+			long lastChange = project.getLastChange();
+			
+			if (Option.noCache.not(options)) {
+				if (cacheEntry != null && cacheEntry.lastChange == lastChange && !forceRebuild) {
+					if (!fullSchema && cacheEntry.schema != null) {
+						//System.out.println("Schema for project \"" + projectName + "\" returned from cache");
+						return cacheEntry.schema;
+					}
+					if (fullSchema && cacheEntry.fullSchema != null) {
+						//System.out.println("Full schema for project \"" + projectName + "\" returned from cache");
+						return cacheEntry.fullSchema;
+					}
+				}
+			}
+			
+			try {
+				XmlSchema schema = new XmlSchemaBuilderExecutor().buildSchema(projectName, options);
+				
+				// always cache
+				cacheEntry.lastChange = lastChange;
+				cacheEntry.lastBuildTime = System.currentTimeMillis();
+				if (fullSchema) {
+					cacheEntry.fullSchema = schema;
+				} else {
+					cacheEntry.schema = schema;
+				}
+				
+				return schema;
+				
+			} catch (Exception e) {
+				System.out.println("Unabled to build schema for project \""+ projectName +"\" (see the complete error in logs)");
+				Engine.logEngine.error("Unabled to build schema for project \""+ projectName +"\"", e);
+				throw e;
+			}
+		}
+	}
+
+	/*public XmlSchema getSchemaForProject(final String projectName, Option... options) throws Exception {
 		long timeStart = System.currentTimeMillis();
 		
 		final boolean fullSchema = Option.fullSchema.is(options);
@@ -1000,7 +1069,7 @@ public class SchemaManager implements AbstractManager {
 
 			return schema;
 		}
-	}
+	}*/
 	
 	public static void addXmlSchemaImport(XmlSchemaCollection collection, XmlSchema xmlSchema, String ns) {
 		try {
@@ -1031,7 +1100,7 @@ public class SchemaManager implements AbstractManager {
 		catch (Exception e) {}
 	}
 	
-	private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaElement element, XmlSchemaComplexType cType) {
+	static protected XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaElement element, XmlSchemaComplexType cType) {
 		QName typeName = element.getSchemaTypeName();
 		if (typeName != null) {
 			// the type must be customized, create an extension
@@ -1042,7 +1111,7 @@ public class SchemaManager implements AbstractManager {
 		return null;
 	}
 	
-	private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaComplexType cType, QName typeName) {
+	static private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaComplexType cType, QName typeName) {
 		if (typeName != null) {
 			XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContent());
 			cType.setContentModel(sContent);
@@ -1224,7 +1293,7 @@ public class SchemaManager implements AbstractManager {
 		return map;
 	}
 	
-	private static void merge(XmlSchema schema, XmlSchemaComplexType first, XmlSchemaComplexType second) {
+	protected static void merge(XmlSchema schema, XmlSchemaComplexType first, XmlSchemaComplexType second) {
 		// check if the type is dynamic and can be merged
 		if (SchemaMeta.isDynamic(first)) {
 			

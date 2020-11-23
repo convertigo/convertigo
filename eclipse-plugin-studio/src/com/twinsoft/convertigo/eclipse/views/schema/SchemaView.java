@@ -578,7 +578,15 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 									});
 								}
 							} catch (Exception e) {
-								e.printStackTrace();
+								Display.getDefault().asyncExec(new Runnable() {
+									
+									public void run() {
+										message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
+										message.setText("An error occured : " + e.getMessage());
+										content.layout(true);
+									}
+	
+								});
 							}
 						}
 					});
