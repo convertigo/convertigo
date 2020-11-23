@@ -1220,6 +1220,16 @@
   "   7   6   0": {
    "name": "CloseModalAction",
    "properties": {}
+  },
+  "   7   9   0": {
+   "name": "CloseModalAction",
+   "properties": {
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "Content": {
