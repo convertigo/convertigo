@@ -76,6 +76,7 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.part.ViewPart;
 
@@ -1079,7 +1080,7 @@ public class EngineLogView extends ViewPart {
 							}
 							
 							if (activateOnNewEvents) {
-								IWorkbenchWindow workbenchWindow = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+								IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 								if (workbenchWindow != null) {
 									workbenchWindow.getActivePage().bringToTop(engineLogView);
 								}
