@@ -1,14 +1,14 @@
 # Guide to install and configure a development Convertigo Studio
 
-## Install Open JDK 11
+## Install Open JDK 15
 
-[Go to this link.](https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot)
+[Go to this link.](https://adoptopenjdk.net/releases.html?variant=openjdk15&jvmVariant=hotspot)
 
 Select your **Operating System** and the **x64** Architecture, then install the JDK somewhere.
 
 ## Install Eclipse 2020-06
 
-[Go to this link.](https://www.eclipse.org/downloads/packages/release/2020-06/r/eclipse-ide-eclipse-committers)
+[Go to this link.](https://www.eclipse.org/downloads/packages/release/2020-09/r/eclipse-ide-eclipse-committers)
 
 Download the 64 bit **Eclipse Committers** archive.
 
