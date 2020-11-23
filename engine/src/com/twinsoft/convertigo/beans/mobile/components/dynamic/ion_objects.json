@@ -6966,7 +6966,20 @@
 "Add a <i>Close Modal</i> action under an Event."],
       "group" : "Actions",
       "icon16": "closemodalaction_color_16x16.png",
-      "icon32": "closemodalaction_color_32x32.png"
+      "icon32": "closemodalaction_color_32x32.png",
+      "properties": {
+      "data": {
+	        "label": "data",
+	        "description": "Define the data to be returned by the modal bean (works only if modal has been used with block while display option)",
+	        "category": "@Properties",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+	        	false,
+	        	true
+	        ]
+	      }
+      }
     },
 
     "PushPageAction" : {
