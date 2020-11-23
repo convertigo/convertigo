@@ -38,6 +38,7 @@ public class XmlSchemaBuilderExecutor {
 			throw new EngineException("Incorrect project: "+ projectName +" does not exist");
 		}
 		
+		ExecutorService executor = null;
 		try {
 			long timeStart = System.currentTimeMillis();
 			
@@ -67,7 +68,7 @@ public class XmlSchemaBuilderExecutor {
 			}
 			
 			int size = builders.size();
-		    ExecutorService executor = Executors.newFixedThreadPool(size);
+		    executor = Executors.newFixedThreadPool(size);
 		    CompletionService<String> completion = new ExecutorCompletionService<String>(executor);
 		    for (final XmlSchemaBuilder builder: builders) {
 		    	completion.submit(new Callable<String>() {
@@ -83,11 +84,8 @@ public class XmlSchemaBuilderExecutor {
 		    		completion.take().get();
 		    	} catch (Exception e) {
 		    		throw e;
-		    	} finally {
-		    		executor.shutdown();
 		    	}
 		    }
-		    executor.shutdown();
 		    
 			for (XmlSchemaBuilder builder: builders) {
 				builder.postBuildSchema();
@@ -114,6 +112,9 @@ public class XmlSchemaBuilderExecutor {
 		} catch (Exception e) {
 			throw new EngineException("Error occured while building schema", e);
 		} finally {
+			if (executor != null) {
+				executor.shutdown();
+			}
 			builders.clear();
 		}
 	}
