@@ -1067,8 +1067,8 @@ public class EngineLogView extends ViewPart {
 						
 						// Refresh the list view
 						Display.getDefault().syncExec(() -> {
-							int topIndex = tableViewer.getTable().getTopIndex();
 							if (!tableViewer.getTable().isDisposed()) {
+								int topIndex = tableViewer.getTable().getTopIndex();
 								tableViewer.getTable().setVisible(false);
 								if (rmRow[0] > -1) {
 									topIndex -= rmRow[0] + 1;
