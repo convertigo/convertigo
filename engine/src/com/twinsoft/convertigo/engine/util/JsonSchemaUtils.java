@@ -302,7 +302,11 @@ public class JsonSchemaUtils {
 							((JSONObject)jProperty).put("maxOccurs", maxOccurs);
 						}
 					} else {
-						jProperty = jChild.get("value");
+						if (jChild.has("value")) {
+							jProperty = jChild.get("value");
+						} else {
+							return;
+						}
 					}
 					
 					jProperties.put(name, jProperty);
