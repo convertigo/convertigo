@@ -1,8 +1,0 @@
-{
-  "appId": "io.ionic.starter",
-  "appName": "myAppBlank",
-  "bundledWebRuntime": false,
-  "npmClient": "npm",
-  "webDir": "www",
-  "cordova": {}
-}

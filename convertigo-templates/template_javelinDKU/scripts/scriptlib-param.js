@@ -1,2 +1,0 @@
-enableBuffering					= false;
-benchTime								= false;

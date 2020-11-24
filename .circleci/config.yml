@@ -142,7 +142,7 @@ jobs:
     
     - run:
         name: Clean workspace before saving
-        command: rm -rf .git convertigo-doc convertigo-templates-common convertigo-templates gradle-plugin
+        command: rm -rf .git convertigo-doc gradle-plugin
     
     - store_artifacts:
         path: /home/circleci/s3

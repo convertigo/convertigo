@@ -1,2 +1,0 @@
-# hello World Sample Project #
-

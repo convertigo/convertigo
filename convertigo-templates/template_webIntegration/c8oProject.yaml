@@ -1,5 +1,0 @@
-↑convertigo: 7.8.1.m006
-↓template_webIntegration [core.Project]: 
-  comment: Web Integration project
-  version: 7.9.0-beta
-  ↓HTML_Connector [connectors.HtmlConnector]: 🗏 connectors/HTML_Connector.yaml
