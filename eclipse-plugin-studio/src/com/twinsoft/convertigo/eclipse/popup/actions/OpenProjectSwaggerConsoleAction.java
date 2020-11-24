@@ -56,7 +56,7 @@ public class OpenProjectSwaggerConsoleAction extends MyAbstractAction {
     				Project project = (Project)treeObject.getObject();
     				Program.launch(
     						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/dist/index.html?"
-    						+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/api?YAML&__project=" + project.getName())
+    						+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/openapi?YAML&__project=" + project.getName())
     						+ (Engine.isStudioMode() ? "&showErrors" : ""));
     			}
     		}

@@ -42,7 +42,7 @@ public class OpenSwaggerConsoleAction implements IWorkbenchWindowActionDelegate 
 		try {
 			Program.launch(
 					EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/dist/index.html?" 
-					+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/api?YAML")
+					+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/openapi?YAML")
 					+ (Engine.isStudioMode() ? "&showErrors" : ""));
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while opening the Swagger console");
