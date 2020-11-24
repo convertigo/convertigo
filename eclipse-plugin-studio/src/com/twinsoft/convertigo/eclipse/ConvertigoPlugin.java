@@ -733,24 +733,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				}
 			});
 			job.schedule();
-			
-			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
-			if (templates != null) {
-				for (File tpl: templates) {
-					try {
-						String name = tpl.getName();
-						name = name.substring(0, name.length() - 4); // remove .car
-						if (name.startsWith("mobilebuilder_tpl")) {
-							if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
-								Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
-							}
-							ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
-						}
-					} catch (Exception e) {
-						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
-					}
-				}
-			}
 		});
 		
 		studioLog.message("Convertigo studio started");

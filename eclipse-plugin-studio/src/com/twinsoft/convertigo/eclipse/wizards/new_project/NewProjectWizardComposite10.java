@@ -54,12 +54,12 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	private WsReferenceComposite wsRefAuthenticated = null;
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
-	private int templateId;
+	private String wizardId;
 	
 	public NewProjectWizardComposite10(Composite parent,  int style, WizardPage page) {
 		super(parent, style);
 		this.parentWizard = page;
-		this.templateId = ((NewProjectWizard)page.getWizard()).templateId;
+		this.wizardId = ((NewProjectWizard)page.getWizard()).wizardId;
 		initialize();
 	}
 
@@ -126,11 +126,11 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	
 	protected String[] getFilterExtension() {
 		String[] filterExtension = new String[]{"*"};
-		switch (templateId) {
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
+		switch (wizardId) {
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
 				filterExtension = new String[]{"*.wsdl", "*.xml"};
 				break;
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
 				filterExtension = new String[]{"*.yaml", "*.json"};
 				break;
 			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
@@ -142,11 +142,11 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 
 	protected String[] getFilterNames() {
 		String[] filterNames = new String[]{"All files"};
-		switch (templateId) {
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
+		switch (wizardId) {
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
 				filterNames = new String[]{"WSDL files", "XML files"};
 				break;
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
 				filterNames = new String[]{"YAML files", "JSON files"};
 				break;
 			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
