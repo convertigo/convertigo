@@ -88,6 +88,9 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	
 	private void checkFolder() {
+		if (Engine.isCliMode()) {
+			return;
+		}
 		File folder = getResourceFolder();
 		File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/platforms/" + getClass().getSimpleName());
 

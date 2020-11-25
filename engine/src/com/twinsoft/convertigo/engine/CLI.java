@@ -51,7 +51,9 @@ import com.google.common.io.Files;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.GetBuildStatus;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.GetPackage;
@@ -279,8 +281,27 @@ public class CLI {
 			bm = MobileBuilderBuildMode.valueOf(mode);
 		} catch (Exception e) { }
 		mb.setAppBuildMode(bm);
-		MobileBuilder.initBuilder(project, true);
-		MobileBuilder.releaseBuilder(project, true);
+		List<Project> projects = new ArrayList<>();
+		projects.add(project);
+		int i = 0;
+		do {
+			for (Reference ref: projects.get(i).getReferenceList()) {
+				if (ref instanceof ProjectSchemaReference) {
+					Project p = Engine.theApp.referencedProjectManager.importProject(((ProjectSchemaReference) ref).getParser());
+					if (!projects.contains(p)) {
+						projects.add(p);
+					}
+				}
+			}
+		} while (++i < projects.size());
+		Collections.reverse(projects);
+		for (Project p: projects) {
+			MobileBuilder.initBuilder(p, true);
+		}
+		Collections.reverse(projects);
+		for (Project p: projects) {
+			MobileBuilder.releaseBuilder(p, true);
+		}
 	}
 
 	public void compileMobileBuilder(Project project, String mode) throws Exception {
