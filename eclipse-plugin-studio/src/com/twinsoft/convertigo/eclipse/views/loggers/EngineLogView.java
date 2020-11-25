@@ -1109,6 +1109,10 @@ public class EngineLogView extends ViewPart {
 	
 	private boolean getLogs() {
 		try {
+			if (logViewThread == null) {
+				return false;
+			}
+			
 			JSONArray logs = logManager.getLines();
 			while (logs.length() == 0 && Thread.currentThread() == logViewThread) {
 				waiting = 6;
