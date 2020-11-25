@@ -96,8 +96,10 @@ public class StartupEditor extends EditorPart {
 							while (--remains[0] >= 0 && s[0]) {
 								Thread.sleep(1000);
 								tic.getDisplay().syncExec(() -> {
-									if (s[0] = tic.getSelection()) {
-										tic.setText("Auto close in " + remains[0] + "s");
+									if (!tic.isDisposed()) {
+										if (s[0] = tic.getSelection()) {
+											tic.setText("Auto close in " + remains[0] + "s");
+										}
 									}
 								});
 							}
