@@ -1,5 +1,5 @@
     /**
-     * Function FileOpenerAction
+     * Function CameraAction
      *   
      * @param page  , the current page
      * @param props , the object which holds properties key-value pairs
@@ -189,16 +189,19 @@
             merge(video, {
                 autoplay: true,
                 muted: true,
+                playsinline: true,
                 width: -1,
                 height: -1,
                 style: {
                     width: '100%',
-                    height: '100%'
+                    height: '100%',
+                    "objectFit":"cover",
                 }
             });
-            merge(video.style,{
-                "objectFit":"cover"
-            });
+            
+            // for ios safari support (seems to be set only with set attribute...)
+            video.setAttribute('webkit-playsinline', 'true');
+            video.setAttribute('playsinline', 'true');
             
             parent.insertBefore(video, btSet);
             
