@@ -454,6 +454,20 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_saml_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
+             name="SAML SSO Library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo SAML 2 SSO Authentication library</description>
+             {
+               "url": "lib_SAML=https://github.com/convertigo/c8oprj-lib-saml.git:branch=7.7.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_amazonLex_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
              name="Amazon LEX library"
