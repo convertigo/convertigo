@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -161,7 +160,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	}
 
 	private void loadProjectRootObject(String projectName) throws Exception {
-		if (projectName.startsWith("mobilebuilder_tpl_") && new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car").exists()) {
+		if (projectName.startsWith("mobilebuilder_tpl_")) {
 			ConvertigoPlugin.logDebug("Skip loading of the mobilebuilder template project '" + projectName +"'.");
 		} else {
 			TreeObject treeObject = getProjectRootObject(projectName);

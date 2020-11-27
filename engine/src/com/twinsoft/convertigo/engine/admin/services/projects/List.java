@@ -57,7 +57,7 @@ public class List extends XmlService{
 		boolean isStudio = Engine.isStudioMode();
 		for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 			try {
-				if (isStudio && projectName.startsWith("mobilebuilder_tpl_") && new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car").exists()) {
+				if (isStudio && projectName.startsWith("mobilebuilder_tpl_")) {
 					continue;
 				}
 				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
