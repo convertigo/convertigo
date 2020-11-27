@@ -1764,7 +1764,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		boolean isOpen = false;
 		try {
 			IProject iProject = getIProject(projectName);
-			if (iProject != null) {
+			if (iProject != null && iProject.exists()) {
 				File projectFile = getProjectFile(iProject);
 				if (projectFile == null || !projectFile.exists()) {
 					iProject.delete(false, true, null);
