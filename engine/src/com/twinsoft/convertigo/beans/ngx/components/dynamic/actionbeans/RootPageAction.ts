@@ -7,6 +7,18 @@
      */
     RootPageAction(page: C8oPageBase, props, vars) : Promise<any> {
 		
+	    function toString(data) {
+	        if (data) {
+	            try {
+	                return JSON.stringify(data);
+	            } catch(e) {
+	                return data.toString();
+	            }
+	        } else {
+	           return "no data"; 
+	        }
+	    }
+		
 		let getPageSegment = function (pageName: string) {
 			let appPages = page.routerProvider.pagesArray;
 			for (let i=0; i < appPages.length; i++) {
@@ -56,8 +68,10 @@
             let navController = page.getInstance(NavController)
             navController.navigateRoot(url, { queryParams: queryParams })
             .then((res:any) => {
+				page.c8o.log.debug("[MB] Page '"+p+"' rooted with data: " + toString(props.data));
                 resolve(res)
             }).catch((error:any) => {
+				page.c8o.log.debug("[MB] Could not root to page '"+p+"'");
                 reject(error)
             })
         });
