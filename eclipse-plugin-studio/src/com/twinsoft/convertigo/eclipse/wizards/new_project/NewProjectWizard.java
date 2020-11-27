@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -56,7 +57,6 @@ import com.twinsoft.convertigo.beans.references.RestServiceReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
@@ -327,8 +327,8 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			
 			monitor.setTaskName("Change connector name");
 			monitor.worked(1);
-			String oldConnectorName = "unknown";
-			String newConnectorName = "NewConnector";
+			String oldConnectorName = "void";
+			String newConnectorName = "void";
 			boolean connectorChanged = false;
 			
 			if (page2 != null) {
@@ -470,6 +470,12 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			monitor.worked(1);
 			
 			try {
+				File eProject = new File(newProject.getDirPath(), ".project");
+				if (eProject.exists()) {
+					String txt = FileUtils.readFileToString(eProject, StandardCharsets.UTF_8);
+					txt = txt.replaceFirst("(<name>)(.*?)(</name>)", "$1" + newProjectName + "$3");
+					FileUtils.writeStringToFile(eProject, txt, StandardCharsets.UTF_8);
+				}
 				String xsdInternalPath = newProject.getDirPath() + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
 				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();
 				if (xsdInternalDir.exists() && connectorChanged) {
@@ -503,7 +509,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				monitor.setTaskName("Schemas updated");
 				monitor.worked(1);
 				
-			} catch (ConvertigoException e) {
+			} catch (Exception e) {
 				Engine.logDatabaseObjectManager.error("An error occured while updating transaction schemas", e);
 			}
 			
