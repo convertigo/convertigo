@@ -1459,45 +1459,51 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			iproject.open(monitor);
 			iproject.setSessionProperty(qnInit, true);
 			
-			if (new File(iproject.getLocation().toOSString(), "build.gradle").exists()) {
-				File pref = new File(iproject.getLocation().toOSString(), ".settings/org.eclipse.buildship.core.prefs");
-				if (!pref.exists()) {
-					try {
-						FileUtils.write(pref, "connection.project.dir=\n"
-								+ "eclipse.preferences.version=1", "UTF-8");
-						iproject.refreshLocal(1, monitor);
-					} catch (IOException e) {
+			Engine.execute(() -> {
+				try {
+					if (new File(iproject.getLocation().toOSString(), "build.gradle").exists()) {
+						File pref = new File(iproject.getLocation().toOSString(), ".settings/org.eclipse.buildship.core.prefs");
+						if (!pref.exists()) {
+							try {
+								FileUtils.write(pref, "connection.project.dir=\n"
+										+ "eclipse.preferences.version=1", "UTF-8");
+								iproject.refreshLocal(1, monitor);
+							} catch (IOException e) {
+							}
+						}
+						pref = new File(iproject.getLocation().toOSString(), "settings.gradle");
+						if (!pref.exists()) {
+							try {
+								FileUtils.write(pref, "", "UTF-8");
+								iproject.refreshLocal(1, monitor);
+							} catch (IOException e) {
+							}
+						}
+						if (!iproject.hasNature(GRADLE_NATURE_ID)) {
+							IProjectDescription description = iproject.getDescription();
+							String[] natures = description.getNatureIds();
+							String[] newNatures = new String[natures.length + 1];
+							System.arraycopy(natures, 0, newNatures, 0, natures.length);
+							newNatures[natures.length] = GRADLE_NATURE_ID;
+							IWorkspace workspace = ResourcesPlugin.getWorkspace();
+							IStatus status = workspace.validateNatureSet(newNatures);
+							if (status.getCode() == IStatus.OK) {
+								description.setNatureIds(newNatures);
+								ICommand bc = description.newCommand();
+								bc.setBuilderName("org.eclipse.buildship.core.gradleprojectbuilder");
+								ICommand[] cmds = description.getBuildSpec();
+								ICommand[] newCmds = new ICommand[cmds.length + 1];
+								System.arraycopy(cmds, 0, newCmds, 0, cmds.length);
+								newCmds[cmds.length] = bc;
+								description.setBuildSpec(newCmds);
+								iproject.setDescription(description, IProject.FORCE, monitor);
+							}
+						}
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				pref = new File(iproject.getLocation().toOSString(), "settings.gradle");
-				if (!pref.exists()) {
-					try {
-						FileUtils.write(pref, "", "UTF-8");
-						iproject.refreshLocal(1, monitor);
-					} catch (IOException e) {
-					}
-				}
-				if (!iproject.hasNature(GRADLE_NATURE_ID)) {
-					IProjectDescription description = iproject.getDescription();
-					String[] natures = description.getNatureIds();
-					String[] newNatures = new String[natures.length + 1];
-					System.arraycopy(natures, 0, newNatures, 0, natures.length);
-					newNatures[natures.length] = GRADLE_NATURE_ID;
-					IWorkspace workspace = ResourcesPlugin.getWorkspace();
-					IStatus status = workspace.validateNatureSet(newNatures);
-					if (status.getCode() == IStatus.OK) {
-						description.setNatureIds(newNatures);
-						ICommand bc = description.newCommand();
-						bc.setBuilderName("org.eclipse.buildship.core.gradleprojectbuilder");
-						ICommand[] cmds = description.getBuildSpec();
-						ICommand[] newCmds = new ICommand[cmds.length + 1];
-						System.arraycopy(cmds, 0, newCmds, 0, cmds.length);
-						newCmds[cmds.length] = bc;
-						description.setBuildSpec(newCmds);
-						iproject.setDescription(description, IProject.FORCE, monitor);
-					}
-				}
-			}
+			});
 		}
 	}
 
