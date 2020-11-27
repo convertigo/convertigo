@@ -150,6 +150,7 @@ function constructTree($xml, $tree) {
 	var tagName;
 	var displayName;
 	var accessibilityIcon;
+	var autostartIcon;
 	var img;
 	var treeCategories=new Array();	
 	// for each element of project.Get
@@ -168,11 +169,14 @@ function constructTree($xml, $tree) {
 			($(this).attr("accessibility") === "Private" ? "🔒" : 
 				($(this).attr("accessibility") === "Hidden" ? "👓" : "" ));
 
+		autostartIcon = $(this).attr("autostart") === "true" ? "💡" : "";
+		
 		if (displayName != undefined) {
 			// add the element			
 			img = '<img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=' + $(this).attr("classname") + '" />';
 			$currentNode.append('<li class="projectEdit-selectableElement" qname="' + $(this).attr('qname') + '"><div>' + img + 
 					(accessibilityIcon != "" ? '<span class="accessibility-icon">' + accessibilityIcon + '</span>' : "" ) +
+					(autostartIcon != "" ? '<span class="accessibility-icon">' + autostartIcon + '</span>' : "" ) +
 					'<span>' + displayName + '</span></div><ul></ul></li>');
 			// construct the sons of the element
 			constructTree($(this), $currentNode.find("ul").last());

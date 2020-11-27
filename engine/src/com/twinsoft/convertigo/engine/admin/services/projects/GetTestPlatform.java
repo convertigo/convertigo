@@ -147,6 +147,9 @@ public class GetTestPlatform extends XmlService {
 		
 		if (dbo instanceof RequestableObject) {
 			elt.setAttribute("accessibility", ((RequestableObject)dbo).getAccessibility() + "" );
+			if (dbo instanceof Sequence) {
+				elt.setAttribute("autostart", String.valueOf(((Sequence)dbo).isAutoStart()));
+			}
 		}
 		
 		return elt;
