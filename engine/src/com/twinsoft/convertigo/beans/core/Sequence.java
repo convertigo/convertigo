@@ -145,6 +145,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	private boolean includeResponseElement = true;
 	
+	private boolean autoStart = false;
+	
 	public Sequence() {
         super();
 		orderedSteps = new XMLVector<XMLVector<Long>>();
@@ -1838,6 +1840,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		this.includeResponseElement = includeResponseElement;
 	}
 
+	public boolean isAutoStart() {
+		return autoStart;
+	}
+	
+	public void setAutoStart(boolean autoStart) {
+		this.autoStart = autoStart;
+	}
+	
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement eSequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		eSequence.setName(getName() + "Response");
