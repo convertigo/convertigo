@@ -40,10 +40,14 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -174,6 +178,32 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		} catch (EngineException e) {
 		}
 		return CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
+	}
+	
+	public static void executeAutoStartSequences(final String projectName) {
+		try {
+			final Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			if (p != null) {
+				for (final Sequence sequence: p.getSequencesList()) {
+					if (sequence.isAutoStart()) {
+						Engine.execute(() -> {
+							try {
+								Map<String, String[]> parameters = new HashMap<String, String[]>();
+								parameters.put(Parameter.Project.getName(), new String[] {projectName});
+								parameters.put(Parameter.Sequence.getName(), new String[]{sequence.getName()});
+								InternalHttpServletRequest request = new InternalHttpServletRequest();
+								InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);
+								requester.processRequest();
+							} catch (Exception e) {
+								Engine.logEngine.error("Failed to execute the auto start sequence \"" + sequence.getQName() + "\"", e);
+							}
+						});
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to execute auto start sequences for project \"" + projectName + "\"", e);
+		}
 	}
 	
     /**

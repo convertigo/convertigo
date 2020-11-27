@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
@@ -95,6 +96,8 @@ public class Deploy extends UploadService {
 		Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true,
 				bAssembleXsl);
 
+		Project.executeAutoStartSequences(projectName);
+		
 		if (Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(PropertyName.NOTIFICATIONS_NOTIFY_PROJECT_DEPLOYMENT))) {
 

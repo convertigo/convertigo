@@ -805,6 +805,10 @@ public class Engine {
 								}
 							}
 							Engine.theApp.referencedProjectManager.check();
+							
+							for (String name: names) {
+								Project.executeAutoStartSequences(name);
+							}
 						}
 					});
 				}
