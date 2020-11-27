@@ -1,4 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <sequence classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" priority="0" version="   7   9   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="autoStart">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="includeResponseElement">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Generic_Sequence"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <wsdltype/>
+    </sequence>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAppGuard" priority="0" version="   7   9   0">
         <property name="comment">
             <java.lang.String value=""/>
