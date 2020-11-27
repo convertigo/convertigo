@@ -701,6 +701,11 @@
                minimized="false"
                relative="org.eclipse.egit.ui.RepositoriesView"/>
          <view
+               id="org.eclipse.buildship.ui.views.taskview"
+               relationship="stack"
+               minimized="false"
+               relative="org.eclipse.egit.ui.StagingView"/>
+         <view
                id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
                ratio="0.35"
                relationship="left"
