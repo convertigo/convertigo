@@ -329,13 +329,15 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			monitor.worked(1);
 			String oldConnectorName = "unknown";
 			String newConnectorName = "NewConnector";
-
+			boolean connectorChanged = false;
+			
 			if (page2 != null) {
 				newConnectorName = page2.getConnectorName();
 				monitor.setTaskName("Connector renamed");
 				monitor.worked(1);
 				oldConnectorName = newProject.getDefaultConnector().getName();
 				newProject.getDefaultConnector().setName(newConnectorName);
+				connectorChanged = true;
 			}
 
 			
@@ -470,7 +472,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			try {
 				String xsdInternalPath = newProject.getDirPath() + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
 				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();
-				if (xsdInternalDir.exists()) {
+				if (xsdInternalDir.exists() && connectorChanged) {
 					boolean needConnectorRename = !oldConnectorName.equals(newConnectorName);
 					if (needConnectorRename) {
 						File srcDir = new File(xsdInternalDir, oldConnectorName);
