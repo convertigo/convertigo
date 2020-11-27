@@ -12,10 +12,12 @@
         const svgReturn = "<svg xmlns='http://www.w3.org/2000/svg' class='ionicon' viewBox='0 0 512 512'><path fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' d='M112 352l-64-64 64-64'/><path d='M64 288h294c58.76 0 106-49.33 106-108v-20' fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'/></svg>";
         const svgCameraRotate = '<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M350.54 148.68l-26.62-42.06C318.31 100.08 310.62 96 302 96h-92c-8.62 0-16.31 4.08-21.92 10.62l-26.62 42.06C155.85 155.23 148.62 160 140 160H80a32 32 0 00-32 32v192a32 32 0 0032 32h352a32 32 0 0032-32V192a32 32 0 00-32-32h-59c-8.65 0-16.85-4.77-22.46-11.32z" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" /><path fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M124 158v-22h-24v22M335.76 285.22v-13.31a80 80 0 00-131-61.6M176 258.78v13.31a80 80 0 00130.73 61.8" /><path fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M196 272l-20-20-20 20M356 272l-20 20-20-20" /></svg>';
         const svgCamera = "<svg xmlns='http://www.w3.org/2000/svg' class='ionicon' viewBox='0 0 512 512'><path d='M350.54 148.68l-26.62-42.06C318.31 100.08 310.62 96 302 96h-92c-8.62 0-16.31 4.08-21.92 10.62l-26.62 42.06C155.85 155.23 148.62 160 140 160H80a32 32 0 00-32 32v192a32 32 0 0032 32h352a32 32 0 0032-32V192a32 32 0 00-32-32h-59c-8.65 0-16.85-4.77-22.46-11.32z' fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'/><circle cx='256' cy='272' r='80' fill='none' stroke='white' stroke-miterlimit='10' stroke-width='32'/><path fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' d='M124 158v-22h-24v22'/></svg>";;
-        
+        const svgFlashOn = "<svg xmlns='http://www.w3.org/2000/svg' class='ionicon' viewBox='0 0 512 512'><path d='M315.27 33L96 304h128l-31.51 173.23a2.36 2.36 0 002.33 2.77h0a2.36 2.36 0 001.89-.95L416 208H288l31.66-173.25a2.45 2.45 0 00-2.44-2.75h0a2.42 2.42 0 00-1.95 1z' fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'/></svg>";
+        const svgFlashOff = "<svg xmlns='http://www.w3.org/2000/svg' class='ionicon' viewBox='0 0 512 512'><path fill='white' d='M432 448a15.92 15.92 0 01-11.31-4.69l-352-352a16 16 0 0122.62-22.62l352 352A16 16 0 01432 448zM294.34 84.28l-22.08 120.84a16 16 0 006.17 15.71 16.49 16.49 0 009.93 3.17h94.12l-38.37 47.42a4 4 0 00.28 5.34l17.07 17.07a4 4 0 005.94-.31l60.8-75.16a16.37 16.37 0 003.3-14.36 16 16 0 00-15.5-12H307.19L335.4 37.63c.05-.3.1-.59.13-.89A18.45 18.45 0 00302.73 23l-92.58 114.46a4 4 0 00.28 5.35l17.07 17.06a4 4 0 005.94-.31zM217.78 427.57l22-120.71a16 16 0 00-6.19-15.7 16.54 16.54 0 00-9.92-3.16h-94.1l38.36-47.42a4 4 0 00-.28-5.34l-17.07-17.07a4 4 0 00-5.93.31L83.8 293.64A16.37 16.37 0 0080.5 308 16 16 0 0096 320h108.83l-28.09 154.36v.11a18.37 18.37 0 0032.5 14.53l92.61-114.46a4 4 0 00-.28-5.35l-17.07-17.06a4 4 0 00-5.94.31z'/></svg>"
         var HIGHEST_POSSIBLE_Z_INDEX = '2147483647';
-        
-        var btLeft, btMiddle, btRight, btSet, parent, facingMode;
+        var flashMode = false;
+        var isABoringBrowser = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
+        var btLeft, btMiddle, btRight, btSet, parent, facingMode, btUpright, btSetUp;
         var merge = (d, s) => {
             var k, v;
             for (k in s) {
@@ -32,18 +34,17 @@
         var initFrame = () => {
             var btStyle = {
                     "background": "transparent",
-                    width: '25px',
-                    height: '25px',
-                    'margin-left': '2%',
-                    'margin-right': '2%',
+                    width: '4em',
                     "padding": 0,
-                    "marginBottom":"15px"
+                    
                 };
             
             btLeft = document.createElement('button');
             btMiddle = document.createElement('button');
             btRight = document.createElement('button');
+            btUpright = document.createElement('button');
             btSet = document.createElement('div');
+            btSetUp = document.createElement('div');
             parent = document.createElement('div');
             
             merge(parent, {
@@ -61,12 +62,19 @@
                 position: 'absolute',
                 bottom: '0',
                 width: '100%',
-                transform: 'scale(3)',
                 'text-align': 'center',
                 "background-color":"#00000040"
             });
+            merge(btSetUp.style, {
+                position: 'absolute',
+                top: '0',
+                width: '100%',
+                'text-align': 'center',
+                "background-color":"transparent"
+            });
             
             merge(btLeft.style, btStyle);
+            btLeft.style.float = 'left';
             btSet.appendChild(btLeft);
             
             merge(btMiddle.style, btStyle);
@@ -74,9 +82,18 @@
             
             btRight.innerHTML = svgClose;
             merge(btRight.style, btStyle);
+            btRight.style.float = 'right';
             btSet.appendChild(btRight);
             
+            
+            
+            merge(btUpright.style, btStyle);
+            btUpright.style.float = 'right';
+            btUpright.style.visibility = 'hidden';
             parent.appendChild(btSet);
+            btSetUp.appendChild(btUpright);
+            parent.appendChild(btSetUp);
+            
         };
         
         var resize = (img, imgWidth, imgHeight, opts) => {
@@ -266,7 +283,7 @@
             var navigator: any = window.navigator;
             
             var successCallback = (stream) => {
-                if (camera.length > 1) {
+                if (camera.length > 1 || isABoringBrowser) {
                     btLeft.innerHTML = svgCameraRotate;
                     btLeft.style.visibility = 'visible';
                 } else {
@@ -280,6 +297,50 @@
                 if (parent.parentElement == null) {
                     document.body.appendChild(parent);
                 }
+                if(!isABoringBrowser){
+                    const track = stream.getVideoTracks()[0];
+                    try{
+                        var imageCapture = new ImageCapture(track);
+
+                        imageCapture.getPhotoCapabilities()
+                        .then(photoCapabilities => {
+                            if(photoCapabilities.fillLightMode != undefined){
+                                let arrayFlash = photoCapabilities.fillLightMode.filter((x)=>{return x == "off" || x == "flash"});
+                                if(arrayFlash.length == 2){
+                                    btUpright.style.visibility = 'visible';
+                                    btUpright.innerHTML = svgFlashOff;
+                                    btUpright.onclick = ()=>{
+                                        flashMode = !flashMode;
+                                        if(flashMode){
+                                            btUpright.innerHTML = svgFlashOn;
+                                        }
+                                        else{
+                                            btUpright.innerHTML = svgFlashOff;
+                                        }
+                                        track.applyConstraints({
+                                            advanced: [{torch: flashMode}]
+                                          });
+                                    }
+                                }
+                                else{
+                                    btUpright.style.visibility = 'hidden';  
+                                }
+                            }
+                            else{
+                                btUpright.style.visibility = 'hidden';  
+                            }
+                            
+                        })
+                        .catch((e)=>{
+                                 btUpright.style.visibility = 'hidden';
+                        })
+                    }
+                    catch(e){
+                        console.log("error", e);
+                    }
+                }
+                
+
             };
 
             if (navigator.mediaDevices) {
@@ -302,7 +363,7 @@
                             "MozTransform":"unset", /* Firefox */
                         })
                     }
-                    if (di.length > 0) {
+                    if (camera.length > 0) {
                         navigator.mediaDevices.getUserMedia({video: {facingMode: facingMode}, audio: false}).then(successCallback).catch(error);
                     } else {
                         console.log('Device does not have camera, switch to the file picker');
