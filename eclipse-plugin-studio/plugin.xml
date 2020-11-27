@@ -455,7 +455,7 @@
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_saml_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlWizard"
              name="SAML SSO Library"
              preferredPerspectives="convertigo"
              project="true">
