@@ -220,6 +220,9 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 								public void run() {
 									if (demoTraceTreeObject != null)
 										demoTraceTreeObject.play(false);
+									
+									Project.executeAutoStartSequences(projectName);
+									
 								}
 							});
 							
