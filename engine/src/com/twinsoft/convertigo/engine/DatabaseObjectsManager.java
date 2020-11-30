@@ -1203,10 +1203,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 			
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" imported!");
 
-			if (Engine.isStudioMode()) {
-				Project.executeAutoStartSequences(projectName);
-			}
-			
 			return project;
 		} catch (Exception e) {
 			throw new EngineException("Unable to import the project from \"" + importFileName + "\".", e);
