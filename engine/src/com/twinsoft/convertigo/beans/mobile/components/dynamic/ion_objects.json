@@ -6633,6 +6633,7 @@
     "group": "Actions",
     "icon16": "ifaction_color_16x16.png",
     "icon32": "ifaction_color_32x32.png",
+    "displayFormat": "function displayFormat() { return 'if' + (negate == 'true'? ' not':'') + ' ('+ condition+')'; }",
     "properties": {
       "condition": {
         "mode": "script",
@@ -6667,6 +6668,7 @@
     "group": "Actions",
     "icon16": "ifelseaction_color_16x16.png",
     "icon32": "ifelseaction_color_32x32.png",
+    "displayFormat": "function displayFormat() { return 'ifElse' + (negate == 'true'? ' not':'') + ' ('+ condition+')'; }",
     "properties": {
       "condition": {
         "mode": "script",
@@ -6769,6 +6771,7 @@
       "group": "Actions",
       "icon16": "callsequenceaction_color_16x16.png",
       "icon32": "callsequenceaction_color_32x32.png",
+      "displayFormat": "function displayFormat() { return 'Call ('+ requestable +')'; }",
       "properties": {
         "requestable": {
           "editor": "NamedSourceSelectorEditor",
@@ -6876,6 +6879,7 @@
       "group": "FullSync Actions",
       "icon16": "callfullsyncaction_color_16x16.png",
       "icon32": "callfullsyncaction_color_32x32.png",
+      "displayFormat": "function displayFormat() { var db = requestable.substring(requestable.lastIndexOf('.')+1); return 'Call ('+ db + '.' + verb +')'; }",
       "properties": {
         "requestable": {
           "editor": "NamedSourceSelectorEditor",

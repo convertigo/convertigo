@@ -33,6 +33,12 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.text.StrSubstitutor;
 import org.codehaus.jettison.json.JSONObject;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.EcmaError;
+import org.mozilla.javascript.EvaluatorException;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IDynamicBean;
@@ -41,7 +47,9 @@ import com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonEvent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 
 public class UIDynamicElement extends UIElement implements IDynamicBean {
 
@@ -124,8 +132,66 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		return null;
 	}
 	
+	protected String getFormatedLabel() {
+		if (ionBean != null) {
+			String source = ionBean.getDisplayFormat();
+			if (!source.isEmpty()) {
+				String sourceName = "displayFormat", message = null;
+				Context javascriptContext = org.mozilla.javascript.Context.enter();
+				Scriptable scope = javascriptContext.initStandardObjects(null);
+				for (IonProperty property : ionBean.getProperties().values()) {
+					String p_name = property.getName();
+					//Object p_value = property.getValue();
+					String smartValue = property.getSmartType().getLabel().replace("{{", "").replace("}}", "").replace("?.", ".");
+					Scriptable jsObject = ((smartValue == null) ? null:org.mozilla.javascript.Context.toObject(smartValue, scope));
+					scope.put(p_name, scope, jsObject);
+				}
+				try {
+					Object ob = RhinoUtils.evalInterpretedJavascript(javascriptContext, scope, source, sourceName, 1, null);
+					if (ob instanceof Function) {
+						Object returnedValue = ((Function) ob).call(javascriptContext, scope, scope, new Object[] {});
+						return returnedValue.toString();
+					}
+				}
+				catch(EcmaError e) {
+					message = "Unable to evaluate code for '"+ sourceName +"'.\n" +
+					"UIDynamicElement: \"" + getName() + "\"\n" +
+					"A Javascript runtime error has occured at line " + 
+					e.lineNumber() + ", column " + e.columnNumber() + ": " +
+					e.getMessage() + " \n" + e.lineSource();
+				}
+				catch(EvaluatorException e) {
+					message = "Unable to evaluate code for '"+ sourceName +"'.\n" +
+					"UIDynamicElement: \"" + getName() + "\"\n" +
+					"A Javascript evaluation error has occured: " + e.getMessage();
+				}
+				catch(JavaScriptException e) {
+					message = "Unable to evaluate code for '"+ sourceName +"'.\n" +
+					"UIDynamicElement: \"" + getName() + "\"\n" +
+					"A Javascript error has occured: " + e.getMessage();
+				}
+				finally {
+					if (javascriptContext != null) {
+						org.mozilla.javascript.Context.exit();
+					}
+					
+					if (message != null) {
+						System.out.println(message);
+						Engine.logBeans.warn(message);
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public String toString() {
+		String formatedLabel = getFormatedLabel();
+		if (formatedLabel != null) {
+			return formatedLabel;
+		}
+		
 		String id = getIdentifier();
 		return getName() + (id.isEmpty() ? "":" #"+id);
 	}
