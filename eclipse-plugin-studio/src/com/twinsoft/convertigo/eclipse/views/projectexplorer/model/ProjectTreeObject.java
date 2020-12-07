@@ -305,9 +305,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
-			if ((treeObject != this && treeObject instanceof ProjectTreeObject) ||
-				(databaseObject instanceof RequestableStep && treeObject.getProjectTreeObject() == this)) {
-					checkMissingProjects();
+			if (databaseObject instanceof Project && databaseObject == getObject()) {
+				checkMissingProjects();
 			}
 			
 			if (databaseObject instanceof CouchDbConnector) {
@@ -845,19 +844,15 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							return;
 						} 
 						ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-
-						String message = "For \"" + project.getName() + "\" project :\n";
+						
 						List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
 						for (String targetProjectName: missingProjects) {
 							if (allProjects.contains(targetProjectName)) {
 								try {
-									int response = ConvertigoPlugin.questionMessageBox(null, message + "Open \"" + targetProjectName + "\" project ?");
-									if (response == SWT.YES) {
-										TreeObject obj = pev.getProjectRootObject(targetProjectName);
-										if (obj != null && obj instanceof UnloadedProjectTreeObject) {
-											pev.loadProject(((UnloadedProjectTreeObject) obj));
-											missingProjects.remove(targetProjectName);	
-										}
+									TreeObject obj = pev.getProjectRootObject(targetProjectName);
+									if (obj != null && obj instanceof UnloadedProjectTreeObject) {
+										pev.loadProject(((UnloadedProjectTreeObject) obj));
+										missingProjects.remove(targetProjectName);	
 									}
 								} catch (Exception e) {
 									Engine.logStudio.warn("Failed to open \"" + targetProjectName + "\"", e);
@@ -870,44 +865,40 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							if (ref instanceof ProjectSchemaReference) {
 								ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
 								if (missingProjects.contains(prjRef.getParser().getProjectName()) && prjRef.getParser().isValid()) {
-									message += "\nDo you want to automatically import \"" + prjRef.getProjectName() + "\" from \"" + prjRef.getParser().getGitRepo() + "\" ?";
 									refToImport.put(prjRef.getParser().getProjectName(), prjRef.getParser());
 								}
 							}
 						}
 						
 						if (!refToImport.isEmpty()) {
-							int response = ConvertigoPlugin.questionMessageBox(null, message);
-							if (response == SWT.YES) {
-								Engine.execute(() -> {
-									boolean loaded = false;
-									for (ProjectUrlParser parser: refToImport.values()) {
-										try {
-											loaded |= Engine.theApp.referencedProjectManager.importProject(parser) != null;
-										} catch (Exception e) {
-											Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
-										}
+							Engine.execute(() -> {
+								boolean loaded = false;
+								for (ProjectUrlParser parser: refToImport.values()) {
+									try {
+										loaded |= Engine.theApp.referencedProjectManager.importProject(parser) != null;
+									} catch (Exception e) {
+										Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
 									}
-									if (loaded) {
-										Engine.theApp.fireMigrationFinished(new EngineEvent(""));
-									}
-								});
-								return;
-							}
+								}
+								if (loaded) {
+									Engine.theApp.fireMigrationFinished(new EngineEvent(""));
+								}
+							});
+							return;
 						}
 						
-						message = "For \"" + project.getName() + "\" project :\n";
+						String message = "For \"" + project.getName() + "\" project :\n";
 						
 						for (String targetProjectName: missingProjects) {
 							message += "  > The project \"" + targetProjectName + "\" is missing\n";
 						}
-
+						
 						for (String targetProjectName: missingProjectReferences) {
 							message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
 						}
-
+						
 						message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
-
+						
 						if (!missingProjectReferences.isEmpty()) {
 							int response = ConvertigoPlugin.questionMessageBox(null, message + "\n\nDo you want to automatically add reference objects ?");
 							if (response == SWT.YES) {
@@ -919,7 +910,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 										projectName = ProjectUrlParser.getUrl(projectName);
 										reference.setProjectName(projectName);
 										project.add(reference);
-
 										ProjectExplorerView explorerView = ConvertigoPlugin.projectManager.getProjectExplorerView();
 										explorerView.reloadTreeObject(ProjectTreeObject.this);
 									} catch (Exception e) {
@@ -935,7 +925,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						isCheckMissingProjects = false;
 					}
 				}
-
 			});
 		}
 	}

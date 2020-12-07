@@ -3096,10 +3096,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		});
 	}
 
-	public boolean importProject(String filePath, ProjectTreeObject projectTreeObject) throws EngineException, IOException, CoreException {
-		return importProject(filePath, projectTreeObject.getName());
-	}
-
 	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
 		TreeObject[] projectTreeObject = {null};
 		if (targetProjectName != null) {
@@ -3133,7 +3129,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			Exception[] exception = {null};
 			try {
 				Project importedProject = doImport ?
-						Engine.theApp.databaseObjectsManager.importProject(filePath) :
+						Engine.theApp.databaseObjectsManager.importProject(filePath, true) :
 							Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
 						viewer.getControl().getDisplay().syncExec(() -> {
 							try {

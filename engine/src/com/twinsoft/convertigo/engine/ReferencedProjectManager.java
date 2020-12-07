@@ -33,8 +33,18 @@ import com.twinsoft.convertigo.engine.util.GitUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class ReferencedProjectManager {
-
-
+	private Map<File, Object> dirLock = new HashMap<>();
+	
+	private Object getLock(File dir) {
+		synchronized (dirLock) {
+			Object lock = dirLock.get(dir);
+			if (lock == null) {
+				dirLock.put(dir, lock = new Object());
+			}
+			return lock;
+		}
+	}
+	
 	public boolean check() {
 		List<String> names = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
 		boolean loaded = check(names);
@@ -87,18 +97,19 @@ public class ReferencedProjectManager {
 	}
 	
 	private boolean check(List<String> names) {
+		boolean loaded = false;
 		Map<String, ProjectUrlParser> refs = new HashMap<>();
 		for (String name: names) {
 			try {
 				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(name, true);
 				if (project != null) {
-					check(project, refs);
+					loaded |= check(project, refs);
 				}
 			} catch (Exception e) {
 				Engine.logEngine.error("Failed to load " + name, e);
 			}
 		}
-		return check(refs);
+		return loaded;
 	}
 	
 	public ProjectSchemaReference getReferenceFromProject(Project project, String projectName) throws EngineException {
@@ -168,34 +179,43 @@ public class ReferencedProjectManager {
 		} else {
 			File gitContainer = GitUtils.getGitContainer();
 			dir = new File(gitContainer, parser.getGitRepo());
-			if (dir.exists()) {
-				if (GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
-					Engine.logEngine.info("(ReferencedProjectManager) folder has remote " + parser.getGitUrl());
-				} else {
-					Engine.logEngine.info("(ReferencedProjectManager) folder hasn't remote " + parser.getGitUrl());
-					int i = 1;
-					String suffix = "_";
-					if (parser.getGitBranch() != null) {
-						suffix += parser.getGitBranch();
-						dir = new File(gitContainer, parser.getGitRepo() + suffix);
-						if (!dir.exists() || GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
-							i = 0;
-						}
-						suffix += "_";
-					}
-					while (i > 0 && (dir = new File(gitContainer, parser.getGitRepo() + suffix + i++)).exists()) {
-						if (GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
-							i = 0;
-						}
-					}
-					Engine.logEngine.info("(ReferencedProjectManager) new folder " + dir);
+			Object lock;
+			synchronized (dirLock) {
+				lock = dirLock.get(dir);
+				if (lock == null) {
+					dirLock.put(dir, lock = new Object());
 				}
 			}
-			if (!dir.exists()) {
-				GitUtils.clone(parser.getGitUrl(), parser.getGitBranch(), dir);
-				cloneDone = true;
-			} else {
-				Engine.logEngine.info("(ReferencedProjectManager) Use repo " + dir);
+			synchronized (getLock(dir)) {
+				if (dir.exists()) {
+					if (GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
+						Engine.logEngine.info("(ReferencedProjectManager) folder has remote " + parser.getGitUrl());
+					} else {
+						Engine.logEngine.info("(ReferencedProjectManager) folder hasn't remote " + parser.getGitUrl());
+						int i = 1;
+						String suffix = "_";
+						if (parser.getGitBranch() != null) {
+							suffix += parser.getGitBranch();
+							dir = new File(gitContainer, parser.getGitRepo() + suffix);
+							if (!dir.exists() || GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
+								i = 0;
+							}
+							suffix += "_";
+						}
+						while (i > 0 && (dir = new File(gitContainer, parser.getGitRepo() + suffix + i++)).exists()) {
+							if (GitUtils.asRemoteAndBranch(dir, parser.getGitUrl(), parser.getGitBranch())) {
+								i = 0;
+							}
+						}
+						Engine.logEngine.info("(ReferencedProjectManager) new folder " + dir);
+					}
+				}
+				if (!dir.exists()) {
+					GitUtils.clone(parser.getGitUrl(), parser.getGitBranch(), dir);
+					cloneDone = true;
+				} else {
+					Engine.logEngine.info("(ReferencedProjectManager) Use repo " + dir);
+				}
 			}
 			if (parser.getProjectPath() != null) {
 				prjDir = new File(dir, parser.getProjectPath());
@@ -205,16 +225,18 @@ public class ReferencedProjectManager {
 		}
 		if (dir != null) {
 			if (!cloneDone && parser.isAutoPull() && !Engine.isStudioMode()) {
-				String exRev = GitUtils.getRev(dir);
-				GitUtils.reset(dir);
-				GitUtils.pull(dir);
-				String newRev = GitUtils.getRev(dir);
-				if (!exRev.equals(newRev)) {
-					project = null;
+				synchronized (getLock(dir)) {
+					String exRev = GitUtils.getRev(dir);
+					GitUtils.reset(dir);
+					GitUtils.pull(dir);
+					String newRev = GitUtils.getRev(dir);
+					if (!exRev.equals(newRev)) {
+						project = null;
+					}
 				}
 			}
 			if (project == null) {
-				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"));
+				project = Engine.theApp.databaseObjectsManager.importProject(new File(prjDir, "c8oProject.yaml"), false);
 				if (!projectName.equals(project.getName())) {
 					throw new EngineException("Referenced name is '" + projectName + "' but loaded project is '" + project.getName() + "'");
 				}
