@@ -37,7 +37,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.operation.ModalContext;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -823,32 +823,22 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		if (isCheckMissingProjects) {
 			return;
 		}
-		
+
 		final Project project = getObject();
-		
-		final Set<String> missingProjects = project.getMissingProjects().keySet();
-		final Set<String> missingProjectReferences = project.getMissingProjectReferences().keySet();
+		Job.create("Check missing project for " + project.getName(), (monitor) -> {
+			try {
+				isCheckMissingProjects = true;
 
-		if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
-			isCheckMissingProjects = true;
-			
-			Display.getDefault().asyncExec(new Runnable() {
+				final Set<String> missingProjects = project.getMissingProjects().keySet();
+				final Set<String> missingProjectReferences = project.getMissingProjectReferences().keySet();
 
-				@Override
-				public void run() {
-					try {
-						int level = ModalContext.getModalLevel();
-						if (level > 0) {
-							// prevents double modal windows: dead lock on linux/gtk studio
-							Display.getDefault().asyncExec(this);
-							return;
-						} 
-						ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-						
-						List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
-						for (String targetProjectName: missingProjects) {
-							if (allProjects.contains(targetProjectName)) {
+				if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
+					List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
+					for (String targetProjectName: missingProjects) {
+						if (allProjects.contains(targetProjectName)) {
+							Display.getDefault().syncExec(() -> {
 								try {
+									ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
 									TreeObject obj = pev.getProjectRootObject(targetProjectName);
 									if (obj != null && obj instanceof UnloadedProjectTreeObject) {
 										pev.loadProject(((UnloadedProjectTreeObject) obj));
@@ -857,50 +847,53 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								} catch (Exception e) {
 									Engine.logStudio.warn("Failed to open \"" + targetProjectName + "\"", e);
 								}
-							}
-						}
-						
-						Map<String, ProjectUrlParser> refToImport = new HashMap<>();
-						for (Reference ref: project.getReferenceList()) {
-							if (ref instanceof ProjectSchemaReference) {
-								ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
-								if (missingProjects.contains(prjRef.getParser().getProjectName()) && prjRef.getParser().isValid()) {
-									refToImport.put(prjRef.getParser().getProjectName(), prjRef.getParser());
-								}
-							}
-						}
-						
-						if (!refToImport.isEmpty()) {
-							Engine.execute(() -> {
-								boolean loaded = false;
-								for (ProjectUrlParser parser: refToImport.values()) {
-									try {
-										loaded |= Engine.theApp.referencedProjectManager.importProject(parser) != null;
-									} catch (Exception e) {
-										Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
-									}
-								}
-								if (loaded) {
-									Engine.theApp.fireMigrationFinished(new EngineEvent(""));
-								}
 							});
-							return;
 						}
-						
-						String message = "For \"" + project.getName() + "\" project :\n";
-						
-						for (String targetProjectName: missingProjects) {
-							message += "  > The project \"" + targetProjectName + "\" is missing\n";
+					}
+
+					Map<String, ProjectUrlParser> refToImport = new HashMap<>();
+					for (Reference ref: project.getReferenceList()) {
+						if (ref instanceof ProjectSchemaReference) {
+							ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
+							if (missingProjects.contains(prjRef.getParser().getProjectName()) && prjRef.getParser().isValid()) {
+								refToImport.put(prjRef.getParser().getProjectName(), prjRef.getParser());
+							}
 						}
-						
-						for (String targetProjectName: missingProjectReferences) {
-							message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
-						}
-						
-						message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
-						
-						if (!missingProjectReferences.isEmpty()) {
-							int response = ConvertigoPlugin.questionMessageBox(null, message + "\n\nDo you want to automatically add reference objects ?");
+					}
+
+					if (!refToImport.isEmpty()) {
+						Engine.execute(() -> {
+							boolean loaded = false;
+							for (ProjectUrlParser parser: refToImport.values()) {
+								try {
+									loaded |= Engine.theApp.referencedProjectManager.importProject(parser) != null;
+								} catch (Exception e) {
+									Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
+								}
+							}
+							if (loaded) {
+								Engine.theApp.fireMigrationFinished(new EngineEvent(""));
+							}
+						});
+						return;
+					}
+
+					String message = "For \"" + project.getName() + "\" project :\n";
+
+					for (String targetProjectName: missingProjects) {
+						message += "  > The project \"" + targetProjectName + "\" is missing\n";
+					}
+
+					for (String targetProjectName: missingProjectReferences) {
+						message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
+					}
+
+					message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
+
+					if (!missingProjectReferences.isEmpty()) {
+						String msg = message;
+						Display.getDefault().syncExec(() -> {
+							int response = ConvertigoPlugin.questionMessageBox(null, msg + "\n\nDo you want to automatically add reference objects ?");
 							if (response == SWT.YES) {
 								for (String targetProjectName: missingProjectReferences) {
 									try {
@@ -910,23 +903,23 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 										projectName = ProjectUrlParser.getUrl(projectName);
 										reference.setProjectName(projectName);
 										project.add(reference);
-										ProjectExplorerView explorerView = ConvertigoPlugin.projectManager.getProjectExplorerView();
-										explorerView.reloadTreeObject(ProjectTreeObject.this);
+										ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+										pev.reloadTreeObject(ProjectTreeObject.this);
 									} catch (Exception e) {
 										ConvertigoPlugin.logException(e, "failed to add a reference to '" + targetProjectName + "'");
 									}
 								}
 								hasBeenModified(true);
 							}
-						} else if (!missingProjects.isEmpty()) {
-							ConvertigoPlugin.warningMessageBox(message);
-						}
-					} finally {
-						isCheckMissingProjects = false;
+						});
+					} else if (!missingProjects.isEmpty()) {
+						ConvertigoPlugin.warningMessageBox(message);
 					}
 				}
-			});
-		}
+			} finally {
+				isCheckMissingProjects = false;
+			}
+		}).schedule();
 	}
 
 	@Override

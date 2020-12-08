@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.IExecutableExtension;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -534,9 +535,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 		return newProject;
 	}
 
-	private Project createFromArchiveProject(IProgressMonitor monitor) throws Exception {
-		Project project = null;
-		
+	private void createFromArchiveProject(IProgressMonitor monitor) throws Exception {
 		monitor.setTaskName("Creating new project");
 		monitor.worked(1);
 
@@ -546,38 +545,36 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			projectName = null; // avoid load of project in view
 			throw new EngineException(message);
 		}
-
-		try {
+		ConvertigoPlugin.infoMessageBox("Loading " + projectName + " in a background job.");
+		Job.create("Loading " + projectName, (mon) -> {
 			try {
-				project = Engine.theApp.referencedProjectManager.importProject(projectUrlParser, true);
+				try {
+					Engine.theApp.referencedProjectManager.importProject(projectUrlParser, true);
+				} catch (Exception e) {
+					// Catch exception because part of project could have been
+					// deployed
+					// User will be able to remove it from the Studio
+					ConvertigoPlugin.logException(e, "Unable to import project '" + projectName + "'!");
+				}
+
+				mon.setTaskName("Project loaded");
+				mon.worked(1);
+
+				mon.setTaskName("Resources created");
+				mon.worked(1);
 			} catch (Exception e) {
-				// Catch exception because part of project could have been
-				// deployed
-				// User will be able to remove it from the Studio
-				ConvertigoPlugin.logException(e, "Unable to import project '" + projectName + "'!");
+				// Delete everything
+				try {
+					Engine.logBeans
+					.error("An error occured while creating project, everything will be deleted. Please see Studio logs for more informations.",
+							null);
+					Engine.theApp.databaseObjectsManager.deleteProject(projectName, false, false);
+				} catch (Exception ex) {
+				}
+				ConvertigoPlugin.errorMessageBox("Unable to create project " + projectName + ": " + e.getMessage());
+				projectName = null;
 			}
-
-			monitor.setTaskName("Project loaded");
-			monitor.worked(1);
-
-			monitor.setTaskName("Resources created");
-			monitor.worked(1);
-		} catch (Exception e) {
-			// Delete everything
-			try {
-				Engine.logBeans
-						.error("An error occured while creating project, everything will be deleted. Please see Studio logs for more informations.",
-								null);
-				Engine.theApp.databaseObjectsManager.deleteProject(projectName, false, false);
-				projectName = null; // avoid load of project in view
-				project = null;
-			} catch (Exception ex) {
-			}
-
-			throw new Exception("Unable to create project from template", e);
-		}
-
-		return project;
+		}).schedule();
 	}
 
 	/**

@@ -44,7 +44,6 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.FileInfoMatcherDescription;
-import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -57,7 +56,6 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
@@ -132,6 +130,7 @@ import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
@@ -1370,7 +1369,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		Control ctr = view.getCurrentPage().getControl();
 		if (!(ctr instanceof Tree)) {
 			view.show(showInContext);
-			ctr = view.getCurrentPage().getControl();			
+			ctr = view.getCurrentPage().getControl();
 		}
 		if (ctr instanceof Tree) {
 			showInContext = view.getShowInContext();
@@ -1421,7 +1420,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 			resourceProject = myWorkspaceRoot.getProject(projectName);
-	
 			if (!resourceProject.exists()) {
 				if (projectDir == null) {
 					sb.append(" in the workspace folder.");
@@ -1435,7 +1433,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				}
 				openProject(resourceProject, monitor);
 			} else {
-				sb = null;
+				if (resourceProject.isOpen() && !projectName.equals(resourceProject.getDescription().getName())) {
+					resourceProject.delete(false, true, monitor);
+					return createProjectPluginResource(projectName, projectDir, monitor);
+				} else {
+					sb = null;
+				}
 			}
 		} finally {
 			if (sb != null) {
@@ -1458,52 +1461,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			}
 			iproject.open(monitor);
 			iproject.setSessionProperty(qnInit, true);
-			
-			Engine.execute(() -> {
-				try {
-					if (new File(iproject.getLocation().toOSString(), "build.gradle").exists()) {
-						File pref = new File(iproject.getLocation().toOSString(), ".settings/org.eclipse.buildship.core.prefs");
-						if (!pref.exists()) {
-							try {
-								FileUtils.write(pref, "connection.project.dir=\n"
-										+ "eclipse.preferences.version=1", "UTF-8");
-								iproject.refreshLocal(1, monitor);
-							} catch (IOException e) {
-							}
-						}
-						pref = new File(iproject.getLocation().toOSString(), "settings.gradle");
-						if (!pref.exists()) {
-							try {
-								FileUtils.write(pref, "", "UTF-8");
-								iproject.refreshLocal(1, monitor);
-							} catch (IOException e) {
-							}
-						}
-						if (!iproject.hasNature(GRADLE_NATURE_ID)) {
-							IProjectDescription description = iproject.getDescription();
-							String[] natures = description.getNatureIds();
-							String[] newNatures = new String[natures.length + 1];
-							System.arraycopy(natures, 0, newNatures, 0, natures.length);
-							newNatures[natures.length] = GRADLE_NATURE_ID;
-							IWorkspace workspace = ResourcesPlugin.getWorkspace();
-							IStatus status = workspace.validateNatureSet(newNatures);
-							if (status.getCode() == IStatus.OK) {
-								description.setNatureIds(newNatures);
-								ICommand bc = description.newCommand();
-								bc.setBuilderName("org.eclipse.buildship.core.gradleprojectbuilder");
-								ICommand[] cmds = description.getBuildSpec();
-								ICommand[] newCmds = new ICommand[cmds.length + 1];
-								System.arraycopy(cmds, 0, newCmds, 0, cmds.length);
-								newCmds[cmds.length] = bc;
-								description.setBuildSpec(newCmds);
-								iproject.setDescription(description, IProject.FORCE, monitor);
-							}
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			});
 		}
 	}
 
@@ -1739,7 +1696,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	private File getProjectFile(IProject iProject) {
 		File file = null;
-		if (iProject != null) {
+		try {
 			String name = iProject.getName();
 			IPath iPath = iProject.getLocation();
 			if (iPath != null) {
@@ -1749,7 +1706,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				if (!file.exists()) {
 					file = new File(folder, name + ".xml");
 				}
+				if (!name.equals(DatabaseObjectsManager.getProjectName(file))) {
+					file = null;
+				}
 			}
+		} catch (EngineException e) {
+			file = null;
 		}
 		return file;
 	}

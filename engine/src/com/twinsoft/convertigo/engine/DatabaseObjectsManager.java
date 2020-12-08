@@ -1171,9 +1171,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			
 			synchronized (projects) {
 				projects.put(project.getName(), project);
-				RestApiManager.getInstance().putUrlMapper(project);
-				MobileBuilder.initBuilder(project);
 			}
+			RestApiManager.getInstance().putUrlMapper(project);
+			MobileBuilder.initBuilder(project);
 			
 			if (!Engine.isStudioMode()) {
 				Engine.theApp.referencedProjectManager.check(project);

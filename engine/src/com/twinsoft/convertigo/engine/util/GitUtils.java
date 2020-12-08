@@ -70,7 +70,13 @@ public class GitUtils {
 				try {
 					Ref ref = repo.findRef(branch);
 					Ref head = repo.findRef("HEAD");
-					if (head.getObjectId().equals(ref.getObjectId())) {
+					ObjectId refid = ref.getObjectId();
+					ObjectId headid = head.getObjectId();
+					if (headid.equals(refid)) {
+						return true;
+					}
+					refid = ref.getPeeledObjectId();
+					if (headid.equals(refid)) {
 						return true;
 					}
 				} catch (Exception e) {}
