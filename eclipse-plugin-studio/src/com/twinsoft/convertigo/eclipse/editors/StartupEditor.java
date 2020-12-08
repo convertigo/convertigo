@@ -117,9 +117,10 @@ public class StartupEditor extends EditorPart {
 				}
 			}
 		});
-		
+		StartupInput si = (StartupInput) getEditorInput();
 		String url = "https://www.convertigo.com/quick-start-videos/";
-		url += "?" + URLUtils.encodePart("user", getEditorInput().getName());
+		url += "?" + URLUtils.encodePart("user", si.user);
+		url += "&" + URLUtils.encodePart("site", si.site);
 		url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
 
 		browser.addProgressListener(new ProgressAdapter() {
@@ -143,39 +144,47 @@ public class StartupEditor extends EditorPart {
 	public void setFocus() {
 	}
 
-	public static IEditorInput makeInput(String username) {
-		return new IEditorInput() {
-			
-			@Override
-			public <T> T getAdapter(Class<T> adapter) {
-				return null;
-			}
-			
-			@Override
-			public String getToolTipText() {
-				return null;
-			}
-			
-			@Override
-			public IPersistableElement getPersistable() {
-				return null;
-			}
-			
-			@Override
-			public String getName() {
-				return username;
-			}
-			
-			@Override
-			public ImageDescriptor getImageDescriptor() {
-				return null;
-			}
-			
-			@Override
-			public boolean exists() {
-				return false;
-			}
-		};
+	public static IEditorInput makeInput(String user, String site) {
+		return new StartupInput(user, site);
+	}
+	
+	static class StartupInput implements IEditorInput {
+		String user;
+		String site;
+		StartupInput(String user, String site) {
+			this.user = user;
+			this.site = site;
+		}
+		
+		@Override
+		public <T> T getAdapter(Class<T> adapter) {
+			return null;
+		}
+		
+		@Override
+		public String getToolTipText() {
+			return null;
+		}
+		
+		@Override
+		public IPersistableElement getPersistable() {
+			return null;
+		}
+		
+		@Override
+		public String getName() {
+			return user + "@" + site;
+		}
+		
+		@Override
+		public ImageDescriptor getImageDescriptor() {
+			return null;
+		}
+		
+		@Override
+		public boolean exists() {
+			return false;
+		}
 	}
 
 }
