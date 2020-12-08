@@ -503,7 +503,7 @@
              project="true">
           <description>Imports the Convertigo Twitter library project.</description>
              {
-               "url": "lib_Twitter=https://github.com/convertigo/c8oprj-lib-twitter.git:branch=7.6.0",
+               "url": "lib_Twitter=https://github.com/convertigo/c8oprj-lib-twitter.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -1591,6 +1591,19 @@
       <objectContribution
             id="convertigo.projectContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+         <menu
+               id="convertigo.menu.ci"
+               label="Continuous Integration"
+               path="ci">
+            <groupMarker name="content"/>
+         </menu>
+		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyProjectRemoteURLAction"
+               enablesFor="1"
+               icon="icons/studio/clipboard_copy.gif"
+               id="convertigo.action.copyProjectRemoteURL"
+               label="Copy Project Remote URL"
+               menubarPath="clipboard"/>
 		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyProjectRemoteURLAction"
                enablesFor="1"
@@ -1620,12 +1633,19 @@
             </enablement>
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectUpgradeGradle"
                enablesFor="1"
-               icon="icons/studio/project_export.gif"
-               id="convertigo.action.exportProject"
-               label="Export"
-               menubarPath="project"/>
+               icon="icons/studio/gradle_16x16.png"
+               id="convertigo.action.upgradeGradleProject"
+               label="Upgrade Gradle"
+               menubarPath="convertigo.menu.ci/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSetupGitHubActions"
+               enablesFor="1"
+               icon="icons/studio/ghactions_16x16.png"
+               id="convertigo.action.setupGitHubActionsProject"
+               label="Setup GitHub Actions"
+               menubarPath="convertigo.menu.ci/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
                enablesFor="1"
@@ -1645,21 +1665,21 @@
                enablesFor="1"
                id="convertigo.action.importSoapWsReference"
                label="Import SOAP WS reference"
-               menubarPath="service" />      
+               menubarPath="service" />
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportRestWsReference"
                enablesFor="1"
                id="convertigo.action.importRestWsReference"
                label="Import REST WS reference"
-               menubarPath="service" />      
+               menubarPath="service" />
          <action
-	   	 	   class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
-			   enablesFor="1"
-			   icon="icons/studio/declare_global_symbols_16x16.png"
-			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
-			   label="Create Global Symbols"
-			   menubarPath="project"/>
-		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
+               enablesFor="1"
+               icon="icons/studio/declare_global_symbols_16x16.png"
+               id="convertigo.action.declareGlobalSymbolsFromThisProject"
+               label="Create Global Symbols"
+               menubarPath="project"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CustomStatisticsAction"
                icon="icons/studio/statistics.gif"
                id="convertigo.action.customStatisticsAction"
