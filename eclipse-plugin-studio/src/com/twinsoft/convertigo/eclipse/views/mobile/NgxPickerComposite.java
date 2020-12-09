@@ -33,7 +33,9 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
@@ -80,6 +82,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IAction;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource;
@@ -96,7 +99,18 @@ import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.Filter;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceData;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceModel;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.MobileSource;
 import com.twinsoft.convertigo.eclipse.dnd.MobileSourceTransfer;
@@ -138,6 +152,38 @@ public class NgxPickerComposite extends Composite {
 	
 	private EngineListenerHelper engineListener = new EngineListenerHelper() {
 
+		private JSONObject computeJsonModel(AbstractCouchDbTransaction acdt, String dataPath, Document document) throws Exception {
+			String responseEltName = acdt.getXsdTypePrefix() + acdt.getName() + "Response";
+			String xsdTypes = acdt.generateXsdTypes(document, true);
+			String xsdDom = acdt.generateXsd(xsdTypes);
+			
+			XmlSchemaCollection collection = new XmlSchemaCollection();
+			XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, collection);
+			SchemaMeta.setCollection(xmlSchema, collection);
+			ConvertigoError.updateXmlSchemaObjects(xmlSchema);
+			
+			QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), acdt.getXsdResponseTypeName());
+			XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName);
+			Transaction.addSchemaResponseObjects(xmlSchema, cType);
+			
+			QName responseQName = new QName(xmlSchema.getTargetNamespace(), acdt.getXsdResponseElementName());
+			XmlSchemaElement xse = xmlSchema.getElementByName(responseQName);
+			SchemaMeta.setSchema(xse, xmlSchema);
+			
+			Document doc = XmlSchemaUtils.getDomInstance(xse);
+			//System.out.println(XMLUtils.prettyPrintDOM(doc));
+			
+			String jsonString = XMLUtils.XmlToJson(doc.getDocumentElement(), true, true);
+			JSONObject jsonObject = new JSONObject(jsonString);
+			//System.out.println(jsonString);
+			
+			String searchPath = "document."+ responseEltName +".response.couchdb_output";
+			searchPath += dataPath;
+			JSONObject jsonOutput = findJSONObject(jsonObject, searchPath);
+
+			return jsonOutput;
+		}
+		
 		@Override
 		public void documentGenerated(Document document) {
 			final Element documentElement = document.getDocumentElement();
@@ -145,17 +191,18 @@ public class NgxPickerComposite extends Composite {
 				String project = documentElement.getAttribute("project");
 				String connector = documentElement.getAttribute("connector");
 				String transaction = documentElement.getAttribute("transaction");
-				if (CouchDbConnector.internalView.equals(transaction)) {
-					if (lastSelected !=null && lastSelected instanceof TVObject) {
-						TVObject tvObject = (TVObject)lastSelected;
-						Object object = tvObject.getObject();
-						if (object != null && object instanceof DatabaseObject) {
-							
-							Map<String, Object> data = lookupModelData(tvObject);
-							DatabaseObject dbo = (DatabaseObject) data.get("databaseObject");
-							//Map<String, String> params = GenericUtils.cast(data.get("params"));
-							String dataPath = (String) data.get("searchPath");
-							
+				if (lastSelected !=null && lastSelected instanceof TVObject) {
+					TVObject tvObject = (TVObject)lastSelected;
+					Object object = tvObject.getObject();
+					if (object != null && object instanceof DatabaseObject) {
+						
+						Map<String, Object> data = lookupModelData(tvObject);
+						DatabaseObject dbo = (DatabaseObject) data.get("databaseObject");
+						//Map<String, String> params = GenericUtils.cast(data.get("params"));
+						String dataPath = (String) data.get("searchPath");
+						
+						// internalView (GetViewTransaction)
+						if (CouchDbConnector.internalView.equals(transaction)) {
 							if (dbo instanceof DesignDocument) {
 								DesignDocument dd = (DesignDocument)dbo;
 								CouchDbConnector cc = dd.getConnector();
@@ -163,34 +210,12 @@ public class NgxPickerComposite extends Composite {
 									GetViewTransaction gvt = (GetViewTransaction) cc.getTransactionByName(CouchDbConnector.internalView);
 									if (gvt != null) {
 										try {
-											String responseEltName = gvt.getXsdTypePrefix() + gvt.getName() + "Response";
-											String xsdTypes = gvt.generateXsdTypes(document, true);
-											String xsdDom = gvt.generateXsd(xsdTypes);
+											JSONObject jsonOutput = computeJsonModel(gvt, dataPath, document);
+											jsonOutput.remove("_c8oMeta");
+											jsonOutput.remove("error");
+											jsonOutput.remove("reason");
+											jsonOutput.remove("attr");
 											
-											XmlSchemaCollection collection = new XmlSchemaCollection();
-											XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, collection);
-											SchemaMeta.setCollection(xmlSchema, collection);
-											ConvertigoError.updateXmlSchemaObjects(xmlSchema);
-											
-											QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), gvt.getXsdResponseTypeName());
-											XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName);
-											Transaction.addSchemaResponseObjects(xmlSchema, cType);
-											
-											QName responseQName = new QName(xmlSchema.getTargetNamespace(), gvt.getXsdResponseElementName());
-											XmlSchemaElement xse = xmlSchema.getElementByName(responseQName);
-											SchemaMeta.setSchema(xse, xmlSchema);
-											
-											Document doc = XmlSchemaUtils.getDomInstance(xse);
-											//System.out.println(XMLUtils.prettyPrintDOM(doc));
-											
-											String jsonString = XMLUtils.XmlToJson(doc.getDocumentElement(), true, true);
-											JSONObject jsonObject = new JSONObject(jsonString);
-											//System.out.println(jsonString);
-											
-											String searchPath = "document."+ responseEltName +".response.couchdb_output";
-											searchPath += dataPath;
-											JSONObject jsonOutput = findJSONObject(jsonObject, searchPath);
-	
 											Display.getDefault().asyncExec(new Runnable() {
 												public void run() {
 													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
@@ -204,6 +229,88 @@ public class NgxPickerComposite extends Composite {
 										} catch (Exception e) {
 											e.printStackTrace();
 										}
+									}
+								}
+							}
+							if (dbo instanceof UIDynamicAction) {
+								UIDynamicAction uida = (UIDynamicAction)dbo;
+								IonBean ionBean = uida.getIonBean();
+								if (ionBean != null) {
+									try {
+										String fsview = ionBean.getProperty("fsview").getValue().toString();
+										String qname = fsview.substring(0, fsview.lastIndexOf('.'));
+										DesignDocument dd = (DesignDocument) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+										Connector cc = dd.getConnector();
+										if (cc.getName().equals(connector) && cc.getProject().getName().equals(project)) {
+											GetViewTransaction gvt = (GetViewTransaction) cc.getTransactionByName(CouchDbConnector.internalView);
+											if (gvt != null) {
+												JSONObject jsonObject = new JSONObject(uida.computeJsonModel());
+												
+												JSONObject jsonOutput = computeJsonModel(gvt, dataPath, document);
+												jsonOutput.remove("_c8oMeta");
+												jsonOutput.remove("error");
+												jsonOutput.remove("reason");
+												jsonOutput.remove("attr");
+												
+												if (jsonObject.has("out")) {
+													jsonObject.put("out", jsonOutput);
+												}
+												
+												Display.getDefault().asyncExec(new Runnable() {
+													public void run() {
+														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+															modelTreeViewer.setInput(jsonObject);
+															initTreeSelection(modelTreeViewer, null);
+															updateMessage();
+														}
+													}
+												});
+											}
+										}
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+						
+						// internalDocument (GetDocumentTransaction)
+						if (CouchDbConnector.internalDocument.equals(transaction)) {
+							if (dbo instanceof UIDynamicAction) {
+								UIDynamicAction uida = (UIDynamicAction)dbo;
+								IonBean ionBean = uida.getIonBean();
+								if (ionBean != null) {
+									try {
+										String qname = ionBean.getProperty("requestable").getValue().toString();
+										CouchDbConnector cc = (CouchDbConnector) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+										if (cc.getName().equals(connector) && cc.getProject().getName().equals(project)) {
+											GetDocumentTransaction gdt = (GetDocumentTransaction) cc.getTransactionByName(CouchDbConnector.internalDocument);
+											if (gdt != null) {
+												JSONObject jsonObject = new JSONObject(uida.computeJsonModel());
+												
+												JSONObject jsonOutput = computeJsonModel(gdt, dataPath, document);
+												jsonOutput.remove("_c8oMeta");
+												jsonOutput.remove("error");
+												jsonOutput.remove("reason");
+												jsonOutput.remove("attr");
+												
+												if (jsonObject.has("out")) {
+													jsonObject.put("out", jsonOutput);
+												}
+												
+												Display.getDefault().asyncExec(new Runnable() {
+													public void run() {
+														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
+															modelTreeViewer.setInput(jsonObject);
+															initTreeSelection(modelTreeViewer, null);
+															updateMessage();
+														}
+													}
+												});
+											}
+										}
+									} catch (Exception e) {
+										e.printStackTrace();
 									}
 								}
 							}
@@ -698,7 +805,7 @@ public class NgxPickerComposite extends Composite {
 					//updateText(cs.getInput());
 					updateTexts(cs);
 				} else {
-					updateTexts();
+					updateTexts(cs);//updateTexts();
 				}
 			} else {
 				updateTexts();
@@ -926,74 +1033,223 @@ public class NgxPickerComposite extends Composite {
 		return data;
 	}
 	
-	private void updateModel(TVObject tvObject) {
-		Object object = tvObject.getObject();
+	private void cleanJsonModel(Object object) {
 		if (object != null) {
-			Thread t = new Thread(new Runnable() {
-				public void run() {
-					isUpdating = true;
-					
-					Display.getDefault().asyncExec(new Runnable() {
-						public void run() {
-							setWidgetsEnabled(false);
-							updateMessage("generating model...");
+			if (object instanceof JSONObject) {
+				JSONObject jsonObject = (JSONObject) object;
+				jsonObject.remove("text");
+				jsonObject.remove("attr");
+				
+				JSONArray names = jsonObject.names();
+				if (names != null) {
+					for (int i = 0; i < names.length(); i++) {
+						try {
+							cleanJsonModel(jsonObject.get((String) names.get(i)));
+						} catch (JSONException e) {
+							e.printStackTrace();
 						}
-					});
-					
+					}
+				}
+			}
+			else if (object instanceof JSONArray) {
+				JSONArray jsonArray = (JSONArray) object;
+				for (int i = 0; i < jsonArray.length(); i++) {
 					try {
-						Map<String, Object> data = lookupModelData(tvObject);
-						DatabaseObject dbo = (DatabaseObject) data.get("databaseObject");
-						Map<String, String> params = GenericUtils.cast(data.get("params"));
-						String dataPath = (String) data.get("searchPath");
+						cleanJsonModel(jsonArray.get(i));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	private JSONObject getJsonModel(Map<String, Object> data, DatabaseObject databaseObject) throws Exception {
+		JSONObject jsonModel = new JSONObject();
+		
+		Map<String, String> params;
+		DatabaseObject dbo;
+		String dataPath;
+		
+		if (databaseObject == null) {
+			dbo = (DatabaseObject) data.get("databaseObject");
+			params = GenericUtils.cast(data.get("params"));
+			dataPath = (String) data.get("searchPath");
+		} else {
+			dbo = databaseObject;
+			params = new HashMap<String, String>();
+			dataPath = "";
+		}
+		
+		if (dbo != null) {
+			// case of requestable
+			if (dbo instanceof RequestableObject) {
+				RequestableObject ro = (RequestableObject)dbo;
+				
+				Project project = ro.getProject();
+				String responseEltName = ro.getXsdTypePrefix() + ro.getName() + "Response";
+				boolean isDocumentNode = JsonRoot.docNode.equals(project.getJsonRoot()) && dataPath.isEmpty();
+				
+				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName());
+				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, ro);
+				if (xso != null) {
+					Document document = XmlSchemaUtils.getDomInstance(xso);
+					//System.out.println(XMLUtils.prettyPrintDOM(document));
+					
+					String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
+					JSONObject jsonObject = new JSONObject(jsonString);
+					
+					String searchPath = "document."+ responseEltName +".response";
+					searchPath += isDocumentNode || !dataPath.startsWith(".document")? dataPath : dataPath.replaceFirst("\\.document", "");
+					
+					JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+					
+					jsonModel = isDocumentNode ? new JSONObject().put("document", jsonOutput) : jsonOutput;
+				}
+			}
+			else if (dbo instanceof DesignDocument) {
+				DesignDocument dd = (DesignDocument)dbo;
+				Connector connector = dd.getConnector();
+				String ddoc = params.get("ddoc");
+				String view = params.get("view");
+				String viewName = ddoc + "/" + view;
+				String includeDocs = params.get("include_docs");
+				
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run() {
+						IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+						ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
+						if (connectorEditor == null) {
+							try {
+								connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
+												"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+							} catch (PartInitException e) {
+								ConvertigoPlugin.logException(e,
+										"Error while loading the connector editor '"
+												+ connector.getName() + "'");
+							}
+						}
 						
-						if (dbo != null) {
-							// case of requestable
-							if (dbo instanceof RequestableObject) {
-								RequestableObject ro = (RequestableObject)dbo;
-								
-								Project project = ro.getProject();
-								String responseEltName = ro.getXsdTypePrefix() + ro.getName() + "Response";
-								boolean isDocumentNode = JsonRoot.docNode.equals(project.getJsonRoot()) && dataPath.isEmpty();
-								
-								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName());
-								XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, ro);
-								if (xso != null) {
-									Document document = XmlSchemaUtils.getDomInstance(xso);
-									//System.out.println(XMLUtils.prettyPrintDOM(document));
-									
-									String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
-									JSONObject jsonObject = new JSONObject(jsonString);
-									
-									String searchPath = "document."+ responseEltName +".response";
-									searchPath += isDocumentNode || !dataPath.startsWith(".document")? dataPath : dataPath.replaceFirst("\\.document", "");
-									
-									JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-									
-									JSONObject jsonResponse = isDocumentNode ? new JSONObject().put("document", jsonOutput) : jsonOutput;
-									
-									Display.getDefault().asyncExec(new Runnable() {
-										public void run() {
-											modelTreeViewer.setInput(jsonResponse);
-											initTreeSelection(modelTreeViewer, null);
-											setWidgetsEnabled(true);
-											updateMessage();
-										}
-									});
+	    				if (connectorEditor != null) {
+	    					// activate connector's editor
+	    					activePage.activate(connectorEditor);
+	    					
+	    					// set transaction's parameters
+	    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+	    					((GetViewTransaction)transaction).setViewname(viewName);
+	   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+	   										    					
+	    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+	   						view_reduce.setValueOrNull(false);
+	    					
+	    					// execute view transaction
+	    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
+	    				}
+					}
+				});
+			}
+			// case of UIForm
+			else if (dbo instanceof UIForm) {
+				//JSONObject jsonObject = new JSONObject("{\"controls\":{\"['area']\":{\"value\":\"\"}}}");
+				JSONObject jsonObject = new JSONObject(((UIForm)dbo).computeJsonModel());
+				
+				String searchPath = dataPath;
+				
+				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+				
+				jsonModel = jsonOutput;
+			}
+			// case of UIACtionStack
+			else if (dbo instanceof UIActionStack) {
+				JSONObject jsonObject = new JSONObject(((UIActionStack)dbo).computeJsonModel());
+				
+				String searchPath = dataPath;
+				
+				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+				
+				jsonModel = jsonOutput;
+			}
+			// case of UIDynamicAction or UICustomAction
+			else if (dbo instanceof IAction) {
+				JSONObject jsonObject = new JSONObject();
+				
+				if (dbo instanceof UIDynamicAction) {
+					UIDynamicAction uida = (UIDynamicAction)dbo;
+					jsonObject = new JSONObject(uida.computeJsonModel());
+					
+					IonBean ionBean = uida.getIonBean();
+					if (ionBean != null) {
+						String name = ionBean.getName();
+						
+						if ("CallSequenceAction".equals(name)) {
+							String qname = ionBean.getProperty("requestable").getValue().toString();
+							DatabaseObject sequence = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+							if (sequence != null) {
+								JSONObject targetJsonModel = getJsonModel(data, sequence);
+								if (jsonObject.has("out")) {
+									jsonObject.put("out", targetJsonModel);
 								}
 							}
-							// case of design document
-							else if (dbo instanceof DesignDocument) {
-								DesignDocument dd = (DesignDocument)dbo;
-								Connector connector = dd.getConnector();
-								String ddoc = params.get("ddoc");
-								String view = params.get("view");
-								String viewName = ddoc + "/" + view;
-								String includeDocs = params.get("include_docs");
+						}
+						else if ("CallFullSyncAction".equals(name)) {
+							String qname = ionBean.getProperty("requestable").getValue().toString();
+							String verb = ionBean.getProperty("verb").getValue().toString();
+							Connector connector = (Connector) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+							if (connector != null) {
+								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(connector.getProject().getName());
+								AbstractCouchDbTransaction act = null;
 								
+								if ("all".equals(verb))
+									act = new AllDocsTransaction();
+								else if ("create".equals(verb))
+									act = new PutDatabaseTransaction();
+								else if ("destroy".equals(verb))
+									act = new DeleteDatabaseTransaction();
+								else if ("get".equals(verb))
+									act = new GetDocumentTransaction();
+								else if ("delete".equals(verb))
+									act = new DeleteDocumentTransaction();
+								else if ("delete_attachment".equals(verb))
+									act = new DeleteDocumentAttachmentTransaction();
+								else if ("post".equals(verb))
+									act = new PostDocumentTransaction();
+								else if ("put_attachment".equals(verb))
+									act = new PutDocumentAttachmentTransaction();
+								else if ("replicate_push".equals(verb))
+									act = new PostReplicateTransaction();
+								else if ("reset".equals(verb))
+									act = new ResetDatabaseTransaction();
+								else if ("view".equals(verb))
+									act = new GetViewTransaction();
+								
+								if (act != null) {
+									QName typeQName = act.getComplexTypeAffectation();
+									XmlSchemaType xmlSchemaType = schema.getTypeByName(typeQName);
+									Document document = XmlSchemaUtils.getDomInstance(xmlSchemaType);
+									
+									String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
+									JSONObject jsonOutput = new JSONObject(jsonString).getJSONObject("document");
+									cleanJsonModel(jsonOutput);
+									jsonOutput.remove("_c8oMeta");
+									jsonOutput.remove("error");
+									jsonOutput.remove("reason");
+									
+									if (jsonObject.has("out")) {
+										jsonObject.put("out", jsonOutput);
+									}
+								}
+							}
+						}
+						else if ("FullSyncGetAction".equals(name)) {
+							String qname = ionBean.getProperty("requestable").getValue().toString();
+							String docid = ionBean.getProperty("_id").getValue().toString();
+							Connector connector = (Connector) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+							if (connector != null) {
 								Display.getDefault().asyncExec(new Runnable() {
 									public void run() {
 										IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-	
+
 										ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
 										if (connectorEditor == null) {
 											try {
@@ -1011,131 +1267,159 @@ public class NgxPickerComposite extends Composite {
 					    					activePage.activate(connectorEditor);
 					    					
 					    					// set transaction's parameters
-					    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-					    					((GetViewTransaction)transaction).setViewname(viewName);
-					   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
-					   										    					
-					    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-					   						view_reduce.setValueOrNull(false);
+					    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalDocument);
+					    					Variable var_docid = ((GetDocumentTransaction)transaction).getVariable(CouchParam.docid.param());
+					    					var_docid.setValueOrNull(docid);
 					    					
 					    					// execute view transaction
-					    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
+					    					connectorEditor.getDocument(CouchDbConnector.internalDocument, false);
 					    				}
 									}
 								});
+								
 							}
-							// case of UIForm
-							else if (dbo instanceof UIForm) {
-								//JSONObject jsonObject = new JSONObject("{\"controls\":{\"['area']\":{\"value\":\"\"}}}");
-								JSONObject jsonObject = new JSONObject(((UIForm)dbo).computeJsonModel());
-								
-								String searchPath = dataPath;
-								
-								JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-								
-								JSONObject jsonResponse = jsonOutput;
-								
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										modelTreeViewer.setInput(jsonResponse);
-										initTreeSelection(modelTreeViewer, null);
-										setWidgetsEnabled(true);
-										updateMessage();
-									}
-								});
-							}
-							// case of UIACtionStack
-							else if (dbo instanceof UIActionStack) {
-								JSONObject jsonObject = new JSONObject(((UIActionStack)dbo).computeJsonModel());
-								
-								String searchPath = dataPath;
-								
-								JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-								
-								JSONObject jsonResponse = jsonOutput;
-								
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										modelTreeViewer.setInput(jsonResponse);
-										initTreeSelection(modelTreeViewer, null);
-										setWidgetsEnabled(true);
-										updateMessage();
-									}
-								});
-							}
-							// case of UIDynamicAction or UICustomAction
-							else if (dbo instanceof IAction) {
-								JSONObject jsonObject = new JSONObject();
-								
-								if (dbo instanceof UIDynamicAction) {
-									jsonObject = new JSONObject(((UIDynamicAction)dbo).computeJsonModel());
-								}
-								if (dbo instanceof UICustomAction) {
-									jsonObject = new JSONObject(((UICustomAction)dbo).computeJsonModel());
-								}
-								
-								String searchPath = dataPath;
-								
-								JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-								
-								JSONObject jsonResponse = jsonOutput;
-								
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										modelTreeViewer.setInput(jsonResponse);
-										initTreeSelection(modelTreeViewer, null);
-										setWidgetsEnabled(true);
-										updateMessage();
-									}
-								});
-							}
-							// case of UISharedComponent
-							else if (dbo instanceof UISharedComponent) {
-								JSONObject jsonObject = new JSONObject(((UISharedComponent)dbo).computeJsonModel());
-								
-								String searchPath = dataPath;
-								
-								JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-								
-								JSONObject jsonResponse = jsonOutput;
-								
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										modelTreeViewer.setInput(jsonResponse);
-										initTreeSelection(modelTreeViewer, null);
-										setWidgetsEnabled(true);
-										updateMessage();
-									}
-								});
-							}
-							// case of ApplicationComponent
-							else if (dbo instanceof ApplicationComponent) {
-								String json = params.get("json");
-								JSONObject jsonModel = new JSONObject(json);
-								
-								Display.getDefault().asyncExec(new Runnable() {
-									public void run() {
-										modelTreeViewer.setInput(jsonModel);
-										initTreeSelection(modelTreeViewer, null);
-										setWidgetsEnabled(true);
-										updateMessage();
-									}
-								});
-							}
-							// should not happened
-							else {
-								throw new Exception("DatabaseObject "+ dbo.getClass().getName() +" not supported!");
-							}
-						} else {
+						}
+						else if ("FullSyncViewAction".equals(name)) {
+							String fsview = ionBean.getProperty("fsview").getValue().toString();
+							String includeDocs =  ionBean.getProperty("include_docs").getValue().toString();
+							String reduce =  ionBean.getProperty("reduce").getValue().toString();
+							
+							String qname = fsview.substring(0, fsview.lastIndexOf('.'));
+							DesignDocument dd = (DesignDocument) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+							Connector connector = dd.getConnector();
+							
+							String viewName = dd.getName() + "/" + fsview.substring(fsview.lastIndexOf('.')+1);
+							
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
-									modelTreeViewer.setInput(new JSONObject());
-									initTreeSelection(modelTreeViewer, null);
-									setWidgetsEnabled(true);
-									updateMessage();
+									IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+									ConnectorEditor connectorEditor = ConvertigoPlugin.getDefault().getConnectorEditor(connector);
+									if (connectorEditor == null) {
+										try {
+											connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
+															"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+										} catch (PartInitException e) {
+											ConvertigoPlugin.logException(e,
+													"Error while loading the connector editor '"
+															+ connector.getName() + "'");
+										}
+									}
+									
+				    				if (connectorEditor != null) {
+				    					// activate connector's editor
+				    					activePage.activate(connectorEditor);
+				    					
+				    					// set transaction's parameters
+				    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+				    					((GetViewTransaction)transaction).setViewname(viewName);
+				   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+				   										    					
+				    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+				   						view_reduce.setValueOrNull(reduce);
+				    					
+				    					// execute view transaction
+				    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
+				    				}
 								}
 							});
+						} else if (name.startsWith("FullSync")) {
+							if (ionBean.getProperty("requestable") != null) {
+								String qname = ionBean.getProperty("requestable").getValue().toString();
+								DatabaseObject connector = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
+								if (connector != null) {
+									XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(connector.getProject().getName());
+									AbstractCouchDbTransaction act = null;
+									
+									if ("FullSyncDeleteAction".equals(name))
+										act = new DeleteDocumentTransaction();
+									else if ("FullSyncDeleteAttachmentAction".equals(name))
+										act = new DeleteDocumentAttachmentTransaction();
+									else if ("FullSyncPostAction".equals(name))
+										act = new PostDocumentTransaction();
+									else if ("FullSyncPutAttachmentAction".equals(name))
+										act = new PutDocumentAttachmentTransaction();
+									
+									if (act != null) {
+										QName typeQName = act.getComplexTypeAffectation();
+										XmlSchemaType xmlSchemaType = schema.getTypeByName(typeQName);
+										Document document = XmlSchemaUtils.getDomInstance(xmlSchemaType);
+										
+										String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
+										JSONObject jsonOutput = new JSONObject(jsonString).getJSONObject("document");
+										cleanJsonModel(jsonOutput);
+										jsonOutput.remove("_c8oMeta");
+										jsonOutput.remove("error");
+										jsonOutput.remove("reason");
+										
+										if (jsonObject.has("out")) {
+											jsonObject.put("out", jsonOutput);
+										}
+									}
+								}
+							}
 						}
+					}
+				}
+				else if (dbo instanceof UICustomAction) {
+					jsonObject = new JSONObject(((UICustomAction)dbo).computeJsonModel());
+				}
+				
+				String searchPath = dataPath;
+				
+				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+				
+				jsonModel = jsonOutput;
+			}
+			// case of UISharedComponent
+			else if (dbo instanceof UISharedComponent) {
+				JSONObject jsonObject = new JSONObject(((UISharedComponent)dbo).computeJsonModel());
+				
+				String searchPath = dataPath;
+				
+				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
+				
+				jsonModel = jsonOutput;
+			}
+			// case of ApplicationComponent
+			else if (dbo instanceof ApplicationComponent) {
+				String json = params.get("json");
+				jsonModel = new JSONObject(json);
+			}
+			// should not happened
+			else {
+				throw new Exception("DatabaseObject "+ dbo.getClass().getName() +" not supported!");
+			}
+		}
+		return jsonModel;
+	}
+	
+	private void updateModel(TVObject tvObject) {
+		Object object = tvObject.getObject();
+		if (object != null) {
+			Thread t = new Thread(new Runnable() {
+				public void run() {
+					isUpdating = true;
+					
+					Display.getDefault().asyncExec(new Runnable() {
+						public void run() {
+							setWidgetsEnabled(false);
+							updateMessage("generating model...");
+						}
+					});
+					
+					try {
+						Map<String, Object> data = lookupModelData(tvObject);
+						JSONObject jsonModel = getJsonModel(data, null);
+						
+						Display.getDefault().asyncExec(new Runnable() {
+							public void run() {
+								modelTreeViewer.setInput(jsonModel);
+								initTreeSelection(modelTreeViewer, null);
+								setWidgetsEnabled(true);
+								updateMessage();
+							}
+						});
 					} catch (Exception e) {
 						e.printStackTrace();
 						
