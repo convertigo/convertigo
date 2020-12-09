@@ -109,10 +109,12 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
         	}
         	
         	if (uiComponent instanceof UIStyle && uiComponent.bNew) {
-				String scss = getCustomScss();
-				if (!scss.isEmpty()) {
-					((UIStyle)uiComponent).setStyleContent(new FormatedContent(scss));
-				}
+        		if (((UIStyle)uiComponent).getStyleContent().getString().isEmpty()) {
+					String scss = getCustomScss();
+					if (!scss.isEmpty()) {
+						((UIStyle)uiComponent).setStyleContent(new FormatedContent(scss));
+					}
+        		}
         	}
         	
         	super.addUIComponent(uiComponent, after);
