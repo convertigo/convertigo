@@ -1289,6 +1289,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				boolean[] running = {true};
 				try {
 					new File(ionicDir, "package-lock.json").delete();
+					new File(ionicDir, "pnpm-lock.yaml").delete();
 					
 					if (forceClean) {
 						appendOutput("...", "...", "Removing existing node_modules... This can take several seconds...");
@@ -1303,20 +1304,38 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					ProcessBuilder pb;
 					Process p;
 					
-					File yarnFile = new File(ionicDir.toString() + "/node_modules/.bin/yarn");
-					if (!yarnFile.exists()) {
-						Engine.logStudio.info("Installing Yarn...");
-						pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "yarn");
+					boolean useYarn = true;
+					if (useYarn) {
+						File yarnFile = new File(ionicDir.toString() + "/node_modules/.bin/yarn");
+						if (!yarnFile.exists()) {
+							Engine.logStudio.info("Installing Yarn...");
+							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "yarn");
+							pb.redirectErrorStream(true);
+							pb.directory(ionicDir);
+							p = pb.start();
+							p.waitFor();
+						}
+						
+						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "yarn");
 						pb.redirectErrorStream(true);
 						pb.directory(ionicDir);
 						p = pb.start();
-						p.waitFor();
+					} else {
+						File pnpmFile = new File(ionicDir.toString() + "/node_modules/.bin/pnpm");
+						if (!pnpmFile.exists()) {
+							Engine.logStudio.info("Installing Pnpm...");
+							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "pnpm");
+							pb.redirectErrorStream(true);
+							pb.directory(ionicDir);
+							p = pb.start();
+							p.waitFor();
+						}
+						
+						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "pnpm", "i");
+						pb.redirectErrorStream(true);
+						pb.directory(ionicDir);
+						p = pb.start();
 					}
-					
-					pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "yarn");
-					pb.redirectErrorStream(true);
-					pb.directory(ionicDir);
-					p = pb.start();
 					
 					Engine.execute(() -> {
 						try {
