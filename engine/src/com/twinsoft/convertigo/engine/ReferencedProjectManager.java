@@ -162,10 +162,10 @@ public class ReferencedProjectManager {
 		File prjDir = null;
 		boolean cloneDone = false;
 		if (parser.getGitRepo() == null) {
-			if (!force && project != null) {
+			if ((!force && project != null) || parser.getGitUrl() == null) {
 				return project;
 			} else {
-				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), parser.getProjectName(), true);
+				return Engine.theApp.databaseObjectsManager.deployProject(parser.getGitUrl(), projectName, true);
 			}
 		}
 		if (project != null) {
