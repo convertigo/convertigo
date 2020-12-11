@@ -475,7 +475,7 @@
              project="true">
           <description>Imports the Convertigo Amazon LEX library project.</description>
              {
-               "url": "lib_AmazonLEX=https://github.com/convertigo/c8oprj-lib-amazonlex.git:branch=7.8.0",
+               "url": "lib_AmazonLEX=https://github.com/convertigo/c8oprj-lib-amazonlex.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -531,7 +531,7 @@
              project="true">
           <description>Imports the Convertigo FileTransfer library project.</description>
              {
-               "url": "lib_FileTransfer=https://github.com/convertigo/c8oprj-lib-filetransfer.git:branch=7.7.0",
+               "url": "lib_FileTransfer=https://github.com/convertigo/c8oprj-lib-filetransfer.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -545,7 +545,7 @@
              project="true">
           <description>Imports the Convertigo FullSync Groups library project.</description>
              {
-               "url": "lib_FullSyncGrp=https://github.com/convertigo/c8oprj-lib-fullsync-grp.git:branch=7.7.0",
+               "url": "lib_FullSyncGrp=https://github.com/convertigo/c8oprj-lib-fullsync-grp.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -602,7 +602,7 @@
             project="true">
             <description>Imports a project creating a IonicConferenceApp application. This demo is based on Ionic Conference App but using the Convertigo Mobile Builder.</description>
              {
-               "url": "IonicConferenceApp=https://github.com/convertigo/c8oprj-sample-ionicconferenceapp/archive/7.8.0.zip",
+               "url": "IonicConferenceApp=https://github.com/convertigo/c8oprj-sample-ionicconferenceapp/archive/7.9.0.zip",
                "doPageSummarySampleProject": true
              } 
        </wizard>
@@ -616,7 +616,7 @@
             project="true">
             <description>Imports a project creating a FlightShare application. Flight Share is an application able to share flights within Pilots using Flyin Club Planes.</description>
              {
-               "url": "FlightShare=https://github.com/convertigo/c8oprj-sample-flightshare/archive/7.8.0.zip",
+               "url": "FlightShare=https://github.com/convertigo/c8oprj-sample-flightshare/archive/7.9.0.zip",
                "doPageSummarySampleProject": true
              } 
        </wizard>
@@ -700,11 +700,6 @@
                relationship="stack"
                minimized="false"
                relative="org.eclipse.egit.ui.RepositoriesView"/>
-         <view
-               id="org.eclipse.buildship.ui.views.taskview"
-               relationship="stack"
-               minimized="false"
-               relative="org.eclipse.egit.ui.StagingView"/>
          <view
                id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
                ratio="0.35"
