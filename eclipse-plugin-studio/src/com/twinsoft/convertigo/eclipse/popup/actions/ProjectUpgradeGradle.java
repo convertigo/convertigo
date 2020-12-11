@@ -28,12 +28,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.eclipse.core.resources.ICommand;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -41,7 +35,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -121,41 +114,11 @@ public class ProjectUpgradeGradle extends MyAbstractAction {
 					ProjectTreeObject projectTreeObject = (ProjectTreeObject) treeObject;
 					Project project = projectTreeObject.getObject();
 					File dir = project.getDirFile();
-					IProject iproject = projectTreeObject.getIProject();
 					Job.create("Update gradle resources of " + projectTreeObject.getName(), (monitor) -> {
 						try {
 							update(dir);
-							File pref = new File(dir, ".settings/org.eclipse.buildship.core.prefs");
-							if (!pref.exists()) {
-								try {
-									FileUtils.write(pref, "connection.project.dir=\n"
-											+ "eclipse.preferences.version=1", "UTF-8");
-								} catch (IOException e) {
-								}
-							}
-							iproject.refreshLocal(1, monitor);
-							if (!iproject.hasNature(ConvertigoPlugin.GRADLE_NATURE_ID)) {
-								IProjectDescription description = iproject.getDescription();
-								String[] natures = description.getNatureIds();
-								String[] newNatures = new String[natures.length + 1];
-								System.arraycopy(natures, 0, newNatures, 0, natures.length);
-								newNatures[natures.length] = ConvertigoPlugin.GRADLE_NATURE_ID;
-								IWorkspace workspace = ResourcesPlugin.getWorkspace();
-								IStatus status = workspace.validateNatureSet(newNatures);
-								if (status.getCode() == IStatus.OK) {
-									description.setNatureIds(newNatures);
-									ICommand bc = description.newCommand();
-									bc.setBuilderName("org.eclipse.buildship.core.gradleprojectbuilder");
-									ICommand[] cmds = description.getBuildSpec();
-									ICommand[] newCmds = new ICommand[cmds.length + 1];
-									System.arraycopy(cmds, 0, newCmds, 0, cmds.length);
-									newCmds[cmds.length] = bc;
-									description.setBuildSpec(newCmds);
-									iproject.setDescription(description, IProject.FORCE, monitor);
-								}
-							}
 						} catch (Exception e) {
-							e.printStackTrace();
+							Engine.logStudio.error("failed to update gradle resources", e);
 						}
 					}).schedule();
 				}
