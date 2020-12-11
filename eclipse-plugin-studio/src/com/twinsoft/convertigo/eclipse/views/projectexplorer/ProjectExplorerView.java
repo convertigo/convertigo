@@ -2318,7 +2318,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		TreeParent invisibleRoot = ((ViewContentProvider)viewer.getContentProvider()).getTreeRoot();
 		UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(viewer, projectName);
 		invisibleRoot.addChild(unloadedProjectTreeObject);
-		ConvertigoPlugin.getDefault().createProjectPluginResource(projectName);			
 		loadProject(unloadedProjectTreeObject, isCopy, originalName);
 	}
 

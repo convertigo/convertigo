@@ -31,6 +31,7 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.TagOpt;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -178,12 +179,41 @@ public class GitUtils {
 		}
 	}
 
+	public static void fetch(File dir) throws Exception {
+		try (Git git = Git.open(dir)) {
+			git.fetch().setForceUpdate(true).setTagOpt(TagOpt.FETCH_TAGS).call();
+			Engine.logEngine.info("(ReferencedProjectManager) Fetch from " + dir);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) fetch " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
+		}
+	}
+
 	public static void reset(File dir) throws Exception {
 		try (Git git = Git.open(dir)) {
 			git.reset().setMode(ResetType.HARD).call();
 			Engine.logEngine.info("(ReferencedProjectManager) Reset from " + dir);
 		} catch (Exception e) {
 			Engine.logEngine.warn("(ReferencedProjectManager) reset " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
+		}
+	}
+	
+	public static void reset(File dir, String branch) throws Exception {
+		if (branch == null) {
+			reset(dir);
+			return;
+		}
+		try (Git git = Git.open(dir)) {
+			Ref rev = git.getRepository().findRef(branch);
+			if (rev == null || rev.getName().startsWith("refs/tags/")) {
+				git.reset().setMode(ResetType.HARD).setRef(branch).call();	
+			} else {
+				git.reset().setMode(ResetType.HARD).setRef("origin/" + branch).call();
+			}
+			Engine.logEngine.info("(ReferencedProjectManager) Reset from " + dir + " to " + branch);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) reset " + dir + " to " + branch + " failed: [" + e.getClass() + "] " + e.getMessage());
 			throw e;
 		}
 	}

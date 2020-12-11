@@ -213,8 +213,8 @@ public class ReferencedProjectManager {
 			if (!cloneDone && parser.isAutoPull() && !Engine.isStudioMode()) {
 				synchronized (getLock(dir)) {
 					String exRev = GitUtils.getRev(dir);
-					GitUtils.reset(dir);
-					GitUtils.pull(dir);
+					GitUtils.fetch(dir);
+					GitUtils.reset(dir, parser.getGitBranch());
 					String newRev = GitUtils.getRev(dir);
 					if (!exRev.equals(newRev)) {
 						project = null;

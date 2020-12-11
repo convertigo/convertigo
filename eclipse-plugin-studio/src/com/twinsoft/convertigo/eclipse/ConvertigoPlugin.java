@@ -1402,10 +1402,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return propertyDescriptor;
 	}
 
-	public IProject createProjectPluginResource(String projectName) throws CoreException {
-		return createProjectPluginResource(projectName, null, null);
-	}
-
 	public IProject createProjectPluginResource(String projectName, String projectDir) throws CoreException {
 		return createProjectPluginResource(projectName, projectDir, null);
 	}
@@ -1471,7 +1467,15 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
-		IProject resourceProject = createProjectPluginResource(projectName);
+		Project project = null;
+		try {
+			project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+		} catch (EngineException e1) {
+		}
+		if (project == null) {
+			return null;
+		}
+		IProject resourceProject = createProjectPluginResource(projectName, project.getDirPath());
 		if (resourceProject.exists()) {
 			try {
 				openProject(resourceProject, monitor);

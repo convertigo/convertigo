@@ -185,7 +185,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		// delete old resources plugin
 		ConvertigoPlugin.getDefault().deleteProjectPluginResource(oldName);
 		// create new resources plugin
-		ConvertigoPlugin.getDefault().createProjectPluginResource(newName);
+		ConvertigoPlugin.getDefault().createProjectPluginResource(newName, project.getDirPath());
 	}
 	
 	/* (non-Javadoc)
