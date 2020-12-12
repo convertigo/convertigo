@@ -1304,7 +1304,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					ProcessBuilder pb;
 					Process p;
 					
-					boolean useYarn = true;
+					boolean useYarn = false;
 					if (useYarn) {
 						File yarnFile = new File(ionicDir.toString() + "/node_modules/.bin/yarn");
 						if (!yarnFile.exists()) {
@@ -1331,12 +1331,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							p.waitFor();
 						}
 						
-						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "pnpm", "i");
+						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "pnpm", "install", "--shamefully-hoist");
 						pb.redirectErrorStream(true);
 						pb.directory(ionicDir);
 						p = pb.start();
 					}
 					
+					/*
 					Engine.execute(() -> {
 						try {
 							while (running[0]) {
@@ -1348,6 +1349,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							appendOutput("Something wrong during the install: " + e);
 						}
 					});
+					*/
+					
 					processes.add(p);
 					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					String line;
