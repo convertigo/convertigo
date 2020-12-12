@@ -1304,7 +1304,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					ProcessBuilder pb;
 					Process p;
 					
-					boolean useYarn = false;
+					boolean useYarn = false;  // set to true to enable yarn again.
 					if (useYarn) {
 						File yarnFile = new File(ionicDir.toString() + "/node_modules/.bin/yarn");
 						if (!yarnFile.exists()) {
