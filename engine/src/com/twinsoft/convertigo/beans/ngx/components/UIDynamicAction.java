@@ -577,20 +577,20 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			e.printStackTrace();
 		}
 		
-		DatabaseObject parent = getParent();
-		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
-			try {
-				String functions = jsonScripts.getString("functions");
-				String fname = getFunctionName();
-				String fcode = computeActionFunction();
-				if (main.addFunction(fname, fcode)) {
-					functions += System.lineSeparator() + fcode;
-				}
-				jsonScripts.put("functions", functions);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
+//		DatabaseObject parent = getParent();
+//		if (parent != null && !(parent instanceof IAction) && !(parent instanceof UIActionEvent)) {
+//			try {
+//				String functions = jsonScripts.getString("functions");
+//				String fname = getFunctionName();
+//				String fcode = computeActionFunction();
+//				if (main.addFunction(fname, fcode)) {
+//					functions += System.lineSeparator() + fcode;
+//				}
+//				jsonScripts.put("functions", functions);
+//			} catch (JSONException e) {
+//				e.printStackTrace();
+//			}
+//		}
 		
 		super.computeScripts(jsonScripts);
 	}

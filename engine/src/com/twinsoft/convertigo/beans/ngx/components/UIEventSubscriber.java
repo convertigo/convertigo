@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
-public class UIEventSubscriber extends UIComponent implements IEventListener {
+public class UIEventSubscriber extends UIComponent implements IEventGenerator, IEventListener {
 
 	private static final long serialVersionUID = -7552967959256066078L;
 
@@ -52,10 +52,12 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	private transient UIActionFinallyEvent finallyEvent = null;
 	
 	protected UIActionErrorEvent getErrorEvent() {
+		checkSubLoaded();
 		return this.errorEvent;
 	}
 	
 	protected UIActionFinallyEvent getFinallyEvent() {
+		checkSubLoaded();
 		return this.finallyEvent;
 	}
 	
@@ -186,7 +188,7 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 			try {
 				String functions = jsonScripts.getString("functions");
 				String fname = getFunctionName();
-				String fcode = computeListenerFunction();
+				String fcode = computeEventFunction();//computeListenerFunction();
 				if (main.addFunction(fname, fcode)) {
 					functions += System.lineSeparator() + fcode;
 				}
@@ -199,6 +201,163 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		}
 	}
 
+	protected boolean handleError() {
+		boolean handleError = false;
+		UIActionErrorEvent errorEvent = getErrorEvent();
+		if (errorEvent != null && errorEvent.isEnabled()) {
+			if (errorEvent.numberOfActions() > 0) {
+				handleError = true;
+			}
+		}
+		return handleError;
+	}
+	
+	protected boolean handleFinally() {
+		boolean handleFinally = false;
+		UIActionFinallyEvent finallyEvent = getFinallyEvent();
+		if (finallyEvent != null && finallyEvent.isEnabled()) {
+			if (finallyEvent.numberOfActions() > 0) {
+				handleFinally = true;
+			}
+		}
+		return handleFinally;
+	}
+	
+	protected int numberOfActions() {
+		int num = 0;
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIDynamicAction || component instanceof UICustomAction) {
+				if (component.isEnabled()) {
+					num++;
+				}
+			}
+		}
+		return num;
+	}
+	
+	@Override
+	public String computeEvent() {
+		if (isEnabled()) {
+			int num = numberOfActions();
+			StringBuilder sb = new StringBuilder();
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component.isEnabled()) {
+					if (component instanceof IAction) {
+						String s = "";
+						if (component instanceof UIDynamicAction) {
+							UIDynamicAction uda = (UIDynamicAction)component;
+							s = uda.computeActionContent();
+						}
+						if (component instanceof UICustomAction) {
+							UICustomAction uca = (UICustomAction)component;
+							s = uca.computeActionContent();
+						}
+						
+						if (!s.isEmpty()) {
+							sb.append(sb.length()>0 && num > 1 ? "\t\t,"+ System.lineSeparator() :"")
+							.append(s);
+						}
+					}
+				}
+			}
+			
+			String tsCode = "";
+			if (sb.length() > 0) {
+				if (num > 1) {
+					tsCode += "\t\treturn Promise.all(["+ System.lineSeparator();
+					tsCode += sb.toString();
+					tsCode += "\t\t])"+ System.lineSeparator();
+				} else {
+					tsCode += "\t\treturn "+ sb.toString().replaceFirst("\t\t", "");
+				}
+			} else {
+				tsCode += "\t\tPromise.resolve(true)"+ System.lineSeparator();
+			}
+			
+			//tsCode = tsCode.replaceAll("this", "page");
+			//tsCode = tsCode.replaceAll("page\\.actionBeans\\.", "this.");
+			return tsCode;
+		}
+		return "";		
+	}
+	
+	protected String computeEventFunction() {
+		String computed = "";
+		if (isEnabled()) {
+			
+			StringBuilder sbCatch = new StringBuilder();
+			if (handleError()) {
+				sbCatch.append(this.errorEvent.computeEvent());
+			}
+			StringBuilder sbFinally = new StringBuilder();
+			if (handleFinally()) {
+				sbFinally.append(this.finallyEvent.computeEvent());
+			}
+			
+			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			String functionName = getFunctionName();
+			
+			StringBuilder cartridge = new StringBuilder();
+			cartridge.append("\t/**").append(System.lineSeparator())
+						.append("\t * Function "+ functionName).append(System.lineSeparator());
+			for (String commentLine : getComment().split(System.lineSeparator())) {
+				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
+			}
+			cartridge.append("\t * ").append(System.lineSeparator());
+			cartridge.append("\t * @param data , the event data").append(System.lineSeparator());
+			cartridge.append("\t */").append(System.lineSeparator());
+			
+			
+			computed += System.lineSeparator();
+			computed += cartridge;
+			computed += "\t"+ functionName + "(data) {" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": '"+topic+"' received\");" + System.lineSeparator();
+			computed += "\t\tlet c8oPage : "+ cafPageType +" = this;" + System.lineSeparator();
+			computed += "\t\tlet parent;" + System.lineSeparator();
+			computed += "\t\tlet scope;" + System.lineSeparator();
+			computed += "\t\tlet out;" + System.lineSeparator();
+			computed += "\t\tlet event;" + System.lineSeparator();
+			computed += "\t\tlet stack = {root: {scope:{}, in:{}, out:data}};" + System.lineSeparator();
+			computed += "\t\t" + System.lineSeparator();
+			computed += computeInnerGet("c8oPage",functionName);
+			computed += "\t\t" + System.lineSeparator();
+			computed += "\t\tparent = stack[\"root\"];" + System.lineSeparator();
+			computed += "\t\tevent = stack[\"root\"].out;" + System.lineSeparator();
+			computed += "\t\tscope = stack[\"root\"].scope;" + System.lineSeparator();
+			computed += "\t\tout = event;" + System.lineSeparator();
+			computed += "\t\t" + System.lineSeparator();
+			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
+			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
+			computed += ""+ computeEvent();
+			if (sbCatch.length() > 0) {
+				computed += "\t\t.catch((error:any) => {"+ System.lineSeparator();
+				computed += "\t\tparent = self;"+ System.lineSeparator();
+				computed += "\t\tparent.out = error;"+ System.lineSeparator();
+				computed += "\t\tout = parent.out;"+ System.lineSeparator();
+				computed += "\t\t"+ sbCatch.toString() + System.lineSeparator();
+				computed += "\t\t})"+ System.lineSeparator();
+			}			
+			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			if (sbFinally.length() > 0) {
+				computed += "\t\t.then((res:any) => {"+ System.lineSeparator();
+				computed += "\t\tparent = self;"+ System.lineSeparator();
+				computed += "\t\tparent.out = res;"+ System.lineSeparator();
+				computed += "\t\tout = parent.out;"+ System.lineSeparator();
+				computed += "\t\t"+ sbFinally.toString() + System.lineSeparator();
+				computed += "\t\t})"+ System.lineSeparator();
+				computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
+			}			
+			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
+			computed += "\t\t});"+System.lineSeparator();
+			computed += "\t}";
+		}
+		return computed;
+	}
+	
 	protected String computeListenerFunction() {
 		String computed = "";
 		if (isEnabled()) {

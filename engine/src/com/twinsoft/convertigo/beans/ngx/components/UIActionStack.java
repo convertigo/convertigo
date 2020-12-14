@@ -118,10 +118,12 @@ public class UIActionStack extends UIComponent implements IShared {
 	}
 	
 	protected UIActionErrorEvent getErrorEvent() {
+		checkSubLoaded();
 		return this.errorEvent;
 	}
 	
 	protected UIActionFinallyEvent getFinallyEvent() {
+		checkSubLoaded();
 		return this.finallyEvent;
 	}
 	
