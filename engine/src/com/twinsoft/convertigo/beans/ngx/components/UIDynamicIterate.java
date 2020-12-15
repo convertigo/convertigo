@@ -42,15 +42,18 @@ public class UIDynamicIterate extends UIDynamicAction {
 	@Override
 	public UIDynamicIterate clone() throws CloneNotSupportedException {
 		UIDynamicIterate cloned = (UIDynamicIterate) super.clone();
+		cloned.loopEvent = null;
 		return cloned;
 	}
 	
 	
 	protected boolean hasLoopEvent() {
+		checkSubLoaded();
 		return this.loopEvent != null;
 	}
 	
 	protected boolean hasFailureEvent() {
+		checkSubLoaded();
 		return this.failureEvent != null;
 	}
 	
@@ -103,7 +106,7 @@ public class UIDynamicIterate extends UIDynamicAction {
 	
 	protected boolean handleLoop() {
 		boolean handleLoop = false;
-		if (this.loopEvent != null) {
+		if (hasLoopEvent()) {
 			if (this.loopEvent.isEnabled()) {
 				if (this.loopEvent.numberOfActions() > 0) {
 					handleLoop = true;
