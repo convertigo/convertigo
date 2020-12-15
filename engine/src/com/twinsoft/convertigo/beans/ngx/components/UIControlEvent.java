@@ -26,6 +26,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirective;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
@@ -390,14 +391,70 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		return "ETS" + priority;
 	}
 
+	protected String getScope() {
+		
+		UIControlEvent original = (UIControlEvent) getOriginal();
+		UISharedComponent sharedComponent = original.getSharedComponent();
+		boolean isInSharedComponent = sharedComponent  != null;
+		
+		String scope = "";
+		
+		DatabaseObject parent = getParent();
+		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
+			if (parent instanceof UIUseShared) {
+				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
+				if (uisc != null) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+				}
+				if (isInSharedComponent) {
+					break;
+				}
+			}
+			if (parent instanceof UIControlDirective) {
+				UIControlDirective uicd = (UIControlDirective)parent;
+				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
+					
+					String item = uicd.getDirectiveItemName();
+					if (!item.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += item + ": "+ item;
+					}
+					String index = uicd.getDirectiveIndexName();
+					if (!index.isEmpty()) {
+						scope += !scope.isEmpty() ? ", ":"";
+						scope += index + ":" + index;
+					}
+				}
+			}
+			if (parent instanceof UIElement) {
+				String identifier = ((UIElement)parent).getIdentifier();
+				if (!identifier.isEmpty()) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += identifier+ ": "+ identifier;
+				}			
+			}
+			
+			parent = parent.getParent();
+		}
+		
+		if (!scope.isEmpty()) {
+			if (isInSharedComponent) {
+				scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+			} else {
+				scope = "merge({}, {"+ scope +"})";
+			}
+		} else {
+			scope = "{}";
+		}
+		return scope;
+	}
+	
 	@Override
 	public String getAttrValue() {
-//		String attrValue = super.getAttrValue();
-//		String attrName = getAttrName();
-//		if ("(ionInfinite)".equals(attrName)) {
-//			attrValue = "$event.waitFor("+ attrValue + ")";
-//		}
-		String scope = "{}";
+		String scope = getScope();
 		String in = "{}";
 		String attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";;
 		return attrValue;
