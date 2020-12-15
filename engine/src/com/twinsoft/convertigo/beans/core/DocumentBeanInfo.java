@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
-
 public class DocumentBeanInfo extends MySimpleBeanInfo {
 
 	public DocumentBeanInfo() {
