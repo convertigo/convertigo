@@ -177,7 +177,7 @@
             project="true">
             <description>Creates an IBM 3270 Web style webization project.</description>
             {
-              "url": "template_javelin=https://github.com/convertigo/c8oprj-template-javelin/archive/7.9.0.zip",
+              "url": "template_javelin=https://github.com/convertigo/c8oprj-template-javelin/archive/7.8.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage4": true,
@@ -194,7 +194,7 @@
             project="true">
             <description>Creates an IBM 5250 Web style webization project.</description>
             {
-              "url": "template_javelin=https://github.com/convertigo/c8oprj-template-javelin/archive/7.9.0.zip",
+              "url": "template_javelin=https://github.com/convertigo/c8oprj-template-javelin/archive/7.8.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage4": true,
@@ -211,7 +211,7 @@
             project="true">
             <description>Creates a BULL DKUxxx Web style webization project.</description>
             {
-              "url": "template_javelinDKU=https://github.com/convertigo/c8oprj-template-javelindku/archive/7.9.0.zip",
+              "url": "template_javelinDKU=https://github.com/convertigo/c8oprj-template-javelindku/archive/7.6.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage4": true,
@@ -229,7 +229,7 @@
             project="true">
             <description>Creates an IBM 3270 Screen based WebService connector project.</description>
             {
-              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.9.0.zip",
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage4": true,
@@ -246,7 +246,7 @@
             project="true">
             <description>Creates an IBM 5250 Screen based WebService connector project.</description>
             {
-              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.9.0.zip",
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage4": true,
@@ -263,7 +263,7 @@
             project="true">
             <description>Creates a BULL DKU7xx Screen based WebService connector project.</description>
             {
-              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.9.0.zip",
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage4": true,
@@ -280,7 +280,7 @@
             project="true">
             <description>Creates an UNIX VTxxx Screen based WebService connector project.</description>
             {
-              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.9.0.zip",
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage4": true,
@@ -297,7 +297,7 @@
             project="true">
             <description>Creates an IBM CICS COMMAREA based WebService connector project.</description>
             {
-              "url": "template_CICS=https://github.com/convertigo/c8oprj-template-cics/archive/7.9.0.zip",
+              "url": "template_CICS=https://github.com/convertigo/c8oprj-template-cics/archive/7.6.0.zip",
               "doPage1": true,
               "doPage2": true,
               "doPage5": true,
@@ -348,7 +348,7 @@
              project="true">
              <description>Creates a SQL project.</description>
              {
-               "url": "template_SQL=https://github.com/convertigo/c8oprj-template-sql/archive/7.9.0.zip",
+               "url": "template_SQL=https://github.com/convertigo/c8oprj-template-sql/archive/7.6.0.zip",
                "doPage1": true,
                "doPage2": true,
                "doConfigureSQLConnectorPage": true
@@ -365,7 +365,7 @@
              project="true">
              <description>Creates a SAP BAPI JCO project.</description>
              {
-               "url": "template_SAP=https://github.com/convertigo/c8oprj-template-sap/archive/7.9.0.zip",
+               "url": "template_SAP=https://github.com/convertigo/c8oprj-template-sap/archive/7.6.0.zip",
                "doPage1": true,
                "doPage2": true,
                "doConfigureSAPConnectorPage": true
@@ -382,7 +382,7 @@
             project="true">
             <description>Creates a Site Clipper connector project.</description>
              {
-               "url": "template_siteClipper=https://github.com/convertigo/c8oprj-template-site-clipper/archive/7.9.0.zip",
+               "url": "template_siteClipper=https://github.com/convertigo/c8oprj-template-site-clipper/archive/7.6.0.zip",
                "doPage1": true,
                "doPage2": true,
                "doPage11": true
@@ -447,7 +447,7 @@
              project="true">
           <description>Imports the Convertigo User Manager library project.</description>
              {
-               "url": "lib_UserManager=https://github.com/convertigo/c8oprj-lib-user-manager.git:branch=master",
+               "url": "lib_UserManager=https://github.com/convertigo/c8oprj-lib-user-manager.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -461,7 +461,7 @@
              project="true">
           <description>Imports the Convertigo SAML 2 SSO Authentication library</description>
              {
-               "url": "lib_SAML=https://github.com/convertigo/c8oprj-lib-saml.git:branch=7.7.0",
+               "url": "lib_SAML=https://github.com/convertigo/c8oprj-lib-saml.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -489,7 +489,7 @@
              project="true">
           <description>Imports the Convertigo Push manager library project.</description>
              {
-               "url": "lib_PushManager=https://github.com/convertigo/c8oprj-lib-push-manager.git:branch=master",
+               "url": "lib_PushManager=https://github.com/convertigo/c8oprj-lib-push-manager.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -517,7 +517,7 @@
              project="true">
           <description>Imports the Convertigo OAuth library project.</description>
              {
-               "url": "lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=master",
+               "url": "lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -559,7 +559,7 @@
              project="true">
           <description>Imports the Convertigo Sigfox library project.</description>
              {
-               "url": "lib_AmazonLEX=https://github.com/convertigo/c8oprj-lib-amazonlex.git:branch=7.8.0",
+               "url": "lib_AmazonLEX=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -573,7 +573,7 @@
              project="true">
           <description>Imports the Convertigo Salesforce library project.</description>
              {
-               "url": "lib_Sigfox=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.6.0",
+               "url": "lib_Sigfox=https://github.com/convertigo/c8oprj-lib-salesforce.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -630,7 +630,7 @@
             project="true">
             <description>Imports a project creating a sample_HelloWorld application. Simple news reader application using the Convertigo Mobile Builder.</description>
              {
-               "url": "sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/7.7.0.zip",
+               "url": "sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/7.9.0.zip",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -644,7 +644,7 @@
             project="true">
             <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone. For this demo, the data come from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on your workstation before running this demo.</description>
              {
-               "url": "sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/7.7.0.zip",
+               "url": "sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/7.9.0.zip",
                "doPageSummarySampleProject": true
              } 
        </wizard>
