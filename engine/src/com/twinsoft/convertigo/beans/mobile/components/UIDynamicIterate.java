@@ -42,6 +42,7 @@ public class UIDynamicIterate extends UIDynamicAction {
 	@Override
 	public UIDynamicIterate clone() throws CloneNotSupportedException {
 		UIDynamicIterate cloned = (UIDynamicIterate) super.clone();
+		cloned.loopEvent = null;
 		return cloned;
 	}
 	
