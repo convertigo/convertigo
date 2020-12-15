@@ -204,6 +204,8 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 
 	protected int numberOfActions() {
+		checkSubLoaded();
+		
 		int num = 0;
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
@@ -217,100 +219,7 @@ public class UICustomAction extends UIComponent implements IAction {
 		return num;
 	}
 	
-	protected boolean handleFailure() {
-		boolean handleFailure = false;
-		if (this.failureEvent != null) {
-			if (this.failureEvent.isEnabled()) {
-				if (this.failureEvent.numberOfActions() > 0) {
-					handleFailure = true;
-				}
-			}
-		}
-		return handleFailure;
-	}
-	
-	protected boolean handleError() {
-		boolean handleError = false;
-		UIActionErrorEvent errorEvent = getParentErrorEvent();
-		if (errorEvent != null && errorEvent.isEnabled()) {
-			if (errorEvent.numberOfActions() > 0) {
-				handleError = true;
-			}
-		}
-		return handleError;
-	}
-
-	protected boolean handleFinally() {
-		boolean handleFinally = false;
-		UIActionFinallyEvent finallyEvent = getParentFinallyEvent();
-		if (finallyEvent != null && finallyEvent.isEnabled()) {
-			if (finallyEvent.numberOfActions() > 0) {
-				handleFinally = true;
-			}
-		}
-		return handleFinally;
-	}
-	
-	private UIActionErrorEvent getParentErrorEvent() {
-		DatabaseObject parent = getParent();
-		if (parent != null ) {
-			if (parent instanceof UIControlEvent) {
-				UIControlEvent uiControlEvent = (UIControlEvent)parent;
-				if (uiControlEvent.isEnabled()) {
-					return uiControlEvent.getErrorEvent();
-				}
-			} else if (parent instanceof UIAppEvent) {
-				UIAppEvent uiAppEvent = (UIAppEvent)parent;
-				if (uiAppEvent.isEnabled()) {
-					return uiAppEvent.getErrorEvent();
-				}
-			} else if (parent instanceof UIPageEvent) {
-				UIPageEvent uiPageEvent = (UIPageEvent)parent;
-				if (uiPageEvent.isEnabled()) {
-					return uiPageEvent.getErrorEvent();
-				}
-			} else if (parent instanceof UIEventSubscriber) {
-				UIEventSubscriber uiEventSubscriber = (UIEventSubscriber)parent;
-				if (uiEventSubscriber.isEnabled()) {
-					return uiEventSubscriber.getErrorEvent();
-				}
-			}
-		}
-		return null;
-	}
-
-	private UIActionFinallyEvent getParentFinallyEvent() {
-		DatabaseObject parent = getParent();
-		if (parent != null ) {
-			if (parent instanceof UIControlEvent) {
-				UIControlEvent uiControlEvent = (UIControlEvent)parent;
-				if (uiControlEvent.isEnabled()) {
-					return uiControlEvent.getFinallyEvent();
-				}
-			} else if (parent instanceof UIAppEvent) {
-				UIAppEvent uiAppEvent = (UIAppEvent)parent;
-				if (uiAppEvent.isEnabled()) {
-					return uiAppEvent.getFinallyEvent();
-				}
-			} else if (parent instanceof UIPageEvent) {
-				UIPageEvent uiPageEvent = (UIPageEvent)parent;
-				if (uiPageEvent.isEnabled()) {
-					return uiPageEvent.getFinallyEvent();
-				}
-			} else if (parent instanceof UIEventSubscriber) {
-				UIEventSubscriber uiEventSubscriber = (UIEventSubscriber)parent;
-				if (uiEventSubscriber.isEnabled()) {
-					return uiEventSubscriber.getFinallyEvent();
-				}
-			}
-		}
-		return null;
-	}
-	
 	protected boolean isStacked() {
-//		return handleError() || handleFailure() || handleFinally() || numberOfActions() > 0 || 
-//				getParent() instanceof UIAppEvent || getParent() instanceof UIPageEvent ||
-//				getParent() instanceof UIEventSubscriber;
 		return true;
 	}
 	
@@ -582,17 +491,6 @@ public class UICustomAction extends UIComponent implements IAction {
 	protected String computeActionFunction() {
 		String computed = "";
 		if (isEnabled() && isStacked()) {
-			StringBuilder sbCatch = new StringBuilder();
-			if (handleError()) {
-				UIActionErrorEvent errorEvent = getParentErrorEvent();
-				sbCatch.append(errorEvent.computeEvent());
-			}
-			StringBuilder sbFinally = new StringBuilder();
-			if (handleFinally()) {
-				UIActionFinallyEvent finallyEvent = getParentFinallyEvent();
-				sbFinally.append(finallyEvent.computeEvent());
-			}
-			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("stack");
 			
@@ -629,24 +527,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			computed += "\t\tthis.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
 			computed += ""+ computeActionContent();
-			if (sbCatch.length() > 0) {
-				computed += "\t\t.catch((error:any) => {"+ System.lineSeparator();
-				computed += "\t\tparent = self;"+ System.lineSeparator();
-				computed += "\t\tparent.out = error;"+ System.lineSeparator();
-				computed += "\t\tout = parent.out;"+ System.lineSeparator();
-				computed += "\t\t"+ sbCatch.toString();
-				computed += "\t\t})"+ System.lineSeparator();
-			}			
 			computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
-			if (sbFinally.length() > 0) {
-				computed += "\t\t.then((res:any) => {"+ System.lineSeparator();
-				computed += "\t\tparent = self;"+ System.lineSeparator();
-				computed += "\t\tparent.out = res;"+ System.lineSeparator();
-				computed += "\t\tout = parent.out;"+ System.lineSeparator();
-				computed += "\t\t"+ sbFinally.toString();
-				computed += "\t\t})"+ System.lineSeparator();
-				computed += "\t\t.catch((error:any) => {this.c8o.log.debug(\"[MB] "+functionName+": An error occured : \",error.message); resolveP(false);})" + System.lineSeparator();
-			}			
 			computed += "\t\t.then((res:any) => {this.c8o.log.debug(\"[MB] "+functionName+": ended\"); resolveP(res)});" + System.lineSeparator();
 			computed += "\t\t});"+System.lineSeparator();
 			computed += "\t}";

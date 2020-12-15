@@ -104,20 +104,8 @@ public class UIDynamicIterate extends UIDynamicAction {
 		super.decreaseOrder(databaseObject, after);
 	}
 	
-	protected boolean handleLoop() {
-		boolean handleLoop = false;
-		if (hasLoopEvent()) {
-			if (this.loopEvent.isEnabled()) {
-				if (this.loopEvent.numberOfActions() > 0) {
-					handleLoop = true;
-				}
-			}
-		}
-		return handleLoop;
-	}
-	
 	protected boolean isStacked() {
-		return handleLoop() || super.isStacked();
+		return super.isStacked();
 	}
 	
 	protected String computeActionContent() {

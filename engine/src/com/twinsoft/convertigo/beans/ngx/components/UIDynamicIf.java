@@ -47,6 +47,7 @@ public class UIDynamicIf extends UIDynamicAction {
 	}
 
 	protected boolean hasElseEvent() {
+		checkSubLoaded();
 		return this.elseEvent != null;
 	}
 	
@@ -104,20 +105,8 @@ public class UIDynamicIf extends UIDynamicAction {
 		super.decreaseOrder(databaseObject, after);
 	}
 	
-	protected boolean handleElse() {
-		boolean handleElse = false;
-		if (this.elseEvent != null) {
-			if (this.elseEvent.isEnabled()) {
-				if (this.elseEvent.numberOfActions() > 0) {
-					handleElse = true;
-				}
-			}
-		}
-		return handleElse;
-	}
-	
 	protected boolean isStacked() {
-		return handleElse() || super.isStacked();
+		return super.isStacked();
 	}
 	
 	protected String computeActionContent() {
