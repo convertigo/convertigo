@@ -1576,10 +1576,42 @@ public class SchemaManager implements AbstractManager {
 											removeList.add(attr);
 										}
 									}
+									
 									for (Node attr: removeList) {
 										element.removeAttributeNode((Attr) attr);
 									}
+									
+									try {
+										// fix unsupported boolean deserialization from json (openapi-generator with resttemplate)
+										// replace boolean string "0" or "1" with "false" or "true"
+										for (XmlSchemaObject xsa: map.get(xso).get(1)) {
+											if (xsa instanceof XmlSchemaAttribute) {
+												XmlSchemaAttribute xmlSchemaAttribute= (XmlSchemaAttribute)xsa;
+												String xsa_name = xmlSchemaAttribute.getName();
+												QName xsa_qname = xmlSchemaAttribute.getSchemaTypeName();
+												if (xsa_qname != null) {
+													String xsa_type = xsa_qname.getLocalPart();
+													Node attr = element.getAttributeNode(xsa_name);
+													if (attr != null && !xsa_type.equals("string")) {
+														String attr_value = attr.getNodeValue();
+														if (xsa_type.equals("boolean")) {
+															if (attr_value.equals("0")) {
+																attr.setNodeValue("false");
+															}
+															if (attr_value.equals("1")) {
+																attr.setNodeValue("true");
+															}
+														}
+													}
+												}
+											}
+										}
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									
 								}
+								
 								boolean hasAttributes = element.hasAttributes();
 								int numOfAttr = map.get(xso).get(1).size();
 								if (debug && !hasAttributes && numOfAttr > 0) {
