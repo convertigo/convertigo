@@ -58,7 +58,7 @@ RUN export GNUPGHOME="$(mktemp -d)" \
   || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEYS" ) \
   && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
-  && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }'" \
+  && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }').asc" \
   && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
   && rm /usr/local/bin/tini.asc \
   && chmod +x /usr/local/bin/tini \
