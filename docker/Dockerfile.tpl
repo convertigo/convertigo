@@ -31,15 +31,16 @@ RUN apt-get update -y \
     curl \
     dirmngr \
     gnupg \
+    sudo \
     unzip \
   && rm -rf /var/lib/apt/lists/*
 
 %BEGIN%
 ## grab gosu for easy step-down from root and tini for signal handling
 
-ENV GOSU_VERSION 1.11
+ENV GOSU_VERSION 1.12
 ENV GOSU_GPG_KEYS B42F6819007F00F88E364FD4036A9C25BF357DD4
-ENV TINI_VERSION 0.18.0
+ENV TINI_VERSION 0.19.0
 ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
 
 RUN export GNUPGHOME="$(mktemp -d)" \
@@ -47,8 +48,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
   || gpg --batch --keyserver pgp.mit.edu --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$GOSU_GPG_KEYS" ) \
-  && curl -o /usr/local/bin/gosu -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture)" \
-  && curl -o /usr/local/bin/gosu.asc -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture).asc" \
+  && curl -o /usr/local/bin/gosu -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+  && curl -o /usr/local/bin/gosu.asc -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture | awk -F- '{ print $NF }').asc" \
   && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
   && rm /usr/local/bin/gosu.asc \
   && chmod +x /usr/local/bin/gosu \
@@ -56,8 +57,8 @@ RUN export GNUPGHOME="$(mktemp -d)" \
   || gpg --batch --keyserver pgp.mit.edu --recv-keys "$TINI_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEYS" ) \
-  && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture)" \
-  && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture).asc" \
+  && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
+  && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }'" \
   && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
   && rm /usr/local/bin/tini.asc \
   && chmod +x /usr/local/bin/tini \
@@ -68,7 +69,9 @@ RUN export GNUPGHOME="$(mktemp -d)" \
 
 RUN useradd -s /bin/false -m convertigo \
     && mkdir -p /workspace/lib /workspace/classes \
-    && chown -R convertigo:convertigo /workspace
+    && chown -R convertigo:convertigo /workspace \
+    && echo "convertigo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/convertigo \
+    && chmod 0440 /etc/sudoers.d/convertigo
 
 ## disable unused AJP, APR and Jasper features
 ## change HTTP port the historic Convertigo port 28080
