@@ -260,14 +260,14 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				}
 			}
 			
-			if (page1 != null) {
+			else if (page1 != null) {
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
 				createFromBlankProject(monitor);
 				return;
 			}
 			
-			if (pageSummarySampleProject != null) {
+			else if (pageSummarySampleProject != null) {
 				monitor.beginTask("Creating project", 7);
 				createFromArchiveProject(monitor);
 				return;
