@@ -888,6 +888,7 @@ public class OpenApiUtils {
 				for (Entry<String, PathItem> entry : paths.entrySet()) {
 					HttpMethodType httpMethodType = null;
 					Operation operation = null;
+					String customHttpVerb = "";
 					
 					String subDir = entry.getKey();
 					PathItem pathItem = entry.getValue();
@@ -903,6 +904,9 @@ public class OpenApiUtils {
 							httpMethodType = HttpMethodType.POST;
 						} else if (httpMethod.equals(HttpMethod.PUT)) {
 							httpMethodType = HttpMethodType.PUT;
+						} else if (httpMethod.equals(HttpMethod.PATCH)) {
+							httpMethodType = HttpMethodType.PUT;
+							customHttpVerb = "PATCH";
 						} else if (httpMethod.equals(HttpMethod.DELETE)) {
 							httpMethodType = HttpMethodType.DELETE;
 						} else if (httpMethod.equals(HttpMethod.HEAD)) {
@@ -920,7 +924,8 @@ public class OpenApiUtils {
 							String operationDesc = operation.getDescription();
 							String summary = operation.getSummary();
 							
-							String name = StringUtils.normalize(subDir + ":" + httpMethodType.toString());
+							String name = StringUtils.normalize(subDir + ":" + 
+											(customHttpVerb.isEmpty() ? httpMethodType.toString() : customHttpVerb));
 							if (name.isEmpty()) {
 								name = StringUtils.normalize(operationId);
 								if (name.isEmpty()) {
@@ -1117,6 +1122,7 @@ public class OpenApiUtils {
 							transaction.setComment(comment);
 							transaction.setSubDir(subDir);
 							transaction.setHttpVerb(httpMethodType);
+							transaction.setCustomHttpVerb(customHttpVerb);
 							transaction.setHttpParameters(httpParameters);
 							transaction.setHttpInfo(true);
 							
