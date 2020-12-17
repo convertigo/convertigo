@@ -895,7 +895,8 @@ public class ClipboardManager {
 				if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
 					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack || 
 					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlDirective || 
-					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIForm
+					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIForm ||
+					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent
 				) {
 					pastedComponents.put(String.valueOf(oldPriority), GenericUtils.cast(databaseObject));
 				}
@@ -903,7 +904,8 @@ public class ClipboardManager {
 				if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
 					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack || 
 					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlDirective || 
-					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm
+					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm ||
+					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent
 				) {
 					pastedComponents.put(String.valueOf(oldPriority), GenericUtils.cast(databaseObject));
 				}
