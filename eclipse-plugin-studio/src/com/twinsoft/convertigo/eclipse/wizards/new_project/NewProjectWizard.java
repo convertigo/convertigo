@@ -138,27 +138,35 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 		}
 		if (doPage7) {
 			page7 = new ServiceCodeWizardPage(selection);
+			addPage(page7);
 		}
 		if (doPage4) {
 			page4 = new NewProjectWizardPage4(selection);
+			addPage(page4);
 		}
 		if (doPage5) {
 			page5 = new NewProjectWizardPage5(selection);
+			addPage(page5);
 		}
 		if (doPage6) {
 			page6 = new NewProjectWizardPage6(selection);
+			addPage(page6);
 		}
 		if (doPage8) {
 			page8 = new NewProjectWizardPage8(selection);
+			addPage(page8);
 		}
 		if (doPage9) {
 			page9 = new NewProjectWizardPage9(selection);
+			addPage(page9);
 		}
 		if (doPage10) {
 			page10 = new NewProjectWizardPage10(selection);
+			addPage(page10);
 		}
 		if (doPage11) {
 			page11 = new NewProjectWizardPage11(selection);
+			addPage(page11);
 		}
 	}
 
