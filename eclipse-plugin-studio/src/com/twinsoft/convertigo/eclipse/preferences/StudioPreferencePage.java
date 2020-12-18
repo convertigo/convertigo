@@ -45,6 +45,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbShowEngineOnConsole = null;
 	private BooleanFieldEditor cbEngineLoadAllProjects = null;
 	private BooleanFieldEditor cbAutoOpenDefaultConnector;
+	private BooleanFieldEditor cbAutoCreateProjectReference = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
 	private StringFieldEditor localBuildFolder = null;
@@ -110,6 +111,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoOpenDefaultConnector.setPage(this);
 		cbAutoOpenDefaultConnector.setPreferenceStore(getPreferenceStore());
 		cbAutoOpenDefaultConnector.load();
+
+		cbAutoCreateProjectReference = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_AUTO_CREATE_PROJECT_REFERENCE,
+				"Auto create missing project reference", groupGeneral);
+		cbAutoCreateProjectReference.setPage(this);
+		cbAutoCreateProjectReference.setPreferenceStore(getPreferenceStore());
+		cbAutoCreateProjectReference.load();
 		
 		// Diagnostics
 		Group groupDiagnostics = new Group(top, SWT.SHADOW_IN);
@@ -180,6 +188,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbShowEngineOnConsole.loadDefault();
 		cbEngineLoadAllProjects.loadDefault();
 		cbAutoOpenDefaultConnector.loadDefault();
+		cbAutoCreateProjectReference.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
 		mobileBuilderThreshold.loadDefault();
@@ -212,6 +221,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbShowEngineOnConsole.store();
 		cbEngineLoadAllProjects.store();
 		cbAutoOpenDefaultConnector.store();
+		cbAutoCreateProjectReference.store();
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();
 		
