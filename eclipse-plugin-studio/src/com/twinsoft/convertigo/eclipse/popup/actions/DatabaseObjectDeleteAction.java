@@ -152,6 +152,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     		        	String message = java.text.MessageFormat.format("Do you really want to delete the {0} \"{1}\" and all its sub-objects?", treeObject instanceof ProjectTreeObject ? "project" : "object", treeObject.getName());
     					
     		        	if (treeObject instanceof ProjectTreeObject) {
+    		        		message += "\nProject location: " + ((Project) treeObject.getObject()).getDirPath();
         					dialog.setToggle("Delete project content on disk (cannot be undone)", false);
         				} else {
         					dialog.removeToggle();
