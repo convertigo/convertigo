@@ -85,17 +85,20 @@ public class SiteClipperConnectorComposite extends AbstractConnectorComposite im
 	}
 
 	private void setTextData(String data) {
-		if (data != null) {
-			final String result = data;
-			httpData.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					try {
-						httpData.setText(result);
-					}
-					catch (Exception e) {;}
-				};
-			});
+		if (data == null) {
+			data = "";
+		} else if (data.length() > 10000) {
+			data = data.substring(0, 10000) + "...";
 		}
+		final String fData = data;
+		
+		httpData.getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				try {
+					httpData.setText(fData);
+				} catch (Exception e) {;}
+			};
+		});
 	}
 	
 	public void renew() {
