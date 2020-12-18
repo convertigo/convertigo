@@ -19,11 +19,14 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.List;
+
 import com.twinsoft.convertigo.engine.EngineException;
 
 public interface IApplicationComponent extends IMobileObject {
 
-	String getTplProjectName();
+	public String getTplProjectName();
+	public List<DatabaseObject> getAllChildren();
 	public void markPwaAsDirty() throws EngineException;
 
 }

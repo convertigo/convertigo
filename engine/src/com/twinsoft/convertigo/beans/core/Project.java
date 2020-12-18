@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -766,12 +768,18 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		
 		try {
-			String tplProject = mobileApplication.getApplicationComponent().getTplProjectName();
+			IApplicationComponent app = mobileApplication.getApplicationComponent();
+			
+			String tplProject = app.getTplProjectName();
 			if (!neededProjects.containsKey(tplProject)) {
 				neededProjects.put(tplProject, false);
 			}
-		} catch (Exception e) {
-		}
+			
+			for (DatabaseObject child: app.getAllChildren()) {
+				getNeededProjects(neededProjects, child);
+			}
+			
+		} catch (Exception e) {}
 		
 		return neededProjects;
 	}
@@ -800,6 +808,31 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		else if (dbo instanceof Sequence) {
 			getNeededProjects(neededProjects, ((Sequence) dbo).getSteps());
+		}
+		else if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent ||
+					dbo instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			try {
+				for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors()) {
+					if (pd.getPropertyEditorClass() != null) {
+						if (pd.getPropertyEditorClass().getSimpleName().equals("NamedSourceSelectorEditor")) {
+							Object args[] = { };
+							Method getter = pd.getReadMethod();
+							String qname = (String) getter.invoke(dbo, args);
+							if (!qname.isEmpty() && !qname.startsWith(dbo.getProject().getName() + ".")) {
+								int index = qname.indexOf(".");
+								if (index != -1) {
+									String targetProjectName = qname.substring(0, index);
+									neededProjects.put(targetProjectName, true);
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e)	{}
+			
+			for (DatabaseObject child: dbo.getAllChildren()) {
+				getNeededProjects(neededProjects, child);
+			}
 		}
 	}
 	

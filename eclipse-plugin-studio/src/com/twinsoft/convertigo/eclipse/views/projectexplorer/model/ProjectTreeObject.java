@@ -436,14 +436,17 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			}
 			
 			else if ((databaseObject instanceof RequestableStep && propertyName.startsWith("source"))
-					|| (databaseObject instanceof ProjectSchemaReference && propertyName.equals("projectName"))) {
+					|| (databaseObject instanceof ProjectSchemaReference && propertyName.equals("projectName"))
+					|| (this.equals(treeObject.getProjectTreeObject()) && treeObject instanceof INamedSourceSelectorTreeObject && 
+							((INamedSourceSelectorTreeObject)treeObject).getNamedSourceSelector().isNamedSource(propertyName))
+			) {
 				checkMissingProjects();
 			}
 			
 			// Clear schema cache
-			if (treeObject.getProjectTreeObject() == this) {
+			if (this.equals(treeObject.getProjectTreeObject())) {
 				Engine.theApp.schemaManager.clearCache(getName());
-			}			
+			}	
 		}
 	}
 	

@@ -324,6 +324,9 @@ public class UIUseShared extends UIElement {
 					Project p = null;
 					try {
 						p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
+						if (p == null) {
+							throw new Exception();
+						}
 					} catch (Exception e) {
 						Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 					}
