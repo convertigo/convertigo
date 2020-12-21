@@ -86,11 +86,11 @@ Add any *Java JVM* options such as -D[something] :
     docker run -d --name C8O -e JAVA_OPTS="-DjvmRoute=server1" -p 28080:28080 convertigo
 ## `JXMX` Environment variable
 
-Convertigo tries to allocate this amount of memory in the container and will automatically reduce it until the value is compatible for the Docker memory constraints. Once the best value found, it is used as `-Xmx=${JXMX}m` parameter for the JVM.
+Convertigo relies on the container limit resources and allocate 80% of the memory limit for the heap. The heap limit can be set with the JXMX variable that set the *JVM Xmx* parameter in megabytes instead.
 
-The default `JXMX` value is `2048` and can be defined :
+The default `JXMX` value is *empty* and can be defined :
 
-    docker run -d --name C8O -e JXMX="4096" -p 28080:28080 convertigo
+    docker run -d --name C8O -e JXMX="2048" -p 28080:28080 convertigo
 
 ## `COOKIE_PATH` Environment variable
 
@@ -134,6 +134,14 @@ Allow to configure the default Tomcat *session-timeout* in minutes.  This value 
 The default `SESSION_TIMEOUT` value is *30* and can be defined this way:
 
     docker run -d –name C8O -e SESSION_TIMEOUT=5 -p 28080:28080 convertigo
+
+## `DISABLE_SUDO` Environment variable
+
+The image include *sudo* command line, configured to allow the *convertigo* user to use it without password and to perform some *root* action inside the container. This variable allow to disable this permission.
+
+The default `DISABLE_SUDO` value is *empty* and can be defined this way:
+
+    docker run -d –name C8O -e DISABLE_SUDO=true -p 28080:28080 convertigo
 
 
 ## Pre configurated Docker compose stack
