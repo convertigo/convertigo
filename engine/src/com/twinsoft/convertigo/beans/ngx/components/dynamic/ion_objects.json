@@ -14448,6 +14448,7 @@
       "group": "Actions",
       "icon16": "modalaction_color_16x16.png",
       "icon32": "modalaction_color_32x32.png",
+ 	  "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'ModalPage ' + target; }",
       "properties": {
         "IonMode": false,
         "page": {
@@ -14618,6 +14619,7 @@
       "group": "Actions",
       "icon16": "popoveraction_color_16x16.png",
       "icon32": "popoveraction_color_32x32.png",
+	  "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'Popover ' + target; }",
       "properties": {
         "IonMode": false,
         "page": {
@@ -15356,6 +15358,7 @@
       "group": "Actions",
       "icon16": "pushpageaction_color_16x16.png",
       "icon32": "pushpageaction_color_32x32.png",
+	  "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'PushPage ' + target; }",
       "properties": {
         "page": {
           "editor": "NamedSourceSelectorEditor",
@@ -15421,6 +15424,7 @@
       "group": "Actions",
       "icon16": "rootpageaction_color_16x16.png",
       "icon32": "rootpageaction_color_32x32.png",
+      "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'RootPage ' + target; }",
       "properties": {
         "page": {
           "editor": "NamedSourceSelectorEditor",
