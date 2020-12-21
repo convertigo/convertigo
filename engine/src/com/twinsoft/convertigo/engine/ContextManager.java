@@ -533,10 +533,12 @@ public class ContextManager extends AbstractRunnableManager {
 		if (Engine.isStudioMode()) {
 			Engine.logContextManager.warn("Studio context => pools won't be initialized!");
 		}
+		long nextGC = System.currentTimeMillis() + 600000; /* 10 min */
 
 		while (isRunning) {
 			Engine.logContextManager.debug("Vulture task in progress");
-			long sleepTime = System.currentTimeMillis() + 30000;
+			long now = System.currentTimeMillis();
+			long sleepTime = now + 30000;
 			try {
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] Number", contexts.size());
 				int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
@@ -547,8 +549,9 @@ public class ContextManager extends AbstractRunnableManager {
 				managePoolContexts();
 				clearOldLogs();
 
-				if (com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads < 3 && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.AUTO_GC)) {
-					Runtime.getRuntime().gc();
+				if (now > nextGC && com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads < 3 && EnginePropertiesManager.getPropertyAsBoolean(PropertyName.AUTO_GC)) {
+					nextGC = now + 600000;
+					System.gc();
 				}
 
 				Engine.logContextManager.debug("Vulture task done");
