@@ -93,6 +93,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
 	
@@ -311,7 +312,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	
 	private void openCssFileEditor() {
 		final UIStyle ms = (UIStyle) getObject();
-		String filePath = "/_private/editor/" + ms.getParent().getQName() + "/" + ms.getName() + ".scss";
+		String filePath = "/_private/editor/" + StringUtils.hash(ms.getParent().getQName()) + "/" + ms.getName() + ".scss";
 		try {
 			// Refresh project resource
 			String projectName = ms.getProject().getName();

@@ -22,6 +22,9 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.apache.commons.codec.binary.Base32;
+import org.apache.commons.codec.digest.DigestUtils;
+
 import com.twinsoft.util.StringEx;
 
 public class StringUtils {
@@ -230,5 +233,9 @@ public class StringUtils {
 			return str.subSequence(0, max - 1) + "…";
 		}
 		return str;
+	}
+	
+	public static String hash(String str) {
+		return new Base32().encodeAsString(DigestUtils.sha1(str)).substring(0, 10).toLowerCase();
 	}
 }
