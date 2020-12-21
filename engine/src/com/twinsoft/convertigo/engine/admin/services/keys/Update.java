@@ -145,7 +145,7 @@ public class Update extends XmlService {
 			if (str.equals(sKey))
 				return true;
 		}
-		return true;
+		return false;
 	}
 	
 	void updateKeyFile() {
