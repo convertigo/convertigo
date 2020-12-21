@@ -1642,6 +1642,13 @@
                label="Setup GitHub Actions"
                menubarPath="convertigo.menu.ci/content"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
+               enablesFor="1"
+               icon="icons/studio/project_export.gif"
+               id="convertigo.action.exportProject"
+               label="Export"
+               menubarPath="project"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
                enablesFor="1"
                icon="icons/studio/project_deploy.gif"
