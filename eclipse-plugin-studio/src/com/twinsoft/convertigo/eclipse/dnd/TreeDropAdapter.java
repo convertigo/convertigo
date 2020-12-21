@@ -465,6 +465,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			DatabaseObject databaseObject = paste(node, null, true);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
 			
+			if (parent.priority == databaseObject.priority) {
+				return true;
+			}
+			
 			// SEQUENCER
 			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
 				
@@ -618,11 +622,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 			// MOBILE COMPONENTS
 			else if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
-				pasteMobileComponent(parent, databaseObject, element);
+				return pasteMobileComponent(parent, databaseObject, element);
 			}
 			// NGX COMPONENTS
 			else if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
-				pasteNgxComponent(parent, databaseObject, element);
+				return pasteNgxComponent(parent, databaseObject, element);
 			}
 		}
 		return false;
