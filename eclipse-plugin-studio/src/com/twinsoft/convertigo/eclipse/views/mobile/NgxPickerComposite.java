@@ -145,7 +145,7 @@ public class NgxPickerComposite extends Composite {
 	private String currentSource = null;
 	//private MobileComponent currentMC = null;
 	private MobileObject currentMC = null;
-	private Object lastSelected;
+	private Object firstSelected, lastSelected;
 	private List<TVObject> checkedList = new ArrayList<TVObject>();
 	private boolean isParentDialog = false;
 	private boolean isUpdating = false;
@@ -547,7 +547,9 @@ public class NgxPickerComposite extends Composite {
 				if (selected instanceof TVObject && !selected.equals(lastSelected)) {
 					TVObject tvoSelected = (TVObject)selected;
 					lastSelected = selected;
-					
+					if (firstSelected == null) {
+						firstSelected = selected;
+					}
 					checkedList.clear();
 					checkedList.add(tvoSelected);
 					modelTreeViewer.setInput(null);
@@ -708,6 +710,7 @@ public class NgxPickerComposite extends Composite {
 		checkboxTreeViewer.setInput(null);
 		modelTreeViewer.setInput(null);
 		currentSource = null;
+		firstSelected = null;
 		lastSelected = null;
 		checkedList.clear();
 		t_prefix.setText("");
@@ -802,10 +805,13 @@ public class NgxPickerComposite extends Composite {
 					checkedList.clear();
 					fillCheckedList(null, cs.getSources());
 					updateGrayChecked();
-					//updateText(cs.getInput());
 					updateTexts(cs);
 				} else {
-					updateTexts(cs);//updateTexts();
+					if (lastSelected.equals(firstSelected)) {
+						updateTexts(cs);
+					} else {
+						updateTexts();
+					}
 				}
 			} else {
 				updateTexts();
