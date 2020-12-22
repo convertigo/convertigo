@@ -308,9 +308,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
-			if (databaseObject instanceof Project && databaseObject.equals(getObject())) {
-				checkMissingProjects();
-			}
 			
 			if (databaseObject instanceof CouchDbConnector) {
 				CouchDbConnector couchDbConnector = (CouchDbConnector) databaseObject;
@@ -327,6 +324,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			}
 			
 			if (this.equals(treeObject.getProjectTreeObject())) {
+				checkMissingProjects();
+				
 				Engine.theApp.schemaManager.clearCache(getName());
 			}
 		}
