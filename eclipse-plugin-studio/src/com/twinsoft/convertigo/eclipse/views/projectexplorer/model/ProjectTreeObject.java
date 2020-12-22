@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -831,21 +832,23 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 	
 	public void checkMissingProjects(final boolean doReload) {
-		if (isCheckMissingProjects) {
-			return;
+		synchronized (this) {
+			if (isCheckMissingProjects) {
+				return;
+			}
+			isCheckMissingProjects = true;	
 		}
 
 		final Project project = getObject();
 		Job.create("Check missing project for " + project.getName(), (monitor) -> {
 			try {
-				isCheckMissingProjects = true;
-
 				final Set<String> missingProjects = project.getMissingProjects().keySet();
 				final Set<String> missingProjectReferences = project.getMissingProjectReferences().keySet();
 
 				if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
 					List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
-					for (String targetProjectName: missingProjects) {
+					for (Iterator<String> i = missingProjects.iterator() ; i.hasNext(); ) {
+						String targetProjectName = i.next();
 						if (allProjects.contains(targetProjectName)) {
 							Display.getDefault().syncExec(() -> {
 								try {
@@ -853,7 +856,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 									TreeObject obj = pev.getProjectRootObject(targetProjectName);
 									if (obj != null && obj instanceof UnloadedProjectTreeObject) {
 										pev.loadProject(((UnloadedProjectTreeObject) obj));
-										missingProjects.remove(targetProjectName);	
+										i.remove();
 									}
 								} catch (Exception e) {
 									Engine.logStudio.warn("Failed to open \"" + targetProjectName + "\"", e);
