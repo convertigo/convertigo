@@ -465,9 +465,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			DatabaseObject databaseObject = paste(node, null, true);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
 			
-			if (parent.priority == databaseObject.priority) {
-				return true;
-			}
+//			if (parent.priority == databaseObject.priority) {
+//				return true;
+//			}
 			
 			// SEQUENCER
 			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
