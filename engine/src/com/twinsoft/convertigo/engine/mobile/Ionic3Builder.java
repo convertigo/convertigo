@@ -506,6 +506,7 @@ public class Ionic3Builder extends MobileBuilder {
 		ApplicationComponent application = (ApplicationComponent) project.getMobileApplication().getApplicationComponent();
 		String tplName = application.getTplProjectName();
 		try {
+			Engine.theApp.referencedProjectManager.getReferenceFromProject(project, tplName);
 			Engine.theApp.referencedProjectManager.importProjectFrom(project, tplName);
 		} catch (Exception e) {
 			throw new EngineException("Failed to import referenced template: " + tplName + " :" + e.getMessage(), e);

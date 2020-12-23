@@ -337,6 +337,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				long t1 = Calendar.getInstance().getTime().getTime();
 				Engine.logDatabaseObjectManager.trace("Project loaded in " + (t1 - t0) + " ms");
 			}
+		} else if (!(projectPath = project.getDirFile()).exists()) {
+			Engine.logDatabaseObjectManager.trace("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + projectPath);
+			clearCache(project);
+			project = null;
 		} else {
 			Engine.logDatabaseObjectManager.trace("Retrieve from cache project \"" + projectName + "\"");
 		}
