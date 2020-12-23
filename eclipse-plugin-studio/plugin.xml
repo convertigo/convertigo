@@ -1600,13 +1600,6 @@
                label="Copy Project Remote URL"
                menubarPath="clipboard"/>
 		 <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyProjectRemoteURLAction"
-               enablesFor="1"
-               icon="icons/studio/clipboard_copy.gif"
-               id="convertigo.action.copyProjectRemoteURL"
-               label="Copy Project Remote URL"
-               menubarPath="clipboard"/>
-		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCloseAction"
                enablesFor="+"
                icon="icons/studio/close.gif"
@@ -1628,18 +1621,18 @@
             </enablement>
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectUpgradeGradle"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
                enablesFor="1"
                icon="icons/studio/gradle_16x16.png"
-               id="convertigo.action.upgradeGradleProject"
-               label="Upgrade Gradle"
+               id="convertigo.action.upgradeCI.circleci"
+               label="Update CircleCI and Gradle"
                menubarPath="convertigo.menu.ci/content"/>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSetupGitHubActions"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
                enablesFor="1"
                icon="icons/studio/ghactions_16x16.png"
-               id="convertigo.action.setupGitHubActionsProject"
-               label="Setup GitHub Actions"
+               id="convertigo.action.upgradeCI.githubactions"
+               label="Update GitHub Actions and Gradle"
                menubarPath="convertigo.menu.ci/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"

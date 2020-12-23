@@ -24,6 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -36,16 +38,25 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class ProjectSetupGitHubActions extends MyAbstractAction {
+public class ProjectContinuousIntegrationGradle extends MyAbstractAction {	
+	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/7.9.0/";
+	
+	private Set<String> backupFiles = new TreeSet<String>();
 
-	private void download(String url, File dest, boolean backup) throws IOException {
+	public ProjectContinuousIntegrationGradle() {
+		super();
+	}
+	
+	private void download(String url, File dest, String file, boolean backup) throws IOException {
 		HttpGet get = new HttpGet(url);
 		File target = File.createTempFile("convertigoGradle", ".tmp");
+		dest = new File(dest, file);
 		try {
 			target.deleteOnExit();
 			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
@@ -67,7 +78,10 @@ public class ProjectSetupGitHubActions extends MyAbstractAction {
 			if (target.exists()) {
 				if (dest.exists() && backup) {
 					if (!FileUtils.readFileToString(target, StandardCharsets.UTF_8).equals(FileUtils.readFileToString(dest, StandardCharsets.UTF_8))) {
-						FileUtils.copyFile(dest, new File(dest.getParentFile(), dest.getName() + ".bak"));
+						File bak = new File(dest.getParentFile(), dest.getName() + ".bak");
+						FileUtils.deleteQuietly(bak);
+						FileUtils.moveFile(dest, bak);
+						backupFiles.add(file);
 					}
 				}
 				dest.getParentFile().mkdirs();
@@ -75,6 +89,23 @@ public class ProjectSetupGitHubActions extends MyAbstractAction {
 			}
 		} finally {
 			target.delete();
+		}
+	}
+	
+	private void updateGradle(File dir) throws IOException {
+		for (String file: new String[] {
+			"gradlew",
+			"gradlew.bat",
+			"gradle/wrapper/gradle-wrapper.jar",
+			"gradle/wrapper/gradle-wrapper.properties"
+		}) {
+			download(BASE_URL + "gradle/" + file, dir, file, false);
+		}
+		for (String file: new String[] {
+			"build.gradle",
+			"settings.gradle"
+		}) {
+			download(BASE_URL + "gradle/" + file, dir, file, true);
 		}
 	}
 	
@@ -92,14 +123,25 @@ public class ProjectSetupGitHubActions extends MyAbstractAction {
 				if (treeObject != null && treeObject instanceof ProjectTreeObject) {
 					ProjectTreeObject projectTreeObject = (ProjectTreeObject) treeObject;
 					Project project = projectTreeObject.getObject();
-					File file = new File(project.getDirFile(), ".github/workflows/main.yml");
+					File dir = project.getDirFile();
+					int code = ConvertigoPlugin.questionMessageBox(shell, "This will put Continuous Integration template + gradle files in your project.\nIf files already exist, your version will be renamed as a '.bak' file.");
+					if (code == SWT.NO) {
+						return;
+					}
+					String id = action.getId();
 					IProject iproject = projectTreeObject.getIProject();
-					Job.create("Update gradle resources of " + projectTreeObject.getName(), (monitor) -> {
+					Job.create("Update CI resources of " + projectTreeObject.getName(), (monitor) -> {
 						try {
-							download("https://github.com/convertigo/convertigo-common-resources/raw/7.9.0/github-actions/main.yml", file, true);
+							backupFiles.clear();
+							updateGradle(dir);
+							if (id.endsWith(".circleci")) {
+								download(BASE_URL + "github-actions/main.yml", dir, ".github/workflows/main.yml", true);
+							} else if (id.endsWith(".githubactions")) {
+								download(BASE_URL + "github-actions/main.yml", dir, ".github/workflows/main.yml", true);
+							}
 							iproject.refreshLocal(1, monitor);
 						} catch (Exception e) {
-							e.printStackTrace();
+							Engine.logStudio.error("failed to update gradle resources", e);
 						}
 					}).schedule();
 				}
