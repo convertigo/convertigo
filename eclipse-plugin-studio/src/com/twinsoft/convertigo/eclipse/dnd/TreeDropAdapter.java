@@ -465,10 +465,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			DatabaseObject databaseObject = paste(node, null, true);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
 			
-//			if (parent.priority == databaseObject.priority) {
-//				return true;
-//			}
-			
 			// SEQUENCER
 			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
 				
@@ -635,6 +631,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	private boolean pasteMobileComponent(DatabaseObject parent, DatabaseObject databaseObject, Element element) throws EngineException {
 		// MOBILE COMPONENTS
 		if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+			
+			if (parent.priority == databaseObject.priority) {
+				return true;
+			}
 			
 			// Case dbo is a Sequence
 			if (databaseObject instanceof Sequence) {
@@ -810,6 +810,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	private boolean pasteNgxComponent(DatabaseObject parent, DatabaseObject databaseObject, Element element) throws EngineException {
 		// NGX COMPONENTS
 		if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			
+			if (parent.priority == databaseObject.priority) {
+				return true;
+			}
 			
 			// Case dbo is a Sequence
 			if (databaseObject instanceof Sequence) {
