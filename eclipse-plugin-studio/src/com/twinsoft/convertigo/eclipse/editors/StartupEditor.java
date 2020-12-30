@@ -130,8 +130,10 @@ public class StartupEditor extends EditorPart {
 				tb.getDisplay().asyncExec(() -> {
 					tb.setVisible(true);
 					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
-						tic.setSelection(true);
-						tic.notifyListeners(SWT.Selection, new Event());
+						if (!tic.isDisposed()) {
+							tic.setSelection(true);
+							tic.notifyListeners(SWT.Selection, new Event());
+						}
 					}
 				});
 			}
