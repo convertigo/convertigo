@@ -112,6 +112,10 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "CTS"+ this.priority;
 	}
 
+	public String getActionCode() {
+		return computeActionMain(true);
+	}
+	
 	/*
 	 * The needed page imports
 	 */
@@ -738,8 +742,12 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected String computeActionMain() {
+		return computeActionMain(false);
+	}
+	
+	protected String computeActionMain(boolean bForce) {
 		String computed = "";
-		if (isEnabled()) {
+		if (isEnabled() || bForce) {
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
 						.append("\t * Function "+ getName()).append(System.lineSeparator());

@@ -51,7 +51,6 @@ import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
-import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -819,19 +818,29 @@ public class NgxBuilder extends MobileBuilder {
 		UIComponent uic = (UIComponent)uiComponent;
 		IScriptComponent main = uic.getMainScriptComponent();
 		if (main != null) {
+			File tempTsDir = null;
+			String tempTsFileName = null;
+			
 			if (main instanceof ApplicationComponent) {
 				UIActionStack stack = uic.getSharedAction();
-				File tempTsFile = stack == null ? new File(appDir, "app.component.function.temp.ts") :
-													new File(servicesDir, "actionbeans.service.function.temp.ts");
-				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
+				tempTsDir = stack == null ? appDir : servicesDir;
+				tempTsFileName = stack == null ? "app.component.function.temp.ts" : "actionbeans.service.function.temp.ts";
 			}
 			if (main instanceof PageComponent) {
 				PageComponent page = (PageComponent)main;
 				String pageName = page.getName();
-				File pageDir = pageDir(page);
-				File tempTsFile = new File(pageDir, pageName.toLowerCase() + ".function.temp.ts");
-				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
+				tempTsDir = pageDir(page);
+				tempTsFileName = pageName.toLowerCase() + ".function.temp.ts";
 			}
+			
+			if (tempTsDir != null && tempTsFileName != null) {
+				if (uiComponent instanceof UICustomAction) {
+					tempTsFileName = "CTS" + ((UICustomAction) uiComponent).priority + ".temp.ts";
+				}
+				
+				File tempTsFile = new File(tempTsDir, tempTsFileName);
+				return tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
+			}			
 		}
 		return null;
 	}
@@ -845,11 +854,9 @@ public class NgxBuilder extends MobileBuilder {
 				String tempTsFileName = null, tsContent = null;
 				File tempTsDir = null;
 				UIActionStack sharedAction = null;
-				UISharedComponent sharedComp = null;
 				
 				if (main instanceof ApplicationComponent) {
 					sharedAction = uic.getSharedAction();
-					sharedComp = uic.getSharedComponent();
 					
 					tempTsDir = sharedAction == null ? appDir : servicesDir;
 					tempTsFileName = sharedAction == null ? "app.component.function.temp.ts" : "actionbeans.service.function.temp.ts";
@@ -891,7 +898,6 @@ public class NgxBuilder extends MobileBuilder {
 				}
 				
 				// Replace all Begin_c8o_XXX, End_c8o_XXX except for functionMarker
-				boolean found = false;
 				Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/");
 				Matcher matcher = pattern.matcher(tsContent);
 				while (matcher.find()) {
@@ -901,41 +907,21 @@ public class NgxBuilder extends MobileBuilder {
 						String endMarker = "/*End_c8o_" + markerId + "*/";
 						tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
 						tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
-					} else {
-						found = true;
 					}
 				}
 				
-				// Always be able to edit a CustomAction within a SharedAction or a SharedComponent
-				if (!found && uic instanceof UICustomAction && (sharedAction != null || sharedComp != null)) {
-					UICustomAction uica = (UICustomAction)uic;
-					Contributor contributor = uica.getActionContributor();
-					int index = -1;
-					
-					Map<String, String> mapi = contributor.getActionTsImports();
-					String imports = "";
-					for (String comp : mapi.keySet()) {
-						if (!getTplServiceActionTsImports().containsKey(comp)) {
-							if (comp.indexOf(" as ") == -1)
-								imports += "import { "+comp+" } from '"+ mapi.get(comp) +"';"+ System.lineSeparator();
-							else
-								imports += "import "+comp+" from '"+ mapi.get(comp) +"';"+ System.lineSeparator();
+				// CustomAction : reduce code lines (action's function only)
+				if (tempTsDir != null && tempTsFileName != null) {
+					if (uiComponent instanceof UICustomAction) {
+						UICustomAction uica = (UICustomAction)uic;
+						tempTsFileName = "CTS" + uica.priority + ".temp.ts";
+						int index = tsContent.indexOf("export class ");
+						if (index != -1) {
+							int i = tsContent.indexOf("{", index);
+							tsContent = tsContent.substring(0, i+1) + System.lineSeparator() +
+										uica.getActionCode() + System.lineSeparator() +
+										"}" + System.lineSeparator();
 						}
-					}
-					index = tsContent.indexOf("@Injectable");
-					if (index != -1) {
-						tsContent = tsContent.substring(0, index -1) + System.lineSeparator() 
-							+ Matcher.quoteReplacement(imports) + System.lineSeparator()
-							+ tsContent.substring(index);
-					}
-					
-					Map<String, String> mapf = contributor.getActionTsFunctions();
-					String code = mapf.get(uica.getActionName());
-					index = tsContent.lastIndexOf("}");
-					if (index != -1) {
-						tsContent = tsContent.substring(0, index -1) + System.lineSeparator() 
-									+ code + System.lineSeparator()
-									+ tsContent.substring(index);
 					}
 				}
 				

@@ -156,7 +156,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			// Close editor and Reopen it after file has been rewritten
 			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(uic);
 			IFile file = project.getFile(relativePath);
-			closeComponentFileEditor(file);
+			if (!(uic instanceof UICustomAction)) {
+				closeComponentFileEditor(file);
+			}
 			
 			if (main instanceof ApplicationComponent) {
 				if (uic.compareToTplVersion("7.5.2.0") < 0) {
