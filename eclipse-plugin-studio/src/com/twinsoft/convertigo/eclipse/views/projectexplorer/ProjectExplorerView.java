@@ -485,14 +485,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}
 			}
 
+			// Studio mode
+			Engine.setObjectsProvider(this);
+			
 			// Loads projects
 			if (Engine.isStarted) {
 				((ViewContentProvider) viewer.getContentProvider()).loadProjects();
 				viewer.refresh();
 			}
-
-			// Studio mode
-			Engine.setObjectsProvider(this);
 
 			// Registering as Engine listener
 			if (Engine.theApp != null) {
