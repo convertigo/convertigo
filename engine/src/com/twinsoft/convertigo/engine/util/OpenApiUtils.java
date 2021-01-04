@@ -937,7 +937,7 @@ public class OpenApiUtils {
 							}
 							
 							String comment = summary;
-							if (comment.isEmpty()) {
+							if (comment != null  && comment.isEmpty()) {
 								comment = operationDesc;
 							}
 							
