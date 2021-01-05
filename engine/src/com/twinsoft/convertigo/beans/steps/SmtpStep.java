@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 import java.io.StringWriter;
-import java.security.Provider;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -463,8 +462,6 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 						}
 						
 						if (smtpAuthType == SmtpAuthType.sslTls) {
-							Provider provider = (Provider) Class.forName("com.sun.net.ssl.internal.ssl.Provider").getConstructor().newInstance();
-							java.security.Security.addProvider(provider);
 							props.put("mail.transport.protocol", "smtps");
 							props.put("mail.smtps.host", smtpServer);
 							props.put("mail.smtps.port", smtpPort);
