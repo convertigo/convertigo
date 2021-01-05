@@ -232,9 +232,6 @@ public class ConvertigoPartListener implements IPartListener {
 				}
 			}
 		}
-		if (part.getClass().getName().toLowerCase().contains("editor")) {
-			SwtUtils.refreshTheme();
-		}
 	}
 
 }

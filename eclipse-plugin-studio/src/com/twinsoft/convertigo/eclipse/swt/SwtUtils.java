@@ -26,9 +26,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 public class SwtUtils {
@@ -61,15 +59,6 @@ public class SwtUtils {
 			return lastDark = PlatformUI.getWorkbench().getWorkbenchWindows()[0].getShell().getBackground().getRed() < 128;
 		} catch (Exception e) {
 			return lastDark;
-		}
-	}
-
-	public static void refreshTheme() {
-		try {
-			IThemeEngine themeEngine = (IThemeEngine) Display.getDefault().getData("org.eclipse.e4.ui.css.swt.theme");
-			themeEngine.setTheme(themeEngine.getActiveTheme(), true);
-		} catch (Exception e) {
-			//e.printStackTrace();
 		}
 	}
 	
