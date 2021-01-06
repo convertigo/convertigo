@@ -31,6 +31,7 @@ public class ProjectDeploy extends ConvertigoTask {
 	private String password = "admin";
 	private boolean trustAllCertificates = false;
 	private boolean assembleXsl = false;
+	private int retry = 5;
 	
 	@Input @Optional
 	public String getServer() {
@@ -77,6 +78,15 @@ public class ProjectDeploy extends ConvertigoTask {
 		this.assembleXsl = assembleXsl;
 	}
 
+	@Input @Optional
+	public int getRetry() {
+		return retry;
+	}
+
+	public void setRetry(int retry) {
+		this.retry = retry;
+	}
+
 	public ProjectDeploy() {
 		try {
 			server = getProject().getProperties().get("convertigo.deploy.server").toString();
@@ -93,11 +103,14 @@ public class ProjectDeploy extends ConvertigoTask {
 		try {
 			assembleXsl = Boolean.parseBoolean(getProject().getProperties().get("convertigo.deploy.assembleXsl").toString());
 		} catch (Exception e) {}
+		try {
+			retry = Integer.parseInt(getProject().getProperties().get("convertigo.deploy.retry").toString());
+		} catch (Exception e) {}
 	}
 	
 	@TaskAction
 	void taskAction() throws Exception {
 		CLI cli = plugin.getCLI();
-		cli.deploy(plugin.car.getDestinationFile(), server, user, password, trustAllCertificates, assembleXsl);
+		cli.deploy(plugin.car.getDestinationFile(), server, user, password, trustAllCertificates, assembleXsl, retry);
 	}
 }

@@ -392,15 +392,27 @@ public class CLI {
 		Engine.logConvertigo.info("npm run finished with exit: " + code);
 	}
 	
-	public void deploy(File file, String server, String user, String password, boolean trustAllCertificates, boolean assembleXsl) throws EngineException {
+	public void deploy(File file, String server, String user, String password, boolean trustAllCertificates, boolean assembleXsl, int retry) throws EngineException {
 		boolean isHttps = server.startsWith("https://");
 		String convertigoServer = server.substring(isHttps ? 8 : 7);
-		RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
-		Engine.logConvertigo.info("Trying to connect the user '" + user + "' to the Convertigo remote server: " + server);
-		remoteAdmin.login(user, password);
-		Engine.logConvertigo.info("Deployement of '" + file + "' to the Convertigo remote server: " + server);
-		remoteAdmin.deployArchive(file, assembleXsl);
-		Engine.logConvertigo.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
+		int r = retry;
+		while (r > 0) {
+			try {
+				RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
+				Engine.logConvertigo.info("Trying to connect the user '" + user + "' to the Convertigo remote server: " + server);
+				remoteAdmin.login(user, password);
+				Engine.logConvertigo.info("Deployement of '" + file + "' to the Convertigo remote server: " + server);
+				remoteAdmin.deployArchive(file, assembleXsl);
+				Engine.logConvertigo.info("File '" + file + "' deployed to the Convertigo remote server: " + server);
+				r = 0;
+			} catch (Exception e) {
+				r--;
+				Engine.logConvertigo.error("Deploy failed: " + e.getClass().getSimpleName() + " " + e.getMessage(), e);
+				if (r <= 0) {
+					throw e;
+				}
+			}
+		}
 	}
 	
 	public void launchRemoteBuild(Project project, List<String> platforms) {
@@ -604,6 +616,7 @@ public class CLI {
 			.addOption(Option.builder("u").longOpt("user").optionalArg(false).argName("user").hasArg().desc("<user> used by the deploy action, default is 'admin'.").build())
 			.addOption(Option.builder("w").longOpt("password").optionalArg(false).argName("password").hasArg().desc("<password> used by the deploy action, default is 'admin'.").build())
 			.addOption(Option.builder("trust").longOpt("trustAllCertificates").desc("deploy over an https <server> without checking certificates.").build())
+			.addOption(Option.builder("retry").longOpt("deployRetry").desc("deploy will retry <retry> times in case of failure.").build())
 			.addOption(Option.builder("xsl").longOpt("assembleXsl").desc("assemble XSL files on deploy.").build())
 			.addOption(Option.builder("v").longOpt("version").optionalArg(false).argName("version").hasArg().desc("change the 'version' property of the loaded <project>.").build())
 			.addOption(Option.builder("l").longOpt("log").optionalArg(true).argName("level").hasArg().desc("optional <level> (default debug): error, info, warn, debug, trace.").build())
@@ -666,9 +679,10 @@ public class CLI {
 				String server = cmd.getOptionValue("deploy");
 				String user = cmd.getOptionValue("user", "admin");
 				String password = cmd.getOptionValue("password", "admin");
+				int retry = Integer.parseInt(cmd.getOptionValue("retry", "5"));
 				boolean trustAllCertificates = cmd.hasOption("trust");
 				boolean assembleXsl = cmd.hasOption("xsl");
-				cli.deploy(file, server, user, password, trustAllCertificates, assembleXsl);
+				cli.deploy(file, server, user, password, trustAllCertificates, assembleXsl, retry);
 			}
 			
 			if (cmd.hasOption("launchRemoteBuild") || cmd.hasOption("remoteBuild")) {
