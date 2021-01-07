@@ -1103,8 +1103,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	public Step getCopy(String executeTimeID) {
-		if (executeTimeID != null)  {
-			return (Step)copies.get(executeTimeID);
+		synchronized (copies) {
+			if (executeTimeID != null)  {
+				return (Step)copies.get(executeTimeID);
+			}
 		}
 		return null;
 	}
@@ -1240,7 +1242,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	            				// If this sequence contains ParallelSteps, waits until child's threads finish
 	            				if (Engine.logBeans.isTraceEnabled())
 	            					Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
-	            				Thread.sleep(500);
+	            				Thread.sleep(100);
 	            				hasWait = true;
 	            			}
 	            			if (hasWait) Engine.logBeans.trace("Sequence '"+ getName() + "' ends wait");
@@ -1516,9 +1518,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		stepToExecute.checkSymbols();
 			
     		if (stepToExecute.execute(javascriptContext, scope)) {
-    			//childrenSteps.put(Long.valueOf(stepToExecute.priority), stepToExecute.executeTimeID);
-    			childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
-       			executedSteps.putAll(stepToExecute.executedSteps);
+    			synchronized (this) {
+    				childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
+    				executedSteps.putAll(stepToExecute.executedSteps);
+    			}
     		}
     		else {
     			stepToExecute.cleanCopy();
