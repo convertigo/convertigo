@@ -77,6 +77,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	private Image imageGenerateXml = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/xml.png"));
 	private Image imageStop = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png"));
 	private Image imageDisableStop = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.png"));
+	private Image imageDisabledFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png"));
+	private Image imageFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png"));
 	
     protected SequenceEditor editor = null;
 	private Sequence sequence;
@@ -137,6 +139,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		imageGenerateXml.dispose();
 		imageStop.dispose();
 		imageDisableStop.dispose();
+		imageDisabledFullResult.dispose();
+		imageFullResult.dispose(); 
 		
 		canvas.dispose();
 		colorManager.dispose();
@@ -177,6 +181,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	ToolItem toolItemRun = null;
 	ToolItem toolItemPause = null;
 	ToolItem toolItemStep = null;
+	ToolItem toolItemFullResult = null;
 	
 	private void initialize() {
 		GridLayout gridLayout1 = new GridLayout();
@@ -463,6 +468,27 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				});
 		toolItemsIds.put("StopTransaction", Integer.valueOf(incr));
 		incr ++;
+		
+		new ToolItem(toolBar, SWT.SEPARATOR);
+		incr ++;
+		
+		toolItemFullResult = new ToolItem(toolBar, SWT.PUSH);
+		toolItemFullResult.setDisabledImage(imageDisabledFullResult);
+		toolItemFullResult.setToolTipText("Show the full result");
+		toolItemFullResult.setImage(imageFullResult);
+		toolItemFullResult.setEnabled(false);
+		toolItemFullResult.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+				String x = (String) xmlView.getData("full");
+				if (x != null) {
+					xmlView.getDocument().set(x);
+					toolItemFullResult.setEnabled(false);
+				}
+			}
+			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			}
+		});
+		incr ++;
 	}
 
 	void toolBarSetEnable(String toolItemId, boolean enable) {
@@ -619,8 +645,17 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				xmlView.getDocument().set(strXML);
-		    	editor.setDirty(false);
+				String x = strXML;
+				if (x.length() > 10000) {
+					toolItemFullResult.setEnabled(true);
+					xmlView.setData("full", x);
+					x = x.substring(0, 10000) + " ... [reduced content, click the Full Result button in the toolbar to show the full version]";
+				} else {
+					xmlView.setData("full", null);
+					toolItemFullResult.setEnabled(false);
+				}
+				xmlView.getDocument().set(x);
+				editor.setDirty(false);
 			}
 		});
 	}
