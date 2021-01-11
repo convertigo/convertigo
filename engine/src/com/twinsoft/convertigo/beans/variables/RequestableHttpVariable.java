@@ -124,4 +124,16 @@ public class RequestableHttpVariable extends RequestableVariable {
 			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 7.4.7");
         }
     }
+	
+	@Override
+	public String toString() {
+		String label = "";
+		try {
+			label = getLabel();
+		} catch (EngineException e) {}
+		if (!getName().equals(httpName)) {
+			return getName() + " → " + httpName + label;
+		}
+		return super.toString();
+	}
 }

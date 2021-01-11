@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.variables;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Variable;
 
@@ -72,4 +73,15 @@ public class HttpStatementVariable extends Variable implements ITagsProperty {
 		return new String[0];
 	}
 	
+	@Override
+	public String toString() {
+		String label = "";
+		try {
+			label = getLabel();
+		} catch (EngineException e) {}
+		if (!getName().equals(httpName)) {
+			return getName() + " → " + httpName + label;
+		}
+		return super.toString();
+	}
 }
