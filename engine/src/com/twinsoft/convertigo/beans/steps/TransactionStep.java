@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -156,7 +157,13 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		if (Engine.isEngineMode()) {
 			if (parent instanceof ParallelStep) {
 				if (sequence.useSameJSessionForSteps()) {
-					// TODO??
+					String contextName = InternalRequester.getParameterValue(request.get(Parameter.Context.getName()));
+					if (contextName.startsWith("Container-")) { // Only remove context automatically named
+						String contextID = sequence.getSessionId() + "_" + contextName;
+						Engine.logBeans.debug("Executing deletion of transaction's context of TransactionStep \"" + getName() + "\"");
+						Engine.theApp.contextManager.remove(contextID);
+						Engine.logBeans.debug("Deletion of transaction's context of TransactionStep \"" + getName() + "\" done");
+					}
 				} else {
 					if (httpState != null) {
 						Cookie[] httpCookies = httpState.getCookies();
@@ -166,11 +173,11 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 							cookie = httpCookies[i];
 							if (cookie.getName().equalsIgnoreCase("JSESSIONID")) {
 								Engine.logBeans
-										.debug("Executing deletion of transaction's context of TranscationStep \""
+										.debug("Executing deletion of transaction's context of TransactionStep \""
 												+ getName() + "\"");
 								Engine.theApp.contextManager.removeAll(cookie.getValue());
 								Engine.logBeans
-										.debug("Deletion of transaction's context of TranscationStep \""
+										.debug("Deletion of transaction's context of TransactionStep \""
 												+ getName() + "\" done");
 								break;
 							}

@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
@@ -38,6 +40,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.translators.DefaultInternalTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -66,9 +69,89 @@ public class InternalRequester extends GenericRequester {
     }
     
     public Object processRequest() throws Exception {
-   		return processRequest(inputData);
+    	try {
+    		return processRequest(inputData);
+    	} finally {
+    		Map<String, Object> request = GenericUtils.cast(inputData);
+            processRequestEnd(request);
+			onFinally(request);
+    	}
     }
     
+    void processRequestEnd(Map<String, Object> request) {
+		request.put("convertigo.cookies", context.getCookieStrings());
+		
+		String trSessionId = context.getSequenceTransactionSessionId();
+		if (trSessionId != null) {
+			request.put("sequence.transaction.sessionid", trSessionId);
+		}
+		
+		boolean isNew = true;
+		HttpSession session = httpServletRequest.getSession();
+		if (session != null) {
+			if (SessionAttribute.isNew.has(session)) {
+				isNew = false;
+			} else {
+				SessionAttribute.isNew.set(session, true);
+			}
+		}
+		
+		if (context.requireEndOfContext || (isNew && context.isErrorDocument)) {
+			request.put("convertigo.requireEndOfContext", Boolean.TRUE);
+		}
+
+		if (request.get("convertigo.contentType") == null) { // if
+			// contentType
+			// set by
+			// webclipper
+			// servlet
+			// (#320)
+			request.put("convertigo.contentType", context.contentType);
+		}
+		
+		request.put("convertigo.cacheControl", context.cacheControl);
+		request.put("convertigo.context.contextID", context.contextID);
+		request.put("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
+		request.put("convertigo.context.removalRequired", Boolean.valueOf(context.removalRequired()));
+		if (request.get("convertigo.charset") == null) {
+			request.put("convertigo.charset", "UTF-8");
+		}
+    	
+    }
+    
+	void onFinally(Map<String, Object> request) {
+		// Removes context when finished
+		// Note: case of context.requireEndOfContext has been set in scope
+		if (getParameterValue(request.get("convertigo.requireEndOfContext")) != null) {
+			removeContext();
+		}
+
+		// Removes context when finished
+		String removeContextParam = getParameterValue(request.get(Parameter.RemoveContext.getName()));
+		if (removeContextParam == null) {
+			// case of a mother sequence (context is removed by default)
+			Boolean removeContextAttr = Boolean.valueOf(getParameterValue(request.get("convertigo.context.removalRequired")));
+			if ((removeContextAttr != null) && removeContextAttr.booleanValue()) {
+				removeContext();
+			}
+		} else {
+			// other cases (remove context if exist __removeContext
+			// or __removeContext=true/false)
+			if (!("false".equals(removeContextParam))) {
+				removeContext();
+			}
+		}
+	}
+
+	protected void removeContext() {
+		if (Engine.isEngineMode()) {
+			if (context != null) {
+				Engine.logContext.debug("(InternalRequester) End of context " + context.contextID + " required => removing context");
+				Engine.theApp.contextManager.remove(context);
+			}
+		}
+	}
+	
     public String getName() {
         return "InternalRequester";
     }
@@ -180,7 +263,7 @@ public class InternalRequester extends GenericRequester {
 		Engine.logContext.debug("Context initialized!");
 	}
 
-	private static String getParameterValue(Object parameterObjectValue) {
+	public static String getParameterValue(Object parameterObjectValue) {
 		if (parameterObjectValue == null) {
 			return null;
 		}

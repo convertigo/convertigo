@@ -336,7 +336,6 @@ public class ContextManager extends AbstractRunnableManager {
     	}
     
     public void remove(String contextID) {
-		Engine.logContextManager.info("Removing context '" + contextID + "'");
 		Context context;
         	context = contexts.remove(contextID);
         if (context != null) {

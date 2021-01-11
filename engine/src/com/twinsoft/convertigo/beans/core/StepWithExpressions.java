@@ -472,18 +472,17 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	protected void removeTransactionContext() {
 		if (Engine.isEngineMode()) {
 			if (parent instanceof ParallelStep) {
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ getName() +"\"");
+				
 				if (sequence.useSameJSessionForSteps()) {
-					// TODO ??
-				}
-				else {
-					if (Engine.logBeans.isDebugEnabled())
-						Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ getName() +"\"");
-					
+					sequence.removeTransactionContexts(getContextName());
+				} else {
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
-					
-					if (Engine.logBeans.isDebugEnabled())
-						Engine.logBeans.debug("Deletion of transaction's context for step \""+ getName() +"\" done");
 				}
+				
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("Deletion of transaction's context for step \""+ getName() +"\" done");
 			}
 		}
 	}
