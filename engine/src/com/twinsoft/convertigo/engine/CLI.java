@@ -221,6 +221,8 @@ public class CLI {
 		
 		try {
 			project = Engine.theApp.databaseObjectsManager.importProject(projectFile, false);
+		} catch (VersionException e) {
+			throw e;
 		} catch (Exception e) {
 			Engine.logConvertigo.warn("Failed to import the project from '" + projectFile + "' (" + e.getMessage() + ") trying again...");
 			project = Engine.theApp.databaseObjectsManager.importProject(projectFile, false);

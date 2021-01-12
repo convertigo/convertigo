@@ -408,7 +408,7 @@ function initializeImportUser() {
 			clearInterval(this.tim_progress);
 			endWait();
 			if ($(response).find("error").length > 0) {
-				showError("<p>An unexpected error occurs.</p>", $(response).text());
+				showError("An unexpected error occurs.", $(response).text());
 			} else {
 				showInfo($(response).text());
 				$("").dialog("close");

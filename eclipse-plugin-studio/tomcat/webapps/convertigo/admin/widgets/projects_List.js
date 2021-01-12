@@ -241,8 +241,10 @@ function projectsDeploy(xml) {
 					if (txt.trim && txt.trim().startsWith("Authentication")) {
 						showError(txt);
 						$("#dialog-deploy-project").dialog("close");
+					} else if ($(response).find("error>message").length > 0) {
+						showError($(response).find("error>message").text(), txt);
 					} else {
-						showError("<p>An unexpected error occurs.</p>", txt);
+						showError("An unexpected error occurs.", txt);
 					}
 				} else {
 					showInfo($(response).text());

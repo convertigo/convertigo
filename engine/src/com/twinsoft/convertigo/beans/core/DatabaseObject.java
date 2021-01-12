@@ -23,7 +23,6 @@ import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -65,6 +64,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
+import com.twinsoft.convertigo.engine.VersionException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
@@ -771,23 +771,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		// Do nothing by default
 	}
 
-	/**
-	 * Reads the object from XML serialized data.
-	 */
-	public static DatabaseObject read(String filename) throws EngineException, IOException {
-		Element rootElement = null;
-		try {
-			Document document = XMLUtils.parseDOM(filename);
-			rootElement = document.getDocumentElement();
-		} catch (IOException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new EngineException("Unable to create the object from the serialized data.", e);
-		}
-
-		return DatabaseObject.read(rootElement);
-	}
-
 	public static DatabaseObject read(Node node) throws EngineException {
 		String objectClassName = "n/a";
 		String childNodeName = "n/a";
@@ -811,13 +794,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		}
 		// Verifying product version
-		if (VersionUtils.compareProductVersion(Version.productVersion, version) < 0) {
-			String message = "Unable to create an object of product version superior to the current beans product version ("
-					+ com.twinsoft.convertigo.beans.Version.version
-					+ ").\n"
-					+ "Object class: "
-					+ objectClassName + "\n" + "Object version: " + version;
-			EngineException ee = new EngineException(message);
+		if ("com.twinsoft.convertigo.beans.core.Project".equals(objectClassName) && VersionUtils.compareProductVersion(Version.productVersion, version) < 0) {
+			VersionException ee = new VersionException(version);
 			throw ee;
 		}
 

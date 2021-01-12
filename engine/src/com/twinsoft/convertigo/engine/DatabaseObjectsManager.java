@@ -331,6 +331,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			} catch (ProjectInMigrationProcessException e) {
 				throw new EngineException("Unable to load the project \"" + projectName
 						+ "\": the project is in migration process.", e);
+			} catch (VersionException e) {
+				throw e;
 			} catch (Exception e) {
 				throw new EngineException("Unable to load the project \"" + projectName + "\"", e);
 			} finally {
@@ -796,6 +798,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
 			} catch (Exception e) {
+				Engine.logDatabaseObjectManager.warn("Failed to load project from '" + projectArchiveFilename + "', try again\nBecause of [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+				try {
+					return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
+				} catch (Exception e2) {
+					throw new EngineException("Failed to load project from '" + projectArchiveFilename + "' because of [" + e2.getClass().getSimpleName() + "] " + e2.getMessage(), e2);
+				}
 			}
 		}
 		String archiveProjectName, projectDirPath;
@@ -891,6 +899,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			Engine.logDatabaseObjectManager.info("Project \"" + targetProjectName + "\" deployed!");
 			return project;
+		} catch (VersionException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename
 					+ "\".", e);
@@ -1165,6 +1175,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Import will perform necessary beans migration (see deserialization)
 			try {
 				project = (Project) importDatabaseObject(projectNode, null);
+			} catch (VersionException e) {
+				e.setProjectName(projectName);
+				e.setProjectPath(importFile.getAbsolutePath());
+				throw e;
 			} catch (Exception e) {
 				if (document != null) {
 					Engine.logDatabaseObjectManager.error("Failed to import project \"" + projectName + "\":\n" + XMLUtils.prettyPrintDOM(document));
@@ -1227,6 +1241,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			
 			return project;
+		} catch (VersionException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to import the project from \"" + importFile + "\".", e);
 		} finally {
@@ -1503,6 +1519,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			fireDatabaseObjectImported(new DatabaseObjectImportedEvent(databaseObject));
 			return databaseObject;
+		} catch (VersionException e) {
+			throw e;
 		} catch (Exception e) {
 			if (e instanceof EngineException
 					&& ((EngineException) e).getCause() instanceof ClassNotFoundException) {
