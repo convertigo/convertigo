@@ -1049,7 +1049,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLSplitStep">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLSplitStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
@@ -1059,7 +1059,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLTransformStep">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLTransformStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
@@ -1069,7 +1069,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLCountStep">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLCountStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
@@ -1089,7 +1089,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLDateTimeStep">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLDateTimeStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
@@ -1750,7 +1750,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.CicsConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CicsConnector"/>
 				</bean>
 			</beans>
@@ -2114,7 +2114,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass">
@@ -2228,15 +2228,15 @@
                 </bean>
             </beans>
             <beans groupname="VDX GUI components">
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.vdx.CommandVdx">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.vdx.CommandVdx">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                     <emulator-technology classname="com.twinsoft.vdx.GenTerm"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.vdx.EditField">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.vdx.EditField">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                     <emulator-technology classname="com.twinsoft.vdx.GenTerm"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.vdx.Menu">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.vdx.Menu">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                     <emulator-technology classname="com.twinsoft.vdx.GenTerm"/>
                 </bean>
@@ -2276,7 +2276,7 @@
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Attribute">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.common.SplitFields">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.SplitFields">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                 </bean>
             </beans>
