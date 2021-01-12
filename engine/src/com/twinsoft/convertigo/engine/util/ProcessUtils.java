@@ -83,6 +83,13 @@ public class ProcessUtils {
 					if (version.matches("v\\d+\\.\\d+\\.\\d+.*")) {
 						return version;
 					}
+				} else { // for old or custom tpl with no nodeJsVersion
+					if (json.has("version")) {
+						String tplVersion = json.getString("version");
+						if (VersionUtils.compare(tplVersion, "7.8.0.2") < 0) {
+							return "v8.9.1";
+						}
+					}
 				}
 			}
 		} catch (Exception e) {
