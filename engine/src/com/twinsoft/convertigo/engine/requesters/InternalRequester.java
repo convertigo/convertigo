@@ -96,7 +96,7 @@ public class InternalRequester extends GenericRequester {
 			}
 		}
 		
-		if (context.requireEndOfContext || (isNew && context.isErrorDocument)) {
+		if (context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
 			request.put("convertigo.requireEndOfContext", Boolean.TRUE);
 		}
 

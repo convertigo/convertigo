@@ -552,7 +552,7 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 		}
 		
-		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument)) {
+		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
 			// request.setAttribute("convertigo.requireEndOfContext",
 			// requester);
 			request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
