@@ -131,7 +131,7 @@ public class RequestableHttpVariable extends RequestableVariable {
 		try {
 			label = getLabel();
 		} catch (EngineException e) {}
-		if (!getName().equals(httpName)) {
+		if (!getName().equals(httpName) && !httpName.isEmpty()) {
 			return getName() + " → " + httpName + label;
 		}
 		return super.toString();
