@@ -872,7 +872,8 @@ public class OpenApiUtils {
 					for (String s_name : sr.keySet()) {
 						SecurityScheme securityScheme = securitySchemes.get(s_name);
 						if (securityScheme != null) {
-							boolean isBasicScheme = securityScheme.getScheme().toLowerCase().equals("basic");
+							String scheme = securityScheme.getScheme() == null ? "" : securityScheme.getScheme();
+							boolean isBasicScheme = scheme.toLowerCase().equals("basic");
 							boolean isHttpType = securityScheme.getType().equals(SecurityScheme.Type.HTTP);
 							if (isHttpType && isBasicScheme) {
 								httpConnector.setAuthenticationType(AuthenticationMode.Basic);
