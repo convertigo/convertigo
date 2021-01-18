@@ -436,7 +436,9 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
         		if (dataOutput.equals(DataContent.toJson)) {
         			JsonRoot jsonRoot = getProject().getJsonRoot();
         			boolean useType = getProject().getJsonOutput() == JsonOutput.useType;
-            		content = XMLUtils.XmlToJson(xmlHttpDocument.getDocumentElement(), true, useType, jsonRoot);
+        			Document document = useType ? Engine.theApp.schemaManager.makeXmlRestCompliant(xmlHttpDocument) : xmlHttpDocument;
+    				XMLUtils.logXml(document, Engine.logContext, "Generated Rest XML (useType="+ useType +")");
+       				content = XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
             		responseContentType = MimeType.Json.value();
         		}
         		else {
@@ -456,6 +458,19 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
 			// Set response content
 			if (content != null) {
 				response.setCharacterEncoding(encoding);
+				if (Engine.logContext.isInfoEnabled()) {
+					try {
+						String json = new JSONObject(content).toString(1);
+						int len = json.length();
+						if (len > 5000) {
+							String txt = json.substring(0, 5000) + "\n... (see the complete message in DEBUG log level)";
+							Engine.logContext.info("Generated REST Json:\n"+ txt);
+							Engine.logContext.debug("Generated REST Json:\n"+ json);
+						} else {
+							Engine.logContext.info("Generated REST Json:\n"+ json);
+						}
+					} catch (Exception e ) {}
+				}
 			}
 			return content;
 		}

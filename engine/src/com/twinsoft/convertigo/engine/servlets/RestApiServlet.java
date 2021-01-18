@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -42,10 +43,12 @@ import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.RestApiManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -206,6 +209,24 @@ public class RestApiServlet extends GenericServlet {
 		if ("GET".equalsIgnoreCase(method) && (isYaml || isJson)) {
     		try {
     			String requestUrl = HttpUtils.originalRequestURL(request);
+    			
+    			// force endpoint in definition
+    			try {
+	    			String endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
+	    			if (endPointUrl != null && !endPointUrl.isEmpty()) {
+	    				requestUrl = endPointUrl + (uri.indexOf("/"+ SwaggerUtils.servletMappingPath) != -1 ?
+										uri.substring(uri.indexOf("/"+ SwaggerUtils.servletMappingPath)) :
+											uri.substring(uri.indexOf("/"+ OpenApiUtils.servletMappingPath)));
+	    				Engine.logEngine.debug("(RestApiServlet) Force requestUrl: "+ requestUrl);
+	    			} else {
+	    				Engine.logEngine.debug("(RestApiServlet) Set requestUrl: "+ requestUrl);
+	    			}
+    			} catch (Throwable t) {
+    				Engine.logEngine.error("(RestApiServlet) Unable to retrieve server endpoint url: ", t);
+    			}
+    			
+    			Engine.logEngine.debug("(RestApiServlet) Projects path: "+ new File(Engine.PROJECTS_PATH).getAbsolutePath());
+    			
     			String output = uri.indexOf("/"+ SwaggerUtils.servletMappingPath) != -1 ?
     								buildSwaggerDefinition(requestUrl, request.getParameter("__project"), isYaml):
     									buildOpenApiDefinition(requestUrl, request.getParameter("__project"), isYaml);
@@ -344,6 +365,18 @@ public class RestApiServlet extends GenericServlet {
 			    			Engine.logEngine.debug(buf.toString());
 						}
 						
+						// terminate session to avoid max session exceeded (case new session initiated for authentication)
+						if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+							if (urlMappingOperation instanceof com.twinsoft.convertigo.beans.rest.AbstractRestOperation) {
+								com.twinsoft.convertigo.beans.rest.AbstractRestOperation aro = 
+										(com.twinsoft.convertigo.beans.rest.AbstractRestOperation)urlMappingOperation;
+								if (aro.isTerminateSession()) {
+									Engine.logEngine.debug("(RestApiServlet) requireEndOfContext because of required authentication");
+									request.setAttribute("convertigo.requireEndOfContext", true);
+								}
+							}
+						}
+						
 						if (content != null) {
 							Writer writer = response.getWriter();
 				            writer.write(content);
@@ -363,8 +396,16 @@ public class RestApiServlet extends GenericServlet {
     		} finally {
     			Requester requester = (Requester) request.getAttribute("convertigo.requester");
     			if (requester != null) {
+    				Engine.logEngine.debug("(RestApiServlet) processRequestEnd, onFinally");
 	                processRequestEnd(request, requester);
 	    			onFinally(request);
+    			} else {
+    				Engine.logEngine.debug("(RestApiServlet) terminate session");
+    				try {
+    					HttpUtils.terminateSession(httpSession);
+    				} catch (Exception e) {
+    					Engine.logEngine.warn("(RestApiServlet) unabled to terminate session", e);
+    				}
     			}
     			
     			long t1 = System.currentTimeMillis();
