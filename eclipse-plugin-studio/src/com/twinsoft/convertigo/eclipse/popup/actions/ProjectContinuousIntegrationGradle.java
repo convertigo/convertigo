@@ -24,12 +24,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
@@ -43,20 +50,55 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class ProjectContinuousIntegrationGradle extends MyAbstractAction {	
 	final static private String BASE_URL = "https://github.com/convertigo/convertigo-common-resources/raw/7.9.0/";
 	
 	private Set<String> backupFiles = new TreeSet<String>();
+	private File dest;
+	private String suffix;
 
 	public ProjectContinuousIntegrationGradle() {
 		super();
 	}
 	
-	private void download(String url, File dest, String file, boolean backup) throws IOException {
+	private void downloadFiles(String url) throws Exception {
+		JSONObject json = getJSON(url);
+		if (json.has("imports")) {
+			JSONArray array = json.getJSONArray("imports");
+			for (int i = 0; i < array.length(); i++) {
+				String file = array.getString(i);
+				downloadFiles(BASE_URL + file);
+			}
+		}
+		if (json.has("files")) {
+			JSONArray array = json.getJSONArray("files");
+			for (int i = 0; i < array.length(); i++) {
+				JSONObject file = array.getJSONObject(i);
+				boolean backup = false;
+				try {backup = file.getBoolean("backup");} catch (Exception e) {};
+				download(BASE_URL + file.getString("from"), file.getString("to"), backup);
+			}
+		}
+	}
+	
+	private JSONObject getJSON(String url) throws Exception {
+		HttpGet get = new HttpGet(url);
+		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+			int code = response.getStatusLine().getStatusCode();
+			if (code != 200) {
+				throw new EngineException("Code " + code + " for " + url);
+			}
+			String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+			return new JSONObject(sContent);
+		}
+	}
+	
+	private void download(String url, String file, boolean backup) throws IOException {
 		HttpGet get = new HttpGet(url);
 		File target = File.createTempFile("convertigoGradle", ".tmp");
-		dest = new File(dest, file);
+		File dest = new File(this.dest, file);
 		try {
 			target.deleteOnExit();
 			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
@@ -77,8 +119,10 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 			}
 			if (target.exists()) {
 				if (dest.exists() && backup) {
-					if (!FileUtils.readFileToString(target, StandardCharsets.UTF_8).equals(FileUtils.readFileToString(dest, StandardCharsets.UTF_8))) {
-						File bak = new File(dest.getParentFile(), dest.getName() + ".bak");
+					String sTarget = FileUtils.readFileToString(target, StandardCharsets.UTF_8).replaceAll("[\\s\\n\\r]+", "");
+					String sDest = FileUtils.readFileToString(dest, StandardCharsets.UTF_8).replaceAll("[\\s\\n\\r]+", "");
+					if (!sTarget.equals(sDest)) {
+						File bak = new File(dest.getParentFile(), dest.getName() + suffix);
 						FileUtils.deleteQuietly(bak);
 						FileUtils.moveFile(dest, bak);
 						backupFiles.add(file);
@@ -89,23 +133,6 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 			}
 		} finally {
 			target.delete();
-		}
-	}
-	
-	private void updateGradle(File dir) throws IOException {
-		for (String file: new String[] {
-			"gradlew",
-			"gradlew.bat",
-			"gradle/wrapper/gradle-wrapper.jar",
-			"gradle/wrapper/gradle-wrapper.properties"
-		}) {
-			download(BASE_URL + "gradle/" + file, dir, file, false);
-		}
-		for (String file: new String[] {
-			"build.gradle",
-			"settings.gradle"
-		}) {
-			download(BASE_URL + "gradle/" + file, dir, file, true);
 		}
 	}
 	
@@ -123,23 +150,28 @@ public class ProjectContinuousIntegrationGradle extends MyAbstractAction {
 				if (treeObject != null && treeObject instanceof ProjectTreeObject) {
 					ProjectTreeObject projectTreeObject = (ProjectTreeObject) treeObject;
 					Project project = projectTreeObject.getObject();
-					File dir = project.getDirFile();
-					int code = ConvertigoPlugin.questionMessageBox(shell, "This will put Continuous Integration template + gradle files in your project.\nIf files already exist, your version will be renamed as a '.bak' file.");
+					dest = project.getDirFile();
+					suffix = "." + new SimpleDateFormat("yy-MM-dd_HH-mm-ss").format(new Date()) + ".bak";
+					int code = ConvertigoPlugin.questionMessageBox(shell, "This will put configuration files in your project.\nIf files already exist, your version will be renamed as a '" + suffix + "' file.");
 					if (code == SWT.NO) {
 						return;
 					}
 					String id = action.getId();
+					Matcher matcher = Pattern.compile(".*\\.(.*)").matcher(id);
+					if (!matcher.matches()) {
+						return;
+					}
+					String type = matcher.group(1);
+					
 					IProject iproject = projectTreeObject.getIProject();
 					Job.create("Update CI resources of " + projectTreeObject.getName(), (monitor) -> {
 						try {
 							backupFiles.clear();
-							updateGradle(dir);
-							if (id.endsWith(".circleci")) {
-								download(BASE_URL + "github-actions/main.yml", dir, ".github/workflows/main.yml", true);
-							} else if (id.endsWith(".githubactions")) {
-								download(BASE_URL + "github-actions/main.yml", dir, ".github/workflows/main.yml", true);
-							}
+							downloadFiles(BASE_URL + type + ".json");
 							iproject.refreshLocal(1, monitor);
+							if (!backupFiles.isEmpty()) {
+								ConvertigoPlugin.infoMessageBox("Backup done in " + backupFiles);
+							}
 						} catch (Exception e) {
 							Engine.logStudio.error("failed to update gradle resources", e);
 						}

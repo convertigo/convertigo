@@ -1623,7 +1623,7 @@
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
                enablesFor="1"
-               icon="icons/studio/gradle_16x16.png"
+               icon="icons/studio/circleci_16x16.png"
                id="convertigo.action.upgradeCI.circleci"
                label="Update CircleCI and Gradle"
                menubarPath="convertigo.menu.ci/content"/>
@@ -1631,8 +1631,15 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
                enablesFor="1"
                icon="icons/studio/ghactions_16x16.png"
-               id="convertigo.action.upgradeCI.githubactions"
+               id="convertigo.action.upgradeCI.github-actions"
                label="Update GitHub Actions and Gradle"
+               menubarPath="convertigo.menu.ci/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
+               enablesFor="1"
+               icon="icons/studio/gradle_16x16.png"
+               id="convertigo.action.upgradeCI.gradle"
+               label="Update Gradle only"
                menubarPath="convertigo.menu.ci/content"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"

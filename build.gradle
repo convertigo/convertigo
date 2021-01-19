@@ -165,16 +165,16 @@ publishing {
 					def dependencies = asNode().appendNode('dependencies')
 					[
 						'com.convertigo.twinsoft:api:2017.12.29',
-						'com.convertigo.twinsoft:tas:2017.12.29',
+						'com.convertigo.twinsoft:tas:2019.10.16',
 						'com.convertigo.twinsoft:util:2017.12.29',
 						'com.fasterxml.jackson.core:jackson-core:[2.8,2.9[',
-						'commons-io:commons-io:[2.2,)',
-						'javax.mail:mail:1.4',
+						'commons-io:commons-io:[2.8,3.0)',
+						'javax.mail:mail:1.4.7',
 						'javax.servlet:servlet-api:2.5',
-						'log4j:log4j:[1.2,)',
-						'org.apache.commons:commons-lang3:[3.4,)',
+						'log4j:log4j:[1.2,1.3)',
+						'org.apache.commons:commons-lang3:[3.7,)',
 						'org.apache.httpcomponents:httpclient:[4.5,)',
-						'org.codehaus.jettison:jettison:[1.3,)'
+						'org.codehaus.jettison:jettison:[1.4,)'
 					].each {
 						def values = it.split(':')
 						def dependency = dependencies.appendNode('dependency')
