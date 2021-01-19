@@ -409,7 +409,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			@Override
 			public void refresh(Object element) {
 				if (Engine.objectsProvider != null) {
-					viewer.getTree().getDisplay().asyncExec(() -> super.refresh(element));
+					viewer.getTree().getDisplay().asyncExec(() -> {
+						try {
+							super.refresh(element);
+						} catch (Exception e) {
+							ConvertigoPlugin.logDebug3("Failed to refresh: " + e);
+						}
+					});
 					packColumns();
 				}
 			}
