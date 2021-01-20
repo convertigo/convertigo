@@ -316,7 +316,7 @@ public class BeansDefaultValues {
 			shrinkChildren(project.getDocumentElement(), nProject);
 			
 			String mod = eAttr.getTextContent().replaceFirst(".*(\\.m.*)", "$1");
-			String minVersion = hVersion.replaceFirst(".*(\\d+).*(\\d+).*(\\d+)", "$1.$2.$3" + mod);
+			String minVersion = hVersion.replaceFirst(".*?(\\d+).*?(\\d+).*?(\\d+)", "$1.$2.$3" + mod);
 			eAttr.setTextContent(minVersion);
 			return nProjectDoc;
 		}
