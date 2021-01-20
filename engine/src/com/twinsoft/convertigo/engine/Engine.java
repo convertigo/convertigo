@@ -370,6 +370,7 @@ public class Engine {
 	public static synchronized void start() throws EngineException {
 		if (Engine.theApp == null) {
 			System.out.println("Starting Convertigo Enterprise Mobility Server");
+			System.out.println("Version: " + ProductVersion.fullProductVersion);
 
 			// If the engine has been stopped by the admin, we must reload
 			// properties
