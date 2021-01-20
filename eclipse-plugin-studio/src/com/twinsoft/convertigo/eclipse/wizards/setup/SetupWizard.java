@@ -314,7 +314,7 @@ public class SetupWizard extends Wizard {
 					String message;
 
 					try {
-						String[] urlSource = { "https://c8o.convertigo.net/cems/index.html" };
+						String[] urlSource = { "https://c8ocloud.convertigo.net/convertigo/index.html" };
 
 						HttpClient client = prepareHttpClient(urlSource);
 						GetMethod method = new GetMethod(urlSource[0]);
