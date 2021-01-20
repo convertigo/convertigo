@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -16,6 +16,7 @@
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.Iterator;
