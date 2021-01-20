@@ -251,6 +251,9 @@ public class ProcessUtils {
 				
 				pbEnv.put("http-proxy", "http://" + npmProxy);
 				pbEnv.put("https-proxy", "http://" + npmProxy);
+				
+				pbEnv.put("HTTP_PROXY", "http://" + npmProxy);
+				pbEnv.put("HTTPS_PROXY", "http://" + npmProxy);
 			}
 		}
 		
