@@ -40,11 +40,13 @@ import javax.servlet.http.HttpSessionBindingListener;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
+import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
@@ -82,7 +84,14 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 						}
 						return;
 					}
-					Engine.logEngine.info("No more HTTP session available for this Standard Edition.");
+					Engine.logEngine.error("No more HTTP session available for this Standard Edition.");
+					if (DelegateServlet.canDelegate()) {
+						JSONObject json = new JSONObject();
+						json.put("action", "maxSessionExceeded");
+						json.put("currentCV", currentCV);
+						json.put("maxCV", maxCV);
+						DelegateServlet.delegate(json);
+					}
 					SessionAttribute.exception.set(event.getSession(), new TASException("Max number of sessions exceeded for " + KeyManager.getEmulatorName(Session.EmulIDSE), false, currentCV, maxCV));
 					HttpUtils.terminateSession(event.getSession());
 				}
