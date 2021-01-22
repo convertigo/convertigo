@@ -722,6 +722,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Add a CallSequenceAction
 				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack
@@ -752,6 +753,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Add an InvokeAction
 				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
 						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack
@@ -901,6 +903,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Add a CallSequenceAction
 				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
@@ -931,6 +934,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Add an InvokeAction
 				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
