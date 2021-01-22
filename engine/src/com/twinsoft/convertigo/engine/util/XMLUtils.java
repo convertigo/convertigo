@@ -1002,21 +1002,35 @@ public class XMLUtils {
 	}
 	
 	public static int MAX_XML_SIZE_FOR_LOG_INFO = 5;
+	public static int MAX_XML_SIZE_FOR_LOG_DEBUG = 100;
 
 	public static void logXml(Document document, Logger log, String message) {
 		if (document != null && log.isInfoEnabled()) {
-			String xml = XMLUtils.prettyPrintDOM(document);
-
-			if (xml.length() > XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000) {
+			String xml = prettyPrintDOM(document);
+			
+			if (xml.length() > MAX_XML_SIZE_FOR_LOG_INFO * 1000) {
 				if (!log.isDebugEnabled()) {
 					log.info(message
-							+ "\n[XML size is > " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO
-							+ "KB, enable DEBUG log level for this logger to see it completly!]\n"
-							+ "[Extract limited to the first " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO + "KB]\n"
-							+ xml.substring(0, XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000)
-							+ "... (see the complete message in DEBUG log level)");
+							+ "\n[XML size is > " + MAX_XML_SIZE_FOR_LOG_INFO
+							+ "KB, enable DEBUG log level for this logger to see " + MAX_XML_SIZE_FOR_LOG_DEBUG
+							+ " or TRACE for all!]\n"
+							+ "[Extract limited to the first " + MAX_XML_SIZE_FOR_LOG_INFO + "KB]\n"
+							+ xml.substring(0, MAX_XML_SIZE_FOR_LOG_INFO * 1000)
+							+ "... (see the more message in DEBUG log level or TRACE for all)");
+				} else if (xml.length() > MAX_XML_SIZE_FOR_LOG_DEBUG * 1000) {
+					if (!log.isTraceEnabled()) {
+						log.debug(message
+								+ "\n[XML size is > " + MAX_XML_SIZE_FOR_LOG_DEBUG
+								+ "KB, enable TRACE log level for this logger to see it completly!]\n"
+								+ "[Extract limited to the first " + MAX_XML_SIZE_FOR_LOG_DEBUG + "KB]\n"
+								+ xml.substring(0, MAX_XML_SIZE_FOR_LOG_DEBUG * 1000)
+								+ "... (see the complete message in TRACE log level)");
+					} else {
+						log.trace(message + ":\n" + xml);
+					}
+				} else {
+					log.debug(message + ":\n" + xml);
 				}
-				log.debug(message + ":\n" + xml);
 			} else {
 				log.info(message + ":\n" + xml);
 			}
