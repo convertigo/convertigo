@@ -573,7 +573,7 @@
              project="true">
           <description>Imports the Convertigo Salesforce library project.</description>
              {
-               "url": "lib_Sigfox=https://github.com/convertigo/c8oprj-lib-salesforce.git:branch=7.9.0",
+               "url": "lib_Salesforce=https://github.com/convertigo/c8oprj-lib-salesforce.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
