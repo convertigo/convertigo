@@ -166,6 +166,27 @@ public class SchemaManager implements AbstractManager {
 					System.out.println("After clean");
 					System.out.println(XMLUtils.prettyPrintElement(element));
 				}
+				
+				if (elist != null) {
+					elist.clear();
+					elist = null;
+				}
+				if (alist != null) {
+					alist.clear();
+					alist = null;
+				}
+				if (mso != null) {
+					mso.clear();
+					mso = null;
+				}
+				if (mto != null) {
+					mto.clear();
+					mto = null;
+				}
+				if (map != null) {
+					map.clear();
+					map = null;
+				}
 			}
 		}
 		
@@ -328,6 +349,66 @@ public class SchemaManager implements AbstractManager {
 			super.walkComplexContentExtension(xmlSchema, obj);
 		}
 
+		
+
+		@Override
+		protected void walkChoice(XmlSchema xmlSchema, XmlSchemaChoice obj) {
+			List<XmlSchemaObject> el = elist;
+			List<XmlSchemaObject> al = alist;
+			
+			List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+			list.add(new ArrayList<XmlSchemaObject>());
+			list.add(new ArrayList<XmlSchemaObject>());
+			
+			elist = list.get(0);
+			alist = list.get(1);
+			super.walkChoice(xmlSchema, obj);
+			if (obj.getMaxOccurs() > 1) {
+				if (elist.size() > 0) {
+					XmlSchemaElement startC8oFakeOccurs = new XmlSchemaElement();
+					startC8oFakeOccurs.setName("StartC8oFakeOccurs");
+					elist.add(0, startC8oFakeOccurs);
+					XmlSchemaElement endC8oFakeOccurs = new XmlSchemaElement();
+					endC8oFakeOccurs.setName("EndC8oFakeOccurs");
+					elist.add(endC8oFakeOccurs);
+				}
+			}
+			el.addAll(elist);
+			al.addAll(alist);
+			
+			elist = el;
+			alist = al;			
+		}
+
+		@Override
+		protected void walkSequence(XmlSchema xmlSchema, XmlSchemaSequence obj) {
+			List<XmlSchemaObject> el = elist;
+			List<XmlSchemaObject> al = alist;
+			
+			List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+			list.add(new ArrayList<XmlSchemaObject>());
+			list.add(new ArrayList<XmlSchemaObject>());
+			
+			elist = list.get(0);
+			alist = list.get(1);
+			super.walkSequence(xmlSchema, obj);
+			if (obj.getMaxOccurs() > 1) {
+				if (elist.size() > 0) {
+					XmlSchemaElement startC8oFakeOccurs = new XmlSchemaElement();
+					startC8oFakeOccurs.setName("StartC8oFakeOccurs");
+					elist.add(0, startC8oFakeOccurs);
+					XmlSchemaElement endC8oFakeOccurs = new XmlSchemaElement();
+					endC8oFakeOccurs.setName("EndC8oFakeOccurs");
+					elist.add(endC8oFakeOccurs);
+				}
+			}
+			el.addAll(elist);
+			al.addAll(alist);
+			
+			elist = el;
+			alist = al;			
+		}
+
 		@Override
 		protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
 			List<XmlSchemaObject> el = elist;
@@ -381,7 +462,24 @@ public class SchemaManager implements AbstractManager {
 				alist = al;
 			}
 			else {
+				el.add(obj);
+				List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+				list.add(new ArrayList<XmlSchemaObject>());
+				list.add(new ArrayList<XmlSchemaObject>());
+				map.put(obj, list);
+				
+				elist = list.get(0);
+				alist = list.get(1);
 				super.walkElement(xmlSchema, obj);
+				
+				if (elist.size() == 1) {
+					XmlSchemaElement original = (XmlSchemaElement) elist.remove(0);
+					if (original != null && map.containsKey(original)) {
+						elist.addAll(map.get(original).get(0));
+						alist.addAll(map.get(original).get(1));
+					}
+				}
+				
 				elist = el;
 				alist = al;
 			}
@@ -1468,6 +1566,10 @@ public class SchemaManager implements AbstractManager {
 					
 					@Override
 					public boolean makeCompliant(XmlSchemaObject xso, Node node) {
+						return makeCompliant(xso, node, false);
+					}
+					
+					protected boolean makeCompliant(XmlSchemaObject xso, Node node, boolean forceArray) {
 						String tns = node.getNamespaceURI();
 						String nodeName = node.getNodeName();
 						String localName = nodeName.substring(nodeName.indexOf(":")+1);
@@ -1559,8 +1661,19 @@ public class SchemaManager implements AbstractManager {
 											}
 											continue;
 										}
+										boolean needArray = false;
 										for (XmlSchemaObject e : map.get(xso).get(0)) {
-											if (makeCompliant(e, n)) {
+											if (e instanceof XmlSchemaElement) {
+												XmlSchemaElement xse = (XmlSchemaElement)e;
+												if ("StartC8oFakeOccurs".equals(xse.getName())) {
+													needArray = true;
+												}
+												if ("EndC8oFakeOccurs".equals(xse.getName())) {
+													needArray = false;
+												}
+											}
+											
+											if (makeCompliant(e, n, needArray)) {
 												break;
 											}
 										}
@@ -1597,16 +1710,16 @@ public class SchemaManager implements AbstractManager {
 									}
 								}
 								// case need array
-								if (maxOccurs > 1L) {
+								if (maxOccurs > 1L || forceArray) {
 									// <array c8o_arrayOfSingle=""/> => {"array": [""]}
 									// <enum c8o_arrayOfSingle="">text</enum> => {"enum":["text"]}		
 									// <user c8o_arrayOfSingle=""><name>name</name></user>  => {"user":[{"name":"name"}]}
 									if (nodeName.equals(localName)) {
-										if (((Element)element.getParentNode()).getElementsByTagName(localName).getLength() == 1) {
+										if (immediateElementsByTagName(element, localName) == 1) {
 											element.setAttribute("c8o_arrayOfSingle", "");
 										}
 									} else {
-										if (((Element)element.getParentNode()).getElementsByTagNameNS(tns, localName).getLength() == 1) {
+										if (immediateElementsByTagNameNS(element, tns, localName) == 1) {
 											element.setAttribute("c8o_arrayOfSingle", "");
 										}
 									}
@@ -1635,6 +1748,32 @@ public class SchemaManager implements AbstractManager {
 			Engine.logContext.warn("An error occured while generating compliant XML for REST", t);
 		}
 		return document;
+	}
+	
+	private static int immediateElementsByTagName(Element element, String localName) {
+		int cpt = 0;
+		Element parentEl = (Element) element.getParentNode();
+		NodeList nodeList = parentEl.getElementsByTagName(localName);
+		for (int i=0; i < nodeList.getLength(); i++) {
+			Element el = (Element) nodeList.item(i);
+			if (el.getParentNode().equals(parentEl)) {
+				cpt++;
+			}
+		}
+		return cpt;
+	}
+	
+	private static int immediateElementsByTagNameNS(Element element, String tns, String localName) {
+		int cpt = 0;
+		Element parentEl = (Element) element.getParentNode();
+		NodeList nodeList = parentEl.getElementsByTagNameNS(tns, localName);
+		for (int i=0; i < nodeList.getLength(); i++) {
+			Element el = (Element) nodeList.item(i);
+			if (el.getParentNode().equals(parentEl)) {
+				cpt++;
+			}
+		}
+		return cpt;
 	}
 	
 	public synchronized Document makeResponse(Document document) {

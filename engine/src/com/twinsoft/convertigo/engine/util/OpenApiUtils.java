@@ -24,11 +24,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -675,9 +677,10 @@ public class OpenApiUtils {
 					System.out.println(keyRef);
 				}*/
 				
+				Set<String> done = new HashSet<String>();
 				JSONObject jsonModels = new JSONObject(models);
 				for (String keyRef: refList) {
-					addModelsFromMap(modelMap, keyRef, jsonModels);
+					addModelsFromMap(done, modelMap, keyRef, jsonModels);
 				}
 				
 				OpenAPI oa = new OpenAPI();
@@ -724,8 +727,11 @@ public class OpenApiUtils {
 		return openAPI;
 	}
 	
-	public static void addModelsFromMap(Map<String, JSONObject> modelMap, String keyRef, JSONObject jsonModels) {
+	public static void addModelsFromMap(Set<String> done, Map<String, JSONObject> modelMap, String keyRef, JSONObject jsonModels) {
 		try {
+			if (!done.add(keyRef)) {
+				return;
+			}
 			if (modelMap.containsKey(keyRef)) {
 				JSONObject ob = modelMap.get(keyRef);
 				String pkey = keyRef.substring(keyRef.lastIndexOf('/')+1);
@@ -736,7 +742,7 @@ public class OpenApiUtils {
 				if (ob.has("refs")) {
 					JSONArray refs = ob.getJSONArray("refs");
 					for (int i = 0; i < refs.length(); i++) {
-						addModelsFromMap(modelMap, refs.getString(i), jsonModels);
+						addModelsFromMap(done, modelMap, refs.getString(i), jsonModels);
 					}
 				}
 			}

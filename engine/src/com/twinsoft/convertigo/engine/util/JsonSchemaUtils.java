@@ -1128,6 +1128,7 @@ public class JsonSchemaUtils {
 				final Map<String, JSONObject> refs = new HashMap<String, JSONObject>(50);
 				final JSONObject definitions = jsonSchema.getJSONObject("definitions");
 				JSONObject parent = definitions;
+				JSONObject root = null;
 				
 				private boolean isGlobal(JSONObject jParent) {
 					if (jParent != null) {
@@ -1146,7 +1147,7 @@ public class JsonSchemaUtils {
 //						}
 //					}
 					if (refObject != null) {
-						if (!refObject.has("value")) {
+						if (!refObject.has("value") && !refObject.equals(root)) {
 							handle(refObject);
 						}
 						if (refObject.has("value")) {
@@ -1245,7 +1246,7 @@ public class JsonSchemaUtils {
 					// fill properties
 					if (isArray) {
 						property.put("type","array");
-						property.put("minItems", minOccurs);
+						property.put("minItems", Math.min(minOccurs, minItems));
 						property.put("maxItems", Math.max(maxOccurs, maxItems));
 						property.put("items", new JSONObject());
 					}
@@ -1372,13 +1373,14 @@ public class JsonSchemaUtils {
 				
 				private void handleChoice(JSONObject jsonOb, JSONObject jsonChild, long minItems, long maxItems) throws JSONException {
 					//note: oneOf with complex inline model is baddly supported: minTems forced to 0L
-					
+					long minOccurs = jsonChild.has("minOccurs") ? jsonChild.getLong("minOccurs") : 0;
+					long maxOccurs = jsonChild.has("maxOccurs") ? jsonChild.getLong("maxOccurs") : minOccurs;
 					// handle children
 					if (jsonChild.has("children")) {
 						JSONArray children = jsonChild.getJSONArray("children");
 						for (int i = 0; i <children.length(); i++) {
 							JSONObject child = children.getJSONObject(i);
-							handleChild(jsonOb, child, 0L, maxItems); // minTems forced to 0L
+							handleChild(jsonOb, child, 0L, Math.max(maxOccurs, maxItems)); // minTems forced to 0L
 						}
 						
 					}
@@ -1641,7 +1643,7 @@ public class JsonSchemaUtils {
 								}
 							}
 						}
-					} catch (JSONException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 						Engine.logEngine.warn("(JSonSchemaUtils) Unexpected exception while generating jsonchema models", e);
 					}
@@ -1650,6 +1652,7 @@ public class JsonSchemaUtils {
 				@Override
 				protected void walkChoice(XmlSchema xmlSchema, XmlSchemaChoice obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					JSONObject jElement = new JSONObject();
 					try {
@@ -1667,11 +1670,13 @@ public class JsonSchemaUtils {
 					super.walkChoice(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 
 				@Override
 				protected void walkGroup(XmlSchema xmlSchema, XmlSchemaGroup obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName qname = obj.getName();
 					
@@ -1690,6 +1695,7 @@ public class JsonSchemaUtils {
 								
 								addGlobalObject(jParent, jElement, qname.getLocalPart());
 								parent = jElement;
+								root = jElement;
 							}
 						}
 					} catch (JSONException e) {
@@ -1703,11 +1709,13 @@ public class JsonSchemaUtils {
 					}
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkGroupRef(XmlSchema xmlSchema, XmlSchemaGroupRef obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName refName = obj.getRefName();
 					
@@ -1768,12 +1776,14 @@ public class JsonSchemaUtils {
 					super.walkGroupRef(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				
 				@Override
 				protected void walkAll(XmlSchema xmlSchema, XmlSchemaAll obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 
 					JSONObject jElement = new JSONObject();
 					try {
@@ -1791,11 +1801,13 @@ public class JsonSchemaUtils {
 					super.walkAll(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 
 				@Override
 				protected void walkSequence(XmlSchema xmlSchema, XmlSchemaSequence obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 
 					JSONObject jElement = new JSONObject();
 					try {
@@ -1813,11 +1825,13 @@ public class JsonSchemaUtils {
 					super.walkSequence(xmlSchema, obj);
 
 					parent = jParent;
+					root = jRoot;
 				}
 
 				@Override
 				protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					String name = obj.getName();
 					
@@ -1875,6 +1889,7 @@ public class JsonSchemaUtils {
 							
 							addGlobalObject(jParent, jElement, name);
 							parent = jElement;
+							root = jElement;
 						} else {
 							addChild(jParent, jElement);
 							parent = jElement;
@@ -1890,11 +1905,13 @@ public class JsonSchemaUtils {
 					}
 					
 					parent = jParent;
+					root = jRoot;
 				}
 
 				@Override
 				protected void walkAny(XmlSchema xmlSchema, XmlSchemaAny obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					JSONObject jElement = new JSONObject();
 					try {
@@ -1920,11 +1937,13 @@ public class JsonSchemaUtils {
 					super.walkAny(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkAnyAttribute(XmlSchema xmlSchema, XmlSchemaAnyAttribute obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					JSONObject jElement = new JSONObject();
 					try {
@@ -1948,11 +1967,13 @@ public class JsonSchemaUtils {
 					super.walkAnyAttribute(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkAppInfo(XmlSchema xmlSchema, XmlSchemaAppInfo item) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					try {
 						String description = "";
@@ -1974,11 +1995,13 @@ public class JsonSchemaUtils {
 					super.walkAppInfo(xmlSchema, item);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkDocumentation(XmlSchema xmlSchema, XmlSchemaDocumentation item) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					try {
 						String description = "";
@@ -2000,11 +2023,13 @@ public class JsonSchemaUtils {
 					super.walkDocumentation(xmlSchema, item);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					String name = obj.getName();
 					
@@ -2061,6 +2086,7 @@ public class JsonSchemaUtils {
 							
 							addGlobalObject(jParent, jElement, name);
 							parent = jElement;
+							root = jElement;
 						} else {
 							addChild(jParent, jElement);
 							parent = jElement;
@@ -2077,11 +2103,13 @@ public class JsonSchemaUtils {
 					}
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkAttributeGroup(XmlSchema xmlSchema, XmlSchemaAttributeGroup obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName qname = obj.getName();
 					
@@ -2100,6 +2128,7 @@ public class JsonSchemaUtils {
 								
 								addGlobalObject(jParent, jElement, qname.getLocalPart());
 								parent = jElement;
+								root = jElement;
 							}
 						}
 					} catch (JSONException e) {
@@ -2113,11 +2142,13 @@ public class JsonSchemaUtils {
 					}
 					
 					parent = jParent;
+					root = jRoot;
 				}
 
 				@Override
 				protected void walkAttributeGroupRef(XmlSchema xmlSchema, XmlSchemaAttributeGroupRef obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName refName = obj.getRefName();
 					
@@ -2142,11 +2173,13 @@ public class JsonSchemaUtils {
 					super.walkAttributeGroupRef(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkSimpleContent(XmlSchema xmlSchema, XmlSchemaSimpleContent obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName qname = null;
 					XmlSchemaContent xmlSchemaContent = obj.getContent();
@@ -2187,11 +2220,13 @@ public class JsonSchemaUtils {
 					super.walkSimpleContent(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkSimpleType(XmlSchema xmlSchema, XmlSchemaSimpleType obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName qname = obj.getQName();
 					QName bname = obj.getBaseSchemaTypeName();
@@ -2224,6 +2259,7 @@ public class JsonSchemaUtils {
 							
 							addGlobalObject(jParent, jElement, obj.getName());
 							parent = jElement;
+							root = jElement;
 						} else {
 							addChild(jParent, jElement);
 							parent = jElement;
@@ -2240,11 +2276,13 @@ public class JsonSchemaUtils {
 					}
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkSimpleTypeRestriction(XmlSchema xmlSchema, XmlSchemaSimpleTypeRestriction obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName qname = obj.getBaseTypeName();
 					
@@ -2273,11 +2311,13 @@ public class JsonSchemaUtils {
 					super.walkSimpleTypeRestriction(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkSimpleTypeUnion(XmlSchema xmlSchema, XmlSchemaSimpleTypeUnion obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					JSONObject jElement = new JSONObject();
 					try {
@@ -2306,11 +2346,13 @@ public class JsonSchemaUtils {
 					}
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkFacets(XmlSchema xmlSchema, XmlSchemaObjectCollection facets) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					JSONArray array = new JSONArray();
 	        		boolean arrayWithDuplicates = false;
@@ -2379,11 +2421,13 @@ public class JsonSchemaUtils {
 			        }
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkSimpleTypeList(XmlSchema xmlSchema, XmlSchemaSimpleTypeList obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName qname = obj.getItemTypeName();
 					
@@ -2417,11 +2461,13 @@ public class JsonSchemaUtils {
 					super.walkSimpleTypeList(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkComplexContentExtension(XmlSchema xmlSchema, XmlSchemaComplexContentExtension obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName baseTypeName = obj.getBaseTypeName();
 					
@@ -2444,11 +2490,13 @@ public class JsonSchemaUtils {
 					super.walkComplexContentExtension(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkComplexContentRestriction(XmlSchema xmlSchema, XmlSchemaComplexContentRestriction obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName baseTypeName = obj.getBaseTypeName();
 					
@@ -2471,11 +2519,13 @@ public class JsonSchemaUtils {
 					super.walkComplexContentRestriction(xmlSchema, obj);
 					
 					parent = jParent;
+					root = jRoot;
 				}
 				
 				@Override
 				protected void walkComplexType(XmlSchema xmlSchema, XmlSchemaComplexType obj) {
 					JSONObject jParent = parent;
+					JSONObject jRoot = root;
 					
 					QName qname = obj.getQName();
 					
@@ -2508,6 +2558,7 @@ public class JsonSchemaUtils {
 							
 							addGlobalObject(jParent, jElement, obj.getName());
 							parent = jElement;
+							root = jElement;
 						} else {
 							addChild(jParent, jElement);
 							parent = jElement;
@@ -2524,6 +2575,7 @@ public class JsonSchemaUtils {
 					}
 					
 					parent = jParent;
+					root = jRoot;
 				}
 
 				@Override
