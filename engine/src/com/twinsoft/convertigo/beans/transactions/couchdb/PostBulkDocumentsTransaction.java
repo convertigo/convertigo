@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -44,6 +46,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 	private String p_all_or_nothing = "";
 	private String p_new_edits = "";
 	private String p_json_base = "";
+	private String p_merge = "";
 	private boolean useHash = false;
 	private FullSyncAclPolicy fullSyncAclPolicy = FullSyncAclPolicy.fromAuthenticatedUser;
 	
@@ -66,7 +69,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 		
 		String json_base = getParameterStringValue(CouchParam.json_base);
 		
-		try {			
+		try {
 			jsonDocuments = new JSONArray(json_base);
 		} catch (Throwable t1) {
 			try {
@@ -115,9 +118,13 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 			}
 		}
 		
+		Map<List<String>, String> mergeRules = policy.mergeRules(getP_merge());
 		boolean all_or_nothing = getParameterBooleanValue(CouchParam.all_or_nothing, false);
 		boolean new_edits = getParameterBooleanValue(CouchParam.new_edits, true);
-		return getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments, all_or_nothing, new_edits, policy, useHash);
+		
+		JSONObject response = getCouchClient().postBulkDocs(getTargetDatabase(), jsonDocuments, all_or_nothing, new_edits, policy, mergeRules, useHash);
+		
+		return response;
 	}
 
 	@Override
@@ -155,6 +162,14 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 
 	public void setP_json_base(String p_json_base) {
 		this.p_json_base = p_json_base;
+	}
+
+	public String getP_merge() {
+		return p_merge;
+	}
+
+	public void setP_merge(String p_merge) {
+		this.p_merge = p_merge;
 	}
 
 	public boolean isUseHash() {

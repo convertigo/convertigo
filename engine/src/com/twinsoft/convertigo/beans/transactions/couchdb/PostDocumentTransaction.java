@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -41,6 +42,7 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction impleme
 	private CouchPostDocumentPolicy policy = CouchPostDocumentPolicy.none;
 
 	private String p_json_base = "";
+	private String p_merge = "";
 	private String q_batch = "";
 	private boolean useHash = false;
 	private FullSyncAclPolicy fullSyncAclPolicy = FullSyncAclPolicy.fromAuthenticatedUser;
@@ -70,8 +72,9 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction impleme
 		}
 		
 		JSONObject jsonDocument = getJsonBody(jsonBase);
+		Map<List<String>, String> mergeRules = policy.mergeRules(getP_merge());
 		
-		JSONObject response = getCouchClient().postDocument(db, jsonDocument, query, policy, useHash);
+		JSONObject response = getCouchClient().postDocument(db, jsonDocument, query, policy, mergeRules, useHash);
 		
 		return response;
 	}
@@ -95,6 +98,14 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction impleme
 
 	public void setP_json_base(String p_json_base) {
 		this.p_json_base = p_json_base;
+	}
+
+	public String getP_merge() {
+		return p_merge;
+	}
+
+	public void setP_merge(String p_merge) {
+		this.p_merge = p_merge;
 	}
 
 	public String getQ_batch() {
