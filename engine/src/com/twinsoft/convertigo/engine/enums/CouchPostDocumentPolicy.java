@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -36,7 +37,7 @@ public enum CouchPostDocumentPolicy {
 	merge;
 	
 	public Map<List<String>, String> mergeRules(String rules) {
-		Map<List<String>, String> mergeRules = this == CouchPostDocumentPolicy.merge ? new HashMap<>() : null;
+		Map<List<String>, String> mergeRules = (this == CouchPostDocumentPolicy.merge && StringUtils.isNotBlank(rules))? new HashMap<>() : null;
 		if (mergeRules != null) {
 			try {
 				JSONObject json = new JSONObject(rules);
