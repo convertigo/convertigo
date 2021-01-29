@@ -9681,11 +9681,6 @@
 	        "value": "{}",
 	        "values": [false,true]
 	      }
-      },
-      "config": {
-        "action_ts_imports": [
-			{"from":"ionic-angular", "components":["Events"]}
-        ]
       }
     },
     

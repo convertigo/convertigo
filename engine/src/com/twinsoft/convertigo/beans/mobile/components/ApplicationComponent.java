@@ -1314,6 +1314,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 				computed += event.getAppEvent().computeDestructor();
 			}
 		}
+		if (compareToTplVersion("7.9.0.5") >= 0) {
+			computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
+		}
 		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
 		computed += "\t}"+ System.lineSeparator();
 		computed += "\t";

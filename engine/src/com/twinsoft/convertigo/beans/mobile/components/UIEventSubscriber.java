@@ -160,8 +160,13 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	public String computeConstructor() {
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
-			computed += "\t\tthis.events.subscribe('"+ getTopic() +"', "
+			if (compareToTplVersion("7.9.0.5") < 0) {
+				computed += "\t\tthis.events.subscribe('"+ getTopic() +"', "
+							+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
+			} else {
+				computed += "\t\tthis.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
 						+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
+			}
 		}
 		return computed;
 	}
@@ -169,7 +174,11 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	public String computeDestructor() {
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
-			computed += "\t\tthis.events.unsubscribe('"+ getTopic() +"');"+ System.lineSeparator();
+			if (compareToTplVersion("7.9.0.5") < 0) {
+				computed += "\t\tthis.events.unsubscribe('"+ getTopic() +"');"+ System.lineSeparator();
+			} else {
+				computed += "\t\tthis.subscriptions['"+ getTopic() +"'].unsubscribe();"+ System.lineSeparator();
+			}
 		}
 		return computed;
 	}

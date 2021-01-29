@@ -790,6 +790,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 					}
+					
+					if (ionBean.getName().equals("PublishEventAction")) {
+						if (compareToTplVersion("7.9.0.5") < 0) {
+							// removed from ion_objects.json since 7.9.0.5, need to add for older tpl
+							imports.put("Events", "ionic-angular");
+						}
+					}
 				}
 				return imports;
 			}
