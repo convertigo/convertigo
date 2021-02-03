@@ -115,12 +115,6 @@ public class InputStreamReadUntil extends InputStream {
 	}
 
 	@Override
-	public void skipNBytes(long n) throws IOException {
-		state = 0;
-		is.skipNBytes(n);
-	}
-
-	@Override
 	public void close() throws IOException {
 		state = 0;
 		is.close();
