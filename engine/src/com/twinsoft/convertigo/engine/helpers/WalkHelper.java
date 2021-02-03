@@ -115,15 +115,15 @@ public class WalkHelper {
 			}
 			
 			IApplicationComponent applicationComponent = mobileApplication.getApplicationComponent();
-			if (applicationComponent instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
-				com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent app = GenericUtils.cast(applicationComponent);
-				if (before(mobileApplication, com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent.class)) {
+			if (before(mobileApplication, com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent.class)) {
+				if (applicationComponent instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+					com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent app = GenericUtils.cast(applicationComponent);
 					walk(app);
 				}
 			}
-			else if (applicationComponent instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
-				com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app = GenericUtils.cast(applicationComponent);
-				if (before(mobileApplication, com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent.class)) {
+			if (before(mobileApplication, com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent.class)) {
+				if (applicationComponent instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+					com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app = GenericUtils.cast(applicationComponent);
 					walk(app);
 				}
 			}

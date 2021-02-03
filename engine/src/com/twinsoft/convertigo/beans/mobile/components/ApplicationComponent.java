@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class ApplicationComponent extends MobileComponent implements IApplicationComponent, IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
+	public static final String defaultTplProjectName = "mobilebuilder_tpl_7_9_0";
 
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
@@ -72,7 +73,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	
 	transient private String tplProjectVersion = "";
 	
-	private String tplProjectName = "";
+	private String tplProjectName = defaultTplProjectName;
 	private String splitPaneLayout = "not set";
 	private boolean isPWA = false;
 	private boolean useClickForTap = false;
@@ -1569,7 +1570,8 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
 			TreeSet<String> projects = new TreeSet<String>();
-			projects.add(this.tplProjectName);
+			projects.add(defaultTplProjectName);
+			projects.add(tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 				if (isCompatibleTemplate(project)) {
