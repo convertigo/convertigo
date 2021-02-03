@@ -40,9 +40,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWizard;
-import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
@@ -196,13 +194,13 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			MessageDialog.openError(getShell(), "Error", realException.getMessage());
 			return false;
 		}
+		return true;
+	}
 
-		// refresh the project explorer treeview
-		IWorkbenchPart iwbPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-				.findView("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView");
-
-		if (iwbPart instanceof ProjectExplorerView) {
-			ProjectExplorerView view = (ProjectExplorerView) iwbPart;
+	private void updateProjectTreeView() {
+		ConvertigoPlugin.getDisplay().asyncExec(() -> {
+			// refresh the project explorer treeview
+			ProjectExplorerView view = (ProjectExplorerView) ConvertigoPlugin.getDefault().getProjectExplorerView();
 
 			try {
 				if (projectName != null) {
@@ -212,11 +210,8 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				ConvertigoPlugin.logException(e, "An error occured while refreshing the tree view");
 			}
 			view.viewer.refresh();
-		}
-
-		return true;
+		});
 	}
-
 	/**
 	 * The worker method. We create the project here according to the templateId
 	 * variable
@@ -518,6 +513,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				monitor.setTaskName("Schemas updated");
 				monitor.worked(1);
 				
+				updateProjectTreeView();
 			} catch (Exception e) {
 				Engine.logDatabaseObjectManager.error("An error occured while updating transaction schemas", e);
 			}
@@ -570,6 +566,8 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 
 				mon.setTaskName("Resources created");
 				mon.worked(1);
+
+				updateProjectTreeView();
 			} catch (Exception e) {
 				// Delete everything
 				try {
