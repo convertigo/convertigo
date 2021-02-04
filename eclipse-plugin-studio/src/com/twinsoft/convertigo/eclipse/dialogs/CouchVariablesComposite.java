@@ -83,7 +83,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 				if ( (name.startsWith("q_") || name.startsWith("p_")) ) {
 					if (!parentObject.getClass().getCanonicalName().equals(property.getValue(MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS))) {
 						Group choosenGroup = name.startsWith("q_") ? groupQueries : groupParameters;
-						description = description.replaceFirst("\\|", "");
+						description = description.replaceFirst("\\|", "<br/>\n");
 						addToComposite(choosenGroup, name, description, false);
 					}
 				} 
