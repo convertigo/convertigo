@@ -236,28 +236,32 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			}
 			
 			labelName.setText(label);
-			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP | SWT.BORDER);
+			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP);
 			browserDescription.setUseExternalBrowser(true);
 			if (SwtUtils.isDark()) {
 				browserDescription.setBackground(getParent().getBackground());
 			}
-			browserDescription.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+			GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, true);
+			gd.minimumHeight = 60;
+			browserDescription.setLayoutData(gd);
 			browserDescription.setText("<html>" +
-					"<head>" +
-					"<script type=\"text/javascript\">" +
-						"document.oncontextmenu = new Function(\"return false\");" +
-					"</script>" +
-							"<style type=\"text/css\">" +
-								  "body {" +
-								    "font-family: Tahoma new, sans-serif;" +
-								    "font-size: 0.7em;" +
-								    "margin-top: 5px;" +
-								    "overflow-y: auto;" +
-								    "color: $foreground$;" +
-								    "background-color: $background$ } \n" +
-								  "a { color: $link$; }" +
-							"</style></head><p>" + description + "</p></html>");
-
+				"<head>" +
+				"<script type=\"text/javascript\">" +
+					"document.oncontextmenu = new Function(\"return false\");" +
+				"</script>" +
+				"<style type=\"text/css\">" +
+					  "body {" +
+					    "margin: auto;" +
+					    "height: 60px;" +
+					    "display: table-cell;" +
+					    "vertical-align: middle;" +
+					    "font-family: Tahoma new, sans-serif;" +
+					    "font-size: 0.7em;" +
+					    "overflow-y: auto;" +
+					    "color: $foreground$;" +
+					    "background-color: $background$ } \n" +
+					  "a { color: $link$; }" +
+				"</style></head><body>" + description + "</body></html>");
 			parametersCouch.add(name);
 			
 			Control[] children = choosenGroup.getChildren();
