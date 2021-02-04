@@ -310,7 +310,7 @@ public class OpenApiUtils {
 		if (project != null) {
 			info.setTitle(project.getName() + " OAS3 REST API");
 			info.setDescription(project.getComment());
-			info.setVersion(project.getVersion());			
+			info.setVersion(project.getVersion());
 		}
 		openAPI.setInfo(info);
 		
@@ -943,10 +943,8 @@ public class OpenApiUtils {
 								}
 							}
 							
-							String comment = summary;
-							if (comment != null  && comment.isEmpty()) {
-								comment = operationDesc;
-							}
+							String comment = org.apache.commons.lang3.StringUtils.isNotBlank(summary) && !"null".equals(summary) ? summary :
+								(org.apache.commons.lang3.StringUtils.isNotBlank(operationDesc) ? operationDesc : "");
 							
 							XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 							AbstractHttpTransaction transaction = new HttpTransaction();
