@@ -944,7 +944,7 @@ public class OpenApiUtils {
 							}
 							
 							String comment = org.apache.commons.lang3.StringUtils.isNotBlank(summary) && !"null".equals(summary) ? summary :
-								(org.apache.commons.lang3.StringUtils.isNotBlank(operationDesc) ? operationDesc : "");
+								(org.apache.commons.lang3.StringUtils.isNotBlank(operationDesc) && !"null".equals(operationDesc) ? operationDesc : "");
 							
 							XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
 							AbstractHttpTransaction transaction = new HttpTransaction();
