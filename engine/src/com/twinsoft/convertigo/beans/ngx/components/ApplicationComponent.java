@@ -71,9 +71,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	transient private XMLVector<XMLVector<Long>> orderedSharedActions = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedSharedComponents = new XMLVector<XMLVector<Long>>();
 	
-	transient private String tplProjectVersion = defaultTplProjectName;
+	transient private String tplProjectVersion = "";
 	
-	private String tplProjectName = "";
+	private String tplProjectName = defaultTplProjectName;
 	private String splitPaneLayout = "not set";
 	private boolean isPWA = false;
 	private boolean useClickForTap = false;
@@ -97,6 +97,10 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		orderedSharedComponents = new XMLVector<XMLVector<Long>>();
 		orderedSharedComponents.add(new XMLVector<Long>());
+		
+		if (Engine.theApp == null) {
+			tplProjectName = "";
+		}
 	}
 
 	@Override

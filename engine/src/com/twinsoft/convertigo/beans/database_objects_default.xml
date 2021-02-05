@@ -1,4 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction" default="false" priority="0" version="   7   9   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PutDocumentAttachment"/>
+        </property>
+        <property name="p_attbase64">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_attcontent_type">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_attname">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_attpath">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction" default="false" priority="0" version="   7   9   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>
@@ -137,168 +209,6 @@
         </property>
         <property name="useHash">
             <java.lang.Boolean value="false"/>
-        </property>
-        <property name="xmlComplexTypeAffectation">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
-                <schemaDefinition/>
-            </xmlizable>
-        </property>
-        <wsdltype/>
-        <handlers/>
-    </transaction>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="   7   9   0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="componentScriptContent">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent/>
-            </xmlizable>
-        </property>
-        <property name="isPWA">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Application"/>
-        </property>
-        <property name="splitPaneLayout">
-            <java.lang.String value="not set"/>
-        </property>
-        <property name="tplProjectName">
-            <java.lang.String value="mobilebuilder_tpl_7_9_0"/>
-        </property>
-        <property name="useClickForTap">
-            <java.lang.Boolean value="false"/>
-        </property>
-    </mobilecomponent>
-    <sequence classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" priority="0" version="   7   9   0">
-        <property name="accessibility">
-            <java.lang.String value="Public"/>
-        </property>
-        <property name="addStatistics">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="authenticatedContextRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="authenticatedUserAsCacheKey">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="autoStart">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="billable">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="clientCachable">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="encodingCharSet">
-            <java.lang.String value="UTF-8"/>
-        </property>
-        <property name="includeResponseElement">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Generic_Sequence"/>
-        </property>
-        <property name="responseExpiryDate">
-            <java.lang.String value=""/>
-        </property>
-        <property name="responseTimeout">
-            <java.lang.Long value="60"/>
-        </property>
-        <property name="secureConnectionRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="sheetLocation">
-            <java.lang.Integer value="0"/>
-        </property>
-        <wsdltype/>
-    </sequence>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAppGuard" priority="0" version="   7   9   0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="guardType">
-            <java.lang.String value="onCanActivate"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="AppGuard"/>
-        </property>
-        <property name="topic">
-            <java.lang.String value="canActivate"/>
-        </property>
-    </mobilecomponent>
-    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction" default="false" priority="0" version="   7   9   0">
-        <property name="accessibility">
-            <java.lang.String value="Public"/>
-        </property>
-        <property name="addStatistics">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="authenticatedContextRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="authenticatedUserAsCacheKey">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="bIncludeCertificateGroup">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="billable">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="clientCachable">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="encodingCharSet">
-            <java.lang.String value="UTF-8"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="PutDocumentAttachment"/>
-        </property>
-        <property name="p_attbase64">
-            <java.lang.String value=""/>
-        </property>
-        <property name="p_attcontent_type">
-            <java.lang.String value=""/>
-        </property>
-        <property name="p_attname">
-            <java.lang.String value=""/>
-        </property>
-        <property name="p_attpath">
-            <java.lang.String value=""/>
-        </property>
-        <property name="p_db">
-            <java.lang.String value=""/>
-        </property>
-        <property name="p_docid">
-            <java.lang.String value=""/>
-        </property>
-        <property name="q_rev">
-            <java.lang.String value=""/>
-        </property>
-        <property name="responseExpiryDate">
-            <java.lang.String value=""/>
-        </property>
-        <property name="responseTimeout">
-            <java.lang.Long value="60"/>
-        </property>
-        <property name="secureConnectionRequired">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="sheetLocation">
-            <java.lang.Integer value="0"/>
         </property>
         <property name="xmlComplexTypeAffectation">
             <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
@@ -737,237 +647,54 @@
         <wsdltype/>
         <handlers><![CDATA[// handlers are handled by Statements for HTML Transaction.]]></handlers>
     </transaction>
-    <connector classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector" default="false" priority="0" version="   7   9   0">
-        <property name="anonymousReplication">
-            <java.lang.String value="deny"/>
+    <sequence classname="com.twinsoft.convertigo.beans.sequences.GenericSequence" priority="0" version="   7   9   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
         </property>
-        <property name="billingClassName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property ciphered="true" name="couchPassword">
-            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
-        </property>
-        <property name="couchUsername">
-            <java.lang.String value=""/>
-        </property>
-        <property name="databaseName">
-            <java.lang.String value="FullSync_connector"/>
-        </property>
-        <property name="endTransactionName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="https">
+        <property name="addStatistics">
             <java.lang.Boolean value="false"/>
         </property>
-        <property name="isTasAuthenticationRequired">
+        <property name="authenticatedContextRequired">
             <java.lang.Boolean value="false"/>
         </property>
-        <property name="jsonUseType">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="FullSync_connector"/>
-        </property>
-        <property name="port">
-            <java.lang.Integer value="5984"/>
-        </property>
-        <property name="secureDatabase">
+        <property name="authenticatedUserAsCacheKey">
             <java.lang.Boolean value="false"/>
         </property>
-        <property name="server">
-            <java.lang.String value="127.0.0.1"/>
-        </property>
-    </connector>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent" isRoot="false" priority="0" version="   7   9   0">
-        <property name="changeDetection">
-            <java.lang.String value="Default"/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="defaultHistory">
-            <java.lang.String value="[]"/>
-        </property>
-        <property name="endMenu">
-            <java.lang.String value=""/>
-        </property>
-        <property name="icon">
-            <java.lang.String value=""/>
-        </property>
-        <property name="iconPosition">
-            <java.lang.String value=""/>
-        </property>
-        <property name="inAutoMenu">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Page"/>
-        </property>
-        <property name="preloadPriority">
-            <java.lang.String value="low"/>
-        </property>
-        <property name="scriptContent">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent/>
-            </xmlizable>
-        </property>
-        <property name="segment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="startMenu">
-            <java.lang.String value=""/>
-        </property>
-        <property name="title">
-            <java.lang.String value=""/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   7   9   0">
-        <property name="attrName">
-            <java.lang.String value="(click)"/>
-        </property>
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
-                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="eventName">
-            <java.lang.String value="onClick"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Event"/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr" priority="0" version="   7   9   0">
-        <property name="beanData">
-            <java.lang.String value=""/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="identifier">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="DynamicAttr"/>
-        </property>
-        <property name="selfClose">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="tagName">
-            <java.lang.String value="tag"/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicTabButton" priority="0" version="   7   9   0">
-        <property name="beanData">
-            <java.lang.String value=""/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="identifier">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="TabButton"/>
-        </property>
-        <property name="selfClose">
+        <property name="autoStart">
             <java.lang.Boolean value="false"/>
         </property>
-        <property name="tabpage">
-            <java.lang.String value=""/>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
         </property>
-        <property name="tagName">
-            <java.lang.String value="tag"/>
-        </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems" priority="0" version="   7   9   0">
-        <property name="beanData">
-            <java.lang.String value=""/>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
         </property>
         <property name="comment">
             <java.lang.String value=""/>
         </property>
-        <property name="identifier">
-            <java.lang.String value=""/>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
         </property>
-        <property name="isEnabled">
+        <property name="includeResponseElement">
             <java.lang.Boolean value="true"/>
         </property>
-        <property name="itemicon">
-            <java.lang.String value=""/>
-        </property>
-        <property name="itemiconPos">
-            <java.lang.String value=""/>
-        </property>
-        <property name="itempage">
-            <java.lang.String value=""/>
-        </property>
-        <property name="itemtitle">
-            <java.lang.String value="'item\'s title'"/>
-        </property>
         <property name="name">
-            <java.lang.String value="MenuItems"/>
+            <java.lang.String value="Generic_Sequence"/>
         </property>
-        <property name="selfClose">
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
             <java.lang.Boolean value="false"/>
         </property>
-        <property name="tagName">
-            <java.lang.String value="tag"/>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
         </property>
-    </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem" priority="0" version="   7   9   0">
-        <property name="beanData">
-            <java.lang.String value=""/>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="identifier">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="itemicon">
-            <java.lang.String value=""/>
-        </property>
-        <property name="itemiconPos">
-            <java.lang.String value=""/>
-        </property>
-        <property name="itempage">
-            <java.lang.String value=""/>
-        </property>
-        <property name="itemtitle">
-            <java.lang.String value="'item\'s title'"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="MenuItem"/>
-        </property>
-        <property name="selfClose">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="tagName">
-            <java.lang.String value="tag"/>
-        </property>
-    </mobilecomponent>
+        <wsdltype/>
+    </sequence>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIUseShared" priority="0" version="   7   9   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -1158,7 +885,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab" priority="0" version="   7   9   0">
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicTabButton" priority="0" version="   7   9   0">
         <property name="beanData">
             <java.lang.String value=""/>
         </property>
@@ -1172,7 +899,7 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="DynamicTab"/>
+            <java.lang.String value="TabButton"/>
         </property>
         <property name="selfClose">
             <java.lang.Boolean value="false"/>
@@ -1184,8 +911,76 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    
-    
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItems" priority="0" version="   7   9   0">
+        <property name="beanData">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="identifier">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="itemicon">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itemiconPos">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itempage">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itemtitle">
+            <java.lang.String value="'item\'s title'"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="MenuItems"/>
+        </property>
+        <property name="selfClose">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="tagName">
+            <java.lang.String value="tag"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem" priority="0" version="   7   9   0">
+        <property name="beanData">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="identifier">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="itemicon">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itemiconPos">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itempage">
+            <java.lang.String value=""/>
+        </property>
+        <property name="itemtitle">
+            <java.lang.String value="'item\'s title'"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="MenuItem"/>
+        </property>
+        <property name="selfClose">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="tagName">
+            <java.lang.String value="tag"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu" priority="0" version="   7   9   0">
         <property name="beanData">
             <java.lang.String value=""/>
@@ -1353,6 +1148,29 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr" priority="0" version="   7   9   0">
+        <property name="beanData">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="identifier">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DynamicAttr"/>
+        </property>
+        <property name="selfClose">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="tagName">
+            <java.lang.String value="tag"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate" priority="0" version="   7   9   0">
         <property name="beanData">
             <java.lang.String value=""/>
@@ -1483,7 +1301,28 @@
             </xmlizable>
         </property>
     </mobilecomponent>
-    
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   7   9   0">
+        <property name="attrName">
+            <java.lang.String value="(click)"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onClick"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Event"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlDirective" priority="0" version="   7   9   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -1552,6 +1391,23 @@
         </property>
         <property name="name">
             <java.lang.String value="Attr"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAppGuard" priority="0" version="   7   9   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="guardType">
+            <java.lang.String value="onCanActivate"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="AppGuard"/>
+        </property>
+        <property name="topic">
+            <java.lang.String value="canActivate"/>
         </property>
     </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent" priority="0" version="   7   9   0">
@@ -1665,6 +1521,52 @@
             <java.lang.String value="Else_Handler"/>
         </property>
     </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent" isRoot="false" priority="0" version="   7   9   0">
+        <property name="changeDetection">
+            <java.lang.String value="Default"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="defaultHistory">
+            <java.lang.String value="[]"/>
+        </property>
+        <property name="endMenu">
+            <java.lang.String value=""/>
+        </property>
+        <property name="icon">
+            <java.lang.String value=""/>
+        </property>
+        <property name="iconPosition">
+            <java.lang.String value=""/>
+        </property>
+        <property name="inAutoMenu">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Page"/>
+        </property>
+        <property name="preloadPriority">
+            <java.lang.String value="low"/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="segment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="startMenu">
+            <java.lang.String value=""/>
+        </property>
+        <property name="title">
+            <java.lang.String value=""/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent" priority="0" version="   7   9   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -1690,6 +1592,50 @@
             <java.lang.Boolean value="false"/>
         </property>
     </mobilecomponent>
+    <connector classname="com.twinsoft.convertigo.beans.connectors.FullSyncConnector" default="false" priority="0" version="   7   9   0">
+        <property name="anonymousReplication">
+            <java.lang.String value="deny"/>
+        </property>
+        <property name="billingClassName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property ciphered="true" name="couchPassword">
+            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
+        </property>
+        <property name="couchUsername">
+            <java.lang.String value=""/>
+        </property>
+        <property name="databaseName">
+            <java.lang.String value="FullSync_connector"/>
+        </property>
+        <property name="endTransactionName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="https">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="isTasAuthenticationRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="jsonUseType">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="FullSync_connector"/>
+        </property>
+        <property name="port">
+            <java.lang.Integer value="5984"/>
+        </property>
+        <property name="secureDatabase">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="server">
+            <java.lang.String value="127.0.0.1"/>
+        </property>
+    </connector>
     <index classname="com.twinsoft.convertigo.beans.couchdb.JsonIndex" priority="0" version="   7   7   0">
         <property name="ascending">
             <java.lang.Boolean value="true"/>

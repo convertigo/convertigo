@@ -100,6 +100,10 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		
 		orderedSharedComponents = new XMLVector<XMLVector<Long>>();
 		orderedSharedComponents.add(new XMLVector<Long>());
+		
+		if (Engine.theApp == null) {
+			tplProjectName = "";
+		}
 	}
 
 	@Override
