@@ -559,7 +559,7 @@
              project="true">
           <description>Imports the Convertigo Sigfox library project.</description>
              {
-               "url": "lib_AmazonLEX=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.9.0",
+               "url": "lib_Sigfox=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
