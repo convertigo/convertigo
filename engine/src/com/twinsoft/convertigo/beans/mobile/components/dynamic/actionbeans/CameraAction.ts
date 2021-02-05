@@ -126,7 +126,7 @@
             // convert image stored in canvas to base64 encoded image
             var imageData = canvas.toDataURL(opts['encodingType'] == 0 ? 'image/jpeg' : 'image/png');
             if (opts['destinationType'] == 0) {
-                imageData = imageData.substring(imageData.indexOf(',') + 1);                        
+                imageData = imageData.substring(imageData.indexOf(',') + 1);
             }
             
             return imageData;
@@ -176,13 +176,16 @@
                     image.src = readerEvent.target.result;
                     
                     btMiddle.onclick = () => {
-                        var imageData = resize(image, image.naturalWidth, image.naturalHeight, opts);                            
+                        var imageData = resize(image, image.naturalWidth, image.naturalHeight, opts);
                         parent.parentNode.removeChild(parent);
                         success(imageData);
                     }
                 };
-
-                reader.readAsDataURL(inputEvent.target.files[0]);
+                try {
+                  reader.readAsDataURL(inputEvent.target.files[0]);
+                } catch (e) {
+                  // probably the system dialog is canceled
+                }
             };
             
             btRight.onclick = () => {
@@ -191,11 +194,11 @@
             }
             
             parent.appendChild(input);
-            document.body.appendChild(parent);            
+            document.body.appendChild(parent);
         };
 
         var capture = (success, error, opts) => {
-            var localMediaStream, i;            
+            var localMediaStream, i;
             var camera = [];
             var camera_i = 0;
 
