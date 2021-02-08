@@ -171,8 +171,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 	public String computeDestructor() {
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
-			//computed += "\t\tthis.events.unsubscribe('"+ getTopic() +"');"+ System.lineSeparator();
-			computed += "\t\tthis.subscriptions['"+ getTopic() +"'].unsubscribe();"+ System.lineSeparator();
+			computed += "\t\tthis.subscriptions['"+ getTopic() +"'] != undefined ? this.subscriptions['"+ getTopic() +"'].unsubscribe(): null;"+ System.lineSeparator();
 		}
 		return computed;
 	}
