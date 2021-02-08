@@ -1501,7 +1501,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	private boolean isCompatibleTemplate(String project) {
 		File tplDir = new File(Engine.projectDir(project) + "/ionicTpl");
 		if (tplDir.exists()) {
-			if (new File(tplDir,"src/services/actionbeans.service.ts").exists()) {
+			if (new File(tplDir,"angular.json").exists()) {
 				return true;
 			}
 		}
