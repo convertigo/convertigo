@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.SortedSet;
@@ -188,6 +189,8 @@ public class ConvertigoTypeScriptDefinition {
 				tsd.handleCls(com.twinsoft.convertigo.engine.Context.class);
 				tsd.handleCls(com.twinsoft.convertigo.engine.util.LogWrapper.class);
 				tsd.handleCls(com.twinsoft.convertigo.engine.util.Crypto2.class);
+				tsd.handleCls(com.twinsoft.convertigo.engine.util.XMLUtils.class);
+				tsd.handleCls(com.twinsoft.convertigo.engine.util.FileUtils.class);
 				tsd.handleCls(java.lang.System.class);
 				tsd.handleCls(java.math.BigInteger.class);
 				tsd.handleCls(java.security.Signature.class);
@@ -207,7 +210,7 @@ public class ConvertigoTypeScriptDefinition {
 				Engine.logStudio.info("(ConvertigoTypeScriptDefinition) Handle " + tsd.classes.size() + " classes in " + ts  + " ms.");
 				file[0] = new File(Engine.USER_WORKSPACE_PATH, "studio/convertigo.d.ts");
 				try {
-					FileUtils.write(file[0], code, "UTF-8");
+					FileUtils.write(file[0], code, StandardCharsets.UTF_8);
 				} catch (IOException e) {
 					Engine.logStudio.error("(ConvertigoTypeScriptDefinition) Failed to write: " + file[0], e);
 				}

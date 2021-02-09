@@ -44,6 +44,7 @@ public enum CouchParam {
 	json_base,
 	key,
 	limit,
+	merge,
 	name,
 	new_edits,
 	password,

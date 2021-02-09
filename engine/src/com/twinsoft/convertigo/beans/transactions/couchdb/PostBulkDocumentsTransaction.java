@@ -118,7 +118,7 @@ public class PostBulkDocumentsTransaction extends AbstractDatabaseTransaction im
 			}
 		}
 		
-		Map<List<String>, String> mergeRules = policy.mergeRules(getP_merge());
+		Map<List<String>, String> mergeRules = policy.mergeRules(getParameterStringValue(CouchParam.merge));
 		boolean all_or_nothing = getParameterBooleanValue(CouchParam.all_or_nothing, false);
 		boolean new_edits = getParameterBooleanValue(CouchParam.new_edits, true);
 		

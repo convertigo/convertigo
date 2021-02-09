@@ -112,9 +112,9 @@ public class JsonUtils {
 		
 		for (int i = 0; i < sourceSize; i++) {
 			try {
-				Object targetValue = targetSize > i ? targetArray.get(i) : null;
-				Object sourceValue = sourceArray.get(i);
-				if (sourceValue != null && targetValue != null) {
+				Object targetValue = targetSize > i && !targetArray.isNull(i) ? targetArray.get(i) : null;
+				Object sourceValue = sourceArray.isNull(i) ? null : sourceArray.get(i);
+				if (i < targetSize) {
 					if (targetValue instanceof JSONObject && sourceValue instanceof JSONObject) {
 						merge((JSONObject) targetValue, (JSONObject) sourceValue);
 					} else if (targetValue instanceof JSONArray && sourceValue instanceof JSONArray) {
@@ -122,13 +122,11 @@ public class JsonUtils {
 					} else {
 						targetArray.put(i, sourceValue);
 					}
-				}
-				else if (sourceValue != null && targetValue == null) {
+				} else {
 					targetArray.put(sourceValue);
 				}
 			} catch (JSONException e) {
 				//TODO: handle
-				
 			}
 		}
 	}
