@@ -530,40 +530,44 @@ function changecss0(cssFile, cssClass, element, value) {
 	var added = false;
 
 	for (var sIndex = 0; sIndex < document.styleSheets.length; sIndex++) {
-		var stylesheet = document.styleSheets[sIndex];
-		if (stylesheet.href.indexOf(cssFile) != -1) {
-			if (stylesheet['rules']) {
-				cssRules = stylesheet['rules'];
-			} else if (stylesheet['cssRules']) {
-				cssRules = stylesheet['cssRules'];
-			} else {
-				// no rules found... browser unknown
-				return "";
-			}
-	
-			for (var rIndex = 0; rIndex < cssRules.length; rIndex++) {
-				var cssRule = cssRules[rIndex];
-				if (cssRule.selectorText == cssClass) {
-					if (cssRule.style[element]) {
-						var previousValue = cssRule.style[element];
-						cssRule.style[element] = value;
-						added = true;
-						return previousValue;
+		try {
+			var stylesheet = document.styleSheets[sIndex];
+			if (stylesheet.href != null && stylesheet.href.indexOf(cssFile) != -1) {
+				if (stylesheet['rules']) {
+					cssRules = stylesheet['rules'];
+				} else if (stylesheet['cssRules']) {
+					cssRules = stylesheet['cssRules'];
+				} else {
+					// no rules found... browser unknown
+					return "";
+				}
+		
+				for (var rIndex = 0; rIndex < cssRules.length; rIndex++) {
+					var cssRule = cssRules[rIndex];
+					if (cssRule.selectorText == cssClass) {
+						if (cssRule.style[element]) {
+							var previousValue = cssRule.style[element];
+							cssRule.style[element] = value;
+							added = true;
+							return previousValue;
+						}
 					}
 				}
-			}
-	
-			if (!added) {
-				try {
-					stylesheet.insertRule(cssClass + ' { ' + element + ': ' + value + '; }', cssRules.length);
-				} catch (err) {
+		
+				if (!added) {
 					try {
-						stylesheet.addRule(cssClass, element + ': ' + value + ';');
+						stylesheet.insertRule(cssClass + ' { ' + element + ': ' + value + '; }', cssRules.length);
 					} catch (err) {
+						try {
+							stylesheet.addRule(cssClass, element + ': ' + value + ';');
+						} catch (err) {
+						}
 					}
 				}
+				break;
 			}
-			break;
+		} catch (ex) {
+			console.log(ex);
 		}
 	}
 	
