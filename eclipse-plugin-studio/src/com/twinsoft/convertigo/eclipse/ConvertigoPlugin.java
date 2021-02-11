@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -125,6 +126,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
@@ -1582,7 +1584,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		File pscFile = new File(convertigoWorkspace, "studio/psc.txt");
 		if (pscFile.exists()) {
 			try {
-				String psc = FileUtils.readFileToString(pscFile, "utf-8");
+				String psc = FileUtils.readFileToString(pscFile, StandardCharsets.UTF_8);
 				return decodePsc(psc);
 			} catch (IOException e) {
 				throw new PscException("Invalid PSC (failed to read the file '" + pscFile.getAbsolutePath() + "' because of a '" + e.getClass().getSimpleName() + " : " + e.getMessage() +"')!");
@@ -1793,5 +1795,21 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				page.refresh();
 			}
 		}
+	}
+	
+	public void projectLoaded(Project project) {
+		getDisplay().asyncExec(() -> {
+			ProjectExplorerView pew = getProjectExplorerView();
+			if (pew == null) {
+				return;
+			}
+			try {
+				TreeObject treeProject = pew.getProjectRootObject(project.getName());
+				if (!project.equals(treeProject.getObject())) {
+					pew.reloadProject(treeProject);
+				}
+			} catch (EngineException e) {
+			}
+		});
 	}
 }
