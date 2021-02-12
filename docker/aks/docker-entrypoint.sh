@@ -64,6 +64,8 @@ if [ "$1" = "convertigo" ]; then
         -XX:MaxHeapFreeRatio=15 \
         -Xdebug \
         -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n \
+        -Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true \
+        -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true \
         -Dconvertigo.cems.user_workspace_path=/workspace"
     
     ## the web-connector version can use an existing DISPLAY or declare one
