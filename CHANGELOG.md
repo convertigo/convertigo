@@ -95,7 +95,6 @@
 - [#450](https://github.com/convertigo/convertigo/issues/450) Fixed error Pop-up at startup: "this.row" is null
 - [#453](https://github.com/convertigo/convertigo/issues/453) JGit now use proxy settings
 - [#457](https://github.com/convertigo/convertigo/issues/457) Fixed subscribe handler is not working in some cases
-- [#460](https://github.com/convertigo/convertigo/issues/460) [Studio] Unsynced treeview's projects with Engine's projects
 
 ---
 
