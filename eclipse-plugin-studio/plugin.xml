@@ -52,6 +52,13 @@
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.actions.OpenStartupPage"
+               icon="icons/studio/menu/statement_color_16x16.png"
+               id="com.twinsoft.convertigo.OpenStartupPage"
+               label="&amp;Open the Startup page"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.actions.ProjectPrintAction"
                icon="icons/studio/project_print.gif"
                id="com.twinsoft.convertigo.PrintProject"
