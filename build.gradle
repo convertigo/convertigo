@@ -23,7 +23,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 ext.convertigoVersion = '7.9.0'
-ext.convertigoTag = 'beta'
+ext.convertigoTag = 'rc'
 ext.convertigoCodename = 'gold'
 ext.convertigoCode = 'Au'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
