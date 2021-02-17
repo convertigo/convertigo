@@ -19,6 +19,8 @@ sourceSets {
 	}
 }
 
+compileJava.dependsOn ':engine:publish'
+
 dependencies {
 	implementation project(':engine'), {
 		exclude group: 'convertigo', module: 'placeholders'
