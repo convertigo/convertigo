@@ -649,19 +649,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 					}, "Wait Embedded Tomcat started").start();
 					getDisplay().asyncExec(() -> {
-						try {
-							String username = "n/a";
-							String site = "n/a";
-							try {
-								Properties properties = decodePsc();
-								username = properties.getProperty("owner.email", DeploymentKey.adminUser.value(properties, 1));
-								site = properties.getProperty("deploy.1.server", "n/a").replace("(.*?)\\..*", "$1");
-							} catch (Exception e) {}
-							getActivePage().openEditor(StartupEditor.makeInput(username, site), StartupEditor.ID);
-						} catch (PartInitException e) {
-							e.printStackTrace();
-						}
-
+						launchStartupPage(true);
 					});
 				} catch (Exception e) {
 					afterPscException[0] = e;
@@ -1811,5 +1799,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			} catch (EngineException e) {
 			}
 		});
+	}
+	
+	public void launchStartupPage(boolean autoClose) {
+		try {
+			String username = "n/a";
+			String site = "n/a";
+			try {
+				Properties properties = decodePsc();
+				username = properties.getProperty("owner.email", DeploymentKey.adminUser.value(properties, 1));
+				site = properties.getProperty("deploy.1.server", "n/a").replace("(.*?)\\..*", "$1");
+			} catch (Exception e) {}
+			getActivePage().openEditor(StartupEditor.makeInput(username, site, autoClose), StartupEditor.ID);
+		} catch (PartInitException e) {
+			e.printStackTrace();
+		}
 	}
 }

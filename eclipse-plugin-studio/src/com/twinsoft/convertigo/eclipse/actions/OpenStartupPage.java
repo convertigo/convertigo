@@ -19,15 +19,14 @@
 
 package com.twinsoft.convertigo.eclipse.actions;
 
-import java.util.Calendar;
-
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-public class AboutAction implements IWorkbenchWindowActionDelegate {
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+
+public class OpenStartupPage implements IWorkbenchWindowActionDelegate {
 	
 	public void dispose() {
 	}
@@ -36,12 +35,7 @@ public class AboutAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		String message = "\nVersion " + com.twinsoft.convertigo.engine.Version.fullProductVersion
-				+ "\nRevision " + com.twinsoft.convertigo.engine.Version.revision
-				+ "\n\n\nCopyright (c) 2001-" + Calendar.getInstance().get(Calendar.YEAR)
-				+ " Convertigo SA.  All rights reserved.";
-		
-		MessageDialog.openInformation(null, "Convertigo Plug-in", message);
+		ConvertigoPlugin.getDefault().launchStartupPage(false);
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
