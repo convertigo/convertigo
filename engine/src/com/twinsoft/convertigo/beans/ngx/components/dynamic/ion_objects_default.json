@@ -5336,5 +5336,17 @@
     }
    }
   }
+ },
+ "SwitchAction": {
+  "   8   0   0": {
+   "name": "SwitchAction",
+   "properties": {
+    "expression": {
+     "name": "expression",
+     "mode": "script",
+     "value": "true"
+    }
+   }
+  }
  }
 }
