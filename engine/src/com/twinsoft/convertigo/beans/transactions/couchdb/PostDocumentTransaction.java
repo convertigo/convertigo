@@ -72,7 +72,7 @@ public class PostDocumentTransaction extends AbstractDatabaseTransaction impleme
 		}
 		
 		JSONObject jsonDocument = getJsonBody(jsonBase);
-		Map<List<String>, String> mergeRules = policy.mergeRules(getP_merge());
+		Map<List<String>, String> mergeRules = policy.mergeRules(getParameterStringValue(CouchParam.merge));
 		
 		JSONObject response = getCouchClient().postDocument(db, jsonDocument, query, policy, mergeRules, useHash);
 		

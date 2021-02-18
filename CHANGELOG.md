@@ -1,5 +1,103 @@
 # Changelog
 
+## 7.9.0
+
+#### New Features:
+
+- [#90](https://github.com/convertigo/convertigo/issues/90) [MB] Add support of Actions in Mobile Picker
+- [#93](https://github.com/convertigo/convertigo/issues/93) [MB] Mobile Picker Sources are now more user friendly
+- [#113](https://github.com/convertigo/convertigo/issues/113) [MB] Add Support of Project References for MB projects
+- [#162](https://github.com/convertigo/convertigo/issues/162) [MB] Add App event to listen result of auto login
+- [#326](https://github.com/convertigo/convertigo/issues/326) [MB] Add a ion-card-title component for Ionic v3 Cards
+- [#343](https://github.com/convertigo/convertigo/issues/343) [MB] Add support of Shared Components in Mobile Picker
+- [#375](https://github.com/convertigo/convertigo/issues/375) [SQL] Retrieve the value of a clob data
+- [#382](https://github.com/convertigo/convertigo/issues/382) [Gradle] Build native Android and IOS application locally using gradle
+- [#388](https://github.com/convertigo/convertigo/issues/388) [REST API] Add a Full OAS3 API support
+- [#392](https://github.com/convertigo/convertigo/issues/392) [MB] Use now standard Angular's service worker for PWA
+- [#420](https://github.com/convertigo/convertigo/issues/420) Add an Autostart property to a sequence object
+- [#422](https://github.com/convertigo/convertigo/issues/422) New SAML 2 SSO library is available for Enterprise authentication
+- [#426](https://github.com/convertigo/convertigo/issues/426) [Docker] Images can use sudo and can be disabled at image launch
+- [#427](https://github.com/convertigo/convertigo/issues/427) [Studio] Added a menu update gradle files + menu to enable github actions file
+- [#428](https://github.com/convertigo/convertigo/issues/428) [Studio] Support http verb PATCH in yaml WS import wizard
+- [#437](https://github.com/convertigo/convertigo/issues/437) [MB] Can now edit several Custom Actions at the same time, limit code lines
+- [#455](https://github.com/convertigo/convertigo/issues/455) [FS] PostDocument and PostBulkDocument transactions now handles _use_merge policy
+
+#### Improvements:
+
+- [#158](https://github.com/convertigo/convertigo/issues/158) [Studio] Updated Browser component to the latest version (7.8)
+- [#230](https://github.com/convertigo/convertigo/issues/230) [Studio] Upgrade to the latest Eclipse and use the Wild Web Developer plugin for JS/TS/YAML ...
+- [#295](https://github.com/convertigo/convertigo/issues/295) [Docker] The default tomcat session timeout is now configurable for Docker images
+- [#324](https://github.com/convertigo/convertigo/issues/324) [MB] Form components are now displayed by name in project's tree view
+- [#359](https://github.com/convertigo/convertigo/issues/359) [MB] Improved documentation for Subscribe and Publish components concerning Event data property
+- [#360](https://github.com/convertigo/convertigo/issues/360) [MB] SignaturePad Component : Add onBeginEvent and onEndEvent
+- [#364](https://github.com/convertigo/convertigo/issues/364) Bump config.xml cordova-version to 10.0.0 to support latest Cordova Version
+- [#368](https://github.com/convertigo/convertigo/issues/368) Get/PutDocumentAttachmentTransaction now have a base64 mode
+- [#379](https://github.com/convertigo/convertigo/issues/379) [Studio] For the REST web service import wizard: Add Petstore OpenApi sample urls
+- [#384](https://github.com/convertigo/convertigo/issues/384) [SQL] Use a short validation query for Oracle connection pools
+- [#389](https://github.com/convertigo/convertigo/issues/389) [FS] FullSyncListener now calls the Sequences with _conflicts data information
+- [#390](https://github.com/convertigo/convertigo/issues/390) [HTTP] New HttpTransaction configured to not use HTTP pool by default
+- [#391](https://github.com/convertigo/convertigo/issues/391) [FS] New FullSync connector configured to deny anonymous replication
+- [#404](https://github.com/convertigo/convertigo/issues/404) [MB] Add a data return property to the CloseModal Action
+- [#405](https://github.com/convertigo/convertigo/issues/405) [Studio] Prevents Eclipse to refresh node_modules folders
+- [#408](https://github.com/convertigo/convertigo/issues/408) [Admin] Import symbols default radio buttons to Merge + Priority import
+- [#411](https://github.com/convertigo/convertigo/issues/411) [Studio] Replace the modal window "What's new" by a "Video starting" editor
+- [#412](https://github.com/convertigo/convertigo/issues/412) Make the Swagger OAS3 console the default one
+- [#413](https://github.com/convertigo/convertigo/issues/413) Projects' templates retrieved from their github repositories
+- [#421](https://github.com/convertigo/convertigo/issues/421) [MB] Page actions now log the name of the page being handled
+- [#423](https://github.com/convertigo/convertigo/issues/423) [MB] If, IfElse and CallSequence actions display their current settings in tree view
+- [#430](https://github.com/convertigo/convertigo/issues/430) [MB] The Modal/Root/Push/Popover actions display their target page in tree view
+- [#433](https://github.com/convertigo/convertigo/issues/433) [Server] Disable the auto GC preference by default and wait 10 min every each GC
+- [#439](https://github.com/convertigo/convertigo/issues/439) [Gradle] Added a retry policy for the deploy task
+- [#440](https://github.com/convertigo/convertigo/issues/440) Explicit error message when deploying a project not compatible with the server version
+- [#441](https://github.com/convertigo/convertigo/issues/441) [Studio] Http Variable displays Http Name in the TreeView if different of the bean name
+- [#442](https://github.com/convertigo/convertigo/issues/442) [Studio] Shrink the XML result of editor and add a button to get the full result
+- [#447](https://github.com/convertigo/convertigo/issues/447) [Studio] Popup warning if a FullSync View is not compiling and accepted by CouchDB
+- [#454](https://github.com/convertigo/convertigo/issues/454) [REST API] "version" added for the OAS2 YAML
+- [#459](https://github.com/convertigo/convertigo/issues/459) [MB] Prevents blank lines generated in ts file for pages containing multiple component with identifier
+
+#### Bug Fixes:
+
+- [#271](https://github.com/convertigo/convertigo/issues/271) [MB] Source Picker now recognizes the 'type' attribute in XML Steps
+- [#347](https://github.com/convertigo/convertigo/issues/347) [MB] Finally Handler are now executed only once
+- [#358](https://github.com/convertigo/convertigo/issues/358) [MB] PublishEvent component, Event data property in TS mode is now empty by default
+- [#362](https://github.com/convertigo/convertigo/issues/362) Server now restart properly after clicking "Restart engine" button in administration console
+- [#365](https://github.com/convertigo/convertigo/issues/365) [MB] No more HTTP 404 on en.json and fr.json on fresh MB project
+- [#367](https://github.com/convertigo/convertigo/issues/367) [FS] Fix replication for documents with a c8oGrp containing a dot
+- [#369](https://github.com/convertigo/convertigo/issues/369) Connection string of a SQL connector does not override user/pwd properties
+- [#370](https://github.com/convertigo/convertigo/issues/370) No more StackOverflow when generating DOM instance for recursive Schema
+- [#374](https://github.com/convertigo/convertigo/issues/374) [SQL] No more unexpected exception using the DatabaseCacheManager with an SQL Server
+- [#377](https://github.com/convertigo/convertigo/issues/377) [MB] Can now re-select the same element after a "remove highlight"
+- [#378](https://github.com/convertigo/convertigo/issues/378) [REST API] Fix import a Swagger RestService through a http (not https)  url
+- [#385](https://github.com/convertigo/convertigo/issues/385) [SQL] Connection pool is now reset when modifying connector properties
+- [#386](https://github.com/convertigo/convertigo/issues/386) [Rest] Avoid max session exceeded in case new session initiated for authentication
+- [#387](https://github.com/convertigo/convertigo/issues/387) [MB] Fixed Camera component on Chrome
+- [#398](https://github.com/convertigo/convertigo/issues/398) Fixed SchemaManager stackoverflow when projects reference each others
+- [#400](https://github.com/convertigo/convertigo/issues/400) Fixed FullSync listener not always triggered on a CouchDB cluster
+- [#403](https://github.com/convertigo/convertigo/issues/403) [Studio] Fixed show in picker a Fullsync transaction for some special cases
+- [#406](https://github.com/convertigo/convertigo/issues/406) [Studio] Fixed Convertigo project URL parser wizard can loose property
+- [#409](https://github.com/convertigo/convertigo/issues/409) [Admin] Fixed logviewer endless loop
+- [#410](https://github.com/convertigo/convertigo/issues/410) Prevent a project to be imported more than once if it has circular references
+- [#414](https://github.com/convertigo/convertigo/issues/414) New session key now taken into account
+- [#416](https://github.com/convertigo/convertigo/issues/416) Fixed event loop exception in EngineLogView because of widget disposed
+- [#417](https://github.com/convertigo/convertigo/issues/417) Fixed IOException when EngineLogView is disposed
+- [#429](https://github.com/convertigo/convertigo/issues/429) Copy/Paste of a Shared Component now updates sourced properties (SC mode)
+- [#431](https://github.com/convertigo/convertigo/issues/431) [Studio] Prevent too long editor folder name (fails to write files on Windows)
+- [#432](https://github.com/convertigo/convertigo/issues/432) Handle end of context(s) in Internal Requester
+- [#434](https://github.com/convertigo/convertigo/issues/434) Can now CTRL+mouse drag of a Sequence in a PageEvent component
+- [#435](https://github.com/convertigo/convertigo/issues/435) [MB] Fixed issue when setting Marker property of the Call_Sequence component in the Sequence Picker
+- [#436](https://github.com/convertigo/convertigo/issues/436) Fixed projects are not displaying in project view when studio starts and there are no projects reopened automatically.
+- [#438](https://github.com/convertigo/convertigo/issues/438) Fixed Null pointer exception when importing a swagger YAML with no summary
+- [#443](https://github.com/convertigo/convertigo/issues/443) Fixed synchronization issues while using parallel steps in sequencer
+- [#445](https://github.com/convertigo/convertigo/issues/445) [FS] Automatically clear contexts from FullSync listeners
+- [#446](https://github.com/convertigo/convertigo/issues/446) Can build/serve old Ionic3 project based on custom or old tpl which does not specify nodeJsVersion
+- [#448](https://github.com/convertigo/convertigo/issues/448) Prevents shadow context created when requesting a project that does not exist
+- [#449](https://github.com/convertigo/convertigo/issues/449) [RESTWS] Avoid exception while importing YAML because of a null security scheme
+- [#450](https://github.com/convertigo/convertigo/issues/450) Fixed error Pop-up at startup: "this.row" is null
+- [#453](https://github.com/convertigo/convertigo/issues/453) JGit now use proxy settings
+- [#457](https://github.com/convertigo/convertigo/issues/457) Fixed subscribe handler is not working in some cases
+
+---
+
 ## 7.8.0
 
 #### New Features:

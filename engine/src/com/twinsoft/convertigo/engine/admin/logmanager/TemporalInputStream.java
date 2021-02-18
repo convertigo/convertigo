@@ -337,11 +337,11 @@ public class TemporalInputStream extends InputStream {
 				break;
 			case 13:
 				keepReading = false;
-                long cur = raf.getFilePointer();
-                if ((raf.read()) != 10) {
-                	raf.seek(cur);
-                }
-                break;
+				long cur = raf.getFilePointer();
+				if ((raf.read()) != 10) {
+					raf.seek(cur);
+				}
+				break;
 			default:
 			}
 		}
@@ -350,8 +350,18 @@ public class TemporalInputStream extends InputStream {
 	}
 	
 	private String readSubLine(RandomAccessFile raf) throws IOException {
+		long p = raf.getFilePointer();
 		int r = raf.read(b);
-		return r < 0 ? null : new String(b, 0, r, encoding);
+		if (r < 0) {
+			return null;
+		}
+		for (int i = 0; i < r; i++) {
+			if (b[i] == 10) { /* \n */
+				r = i;
+				raf.seek(p + r);
+			}
+		}
+		return new String(b, 0, r, encoding);
 	}
 	
 	private Date parseDate(RandomAccessFile raf) throws IOException {

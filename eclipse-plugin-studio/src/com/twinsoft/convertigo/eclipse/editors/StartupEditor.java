@@ -51,6 +51,7 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 public class StartupEditor extends EditorPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.StartupEditor";
+	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-7-9/";
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -78,6 +79,8 @@ public class StartupEditor extends EditorPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		StartupInput si = (StartupInput) getEditorInput();
+		
 		parent.setLayout(new GridLayout(1, true));
 		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -85,6 +88,7 @@ public class StartupEditor extends EditorPart {
 		
 		C8oBrowser browser = new C8oBrowser(parent, SWT.NONE);
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
+		browser.setUseExternalBrowser(true);
 		
 		ToolItem ti = new ToolItem(tb, SWT.NONE);
 		ti.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/statement.png")));
@@ -98,46 +102,48 @@ public class StartupEditor extends EditorPart {
 			
 		});
 		ti = new ToolItem(tb, SWT.SEPARATOR);
-		ToolItem tic = new ToolItem(tb, SWT.CHECK);
-		tic.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.png")));
-		tic.setText("Auto close");
-		tic.addSelectionListener(new SelectionAdapter() {
+		ToolItem[] tic = {null};
+		if (si.autoClose) {
+			tic[0] = new ToolItem(tb, SWT.CHECK);
+			tic[0].setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.png")));
+			tic[0].setText("Auto close");
+			tic[0].addSelectionListener(new SelectionAdapter() {
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (tic.getSelection()) {
-					ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "true");
-					boolean s[] = {true};
-					int remains[] = {10};
-					tic.setText("Auto close in " + remains[0] + "s");
-					Engine.execute(() -> {
-						try {
-							while (--remains[0] >= 0 && s[0]) {
-								Thread.sleep(1000);
-								tic.getDisplay().syncExec(() -> {
-									if (!tic.isDisposed()) {
-										if (s[0] = tic.getSelection()) {
-											tic.setText("Auto close in " + remains[0] + "s");
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					if (tic[0].getSelection()) {
+						ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "true");
+						boolean s[] = {true};
+						int remains[] = {10};
+						tic[0].setText("Auto close in " + remains[0] + "s");
+						Engine.execute(() -> {
+							try {
+								while (--remains[0] >= 0 && s[0]) {
+									Thread.sleep(1000);
+									tic[0].getDisplay().syncExec(() -> {
+										if (!tic[0].isDisposed()) {
+											if (s[0] = tic[0].getSelection()) {
+												tic[0].setText("Auto close in " + remains[0] + "s");
+											}
 										}
-									}
-								});
+									});
+								}
+								if (s[0]) {
+									tic[0].getDisplay().asyncExec(() -> {
+										PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().closeEditor(StartupEditor.this, false);
+									});
+								}
+							} catch (Exception e2) {
 							}
-							if (s[0]) {
-								tic.getDisplay().asyncExec(() -> {
-									PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().closeEditor(StartupEditor.this, false);
-								});
-							}
-						} catch (Exception e2) {
-						}
-					});
-				} else {
-					tic.setText("Auto close");
-					ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
+						});
+					} else {
+						tic[0].setText("Auto close");
+						ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
+					}
 				}
-			}
-		});
-		StartupInput si = (StartupInput) getEditorInput();
-		String url = "https://www.convertigo.com/quick-start-videos/";
+			});
+		}
+		String url = STARTUP_URL;
 		url += "?" + URLUtils.encodePart("user", si.user);
 		url += "&" + URLUtils.encodePart("site", si.site);
 		url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
@@ -150,9 +156,9 @@ public class StartupEditor extends EditorPart {
 					tb.getDisplay().asyncExec(() -> {
 						tb.setVisible(true);
 						if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
-							if (!tic.isDisposed()) {
-								tic.setSelection(true);
-								tic.notifyListeners(SWT.Selection, new Event());
+							if (tic[0] != null && !tic[0].isDisposed()) {
+								tic[0].setSelection(true);
+								tic[0].notifyListeners(SWT.Selection, new Event());
 							}
 						}
 					});
@@ -167,16 +173,18 @@ public class StartupEditor extends EditorPart {
 	public void setFocus() {
 	}
 
-	public static IEditorInput makeInput(String user, String site) {
-		return new StartupInput(user, site);
+	public static IEditorInput makeInput(String user, String site, boolean autoClose) {
+		return new StartupInput(user, site, autoClose);
 	}
 	
 	static class StartupInput implements IEditorInput {
 		String user;
 		String site;
-		StartupInput(String user, String site) {
+		boolean autoClose;
+		StartupInput(String user, String site, boolean autoClose) {
 			this.user = user;
 			this.site = site;
+			this.autoClose = autoClose;
 		}
 		
 		@Override

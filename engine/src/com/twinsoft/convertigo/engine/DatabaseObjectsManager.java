@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -130,6 +131,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		
 		default public Map<String, File> getProjects(boolean checkOpenable) {
 			return Collections.emptyMap();
+		}
+		
+		default public void projectLoaded(Project project) {
 		}
 		
 		public File getProject(String projectName);
@@ -239,7 +243,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if (!projectNames.contains(projectName)) {
 					if (projectDir.isFile() && projectDir.length() < 4096) {
 						try {
-							projectDir = new File(FileUtils.readFileToString(projectDir, "UTF-8"));
+							projectDir = new File(FileUtils.readFileToString(projectDir, StandardCharsets.UTF_8));
 						} catch (IOException e) {
 						}
 					}
@@ -475,13 +479,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public void clearCache(Project project) {
 		String name = project.getName();
-		synchronized (projects) {
-			if (projects.get(name) == project) {
-				projects.remove(name);
-				RestApiManager.getInstance().removeUrlMapper(name);
-				MobileBuilder.releaseBuilder(project);
-			}
-		}
+		clearCache(name);
 	}
 	
 	public void clearCache(String projectName) {
@@ -1003,7 +1001,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (projectFile != null && projectFile.exists()) {
 			String filename = projectFile.getName();
 			if (filename.equals("c8oProject.yaml")) {
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 					String line = br.readLine();
 					Matcher m = pYamlProjectName.matcher("");
 					while (line != null && projectName == null) {
@@ -1038,7 +1036,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		final String[] version = { null };
 		if (projectFile.exists()) {
 			if (projectFile.getName().equals("c8oProject.yaml")) {
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 					String line = br.readLine();
 					Matcher m = pYamlProjectVersion.matcher("");
 					while (line != null && version[0] == null) {
@@ -1190,6 +1188,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			synchronized (projects) {
 				projects.put(project.getName(), project);
 			}
+			studioProjects.projectLoaded(project);
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
 			
@@ -1228,7 +1227,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				File prjDir = project.getDirFile();
 				File pDir = new File(Engine.PROJECTS_PATH, projectName);
 				if (pDir != prjDir && !pDir.exists()) {
-					FileUtils.write(pDir, prjDir.getCanonicalPath(), "UTF-8");
+					FileUtils.write(pDir, prjDir.getCanonicalPath(), StandardCharsets.UTF_8);
 				}
 			}
 			

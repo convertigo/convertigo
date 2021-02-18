@@ -66,7 +66,7 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 				for (Variable v: vc.getVariables()) {
 					sb.append("declare var ").append(v.getName()).append(v.isMultiValued() ? ": Array<string>" : ": string\n");
 				}
-				SwtUtils.fillFile(project.getFile("_private/editor/" + fullname + "/variables.d.ts"), sb.toString());				
+				SwtUtils.fillFile(project.getFile("_private/editor/" + fullname + "/variables.d.ts"), sb.toString());
 			}
 			IFile jsconfig = project.getFile("_private/editor/" + fullname + "/jsconfig.json");
 			String conf = "{\"compilerOptions\": {\"module\": \"es6\", \"target\": \"es6\"},\n" + 

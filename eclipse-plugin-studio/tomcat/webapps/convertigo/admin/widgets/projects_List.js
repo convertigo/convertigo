@@ -296,7 +296,7 @@ function deleteProject(projectName) {
 
 function reloadProject(projectName) {
 	$("#project_Edit").hide();
-	$('<div></div>').html("<p>Do you really want to reload the project '" + htmlEncode(projectName) + "'?</p>")
+	$('<div></div>').html("<p>Do you really want to reload the project '" + htmlEncode(projectName) + "'?<br/>All unsaved changes will be lost.</p>")
 			.dialog(
 					{
 						autoOpen : true,

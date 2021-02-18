@@ -94,9 +94,7 @@
    </configurations>
 
    <repositories>
-      <repository location="http://download.eclipse.org/releases/2019-06" enabled="true" />
-<!--      <repository location="http://download.eclipse.org/eclipse/updates/4.7" enabled="true" /> -->
-<!--      <repository location="http://download.convertigo.com/studio/7.6" enabled="true" /> -->
+      <repository location="http://download.eclipse.org/releases/2020-12" enabled="true" />
    </repositories>
 
    <preferencesInfo>

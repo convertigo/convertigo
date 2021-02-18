@@ -47,8 +47,8 @@ public class NewProjectWizardPage6 extends WizardPage {
 	 */
 	public NewProjectWizardPage6(ISelection selection) {
 		super("wizardPage");
-		setTitle("Define HTTP or HTML Connector parameters");
-		setDescription("This step configures the HTTP or Web connector parameters");
+		setTitle("Define HTTP Connector parameters");
+		setDescription("This step configures the HTTP connector parameters");
 	}
 
 	/**

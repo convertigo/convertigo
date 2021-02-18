@@ -17,59 +17,28 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.twinsoft.convertigo.engine.enums;
+package com.twinsoft.convertigo.eclipse.actions;
 
-import java.util.Map;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-public enum CouchParam {
-	all_or_nothing,
-	attname,
-	attpath,
-	attbase64,
-	attcontent_type,
-	bookmark,
-	cancel,
-	continuous,
-	create_target,
-	db,
-	ddoc,
-	destination,
-	destination_rev,
-	doc_ids,
-	docid,
-	execution_stats,
-	fields,
-	func,
-	include_docs,
-	json_base,
-	key,
-	limit,
-	merge,
-	name,
-	new_edits,
-	password,
-	filter,
-	proxy,
-	rev,
-	section,
-	selector,
-	skip,
-	sort,
-	source,
-	stable,
-	target,
-	update,
-	use_index,
-	value,
-	view;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+
+public class OpenStartupPage implements IWorkbenchWindowActionDelegate {
 	
-	public static final String prefix = "_use_";
-	
-	public String param() {
-		return prefix + name();
+	public void dispose() {
 	}
-	
-	public void put(Map<String, String> query, String value) {
-		query.put(name(), value);
+
+	public void init(IWorkbenchWindow window) {
 	}
+
+	public void run(IAction action) {
+		ConvertigoPlugin.getDefault().launchStartupPage(false);
+	}
+
+	public void selectionChanged(IAction action, ISelection selection) {
+	}
+
 }

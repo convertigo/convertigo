@@ -37,6 +37,7 @@ public class AboutAction implements IWorkbenchWindowActionDelegate {
 
 	public void run(IAction action) {
 		String message = "\nVersion " + com.twinsoft.convertigo.engine.Version.fullProductVersion
+				+ "\nRevision " + com.twinsoft.convertigo.engine.Version.revision
 				+ "\n\n\nCopyright (c) 2001-" + Calendar.getInstance().get(Calendar.YEAR)
 				+ " Convertigo SA.  All rights reserved.";
 		
