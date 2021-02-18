@@ -48,6 +48,8 @@ import com.twinsoft.convertigo.beans.ngx.components.IAction;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIActionCaseDefaultEvent;
+import com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionEvent;
@@ -70,6 +72,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
@@ -390,6 +393,8 @@ public class ComponentManager {
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
 			components.add(getDboComponent(UIActionFinallyEvent.class,group));
 			components.add(getDboComponent(UIActionLoopEvent.class,group));
+			components.add(getDboComponent(UIActionCaseEvent.class,group));
+			components.add(getDboComponent(UIActionCaseDefaultEvent.class,group));
 			components.add(getDboComponent(UIActionElseEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
@@ -657,6 +662,11 @@ public class ComponentManager {
 					}
 					if (dboParent instanceof UIDynamicIterate) {
 						if (UIActionLoopEvent.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
+					}
+					if (dboParent instanceof UIDynamicSwitch) {
+						if (UIActionCaseEvent.class.isAssignableFrom(dboClass)) {
 							return true;
 						}
 					}

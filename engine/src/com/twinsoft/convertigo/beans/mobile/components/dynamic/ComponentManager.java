@@ -48,6 +48,8 @@ import com.twinsoft.convertigo.beans.mobile.components.IAction;
 import com.twinsoft.convertigo.beans.mobile.components.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionCaseDefaultEvent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionEvent;
@@ -69,6 +71,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenuItem;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicSwitch;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
 import com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.mobile.components.UIForm;
@@ -387,6 +390,8 @@ public class ComponentManager {
 			components.add(getDboComponent(UIActionFailureEvent.class,group));
 			components.add(getDboComponent(UIActionFinallyEvent.class,group));
 			components.add(getDboComponent(UIActionLoopEvent.class,group));
+			components.add(getDboComponent(UIActionCaseEvent.class,group));
+			components.add(getDboComponent(UIActionCaseDefaultEvent.class,group));
 			components.add(getDboComponent(UIActionElseEvent.class,group));
 			components.add(getDboComponent(UIControlDirective.class,group));
 			
@@ -648,6 +653,11 @@ public class ComponentManager {
 					}
 					if (dboParent instanceof UIDynamicIterate) {
 						if (UIActionLoopEvent.class.isAssignableFrom(dboClass)) {
+							return true;
+						}
+					}
+					if (dboParent instanceof UIDynamicSwitch) {
+						if (UIActionCaseEvent.class.isAssignableFrom(dboClass)) {
 							return true;
 						}
 					}

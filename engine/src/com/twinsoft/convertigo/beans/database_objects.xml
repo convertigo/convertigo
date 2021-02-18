@@ -271,6 +271,12 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicIterate"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicSwitch"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseDefaultEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicSwitch"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicIf"/>
 				</bean>
@@ -321,6 +327,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
@@ -336,6 +343,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
@@ -351,6 +359,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
@@ -366,6 +375,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
@@ -381,6 +391,23 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionStack"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicSwitch">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIAppEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIEventSubscriber"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFailureEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
@@ -396,6 +423,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.mobile.components.UICustomAction"/>
@@ -531,6 +559,12 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseDefaultEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf"/>
 				</bean>
@@ -581,6 +615,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
@@ -596,6 +631,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
@@ -611,6 +647,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
@@ -626,6 +663,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
@@ -641,6 +679,23 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
@@ -656,6 +711,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>

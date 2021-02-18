@@ -9913,7 +9913,31 @@
 	      }
       }
     },
-    
+	
+    "SwitchAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicSwitch",
+	  "displayName": "SwitchAction",
+      "label": "SwitchAction",
+      "description": [
+"Defines a <i>SwitchAction</i> component. | This component evaluates an expression, matches the expression’s value to a case clause, and executes actions associated with that case.<br/>",
+"To work properly the <i>SwitchAction</i> needs <i>SwitchCase Handler</i> and/or <i>SwitchDefault Handler</i> in which you may add any kind of action to be executed.<br/>"],
+      "group": "Actions",
+      "icon16": "switchaction_color_16x16.png",
+      "icon32": "switchaction_color_32x32.png",
+      "displayFormat": "function displayFormat() { return 'Switch ('+ expression +')' }",
+      "properties": {
+	      "expression": {
+	        "label": "Expression",
+	        "description": "Specify the expression to evaluate for switch",
+	        "category": "@Properties",
+	        "mode": "script",
+	        "type": "string",
+	        "value": "true",
+	        "values": [false,true]
+	      }
+      }
+    },
+	
     "PauseAction" : {
 	  "classname": "com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction",
 	  "displayName": "PauseAction",
