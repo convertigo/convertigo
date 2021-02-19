@@ -69,7 +69,7 @@ public class NgxConverter {
 	}
 
 	private String getThemeTplScss() {
-		File appThemeTpl = new File(outputDir, "../mobilebuilder_tpl_7_9_0_Ionic5/ionicTpl/src/theme/variables.scss");
+		File appThemeTpl = new File(outputDir, "../mobilebuilder_tpl_8_0_0_ngx/ionicTpl/src/theme/variables.scss");
 		try {
 			return FileUtils.readFileToString(appThemeTpl, "UTF-8");
 		} catch (IOException e) {
@@ -207,7 +207,7 @@ public class NgxConverter {
 		// for application
 		if (yaml_key.indexOf("ngx.components.ApplicationComponent") != -1) {
 			try {
-				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent("mobilebuilder_tpl_7_9_0_Ionic5");
+				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent("mobilebuilder_tpl_8_0_0_ngx");
 			} catch (Exception e) {}
 		}
 		
@@ -1411,7 +1411,7 @@ public class NgxConverter {
 		
 		Document document = YamlConverter.readYaml(yaml);
 		Element root = document.getDocumentElement();
-		root.getAttributeNode("convertigo").setTextContent("7.9.0.m006");
+		root.getAttributeNode("convertigo").setTextContent("8.0.0.m006");
 		convertBean(root);
 		
 		document = BeansDefaultValues.unshrinkProject(document);
