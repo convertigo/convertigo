@@ -95,6 +95,7 @@
 - [#450](https://github.com/convertigo/convertigo/issues/450) Fixed error Pop-up at startup: "this.row" is null
 - [#453](https://github.com/convertigo/convertigo/issues/453) JGit now use proxy settings
 - [#457](https://github.com/convertigo/convertigo/issues/457) Fixed subscribe handler is not working in some cases
+- [#463](https://github.com/convertigo/convertigo/issues/463) [Admin] Fixed saving a Variable default value using the Project Edit from the admin Console
 
 ---
 

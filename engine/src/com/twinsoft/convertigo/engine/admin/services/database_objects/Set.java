@@ -173,6 +173,8 @@ public class Set extends XmlService {
 			}
 		} else if (Enum.class.isAssignableFrom(propertyClass)) {
 			oPropertyValue = EnumUtils.valueOf(propertyClass, value);
+		} else if (Object.class.equals(propertyClass)) {
+			oPropertyValue = value;
 		}
 		
 		return oPropertyValue;

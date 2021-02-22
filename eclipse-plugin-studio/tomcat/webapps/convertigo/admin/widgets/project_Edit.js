@@ -28,8 +28,8 @@ function project_Edit_init() {
 	}).click(function() {
 		projectEditObjectSubmitProperties();
 	});
-	$('#projectEditUndefinedSymbolsInfoSubmit').button().click(function() { 
-        projectDeclareGlobalSymbols(); 
+	$('#projectEditUndefinedSymbolsInfoSubmit').button().click(function() {
+		projectDeclareGlobalSymbols();
 	});
 	
 	$('#projectEditStatsSubmit').button( {
@@ -43,23 +43,23 @@ function project_Edit_init() {
 	$("#dialog-symbol-project").dialog({
 		autoOpen : false,
 		title : "set a value using symbols",
-        width: 400,
+		width: 400,
 		modal : true,
-        buttons: [{
-            id: "btn-symbol-OK",
-            text: "OK",
-            click: function() {
-            	var newVal = $("#symbol-input").val();
-            	$(this).dialog("close").data("option").text(newVal).parent().val(newVal).data("lastVal", newVal);
-            }
-        }, {
-            id: "btn-symbol-Cancel",
-            text: "Cancel",
-            click: function() {
-            	var $select = $(this).dialog("close").data("option").parent();
-            	$select.val($select.data("lastVal"));
-            }
-        }]
+		buttons: [{
+			id: "btn-symbol-OK",
+			text: "OK",
+			click: function() {
+				var newVal = $("#symbol-input").val();
+				$(this).dialog("close").data("option").text(newVal).parent().val(newVal).data("lastVal", newVal);
+			}
+		}, {
+			id: "btn-symbol-Cancel",
+			text: "Cancel",
+			click: function() {
+				var $select = $(this).dialog("close").data("option").parent();
+				$select.val($select.data("lastVal"));
+			}
+		}]
 	});
 }
 
@@ -111,7 +111,7 @@ function loadProject(projectName) {
 		var htmlProjectEditDivTree = '<div class="projectEdit-selectableElement" qname="' + htmlEncode($(xml).find("project").first().attr('qname')) + '">'+
 			'<span id="projectTreeWidgetRoot"><img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=com.twinsoft.convertigo.beans.core.Project" />'
 				+ htmlEncode($(xml).find("project").attr("name")) + '</span></div></div>';
-		htmlProjectEditDivTree += "<ul id=\"projectEditTree\"></ul>";				
+		htmlProjectEditDivTree += "<ul id=\"projectEditTree\"></ul>";
 		$("#projectEditDivTree").html(htmlProjectEditDivTree);
 
 		// create the tree
@@ -141,7 +141,7 @@ function loadProject(projectName) {
 		});
 
 		$("#projectTreeWidgetRoot").click();
-		endWait();		
+		endWait();
 	}, {"projectName":project_Name});
 
 }
@@ -152,7 +152,7 @@ function constructTree($xml, $tree) {
 	var accessibilityIcon;
 	var autostartIcon;
 	var img;
-	var treeCategories=new Array();	
+	var treeCategories=new Array();
 	// for each element of project.Get
 	$xml.children("*").each(function() {
 		tagName = this.nodeName;
@@ -160,7 +160,7 @@ function constructTree($xml, $tree) {
 		if (!treeCategories[tagName]) {
 			// add the category
 			$tree.append('<li><span><img src="images/folder.gif" />' + formatFolderName(tagName) + '</span><ul></ul></li>');
-			treeCategories[tagName]=$tree.find("ul").last();			
+			treeCategories[tagName]=$tree.find("ul").last();
 		}
 		var $currentNode = treeCategories[tagName];
 		displayName = $(this).attr("name");
@@ -172,7 +172,7 @@ function constructTree($xml, $tree) {
 		autostartIcon = $(this).attr("autostart") === "true" ? "💡" : "";
 		
 		if (displayName != undefined) {
-			// add the element			
+			// add the element
 			img = '<img src="services/database_objects.GetIcon?__xsrfToken=' + encodeURIComponent(getXsrfToken()) + '&className=' + $(this).attr("classname") + '" />';
 			$currentNode.append('<li class="projectEdit-selectableElement" qname="' + $(this).attr('qname') + '"><div>' + img + 
 					(accessibilityIcon != "" ? '<span class="accessibility-icon">' + accessibilityIcon + '</span>' : "" ) +
@@ -188,12 +188,12 @@ function constructTree($xml, $tree) {
 
 function formatFolderName(tagName){
 	if( tagName == "screenclass" )
-		return "Screen classes";	
+		return "Screen classes";
 	if( tagName == "extractionrule" )
-		return "Extraction rules";		
+		return "Extraction rules";
 	if( tagName == "criteria" )
-		return "Criteria";	
-	var newName = tagName.substring(0,1).toUpperCase()+ tagName.substring(1);	
+		return "Criteria";
+	var newName = tagName.substring(0,1).toUpperCase()+ tagName.substring(1);
 	if( tagName.substring(tagName.length-1) == "s" ){
 		newName += "es";
 	}else{
@@ -206,10 +206,10 @@ function loadElement(elementQName, $treeitem) {
 
 	callService("database_objects.Get", function(xml) {
 
-		var $projectEditObjectPropertiesListTable = $("#projectEditTemplate .projectEditPropertyTable").clone();	
+		var $projectEditObjectPropertiesListTable = $("#projectEditTemplate .projectEditPropertyTable").clone();
 		var $xml = $(xml);
 		var caroleOdd = true;
-		$projectEditObjectPropertiesListTable.find(".projectEditObjectType").text($xml.find("admin > *").first().attr("displayName"));		
+		$projectEditObjectPropertiesListTable.find(".projectEditObjectType").text($xml.find("admin > *").first().attr("displayName"));
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectVersion").text($xml.find("admin > *").first().attr("version"));
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectName").text($xml.find("property[name=name] > *").first().attr("value"));
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectName").text($xml.find("property[name=name] > *").first().attr("value"));
@@ -238,19 +238,19 @@ function loadElement(elementQName, $treeitem) {
 						$expertLine = null;
 					}
 					
-					var $propertyLine_xml;					
+					var $propertyLine_xml;
 					$propertyLine_xml = $("#projectEditTemplate .projectEdit-propertyLine").clone();
 					if(caroleOdd)
 						$propertyLine_xml.attr("class", "main_odd");
 					else{
 						$propertyLine_xml.attr("class", "main_even");
 					}
-					caroleOdd =! caroleOdd;					
+					caroleOdd =! caroleOdd;
 					var short_description = 
 						$(this).attr("shortDescription")
-						.replace(/\|[\s\S]*/g, "")						
+						.replace(/\|[\s\S]*/g, "")
 						.replace(/{{.*?}}/g,"")
-						.replace(/\*\*\*/g," ");	
+						.replace(/\*\*\*/g," ");
 					
 					//transformation of {{{value}}}
 					var long_description = 
@@ -258,36 +258,36 @@ function loadElement(elementQName, $treeitem) {
 						.replace(/\|/g, "<br/><br/>")
 						.replace(/{{Computer}}/g,"<span class=longDescriptionComputer>")
 						.replace(/{{-Computer}}/g,"</span>")
-						.replace(/{{Reference}}/g,"<span class=longDescriptionReference>")						
+						.replace(/{{Reference}}/g,"<span class=longDescriptionReference>")
 						.replace(/{{-Reference}}/g,"</span>")
-						.replace(/{{Produit\/Fonction}}/g,"<span class=longDescriptionProductFonction>")						
-						.replace(/{{-Produit\/Fonction}}/g,"</span>");					
-					//transformation of the lists					
+						.replace(/{{Produit\/Fonction}}/g,"<span class=longDescriptionProductFonction>")
+						.replace(/{{-Produit\/Fonction}}/g,"</span>");
+					//transformation of the lists
 					if(long_description.match(/\*\*\*/)!=null){
 						//list which don't end at the end of the description
 						if(long_description.match(/(\*\*\*[^\n]*\n)/)!=null){
 							//creation of ul from the first *** from \n
-							long_description = long_description.replace(/(\*\*\*[^\n]*\n)/g,"<ul>$1</ul>");	
+							long_description = long_description.replace(/(\*\*\*[^\n]*\n)/g,"<ul>$1</ul>");
 						}
 						//creation list which end at the end of the description
-						long_description = long_description.replace(/(\*\*\*.*$)/,"<ul>$1</ul>");							
+						long_description = long_description.replace(/(\*\*\*.*$)/,"<ul>$1</ul>");
 						//replace each ***
 						long_description  = long_description.replace(/(\*\*\*)/g,"</li><li>");
 						//correct the beginning and the end of each list
 						long_description  = long_description.replace(/<ul><\/li>/g,"<ul>");
-						long_description  = long_description.replace(/<\/ul>/g,"</li></ul>");						
-					}					
+						long_description  = long_description.replace(/<\/ul>/g,"</li></ul>");
+					}
 										
 					$propertyLine_xml.find("td").first().text($(this).attr("displayName"));
 					$propertyLine_xml.find("td").attr("title",short_description);
 					$propertyLine_xml.find("td > img").data("long_description",long_description);
 					$propertyLine_xml.append(addProperty($(this)));
 					if ($expertLine != null) {
-						$expertLine.before($propertyLine_xml);	
+						$expertLine.before($propertyLine_xml);
 					} else {
 						$projectEditObjectPropertiesListTable.append($propertyLine_xml);
-					}										
-				});			
+					}
+				});
 		
 		$("#projectEditObjectPropertiesList").html($projectEditObjectPropertiesListTable);
 		$(".projectEditorPropertyHelpIcon > img").click(function(){
@@ -316,7 +316,7 @@ function addProperty($xmlProperty) {
 	}
 	
 	// find each element without children
-	$xmlProperty.find("*").not(":has(*)").each(function() {		
+	$xmlProperty.find("*").not(":has(*)").each(function() {
 		$ResponseOfPropertyTd.append(addPropertyContent(propertyName, editor, $(this), $xmlProperty));
 	});
 
@@ -336,11 +336,11 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 		var $option;
 		var $possibleValues = $xmlProperty.find("possibleValues");
 		
-		if (propertyJavaClassName == "java.lang.Boolean" || $xmlPropertyValue.attr("compiledValueClass") == "java.lang.Boolean") {	
+		if (propertyJavaClassName == "java.lang.Boolean" || $xmlPropertyValue.attr("compiledValueClass") == "java.lang.Boolean") {
 			$possibleValues = $("#projectEditTemplate .projectEditInputTrueFalse");
 		}
 		
-		if (propertyEditor == "SqlQueryEditor") {			
+		if (propertyEditor == "SqlQueryEditor") {
 			$responseField=getInputCopyOf("projectEditTextArea");
 			$responseField
 			.attr("cols", "80")
@@ -349,16 +349,16 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			.data("propertyName",propertyName);
 			
 			
-		} else if (value.length > 100) {			
-			$responseField=getInputCopyOf("projectEditTextArea");			
-			$responseField					
+		} else if (value.length > 100) {
+			$responseField=getInputCopyOf("projectEditTextArea");
+			$responseField
 			.attr("cols", "60")
 			.attr("rows", "3")
 			.text(value)
-			.data("propertyName",propertyName);	
+			.data("propertyName",propertyName);
 			
 			
-		} else if ($possibleValues.length > 0){			
+		} else if ($possibleValues.length > 0){
 			$responseField = getInputCopyOf("projectEditInputCombo");
 			$option = $responseField.find("option").clone();
 			$responseField.children().remove();
@@ -395,23 +395,23 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 				$responseField= $("#projectEditTemplate .projectEditInputText").clone();
 			}
 							
-			$responseField.attr("value",value).data("propertyName",propertyName);	
+			$responseField.attr("value",value).data("propertyName",propertyName);
 
 			if (propertyEditor != "null" && propertyEditor != "TextEditor") {
 				$responseField.prop("disabled", true);
 			}
-			else {				
+			else {
 				$responseField.attr("class","projectEdit-form-item");
 				if ($responseField.prop("disabled")) {
 					$responseField.prop("disabled", false);
 				}
-			}				
+			}
 			
 		}
 		if($xmlPropertyValue.attr("compiledValue")){
 			$responseField.attr("title",$xmlPropertyValue.attr("compiledValue"));
 		}
-		if ($xmlProperty.attr("blackListed")) {			
+		if ($xmlProperty.attr("blackListed")) {
 			$responseField.prop("disabled", true);
 		}
 		$propertyContent.append($responseField);
@@ -423,7 +423,7 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 	return $propertyContent.children();
 }
 
-function getInputCopyOf(inputId){	
+function getInputCopyOf(inputId){
 	$response = $("#projectEditTemplate ." + inputId).clone();
 	return $response;
 }
@@ -434,10 +434,11 @@ function addVectorProperty(propertyName, editor, $xmlProperty) {
 	$xmlProperty.find("xmlizable >*").each(function() {
 		var $propertyContentLine = $propertyContentTable.append("<tr/>");
 		$(this).children().each(function() {
-			$propertyContentLine.append(addPropertyContent(propertyName, editor, $(this), $xmlProperty));			
+			$propertyContentLine.append(addPropertyContent(propertyName, editor, $(this), $xmlProperty));
 		})
-	});	
-
+	});
+	
+	$propertyContentTable.find("input").attr("disabled", "disabled");
 	return $propertyContentTable;
 }
 
@@ -454,7 +455,7 @@ function projectEditObjectSubmitProperties() {
 	);
 
 	var $node = $xmlResponse.find('admin >*').first();
-	var node = $node[0];	
+	var node = $node[0];
 	callService("database_objects.Set", 
 		function(xml) {
 			if ($(xml).find("response").attr("state")==="success") {
@@ -492,23 +493,23 @@ function projectDeclareGlobalSymbols() {
 	);
 } 
 
-function projectStats() { 	 
+function projectStats() {
 	
-	callService("projects.GetStatistic",  
-		function(xml) { 
+	callService("projects.GetStatistic",
+		function(xml) {
 			if ($(xml).find("statistics")) {
 				$("#dialog-statistics-project").dialog({
 					autoOpen : true,
 					title : "Statistics",
-	                width: 800,
+					width: 800,
 					modal : true,
-			        buttons: [{
-		                id: "btn-stats-OK",
-		                text: "OK",
-		                click: function() {
-		                	$( this ).dialog( "close" );
-		                }
-			        }]
+					buttons: [{
+						id: "btn-stats-OK",
+						text: "OK",
+						click: function() {
+							$( this ).dialog( "close" );
+						}
+					}]
 				});
 				$("#statisticsGlobalProjectName").text(project_Name);
 				$("#statisticsGlobalProjectInfo").text($(xml).find("statistics").children(project_Name).text().replace("<br/>",", "));
@@ -522,12 +523,12 @@ function projectStats() {
 						htmlStats += "</tr></table>";
 					}
 				});
-								
+				
 				$("#statisticsDetails").html(htmlStats);
 			} else {
 				$("#statisticsProjectInfo").hide();
 			}
-		} 
-		, {"projectName":project_Name}  
-	); 
-} 
+		}
+		, {"projectName":project_Name}
+	);
+}
