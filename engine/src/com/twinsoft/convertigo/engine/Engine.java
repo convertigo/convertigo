@@ -773,15 +773,6 @@ public class Engine {
 					} else
 						Engine.logEngine.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
 				}
-
-				// SAP provider registration
-				try {
-					SapJcoDestinationDataProvider.init();
-					Engine.logEngine.debug("SAP destination provider successfully registered");
-				}
-				catch (Throwable e) {
-					Engine.logEngine.error("Error while registering SAP destination provider", e);
-				}
 				
 				isStarted = true;
 
