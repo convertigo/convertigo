@@ -54,6 +54,7 @@
 - [#447](https://github.com/convertigo/convertigo/issues/447) [Studio] Popup warning if a FullSync View is not compiling and accepted by CouchDB
 - [#454](https://github.com/convertigo/convertigo/issues/454) [REST API] "version" added for the OAS2 YAML
 - [#459](https://github.com/convertigo/convertigo/issues/459) [MB] Prevents blank lines generated in ts file for pages containing multiple component with identifier
+- [#464](https://github.com/convertigo/convertigo/issues/464) Differ SAP initialization to allow real SAP driver installation
 
 #### Bug Fixes:
 
