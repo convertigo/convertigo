@@ -72,22 +72,26 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 			Map<String, String> query_r = new HashMap<String, String>(2);
 			query.put("r", "100");
 			
+			String db = getDatabaseName();
 			try {
 				CouchClient client = getCouchClient();
-				String db = getDatabaseName();
 				for (int i = 0; i < len;) {
 					JSONArray doc_ids = getChunk(ids, i);
 					int ids_len = doc_ids.length();
 					i += ids_len;
 					
-					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : request heads of " + ids_len + " id(s)");
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] request heads of " + ids_len + " id(s)");
 					for (int j = 0; j < ids_len; j++) {
-						client.headDocument(db, doc_ids.getString(j), query_r);
+						String id = doc_ids.getString(j);
+						JSONObject head = client.headDocument(db, id, query_r);
+						if (Engine.logBeans.isTraceEnabled()) {
+							Engine.logBeans.trace("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] head of '" + id + "': " + head);
+						}
 					}
 					
-					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view for _id keys " + doc_ids);
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post view '" + ddoc + "/" + view + "' for _id keys " + doc_ids);
 					JSONObject json = client.postView(db, ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
-					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post view '" + ddoc + "/" + view + "' returned following documents :\n" + json.toString());
 					
 					if (json != null) {
 						if (CouchKey.error.has(json)) {
@@ -95,13 +99,13 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 							error = error == null ? "unknown" : error;
 							String reason = CouchKey.reason.String(json);
 							reason = reason == null ? "unknown" : reason;
-							throw new EngineException("View returned error: " + error + ", reason: " + reason);
+							throw new EngineException("View '" + db + "/" + ddoc + "/" + view + "' returned error: " + error + ", reason: " + reason);
 						}
 						runDocs(request, CouchKey.rows.JSONArray(json));
 					}
 				}
 			} catch (Throwable t) {
-				throw new EngineException("Query view named \""+ view +"\" of \""+ ddoc +"\" design document failed", t);
+				throw new EngineException("Query view named '"+ db + "/" + ddoc + "/" + view + "' failed", t);
 			}
 		}
 	}
