@@ -110,6 +110,7 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.actions.SetupAction;
@@ -117,6 +118,8 @@ import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
+import com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor;
+import com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor.FlowViewerInput;
 import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
@@ -1506,6 +1509,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (resourceProject.exists()) {
 			resourceProject.close(null);
 		}
+		closeEditorsForProject(projectName);
 	}
 
 	public void deleteProjectPluginResource(String projectName) throws CoreException {
@@ -1520,6 +1524,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		if (resourceProject.exists()) {
 			resourceProject.delete(deleteContent, false, null);
 		}
+		closeEditorsForProject(projectName);
 	}
 
 	public void setShuttingDown(boolean b) {
@@ -1813,6 +1818,34 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			getActivePage().openEditor(StartupEditor.makeInput(username, site, autoClose), StartupEditor.ID);
 		} catch (PartInitException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void openFlowViewerEditor(Sequence sequence) {
+		try {
+			getActivePage().openEditor(FlowViewerEditor.makeInput(sequence), FlowViewerEditor.ID);
+		} catch (PartInitException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void closeEditorsForProject(String projectName) {
+		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (activeWindow != null) {
+			IWorkbenchPage activePage = activeWindow.getActivePage();
+			if (activePage != null) {
+				IEditorReference[] editorRefs = activePage.getEditorReferences();
+				for (int i = 0; i < editorRefs.length; i++) {
+					IEditorReference editorRef = (IEditorReference) editorRefs[i];
+					try {
+						IEditorInput input = editorRef.getEditorInput();
+						if (input instanceof FlowViewerInput && ((FlowViewerInput) input).isForProject(projectName)) {
+							activePage.closeEditors(new IEditorReference[] {editorRef}, false);
+						}
+					} catch (PartInitException e) {
+					}
+				}
+			}
 		}
 	}
 }
