@@ -30,6 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -38,6 +39,9 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.BeansDefaultValues;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 
 class CustomDirectoryFilter implements FileFilter {
 	@Override
@@ -1423,6 +1427,59 @@ public class NgxConverter {
 		return new SimpleDateFormat("HH:mm:ss").format(new Date(System.currentTimeMillis()));
 	}
 	
+	private synchronized static void initEngine() throws EngineException {
+		if (Engine.isCliMode()) {
+			return;
+		}
+		
+		Engine.startStopDate = System.currentTimeMillis();
+		
+		EnginePropertiesManager.initProperties();
+		Engine.logConvertigo = Logger.getLogger("cems");
+		Engine.logEngine = Logger.getLogger("cems.Engine");
+		Engine.logAdmin = Logger.getLogger("cems.Admin");
+		Engine.logBeans = Logger.getLogger("cems.Beans");
+		Engine.logBillers = Logger.getLogger("cems.Billers");
+		Engine.logEmulators = Logger.getLogger("cems.Emulators");
+		Engine.logContext = Logger.getLogger("cems.Context");
+		Engine.logUser = Logger.getLogger("cems.Context.User");
+		Engine.logUsageMonitor = Logger.getLogger("cems.UsageMonitor");
+		Engine.logStatistics = Logger.getLogger("cems.Statistics");
+		Engine.logScheduler = Logger.getLogger("cems.Scheduler");
+		Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
+		Engine.logSecurityFilter = Logger.getLogger("cems.SecurityFilter");
+		Engine.logStudio = Logger.getLogger("cems.Studio");
+		Engine.logAudit = Logger.getLogger("cems.Context.Audit");
+		
+		// Managers
+		Engine.logContextManager = Logger.getLogger("cems.ContextManager");
+		Engine.logCacheManager = Logger.getLogger("cems.CacheManager");
+		Engine.logTracePlayerManager = Logger.getLogger("cems.TracePlayerManager");
+		Engine.logJobManager = Logger.getLogger("cems.JobManager");
+		Engine.logCertificateManager = Logger.getLogger("cems.CertificateManager");
+		Engine.logDatabaseObjectManager = Logger.getLogger("cems.DatabaseObjectManager");
+		Engine.logProxyManager = Logger.getLogger("cems.ProxyManager");
+		Engine.logDevices = Logger.getLogger("cems.Devices");
+		Engine.logCouchDbManager = Logger.getLogger("cems.CouchDbManager");
+		Engine.logSecurityTokenManager = Logger.getLogger("cems.SecurityTokenManager");
+
+		/*Engine.theApp = new Engine();
+		Engine.theApp.eventManager = new EventManager();
+		Engine.theApp.eventManager.init();
+		Engine.theApp.referencedProjectManager = new ReferencedProjectManager();
+		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
+		Engine.theApp.databaseObjectsManager.init();
+		Engine.theApp.proxyManager = new ProxyManager();
+		Engine.theApp.proxyManager.init();
+		
+		Engine.theApp.httpClient4 = HttpUtils.makeHttpClient(true);
+		Engine.theApp.httpClient = HttpUtils.makeHttpClient3(true);
+		
+		Engine.logEngine.info("Using Properties: " + System.getProperties());*/
+		
+		Engine.isStarted = true;
+	}
+	
 	public static void main(String[] args) {
 		PrintStream stdout = System.out;
 		PrintStream stderr = System.err;
@@ -1451,6 +1508,8 @@ public class NgxConverter {
 					System.err.println("Directory " + outputDir.getCanonicalPath() + " doesn't exists nor is a directory.");
 					return;
 				}
+				
+				initEngine();
 				
 				// Rename project
 				System.out.println(time() + "\tRenaming project in target files");
