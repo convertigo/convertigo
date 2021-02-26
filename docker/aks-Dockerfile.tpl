@@ -5,6 +5,6 @@ RUN (curl -sL https://aka.ms/InstallAzureCLIDeb | bash) \
   && apt-get install -y kubectl \
   && rm -rf /var/lib/apt/lists/*
   
-RUN curl -sL https://github.com/jpillora/chisel/releases/download/v1.7.1/chisel_1.7.1_linux_amd64.gz | gunzip > /usr/local/bin/chisel \
-  && echo "af1dccac95f1c021e7b8df6f616d15c0  /usr/local/bin/chisel" | md5sum -c \
+RUN curl -sL https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_1.7.6_linux_amd64.gz | gunzip > /usr/local/bin/chisel \
+  && echo "58037ef897ec155a03ea193df4ec618a  /usr/local/bin/chisel" | md5sum -c \
   && chmod a+x /usr/local/bin/chisel
