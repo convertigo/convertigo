@@ -251,7 +251,7 @@ dependencies {
 	compileFlat    'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	compileFlat    'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	compileOnly    'com.convertigo.lib:swt:4.4.2-linux32'
-	compileFlat    project.property('sapjco3Version')
+	implementation project.property('sapjco3Version')
 	sapjco3        project.property('sapjco3Version')
 	implementation files(dependenciesJar.archivePath)
 	swtLinux32     'com.convertigo.lib:swt:4.4.2-linux32'

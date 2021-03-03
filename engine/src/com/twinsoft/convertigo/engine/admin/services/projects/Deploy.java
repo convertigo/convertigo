@@ -90,12 +90,10 @@ public class Deploy extends UploadService {
 		} else {
 			projectArchive = projectArchive.substring(i + 1);
 		}
-
-		String projectName = projectArchive.substring(0, projectArchive.indexOf(".car"));
-
-		Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true,
-				bAssembleXsl);
-
+		
+		Project project = Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true, bAssembleXsl);
+		
+		String projectName = project.getName();
 		Project.executeAutoStartSequences(projectName);
 		
 		if (Boolean.parseBoolean(EnginePropertiesManager
