@@ -68,9 +68,11 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 			query.put("reduce", "false");
 			query.put("include_docs", "true");
 			query.put("conflicts", "true");
+			query.put("stable", "true");
+			query.put("update", "true");
 			
-			Map<String, String> query_r = new HashMap<String, String>(2);
-			query.put("r", "100");
+//			Map<String, String> query_r = new HashMap<String, String>(2);
+//			query.put("r", "100");
 			
 			String db = getDatabaseName();
 			try {
@@ -80,14 +82,14 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 					int ids_len = doc_ids.length();
 					i += ids_len;
 					
-					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] request heads of " + ids_len + " id(s)");
-					for (int j = 0; j < ids_len; j++) {
-						String id = doc_ids.getString(j);
-						JSONObject head = client.headDocument(db, id, query_r);
-						if (Engine.logBeans.isTraceEnabled()) {
-							Engine.logBeans.trace("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] head of '" + id + "': " + head);
-						}
-					}
+//					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] request heads of " + ids_len + " id(s)");
+//					for (int j = 0; j < ids_len; j++) {
+//						String id = doc_ids.getString(j);
+//						JSONObject head = client.headDocument(db, id, query_r);
+//						if (Engine.logBeans.isTraceEnabled()) {
+//							Engine.logBeans.trace("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] head of '" + id + "': " + head);
+//						}
+//					}
 					
 					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post view '" + ddoc + "/" + view + "' for _id keys " + doc_ids);
 					JSONObject json = client.postView(db, ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
