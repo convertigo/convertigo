@@ -181,6 +181,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
 	public static final String PREFERENCE_MOBILE_BUILDER_THRESHOLD = "mobileBuilder.threshold";
 	public static final String PREFERENCE_AUTO_CREATE_PROJECT_REFERENCE = "autoCreate.projectReference";
+	public static final String PREFERENCE_USE_SYSTEM_FLOWVIEWER = "useSystem.flowViewer";
 	
 	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 

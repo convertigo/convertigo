@@ -24,7 +24,8 @@ import javax.servlet.ServletRequest;
 public enum RequestAttribute {
 	corsOrigin,
 	responseHeader,
-	responseStatus;
+	responseStatus,
+	system;
 	
 	private RequestAttribute() {
 		value = "convertigo." + name();

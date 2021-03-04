@@ -165,7 +165,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	/**
 	 * The symbols repository for compiling text properties.
 	 */
-	private Properties symbolsProperties;
+	protected Properties symbolsProperties;
 
 	// private static String XSL_NAMESPACE_URI =
 	// "http://www.w3.org/1999/XSL/Transform";
@@ -228,7 +228,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		File projectsDir = new File(Engine.PROJECTS_PATH);
 		SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 		projectNames.addAll(projects.keySet());
-		projectNames.addAll(studioProjects.getProjects(checkOpenable).keySet());
+		projectNames.addAll(getStudioProjects().getProjects(checkOpenable).keySet());
 		
 		File[] list = projectsDir.listFiles();
 		if (list == null) {
@@ -305,7 +305,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Project getOriginalProjectByName(String projectName, boolean checkOpenable) throws EngineException {
 		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
 		
-		File projectPath = studioProjects.getProjects(checkOpenable).get(projectName);
+		File projectPath = getStudioProjects().getProjects(checkOpenable).get(projectName);
 		if (projectPath == null) {
 			projectPath = Engine.projectYamlFile(projectName);
 			if (projectPath == null || !projectPath.exists()) {
@@ -509,7 +509,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public boolean existsProject(String projectName) {
-		File file = studioProjects.getProject(projectName);
+		File file = getStudioProjects().getProject(projectName);
 		if (file == null) {
 			file = new File(Engine.PROJECTS_PATH + "/" + projectName);
 		}
@@ -739,7 +739,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		if (exportedProjectFileName.endsWith(".xml")) {
 			File yaml = new File(new File(exportedProjectFileName).getParentFile(), "c8oProject.yaml");
 			Engine.logDatabaseObjectManager.info("Declaring project project \"" + projectName + "\" to: " + yaml.getAbsolutePath());
-			studioProjects.declareProject(projectName, yaml);
+			getStudioProjects().declareProject(projectName, yaml);
 		}
 		RestApiManager.getInstance().putUrlMapper(project);
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
@@ -1165,7 +1165,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				deleteProject(projectName, true, true);
 			}
 			
-			studioProjects.declareProject(projectName, importFile);
+			getStudioProjects().declareProject(projectName, importFile);
 			
 			projectLoadingDataThreadLocal.remove();
 			getProjectLoadingData().projectName = projectName;
@@ -1188,7 +1188,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			synchronized (projects) {
 				projects.put(project.getName(), project);
 			}
-			studioProjects.projectLoaded(project);
+			getStudioProjects().projectLoaded(project);
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
 			
@@ -1720,7 +1720,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return propertyObjectValue;
 	}
 	
-	private void symbolsInit() {
+	protected void symbolsInit() {
 		symbolsProperties = new Properties();
 		
 		if (Engine.isCliMode()) {
@@ -2033,7 +2033,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public boolean canOpenProject(String projectName) {
-		return studioProjects.canOpen(projectName);
+		return getStudioProjects().canOpen(projectName);
 	}
 	
 	public DatabaseObject getDatabaseObjectByQName(String qname) throws Exception {
@@ -2045,5 +2045,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			dbo = dbo.getDatabaseObjectChild(name[i]);
 		}
 		return dbo;
+	}
+	
+	public StudioProjects getStudioProjects() {
+		return studioProjects;
 	}
 }

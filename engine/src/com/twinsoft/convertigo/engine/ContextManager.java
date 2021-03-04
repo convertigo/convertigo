@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -45,6 +46,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
@@ -152,6 +154,11 @@ public class ContextManager extends AbstractRunnableManager {
 	public Context get(Requester requester, String contextName, String contextIdPrefix, String poolName, String projectName, String connectorName, String sequenceName) throws Exception {
 		Context context = null;
 
+		if (RequestAttribute.system.has((HttpServletRequest) requester.inputData)) {
+			context = new Context("system");
+			return context;
+		}
+		
 		// Try to find the context in pool
 		if ((poolName != null) && (poolName.length() > 0)) {
 			context = findPoolContext(contextName, projectName, connectorName, poolName);
@@ -831,7 +838,7 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.debug("   connectorName=" + connectorName);
 			Engine.logContextManager.debug("   poolName=" + poolName);
 			
-			Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 			Connector connector;
 			if (connectorName == null) {
 				connector = project.getDefaultConnector();
@@ -861,7 +868,7 @@ public class ContextManager extends AbstractRunnableManager {
 			} else {
 				Engine.logContextManager.debug("Searching for good candidate");
 				for (Map.Entry<String, Context> entry : contexts.entrySet()) {
-					Engine.logContextManager.debug("Analyzing context " + entry.getKey());				
+					Engine.logContextManager.debug("Analyzing context " + entry.getKey());
 					if (entry.getKey().startsWith(contextIDPrefix)) {
 						Context context = entry.getValue();
 						

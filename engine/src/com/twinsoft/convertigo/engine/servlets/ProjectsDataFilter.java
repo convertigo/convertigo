@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.util.ServletUtils;
 
 public class ProjectsDataFilter implements Filter {
-	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
+	private static Pattern p_projects = Pattern.compile("/(system/)?projects(/.*)");
 	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/(?:c8oProject\\.yaml|_c8oProject/.*|libs/.*|\\.git/.*))|(?:(?:.*?)/_private(?:$|(?!/mobile/flashupdate_).*)))$");
 
 	public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
@@ -56,8 +56,9 @@ public class ProjectsDataFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) _request;
 		HttpServletResponse response = (HttpServletResponse) _response;
 		String query = request.getQueryString();
+		String requestURI = request.getRequestURI();
 		
-		if (HeaderName.XConvertigoNoLog.has(request) || (query != null && query.matches("(.*&)?__nolog=true(&.*)?"))) {
+		if (HeaderName.XConvertigoNoLog.has(request) || (query != null && query.matches("(.*&)?__nolog=true(&.*)?")) || requestURI.contains("/system/projects/")) {
 			MDC.put("nolog", true);
 		}
 		
@@ -78,7 +79,6 @@ public class ProjectsDataFilter implements Filter {
 			return;
 		}
 
-		String requestURI = request.getRequestURI();
 		Engine.logContext.debug("requestURI=" + requestURI);
 
 		// Get a canonicalized form of the request URL, i.e. resolve all ".", "..", "///"...
@@ -91,10 +91,15 @@ public class ProjectsDataFilter implements Filter {
 		}
 
 		Matcher m_projects = p_projects.matcher(requestURI);
-		String pathInfo = (m_projects.find()) ? m_projects.group(1) : "";
+		String pathInfo = m_projects.find() ? m_projects.group(2) : "";
 
-		String requestedObject = Engine.PROJECTS_PATH + pathInfo;
-		requestedObject = Engine.resolveProjectPath(requestedObject);
+		String requestedObject;
+		if (m_projects.group(1) == null) {
+			requestedObject = Engine.PROJECTS_PATH + pathInfo;
+			requestedObject = Engine.resolveProjectPath(requestedObject);
+		} else {
+			requestedObject = Engine.WEBAPP_PATH + "/system/projects/" + pathInfo;
+		}
 		Engine.logContext.debug("requestedObject=" + requestedObject);
 
 		Matcher m_forbidden = p_forbidden.matcher(pathInfo); 

@@ -250,7 +250,7 @@ task writeManifest(dependsOn:  ['updateEclipseVersion', 'makeSplash']) {
 	dependsOn wm
 }
 
-task buildStudio(type: Exec, dependsOn: ['writeManifest']) {
+task buildStudio(type: Exec, dependsOn: ['writeManifest', 'downloadSystemLibraries']) {
 	group 'convertigo'
 	
 	onlyIf { !file('eclipse-repository/target/products').exists() }

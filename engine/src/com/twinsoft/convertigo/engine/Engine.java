@@ -166,6 +166,7 @@ public class Engine {
 	 * The database objects manager.
 	 */
 	public DatabaseObjectsManager databaseObjectsManager;
+	private SystemDatabaseObjectsManager systemDatabaseObjectsManager;
 
 	/**
 	 * The SQL connections manager.
@@ -481,6 +482,9 @@ public class Engine {
 
 				Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
 				Engine.theApp.databaseObjectsManager.init();
+
+				Engine.theApp.systemDatabaseObjectsManager = new SystemDatabaseObjectsManager();
+				Engine.theApp.systemDatabaseObjectsManager.init();
 
 				Engine.theApp.sqlConnectionManager = new JdbcConnectionManager();
 				Engine.theApp.sqlConnectionManager.init();
@@ -932,6 +936,11 @@ public class Engine {
 					Engine.logEngine.info("Removing the database objects manager");
 					Engine.theApp.databaseObjectsManager.destroy();
 				}
+				
+				if (Engine.theApp.systemDatabaseObjectsManager != null) {
+					Engine.logEngine.info("Removing the system database objects manager");
+					Engine.theApp.systemDatabaseObjectsManager.destroy();
+				}
 
 				if (Engine.theApp.threadManager != null) {
 					Engine.logEngine.info("Removing the thread manager");
@@ -1137,23 +1146,25 @@ public class Engine {
 			// Loading project
 			if (context.projectName == null)
 				throw new EngineException("The project name has been specified!");
-            // Checking whether the asynchronous mode has been requested.
-            if ((context.isAsync) && (JobManager.jobExists(context.contextID))) {
-            	Engine.logContext.debug("The requested object is working and is asynchronous; requesting job status...");
-            	
-            	HttpServletRequest request = (HttpServletRequest)requester.inputData;
-            	if (request.getParameter(Parameter.Abort.getName()) != null) {
-            		Engine.logContext.debug("Job abortion has been required");
-            		return JobManager.abortJob(context.contextID);
-            	}
-            	return JobManager.getJobStatus(context.contextID);
-            }
-            
-            // Loading project
-            if (context.projectName == null) throw new EngineException("The project name has been specified!");
+			// Checking whether the asynchronous mode has been requested.
+			if ((context.isAsync) && (JobManager.jobExists(context.contextID))) {
+				Engine.logContext.debug("The requested object is working and is asynchronous; requesting job status...");
+
+				HttpServletRequest request = (HttpServletRequest)requester.inputData;
+				if (request.getParameter(Parameter.Abort.getName()) != null) {
+					Engine.logContext.debug("Job abortion has been required");
+					return JobManager.abortJob(context.contextID);
+				}
+				return JobManager.getJobStatus(context.contextID);
+			}
+
+			// Loading project
+			if (context.projectName == null) throw new EngineException("The project name has been specified!");
 
 			Project currentProject;
-			if (isStudioMode()) {
+			if ("system".equals(context.contextID)) {
+				context.project = currentProject = systemDatabaseObjectsManager.getOriginalProjectByName(context.getProjectName());
+			} else if (isStudioMode()) {
 				if (objectsProvider == null) {
 					throw new EngineException(
 							"Is the Projects view opened in the Studio? Failed to load: " + context.projectName);

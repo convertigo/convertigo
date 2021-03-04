@@ -32,6 +32,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -78,16 +79,26 @@ public abstract class ServletRequester extends GenericRequester {
 		}
 	}
 
-    protected String subPath = null;
-    
-    protected void initInternalVariables() throws EngineException {
+	protected String subPath = null;
+
+	protected void initInternalVariables() throws EngineException {
 		HttpServletRequest request = (HttpServletRequest) inputData;
-    	String requestURI = request.getRequestURI(); 
+		String requestURI = request.getRequestURI(); 
 		Engine.logContext.debug("(ServletRequester) requested URI: " + requestURI);
 		
-		int projectNameStartIndex = requestURI.indexOf("/projects/") + 10; 
+		int projectNameStartIndex = requestURI.indexOf("/system/projects/");
+		if (projectNameStartIndex == -1) {
+			projectNameStartIndex = requestURI.indexOf("/projects/");
+			if (projectNameStartIndex == -1) {
+				throw new EngineException("not a projects nor a system url");
+			}
+			projectNameStartIndex += 10;
+		} else {
+			RequestAttribute.system.set(request, true);
+			projectNameStartIndex += 17;
+		}
+		
 		int slashIndex = requestURI.indexOf("/", projectNameStartIndex);
-
 		// Find the project name
 		projectName = request.getParameter(Parameter.Project.getName());
 		try {

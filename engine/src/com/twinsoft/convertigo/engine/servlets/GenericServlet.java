@@ -153,7 +153,7 @@ public abstract class GenericServlet extends HttpServlet {
 		String baseUrl = getServletBaseUrl(request);
 		boolean isProject;
 		
-		if ((isProject = baseUrl.contains("/projects/")) || baseUrl.contains("/webclipper/")) {
+		if ((isProject = baseUrl.contains("/projects/") || baseUrl.contains("/system/")) || baseUrl.contains("/webclipper/")) {
 			long t0 = System.currentTimeMillis();
 			try {
 				if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {

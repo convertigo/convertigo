@@ -115,6 +115,31 @@ task copyLicense(type: Copy) {
 	into 'src/com/twinsoft/convertigo/eclipse/wizards/setup'
 }
 
+task downloadSystemLibFlowViewer(type: Sync) {
+	group 'convertigo'
+	
+	def car = file 'lib_FlowViewer.car'
+	ext.dir = file 'tomcat/webapps/convertigo/system/projects/'
+	
+	from 'src'
+	into ext.dir
+		
+	doFirst {
+		new URL('https://github.com/convertigo/c8oprj-lib-flowviewer/releases/download/ci/lib_FlowViewer.car')
+			.withInputStream{ i -> car.withOutputStream{ it << i }}
+		from zipTree(car)
+		exclude 'com/**'
+	}
+	
+	doLast {
+		car.delete()
+	}
+}
+
+task downloadSystemLibraries(dependsOn: downloadSystemLibFlowViewer) {
+	group 'convertigo'
+}
+
 project(':engine').afterEvaluate {
 	syncLib {
 		inputs.property('engine-dependency', '' + project(':engine').configurations.runtimeClasspath.getAllDependencies())

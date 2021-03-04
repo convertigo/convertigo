@@ -48,7 +48,8 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>ProjectsDataFilter</filter-name>
-        <url-pattern>/projects/*</url-pattern>
+		<url-pattern>/projects/*</url-pattern>
+		<url-pattern>/system/projects/*</url-pattern>
 	</filter-mapping>
     
     <!-- Server XSLT entry point -->
@@ -279,6 +280,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/system/admin/services/*</url-pattern>
         <url-pattern>/admin/services/*</url-pattern>
         <url-pattern>/services/*</url-pattern>
     </servlet-mapping>

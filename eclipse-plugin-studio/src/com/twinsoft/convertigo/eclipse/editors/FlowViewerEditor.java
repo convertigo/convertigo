@@ -32,6 +32,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -52,6 +53,9 @@ public class FlowViewerEditor extends EditorPart {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setSite(site);
 		setInput(input);
+		FlowViewerInput si = (FlowViewerInput) input;
+		String partName = si.sequence.getName() + " [flowViewer]";
+		setPartName(partName);
 	}
 
 	@Override
@@ -72,11 +76,14 @@ public class FlowViewerEditor extends EditorPart {
 		
 		C8oBrowser browser = new C8oBrowser(parent, SWT.NONE);
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-		browser.setUseExternalBrowser(true);
+		browser.setUseExternalBrowser(false);
 		
 		
 		String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-		url += "/projects/C8oStudio/DisplayObjects/mobile/path-to-layout";
+		if ("true".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_USE_SYSTEM_FLOWVIEWER))) {
+			url += "/system";
+		};
+		url += "/projects/lib_FlowViewer/DisplayObjects/mobile/";
 		browser.setUrl(url);
 	}
 
