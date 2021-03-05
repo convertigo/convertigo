@@ -55,6 +55,7 @@
 - [#454](https://github.com/convertigo/convertigo/issues/454) [REST API] "version" added for the OAS2 YAML
 - [#459](https://github.com/convertigo/convertigo/issues/459) [MB] Prevents blank lines generated in ts file for pages containing multiple component with identifier
 - [#464](https://github.com/convertigo/convertigo/issues/464) Differ SAP initialization to allow real SAP driver installation
+- [#466](https://github.com/convertigo/convertigo/issues/466) [HttpConnector] Add a Basic Preemptive authentication mode
 
 #### Bug Fixes:
 

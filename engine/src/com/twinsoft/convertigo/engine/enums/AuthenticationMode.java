@@ -31,6 +31,7 @@ public enum AuthenticationMode {
 	None,
 	Anonymous,
 	Basic,
+	BasicPreemptive,
 	NTLM;
 	
 	static private Credentials ac = new Credentials() {};
@@ -38,25 +39,32 @@ public enum AuthenticationMode {
 	}
 
 	static public AuthenticationMode get(String mode) {
-		if (Anonymous.name().equalsIgnoreCase(mode))
+		if (Anonymous.name().equalsIgnoreCase(mode)) {
 			return Anonymous;
-		if (Basic.name().equalsIgnoreCase(mode))
+		} else if (Basic.name().equalsIgnoreCase(mode)) {
 			return Basic;
-		if (NTLM.name().equalsIgnoreCase(mode))
+		} else if (BasicPreemptive.name().equalsIgnoreCase(mode)) {
+			return BasicPreemptive;
+		} else if (NTLM.name().equalsIgnoreCase(mode)) {
 			return NTLM;
+		}
 		return None;
 	}
 	
 	private int getType() {
-		if (this.equals(Anonymous))
+		if (this.equals(Anonymous)) {
 			return 0;
-		if (this.equals(Basic))
+		} else if (this.equals(Basic)) {
 			return 1;
-		if (this.equals(NTLM))
+		} else if (this.equals(NTLM)) {
 			return 2;
+		} else if (this.equals(BasicPreemptive)) {
+			return 3;
+		}
 		return -1;
 	}
-	
+
+	@SuppressWarnings("deprecation")
 	public boolean setCredentials(HttpState httpState, String user, String password, String host, String domain) {
 		if (httpState == null)
 			return false;
@@ -68,6 +76,7 @@ public enum AuthenticationMode {
 		Credentials credentials = null;
 		int type = getType();
 		try {
+			boolean preemptive = false;
 			switch (type) {
 				case 0: // Anonymous
 					credentials = ac;
@@ -78,10 +87,16 @@ public enum AuthenticationMode {
 				case 2: // NTLM
 					credentials = new NTCredentials(user, password, host, domain);
 					break;
+				case 3: // Basic Preemptive
+					credentials = new UsernamePasswordCredentials(user, password);
+					preemptive = true;
+					break;
 				default: // None
 				case -1:
 					break;
 			}
+			
+			httpState.setAuthenticationPreemptive(preemptive);
 			
 			Credentials curCred = httpState.getCredentials(authScope);
 			int needChange = compare(curCred, credentials);
