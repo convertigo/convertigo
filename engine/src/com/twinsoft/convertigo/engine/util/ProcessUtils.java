@@ -460,6 +460,10 @@ public class ProcessUtils {
 	}
 	
 	public static File getAndroidSDK(ProgressListener progress) throws Exception {
+		return getAndroidSDK(null, progress);
+	}
+	
+	public static File getAndroidSDK(String preferedAndroidBuildTools, ProgressListener progress) throws Exception {
 		File dir;
 		String env = System.getenv("ANDROID_HOME");
 		if (env != null) {
@@ -568,17 +572,26 @@ public class ProcessUtils {
 		}
 		int code = p.waitFor();
 		Engine.logEngine.info("Android licenses: " + code + "\n" + output);
-		p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
-		output = IOUtils.toString(p.getInputStream(), "UTF-8");
-		code = p.waitFor();
-		Engine.logEngine.info("Android package list: " + code + "\n" + output);
 		
-		Matcher m = Pattern.compile(".*(build-tools;.*?) .*").matcher(output);
 		String buildTools = "";
-		while (m.find()) {
-			buildTools = m.group(1);
+		if (StringUtils.isNotBlank(preferedAndroidBuildTools)) {
+			buildTools = preferedAndroidBuildTools;
+			if (!buildTools.startsWith("build-tools;")) {
+				buildTools = "build-tools;" + buildTools; 
+			}
+			Engine.logEngine.info("use prefered build-tools: " + buildTools);
+		} else {
+			p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+			output = IOUtils.toString(p.getInputStream(), "UTF-8");
+			code = p.waitFor();
+			Engine.logEngine.info("Android package list: " + code + "\n" + output);
+			
+			Matcher m = Pattern.compile(".*(build-tools;[0-9.]+?) .*").matcher(output);
+			while (m.find()) {
+				buildTools = m.group(1);
+			}
+			Engine.logEngine.info("build-tools: " + buildTools);
 		}
-		Engine.logEngine.info("build-tools: " + buildTools);
 		p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true).start();
 		output = IOUtils.toString(p.getInputStream(), "UTF-8");
 		code = p.waitFor();
