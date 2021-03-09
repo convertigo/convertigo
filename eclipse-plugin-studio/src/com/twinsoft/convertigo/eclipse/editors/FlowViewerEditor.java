@@ -80,7 +80,7 @@ public class FlowViewerEditor extends EditorPart {
 		
 		
 		String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-		if ("true".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_USE_SYSTEM_FLOWVIEWER))) {
+		if (!"false".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_USE_SYSTEM_FLOWVIEWER))) {
 			url += "/system";
 		};
 		url += "/projects/lib_FlowViewer/DisplayObjects/mobile/";

@@ -361,9 +361,9 @@ task downloadSystemLibFlowViewer(type: Sync) {
 	group 'convertigo'
 	
 	def car = file 'lib_FlowViewer.car'
-	ext.dir = file 'tomcat/webapps/convertigo/system/projects/'
+	ext.dir = file 'eclipse-plugin-studio/tomcat/webapps/convertigo/system/projects/'
 	
-	from 'src'
+	from 'eclipse-plugin-studio/src'
 	into ext.dir
 		
 	doFirst {
