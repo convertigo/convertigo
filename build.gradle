@@ -356,3 +356,28 @@ task generateDockerfile {
 		file('docker/aks/root-index.html').text = file('docker/root-index.html').text
 	}
 }
+
+task downloadSystemLibFlowViewer(type: Sync) {
+	group 'convertigo'
+	
+	def car = file 'lib_FlowViewer.car'
+	ext.dir = file 'tomcat/webapps/convertigo/system/projects/'
+	
+	from 'src'
+	into ext.dir
+		
+	doFirst {
+		new URL('https://github.com/convertigo/c8oprj-lib-flowviewer/releases/download/ci/lib_FlowViewer.car')
+			.withInputStream{ i -> car.withOutputStream{ it << i }}
+		from zipTree(car)
+		exclude 'com/**'
+	}
+	
+	doLast {
+		car.delete()
+	}
+}
+
+task downloadSystemLibraries(dependsOn: downloadSystemLibFlowViewer) {
+	group 'convertigo'
+}
