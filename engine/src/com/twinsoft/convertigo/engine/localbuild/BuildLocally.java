@@ -84,6 +84,7 @@ public abstract class BuildLocally {
 	private File androidSdkDir = null;
 	private File gradleDir = null;
 	private File nodeDir = null;
+	private String preferedAndroidBuildTools = null;
 	
 	private File mobilePackage = null;
 	private Status lastStatus = null;
@@ -257,11 +258,9 @@ public abstract class BuildLocally {
 			
 			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 			
-			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='phonegap-version']");
-			
 			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
 			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
-			singleElement = (Element) nodeIterator.nextNode();
+			Element singleElement = (Element) nodeIterator.nextNode();
 			while (singleElement != null) {
 				String src = singleElement.getAttribute("src");
 				src = "www/" + src;
@@ -671,7 +670,7 @@ public abstract class BuildLocally {
 				jdk8Dir = ProcessUtils.getJDK8((pBytesRead, pContentLength, pItems) -> {
 					Engine.logEngine.info("download JDK8: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 				});
-				androidSdkDir = ProcessUtils.getAndroidSDK((pBytesRead, pContentLength, pItems) -> {
+				androidSdkDir = ProcessUtils.getAndroidSDK(preferedAndroidBuildTools, (pBytesRead, pContentLength, pItems) -> {
 					Engine.logEngine.info("download Android SDK: " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
 				});
 				gradleDir = ProcessUtils.getGradle((pBytesRead, pContentLength, pItems) -> {
@@ -779,6 +778,11 @@ public abstract class BuildLocally {
 				throw new Exception("node.js is not installed ('npm --version' returned '" + npmVersion + "')\nYou must download nodes.js from https://nodejs.org/en/download/");
 			}
 			Engine.logEngine.info("OK, nodejs (" + nodeVersion + ") and npm (" + npmVersion + ") are installed.");
+			
+			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='prefered-android-build-tools']");
+			if (singleElement != null && singleElement.hasAttribute("value")) {
+				preferedAndroidBuildTools = singleElement.getAttribute("value"); 
+			}
 			
 			Engine.logEngine.info("Checking if this cordova version is already installed.");
 			singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/preference[@name='cordova-version']");

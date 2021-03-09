@@ -290,7 +290,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 				/*
 				 * Create PDF appearance
 				 */
-				int imageScaleRatio = pdImageXObject.getHeight() / pdImageXObject.getWidth();
+				float imageScaleRatio = (float)pdImageXObject.getHeight() / (float)pdImageXObject.getWidth();
 				PDRectangle buttonPosition = getFieldArea(field);
 				float height = buttonPosition.getHeight();
 				float width = height / imageScaleRatio;

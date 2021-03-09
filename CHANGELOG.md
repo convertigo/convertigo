@@ -55,6 +55,7 @@
 - [#454](https://github.com/convertigo/convertigo/issues/454) [REST API] "version" added for the OAS2 YAML
 - [#459](https://github.com/convertigo/convertigo/issues/459) [MB] Prevents blank lines generated in ts file for pages containing multiple component with identifier
 - [#464](https://github.com/convertigo/convertigo/issues/464) Differ SAP initialization to allow real SAP driver installation
+- [#466](https://github.com/convertigo/convertigo/issues/466) [HttpConnector] Add a Basic Preemptive authentication mode
 
 #### Bug Fixes:
 
@@ -97,7 +98,7 @@
 - [#453](https://github.com/convertigo/convertigo/issues/453) JGit now use proxy settings
 - [#457](https://github.com/convertigo/convertigo/issues/457) Fixed subscribe handler is not working in some cases
 - [#463](https://github.com/convertigo/convertigo/issues/463) [Admin] Fixed saving a Variable default value using the Project Edit from the admin Console
-
+- [#467](https://github.com/convertigo/convertigo/issues/467) Fixed PDF Step is not handling Base64 image properly 
 ---
 
 ## 7.8.0

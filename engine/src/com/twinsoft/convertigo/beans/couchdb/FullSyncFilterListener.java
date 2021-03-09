@@ -67,9 +67,6 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 			query.put("include_docs", "true");
 			query.put("conflicts", "true");
 			
-			Map<String, String> query_r = new HashMap<String, String>(2);
-			query.put("r", "100");
-			
 			String db = getDatabaseName();
 			try {
 				CouchClient client = getCouchClient();
@@ -77,15 +74,6 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 					JSONArray doc_ids = getChunk(ids, i);
 					int ids_len = doc_ids.length();
 					i += ids_len;
-					
-					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : [" + db + "] request heads of " + ids_len + " id(s)");
-					for (int j = 0; j < ids_len; j++) {
-						String id = doc_ids.getString(j);
-						JSONObject head = client.headDocument(db, id, query_r);
-						if (Engine.logBeans.isTraceEnabled()) {
-							Engine.logBeans.trace("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] head of '" + id + "': " + head);
-						}
-					}
 					
 					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : [" + db + "] post filter '" + ddoc + "/" + filter + "' for _id keys " + doc_ids);
 					JSONObject json = client.postChanges(db, query, CouchKey.doc_ids.put(new JSONObject(), doc_ids));
