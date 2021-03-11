@@ -154,7 +154,8 @@ public class ContextManager extends AbstractRunnableManager {
 	public Context get(Requester requester, String contextName, String contextIdPrefix, String poolName, String projectName, String connectorName, String sequenceName) throws Exception {
 		Context context = null;
 
-		if (RequestAttribute.system.has((HttpServletRequest) requester.inputData)) {
+		if (requester.inputData instanceof HttpServletRequest &&
+				RequestAttribute.system.has((HttpServletRequest) requester.inputData)) {
 			context = new Context("system");
 			return context;
 		}
