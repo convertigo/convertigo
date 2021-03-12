@@ -70,7 +70,7 @@ public class FlowViewerEditor extends EditorPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
-//		FlowViewerInput si = (FlowViewerInput) getEditorInput();
+		FlowViewerInput si = (FlowViewerInput) getEditorInput();
 		
 		parent.setLayout(new GridLayout(1, true));;
 		
@@ -83,7 +83,7 @@ public class FlowViewerEditor extends EditorPart {
 		if (!"false".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_USE_SYSTEM_FLOWVIEWER))) {
 			url += "/system";
 		};
-		url += "/projects/lib_FlowViewer/DisplayObjects/mobile/";
+		url += "/projects/lib_FlowViewer/DisplayObjects/mobile/?qname=" + si.sequence.getFullQName();
 		browser.setUrl(url);
 	}
 
