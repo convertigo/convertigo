@@ -64,7 +64,7 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 			
 			int len = ids.length();
 			
-			Map<String, String> query = new HashMap<String, String>(2);
+			Map<String, String> query = new HashMap<String, String>(5);
 			query.put("reduce", "false");
 			query.put("include_docs", "true");
 			query.put("conflicts", "true");
@@ -78,6 +78,25 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 					JSONArray doc_ids = getChunk(ids, i);
 					int ids_len = doc_ids.length();
 					i += ids_len;
+					
+					if (client.isServerCluster()) {
+						JSONObject body = new JSONObject();
+						body.put("update", false);
+						body.put("stable", true);
+						body.put("r", 100);
+						JSONObject in = new JSONObject();
+						in.put("$in", doc_ids);
+						JSONObject selector = new JSONObject();
+						selector.put("_id", in);
+						body.put("selector", selector);
+						JSONArray fields = new JSONArray();
+						fields.put("_id");
+						fields.put("_rev");
+						body.put("fields", fields);
+						JSONObject r = client.postFind(db, body);
+						Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post find with " + body + "\n" + r);
+						Thread.sleep(50);
+					}
 					
 					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post view '" + ddoc + "/" + view + "' for _id keys " + doc_ids);
 					JSONObject json = client.postView(db, ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
