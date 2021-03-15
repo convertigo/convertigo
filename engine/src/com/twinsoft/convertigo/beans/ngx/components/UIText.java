@@ -93,7 +93,7 @@ public class UIText extends UIComponent implements ITagsProperty {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			return StringEscapeUtils.escapeHtml4(getTextValue()) + System.getProperty("line.separator");
+			return StringEscapeUtils.escapeHtml4(getTextValue());
 		}
 		else {
 			return "";
