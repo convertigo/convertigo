@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.Iterator;
+
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -295,7 +297,8 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			else {
 				sb.append(">").append(System.getProperty("line.separator"))
 					.append(children.length()>0 ? children:"")
-				  .append("</").append(getTagName())
+					.append(StringUtils.endsWith(children, System.getProperty("line.separator")) ? "":System.getProperty("line.separator"))
+					.append("</").append(getTagName())
 				  	.append(">").append(System.getProperty("line.separator"));
 			}
 			
