@@ -444,6 +444,34 @@
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_saml_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlUIWizard"
+             name="SAML SSO UI Library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo SAML 2 SSO Authentication UI library</description>
+             {
+               "url": "lib_SAML_ui=https://github.com/convertigo/c8oprj-lib-saml-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_saml_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlUiNgxWizard"
+             name="SAML SSO UI Library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo SAML 2 SSO Authentication UI NGX library</description>
+             {
+               "url": "lib_SAML_ui_ngx=https://github.com/convertigo/c8oprj-lib-saml-ui-ngx.git:branch=8.0.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_saml_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlWizard"
              name="SAML SSO Library"
              preferredPerspectives="convertigo"
@@ -458,6 +486,20 @@
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_amazonLex_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexUIWizard"
+             name="Amazon LEX UI library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Amazon LEX UI library project.</description>
+             {
+               "url": "lib_AmazonLEX_ui=https://github.com/convertigo/c8oprj-lib-amazonlex-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_amazonLex_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
              name="Amazon LEX library"
              preferredPerspectives="convertigo"
@@ -465,6 +507,34 @@
           <description>Imports the Convertigo Amazon LEX library project.</description>
              {
                "url": "lib_AmazonLEX=https://github.com/convertigo/c8oprj-lib-amazonlex.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_pushManager_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerUIWizard"
+             name="Push manager UI library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Push manager UI library project.</description>
+             {
+               "url": "lib_PushManager_ui=https://github.com/convertigo/c8oprj-lib-push-manager-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_pushManager_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerUiNgxWizard"
+             name="Push manager UI NGX library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Push manager UI NGX library project.</description>
+             {
+               "url": "lib_PushManager_ui_ngx=https://github.com/convertigo/c8oprj-lib-push-manager-ui-ngx.git:branch=8.0.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
