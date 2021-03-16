@@ -34,12 +34,15 @@ import org.eclipse.ui.part.EditorPart;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class FlowViewerEditor extends EditorPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.FlowViewerEditor";
+	
+	C8oBrowser c8oBrowser;
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -74,21 +77,45 @@ public class FlowViewerEditor extends EditorPart {
 		
 		parent.setLayout(new GridLayout(1, true));;
 		
-		C8oBrowser browser = new C8oBrowser(parent, SWT.NONE);
-		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
-		browser.setUseExternalBrowser(false);
+		c8oBrowser = new C8oBrowser(parent, SWT.NONE);
+		c8oBrowser.setLayoutData(new GridData(GridData.FILL_BOTH));
+		c8oBrowser.setUseExternalBrowser(false);
 		
+//		c8oBrowser.getBrowser().set(InjectJsCallback.class, params -> {
+//			String url = params.frame().browser().url();
+//			System.out.println("url=" + url);
+//				try {
+//					Frame frame = params.frame();
+//					frame.executeJavaScript(
+//						"navigator.__defineGetter__('userAgent', function(){ return 'Android'});\n"
+//					);
+////					params.frame().document().get().
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+////			browser.setZoomLevel(zoomFactor.zoomLevel());
+//			return Response.proceed();
+//		});
+		Engine.logStudio.debug("(FlowViwer) Browser debug url: " + c8oBrowser.getDebugUrl());
 		
 		String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 		if (!"false".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_USE_SYSTEM_FLOWVIEWER))) {
 			url += "/system";
 		};
 		url += "/projects/lib_FlowViewer/DisplayObjects/mobile/?qname=" + si.sequence.getFullQName();
-		browser.setUrl(url);
+		c8oBrowser.setUrl(url);
 	}
 
 	@Override
 	public void setFocus() {
+	}
+	
+	@Override
+	public void dispose() {
+		if (c8oBrowser != null) {
+			c8oBrowser.dispose();
+		}
+		super.dispose();
 	}
 
 	public static IEditorInput makeInput(Sequence sequence) {
