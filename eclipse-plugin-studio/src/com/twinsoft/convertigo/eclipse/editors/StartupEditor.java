@@ -53,6 +53,8 @@ public class StartupEditor extends EditorPart {
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.StartupEditor";
 	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-7-9/";
 
+	C8oBrowser browser = null;
+	
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 	}
@@ -65,6 +67,14 @@ public class StartupEditor extends EditorPart {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setSite(site);
 		setInput(input);
+	}
+	
+	@Override
+	public void dispose() {
+		if (browser != null) {
+			browser.dispose();
+		}
+		super.dispose();
 	}
 
 	@Override
@@ -86,7 +96,7 @@ public class StartupEditor extends EditorPart {
 		tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		tb.setVisible(false);
 		
-		C8oBrowser browser = new C8oBrowser(parent, SWT.NONE);
+		browser = new C8oBrowser(parent, SWT.NONE);
 		browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 		browser.setUseExternalBrowser(true);
 		
