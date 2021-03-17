@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.eclipse.wizards.new_object;
 
 import java.beans.IntrospectionException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -63,6 +65,7 @@ import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransac
 import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
 import com.twinsoft.convertigo.eclipse.dialogs.CouchVariablesComposite;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -225,21 +228,35 @@ public class ObjectInfoWizardPage extends WizardPage {
 			return;
 		}
 		
-		try {
-			dbo.setName(name);
-			if (treeItemName != null) {
-				if (dbo instanceof ScHandlerStatement)
-					((ScHandlerStatement)dbo).setNormalizedScreenClassName(treeItemName);
-				else if (dbo instanceof HandlerStatement)
-					((HandlerStatement)dbo).setHandlerType(treeItemName);
+		Matcher m = Pattern.compile("\\d+$").matcher("");
+		boolean sameName;
+		do {
+			sameName = false;
+			try {
+				dbo.setName(name);
+				if (treeItemName != null) {
+					if (dbo instanceof ScHandlerStatement)
+						((ScHandlerStatement)dbo).setNormalizedScreenClassName(treeItemName);
+					else if (dbo instanceof HandlerStatement)
+						((HandlerStatement)dbo).setHandlerType(treeItemName);
+				}
+			} catch (ObjectWithSameNameException e) {
+				sameName = true;
+				m.reset(name);
+				if (m.find()) {
+					name = name.substring(0, m.start()) + (Integer.parseInt(m.group()) + 1);
+				} else {
+					name = name + "_1";
+				}
+				setBeanName(name);
+			} catch (EngineException e) {
+				updateStatus("Name could not be set on bean");
+				return;
+			} catch (NullPointerException e) {
+				updateStatus("New Bean has not been instanciated");
+				return;
 			}
-		} catch (EngineException e) {
-			updateStatus("Name could not be set on bean");
-			return;
-		} catch (NullPointerException e) {
-			updateStatus("New Bean has not been instanciated");
-			return;
-		}
+		} while (sameName);
 		
 		updateStatus(null);
 	}
