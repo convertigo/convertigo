@@ -34,7 +34,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -46,7 +45,6 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
@@ -153,12 +151,6 @@ public class ContextManager extends AbstractRunnableManager {
 	
 	public Context get(Requester requester, String contextName, String contextIdPrefix, String poolName, String projectName, String connectorName, String sequenceName) throws Exception {
 		Context context = null;
-
-		if (requester.inputData instanceof HttpServletRequest &&
-				RequestAttribute.system.has((HttpServletRequest) requester.inputData)) {
-			context = new Context("system");
-			return context;
-		}
 		
 		// Try to find the context in pool
 		if ((poolName != null) && (poolName.length() > 0)) {

@@ -36,10 +36,12 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.translators.DefaultInternalTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
@@ -59,7 +61,9 @@ public class InternalRequester extends GenericRequester {
     
     public InternalRequester(Map<String, Object> request, HttpServletRequest httpServletRequest) throws EngineException {
     	String projectName = ((String[]) request.get(Parameter.Project.getName()))[0];
-    	bStrictMode = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName).isStrictMode();
+    	DatabaseObjectsManager dbom = "true".equals(RequestAttribute.system.string(httpServletRequest)) ?
+    		Engine.theApp.getSystemDatabaseObjectsManager() : Engine.theApp.databaseObjectsManager;
+    	bStrictMode = dbom.getOriginalProjectByName(projectName).isStrictMode();
     	inputData = request;
     	this.httpServletRequest = httpServletRequest == null ? new InternalHttpServletRequest() : httpServletRequest;
     	
@@ -182,11 +186,16 @@ public class InternalRequester extends GenericRequester {
 		if (connectorName != null) {
 			Engine.logContext.debug("(InternalRequester) connector name: " + connectorName);
 		}
-    }
-    
+	}
+	
 	public Context getContext() throws Exception {
+		if ("true".equals(RequestAttribute.system.string(httpServletRequest))) {
+			initInternalVariables();
+			return new Context("system");
+		}
+		
 		Map<String, String[]> request = GenericUtils.cast(inputData);
-
+		
 		String contextName = getContextName();
 
 		initInternalVariables();

@@ -130,16 +130,20 @@ public abstract class ServletRequester extends GenericRequester {
 		// Find the connector name
 		connectorName = request.getParameter(Parameter.Connector.getName());
 		Engine.logContext.debug("(ServletRequester) connector name: " + connectorName);
-    }
-    
+	}
+
 	public Context getContext() throws Exception {
 		HttpServletRequest request = (HttpServletRequest) inputData;
-
+		
+		initInternalVariables();
+		
+		if ("true".equals(RequestAttribute.system.string(request))) {
+			return new Context("system");
+		}
+		
 		String contextName = getContextName();
 
 		Engine.logContext.debug("(ServletRequester) requested execution context: " + contextName);
-
-		initInternalVariables();
 		
 		HttpSession httpSession = request.getSession();
 		String sessionID = httpSession.getId();

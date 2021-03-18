@@ -1422,7 +1422,7 @@ public class Engine {
 
 			Engine.logContext.trace("Engine.getDocument: finished");
 		}
-
+		
 		XMLUtils.logXml(outputDom, Engine.logContext, "Generated XML");
 
 		return outputDom;
@@ -1697,6 +1697,10 @@ public class Engine {
 			}
 			return map;
 		}
+	}
+	
+	public SystemDatabaseObjectsManager getSystemDatabaseObjectsManager() {
+		return systemDatabaseObjectsManager;
 	}
 	
 	public static boolean isCloudMode() {
