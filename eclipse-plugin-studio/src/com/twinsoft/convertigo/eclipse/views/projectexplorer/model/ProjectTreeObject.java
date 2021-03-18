@@ -141,7 +141,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		// clear Source picker view if needed
 		clearSourcePickerView();
 		
-		Engine.theApp.databaseObjectsManager.clearCache(getObject());
+		Engine.execute(() -> Engine.theApp.databaseObjectsManager.clearCache(getObject()));
 		return true;
 	}
 
