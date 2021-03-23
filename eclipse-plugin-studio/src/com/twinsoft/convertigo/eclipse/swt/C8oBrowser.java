@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
@@ -78,7 +77,7 @@ public class C8oBrowser extends Composite {
 	}
 
 	public C8oBrowser(Composite parent, int style, Project project) {
-		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+		super(parent, style);
 		boolean retry = false;
 		do {
 			File browserIdFile = null;
@@ -131,7 +130,7 @@ public class C8oBrowser extends Composite {
 	}
 
 	public C8oBrowser(Composite parent, int style, Engine browserContext) {
-		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+		super(parent, style);
 		init(browserContext);
 	}
 	
