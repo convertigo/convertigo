@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
@@ -51,7 +50,8 @@ public class C8oBrowser extends Composite {
 	private static Thread threadSwt = null;
 	private static Map<String, Engine> browserContexts = new HashMap<>();
 	private static final String jxKey = "x9384a09ae4e09d49453cf65cdf9424d92907689aeb3f3f2ade80fb8677856376abeabaefa4588a9c61ca7f28249bf3ae3ab6264768940ceec5c8759c3fc1b2033e692e006e0fb882b9876ad5c2cdc0d0";
-
+	private static boolean render_offscreen = "offscreen".equals(System.getProperty("jxbrowser.render"));
+	
 	private String debugUrl;
 	private BrowserView browserView;
 	private boolean useExternalBrowser = false;
@@ -77,7 +77,7 @@ public class C8oBrowser extends Composite {
 	}
 
 	public C8oBrowser(Composite parent, int style, Project project) {
-		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+		super(parent, style);
 		boolean retry = false;
 		do {
 			File browserIdFile = null;
@@ -98,7 +98,7 @@ public class C8oBrowser extends Composite {
 			File browserWorks = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH + "/browser-works");
 			browserWorks.mkdirs();
 			Engine browserContext = browserContexts.get(browserId);
-			if (browserContext == null) {
+			if (browserContext == null || browserContext.isClosed()) {
 				int debugPort; 
 				try (ServerSocket sock = new ServerSocket(0)) {
 					debugPort = sock.getLocalPort();
@@ -106,7 +106,7 @@ public class C8oBrowser extends Composite {
 					debugPort = 18081 + browserContexts.size();
 				}
 				String key = Crypto2.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), jxKey);
-				browserContext = Engine.newInstance(EngineOptions.newBuilder(RenderingMode.HARDWARE_ACCELERATED)
+				browserContext = Engine.newInstance(EngineOptions.newBuilder(render_offscreen ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
 						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
 						.licenseKey(key)
 						.addSwitch("--illegal-access=warn")
@@ -130,7 +130,7 @@ public class C8oBrowser extends Composite {
 	}
 
 	public C8oBrowser(Composite parent, int style, Engine browserContext) {
-		super(parent, style | SWT.EMBEDDED | SWT.NO_BACKGROUND);
+		super(parent, style);
 		init(browserContext);
 	}
 	

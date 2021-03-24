@@ -66,6 +66,13 @@
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.actions.OpenStartupPage"
+               icon="icons/studio/menu/statement_color_16x16.png"
+               id="com.twinsoft.convertigo.OpenStartupPage"
+               label="&amp;Open the Startup page"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.actions.ProjectPrintAction"
                icon="icons/studio/project_print.gif"
                id="com.twinsoft.convertigo.PrintProject"
@@ -429,126 +436,28 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_vonage_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryVonageWizard"
+             name="Vonage library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the Convertigo connector to Vonage API for SMS, Viber, Whatsapp, Facebook Messenger and MMS messaging services. The library also provides APIs for Video Components.</description>
+             {
+               "url": "lib_Vonage_ui_ngx=https://github.com/convertigo/c8oprj-lib-vonage-ui-ngx.git:branch=8.0.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_usermanager_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
-             name="User Manager"
+             name="User Manager library"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Convertigo User Manager library project.</description>
+          <description>The user manager library handling user/password or OpenID / OAuth single signons.</description>
              {
-               "url": "lib_UserManager=https://github.com/convertigo/c8oprj-lib-user-manager.git:branch=7.9.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_saml_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlUIWizard"
-             name="SAML SSO UI Library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo SAML 2 SSO Authentication UI library</description>
-             {
-               "url": "lib_SAML_ui=https://github.com/convertigo/c8oprj-lib-saml-ui.git:branch=7.9.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_saml_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlUiNgxWizard"
-             name="SAML SSO UI Library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo SAML 2 SSO Authentication UI NGX library</description>
-             {
-               "url": "lib_SAML_ui_ngx=https://github.com/convertigo/c8oprj-lib-saml-ui-ngx.git:branch=8.0.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_saml_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlWizard"
-             name="SAML SSO Library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo SAML 2 SSO Authentication library</description>
-             {
-               "url": "lib_SAML=https://github.com/convertigo/c8oprj-lib-saml.git:branch=7.9.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_amazonLex_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexUIWizard"
-             name="Amazon LEX UI library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Amazon LEX UI library project.</description>
-             {
-               "url": "lib_AmazonLEX_ui=https://github.com/convertigo/c8oprj-lib-amazonlex-ui.git:branch=7.9.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_amazonLex_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
-             name="Amazon LEX library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Amazon LEX library project.</description>
-             {
-               "url": "lib_AmazonLEX=https://github.com/convertigo/c8oprj-lib-amazonlex.git:branch=7.9.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_pushManager_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerUIWizard"
-             name="Push manager UI library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Push manager UI library project.</description>
-             {
-               "url": "lib_PushManager_ui=https://github.com/convertigo/c8oprj-lib-push-manager-ui.git:branch=7.9.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_pushManager_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerUiNgxWizard"
-             name="Push manager UI NGX library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Push manager UI NGX library project.</description>
-             {
-               "url": "lib_PushManager_ui_ngx=https://github.com/convertigo/c8oprj-lib-push-manager-ui-ngx.git:branch=8.0.0",
-               "doPageSummarySampleProject": true
-             }
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_pushManager_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
-             name="Push manager library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Push manager library project.</description>
-             {
-               "url": "lib_PushManager=https://github.com/convertigo/c8oprj-lib-push-manager.git:branch=7.9.0",
+               "url": "lib_UserManager_ui_ngx=https://github.com/convertigo/c8oprj-lib-user-manager-ui-ngx.git:branch=8.0.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -569,6 +478,62 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_sigfox_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
+             name="Sigfox library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Sigfox library project.</description>
+             {
+               "url": "lib_Sigfox=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_saml_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlWizard"
+             name="SAML SSO library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the SAML 2.0 Authentication library for Convertigo platform. Install this library to enable SAML 2.0 SSO to your Convertigo applications.</description>
+             {
+               "url": "lib_SAML_ui_ngx=https://github.com/convertigo/c8oprj-lib-saml-ui-ngx.git:branch=8.0.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_salesforce_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySalesforceWizard"
+             name="Salesforce library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Salesforce library project.</description>
+             {
+               "url": "lib_Salesforce=https://github.com/convertigo/c8oprj-lib-salesforce.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_pushManager_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
+             name="Push manager library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the Firebase Cloud Messaging (FCM) Push notifications library for the Convertigo Low Code Platform. This library brings the server part and the client part for Firebase Push Notifications support for Convertigo mobile builder apps.</description>
+             {
+               "url": "lib_PushManager_ui_ngx=https://github.com/convertigo/c8oprj-lib-push-manager-ui-ngx.git:branch=8.0.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_oauth_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryOAuthWizard"
              name="OAuth library"
@@ -583,14 +548,42 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_filetransfer_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
-             name="FileTransfer library"
+             icon="icons/studio/library_excel_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryMicrosoftExcelWizard"
+             name="Microsoft Excel library"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Convertigo FileTransfer library project.</description>
+          <description>Uses the Microsoft Excel connector for Convertigo platform. Install this library to enable reading from Microsoft Excel sheets on Office365 Cloud for your Convertigo applications.</description>
              {
-               "url": "lib_FileTransfer=https://github.com/convertigo/c8oprj-lib-filetransfer.git:branch=7.9.0",
+               "url": "lib_MicrosoftExcel_ui_ngx=https://github.com/convertigo/c8oprj-lib-excel-ui-ngx.git:branch=8.0.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_googlesheets_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSheetWizard"
+             name="Google Sheets library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the Google Sheets connector for Convertigo platform. Install this library to enable writing and reading from Google Sheets for your Convertigo applications.</description>
+             {
+               "url": "lib_GoogleSheet_ui=https://github.com/convertigo/c8oprj-lib-googlesheets-ui.git:branch=8.0.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_geocoding_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGeocodingWizard"
+             name="Geocoding library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Uses the geocoding library for Convertigo platform when network is reachable. Install this library to geocode coordinates for your Convertigo applications. It is based on Bing Maps location API. The shared component used in this library geocodes automatically browser's coordinates when network is reachable.</description>
+             {
+               "url": "lib_Geocoding_ngx=https://github.com/convertigo/c8oprj-lib-geocoding-ui-ngx.git:branch=8.0.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -611,28 +604,42 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_sigfox_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
-             name="Sigfox library"
+             icon="icons/studio/library_filetransfer_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
+             name="FileTransfer library"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Convertigo Sigfox library project.</description>
+          <description>Imports the Convertigo FileTransfer library project.</description>
              {
-               "url": "lib_Sigfox=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.9.0",
+               "url": "lib_FileTransfer=https://github.com/convertigo/c8oprj-lib-filetransfer.git:branch=7.9.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/library_salesforce_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySalesforceWizard"
-             name="Salesforce library"
+             icon="icons/studio/angularjs_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryExtendedComponentsWizard"
+             name="Extended Components library"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Convertigo Salesforce library project.</description>
+          <description>Set of shared components you can use in your projects: agGrid, ngxTagInput, angularxQRCode, CardIO, ZXing ...</description>
              {
-               "url": "lib_Salesforce=https://github.com/convertigo/c8oprj-lib-salesforce.git:branch=7.9.0",
+               "url": "lib_ExtendedComponents_ui_ngx=https://github.com/convertigo/c8oprj-lib-extended-components-ui-ngx.git:branch=8.0.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_amazonLex_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
+             name="Amazon LEX library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Library for interacting with Amazon Lex Chatbots. This library Enables Convertigo to build conversational Apps for Mobile Web and Desktop Apps by interacting with Amazon's ChatBot Technology.</description>
+             {
+               "url": "lib_AmazonLEX_ui_ngx=https://github.com/convertigo/c8oprj-lib-amazonlex-ui-ngx.git:branch=8.0.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
