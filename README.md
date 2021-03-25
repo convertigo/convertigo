@@ -7,7 +7,7 @@ Convertigo Community edition is an open source fullstack Low Code & No Code plat
 
 1.	**Convertigo Server**: The back-end server MBaaS part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Mobile and PWA Web apps. Convertigo server can be downloaded from [GitHub](https://github.com/convertigo/convertigo/releases/latest) as a tomcat WAR file or run directly as containers from [DockerHub](https://hub.docker.com/_/convertigo) 
 2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program MBaaS micro-services workflows and use the "Mobile Builder" to build Mobile apps UIs in Low code mode. Can be directly downloaded from [GitHub](https://github.com/convertigo/convertigo/releases/latest)
-3.	**Convertigo SDKs**: Can be used with third party Mobile development tools such as Xcode (iOS) Android Studio (Android). SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and NPM for Angulzr, ReactNative and Vue.js)
+3.	**Convertigo SDKs**: Can be used with third party Mobile development tools such as Xcode (iOS) Android Studio (Android). SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and NPM for Angular, ReactNative and Vue.js)
 4.	**Convertigo Forms**:  The No Code App Builder to build form based apps as PWAs or Web applications with a Web Based NoCode studio intented for non technical developpers (Citizen Developpers) 
 
 Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 150K developers worldwide, building enterprise class mobile apps.
