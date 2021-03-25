@@ -15,7 +15,7 @@
 - [#388](https://github.com/convertigo/convertigo/issues/388) [REST API] Add a Full OAS3 API support
 - [#392](https://github.com/convertigo/convertigo/issues/392) [MB] Use now standard Angular's service worker for PWA
 - [#420](https://github.com/convertigo/convertigo/issues/420) Add an Autostart property to a sequence object
-- [#422](https://github.com/convertigo/convertigo/issues/422) New SAML 2 SSO library is available for Enterprise authentication
+- [#422](https://github.com/convertigo/convertigo/issues/422) New SAML 2 SSO, ExtendedComponents, Geocoding, Vonage, GoogleSheets and Microsoft Excel libraries are available from the New Project wizard
 - [#426](https://github.com/convertigo/convertigo/issues/426) [Docker] Images can use sudo and can be disabled at image launch
 - [#427](https://github.com/convertigo/convertigo/issues/427) [Studio] Added a menu update gradle files + menu to enable github actions file
 - [#428](https://github.com/convertigo/convertigo/issues/428) [Studio] Support http verb PATCH in yaml WS import wizard
