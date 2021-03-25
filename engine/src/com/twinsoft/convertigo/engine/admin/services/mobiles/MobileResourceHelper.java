@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -151,7 +152,7 @@ public class MobileResourceHelper {
 			List<File> filesToDelete = new LinkedList<File>();
 
 			for (File htmlFile : FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
-				String htmlContent = FileUtils.readFileToString(htmlFile, "UTF-8");
+				String htmlContent = FileUtils.readFileToString(htmlFile, StandardCharsets.UTF_8);
 				StringBuffer sbIndexHtml = new StringBuffer();
 				BufferedReader br = new BufferedReader(new StringReader(htmlContent));
 				String includeChar = null;
@@ -184,11 +185,11 @@ public class MobileResourceHelper {
 									}
 
 									if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
-										String sJs = FileUtils.readFileToString(outFile, "UTF-8");
+										String sJs = FileUtils.readFileToString(outFile, StandardCharsets.UTF_8);
 										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
 									} else if (file.matches(".*/c8o\\.core\\..*?js")) {
-										String sJs = FileUtils.readFileToString(outFile, "UTF-8");
+										String sJs = FileUtils.readFileToString(outFile, StandardCharsets.UTF_8);
 										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
 									}
@@ -315,11 +316,14 @@ public class MobileResourceHelper {
 		
 		for (File f : FileUtils.listFiles(canonicalDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
 			File canonnicalF = f.getCanonicalFile();
-			JSONObject jObj = new JSONObject();
-			jObj.put("uri", URLDecoder.decode(canonnicalF.toURI().toString().substring(uriDirectoryLength), "UTF-8"));
-			jObj.put("date", canonnicalF.lastModified());
-			jObj.put("size", canonnicalF.length());
-			jArray.put(jObj);
+			String uri = URLDecoder.decode(canonnicalF.toURI().toString().substring(uriDirectoryLength), StandardCharsets.UTF_8);
+			if (!uri.startsWith("res/") && !uri.equals("config.xml")) {
+				JSONObject jObj = new JSONObject();
+				jObj.put("uri", uri);
+				jObj.put("date", canonnicalF.lastModified());
+				jObj.put("size", canonnicalF.length());
+				jArray.put(jObj);
+			}
 		}
 		response.put("files", jArray);
 		response.put("date", destDir.lastModified());
@@ -327,7 +331,7 @@ public class MobileResourceHelper {
 	
 	private void writeStringToFile(File file, String content) throws IOException {
 		long lastModified = file.exists() ? file.lastModified() : System.currentTimeMillis();
-		FileUtils.writeStringToFile(file, content, "UTF-8");
+		FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
 		file.setLastModified(lastModified);
 	}
 	
@@ -371,7 +375,7 @@ public class MobileResourceHelper {
 		
 		// Update config.xml
 		File configFile = new File(destDir, "config.xml");
-		String configText = FileUtils.readFileToString(configFile, "UTF-8");
+		String configText = FileUtils.readFileToString(configFile, StandardCharsets.UTF_8);
 		long revision = destDir.lastModified();
 		configText = configText
 				.replace("$(ApplicationID)$", mobileApplication.getComputedApplicationId())
@@ -387,7 +391,7 @@ public class MobileResourceHelper {
 
 		File pluginsFile = new File(destDir, "plugins.txt");
 		if (pluginsFile.exists()) {
-			String mandatoryPlugins = FileUtils.readFileToString(pluginsFile, "UTF-8");
+			String mandatoryPlugins = FileUtils.readFileToString(pluginsFile, StandardCharsets.UTF_8);
 			if (!mandatoryPlugins.isEmpty()) {
 				mandatoryPlugins = "<!-- Application mandatory plugins -->"+ System.lineSeparator() + mandatoryPlugins;
 				configText = configText.replace("<!-- Application mandatory plugins -->", mandatoryPlugins);
@@ -395,7 +399,7 @@ public class MobileResourceHelper {
 			FileUtils.deleteQuietly(pluginsFile);
 		}
 		
-		FileUtils.write(configFile, configText, "UTF-8");
+		FileUtils.write(configFile, configText, StandardCharsets.UTF_8);
 		configFile.setLastModified(revision);
 		destDir.setLastModified(revision);
 		
@@ -468,7 +472,7 @@ public class MobileResourceHelper {
 					}, MobileResourceHelper.defaultFilter);
 				}
 				
-				changed = !endpoint.equals(FileUtils.readFileToString(lastEndpoint, "UTF-8"));
+				changed = !endpoint.equals(FileUtils.readFileToString(lastEndpoint, StandardCharsets.UTF_8));
 			} catch (Exception e) {
 				changed = true;
 			}
@@ -533,7 +537,7 @@ public class MobileResourceHelper {
 	
 	private void write(File file, String content) throws IOException {
 		long lastModified = destDir.lastModified();
-		FileUtils.write(file, content, "UTF-8");
+		FileUtils.write(file, content, StandardCharsets.UTF_8);
 		destDir.setLastModified(lastModified);
 	}
 	
@@ -553,7 +557,7 @@ public class MobileResourceHelper {
 			JSONObject[] jsonMD5 = {null};
 			if (Files.exists(pathMD5)) {
 				try {
-					jsonMD5[0] = new JSONObject(FileUtils.readFileToString(pathMD5.toFile(), "UTF-8"));
+					jsonMD5[0] = new JSONObject(FileUtils.readFileToString(pathMD5.toFile(), StandardCharsets.UTF_8));
 				} catch (Exception e) {
 					// TODO: handle exception
 				}
@@ -606,7 +610,7 @@ public class MobileResourceHelper {
 				});
 			}
 			
-			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), "UTF-8");
+			FileUtils.write(pathMD5.toFile(), jsonMD5[0].toString(2), StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			Engine.logEngine.debug("(MobileResourceHelper) fixMobileBuilderTimes failed : " + e, e);
 		}
