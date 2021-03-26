@@ -99,8 +99,8 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
-import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.convertigo.engine.util.ServletUtils;
 import com.twinsoft.convertigo.engine.util.StreamUtils;
 
 public class FullSyncServlet extends HttpServlet {
@@ -234,11 +234,9 @@ public class FullSyncServlet extends HttpServlet {
 			debug.append("dbName=" + dbName + " special=" + special + " couchdb=" + version + (requestParser.hasAttachment() ? " attachment=true" : "") + "\n");
 			
 			HttpRequestBase newRequest;
-			boolean needW = false;
 			
 			switch (method) {
 			case DELETE:
-				needW = true;
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 					if (requestParser.getDocId() == null && StringUtils.isNotBlank(requestParser.getDbName()) && DelegateServlet.canDelegate()) {
@@ -277,14 +275,12 @@ public class FullSyncServlet extends HttpServlet {
 			case HEAD: newRequest = new HttpHead(); break;
 			case OPTIONS: newRequest = new HttpOptions(); break;
 			case POST:
-				needW = true;
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 				}
 				newRequest = new HttpPost();
 				break;
 			case PUT:
-				needW = true;
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 				}
@@ -293,16 +289,16 @@ public class FullSyncServlet extends HttpServlet {
 			default: throw new ServletException("Invalid HTTP method");
 			}
 			
-			if (needW) {
+			if (method.equals(HttpMethodType.POST) && "_bulk_docs".equals(special)) {
 				int n = fsClient.getN();
 				if (n > 1) {
 					for (NameValuePair kv: builder.getQueryParams()) {
 						if ("w".equals(kv.getName())) {
-							needW = false;
+							n = 0;
 							break;
 						}
 					}
-					if (needW) {
+					if (n > 1) {
 						builder.addParameter("w", Integer.toString(n));
 					}
 				}
