@@ -57,6 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -215,19 +216,9 @@ public class FullSyncServlet extends HttpServlet {
 					.append("Authenticated groups: ").append(fsAuth.getGroups()).append('\n');
 			}
 			
-			URI uri;
-			try {
-				// needed for PouchDB replication
-				uri = URI.create(
-						Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath() + 
-						(request.getQueryString() == null ? "" : "?" + request.getQueryString())
-						);
-			} catch (Exception e) {
-				URIBuilder builder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath());
-				if (request.getQueryString() != null) {
-					builder.setCustomQuery(request.getQueryString());
-				}
-				uri = builder.build();
+			URIBuilder builder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath());
+			if (request.getQueryString() != null) {
+				builder.setCustomQuery(request.getQueryString());
 			}
 			
 			String special = requestParser.getSpecial();
@@ -243,9 +234,11 @@ public class FullSyncServlet extends HttpServlet {
 			debug.append("dbName=" + dbName + " special=" + special + " couchdb=" + version + (requestParser.hasAttachment() ? " attachment=true" : "") + "\n");
 			
 			HttpRequestBase newRequest;
+			boolean needW = false;
 			
 			switch (method) {
-			case DELETE: 
+			case DELETE:
+				needW = true;
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 					if (requestParser.getDocId() == null && StringUtils.isNotBlank(requestParser.getDbName()) && DelegateServlet.canDelegate()) {
@@ -284,12 +277,14 @@ public class FullSyncServlet extends HttpServlet {
 			case HEAD: newRequest = new HttpHead(); break;
 			case OPTIONS: newRequest = new HttpOptions(); break;
 			case POST:
+				needW = true;
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 				}
 				newRequest = new HttpPost();
 				break;
 			case PUT:
+				needW = true;
 				if (isUtilsRequest) {
 					Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG);
 				}
@@ -298,6 +293,21 @@ public class FullSyncServlet extends HttpServlet {
 			default: throw new ServletException("Invalid HTTP method");
 			}
 			
+			if (needW) {
+				int n = fsClient.getN();
+				if (n > 1) {
+					for (NameValuePair kv: builder.getQueryParams()) {
+						if ("w".equals(kv.getName())) {
+							needW = false;
+							break;
+						}
+					}
+					if (needW) {
+						builder.addParameter("w", Integer.toString(n));
+					}
+				}
+			}
+			URI uri = builder.build();
 			newRequest.setURI(uri);
 			debug.append(method.name() + " URI: " + uri.toString() + "\n");
 			

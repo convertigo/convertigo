@@ -75,25 +75,6 @@ public class FullSyncFilterListener extends AbstractFullSyncFilterListener {
 					int ids_len = doc_ids.length();
 					i += ids_len;
 					
-					if (client.isServerCluster()) {
-						JSONObject body = new JSONObject();
-						body.put("update", false);
-						body.put("stable", true);
-						body.put("r", 100);
-						JSONObject in = new JSONObject();
-						in.put("$in", doc_ids);
-						JSONObject selector = new JSONObject();
-						selector.put("_id", in);
-						body.put("selector", selector);
-						JSONArray fields = new JSONArray();
-						fields.put("_id");
-						fields.put("_rev");
-						body.put("fields", fields);
-						JSONObject r = client.postFind(db, body);
-						Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post find with " + body + "\n" + r);
-						Thread.sleep(50);
-					}
-					
 					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : [" + db + "] post filter '" + ddoc + "/" + filter + "' for _id keys " + doc_ids);
 					JSONObject json = client.postChanges(db, query, CouchKey.doc_ids.put(new JSONObject(), doc_ids));
 					Engine.logBeans.debug("(FullSyncFilterListener) Listener \"" + getName() + "\" : [" + db + "] post filter '" + ddoc + "/" + filter + "' returned following documents :\n" + json.toString());

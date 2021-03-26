@@ -61,7 +61,8 @@ public enum CouchParam {
 	update,
 	use_index,
 	value,
-	view;
+	view,
+	w;
 	
 	public static final String prefix = "_use_";
 	
@@ -71,5 +72,9 @@ public enum CouchParam {
 	
 	public void put(Map<String, String> query, String value) {
 		query.put(name(), value);
+	}
+	
+	public boolean has(Map<String, String> query) {
+		return query != null && query.containsKey(name());
 	}
 }
