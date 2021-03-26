@@ -15,7 +15,7 @@
 - [#388](https://github.com/convertigo/convertigo/issues/388) [REST API] Add a Full OAS3 API support
 - [#392](https://github.com/convertigo/convertigo/issues/392) [MB] Use now standard Angular's service worker for PWA
 - [#420](https://github.com/convertigo/convertigo/issues/420) Add an Autostart property to a sequence object
-- [#422](https://github.com/convertigo/convertigo/issues/422) New SAML 2 SSO library is available for Enterprise authentication
+- [#422](https://github.com/convertigo/convertigo/issues/422) New SAML 2 SSO, ExtendedComponents, Geocoding, Vonage, GoogleSheets and Microsoft Excel libraries are available from the New Project wizard
 - [#426](https://github.com/convertigo/convertigo/issues/426) [Docker] Images can use sudo and can be disabled at image launch
 - [#427](https://github.com/convertigo/convertigo/issues/427) [Studio] Added a menu update gradle files + menu to enable github actions file
 - [#428](https://github.com/convertigo/convertigo/issues/428) [Studio] Support http verb PATCH in yaml WS import wizard
@@ -24,7 +24,7 @@
 
 #### Improvements:
 
-- [#158](https://github.com/convertigo/convertigo/issues/158) [Studio] Updated Browser component to the latest version (7.8)
+- [#158](https://github.com/convertigo/convertigo/issues/158) [Studio] Updated Browser component to the latest version (7.13)
 - [#230](https://github.com/convertigo/convertigo/issues/230) [Studio] Upgrade to the latest Eclipse and use the Wild Web Developer plugin for JS/TS/YAML ...
 - [#295](https://github.com/convertigo/convertigo/issues/295) [Docker] The default tomcat session timeout is now configurable for Docker images
 - [#324](https://github.com/convertigo/convertigo/issues/324) [MB] Form components are now displayed by name in project's tree view
@@ -99,6 +99,8 @@
 - [#457](https://github.com/convertigo/convertigo/issues/457) Fixed subscribe handler is not working in some cases
 - [#463](https://github.com/convertigo/convertigo/issues/463) [Admin] Fixed saving a Variable default value using the Project Edit from the admin Console
 - [#467](https://github.com/convertigo/convertigo/issues/467) Fixed PDF Step is not handling Base64 image properly 
+- [#473](https://github.com/convertigo/convertigo/issues/473) [FlashUpdate] Ignore the res folder and config.xml for the source package
+
 ---
 
 ## 7.8.0
