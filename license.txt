@@ -680,4 +680,4 @@ been given, You shall be deemed to have accepted this change.
 
 
 
-CONVERTIGO - LICENSE AGREEMENT -2020- SDK
+CONVERTIGO - LICENSE AGREEMENT -2021- SDK

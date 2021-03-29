@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -552,7 +552,7 @@ public abstract class GenericServlet extends HttpServlet {
 			}
 		}
 		
-		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument)) {
+		if (requester.context.requireEndOfContext || (isNew && context.isErrorDocument) || context.project == null) {
 			// request.setAttribute("convertigo.requireEndOfContext",
 			// requester);
 			request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);

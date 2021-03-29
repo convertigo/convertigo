@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -368,7 +368,11 @@ public class HttpUtils {
 			return applyCorsHeaders(request, response, filterCorsOrigin(globalCorsPolicy, origin));
 		} catch (Exception e) {
 			if (Engine.logEngine != null) {
-				Engine.logEngine.warn("(HttpUtils) Failed applyCorsHeaders", e);
+				if (e instanceof IllegalStateException) {
+					Engine.logEngine.warn("Cannot retrieve properties for applyCorsHeaders, Engine probably stopped.");
+				} else {
+					Engine.logEngine.warn("(HttpUtils) Failed applyCorsHeaders", e);
+				}
 			}
 			return null;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -578,7 +578,15 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 									});
 								}
 							} catch (Exception e) {
-								e.printStackTrace();
+								Display.getDefault().asyncExec(new Runnable() {
+									
+									public void run() {
+										message.setForeground(Display.getCurrent().getSystemColor(SwtUtils.isDark() ? SWT.COLOR_RED : SWT.COLOR_DARK_RED));
+										message.setText("An error occured : " + e.getMessage());
+										content.layout(true);
+									}
+	
+								});
 							}
 						}
 					});

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -33,7 +33,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.AbstractConnectorCompos
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorPart;
 import com.twinsoft.convertigo.eclipse.editors.connector.JavelinConnectorComposite;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
@@ -147,11 +147,10 @@ public class TransactionWriteVariableAction extends MyAbstractAction {
 							
 							explorerView.updateDatabaseObject(transaction);
 							
-							// Updating the opened handlers editor if any
-							IEditorPart jspart = getJscriptTransactionEditor(transaction);
-							if ((jspart != null) && (jspart instanceof JScriptEditor)) {
-								JScriptEditor jscriptTransactionEditor = (JScriptEditor) jspart;
-								jscriptTransactionEditor.reload();
+							// Update the opened handlers editor if any
+							JScriptEditorInput jsinput = ConvertigoPlugin.getDefault().getJScriptEditorInput(transaction);
+							if (jsinput != null) {
+								jsinput.reload();
 							}
 						}
 								

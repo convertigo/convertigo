@@ -11,20 +11,20 @@ version = version.replace('beta', 'SNAPSHOT')
 sourceSets {
 	main {
 		java {
-			srcDir 'src'
+			srcDirs = ['src']
 		}
 		resources {
-			srcDir 'src'
+			srcDirs = ['src']
 		}
 	}
 }
 
 dependencies {
-	compile project(':engine'), {
+	implementation project(':engine'), {
 		exclude group: 'convertigo', module: 'placeholders'
 	}
-	runtime "com.convertigo:dependencies:$version"
-	runtime 'javax.servlet:servlet-api:2.5'
+	implementation "com.convertigo:dependencies:$version"
+	runtimeOnly    'javax.servlet:servlet-api:2.5'
 }
 
 gradlePlugin {
@@ -38,7 +38,7 @@ gradlePlugin {
 	}
 }
 
-tasks['publishToMavenLocal'].dependsOn(tasks.getByPath(':engine:publishToMavenLocal'))
+tasks['compileJava'].dependsOn(tasks.getByPath(':engine:publishToMavenLocal'))
 tasks['publish'].dependsOn(tasks.getByPath(':engine:publish'))
 tasks['eclipse'].doLast {
 	mkdir 'build/pluginUnderTestMetadata'

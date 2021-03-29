@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,8 +29,8 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "RouteComponent",
@@ -414,4 +414,8 @@ public class RouteComponent extends MobileComponent implements IRouteGenerator, 
 		return super.testAttribute(name, value);
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.ROUTE;
+	}
 }

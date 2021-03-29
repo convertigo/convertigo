@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,7 +30,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorPart;
 
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -38,7 +37,7 @@ import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.CreateHandlerDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
@@ -104,20 +103,18 @@ public class TransactionCreateHandlerAction extends MyAbstractAction {
 			    							htmlTransaction.addStatement(statement);
 				    					}
 				    					lastStatement = statement;
-				    				}
-				    				else {
+				    				} else {
 				    					String handler = null;
-				    					for (int i=0; i<len; i++) {
-				    						handler = (String)result.get(i);
+				    					for (int i = 0; i < len; i++) {
+				    						handler = (String) result.get(i);
 					    					transaction.handlers += handler;
 					    					transaction.hasChanged = true;
 				    					}
 				    					
 										// Update the opened handlers editor if any
-										IEditorPart jspart = ConvertigoPlugin.getDefault().getJscriptTransactionEditor(transaction);
-										if ((jspart != null) && (jspart instanceof JScriptEditor)) {
-											JScriptEditor jscriptTransactionEditor = (JScriptEditor) jspart;
-											jscriptTransactionEditor.reload();
+										JScriptEditorInput jsinput = ConvertigoPlugin.getDefault().getJScriptEditorInput(transaction);
+										if (jsinput != null) {
+											jsinput.reload();
 										}
 				    				}
 				    				

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,10 +19,13 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -38,20 +41,23 @@ import java.util.regex.Pattern;
 import org.apache.commons.fileupload.ProgressListener;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.Level;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 
 public class ProcessUtils {
-	
-	private static String defaultNodeVersion = "v8.9.1";
+	private static String defaultNodeVersion = "v14.15.1";
 	private static File defaultNodeDir;
 	
 	public static String getDefaultNodeVersion() {
@@ -76,6 +82,13 @@ public class ProcessUtils {
 					String version = json.getString("nodeJsVersion");
 					if (version.matches("v\\d+\\.\\d+\\.\\d+.*")) {
 						return version;
+					}
+				} else { // for old or custom tpl with no nodeJsVersion
+					if (json.has("version")) {
+						String tplVersion = json.getString("version");
+						if (VersionUtils.compare(tplVersion, "7.8.0.2") < 0) {
+							return "v8.9.1";
+						}
 					}
 				}
 			}
@@ -200,12 +213,17 @@ public class ProcessUtils {
 	}
 	
 	public static ProcessBuilder getNpmProcessBuilder(String paths, List<String> command) throws IOException {
-		if (command == null || command.size() == 0 || !(command.get(0).equals("npm"))) {
-			throw new IOException("not a npm command");
+		if (command == null || command.size() == 0 || (!command.get(0).equals("npm") && !command.get(0).equals("yarn") && !command.get(0).equals("pnpm"))) {
+			throw new IOException("not a npm or yarn or pnpm command");
 		}
 		
 		if (Engine.isWindows()) {
-			command.set(0, "npm.cmd");
+			if (command.get(0).equals("npm"))
+				command.set(0, "npm.cmd");
+			if (command.get(0).equals("yarn"))
+				command.set(0, "yarn.cmd");
+			if (command.get(0).equals("pnpm"))
+				command.set(0, "pnpm.cmd");
 		}
 		
 		ProcessBuilder pb = getProcessBuilder(paths, command);
@@ -233,6 +251,9 @@ public class ProcessUtils {
 				
 				pbEnv.put("http-proxy", "http://" + npmProxy);
 				pbEnv.put("https-proxy", "http://" + npmProxy);
+				
+				pbEnv.put("HTTP_PROXY", "http://" + npmProxy);
+				pbEnv.put("HTTPS_PROXY", "http://" + npmProxy);
 			}
 		}
 		
@@ -298,6 +319,9 @@ public class ProcessUtils {
 		File dir = getLocalNodeDir(version);
 		Engine.logEngine.info("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
 		if (dir.exists()) {
+			if (!Engine.isWindows()) {
+				dir = new File(dir, "bin");
+			}
 			return dir;
 		}
 		File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
@@ -346,6 +370,321 @@ public class ProcessUtils {
 			dir = new File(dir, "bin");
 		}
 		FileUtils.deleteQuietly(archive);
+		return dir;
+	}
+	
+	public static File getJDK8(ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {
+		File dir;
+		String env = System.getenv("JAVA_HOME_8_X64");
+		if (env != null) {
+			dir = new File(env);
+			if (dir.exists() && new File(dir, "bin").exists()) {
+				Engine.logEngine.info("Use the JDK 8 from env JAVA_HOME_8_X64: " + dir);
+				return dir;
+			}
+		}
+		String os = Engine.isWindows() ? "windows" : Engine.isLinux() ? "linux" : "mac";
+		dir = new File(Engine.USER_WORKSPACE_PATH, "jdk/jdk-" + 8 + "-" + os);
+		if (dir.exists()) {
+			return dir;
+		}
+		HttpGet get = new HttpGet("https://api.adoptopenjdk.net/v3/assets/latest/8/hotspot?release=latest&jvm_impl=hotspot&vendor=adoptopenjdk&");
+		String content;
+		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+			content = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+		}
+		JSONArray array = new JSONArray(content);
+		String url = null;
+		String release = null;
+		for (int i = 0; url == null && i < array.length(); i++) {
+			JSONObject obj = array.getJSONObject(i).getJSONObject("binary");
+			if ("x64".equals(obj.getString("architecture")) &&
+					os.equals(obj.getString("os")) &&
+					"jdk".equals(obj.getString("image_type"))) {
+				release = obj.getString("scm_ref");
+				obj = obj.getJSONObject("package");
+				url = obj.getString("link");
+			}
+		}
+		if (url == null) {
+			return dir;
+		}
+		File archive = new File(dir.getAbsolutePath() + url.replaceFirst(".*/(.*?)$", "$1"));
+		if (!archive.exists() ) {
+			get = new HttpGet(url);
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				FileUtils.deleteQuietly(archive);
+				archive.getParentFile().mkdirs();
+				if (progress != null) {
+					long length = response.getEntity().getContentLength();
+					try (FileOutputStream fos = new FileOutputStream(archive)) {
+						InputStream is = response.getEntity().getContent();
+						byte[] buf = new byte[1024 * 1024];
+						int n;
+						long t = 0, now, ts = 0;
+						while ((n = is.read(buf)) > -1) {
+							fos.write(buf, 0, n);
+							t += n;
+							now = System.currentTimeMillis();
+							if (now > ts) {
+								progress.update(t, length, 1);
+								ts = now + 2000;
+							}
+						}
+						progress.update(t, length, 1);
+					}
+				} else {
+					FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+				}
+			}
+		}
+		
+		if (Engine.isWindows()) {
+			Level l = Engine.logEngine.getLevel();
+			try {
+				Engine.logEngine.setLevel(Level.OFF);
+				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), release);
+				Engine.logEngine.info("unzip terminated!");
+			} finally {
+				Engine.logEngine.setLevel(l);
+			}
+		} else {
+			Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
+			dir.mkdirs();
+			ProcessUtils.getProcessBuilder(null, "tar", "--strip-components=" + (Engine.isLinux() ? 1 : 3), "-zxf", archive.getAbsolutePath()).directory(dir).start().waitFor();
+		}
+		archive.delete();
+		Engine.logEngine.info("jdk dir: " + dir);
+		return dir;
+	}
+	
+	public static File getAndroidSDK(ProgressListener progress) throws Exception {
+		return getAndroidSDK(null, progress);
+	}
+	
+	public static File getAndroidSDK(String preferedAndroidBuildTools, ProgressListener progress) throws Exception {
+		File dir;
+		String env = System.getenv("ANDROID_HOME");
+		if (env != null) {
+			dir = new File(env);
+			if (dir.exists() && new File(dir, "tools").exists()) {
+				Engine.logEngine.info("Use the ANDROID SDK from env ANDROID_HOME: " + dir);
+				return dir;
+			}
+		}
+		
+		dir = new File(Engine.USER_WORKSPACE_PATH, "android-sdk");
+		File tools = new File(dir, "tools");
+		
+		if (!tools.exists()) {
+			HttpGet get = new HttpGet("https://developer.android.com/studio");
+			String content;
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				content = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+			}
+			String os = Engine.isWindows() ? "win" : Engine.isLinux() ? "linux" : "mac";
+			Matcher m = Pattern.compile("\"(https://dl.google.com/android/repository/commandlinetools-" + os + "-.*?(\\..*?))\"").matcher(content);
+			if (!m.find()) {
+				Engine.logEngine.error("Cannot find Android SDK Manager link");
+			}
+			Engine.logEngine.info("Will download Android SDK Manager from: " + m.group(1));
+			File archive = new File(dir.getAbsoluteFile() + m.group(2));
+			
+			archive.delete();
+			
+			get = new HttpGet(m.group(1));
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				FileUtils.deleteQuietly(archive);
+				archive.getParentFile().mkdirs();
+				if (progress != null) {
+					long length = response.getEntity().getContentLength();
+					try (FileOutputStream fos = new FileOutputStream(archive)) {
+						InputStream is = response.getEntity().getContent();
+						byte[] buf = new byte[1024 * 1024];
+						int n;
+						long t = 0, now, ts = 0;
+						while ((n = is.read(buf)) > -1) {
+							fos.write(buf, 0, n);
+							t += n;
+							now = System.currentTimeMillis();
+							if (now > ts) {
+								progress.update(t, length, 1);
+								ts = now + 2000;
+							}
+						}
+						progress.update(t, length, 1);
+					}
+				} else {
+					FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+				}
+			}
+			Level l = Engine.logEngine.getLevel();
+			try {
+				Engine.logEngine.setLevel(Level.OFF);
+				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), null);
+				Engine.logEngine.info("unzip terminated!");
+			} finally {
+				Engine.logEngine.setLevel(l);
+			}
+			archive.delete();
+		}
+		
+		File binDir = null;
+		for (File f: dir.listFiles()) {
+			binDir = new File(f, "bin");
+			if (binDir.exists()) {
+				break;
+			}
+		}
+		if (binDir == null) {
+			String msg = "no bin folder found in: " + Arrays.toString(dir.list());
+			Engine.logEngine.error(msg);
+			throw new EngineException(msg);
+		}
+		if (!Engine.isWindows()) {
+			for (File bin: binDir.listFiles()) {
+				bin.setExecutable(true);
+			}
+		}
+
+		Engine.logEngine.info("Android commands");
+		Process p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).start();
+		BufferedOutputStream bos = new BufferedOutputStream(p.getOutputStream());
+		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
+		Engine.execute(() -> {
+			try {
+				while (true) {
+					bos.write("y\n".getBytes("UTF-8"));
+					bos.flush();
+				}
+			} catch (IOException e) {
+				// end of process
+			} catch (Exception e) {
+				Engine.logEngine.info("Boom: " + e);
+			}
+		});
+		String line;
+		String output = "";
+		while ((line = br.readLine()) != null) {
+			Engine.logEngine.info("Android licenses: " + line);
+		}
+		int code = p.waitFor();
+		Engine.logEngine.info("Android licenses: " + code + "\n" + output);
+		
+		String buildTools = "";
+		if (StringUtils.isNotBlank(preferedAndroidBuildTools)) {
+			buildTools = preferedAndroidBuildTools;
+			if (!buildTools.startsWith("build-tools;")) {
+				buildTools = "build-tools;" + buildTools; 
+			}
+			Engine.logEngine.info("use prefered build-tools: " + buildTools);
+		} else {
+			p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--list", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
+			output = IOUtils.toString(p.getInputStream(), "UTF-8");
+			code = p.waitFor();
+			Engine.logEngine.info("Android package list: " + code + "\n" + output);
+			
+			Matcher m = Pattern.compile(".*(build-tools;[0-9.]+?) .*").matcher(output);
+			while (m.find()) {
+				buildTools = m.group(1);
+			}
+			Engine.logEngine.info("build-tools: " + buildTools);
+		}
+		p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--sdk_root=" + dir.getAbsolutePath(), buildTools).redirectErrorStream(true).start();
+		output = IOUtils.toString(p.getInputStream(), "UTF-8");
+		code = p.waitFor();
+		Engine.logEngine.info("Android install build-tools: " + code + "\n" + output);
+		
+		return dir;
+	}
+	
+	public static File getGradle(ProgressListener progress) throws Exception {
+		File dir = new File(Engine.USER_WORKSPACE_PATH, "gradle");
+		File gradle = new File(dir, "bin/gradle");
+		
+		if (!gradle.exists()) {
+			gradle = new File(searchFullPath(getAllPaths(null), "gradle"));
+			Engine.logEngine.info("Found system Gradle: " + gradle.getAbsolutePath());
+		}
+		
+		if (!gradle.exists()) {
+			File dists = new File(System.getProperty("user.home"), ".gradle/wrapper/dists");
+			Engine.logEngine.info("Check gradle at: " + dists + " " + dists.exists());
+			if (dists.exists()) {
+				File[] gradles = dists.listFiles();
+				Arrays.sort(gradles);
+				Engine.logEngine.info("Gradles: " + gradles);
+				for (int i = gradles.length - 1; i >= 0; i--) {
+					try {
+						File eGradle = new File(gradles[i].listFiles()[0], "bin/gradle");
+						if (eGradle.exists()) {
+							gradle = eGradle;
+							dir = gradles[i].listFiles()[0];
+							Engine.logEngine.info("Will existing gradle from: " + dir);
+						}
+					} catch (Exception e) {
+						Engine.logEngine.info("Check gradle failed for " + gradles[i] + ": " + e);
+					}
+				}
+			}
+		}
+		
+		if (!gradle.exists()) {
+			HttpGet get = new HttpGet("https://gradle.org/install");
+			String content;
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				content = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+			}
+			Matcher m = Pattern.compile("(gradle-.*?)-bin\\.zip").matcher(content);
+			if (!m.find()) {
+				Engine.logEngine.error("Cannot find Gradle link");
+			}
+			Engine.logEngine.info("Will download Gradle from: https://downloads.gradle-dn.com/distributions/" + m.group());
+			File archive = new File(Engine.USER_WORKSPACE_PATH, m.group());
+			
+			archive.delete();
+			
+			get = new HttpGet("https://downloads.gradle-dn.com/distributions/" + m.group());
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				FileUtils.deleteQuietly(archive);
+				archive.getParentFile().mkdirs();
+				if (progress != null) {
+					long length = response.getEntity().getContentLength();
+					try (FileOutputStream fos = new FileOutputStream(archive)) {
+						InputStream is = response.getEntity().getContent();
+						byte[] buf = new byte[1024 * 1024];
+						int n;
+						long t = 0, now, ts = 0;
+						while ((n = is.read(buf)) > -1) {
+							fos.write(buf, 0, n);
+							t += n;
+							now = System.currentTimeMillis();
+							if (now > ts) {
+								progress.update(t, length, 1);
+								ts = now + 2000;
+							}
+						}
+						progress.update(t, length, 1);
+					}
+				} else {
+					FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+				}
+			}
+			Level l = Engine.logEngine.getLevel();
+			try {
+				Engine.logEngine.setLevel(Level.OFF);
+				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), m.group(1));
+				Engine.logEngine.info("unzip terminated!");
+			} finally {
+				Engine.logEngine.setLevel(l);
+			}
+			archive.delete();
+		}
+		gradle.setExecutable(true);
+		
 		return dir;
 	}
 }

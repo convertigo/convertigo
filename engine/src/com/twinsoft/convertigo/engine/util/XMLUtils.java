@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -887,6 +887,7 @@ public class XMLUtils {
 
 	public static EntityResolver getEntityResolver() {
 		return new EntityResolver() {
+			@SuppressWarnings("resource")
 			public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 				if ("-//W3C//ENTITIES Latin 1 for XHTML//EN".equals(publicId))
 					return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-lat1.ent"));
@@ -921,6 +922,7 @@ public class XMLUtils {
 				return super.resolve(href, base);
 			}
 
+			@SuppressWarnings("resource")
 			@Override
 			public InputSource resolveEntity(String publicId, String systemId) {
 				try {
@@ -1000,21 +1002,35 @@ public class XMLUtils {
 	}
 	
 	public static int MAX_XML_SIZE_FOR_LOG_INFO = 5;
+	public static int MAX_XML_SIZE_FOR_LOG_DEBUG = 100;
 
 	public static void logXml(Document document, Logger log, String message) {
 		if (document != null && log.isInfoEnabled()) {
-			String xml = XMLUtils.prettyPrintDOM(document);
-
-			if (xml.length() > XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000) {
+			String xml = prettyPrintDOM(document);
+			
+			if (xml.length() > MAX_XML_SIZE_FOR_LOG_INFO * 1000) {
 				if (!log.isDebugEnabled()) {
 					log.info(message
-							+ "\n[XML size is > " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO
-							+ "KB, enable DEBUG log level for this logger to see it completly!]\n"
-							+ "[Extract limited to the first " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO + "KB]\n"
-							+ xml.substring(0, XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000)
-							+ "... (see the complete message in DEBUG log level)");
+							+ "\n[XML size is > " + MAX_XML_SIZE_FOR_LOG_INFO
+							+ "KB, enable DEBUG log level for this logger to see " + MAX_XML_SIZE_FOR_LOG_DEBUG
+							+ " or TRACE for all!]\n"
+							+ "[Extract limited to the first " + MAX_XML_SIZE_FOR_LOG_INFO + "KB]\n"
+							+ xml.substring(0, MAX_XML_SIZE_FOR_LOG_INFO * 1000)
+							+ "... (see the more message in DEBUG log level or TRACE for all)");
+				} else if (xml.length() > MAX_XML_SIZE_FOR_LOG_DEBUG * 1000) {
+					if (!log.isTraceEnabled()) {
+						log.debug(message
+								+ "\n[XML size is > " + MAX_XML_SIZE_FOR_LOG_DEBUG
+								+ "KB, enable TRACE log level for this logger to see it completly!]\n"
+								+ "[Extract limited to the first " + MAX_XML_SIZE_FOR_LOG_DEBUG + "KB]\n"
+								+ xml.substring(0, MAX_XML_SIZE_FOR_LOG_DEBUG * 1000)
+								+ "... (see the complete message in TRACE log level)");
+					} else {
+						log.trace(message + ":\n" + xml);
+					}
+				} else {
+					log.debug(message + ":\n" + xml);
 				}
-				log.debug(message + ":\n" + xml);
 			} else {
 				log.info(message + ":\n" + xml);
 			}
@@ -1289,31 +1305,77 @@ public class XMLUtils {
 			}
 		}
 
+		JSONObject c8o = new JSONObject();
 		JSONObject attr = new JSONObject();
 		NamedNodeMap nnm = elt.getAttributes();
 		
 		for (int i = 0; i < nnm.getLength(); i++) {
 			Node node = nnm.item(i);
-			if (ignoreStepIds && (node.getNodeName() != "step_id")) {
-				attr.accumulate(node.getNodeName(), node.getNodeValue());
+			if (ignoreStepIds && (!node.getNodeName().equals("step_id"))) {
+				if (node.getNodeName().startsWith("c8o_")) {
+					c8o.accumulate(node.getNodeName(), node.getNodeValue());
+				} else {
+					attr.accumulate(node.getNodeName(), node.getNodeValue());
+				}
 			}
 		}
 
-		if (value.length() == 0) {
-			String content = elt.getTextContent();
-			if (attr.length() == 0) {
-				obj.accumulate(key, content);
-			} else {
-				value.accumulate("text", content);
+		// using 'type' attribute only
+		if (c8o.length() == 0) {
+			if (value.length() == 0) {
+				String content = elt.getTextContent();
+				if (attr.length() == 0) {
+					obj.accumulate(key, content);
+				} else {
+					value.accumulate("text", content);
+				}
+			}
+
+			if (attr.length() != 0) {
+				value.accumulate("attr", attr);
+			}
+
+			if (value.length() != 0) {
+				obj.accumulate(key, value);
 			}
 		}
+		// using 'type' attribute and/or 'c8o_xxxx' attributes (for REST compliance)
+		else {
+			if (value.length() == 0) {
+				if (c8o.has("c8o_emptyObject")) {
+					value = new JSONObject();
+					if (attr.length() == 0 && !c8o.has("c8o_needAttr")) {
+						if (c8o.has("c8o_arrayOfSingle")) {
+							obj.accumulate(key, new JSONArray().put(value));
+						} else {
+							obj.accumulate(key, value);
+						}
+					}
+				} else {
+					Object content = c8o.has("c8o_nullObject") ? JSONObject.NULL : elt.getTextContent();
+					if (attr.length() == 0 && !c8o.has("c8o_needAttr")) {
+						if (c8o.has("c8o_arrayOfSingle")) {
+							obj.accumulate(key, new JSONArray().put(content));
+						} else {
+							obj.accumulate(key, content);
+						}
+					} else {
+						value.accumulate("text", content);
+					}
+				}
+			}
 
-		if (attr.length() != 0) {
-			value.accumulate("attr", attr);
-		}
+			if (attr.length() != 0 || c8o.has("c8o_needAttr")) {
+				value.accumulate("attr", attr);
+			}
 
-		if (value.length() != 0) {
-			obj.accumulate(key, value);
+			if (value.length() != 0) {
+				if (c8o.has("c8o_arrayOfSingle")) {
+					obj.accumulate(key, new JSONArray().put(value));
+				} else {
+					obj.accumulate(key, value);
+				}
+			}
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.swt;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -33,157 +34,159 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class ProjectReferenceComposite extends Composite {
 	private ProjectUrlParser parser;
+	private boolean userEvent = true;
+	
+	private Text completGitUrl;
+	private Text projectName;
+	private Text gitUrl;
+	private Text projectPath;
+	private Text gitBranch;
+	private Button autoPull;
 
 	public ProjectReferenceComposite(Composite parent, int style, ProjectUrlParser parser) {
 		this(parent, style, parser, null);
 	}
-	
+
 	public ProjectReferenceComposite(Composite parent, int style, ProjectUrlParser parser, Runnable onChange) {
 		super(parent, style);
 		this.parser = parser;
-		
+
 		setLayout(new GridLayout(2, false));
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
 		gd.horizontalSpan = 2;
 		Label label = new Label(this , SWT.NONE);
 		label.setLayoutData(gd);
 		label.setText("<project name>=<git or http URL>[:path=<optional subpath>][:branch=<optional branch>]\n\n");
-		
+
 		label = new Label(this, SWT.NONE);
 		label.setText("Project remote URL");
-		Text completGitUrl = new Text(this, SWT.NONE);
+		completGitUrl = new Text(this, SWT.NONE);
 		completGitUrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		
+		completGitUrl.addModifyListener(e -> {
+			if (!userEvent) {
+				return;
+			}
+			try {
+				userEvent = false;
+				parser.setUrl(completGitUrl.getText());
+				projectName.setText(StringUtils.defaultString(parser.getProjectName()));
+				gitUrl.setText(StringUtils.defaultString(parser.getGitUrl()));
+				projectPath.setText(StringUtils.defaultString(parser.getProjectPath()));
+				gitBranch.setText(StringUtils.defaultString(parser.getGitBranch()));
+				autoPull.setSelection(parser.isAutoPull());
+				if (onChange != null) {
+					onChange.run();
+				}
+			} finally {
+				userEvent = true;
+			}
+		});
+
 		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
 		gd.horizontalSpan = 2;
 		new Label(this, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(gd);
-		
+
 		label = new Label(this, SWT.NONE);
 		label.setText("Project name");
-		Text projectName = new Text(this, SWT.NONE);
+		projectName = new Text(this, SWT.NONE);
 		projectName.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		projectName.addModifyListener(e -> {
-			parser.setProjectName(projectName.getText());
-			if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
-				completGitUrl.setText(parser.getProjectUrl());
+			if (!userEvent) {
+				return;
 			}
-			if (onChange != null) {
-				onChange.run();
+			try {
+				userEvent = false;
+				updateParser(onChange);
+			} finally {
+				userEvent = true;
 			}
 		});
-		
+
 		label = new Label(this, SWT.NONE);
 		label.setText("Git or http URL");
-		Text gitUrl = new Text(this, SWT.NONE);
+		gitUrl = new Text(this, SWT.NONE);
 		gitUrl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		gitUrl.addModifyListener(e -> {
-			parser.setGitUrl(gitUrl.getText());
-			String val = parser.toString();
-			if (!completGitUrl.getText().equals(val)) {
-				completGitUrl.setText(val);
+			if (!userEvent) {
+				return;
 			}
-			if (onChange != null) {
-				onChange.run();
+			try {
+				userEvent = false;
+				updateParser(onChange);
+			} finally {
+				userEvent = true;
 			}
 		});
-		
+
 		label = new Label(this, SWT.NONE);
 		label.setText("Project Path");
-		Text projectPath = new Text(this, SWT.NONE);
+		projectPath = new Text(this, SWT.NONE);
 		projectPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		projectPath.addModifyListener(e -> {
-			parser.setProjectPath(projectPath.getText());
-			if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
-				completGitUrl.setText(parser.getProjectUrl());
-			} else {
-				if (!projectPath.getText().isEmpty()) {
-					projectPath.setText("");
-				}
+			if (!userEvent) {
+				return;
 			}
-			if (onChange != null) {
-				onChange.run();
+			try {
+				userEvent = false;
+				updateParser(onChange);
+			} finally {
+				userEvent = true;
 			}
 		});
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Git branch");
-		Text gitBranch = new Text(this, SWT.NONE);
+		gitBranch = new Text(this, SWT.NONE);
 		gitBranch.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		gitBranch.addModifyListener(e -> {
-			parser.setGitBranch(gitBranch.getText());
-			if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
-				completGitUrl.setText(parser.getProjectUrl());
-			} else {
-				if (!gitBranch.getText().isEmpty()) {
-					gitBranch.setText("");
-				}
+			if (!userEvent) {
+				return;
 			}
-			if (onChange != null) {
-				onChange.run();
+			try {
+				userEvent = false;
+				updateParser(onChange);
+			} finally {
+				userEvent = true;
 			}
 		});
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Auto reset/pull");
-		Button autoPull = new Button(this, SWT.CHECK);
+		autoPull = new Button(this, SWT.CHECK);
 		autoPull.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		autoPull.addSelectionListener(new SelectionListener() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				parser.setAutoPull(autoPull.getSelection());
-				if (!completGitUrl.getText().equals(parser.getProjectUrl())) {
-					completGitUrl.setText(parser.getProjectUrl());
-				} else {
-					if (autoPull.getSelection()) {
-						autoPull.setSelection(false);
-					}
+				if (!userEvent) {
+					return;
 				}
-				if (onChange != null) {
-					onChange.run();
+				try {
+					userEvent = false;
+					updateParser(onChange);
+				} finally {
+					userEvent = true;
 				}
 			}
-			
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-		
-		completGitUrl.addModifyListener(e -> {
-			parser.setUrl(completGitUrl.getText());
-			if (parser.isValid()) {
-				if (!projectName.getText().equals(parser.getProjectName())) {
-					projectName.setText(parser.getProjectName());
-				}
-				if (!gitUrl.getText().equals(parser.getGitUrl())) {
-					gitUrl.setText(parser.getGitUrl());
-				}
-			} else {
-				String val = completGitUrl.getText();
-				if (!projectName.getText().equals(val)) {
-					projectName.setText(val);
-				}
-				val = "";
-				if (!gitUrl.getText().equals(val)) {
-					gitUrl.setText(val);
-				}
-				
-			}
-			String txt = parser.getProjectPath() == null ? "" : parser.getProjectPath();
-			if (!projectPath.getText().equals(txt)) {
-				projectPath.setText(txt);
-			}
-			txt = parser.getGitBranch() == null ? "" : parser.getGitBranch();
-			if (!gitBranch.getText().equals(txt)) {
-				gitBranch.setText(txt);
-			}
-			autoPull.setSelection(parser.isAutoPull());
-			if (onChange != null) {
-				onChange.run();
-			}
-		});
-		
+
 		completGitUrl.setText(parser.toString());
+	}
+	
+	private void updateParser(Runnable onChange) {
+		parser.setProjectName(projectName.getText());
+		parser.setGitUrl(gitUrl.getText());
+		parser.setProjectPath(projectPath.getText());
+		parser.setGitBranch(gitBranch.getText());
+		parser.setAutoPull(autoPull.getSelection());
+		completGitUrl.setText(parser.getProjectUrl());
+		if (onChange != null) {
+			onChange.run();
+		}
 	}
 
 	public ProjectUrlParser getParser() {

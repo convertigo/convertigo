@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -32,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public class UIAppEvent extends UIComponent implements ITagsProperty {
@@ -314,5 +315,10 @@ public class UIAppEvent extends UIComponent implements ITagsProperty {
 	public String toString() {
 		String label = appEvent.name();
 		return label.isEmpty() ? "?":label;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EVENT;
 	}
 }

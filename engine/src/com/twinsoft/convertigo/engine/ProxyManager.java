@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,7 +20,18 @@
 package com.twinsoft.convertigo.engine;
 
 
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.Proxy.Type;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.httpclient.Credentials;
@@ -90,6 +101,37 @@ public class ProxyManager {
 		}
 		getEngineProperties();
 		certificateManager = new CertificateManager();
+		ProxySelector.setDefault(new ProxySelector() {
+
+			@Override
+			public List<Proxy> select(URI uri) {
+				if (proxyMode != ProxyMode.manual) {
+					return Arrays.asList(Proxy.NO_PROXY);
+				}
+				for (String domain: getBypassDomains()) {
+					if (uri.getHost().startsWith(domain)) {
+						return Arrays.asList(Proxy.NO_PROXY);
+					}
+				}
+				return Arrays.asList(new Proxy(Type.HTTP, InetSocketAddress.createUnresolved(getProxyServer(), getProxyPort())));
+			}
+
+			@Override
+			public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+				Engine.logConvertigo.warn("(ProxyManager) ProxySelector connectFailed for uri: " + uri, ioe);
+			}
+			
+		});
+		
+		Authenticator.setDefault(new Authenticator() {
+			@Override
+			protected PasswordAuthentication getPasswordAuthentication() {
+				if (getRequestorType() == RequestorType.PROXY) {
+					return new PasswordAuthentication(getProxyUser(), getProxyPassword().toCharArray());
+				}
+				return null;
+			}  
+		});
 	}
 	
 	public void destroy() {

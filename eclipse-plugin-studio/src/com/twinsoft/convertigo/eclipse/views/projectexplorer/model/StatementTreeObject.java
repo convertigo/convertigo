@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,12 +21,8 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -235,12 +231,7 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 	}
 	
 	public void launchEditor(String editorType) {
-		// Retrieve the project name
-		String projectName = getObject().getProject().getName();
 		try {
-			// Refresh project resource
-			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-
 			// Get editor type
 			if (editorType == null) {
 				editorType = "UnknownEditor";
@@ -251,26 +242,10 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 				
 			// Open editor
 			if (editorType.equals("JscriptStatementEditor")) {
-				openJscriptStatementEditor(project);
+				JScriptEditorInput.openJScriptEditor(this);
 			}
-			
-		} catch (CoreException e) {
-			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
-		}
-	}
-	
-	private void openJscriptStatementEditor(IProject project) {
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
-		if (activePage != null && getObject() instanceof SimpleStatement) {
-			try {
-				activePage.openEditor(new JScriptEditorInput((SimpleStatement) getObject(), project),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
-			} catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the statement editor '" + getObject().getName() + "'");
-			} 
+		} catch (PartInitException e) {
+			ConvertigoPlugin.logException(e, "Error while loading the statement editor '" + getObject().getName() + "'");
 		}
 	}
 

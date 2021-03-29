@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.variables;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Variable;
 
@@ -72,4 +73,15 @@ public class HttpStatementVariable extends Variable implements ITagsProperty {
 		return new String[0];
 	}
 	
+	@Override
+	public String toString() {
+		String label = "";
+		try {
+			label = getLabel();
+		} catch (EngineException e) {}
+		if (!getName().equals(httpName) && !httpName.isEmpty()) {
+			return getName() + " → " + httpName + label;
+		}
+		return super.toString();
+	}
 }

@@ -10,6 +10,11 @@
 					<xsl:value-of select="./property[@name='accessibility']/java.lang.String/@value"/>	
 				</xsl:attribute>
 			</xsl:if>
+			<xsl:if test="./property[@name='autoStart']java.lang.Boolean">
+				<xsl:attribute name="autostart">		
+					<xsl:value-of select="./property[@name='autoStart']/java.lang.Boolean/@value"/>	
+				</xsl:attribute>
+			</xsl:if>
 			<!--get the name from its property-->
 			<xsl:for-each select="./property[@name='name']">
 				<xsl:attribute name="name">

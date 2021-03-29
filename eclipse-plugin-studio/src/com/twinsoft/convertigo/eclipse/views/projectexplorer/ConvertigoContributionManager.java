@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -77,10 +77,10 @@ class ConvertigoContributionManager implements IContributionManagerOverrides {
 		
 		String cn = item.getClass().getSimpleName();
 		if (Pattern.matches("DynamicMenuContributionItem|HandledContributionItem", cn)) {
-			return id.startsWith("org.eclipse.egit.");
+			return id.startsWith("org.eclipse.egit.") || id.startsWith("org.eclipse.buildship.ui");
 		}
 		if (cn.equals("MenuManager")) {
-			return Pattern.matches("\\d+|egit\\..*|team\\..*|compareWithMenu|replaceWithMenu", id);
+			return Pattern.matches("\\d+|egit\\..*|team\\..*|org\\.eclipse\\.buildship\\..*|compareWithMenu|replaceWithMenu", id);
 		}
 		if (cn.equals("PluginActionContributionItem")) {
 			return id.contains("org.eclipse.team");

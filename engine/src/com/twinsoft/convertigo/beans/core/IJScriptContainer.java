@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import com.twinsoft.convertigo.engine.util.StringUtils;
+
 public interface IJScriptContainer {
 	public String getExpression();
 	public void setExpression(String expression);
@@ -33,7 +35,16 @@ public interface IJScriptContainer {
 	
 	public default String getFullName() {
 		DatabaseObject dbo = getDatabaseObject();
-		return dbo != null ? dbo.getQName() : getName();
+		if (dbo != null) {
+			String qn = dbo.getQName(true).replace(':', '-');
+			int i = qn.lastIndexOf('.');
+			if (i > 0) {
+				return StringUtils.hash(qn.substring(0, i)) + qn.substring(i); 
+			} else {
+				return qn;
+			}
+		}
+		return getName();
 	}
 	
 	public default String getEditorName() {

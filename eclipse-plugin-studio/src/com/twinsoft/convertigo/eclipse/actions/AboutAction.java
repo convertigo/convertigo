@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,6 +37,7 @@ public class AboutAction implements IWorkbenchWindowActionDelegate {
 
 	public void run(IAction action) {
 		String message = "\nVersion " + com.twinsoft.convertigo.engine.Version.fullProductVersion
+				+ "\nRevision " + com.twinsoft.convertigo.engine.Version.revision
 				+ "\n\n\nCopyright (c) 2001-" + Calendar.getInstance().get(Calendar.YEAR)
 				+ " Convertigo SA.  All rights reserved.";
 		

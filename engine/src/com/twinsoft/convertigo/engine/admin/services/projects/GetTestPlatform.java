@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -147,6 +147,9 @@ public class GetTestPlatform extends XmlService {
 		
 		if (dbo instanceof RequestableObject) {
 			elt.setAttribute("accessibility", ((RequestableObject)dbo).getAccessibility() + "" );
+			if (dbo instanceof Sequence) {
+				elt.setAttribute("autostart", String.valueOf(((Sequence)dbo).isAutoStart()));
+			}
 		}
 		
 		return elt;

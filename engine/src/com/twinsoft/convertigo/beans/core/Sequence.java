@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -143,6 +144,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	transient private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	private boolean includeResponseElement = true;
+	
+	private boolean autoStart = false;
 	
 	public Sequence() {
         super();
@@ -1100,8 +1103,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	public Step getCopy(String executeTimeID) {
-		if (executeTimeID != null)  {
-			return (Step)copies.get(executeTimeID);
+		synchronized (copies) {
+			if (executeTimeID != null)  {
+				return (Step)copies.get(executeTimeID);
+			}
 		}
 		return null;
 	}
@@ -1237,7 +1242,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	            				// If this sequence contains ParallelSteps, waits until child's threads finish
 	            				if (Engine.logBeans.isTraceEnabled())
 	            					Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
-	            				Thread.sleep(500);
+	            				Thread.sleep(100);
 	            				hasWait = true;
 	            			}
 	            			if (hasWait) Engine.logBeans.trace("Sequence '"+ getName() + "' ends wait");
@@ -1454,36 +1459,65 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		stepContextNames.clear();
 	}
 	
+	protected void removeTransactionContexts(String contextName) {
+		if (Engine.isEngineMode()) {
+			if (useSameJSessionForSteps()) {
+	    		String sessionID = getSessionId();
+	    		for (int i=0; i<stepContextNames.size(); i++) {
+	    			String ctxName = (String)stepContextNames.get(i);
+	    			if (ctxName.startsWith(contextName)) {
+	    				String contextID = sessionID + "_" + contextName;
+	    				Context ctx = Engine.theApp.contextManager.get(contextID);	    				
+	    				if (ctx != null && ctx.transaction != null) {
+		    				if (contextName.startsWith("Container-")) { // Only remove context automatically named
+			    				if (Engine.logBeans.isDebugEnabled())
+			    					Engine.logBeans.debug("(Sequence) Removing transaction's context \""+ contextID +"\"");
+			    				Engine.theApp.contextManager.remove(contextID);
+		    				} else {
+			    				if (Engine.logBeans.isDebugEnabled())
+			    					Engine.logBeans.debug("(Sequence) Keeping transaction's context \""+ contextID +"\"");
+		    				}
+	    				}
+	    			}
+	    		}
+			}
+		}
+	}
+	
 	private void removeTransactionContexts() {
 		if (Engine.isEngineMode()) {
 			if (useSameJSessionForSteps()) {
 	    		String sessionID, contextName;
 	    		if (Engine.logBeans.isDebugEnabled())
-	    			Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
+	    			Engine.logBeans.debug("(Sequence) Executing deletion of sub contexts for sequence \""+ getName() +"\"");
 	    		sessionID = getSessionId();
 	    		for (int i=0; i<stepContextNames.size(); i++) {
 	    			contextName = (String)stepContextNames.get(i);
     				String contextID = sessionID + "_" + contextName;
-	    			if (contextName.startsWith("Container-")) { // Only remove context automatically named
-	    				if (Engine.logBeans.isDebugEnabled())
-	    					Engine.logBeans.debug("(Sequence) Removing context \""+ contextID +"\"");
-	    				Engine.theApp.contextManager.remove(contextID);
-	    			}
-	    			else {
-	    				if (Engine.logBeans.isDebugEnabled())
-	    					Engine.logBeans.debug("(Sequence) Keeping context \""+ contextID +"\"");
-	    			}
+    				Context ctx = Engine.theApp.contextManager.get(contextID);
+    				if (ctx != null) {
+    					String type = ctx.transaction != null ? "transaction's":"sequence's";
+		    			if (contextName.startsWith("Container-")) { // Only remove context automatically named
+		    				if (Engine.logBeans.isDebugEnabled())
+		    					Engine.logBeans.debug("(Sequence) Removing "+ type +" context \""+ contextID +"\"");
+		    				Engine.theApp.contextManager.remove(contextID);
+		    			}
+		    			else {
+		    				if (Engine.logBeans.isDebugEnabled())
+		    					Engine.logBeans.debug("(Sequence) Keeping "+ type +" context \""+ contextID +"\"");
+		    			}
+    				}
 	    		}
 	    		if (Engine.logBeans.isDebugEnabled())
-	    			Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
+	    			Engine.logBeans.debug("(Sequence) Deletion of sub contexts for sequence \""+ getName() +"\" done");
 			}
 			else {
 				if (transactionSessionId != null) {
 					if (Engine.logBeans.isDebugEnabled())
-						Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
+						Engine.logBeans.debug("(Sequence) Executing deletion of sub contexts for sequence \""+ getName() +"\"");
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
 					if (Engine.logBeans.isDebugEnabled())
-						Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
+						Engine.logBeans.debug("(Sequence) Deletion of sub contexts for sequence \""+ getName() +"\" done");
 				}
 			}
 		}
@@ -1496,6 +1530,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					Engine.logBeans.debug("(Sequence) Requires its context removal");
 				}
 				context.requireRemoval(true);
+			} else {
+				if (Engine.logBeans.isDebugEnabled()) {
+					Engine.logBeans.debug("(Sequence) keeping its context : \""+ context.contextID +"\"");
+				}
 			}
 		}
 	}
@@ -1513,9 +1551,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     		stepToExecute.checkSymbols();
 			
     		if (stepToExecute.execute(javascriptContext, scope)) {
-    			//childrenSteps.put(Long.valueOf(stepToExecute.priority), stepToExecute.executeTimeID);
-    			childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
-       			executedSteps.putAll(stepToExecute.executedSteps);
+    			synchronized (this) {
+    				childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
+    				executedSteps.putAll(stepToExecute.executedSteps);
+    			}
     		}
     		else {
     			stepToExecute.cleanCopy();
@@ -1837,6 +1876,14 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		this.includeResponseElement = includeResponseElement;
 	}
 
+	public boolean isAutoStart() {
+		return autoStart;
+	}
+	
+	public void setAutoStart(boolean autoStart) {
+		this.autoStart = autoStart;
+	}
+	
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement eSequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		eSequence.setName(getName() + "Response");
@@ -1949,4 +1996,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public boolean isGenerateElement() {
 		return true;
 	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.SEQUENCE;
+	}	
 }

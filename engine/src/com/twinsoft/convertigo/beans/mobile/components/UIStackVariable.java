@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIStackVariable extends UIComponent {
 
@@ -64,4 +66,8 @@ public class UIStackVariable extends UIComponent {
 		return getVariableName() + (val.isEmpty() ? "" : "="+val.toString());
 	}
 
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.VARIABLE;
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -97,6 +97,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariabl
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
@@ -126,6 +127,7 @@ public class SwaggerUtils {
 		info.setContact(contact);
 		info.setTitle("Convertigo OAS2 REST API");
 		info.setDescription("Find here all deployed projects");
+		info.setVersion(ProductVersion.productVersion);
 		if (project != null) {
 			info.setTitle(project.getName() + " OAS2 REST API");
 			info.setDescription(project.getComment());
@@ -525,12 +527,20 @@ public class SwaggerUtils {
 			title = title == null || title.isEmpty() ? "RestConnector":title;
 			httpConnector.setName(StringUtils.normalize(title));
 			
+			boolean isHttps = false;
+			for (Scheme scheme: swagger.getSchemes()) {
+				if (scheme.equals(Scheme.HTTPS)) {
+					isHttps = true;
+				}
+			}
+			
 			String host = swagger.getHost();
 			int index = host.indexOf(":");
 			String server = index == -1 ? host : host.substring(0, index);
 			int port = index == -1 ? 0 : Integer.parseInt(host.substring(index+1),10);
+			httpConnector.setHttps(isHttps);
 			httpConnector.setServer(server);
-			httpConnector.setPort(port <= 0 ? 80:port);
+			httpConnector.setPort(port <= 0 ? (isHttps ? 443:80) : port);
 			
 			String basePath = swagger.getBasePath();
 			httpConnector.setBaseDir(basePath);
@@ -1085,7 +1095,7 @@ public class SwaggerUtils {
 	}
 
 	public static void testReadJson() {
-		Swagger swagger = read("http://petstore.swagger.io/v2/swagger.json");
+		Swagger swagger = read("https://petstore.swagger.io/v2/swagger.json");
 		if (swagger != null) {
 			Json.prettyPrint(swagger);
 			Yaml.prettyPrint(swagger);
@@ -1093,7 +1103,7 @@ public class SwaggerUtils {
 	}
 	
 	public static void testReadYaml() {
-		Swagger swagger = read("http://petstore.swagger.io/v2/swagger.yaml");
+		Swagger swagger = read("https://petstore.swagger.io/v2/swagger.yaml");
 		if (swagger != null) {
 			Json.prettyPrint(swagger);
 			Yaml.prettyPrint(swagger);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -80,20 +80,20 @@ public class HttpConnectorComposite extends AbstractConnectorComposite implement
 	}
 	
 	private void setTextData(String data) {
-		if (data != null) {
-			httpData.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					try {
-						if (data.length() < 10000) {
-							httpData.setText(data);	
-						} else {
-							httpData.setText(data.substring(0, 10000));
-						}
-					}
-					catch (Exception e) {;}
-				};
-			});
+		if (data == null) {
+			data = "";
+		} else if (data.length() > 10000) {
+			data = data.substring(0, 10000) + "...";
 		}
+		final String fData = data;
+		
+		httpData.getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				try {
+					httpData.setText(fData);
+				} catch (Exception e) {;}
+			};
+		});
 	}
 	
 	public void initConnector(Transaction transaction) {

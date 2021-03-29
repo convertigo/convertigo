@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -530,40 +530,44 @@ function changecss0(cssFile, cssClass, element, value) {
 	var added = false;
 
 	for (var sIndex = 0; sIndex < document.styleSheets.length; sIndex++) {
-		var stylesheet = document.styleSheets[sIndex];
-		if (stylesheet.href.indexOf(cssFile) != -1) {
-			if (stylesheet['rules']) {
-				cssRules = stylesheet['rules'];
-			} else if (stylesheet['cssRules']) {
-				cssRules = stylesheet['cssRules'];
-			} else {
-				// no rules found... browser unknown
-				return "";
-			}
-	
-			for (var rIndex = 0; rIndex < cssRules.length; rIndex++) {
-				var cssRule = cssRules[rIndex];
-				if (cssRule.selectorText == cssClass) {
-					if (cssRule.style[element]) {
-						var previousValue = cssRule.style[element];
-						cssRule.style[element] = value;
-						added = true;
-						return previousValue;
+		try {
+			var stylesheet = document.styleSheets[sIndex];
+			if (stylesheet.href != null && stylesheet.href.indexOf(cssFile) != -1) {
+				if (stylesheet['rules']) {
+					cssRules = stylesheet['rules'];
+				} else if (stylesheet['cssRules']) {
+					cssRules = stylesheet['cssRules'];
+				} else {
+					// no rules found... browser unknown
+					return "";
+				}
+		
+				for (var rIndex = 0; rIndex < cssRules.length; rIndex++) {
+					var cssRule = cssRules[rIndex];
+					if (cssRule.selectorText == cssClass) {
+						if (cssRule.style[element]) {
+							var previousValue = cssRule.style[element];
+							cssRule.style[element] = value;
+							added = true;
+							return previousValue;
+						}
 					}
 				}
-			}
-	
-			if (!added) {
-				try {
-					stylesheet.insertRule(cssClass + ' { ' + element + ': ' + value + '; }', cssRules.length);
-				} catch (err) {
+		
+				if (!added) {
 					try {
-						stylesheet.addRule(cssClass, element + ': ' + value + ';');
+						stylesheet.insertRule(cssClass + ' { ' + element + ': ' + value + '; }', cssRules.length);
 					} catch (err) {
+						try {
+							stylesheet.addRule(cssClass, element + ': ' + value + ';');
+						} catch (err) {
+						}
 					}
 				}
+				break;
 			}
-			break;
+		} catch (ex) {
+			console.log(ex);
 		}
 	}
 	
@@ -642,7 +646,7 @@ function getEncodedYamlUri(project) {
 	var yamlUrl = "";
 	try {
 		var location = document.location.href;
-		yamlUrl = location.substring(0,location.indexOf("/admin"))+"/api?YAML";
+		yamlUrl = location.substring(0,location.indexOf("/admin"))+"/openapi?YAML";
 		if (typeof(project) !== "undefined") {
 			yamlUrl += "&__project="+project;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -23,9 +23,9 @@ package com.twinsoft.convertigo.engine;
 public class ProductVersion {
 
     public static String majorProductVersion = "7";
-    public static String minorProductVersion = "8";
+    public static String minorProductVersion = "9";
     public static String servicePack = "0";
-    public static String tag = null;
+    public static String tag = "rc";
     public static String revision = null;
     
     public static String productVersion =

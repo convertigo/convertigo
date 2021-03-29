@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -171,16 +171,16 @@ public class ServiceCodeWizardPage extends WizardPage {
 		} else {
 		// new project creation
 			NewProjectWizard newProjW = (NewProjectWizard)getWizard();
-			switch (newProjW.templateId) {
-			case NewProjectWizard.TEMPLATE_WEB_HTML_BULL_DKU_7107:
-			case NewProjectWizard.TEMPLATE_EAI_BULL_DKU_7107:
+			switch (newProjW.wizardId) {
+			case "com.twinsoft.convertigo.eclipse.wizards.NewDKUConnectorWizard":
+			case "com.twinsoft.convertigo.eclipse.wizards.NewDKUWebWizard":
 				connectionType = "TCP";
 				break;
-			case NewProjectWizard.TEMPLATE_WEB_HTML_IBM_3270:
-			case NewProjectWizard.TEMPLATE_WEB_HTML_IBM_5250:
-			case NewProjectWizard.TEMPLATE_EAI_IBM_3270:
-			case NewProjectWizard.TEMPLATE_EAI_IBM_5250:
-			case NewProjectWizard.TEMPLATE_EAI_UNIX_VT220:
+			case "com.twinsoft.convertigo.eclipse.wizards.New3270WebWizard":
+			case "com.twinsoft.convertigo.eclipse.wizards.New5250WebWizard":
+			case "com.twinsoft.convertigo.eclipse.wizards.New3270ConnectorWizard":
+			case "com.twinsoft.convertigo.eclipse.wizards.New5250ConnectorWizard":
+			case "com.twinsoft.convertigo.eclipse.wizards.NewVT220ConnectorWizard":
 				connectionType = "DIR";
 				break;
 			default:

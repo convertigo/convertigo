@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,12 +19,19 @@
 
 package com.twinsoft.convertigo.eclipse.swt;
 
-import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 public class SwtUtils {
+	static final public String CSS_CLASS_KEY = "org.eclipse.e4.ui.css.CssClassName";
+	
 	static public GridLayout newGridLayout(int numColumns, boolean makeColumnsEqualWidth, int horizontalSpacing, int verticalSpacing, int marginWidth, int marginHeight) {
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = numColumns;
@@ -54,13 +61,27 @@ public class SwtUtils {
 			return lastDark;
 		}
 	}
-
-	public static void refreshTheme() {
-		try {
-			IThemeEngine themeEngine = (IThemeEngine) Display.getDefault().getData("org.eclipse.e4.ui.css.swt.theme");
-			themeEngine.setTheme(themeEngine.getActiveTheme(), true);
+	
+	public static void mkDirs(IResource res) throws CoreException {
+		if (res instanceof IFile) {
+			mkDirs(res.getParent());
+		} else if (res instanceof IFolder) {
+			if (!res.exists()) {
+				mkDirs(res.getParent());
+				((IFolder) res).create(true, true, null);
+			}
+		}
+	}
+	
+	public static void fillFile(IFile file, String text) {
+		try (InputStream is = new ByteArrayInputStream(text.getBytes("UTF-8"))) {
+			if (!file.exists()) {
+				mkDirs(file);
+				file.create(is, true, null);
+			} else {
+				file.setContents(is, true, false, null);
+			}
 		} catch (Exception e) {
-			//e.printStackTrace();
 		}
 	}
 }

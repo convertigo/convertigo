@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -241,8 +241,10 @@ function projectsDeploy(xml) {
 					if (txt.trim && txt.trim().startsWith("Authentication")) {
 						showError(txt);
 						$("#dialog-deploy-project").dialog("close");
+					} else if ($(response).find("error>message").length > 0) {
+						showError($(response).find("error>message").text(), txt);
 					} else {
-						showError("<p>An unexpected error occurs.</p>", txt);
+						showError("An unexpected error occurs.", txt);
 					}
 				} else {
 					showInfo($(response).text());
@@ -294,7 +296,7 @@ function deleteProject(projectName) {
 
 function reloadProject(projectName) {
 	$("#project_Edit").hide();
-	$('<div></div>').html("<p>Do you really want to reload the project '" + htmlEncode(projectName) + "'?</p>")
+	$('<div></div>').html("<p>Do you really want to reload the project '" + htmlEncode(projectName) + "'?<br/>All unsaved changes will be lost.</p>")
 			.dialog(
 					{
 						autoOpen : true,
@@ -390,7 +392,9 @@ function projectsImportURL() {
 		buttons : {
 			Import: function () {
 				var url = $input.find("input").val();
+				startWait(50);
 				callService("projects.ImportURL", function(xml) {
+					endWait();
 					var error = $(xml).find("error").text();
 					if (error == "") {
 						$input.remove();

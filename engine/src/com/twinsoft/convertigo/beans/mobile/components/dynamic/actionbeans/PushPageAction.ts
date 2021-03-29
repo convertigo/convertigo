@@ -6,6 +6,18 @@
      * @param vars  , the object which holds variables key-value pairs
      */
     PushPageAction(page: C8oPageBase, props, vars) : Promise<any> {
+	    function toString(data) {
+	        if (data) {
+	            try {
+	                return JSON.stringify(data);
+	            } catch(e) {
+	                return data.toString();
+	            }
+	        } else {
+	           return "no data"; 
+	        }
+	    }
+		
         return new Promise((resolve, reject) => {
             let q:string = props.page; // qname of page
             let p:string = q.substring(q.lastIndexOf('.')+1);
@@ -17,8 +29,10 @@
                 duration: props.animate_duration
             })
             .then((res:any) => {
+				page.c8o.log.debug("[MB] Page '"+p+"' pushed with data: " + toString(props.data));
                 resolve(res)
             }).catch((error:any) => {
+				page.c8o.log.debug("[MB] Could not push page '"+p+"'");
                 reject(error)
             })
         });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -42,10 +42,10 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.mobile.components.IAction;
+import com.twinsoft.convertigo.beans.mobile.components.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIActionElseEvent;
@@ -83,6 +83,7 @@ import com.twinsoft.convertigo.beans.mobile.components.UIText;
 import com.twinsoft.convertigo.beans.mobile.components.UITheme;
 import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
@@ -849,4 +850,55 @@ public class ComponentManager {
 	public static Map<String, IonBean> getIonBeans() {
 		return Collections.unmodifiableMap(instance.bCache);
 	}
+	
+	public static void main(String[] args) throws Exception {
+		try {
+			if (args.length > 0) {
+				File output = new File(args[0]);
+				if (output.exists() && output.isDirectory()) {
+					List<IonBean> beans = new ArrayList<IonBean>();
+					beans.addAll(getIonBeans().values());
+					Collections.sort(beans, new Comparator<IonBean>() {
+						@Override
+						public int compare(IonBean b1, IonBean b2) {
+							return b1.getName().toLowerCase().compareTo(b2.getName().toLowerCase());
+						}				
+					} );
+					
+					for (IonBean bean: beans) {
+						JSONObject jsonBean = new JSONObject();
+						jsonBean.put(IonBean.Key.tag.name(), bean.getTag());
+						
+						List<IonProperty> properties = new ArrayList<IonProperty>();
+						properties.addAll(bean.getProperties().values());
+						Collections.sort(properties, new Comparator<IonProperty>() {
+							@Override
+							public int compare(IonProperty p1, IonProperty p2) {
+								return p1.getName().toLowerCase().compareTo(p2.getName().toLowerCase());
+							}				
+						} );
+					
+						JSONObject jsonProperties = new JSONObject();
+						jsonBean.put(IonBean.Key.properties.name(), jsonProperties);
+						for (IonProperty property: properties) {
+							JSONObject jsonProperty = new JSONObject();
+							jsonProperty.put(IonProperty.Key.attr.name(), property.getAttr());
+							jsonProperty.put(IonProperty.Key.type.name(), property.getType());
+							jsonProperty.put(IonProperty.Key.mode.name(), property.getMode());
+							jsonProperty.put(IonProperty.Key.value.name(), property.getValue());
+							jsonProperty.put(IonProperty.Key.values.name(), property.getJSONObject().getJSONArray(IonProperty.Key.values.name()));
+							jsonProperties.put(property.getName(), jsonProperty);
+						}
+						
+						String jsonString = jsonBean.toString(1);
+						FileUtils.write(new File(output, "c8o-beans/ion3/"+ bean.getName() +".json"), jsonString, "UTF-8");
+					}
+				}
+			}
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+	
 }

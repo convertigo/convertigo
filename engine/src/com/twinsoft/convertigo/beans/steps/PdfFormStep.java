@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -290,7 +290,7 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 				/*
 				 * Create PDF appearance
 				 */
-				int imageScaleRatio = pdImageXObject.getHeight() / pdImageXObject.getWidth();
+				float imageScaleRatio = (float)pdImageXObject.getHeight() / (float)pdImageXObject.getWidth();
 				PDRectangle buttonPosition = getFieldArea(field);
 				float height = buttonPosition.getHeight();
 				float width = height / imageScaleRatio;

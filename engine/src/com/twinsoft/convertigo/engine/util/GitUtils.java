@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -31,6 +31,7 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.TagOpt;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -70,7 +71,13 @@ public class GitUtils {
 				try {
 					Ref ref = repo.findRef(branch);
 					Ref head = repo.findRef("HEAD");
-					if (head.getObjectId().equals(ref.getObjectId())) {
+					ObjectId refid = ref.getObjectId();
+					ObjectId headid = head.getObjectId();
+					if (headid.equals(refid)) {
+						return true;
+					}
+					refid = ref.getPeeledObjectId();
+					if (headid.equals(refid)) {
 						return true;
 					}
 				} catch (Exception e) {}
@@ -111,14 +118,16 @@ public class GitUtils {
 	}
 	
 	private static boolean asRemote(Git git, String url) {
-		StoredConfig conf = git.getRepository().getConfig();
-		for (String name: git.getRepository().getRemoteNames()) {
-			String rUrl = conf.getString(ConfigConstants.CONFIG_REMOTE_SECTION, name, "url");
-			if (url.equals(rUrl)) {
-				return true;
+		try (Repository repo = git.getRepository()) {
+			StoredConfig conf = repo.getConfig();
+			for (String name: repo.getRemoteNames()) {
+				String rUrl = conf.getString(ConfigConstants.CONFIG_REMOTE_SECTION, name, "url");
+				if (url.equals(rUrl)) {
+					return true;
+				}
 			}
+			return false;
 		}
-		return false;
 	}
 	
 	public static File getGitContainer() {
@@ -154,6 +163,9 @@ public class GitUtils {
 			}
 		}).call()) {
 			Engine.logEngine.info("(ReferencedProjectManager) Clone done !");
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) clone " + url + " to " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
 		};
 	}
 
@@ -161,6 +173,19 @@ public class GitUtils {
 		try (Git git = Git.open(dir)) {
 			boolean pulled = git.pull().call().isSuccessful();
 			Engine.logEngine.info("(ReferencedProjectManager) Pull from " + dir + " is " + pulled);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) pull " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
+		}
+	}
+
+	public static void fetch(File dir) throws Exception {
+		try (Git git = Git.open(dir)) {
+			git.fetch().setForceUpdate(true).setTagOpt(TagOpt.FETCH_TAGS).call();
+			Engine.logEngine.info("(ReferencedProjectManager) Fetch from " + dir);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) fetch " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
 		}
 	}
 
@@ -168,6 +193,28 @@ public class GitUtils {
 		try (Git git = Git.open(dir)) {
 			git.reset().setMode(ResetType.HARD).call();
 			Engine.logEngine.info("(ReferencedProjectManager) Reset from " + dir);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) reset " + dir + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
+		}
+	}
+	
+	public static void reset(File dir, String branch) throws Exception {
+		if (branch == null) {
+			reset(dir);
+			return;
+		}
+		try (Git git = Git.open(dir)) {
+			Ref rev = git.getRepository().findRef(branch);
+			if (rev == null || rev.getName().startsWith("refs/tags/")) {
+				git.reset().setMode(ResetType.HARD).setRef(branch).call();	
+			} else {
+				git.reset().setMode(ResetType.HARD).setRef("origin/" + branch).call();
+			}
+			Engine.logEngine.info("(ReferencedProjectManager) Reset from " + dir + " to " + branch);
+		} catch (Exception e) {
+			Engine.logEngine.warn("(ReferencedProjectManager) reset " + dir + " to " + branch + " failed: [" + e.getClass() + "] " + e.getMessage());
+			throw e;
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,7 +19,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -161,7 +160,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	}
 
 	private void loadProjectRootObject(String projectName) throws Exception {
-		if (projectName.startsWith("mobilebuilder_tpl_") && new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car").exists()) {
+		if (projectName.startsWith("mobilebuilder_tpl_")) {
 			ConvertigoPlugin.logDebug("Skip loading of the mobilebuilder template project '" + projectName +"'.");
 		} else {
 			TreeObject treeObject = getProjectRootObject(projectName);

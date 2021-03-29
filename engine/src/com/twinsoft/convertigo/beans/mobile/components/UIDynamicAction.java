@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -374,6 +374,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 	
 	protected String computeActionInputs(boolean forTemplate) {
+		boolean extended = !forTemplate;
+		
 		if (isEnabled()) {
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
@@ -387,7 +389,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					// case value is set
 					if (!p_value.equals(false)) {
 						MobileSmartSourceType msst = property.getSmartType();
-						String smartValue = msst.getValue();
+						String smartValue = msst.getValue(extended);
 						
 						// Case plain string
 						if (Mode.PLAIN.equals(msst.getMode())) {
@@ -403,7 +405,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							if (Mode.SOURCE.equals(msst.getMode())) {
 								MobileSmartSource mss = msst.getSmartSource();
 								if (mss != null) {
-									smartValue = mss.getSources(msst.getValue()).toString();
+									smartValue = mss.getSources().toString();
 								}
 							}
 						}
@@ -414,19 +416,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 						}
 						// Case ts code in ActionBeans.service (stack of actions)
 						else {
-							if (Mode.SOURCE.equals(msst.getMode())) {
-								if (!"ClearDataSourceAction".equals(getActionName())) {
-									MobileSmartSource mss = msst.getSmartSource();
-									if (mss != null) {
-										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-											smartValue = "scope."+ smartValue;
-										}
-										else {
-											smartValue = "this."+ smartValue;
-										}
-									}
-								}
-							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
 							if (paramsPattern.matcher(smartValue).lookingAt()) {
@@ -464,26 +453,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							else {
 								MobileSmartSourceType msst = uicv.getVarSmartType();
 								
-								String smartValue = msst.getValue();
+								String smartValue = msst.getValue(extended);
 								if (Mode.PLAIN.equals(msst.getMode())) {
 									smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 								}
 								
-								if (Mode.SOURCE.equals(msst.getMode())) {
-									MobileSmartSource mss = msst.getSmartSource();
-									if (mss != null) {
-										if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-											smartValue = "scope."+ smartValue;
-										}
-										else {
-											smartValue = "this."+ smartValue;
-										}
-									}
-								}
-								
 								smartValue = smartValue.replaceAll("\\?\\.", ".");
 								smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
-								
 								if (paramsPattern.matcher(smartValue).lookingAt()) {
 									smartValue = "scope."+ smartValue;
 								}
@@ -501,6 +477,45 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 		}
 		return "";
+	}
+	
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		//if (isEnabled()) {
+			try {
+				jsonModel.put("in", new JSONObject()
+										.put("props", new JSONObject())
+										.put("vars", new JSONObject()))
+							.put("out", new JSONObject());
+				
+				IonBean ionBean = getIonBean();
+				if (ionBean != null) {
+					JSONObject jsonProps = jsonModel.getJSONObject("in").getJSONObject("props");
+					jsonProps.put("tplVersion", "");
+					jsonProps.put("actionName", "");
+					jsonProps.put("actionFunction", "");
+					for (IonProperty property : ionBean.getProperties().values()) {
+						jsonProps.put(property.getName(), "");
+					}
+				}
+				
+				JSONObject jsonVars = jsonModel.getJSONObject("in").getJSONObject("vars");
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIControlVariable) {
+						UIControlVariable var = (UIControlVariable)component;
+						jsonVars.put(var.getVarName(), "");
+					}
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		//}
+		return jsonModel.toString();
 	}
 	
 	@Override
@@ -653,7 +668,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 				String tsCode = "";
 				tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+				//tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+				tsCode += "\t\tlet self: any = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {};"+ System.lineSeparator();
 				tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 				
 				if ("InvokeAction".equals(ionBean.getName())) {
@@ -772,6 +788,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							for (String component: map.get(from)) {
 								imports.put(component.trim(), from);
 							}
+						}
+					}
+					
+					if (ionBean.getName().equals("PublishEventAction")) {
+						if (compareToTplVersion("7.9.0.5") < 0) {
+							// removed from ion_objects.json since 7.9.0.5, need to add for older tpl
+							imports.put("Events", "ionic-angular");
 						}
 					}
 				}

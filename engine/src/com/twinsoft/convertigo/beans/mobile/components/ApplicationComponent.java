@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -43,11 +43,11 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -59,9 +59,10 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Application",
 		getIconClassCSS = "convertigo-action-newApplicationComponent"
 	)
-public class ApplicationComponent extends MobileComponent implements IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
+public class ApplicationComponent extends MobileComponent implements IApplicationComponent, IScriptComponent, IScriptGenerator, IStyleGenerator, ITemplateGenerator, IRouteGenerator, IContainerOrdered, ITagsProperty {
 	
 	private static final long serialVersionUID = 6142350115354549719L;
+	public static final String defaultTplProjectName = "mobilebuilder_tpl_7_9_0";
 
 	transient private XMLVector<XMLVector<Long>> orderedComponents = new XMLVector<XMLVector<Long>>();
 	transient private XMLVector<XMLVector<Long>> orderedRoutes = new XMLVector<XMLVector<Long>>();
@@ -72,7 +73,7 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	
 	transient private String tplProjectVersion = "";
 	
-	private String tplProjectName = "";
+	private String tplProjectName = defaultTplProjectName;
 	private String splitPaneLayout = "not set";
 	private boolean isPWA = false;
 	private boolean useClickForTap = false;
@@ -99,6 +100,10 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 		
 		orderedSharedComponents = new XMLVector<XMLVector<Long>>();
 		orderedSharedComponents.add(new XMLVector<Long>());
+		
+		if (Engine.theApp == null) {
+			tplProjectName = "";
+		}
 	}
 
 	@Override
@@ -1314,6 +1319,9 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 				computed += event.getAppEvent().computeDestructor();
 			}
 		}
+		if (compareToTplVersion("7.9.0.5") >= 0) {
+			computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
+		}
 		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
 		computed += "\t}"+ System.lineSeparator();
 		computed += "\t";
@@ -1566,7 +1574,8 @@ public class ApplicationComponent extends MobileComponent implements IScriptComp
 	public String[] getTagsForProperty(String propertyName) {
 		if ("tplProjectName".equals(propertyName)) {
 			TreeSet<String> projects = new TreeSet<String>();
-			projects.add(this.tplProjectName);
+			projects.add(defaultTplProjectName);
+			projects.add(tplProjectName);
 			
 			for (String project: Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false)) {
 				if (isCompatibleTemplate(project)) {

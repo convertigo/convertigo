@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -111,7 +111,6 @@ public class SourcePickerHelper implements IStepSourceEditor {
 							if (targetStep != null) {
 								Project project = step.getProject();
 								String projectName = project.getName();
-								Engine.theApp.schemaManager.getSchemasForProject(projectName);// force schemas generation for project
 								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, Option.fullSchema);
 								XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
 								if (xso != null) {

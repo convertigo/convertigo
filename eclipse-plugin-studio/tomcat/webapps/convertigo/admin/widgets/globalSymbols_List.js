@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -412,7 +412,7 @@ function initializeImportSymbol() {
 			clearInterval(this.tim_progress);
 			endWait();
 			if ($(response).find("error").length > 0) {
-				showError("<p>An unexpected error occurs.</p>", $(response).text());
+				showError("An unexpected error occurs.", $(response).text());
 			} else {
 				showInfo($(response).text());
 				$("").dialog("close");

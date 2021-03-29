@@ -1,7 +1,0 @@
-↑default: true
-authenticationType: Basic
-server: server.to-configure.fr
-↓DefaultTransaction [transactions.HttpTransaction]: 
-  ↑default: true
-  dataStringCharset: 
-  responseInCDATA: true

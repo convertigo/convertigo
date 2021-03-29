@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -32,6 +32,9 @@ import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.spi.LoggingEvent;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.mozilla.javascript.Context;
@@ -74,6 +77,25 @@ public class LogManager {
 	private JSONArray candidate = null;
 	private String line = null;
 	
+	private Appender waitAppender = new AppenderSkeleton() {
+		
+		@Override
+		public boolean requiresLayout() {
+			return false;
+		}
+		
+		@Override
+		public void close() {
+		}
+		
+		@Override
+		protected void append(LoggingEvent event) {
+			synchronized (this) {
+				this.notifyAll();
+			}
+		}
+	};
+	
 	public LogManager() {
 		Context js_context = Context.enter();
 		try {
@@ -86,6 +108,26 @@ public class LogManager {
 		} finally {
 			Context.exit();
 		}
+	}
+	
+	public JSONArray waitForLines(long timeoutMillis) throws IOException {
+		JSONArray lines;
+		try {
+			Engine.logConvertigo.addAppender(waitAppender);
+			synchronized (waitAppender) {
+				lines = getLines();
+				if (lines.length() == 0) {
+					try {
+						waitAppender.wait(timeoutMillis);
+						lines = getLines();
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+		} finally {
+			Engine.logConvertigo.removeAppender(waitAppender);
+		}
+		return lines;
 	}
 	
 	public JSONArray getLines() throws IOException {

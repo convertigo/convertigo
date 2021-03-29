@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -26,9 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UISharedComponent extends UIComponent implements IShared {
 
@@ -54,6 +56,28 @@ public class UISharedComponent extends UIComponent implements IShared {
 			}
 		}
 		return Collections.unmodifiableList(list);
+	}
+	
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		//if (isEnabled()) {
+			try {
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UICompVariable) {
+						UICompVariable var = (UICompVariable)component;
+						jsonModel.put(var.getVariableName(), "");
+					}
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		//}
+		return jsonModel.toString();
 	}
 	
 	@Override
@@ -191,5 +215,10 @@ public class UISharedComponent extends UIComponent implements IShared {
 				}
 			}
 		}
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.SHARED_COMPONENT;
 	}
 }

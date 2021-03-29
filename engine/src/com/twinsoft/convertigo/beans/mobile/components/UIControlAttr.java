@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.mobile.components;
 import java.util.Iterator;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public abstract class UIControlAttr extends UIAttribute implements ITagsProperty {
 	
@@ -71,4 +72,8 @@ public abstract class UIControlAttr extends UIAttribute implements ITagsProperty
 		return "";
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.CONTROL;
+	}	
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -42,11 +42,12 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IEnableAble;
+import com.twinsoft.convertigo.beans.core.IPageComponent;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -56,7 +57,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 		getCategoryName = "Page",
 		getIconClassCSS = "convertigo-action-newPageComponent"
 	)
-public class PageComponent extends MobileComponent implements ITagsProperty, IScriptComponent, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
+public class PageComponent extends MobileComponent implements IPageComponent, ITagsProperty, IScriptComponent, IStyleGenerator, ITemplateGenerator, IScriptGenerator, IContainerOrdered, IEnableAble {
 
 	private static final long serialVersionUID = 188562781669238824L;
 	
@@ -813,6 +814,9 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 			}
 			computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
 			computed += "\t\t}"+ System.lineSeparator();
+			if (compareToTplVersion("7.9.0.5") >= 0) {
+				computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
+			}
 			computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
 			computed += "\t}"+ System.lineSeparator();
 			computed += "\t";
@@ -1050,4 +1054,8 @@ public class PageComponent extends MobileComponent implements ITagsProperty, ISc
 		return tplVersion;
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.PAGE;
+	}
 }

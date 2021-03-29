@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -194,7 +194,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 				URL url = new URL(urlPath);
 				
 				if (urlPath.startsWith("file:/")) {
-					if (new File(url.getPath()).exists()) {
+					if (FileUtils.toFile(url).exists()) {
 						String[] filterExtensions = wsRefAuthenticated.getFilterExtension();//wsRefAuthenticated.getFilterExtension()[0].split(";");
 						for (String fileFilter: filterExtensions) {
 							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));

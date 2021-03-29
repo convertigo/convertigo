@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -314,7 +314,7 @@ public class SetupWizard extends Wizard {
 					String message;
 
 					try {
-						String[] urlSource = { "https://c8o.convertigo.net/cems/index.html" };
+						String[] urlSource = { "https://c8ocloud.convertigo.net/convertigo/index.html" };
 
 						HttpClient client = prepareHttpClient(urlSource);
 						GetMethod method = new GetMethod(urlSource[0]);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIDynamicMenu extends UIDynamicElement {
 
@@ -71,4 +72,8 @@ public class UIDynamicMenu extends UIDynamicElement {
 		return map;
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.MENU;
+	}
 }

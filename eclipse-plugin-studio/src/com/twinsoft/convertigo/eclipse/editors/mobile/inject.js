@@ -32,6 +32,7 @@ function _c8o_remove_all_overlay() {
 	for (i in ol) {
 		_c8o_remove_overlay(ol[i]);
 	}
+	_c8o_highlight_class_previous = null;
 }
 
 function _c8o_remove_overlay(overlay) {
@@ -45,7 +46,7 @@ function _c8o_remove_overlay(overlay) {
 		overlay.style.left = (left + width / 2) + "px";
 		overlay.style.width = "1px";
 		overlay.style.height = "1px";
-		window.setTimeout(function () {overlay.remove();}, 200);				
+		window.setTimeout(function () {overlay.remove();}, 200);
 	}
 }
 

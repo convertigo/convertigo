@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "UrlMappingOperation",
@@ -316,4 +317,9 @@ public abstract class UrlMappingOperation extends DatabaseObject implements ICon
         }
         else return super.getOrder(object);
     }
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.OPERATION;
+	}
 }

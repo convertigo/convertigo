@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.wizards.import_export;
 import java.io.File;
 import java.io.IOException;
 
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
@@ -35,6 +36,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ImportWizard extends Wizard implements IImportWizard {
@@ -52,34 +54,36 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	 */
 	public boolean performFinish() {
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (fileChooserPage.getParser().isValid()) {
-			try {
-				Project project = Engine.theApp.referencedProjectManager.importProject(fileChooserPage.getParser(), true); 
-				if (project != null) {
-					TreeObject tree = explorerView.getProjectRootObject(project.getName());
-					if (tree != null) {
-						explorerView.reloadProject(tree);
-					}
-					explorerView.refreshProjects();
-					return true;
-				}
-			} catch (Exception e) {
-				Engine.logStudio.debug("Loading from remote URL failed", e);
-				fileChooserPage.setErrorMessage("Loading failed due to a '" + e.getClass().getSimpleName() + "': " + e.getMessage());
-			}
-			return false;
-		}
+		ProjectUrlParser parser = fileChooserPage.getParser();
 		String filePath = fileChooserPage.getFilePath();
+		if (parser.isValid()) {
+			ConvertigoPlugin.infoMessageBox("Loading " + parser.getProjectName() + " in a background job.");
+			Job.create("Import project " + parser.getProjectName(), (mon) -> {
+				try {
+					Project project = Engine.theApp.referencedProjectManager.importProject(parser, true); 
+					if (project != null) {
+						TreeObject tree = explorerView.getProjectRootObject(project.getName());
+						if (tree != null) {
+							explorerView.reloadProject(tree);
+						}
+						explorerView.refreshProjects();
+					}
+				} catch (Exception e) {
+					Engine.logStudio.debug("Loading from remote URL failed", e);
+				}
+			}).schedule();
+		}
+		
 		try {
 			if (explorerView != null) {
 				if (filePath != null) {
-					return explorerView.importProject(filePath, getTargetProjectName());
+					explorerView.importProject(filePath, getTargetProjectName());
 				}
 			}
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to import project !");
 		}
-		return false;
+		return true;
 	}
 
 	/* (non-Javadoc)

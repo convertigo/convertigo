@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
@@ -89,12 +90,12 @@ public class Deploy extends UploadService {
 		} else {
 			projectArchive = projectArchive.substring(i + 1);
 		}
-
-		String projectName = projectArchive.substring(0, projectArchive.indexOf(".car"));
-
-		Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true,
-				bAssembleXsl);
-
+		
+		Project project = Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true, bAssembleXsl);
+		
+		String projectName = project.getName();
+		Project.executeAutoStartSequences(projectName);
+		
 		if (Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(PropertyName.NOTIFICATIONS_NOTIFY_PROJECT_DEPLOYMENT))) {
 

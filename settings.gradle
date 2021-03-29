@@ -1,5 +1,4 @@
 include 'convertigo-splash'
-include 'convertigo-templates'
 include 'eclipse-feature'
 include 'eclipse-plugin-jxbrowser-linux64'
 include 'eclipse-plugin-jxbrowser-mac'
@@ -8,6 +7,7 @@ include 'eclipse-plugin-product'
 include 'eclipse-plugin-studio'
 include 'engine'
 include 'gradle-plugin'
+include 'patches'
 include 'placeholders'
 
 rootProject.name = 'convertigo'

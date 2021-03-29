@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -18,6 +18,8 @@
  */
 
 package com.twinsoft.convertigo.beans.mobile.components;
+
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public abstract class UIFormValidator extends UIComponent implements IValidator {
 
@@ -41,5 +43,10 @@ public abstract class UIFormValidator extends UIComponent implements IValidator 
 
 	public void setAsync(boolean async) {
 		this.async = async;
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.VALIDATOR;
 	}
 }

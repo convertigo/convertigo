@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -61,7 +61,6 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -73,25 +72,6 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.mobile.components.IAction;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
-import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
-import com.twinsoft.convertigo.beans.mobile.components.UIElement;
-import com.twinsoft.convertigo.beans.mobile.components.UIForm;
-import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIText;
-import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.rest.FormParameter;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
@@ -108,18 +88,21 @@ import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IOrderableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUIComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
@@ -267,7 +250,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
 			if (editorPart != null) {
 				IEditorInput input = editorPart.getEditorInput();
-				mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+				if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
+					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+					mb = editorInput.getApplication().getProject().getMobileBuilder();
+				}
+				if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+					mb = editorInput.getApplication().getProject().getMobileBuilder();
+				}
 			}
 			if (mb != null) {
 				autoBuild = mb.isAutoBuild();
@@ -627,164 +617,379 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 			// MOBILE COMPONENTS
-			else if (parent instanceof MobileComponent) {
-				
-				// Case dbo is a Sequence
-				if (databaseObject instanceof Sequence) {
-					Sequence sequence = (Sequence)databaseObject;
-					
-					// Add child components to fill the form
-					if (parent instanceof UIForm) {
-						UIForm uiForm = (UIForm)parent;
-						try {
-							String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-							
-							// add an onSubmit event with a callSequence
-							UIControlEvent event = new UIControlEvent();
-							event.setEventName(AttrEvent.onSubmit.name());
-							event.bNew = true;
-							event.hasChanged = true;
-							
-							DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("CallSequenceAction"));
-							if (call != null && call instanceof UIDynamicAction) {
-								IonBean ionBean = ((UIDynamicAction)call).getIonBean();
-								if (ionBean != null && ionBean.hasProperty("requestable")) {
-									ionBean.setPropertyValue("requestable", new MobileSmartSourceType(projectName + "." + sequence.getName()));
-								}
-							}
-							call.bNew = true;
-							call.hasChanged = true;
-							
-							event.add(call);
-							
-							// add a list of item with label & input for each variable
-							DatabaseObject dboList = ComponentManager.createBean(ComponentManager.getComponentByName("List"));
-							for (RequestableVariable variable: sequence.getVariables()) {
-								DatabaseObject dboItem = ComponentManager.createBean(ComponentManager.getComponentByName("ListItem"));
-								dboList.add(dboItem);
-								
-								DatabaseObject dboLabel = ComponentManager.createBean(ComponentManager.getComponentByName("Label"));
-								dboItem.add(dboLabel);
-								
-								UIText uiText = new UIText();
-								uiText.bNew = true;
-								uiText.hasChanged = true;
-								uiText.setTextSmartType(new MobileSmartSourceType(variable.getName()+":"));
-								dboLabel.add(uiText);
-								
-								DatabaseObject dboInput = ComponentManager.createBean(ComponentManager.getComponentByName("Input"));
-								if (dboInput != null && dboInput instanceof UIDynamicElement) {
-									IonBean ionBean = ((UIDynamicElement)dboInput).getIonBean();
-									if (ionBean != null && ionBean.hasProperty("FormControlName")) {
-										ionBean.setPropertyValue("FormControlName", new MobileSmartSourceType(variable.getName()));
-									}
-									dboItem.add(dboInput);
-								}
-							}
-							
-							// add a buttonset with a submit and a reset button
-							DatabaseObject dboBtnSet = ComponentManager.createBean(ComponentManager.getComponentByName("ButtonSet"));
-							
-							DatabaseObject dboSubmit = ComponentManager.createBean(ComponentManager.getComponentByName("SubmitButton"));
-							dboBtnSet.add(dboSubmit);
-							UIText sText = new UIText();
-							sText.bNew = true;
-							sText.hasChanged = true;
-							sText.setTextSmartType(new MobileSmartSourceType("Submit"));
-							dboSubmit.add(sText);
-							
-							DatabaseObject dboReset = ComponentManager.createBean(ComponentManager.getComponentByName("ResetButton"));
-							dboBtnSet.add(dboReset);
-							UIText rText = new UIText();
-							rText.bNew = true;
-							rText.hasChanged = true;
-							rText.setTextSmartType(new MobileSmartSourceType("Reset"));
-							dboReset.add(rText);
-							
-							uiForm.add(event);
-							uiForm.add(dboList);
-							uiForm.add(dboBtnSet);
-						}
-						catch (Exception e) {
-							throw new EngineException("Unable to create filled Form from requestable", e);
-						}
-						return true;
-					}
-					// Add a CallSequenceAction
-					if (parent instanceof UIPageEvent || parent instanceof UIAppEvent || parent instanceof UIControlEvent ||
-							parent instanceof IAction || parent instanceof UIActionStack) {
-						UIComponent uiComponent = (UIComponent) parent;
-						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-						
-						DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("CallSequenceAction"));
-						if (call != null && call instanceof UIDynamicAction) {
-							IonBean ionBean = ((UIDynamicAction)call).getIonBean();
-							if (ionBean != null && ionBean.hasProperty("requestable")) {
-								ionBean.setPropertyValue("requestable", new MobileSmartSourceType(projectName + "." + sequence.getName()));
-								call.bNew = true;
-								call.hasChanged = true;
-								
-								uiComponent.add(call);
-								uiComponent.hasChanged = true;
-							}
-						}
-						return true;
-					}
-				}
-				// Case dbo is a SharedAction
-				else if (databaseObject instanceof UIActionStack) {
-					UIActionStack stack = (UIActionStack)databaseObject;
-					
-					// Add an InvokeAction
-					if (parent instanceof UIPageEvent || parent instanceof UIAppEvent || parent instanceof UIControlEvent ||
-							parent instanceof IAction || parent instanceof UIActionStack) {
-						UIComponent uiComponent = (UIComponent) parent;
-						
-						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-						String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
-						String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
-						
-						UIDynamicInvoke invoke = (UIDynamicInvoke) ComponentManager.createBean(ComponentManager.getComponentByName("InvokeAction"));
-						if (invoke != null) {
-							invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
-							invoke.bNew = true;
-							invoke.hasChanged = true;
-							
-							uiComponent.add(invoke);
-							uiComponent.hasChanged = true;
-						}
-						return true;
-					}
-				}
-				// Case dbo is a SharedComponent
-				else if (databaseObject instanceof UISharedComponent) {
-					UISharedComponent usc = (UISharedComponent)databaseObject;
-					
-					// Add a UseShared component
-					if (parent instanceof  PageComponent || parent instanceof UISharedComponent || parent instanceof UIElement && !(parent instanceof UIUseShared)) {
-						MobileComponent mc = (MobileComponent) parent;
-						
-						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
-						String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
-						String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
-						
-						UIUseShared use = new UIUseShared();
-						if (use != null) {
-							use.setSharedComponentQName(projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName());
-							use.bNew = true;
-							use.hasChanged = true;
-							
-							mc.add(use);
-							mc.hasChanged = true;
-						}
-						return true;
-					}
-				}
+			else if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+				return pasteMobileComponent(parent, databaseObject, element);
+			}
+			// NGX COMPONENTS
+			else if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+				return pasteNgxComponent(parent, databaseObject, element);
 			}
 		}
 		return false;
 	}
 
+	private boolean pasteMobileComponent(DatabaseObject parent, DatabaseObject databaseObject, Element element) throws EngineException {
+		// MOBILE COMPONENTS
+		if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+			
+			if (parent.priority == databaseObject.priority) {
+				return true;
+			}
+			
+			// Case dbo is a Sequence
+			if (databaseObject instanceof Sequence) {
+				Sequence sequence = (Sequence)databaseObject;
+				
+				// Add child components to fill the form
+				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIForm) {
+					com.twinsoft.convertigo.beans.mobile.components.UIForm uiForm = GenericUtils.cast(parent);
+					try {
+						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+						
+						// add an onSubmit event with a callSequence
+						com.twinsoft.convertigo.beans.mobile.components.UIControlEvent event = new com.twinsoft.convertigo.beans.mobile.components.UIControlEvent();
+						event.setEventName(com.twinsoft.convertigo.beans.mobile.components.UIControlEvent.AttrEvent.onSubmit.name());
+						event.bNew = true;
+						event.hasChanged = true;
+						
+						DatabaseObject call = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
+						if (call != null && call instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction) {
+							com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction dynAction = GenericUtils.cast(call);
+							com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = dynAction.getIonBean();
+							if (ionBean != null && ionBean.hasProperty("requestable")) {
+								ionBean.setPropertyValue("requestable", new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType(projectName + "." + sequence.getName()));
+							}
+						}
+						call.bNew = true;
+						call.hasChanged = true;
+						
+						event.add(call);
+						
+						// add a list of item with label & input for each variable
+						DatabaseObject dboList = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("List"));
+						for (RequestableVariable variable: sequence.getVariables()) {
+							DatabaseObject dboItem = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("ListItem"));
+							dboList.add(dboItem);
+							
+							DatabaseObject dboLabel = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("Label"));
+							dboItem.add(dboLabel);
+							
+							com.twinsoft.convertigo.beans.mobile.components.UIText uiText = new com.twinsoft.convertigo.beans.mobile.components.UIText();
+							uiText.bNew = true;
+							uiText.hasChanged = true;
+							uiText.setTextSmartType(new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType(variable.getName()+":"));
+							dboLabel.add(uiText);
+							
+							DatabaseObject dboInput = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("Input"));
+							if (dboInput != null && dboInput instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement) {
+								com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement dynElem = GenericUtils.cast(dboInput);
+								com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = dynElem.getIonBean();
+								if (ionBean != null && ionBean.hasProperty("FormControlName")) {
+									ionBean.setPropertyValue("FormControlName", new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType(variable.getName()));
+								}
+								dboItem.add(dboInput);
+							}
+						}
+						
+						// add a buttonset with a submit and a reset button
+						DatabaseObject dboBtnSet = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("ButtonSet"));
+						
+						DatabaseObject dboSubmit = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("SubmitButton"));
+						dboBtnSet.add(dboSubmit);
+						com.twinsoft.convertigo.beans.mobile.components.UIText sText = new com.twinsoft.convertigo.beans.mobile.components.UIText();
+						sText.bNew = true;
+						sText.hasChanged = true;
+						sText.setTextSmartType(new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType("Submit"));
+						dboSubmit.add(sText);
+						
+						DatabaseObject dboReset = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("ResetButton"));
+						dboBtnSet.add(dboReset);
+						com.twinsoft.convertigo.beans.mobile.components.UIText rText = new com.twinsoft.convertigo.beans.mobile.components.UIText();
+						rText.bNew = true;
+						rText.hasChanged = true;
+						rText.setTextSmartType(new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType("Reset"));
+						dboReset.add(rText);
+						
+						uiForm.add(event);
+						uiForm.add(dboList);
+						uiForm.add(dboBtnSet);
+					}
+					catch (Exception e) {
+						throw new EngineException("Unable to create filled Form from requestable", e);
+					}
+					return true;
+				}
+				// Add a CallSequenceAction
+				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack
+					) {
+					com.twinsoft.convertigo.beans.mobile.components.UIComponent uiComponent = GenericUtils.cast(parent);
+					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+					
+					DatabaseObject call = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
+					if (call != null && call instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction) {
+						com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction dynAction = GenericUtils.cast(call);
+						com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = dynAction.getIonBean();
+						if (ionBean != null && ionBean.hasProperty("requestable")) {
+							ionBean.setPropertyValue("requestable", new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType(projectName + "." + sequence.getName()));
+							call.bNew = true;
+							call.hasChanged = true;
+							
+							uiComponent.add(call);
+							uiComponent.hasChanged = true;
+						}
+					}
+					return true;
+				}
+			}
+			// Case dbo is a SharedAction
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack) {
+				com.twinsoft.convertigo.beans.mobile.components.UIActionStack stack = GenericUtils.cast(databaseObject);
+				
+				// Add an InvokeAction
+				if (parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack
+					) {
+					com.twinsoft.convertigo.beans.mobile.components.UIComponent uiComponent = GenericUtils.cast(parent);
+					
+					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
+					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
+					
+					DatabaseObject invokeAction = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("InvokeAction"));
+					com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke invoke = GenericUtils.cast(invokeAction);
+					if (invoke != null) {
+						invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
+						invoke.bNew = true;
+						invoke.hasChanged = true;
+						
+						uiComponent.add(invoke);
+						uiComponent.hasChanged = true;
+					}
+					return true;
+				}
+			}
+			// Case dbo is a SharedComponent
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent) {
+				com.twinsoft.convertigo.beans.mobile.components.UISharedComponent usc = GenericUtils.cast(databaseObject);
+				
+				// Add a UseShared component
+				if (parent instanceof  com.twinsoft.convertigo.beans.mobile.components.PageComponent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent || 
+						parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIElement && 
+						!(parent instanceof com.twinsoft.convertigo.beans.mobile.components.UIUseShared)
+					) {
+					com.twinsoft.convertigo.beans.mobile.components.MobileComponent mc = GenericUtils.cast(parent);
+					
+					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
+					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
+					
+					com.twinsoft.convertigo.beans.mobile.components.UIUseShared use = new com.twinsoft.convertigo.beans.mobile.components.UIUseShared();
+					if (use != null) {
+						use.setSharedComponentQName(projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName());
+						use.bNew = true;
+						use.hasChanged = true;
+						
+						mc.add(use);
+						mc.hasChanged = true;
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private boolean pasteNgxComponent(DatabaseObject parent, DatabaseObject databaseObject, Element element) throws EngineException {
+		// NGX COMPONENTS
+		if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			
+			if (parent.priority == databaseObject.priority) {
+				return true;
+			}
+			
+			// Case dbo is a Sequence
+			if (databaseObject instanceof Sequence) {
+				Sequence sequence = (Sequence)databaseObject;
+				
+				// Add child components to fill the form
+				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm) {
+					com.twinsoft.convertigo.beans.ngx.components.UIForm uiForm = GenericUtils.cast(parent);
+					try {
+						String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+						
+						// add an onSubmit event with a callSequence
+						com.twinsoft.convertigo.beans.ngx.components.UIControlEvent event = new com.twinsoft.convertigo.beans.ngx.components.UIControlEvent();
+						event.setEventName(com.twinsoft.convertigo.beans.ngx.components.UIControlEvent.AttrEvent.onSubmit.name());
+						event.bNew = true;
+						event.hasChanged = true;
+						
+						DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
+						if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
+							com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
+							com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynAction.getIonBean();
+							if (ionBean != null && ionBean.hasProperty("requestable")) {
+								ionBean.setPropertyValue("requestable", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(projectName + "." + sequence.getName()));
+							}
+						}
+						call.bNew = true;
+						call.hasChanged = true;
+						
+						event.add(call);
+						
+						// add a list of item with label & input for each variable
+						DatabaseObject dboList = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("List"));
+						for (RequestableVariable variable: sequence.getVariables()) {
+							DatabaseObject dboItem = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ListItem"));
+							dboList.add(dboItem);
+							
+							DatabaseObject dboLabel = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Label"));
+							dboItem.add(dboLabel);
+							
+							com.twinsoft.convertigo.beans.ngx.components.UIText uiText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
+							uiText.bNew = true;
+							uiText.hasChanged = true;
+							uiText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()+":"));
+							dboLabel.add(uiText);
+							
+							DatabaseObject dboInput = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("Input"));
+							if (dboInput != null && dboInput instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
+								com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement dynElem = GenericUtils.cast(dboInput);
+								com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynElem.getIonBean();
+								if (ionBean != null && ionBean.hasProperty("FormControlName")) {
+									ionBean.setPropertyValue("FormControlName", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(variable.getName()));
+								}
+								dboItem.add(dboInput);
+							}
+						}
+						
+						// add a buttonset with a submit and a reset button
+						DatabaseObject dboBtnSet = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ButtonSet"));
+						
+						DatabaseObject dboSubmit = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("SubmitButton"));
+						dboBtnSet.add(dboSubmit);
+						com.twinsoft.convertigo.beans.ngx.components.UIText sText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
+						sText.bNew = true;
+						sText.hasChanged = true;
+						sText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType("Submit"));
+						dboSubmit.add(sText);
+						
+						DatabaseObject dboReset = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("ResetButton"));
+						dboBtnSet.add(dboReset);
+						com.twinsoft.convertigo.beans.ngx.components.UIText rText = new com.twinsoft.convertigo.beans.ngx.components.UIText();
+						rText.bNew = true;
+						rText.hasChanged = true;
+						rText.setTextSmartType(new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType("Reset"));
+						dboReset.add(rText);
+						
+						uiForm.add(event);
+						uiForm.add(dboList);
+						uiForm.add(dboBtnSet);
+					}
+					catch (Exception e) {
+						throw new EngineException("Unable to create filled Form from requestable", e);
+					}
+					return true;
+				}
+				// Add a CallSequenceAction
+				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
+					) {
+					com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parent);
+					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+					
+					DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("CallSequenceAction"));
+					if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
+						com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
+						com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynAction.getIonBean();
+						if (ionBean != null && ionBean.hasProperty("requestable")) {
+							ionBean.setPropertyValue("requestable", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(projectName + "." + sequence.getName()));
+							call.bNew = true;
+							call.hasChanged = true;
+							
+							uiComponent.add(call);
+							uiComponent.hasChanged = true;
+						}
+					}
+					return true;
+				}
+			}
+			// Case dbo is a SharedAction
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
+				com.twinsoft.convertigo.beans.ngx.components.UIActionStack stack = GenericUtils.cast(databaseObject);
+				
+				// Add an InvokeAction
+				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
+					) {
+					com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parent);
+					
+					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
+					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
+					
+					DatabaseObject invokeAction = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("InvokeAction"));
+					com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke invoke = GenericUtils.cast(invokeAction);
+					if (invoke != null) {
+						invoke.setSharedActionQName(projectName + "." + mobileAppName + "." +  applicationName + "." + stack.getName());
+						invoke.bNew = true;
+						invoke.hasChanged = true;
+						
+						uiComponent.add(invoke);
+						uiComponent.hasChanged = true;
+					}
+					return true;
+				}
+			}
+			// Case dbo is a SharedComponent
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent) {
+				com.twinsoft.convertigo.beans.ngx.components.UISharedComponent usc = GenericUtils.cast(databaseObject);
+				
+				// Add a UseShared component
+				if (parent instanceof  com.twinsoft.convertigo.beans.ngx.components.PageComponent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIElement && 
+						!(parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIUseShared)
+					) {
+					com.twinsoft.convertigo.beans.ngx.components.MobileComponent mc = GenericUtils.cast(parent);
+					
+					String projectName = ((Element)element.getElementsByTagName("project").item(0)).getAttribute("name");
+					String mobileAppName = ((Element)element.getElementsByTagName("mobileapplication").item(0)).getAttribute("name");
+					String applicationName = ((Element)element.getElementsByTagName("application").item(0)).getAttribute("name");
+					
+					com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = new com.twinsoft.convertigo.beans.ngx.components.UIUseShared();
+					if (use != null) {
+						use.setSharedComponentQName(projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName());
+						use.bNew = true;
+						use.hasChanged = true;
+						
+						mc.add(use);
+						mc.hasChanged = true;
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	private boolean move(Node node, TreeObject targetTreeObject) throws EngineException {
 		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
@@ -923,16 +1128,26 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							targetTreeObject = folderTreeObject.getParent();
 						}
 						if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-							DatabaseObject parentDatabaseObject = ((DatabaseObjectTreeObject)targetTreeObject).getObject();
-							if (parentDatabaseObject != null) {
-								if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+							DatabaseObject targetDatabaseObject = ((DatabaseObjectTreeObject)targetTreeObject).getObject();
+							if (targetDatabaseObject != null) {
+								if (!DatabaseObjectsManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
 									return false;
 								}
-								if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-									return false;
+								if (targetTreeObject instanceof MobileComponentTreeObject) {
+									if (!com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
+										return false;
+									}
+									if (!com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.isTplCompatible(targetDatabaseObject, databaseObject)) {
+										return false;
+									}
 								}
-								if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
-									return false;
+								if (targetTreeObject instanceof NgxComponentTreeObject) {
+									if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.acceptDatabaseObjects(targetDatabaseObject, databaseObject)) {
+										return false;
+									}
+									if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.isTplCompatible(targetDatabaseObject, databaseObject)) {
+										return false;
+									}
 								}
 								return true;
 							}
@@ -944,12 +1159,37 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			}
 		}
 		if (MobileSourceTransfer.getInstance().isSupportedType(transferType)) {
-			if (target instanceof MobileUIComponentTreeObject) {
-				MobileUIComponentTreeObject mcto = (MobileUIComponentTreeObject)target;
-				for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
-					if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
-						if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
-							return true;
+			MobileSource mobileSource = MobileSourceTransfer.getInstance().getMobileSource();
+			if (mobileSource != null) {
+				if (target instanceof MobileUIComponentTreeObject) {
+					MobileUIComponentTreeObject mcto = GenericUtils.cast(target);
+					
+					com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
+					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
+						return false;
+					}
+					
+					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
+							if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
+								return true;
+							}
+						}
+					}
+				}
+				if (target instanceof NgxUIComponentTreeObject) {
+					NgxUIComponentTreeObject mcto = GenericUtils.cast(target);
+					
+					com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
+					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
+						return false;
+					}
+					
+					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+						if (descriptor instanceof NgxSmartSourcePropertyDescriptor) {
+							if (!((NgxSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
+								return true;
+							}
 						}
 					}
 				}
@@ -1231,10 +1471,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					Menu dropMenu = new Menu(shell, SWT.POP_UP);
 	                shell.setMenu(dropMenu);
 					
-					MobileUIComponentTreeObject mcto = (MobileUIComponentTreeObject)targetTreeObject;
+					MobileUIComponentTreeObject mcto = GenericUtils.cast(targetTreeObject);
 					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
 						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
-							MobileSmartSourcePropertyDescriptor cspd = (MobileSmartSourcePropertyDescriptor)descriptor;
+							MobileSmartSourcePropertyDescriptor cspd = GenericUtils.cast(descriptor);
 							if (!cspd.isReadOnly()) {
 								String propertyName = (String) cspd.getId();
 								String propertyLabel = (String) cspd.getDisplayName();
@@ -1243,8 +1483,42 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				                itemCheck.addSelectionListener(new SelectionListener() {
 									@Override
 									public void widgetSelected(SelectionEvent e) {
-										MobileSmartSourceType cst = new MobileSmartSourceType();
-										cst.setMode(MobileSmartSourceType.Mode.SOURCE);
+										com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType cst = new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType();
+										cst.setMode(com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode.SOURCE);
+										cst.setSmartValue(jsonString);
+										
+										mcto.setPropertyValue(propertyName, cst);
+										refreshPropertiesView(explorerView, mcto);
+									}
+									
+									@Override
+									public void widgetDefaultSelected(SelectionEvent e) {
+									}
+								});
+							}
+						}
+					}
+					dropMenu.setVisible(true);
+				}
+				if (targetTreeObject instanceof NgxUIComponentTreeObject) {
+					Shell shell = ConvertigoPlugin.getMainShell();
+					Menu dropMenu = new Menu(shell, SWT.POP_UP);
+	                shell.setMenu(dropMenu);
+					
+	                NgxUIComponentTreeObject mcto = GenericUtils.cast(targetTreeObject);
+					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+						if (descriptor instanceof NgxSmartSourcePropertyDescriptor) {
+							NgxSmartSourcePropertyDescriptor cspd = GenericUtils.cast(descriptor);
+							if (!cspd.isReadOnly()) {
+								String propertyName = (String) cspd.getId();
+								String propertyLabel = (String) cspd.getDisplayName();
+				                MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
+				                itemCheck.setText(propertyLabel);
+				                itemCheck.addSelectionListener(new SelectionListener() {
+									@Override
+									public void widgetSelected(SelectionEvent e) {
+										com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType cst = new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType();
+										cst.setMode(com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode.SOURCE);
 										cst.setSmartValue(jsonString);
 										
 										mcto.setPropertyValue(propertyName, cst);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
-import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -178,8 +177,8 @@ public class MobileApplication extends DatabaseObject {
     public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof MobilePlatform) {
 			addMobilePlatform((MobilePlatform) databaseObject);
-		} else if (databaseObject instanceof ApplicationComponent) {
-			addApplicationComponent((ApplicationComponent) databaseObject);
+		} else if (databaseObject instanceof IApplicationComponent) {
+			addApplicationComponent(databaseObject);
 		} else {
 			throw new EngineException("You cannot add to a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
@@ -189,8 +188,8 @@ public class MobileApplication extends DatabaseObject {
     public void remove(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof MobilePlatform) {
 			removeMobilePlatform((MobilePlatform) databaseObject);
-		} else if (databaseObject instanceof ApplicationComponent) {
-			removeApplicationComponent((ApplicationComponent) databaseObject);
+		} else if (databaseObject instanceof IApplicationComponent) {
+			removeApplicationComponent(databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
@@ -230,13 +229,13 @@ public class MobileApplication extends DatabaseObject {
 	/*
 	 * The application component
 	 */
-	private transient ApplicationComponent applicationComponent = null;
+	private transient DatabaseObject applicationComponent = null;
 	
-	public ApplicationComponent getApplicationComponent() {
-		return applicationComponent;
+	public IApplicationComponent getApplicationComponent() {
+		return (IApplicationComponent) applicationComponent;
 	}
 	
-    public void addApplicationComponent(ApplicationComponent applicationComponent) throws EngineException {
+    public void addApplicationComponent(DatabaseObject applicationComponent) throws EngineException {
     	if (this.applicationComponent != null) {
     		throw new EngineException("The mobile application \"" + getName() + "\" already contains an application component! Please delete it first.");
     	}
@@ -244,7 +243,7 @@ public class MobileApplication extends DatabaseObject {
 		super.add(applicationComponent);
     }
     
-    public void removeApplicationComponent(ApplicationComponent applicationComponent) {
+    public void removeApplicationComponent(DatabaseObject applicationComponent) {
     	if (applicationComponent != null && applicationComponent.equals(this.applicationComponent)) {
     		this.applicationComponent = null;
     	}

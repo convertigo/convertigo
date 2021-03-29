@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -32,15 +32,15 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.views.properties.PropertySheet;
+
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 
 @SuppressWarnings("restriction")
@@ -121,19 +121,42 @@ public class ConvertigoPartListener implements IPartListener {
 		
 		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
-			if (input instanceof ApplicationComponentEditorInput) {
+			if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
 				try {
-					MobileBuilder mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
-					mb.removeMobileEventListener((ApplicationComponentEditor)part);
+					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
+					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
+					mb.removeMobileEventListener((com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor)part);
 					mb.setAutoBuild(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
-			if (input instanceof ComponentFileEditorInput) {
+			if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
 				try {
-					//((EditorPart)part).dispose();// added because html editor throw a ConcurentModificationException (bug)
-					((ComponentFileEditorInput)input).getFile().delete(true, null);
+					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
+					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
+					mb.removeMobileEventListener((com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor)part);
+					mb.setAutoBuild(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			if (input instanceof JScriptEditorInput) {
+				try {
+					((JScriptEditorInput) input).getFile().getParent().delete(true, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) {
+				try {
+					((com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) input).getFile().delete(true, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) {
+				try {
+					((com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) input).getFile().delete(true, null);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -188,10 +211,21 @@ public class ConvertigoPartListener implements IPartListener {
 		}
 		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
-			if (input instanceof ApplicationComponentEditorInput) {
+			if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
 				try {
-					MobileBuilder mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
-					mb.addMobileEventListener((ApplicationComponentEditor)part);
+					com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
+					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
+					mb.addMobileEventListener((com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor)part);
+					mb.setAutoBuild(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+				try {
+					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
+					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
+					mb.addMobileEventListener((com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor)part);
 					mb.setAutoBuild(true);
 				} catch (Exception e) {
 					e.printStackTrace();

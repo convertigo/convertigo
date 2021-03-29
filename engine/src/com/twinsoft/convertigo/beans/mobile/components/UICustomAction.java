@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -112,6 +112,10 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "CTS"+ this.priority;
 	}
 
+	public String getActionCode() {
+		return computeActionMain(true);
+	}
+	
 	/*
 	 * The needed page imports
 	 */
@@ -432,6 +436,8 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected String computeActionInputs(boolean forTemplate) {
+		boolean extended = !forTemplate;
+		
 		if (isEnabled()) {
 			StringBuilder sbProps = initProps(forTemplate);
 			
@@ -455,22 +461,11 @@ public class UICustomAction extends UIComponent implements IAction {
 						else {
 							MobileSmartSourceType msst = uicv.getVarSmartType();
 							
-							String smartValue = msst.getValue();
+							String smartValue = msst.getValue(extended);
 							if (Mode.PLAIN.equals(msst.getMode())) {
 								smartValue = "\'" + MobileSmartSourceType.escapeStringForTs(smartValue) + "\'";
 							}
 							
-							if (Mode.SOURCE.equals(msst.getMode())) {
-								MobileSmartSource mss = msst.getSmartSource();
-								if (mss != null) {
-									if (mss.getFilter().equals(MobileSmartSource.Filter.Iteration)) {
-										smartValue = "scope."+ smartValue;
-									}
-									else {
-										smartValue = "this."+ smartValue;
-									}
-								}
-							}
 							smartValue = smartValue.replaceAll("\\?\\.", ".");
 							smartValue = smartValue.replaceAll("this\\.", "c8oPage.");
 							if (paramsPattern.matcher(smartValue).lookingAt()) {
@@ -490,6 +485,39 @@ public class UICustomAction extends UIComponent implements IAction {
 			return "{props:{"+sbProps+"}, vars:{"+sbVars+"}}";
 		}
 		return "";
+	}
+	
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		//if (isEnabled()) {
+			try {
+				jsonModel.put("in", new JSONObject()
+										.put("props", new JSONObject())
+										.put("vars", new JSONObject()))
+							.put("out", new JSONObject());
+				
+				JSONObject jsonProps = jsonModel.getJSONObject("in").getJSONObject("props");
+				jsonProps.put("tplVersion", "");
+				jsonProps.put("actionName", "");
+				jsonProps.put("actionFunction", "");
+				
+				JSONObject jsonVars = jsonModel.getJSONObject("in").getJSONObject("vars");
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIControlVariable) {
+						UIControlVariable var = (UIControlVariable)component;
+						jsonVars.put(var.getVarName(), "");
+					}
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		//}
+		return jsonModel.toString();
 	}
 	
 	@Override
@@ -663,7 +691,8 @@ public class UICustomAction extends UIComponent implements IAction {
 	
 			String tsCode = "";
 			tsCode += "\t\tnew Promise((resolve, reject) => {"+ System.lineSeparator();
-			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
+			//tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = {};"+ System.lineSeparator();
+			tsCode += "\t\tlet self: any = stack[\""+ beanName +"\"] = stack[\""+ priority +"\"] = {};"+ System.lineSeparator();
 			tsCode += "\t\tself.in = "+ inputs +";"+ System.lineSeparator();
 			
 			if (getSharedAction() != null) {
@@ -713,8 +742,12 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected String computeActionMain() {
+		return computeActionMain(false);
+	}
+	
+	protected String computeActionMain(boolean bForce) {
 		String computed = "";
-		if (isEnabled()) {
+		if (isEnabled() || bForce) {
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
 						.append("\t * Function "+ getName()).append(System.lineSeparator());

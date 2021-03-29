@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.core.JsonDocument;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
@@ -214,11 +215,31 @@ public class CouchDbConnector extends Connector {
 		return internalViewTransaction;
 	}
 	
+	public static final String internalDocument = "_Internal_GetDocument_";
+	private transient GetDocumentTransaction internalDocumentTransaction = null;
+	GetDocumentTransaction getInternalDocumentTransaction() {
+		if (internalDocumentTransaction == null) {
+			try {
+				internalDocumentTransaction = new GetDocumentTransaction();
+				internalDocumentTransaction.setName(internalDocument);
+				RequestableVariable var_docid = new RequestableVariable();
+				var_docid.setName(CouchParam.docid.param());
+				var_docid.setValueOrNull("true");
+				internalDocumentTransaction.add(var_docid);
+				internalDocumentTransaction.setParent(this);
+			} catch (Exception e) {}
+		}
+		return internalDocumentTransaction;
+	}
+	
 	@Override
 	public Transaction getTransactionByName(String transactionName) {
 		Transaction Transaction = super.getTransactionByName(transactionName);
 		if (Transaction == null && internalView.equals(transactionName)) {
 			return getInternalViewTransaction();
+		}
+		if (Transaction == null && internalDocument.equals(transactionName)) {
+			return getInternalDocumentTransaction();
 		}
 		return Transaction;
 	}

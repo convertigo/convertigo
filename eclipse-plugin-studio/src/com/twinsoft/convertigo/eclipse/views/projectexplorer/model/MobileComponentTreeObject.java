@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -37,7 +37,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import com.twinsoft.convertigo.beans.core.MobileComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileComponent;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput;
 import com.twinsoft.convertigo.engine.Engine;
@@ -96,7 +96,7 @@ public class MobileComponentTreeObject extends DatabaseObjectTreeObject implemen
 		
 		if (parent != null) {
 			ApplicationComponentEditor editor = ((MobileApplicationComponentTreeObject) parent).activeEditor();
-			editor.highlightComponent(getObject());
+			editor.highlightComponent(getObject(), true);
 		}
 		
 	}

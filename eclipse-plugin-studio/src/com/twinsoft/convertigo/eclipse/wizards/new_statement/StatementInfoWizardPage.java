@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,15 +19,23 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_statement;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.layout.*;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.common.XMLTable;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class StatementInfoWizardPage extends WizardPage {
@@ -68,7 +76,6 @@ public class StatementInfoWizardPage extends WizardPage {
 	}
 	
 	private void dialogChanged() {
-		
 		String name = getBeanName();
 		if (name.length() == 0) {
 			updateStatus("Name must be specified");
@@ -79,18 +86,33 @@ public class StatementInfoWizardPage extends WizardPage {
 			updateStatus("Name must be normalized.\nDon't start with number and don't use non ASCII caracters.");
 			return;
 		}
-		
-		try {
-			((StatementGeneratorWizardPage)getWizard().getPage("StatementGeneratorWizardPage")).getCreatedBean().setName(name);
-		} catch (EngineException e) {
-			updateStatus("Name could not be set on bean");
-			return;
-		}
-		catch (NullPointerException e) {
-			updateStatus("New Bean has not been instanciated");
-			return;
-		}
-		
+
+		Matcher m = Pattern.compile("\\d+$").matcher("");
+		boolean sameName;
+		do {
+			sameName = false;
+
+			try {
+				((StatementGeneratorWizardPage)getWizard().getPage("StatementGeneratorWizardPage")).getCreatedBean().setName(name);
+			} catch (ObjectWithSameNameException e) {
+				sameName = true;
+				m.reset(name);
+				if (m.find()) {
+					name = name.substring(0, m.start()) + (Integer.parseInt(m.group()) + 1);
+				} else {
+					name = name + "_1";
+				}
+				setBeanName(name);
+			} catch (EngineException e) {
+				updateStatus("Name could not be set on bean");
+				return;
+			}
+			catch (NullPointerException e) {
+				updateStatus("New Bean has not been instanciated");
+				return;
+			}
+		} while (sameName);
+
 		updateStatus(null);
 	}
 

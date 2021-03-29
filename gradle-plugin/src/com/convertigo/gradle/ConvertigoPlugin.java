@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -32,9 +32,10 @@ public class ConvertigoPlugin implements Plugin<Project> {
 	CompileMobileBuilder compileMobileBuilder;
 	ProjectCar car;
 	ProjectDeploy deploy;
-	NativeBuild nativeBuild;
-	NativeBuildLaunch launchNativeBuild;
-	NativeBuildDownload downloadNativeBuild;
+	RemoteBuild remoteBuild;
+	RemoteBuildLaunch launchRemoteBuild;
+	RemoteBuildDownload downloadRemoteBuild;
+	LocalBuild localBuild;
 	
 	CLI getCLI() throws Exception {
 		return CLI.instance;
@@ -84,25 +85,32 @@ public class ConvertigoPlugin implements Plugin<Project> {
 			task.setDescription("Push the project to a Convertigo server.");
 		});
 		
-		nativeBuild = tasks.create("nativeBuild", NativeBuild.class, (task) -> {
+		remoteBuild = tasks.create("remoteBuild", RemoteBuild.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("configuration");
 			task.dependsOn(load);
-			task.setDescription("Configurator task for 'launchNativeBuild' and 'downloadNativeBuild'.");
+			task.setDescription("Configurator task for 'remoteNativeBuild' and 'remoteNativeBuild'.");
 		});
 		
-		launchNativeBuild = tasks.create("launchNativeBuild", NativeBuildLaunch.class, (task) -> {
+		launchRemoteBuild = tasks.create("launchRemoteBuild", RemoteBuildLaunch.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
-			task.dependsOn(nativeBuild);
-			task.setDescription("Upload the mobile source package to the Convertigo Phonegap Build Gateway.");
+			task.dependsOn(remoteBuild);
+			task.setDescription("Upload the mobile source package to the Convertigo Build Gateway.");
 		});
 		
-		downloadNativeBuild = tasks.create("downloadNativeBuild", NativeBuildDownload.class, (task) -> {
+		downloadRemoteBuild = tasks.create("downloadRemoteBuild", RemoteBuildDownload.class, (task) -> {
 			task.plugin = ConvertigoPlugin.this;
 			task.setGroup("build");
-			task.dependsOn(launchNativeBuild);
+			task.dependsOn(launchRemoteBuild);
 			task.setDescription("Wait the remote build to finish, then download the native packages (iOS ipa or Android apk).");
+		});
+		
+		localBuild = tasks.create("localBuild", LocalBuild.class, (task) -> {
+			task.plugin = ConvertigoPlugin.this;
+			task.setGroup("build");
+			task.dependsOn(load);
+			task.setDescription("Build native package for selected platforms.");
 		});
 	}
 }

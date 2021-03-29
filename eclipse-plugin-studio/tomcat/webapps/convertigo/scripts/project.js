@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -259,7 +259,11 @@ function setName($elt, $xml) {
 	var accessibilityIcon = $xml.attr("accessibility") === "Public" ? "🚪" : 
 		($xml.attr("accessibility") === "Private" ? "🔒" : 
 			($xml.attr("accessibility") === "Hidden" ? "👓" : "" ));
+	var autostartIcon = $xml.attr("autostart") === "true" ? "💡" : "";
 	$elt.text($xml.attr("name")).attr("title", $xml.attr("comment")).attr("displayname", $xml.attr("name"));
+	if (autostartIcon != "") {
+		$elt.prepend("<span class='accessibility-icon'>" + autostartIcon + "</span>");
+	}
 	if (accessibilityIcon != "") {
 		$elt.prepend("<span class='accessibility-icon'>" + accessibilityIcon + "</span>");
 	}

@@ -63,7 +63,6 @@
       <feature id="org.eclipse.help"/>
       <feature id="org.eclipse.jgit"/>
       <feature id="org.eclipse.jgit.ssh.apache"/>
-      <feature id="org.eclipse.wst.jsdt.chromium.debug.feature"/>
       <feature id="org.eclipse.ecf.filetransfer.ssl.feature"/>
       <feature id="org.eclipse.egit"/>
       <feature id="org.eclipse.egit.gitflow.feature"/>
@@ -73,31 +72,13 @@
       <feature id="org.eclipse.equinox.p2.extras.feature"/>
       <feature id="org.eclipse.equinox.p2.rcp.feature"/>
       <feature id="org.eclipse.equinox.p2.user.ui"/>
-      <feature id="org.eclipse.jgit.lfs"/>
       <feature id="org.eclipse.platform"/>
       <feature id="org.eclipse.rcp"/>
       <feature id="org.eclipse.wst.common_core.feature"/>
       <feature id="org.eclipse.wst.common_ui.feature"/>
-      <feature id="org.eclipse.wst.jsdt.feature"/>
-      <feature id="org.eclipse.wst.jsdt.nodejs.feature"/>
-      <feature id="org.eclipse.wst.json_core.feature"/>
-      <feature id="org.eclipse.wst.json_ui.feature"/>
-      <feature id="org.eclipse.wst.server_core.feature"/>
-      <feature id="org.eclipse.wst.server_ui.feature"/>
-      <feature id="org.eclipse.wst.server_userdoc.feature"/>
-      <feature id="org.eclipse.wst.web_core.feature"/>
-      <feature id="org.eclipse.wst.web_ui.feature"/>
-      <feature id="org.eclipse.wst.web_userdoc.feature"/>
-      <feature id="org.eclipse.wst.xml.xpath2.processor.feature"/>
       <feature id="org.eclipse.wst.xml_core.feature"/>
       <feature id="org.eclipse.wst.xml_ui.feature"/>
       <feature id="org.eclipse.wst.xml_userdoc.feature"/>
-      <feature id="org.eclipse.wst.xsl.feature"/>
-      <feature id="ts-feature"/>
-      <feature id="ts-jsdt-feature"/>
-      <feature id="ts-json-feature"/>
-      <feature id="ts-nodejs.embed-feature"/>
-      <feature id="ts-validation-feature"/>
    </features>
 
    <configurations>
@@ -113,9 +94,7 @@
    </configurations>
 
    <repositories>
-      <repository location="http://download.eclipse.org/releases/2019-06" enabled="true" />
-<!--      <repository location="http://download.eclipse.org/eclipse/updates/4.7" enabled="true" /> -->
-<!--      <repository location="http://download.convertigo.com/studio/7.6" enabled="true" /> -->
+      <repository location="http://download.eclipse.org/releases/2020-12" enabled="true" />
    </repositories>
 
    <preferencesInfo>

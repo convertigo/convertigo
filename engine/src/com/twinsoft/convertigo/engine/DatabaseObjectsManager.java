@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -132,6 +133,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return Collections.emptyMap();
 		}
 		
+		default public void projectLoaded(Project project) {
+		}
+		
 		public File getProject(String projectName);
 	}
 	
@@ -155,6 +159,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	};
 	
 	private Map<String, Project> projects;
+	private Map<String, Object> importLocks;
 	
 	private String globalSymbolsFilePath = null;
 	/**
@@ -170,6 +175,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public void init() throws EngineException {
 		projects = new HashMap<String, Project>();
+		importLocks = new HashMap<String, Object>();
 		symbolsInit();
 	}
 	
@@ -237,16 +243,24 @@ public class DatabaseObjectsManager implements AbstractManager {
 				if (!projectNames.contains(projectName)) {
 					if (projectDir.isFile() && projectDir.length() < 4096) {
 						try {
-							projectDir = new File(FileUtils.readFileToString(projectDir, "UTF-8"));
+							projectDir = new File(FileUtils.readFileToString(projectDir, StandardCharsets.UTF_8));
 						} catch (IOException e) {
 						}
 					}
-					if (projectDir.isDirectory() &&
-							(new File(projectDir, projectName + ".xml").exists() || new File(projectDir, "c8oProject.yaml").exists())) {
-						if (!checkOpenable || canOpenProject(projectName)) {
-							projectNames.add(projectName);
-						} else {
-							clearCache(projectName);
+					if (projectDir.isDirectory()) {
+						File pFile = new File(projectDir, projectName + ".xml");
+						if (!pFile.exists()) {
+							pFile = new File(projectDir, "c8oProject.yaml");
+						}
+						try {
+							if (projectName.equals(DatabaseObjectsManager.getProjectName(pFile))) {
+								if (!checkOpenable || canOpenProject(projectName)) {
+									projectNames.add(projectName);
+								} else {
+									clearCache(projectName);
+								}
+							}
+						} catch (EngineException e) {
 						}
 					}
 				}
@@ -313,21 +327,26 @@ public class DatabaseObjectsManager implements AbstractManager {
 		
 		if (project == null) {
 			long t0 = Calendar.getInstance().getTime().getTime();
-
 			try {
 				checkForEngineMigrationProcess(projectName);
-				project = importProject(projectPath);
+				project = importProject(projectPath, false);
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
 			} catch (ProjectInMigrationProcessException e) {
 				throw new EngineException("Unable to load the project \"" + projectName
 						+ "\": the project is in migration process.", e);
+			} catch (VersionException e) {
+				throw e;
 			} catch (Exception e) {
 				throw new EngineException("Unable to load the project \"" + projectName + "\"", e);
 			} finally {
 				long t1 = Calendar.getInstance().getTime().getTime();
 				Engine.logDatabaseObjectManager.trace("Project loaded in " + (t1 - t0) + " ms");
 			}
+		} else if (!(projectPath = project.getDirFile()).exists()) {
+			Engine.logDatabaseObjectManager.trace("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + projectPath);
+			clearCache(project);
+			project = null;
 		} else {
 			Engine.logDatabaseObjectManager.trace("Retrieve from cache project \"" + projectName + "\"");
 		}
@@ -460,13 +479,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public void clearCache(Project project) {
 		String name = project.getName();
-		synchronized (projects) {
-			if (projects.get(name) == project) {
-				projects.remove(name);
-				RestApiManager.getInstance().removeUrlMapper(name);
-				MobileBuilder.releaseBuilder(project);
-			}
-		}
+		clearCache(name);
 	}
 	
 	public void clearCache(String projectName) {
@@ -691,7 +704,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 						// migration through import if necessary)
 						project = deployProject(projectFileName, needsMigration);
 					} else {
-						project = importProject(projectName);
+						project = importProject(projectName, false);
 					}
 				}
 			} else {
@@ -748,26 +761,27 @@ public class DatabaseObjectsManager implements AbstractManager {
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 			FileUtils.deleteQuietly(archive);
 			archive.getParentFile().mkdirs();
-			if (Engine.logEngine.isDebugEnabled()) {
-				long length = response.getEntity().getContentLength();
-				try (FileOutputStream fos = new FileOutputStream(archive)) {
-					InputStream is = response.getEntity().getContent();
-					byte[] buf = new byte[1024 * 1024];
-					int n;
-					long t = 0, now, ts = 0;
-					while ((n = is.read(buf)) > -1) {
-						fos.write(buf, 0, n);
-						t += n;
-						now = System.currentTimeMillis();
-						if (now > ts) {
-							Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + length);
-							ts = now + 2000;
-						}
+			long length = response.getEntity().getContentLength();
+			String sl = Long.toString(length);
+			if (length < 1) {
+				length = Integer.MAX_VALUE;
+				sl = "??";
+			}
+			try (FileOutputStream fos = new FileOutputStream(archive)) {
+				InputStream is = response.getEntity().getContent();
+				byte[] buf = new byte[1024 * 1024];
+				int n;
+				long t = 0, now, ts = 0;
+				while (t < length && (n = is.read(buf, 0, (int) Math.min(length - t, buf.length))) > -1) {
+					fos.write(buf, 0, n);
+					t += n;
+					now = System.currentTimeMillis();
+					if (now > ts) {
+						Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + sl);
+						ts = now + 2000;
 					}
-					Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + length);
 				}
-			} else {
-				FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+				Engine.logEngine.debug("Download project from " + projectUrl.toString() + " : " + t + " / " + sl);
 			}
 			Engine.logEngine.info("Downloaded project " + projectUrl.toString() + " to " + archive.toString());
 			return deployProject(archive.getAbsolutePath(), targetProjectName, bForce, keepOldReferences);
@@ -782,6 +796,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
 			} catch (Exception e) {
+				Engine.logDatabaseObjectManager.warn("Failed to load project from '" + projectArchiveFilename + "', try again\nBecause of [" + e.getClass().getSimpleName() + "] " + e.getMessage());
+				try {
+					return deployProject(new URL(projectArchiveFilename), targetProjectName, bForce, keepOldReferences);
+				} catch (Exception e2) {
+					throw new EngineException("Failed to load project from '" + projectArchiveFilename + "' because of [" + e2.getClass().getSimpleName() + "] " + e2.getMessage(), e2);
+				}
 			}
 		}
 		String archiveProjectName, projectDirPath;
@@ -852,7 +872,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			
 			// Import project (will perform the migration)
-			Project project = importProject(xmlFile);
+			Project project = importProject(xmlFile, true);
 
 			// Rename connector's directory under traces directory if needed
 			// (name should be normalized since 4.6)
@@ -877,6 +897,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			Engine.logDatabaseObjectManager.info("Project \"" + targetProjectName + "\" deployed!");
 			return project;
+		} catch (VersionException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename
 					+ "\".", e);
@@ -974,47 +996,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 		parentElem.removeChild(includeElem);
 	}
 	
-	public Project importProject(File importFileName) throws EngineException {
-		return importProject(importFileName.getAbsolutePath());
-	}
-
-	public Project importProject(String importFileName) throws EngineException {
-		try {
-			File file = new File(importFileName);
-			if (importFileName.endsWith(".xml") && !file.exists()) {
-				String oldName = importFileName;
-				file = new File(file.getParentFile(), "c8oProject.yaml");
-				Engine.logDatabaseObjectManager.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + file);
-			}
-			if (!file.exists()) {
-				return null;
-			}
-			Project project = importProject(file.getAbsolutePath(), null);
-			if (!Engine.isCliMode()) {
-				Engine.logDatabaseObjectManager.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFileName);
-				Engine.execute(() -> CouchDbManager.syncDocument(project));
-			}
-			return project;
-		} catch (Exception e) {
-			throw new EngineException("An error occured while importing project", e);
-		}
-	}
-
-	public Project importProject(Document document) throws EngineException {
-		try {
-			Engine.logDatabaseObjectManager.debug("Importing a project from Document (DOM)");
-			return importProject(null, document);
-		} catch (Exception e) {
-			throw new EngineException("An error occured while importing project", e);
-		}
-	}
-	
 	static public String getProjectName(File projectFile) throws EngineException {
 		String projectName = null;
-		if (projectFile.exists()) {
+		if (projectFile != null && projectFile.exists()) {
 			String filename = projectFile.getName();
 			if (filename.equals("c8oProject.yaml")) {
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 					String line = br.readLine();
 					Matcher m = pYamlProjectName.matcher("");
 					while (line != null && projectName == null) {
@@ -1049,7 +1036,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		final String[] version = { null };
 		if (projectFile.exists()) {
 			if (projectFile.getName().equals("c8oProject.yaml")) {
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), "UTF-8"))) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(projectFile), StandardCharsets.UTF_8))) {
 					String line = br.readLine();
 					Matcher m = pYamlProjectVersion.matcher("");
 					while (line != null && version[0] == null) {
@@ -1099,22 +1086,58 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return version[0];
 	}
 
-	private Project importProject(String importFileName, Document document) throws EngineException {
+	public Project importProject(String importFileName, boolean override) throws EngineException {
+		return importProject(new File(importFileName), override);
+	}
+
+	public Project importProject(File importFile, boolean override) throws EngineException {
+		String filename = importFile.getName();
+		if (filename.endsWith(".xml") && !importFile.exists()) {
+			String oldName = filename;
+			importFile = new File(importFile.getParentFile(), "c8oProject.yaml");
+			Engine.logDatabaseObjectManager.info("Trying to load unexisting: " + oldName + "\nLoading instead: " + importFile);
+		}
+		String projectName = getProjectName(importFile);
+		if (projectName == null) {
+			return null;
+		}
+		Object lock;
+		boolean first = false;
+		Project project = null;
 		try {
-			File importFile;
-			
-			if (importFileName != null) {
-				Engine.logDatabaseObjectManager.info("Importing project from: " + importFileName);
-				importFile = new File(importFileName);
-				if (importFile.getName().equals("c8oProject.yaml")) {
-					document = YamlConverter.readYaml(importFile);
-					document = BeansDefaultValues.unshrinkProject(document);
-				} else {
-					document = XMLUtils.loadXml(importFile);
+			synchronized (importLocks) {
+				if (!override) {
+					synchronized (projects) {
+						project = projects.get(projectName);
+						if (project != null) {
+							return project;
+						}
+					}
 				}
+				lock = importLocks.get(projectName);
+				if (lock == null) {
+					importLocks.put(projectName, lock = new Object());
+					first = true;
+				}
+			}
+			synchronized (lock) {
+				if (!first) {
+					try {
+						lock.wait();
+					} catch (InterruptedException e) {
+						Engine.logDatabaseObjectManager.error("Interruption", e);
+					}
+					return getOriginalProjectByName(projectName);
+				}
+			}
+			
+			Document document;
+			Engine.logDatabaseObjectManager.info("Importing project from: " + importFile);
+			if (importFile.getName().equals("c8oProject.yaml")) {
+				document = YamlConverter.readYaml(importFile);
+				document = BeansDefaultValues.unshrinkProject(document);
 			} else {
-				Engine.logDatabaseObjectManager.info("Importing project a Document (DOM)");
-				importFile = null;
+				document = XMLUtils.loadXml(importFile);
 			}
 			
 			// Performs necessary XML migration
@@ -1122,15 +1145,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 			
 			Element rootElement = document.getDocumentElement();
 			Element projectElement = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
-
+			
 			// Retrieve project version
 			String version = rootElement.getAttribute("beans");
 			projectElement.setAttribute("version", version);
-
+			
 			// Retrieve project name
 			NodeList properties = projectElement.getElementsByTagName("property");
 			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
-			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
+			String xName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
+			if (!projectName.equals(xName)) {
+				throw new EngineException("Project name mismatch: " + projectName + " != " + xName);
+			}
 			
 			boolean isMigrating = "true".equals(document.getUserData("isMigrating"));
 			if (isMigrating) {
@@ -1145,9 +1171,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 			getProjectLoadingData().projectName = projectName;
 			
 			// Import will perform necessary beans migration (see deserialization)
-			Project project = null;
 			try {
 				project = (Project) importDatabaseObject(projectNode, null);
+			} catch (VersionException e) {
+				e.setProjectName(projectName);
+				e.setProjectPath(importFile.getAbsolutePath());
+				throw e;
 			} catch (Exception e) {
 				if (document != null) {
 					Engine.logDatabaseObjectManager.error("Failed to import project \"" + projectName + "\":\n" + XMLUtils.prettyPrintDOM(document));
@@ -1158,9 +1187,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			
 			synchronized (projects) {
 				projects.put(project.getName(), project);
-				RestApiManager.getInstance().putUrlMapper(project);
-				MobileBuilder.initBuilder(project);
 			}
+			studioProjects.projectLoaded(project);
+			RestApiManager.getInstance().putUrlMapper(project);
+			MobileBuilder.initBuilder(project);
 			
 			if (!Engine.isStudioMode()) {
 				Engine.theApp.referencedProjectManager.check(project);
@@ -1197,15 +1227,32 @@ public class DatabaseObjectsManager implements AbstractManager {
 				File prjDir = project.getDirFile();
 				File pDir = new File(Engine.PROJECTS_PATH, projectName);
 				if (pDir != prjDir && !pDir.exists()) {
-					FileUtils.write(pDir, prjDir.getCanonicalPath(), "UTF-8");
+					FileUtils.write(pDir, prjDir.getCanonicalPath(), StandardCharsets.UTF_8);
 				}
 			}
 			
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" imported!");
 
+			if (!Engine.isCliMode()) {
+				Project p = project;
+				Engine.logDatabaseObjectManager.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFile);
+				Engine.execute(() -> CouchDbManager.syncDocument(p));
+			}
+			
 			return project;
+		} catch (VersionException e) {
+			throw e;
 		} catch (Exception e) {
-			throw new EngineException("Unable to import the project from \"" + importFileName + "\".", e);
+			throw new EngineException("Unable to import the project from \"" + importFile + "\".", e);
+		} finally {
+			if (first) {
+				synchronized (importLocks) {
+					lock = importLocks.remove(projectName);
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				}
+			}
 		}
 	}
 
@@ -1471,6 +1518,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			fireDatabaseObjectImported(new DatabaseObjectImportedEvent(databaseObject));
 			return databaseObject;
+		} catch (VersionException e) {
+			throw e;
 		} catch (Exception e) {
 			if (e instanceof EngineException
 					&& ((EngineException) e).getCause() instanceof ClassNotFoundException) {
@@ -1988,6 +2037,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public DatabaseObject getDatabaseObjectByQName(String qname) throws Exception {
+		qname = qname.replaceFirst("\\.\\w+?:$", "");
 		String[] name = qname.split("\\.");
 		String project = name[0];
 		DatabaseObject dbo = getOriginalProjectByName(project);

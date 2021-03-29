@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -196,5 +196,11 @@ public class UIForm extends UIElement {
 			
 			super.computeScripts(jsonScripts);
 		}
+	}
+	
+	@Override
+	public String toString() {
+		String id = getIdentifier();
+		return getName() + (id.isEmpty() ? "":" #"+id);
 	}
 }

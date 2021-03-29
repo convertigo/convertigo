@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +38,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.operation.ModalContext;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -69,16 +70,14 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
+import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.text.TraceFileEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xsl.XslFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NamespaceUriValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -88,6 +87,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 
@@ -141,7 +141,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		// clear Source picker view if needed
 		clearSourcePickerView();
 		
-		Engine.theApp.databaseObjectsManager.clearCache(getObject());
+		Engine.execute(() -> Engine.theApp.databaseObjectsManager.clearCache(getObject()));
 		return true;
 	}
 
@@ -188,7 +188,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		// delete old resources plugin
 		ConvertigoPlugin.getDefault().deleteProjectPluginResource(oldName);
 		// create new resources plugin
-		ConvertigoPlugin.getDefault().createProjectPluginResource(newName);
+		ConvertigoPlugin.getDefault().createProjectPluginResource(newName, project.getDirPath());
 	}
 	
 	/* (non-Javadoc)
@@ -308,10 +308,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
-			if ((treeObject != this && treeObject instanceof ProjectTreeObject) ||
-				(databaseObject instanceof RequestableStep && treeObject.getProjectTreeObject() == this)) {
-					checkMissingProjects();
-			}
 			
 			if (databaseObject instanceof CouchDbConnector) {
 				CouchDbConnector couchDbConnector = (CouchDbConnector) databaseObject;
@@ -327,7 +323,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				}
 			}
 			
-			if (treeObject.getProjectTreeObject() == this) {
+			if (this.equals(treeObject.getProjectTreeObject())) {
+				checkMissingProjects();
+				
 				Engine.theApp.schemaManager.clearCache(getName());
 			}
 		}
@@ -391,11 +389,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					}
 				}
 				else if (databaseObject instanceof ProjectSchemaReference) {
-					checkMissingProjects();
+					checkMissingProjects(false);
 				}
 				
 				// Clear schema cache
-				if (treeObject.getProjectTreeObject() == this) {
+				if (this.equals(treeObject.getProjectTreeObject())) {
 					Engine.theApp.schemaManager.clearCache(getName());
 				}
 			}
@@ -439,15 +437,20 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				// Nothing to do
 			}
 			
-			else if ((databaseObject instanceof RequestableStep && propertyName.startsWith("source"))
-					|| (databaseObject instanceof ProjectSchemaReference && propertyName.equals("projectName"))) {
-				checkMissingProjects();
+			if (this.equals(treeObject.getProjectTreeObject())) {
+				if ((databaseObject instanceof RequestableStep && propertyName.startsWith("source"))
+						|| (databaseObject instanceof ProjectSchemaReference && propertyName.equals("projectName"))
+						|| (treeObject instanceof INamedSourceSelectorTreeObject && 
+								((INamedSourceSelectorTreeObject)treeObject).getNamedSourceSelector().isNamedSource(propertyName))
+				) {
+					checkMissingProjects();
+				}
 			}
 			
 			// Clear schema cache
-			if (treeObject.getProjectTreeObject() == this) {
+			if (this.equals(treeObject.getProjectTreeObject())) {
 				Engine.theApp.schemaManager.clearCache(getName());
-			}			
+			}	
 		}
 	}
 	
@@ -666,28 +669,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							if (((SequenceEditorInput) editorInput).is(project)) {
 								closeEditor(activePage, editorRef);
 							}
-						}						
-						// close xsl editors
-						else if (editorInput instanceof XslFileEditorInput) {
-							if (((XslFileEditorInput)editorInput).getProjectName().equals(project.getName())) {
-								closeEditor(activePage, editorRef);
-							}
 						}
 						// close js editors
 						else if (editorInput instanceof JScriptEditorInput) {
 							DatabaseObject dbo = ((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject();
 							if (dbo != null && project.equals(dbo.getProject())) {
-								closeEditor(activePage, editorRef);
-							}
-						}
-						// close xml editors
-						else if (editorInput instanceof XMLTransactionEditorInput) {
-							if (((XMLTransactionEditorInput)editorInput).getTransaction().getProject().equals(project)) {
-								closeEditor(activePage, editorRef);
-							}
-						}						
-						else if (editorInput instanceof XMLTransactionStepEditorInput) {
-							if (((XMLTransactionStepEditorInput)editorInput).getTransactionStep().getProject().equals(project)) {
 								closeEditor(activePage, editorRef);
 							}
 						}						
@@ -704,8 +690,15 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								closeEditor(activePage, editorRef);
 							}
 						}
-						else if (editorInput instanceof ApplicationComponentEditorInput) {
-							if (((ApplicationComponentEditorInput)editorInput).getApplication().getProject().equals(project)) {
+						else if (editorInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
+							com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput acei = GenericUtils.cast(editorInput);
+							if (acei.getApplication().getProject().equals(project)) {
+								closeEditor(activePage, editorRef);
+							}
+						}
+						else if (editorInput instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+							com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(editorInput);
+							if (acei.getApplication().getProject().equals(project)) {
 								closeEditor(activePage, editorRef);
 							}
 						}
@@ -834,96 +827,99 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	} 
 	
 	public void checkMissingProjects() {
-		if (isCheckMissingProjects) {
-			return;
+		checkMissingProjects(true);
+	}
+	
+	public void checkMissingProjects(final boolean doReload) {
+		synchronized (this) {
+			if (isCheckMissingProjects) {
+				return;
+			}
+			isCheckMissingProjects = true;	
 		}
-		
+
 		final Project project = getObject();
-		
-		final Set<String> missingProjects = project.getMissingProjects().keySet();
-		final Set<String> missingProjectReferences = project.getMissingProjectReferences().keySet();
+		Job.create("Check missing project for " + project.getName(), (monitor) -> {
+			try {
+				final Set<String> missingProjects = project.getMissingProjects().keySet();
+				final Set<String> missingProjectReferences = project.getMissingProjectReferences().keySet();
 
-		if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
-			isCheckMissingProjects = true;
-			
-			Display.getDefault().asyncExec(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						int level = ModalContext.getModalLevel();
-						if (level > 0) {
-							// prevents double modal windows: dead lock on linux/gtk studio
-							Display.getDefault().asyncExec(this);
-							return;
-						} 
-						ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
-
-						String message = "For \"" + project.getName() + "\" project :\n";
-						List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
-						for (String targetProjectName: missingProjects) {
-							if (allProjects.contains(targetProjectName)) {
+				if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
+					List<String> allProjects = Engine.theApp.databaseObjectsManager.getAllProjectNamesList(false);
+					for (Iterator<String> i = missingProjects.iterator() ; i.hasNext(); ) {
+						String targetProjectName = i.next();
+						if (allProjects.contains(targetProjectName)) {
+							Display.getDefault().syncExec(() -> {
 								try {
-									int response = ConvertigoPlugin.questionMessageBox(null, message + "Open \"" + targetProjectName + "\" project ?");
-									if (response == SWT.YES) {
-										TreeObject obj = pev.getProjectRootObject(targetProjectName);
-										if (obj != null && obj instanceof UnloadedProjectTreeObject) {
-											pev.loadProject(((UnloadedProjectTreeObject) obj));
-											missingProjects.remove(targetProjectName);	
-										}
+									ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+									TreeObject obj = pev.getProjectRootObject(targetProjectName);
+									if (obj != null && obj instanceof UnloadedProjectTreeObject) {
+										pev.loadProject(((UnloadedProjectTreeObject) obj));
+										i.remove();
 									}
 								} catch (Exception e) {
 									Engine.logStudio.warn("Failed to open \"" + targetProjectName + "\"", e);
 								}
+							});
+						}
+					}
+
+					Map<String, ProjectUrlParser> refToImport = new HashMap<>();
+					for (Reference ref: project.getReferenceList()) {
+						if (ref instanceof ProjectSchemaReference) {
+							ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
+							if (missingProjects.contains(prjRef.getParser().getProjectName()) && prjRef.getParser().isValid()) {
+								refToImport.put(prjRef.getParser().getProjectName(), prjRef.getParser());
 							}
 						}
-						
-						Map<String, ProjectUrlParser> refToImport = new HashMap<>();
-						for (Reference ref: project.getReferenceList()) {
-							if (ref instanceof ProjectSchemaReference) {
-								ProjectSchemaReference prjRef = (ProjectSchemaReference) ref;
-								if (missingProjects.contains(prjRef.getParser().getProjectName()) && prjRef.getParser().isValid()) {
-									message += "\nDo you want to automatically import \"" + prjRef.getProjectName() + "\" from \"" + prjRef.getParser().getGitRepo() + "\" ?";
-									refToImport.put(prjRef.getParser().getProjectName(), prjRef.getParser());
+					}
+
+					if (!refToImport.isEmpty()) {
+						Engine.execute(() -> {
+							boolean loaded = false;
+							for (ProjectUrlParser parser: refToImport.values()) {
+								try {
+									loaded |= Engine.theApp.referencedProjectManager.importProject(parser) != null;
+								} catch (Exception e) {
+									Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
 								}
 							}
-						}
-						
-						if (!refToImport.isEmpty()) {
-							int response = ConvertigoPlugin.questionMessageBox(null, message);
-							if (response == SWT.YES) {
-								Engine.execute(() -> {
-									boolean loaded = false;
-									for (ProjectUrlParser parser: refToImport.values()) {
-										try {
-											loaded |= Engine.theApp.referencedProjectManager.importProject(parser) != null;
-										} catch (Exception e) {
-											Engine.logStudio.warn("Failed to load '" + parser.getProjectName() + "'", e);
-										}
-									}
-									if (loaded) {
-										Engine.theApp.fireMigrationFinished(new EngineEvent(""));
-									}
-								});
-								return;
+							if (loaded) {
+								Engine.theApp.fireMigrationFinished(new EngineEvent(""));
 							}
-						}
-						
-						message = "For \"" + project.getName() + "\" project :\n";
-						
-						for (String targetProjectName: missingProjects) {
-							message += "  > The project \"" + targetProjectName + "\" is missing\n";
-						}
+						});
+						return;
+					}
 
-						for (String targetProjectName: missingProjectReferences) {
-							message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
-						}
+					String message = "For \"" + project.getName() + "\" project :\n";
 
-						message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
+					for (String targetProjectName: missingProjects) {
+						message += "  > The project \"" + targetProjectName + "\" is missing\n";
+					}
 
-						if (!missingProjectReferences.isEmpty()) {
-							int response = ConvertigoPlugin.questionMessageBox(null, message + "\n\nDo you want to automatically add reference objects ?");
-							if (response == SWT.YES) {
+					for (String targetProjectName: missingProjectReferences) {
+						message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
+					}
+
+					message += "\nPlease create missing reference(s) and import missing project(s), or correct your project.";
+
+					if (!missingProjectReferences.isEmpty()) {
+						final String msg = message;
+						final String warn = message;
+						Display.getDefault().syncExec(() -> {
+							CustomDialog customDialog = new CustomDialog(
+									null,
+									"Project references",
+									msg + "\n\nDo you want to automatically add reference objects ?",
+									670, 250,
+									new ButtonSpec("Always", true),
+									new ButtonSpec("Never", false));
+							
+							String autoCreate = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_CREATE_PROJECT_REFERENCE);
+							int response = autoCreate.isEmpty() ? customDialog.open() : (autoCreate.equalsIgnoreCase("true") ? 0 : 1);
+							
+							ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_AUTO_CREATE_PROJECT_REFERENCE, response == 0 ? "true" : "false");
+							if (response == 0) {
 								for (String targetProjectName: missingProjectReferences) {
 									try {
 										ProjectSchemaReference reference = new ProjectSchemaReference();
@@ -931,26 +927,35 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 										reference.setName(targetProjectName + "_reference");
 										projectName = ProjectUrlParser.getUrl(projectName);
 										reference.setProjectName(projectName);
+										reference.hasChanged = true;
 										project.add(reference);
-
-										ProjectExplorerView explorerView = ConvertigoPlugin.projectManager.getProjectExplorerView();
-										explorerView.reloadTreeObject(ProjectTreeObject.this);
 									} catch (Exception e) {
 										ConvertigoPlugin.logException(e, "failed to add a reference to '" + targetProjectName + "'");
 									}
 								}
+								
+								try {
+									if (doReload || autoCreate.isEmpty()) {
+										ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+										pev.reloadTreeObject(ProjectTreeObject.this);
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+								
 								hasBeenModified(true);
+							} else {
+								Engine.logBeans.warn(warn);
 							}
-						} else if (!missingProjects.isEmpty()) {
-							ConvertigoPlugin.warningMessageBox(message);
-						}
-					} finally {
-						isCheckMissingProjects = false;
+						});
+					} else if (!missingProjects.isEmpty()) {
+						ConvertigoPlugin.warningMessageBox(message);
 					}
 				}
-
-			});
-		}
+			} finally {
+				isCheckMissingProjects = false;
+			}
+		}).schedule();
 	}
 
 	@Override

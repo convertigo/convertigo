@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
@@ -59,6 +60,7 @@ public class EmbeddedTomcat implements Runnable {
 
 			System.out.println("(EmbeddedTomcat) Catalina home: " + tomcatHome);
 			System.setProperty("catalina.home", tomcatHome);
+			System.setProperty("org.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH", "true");
 			System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");
 
 			// Create an embedded server
@@ -100,11 +102,11 @@ public class EmbeddedTomcat implements Runnable {
 			connector.setPort(httpsConnectorPort);
 			connector.setSecure(true);
 			connector.setScheme("https");
-			connector.setAttribute("keystorePass", "password"); 
-			connector.setAttribute("keystoreFile", tomcatHome + "/conf/.keystore"); 
-			connector.setAttribute("clientAuth", false);
-			connector.setAttribute("sslProtocol", "TLS");
-			connector.setAttribute("SSLEnabled", true);
+			connector.setProperty("keystorePass", "password"); 
+			connector.setProperty("keystoreFile", tomcatHome + "/conf/.keystore"); 
+			connector.setProperty("clientAuth", "false");
+			connector.setProperty("sslProtocol", "TLS");
+			connector.setProperty("SSLEnabled", "true");
 			embedded.getService().addConnector(connector);
 			
 			Context context = embedded.addWebapp("", tomcatHome + "webapps/ROOT");
@@ -115,11 +117,13 @@ public class EmbeddedTomcat implements Runnable {
 			
 			File configFile = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "studio/context.xml");
 			if (configFile.exists()) {
-				String txt = FileUtils.readFileToString(configFile, "UTF-8");
+				String txt = FileUtils.readFileToString(configFile, StandardCharsets.UTF_8);
 				if (!txt.contains("<CookieProcessor")) {
-					txt = txt.replace("</Context>", "\t<CookieProcessor sameSiteCookies=\"\" />\n</Context>");
-					FileUtils.write(configFile, txt, "UTF-8");
+					txt = txt.replace("</Context>", "\t<CookieProcessor sameSiteCookies=\"unset\" />\n</Context>");
+				} else if (txt.contains(" sameSiteCookies=\"\"")) {
+					txt = txt.replace(" sameSiteCookies=\"\"", " sameSiteCookies=\"unset\"");
 				}
+				FileUtils.write(configFile, txt, StandardCharsets.UTF_8);
 				System.out.println("(EmbeddedTomcat) Set convertigo webapp config file to " + configFile.getAbsolutePath());
 				context.setConfigFile(configFile.toURI().toURL());
 			}

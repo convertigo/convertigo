@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,10 +41,15 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.RestApiManager;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.XPathEngine;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.DirClassLoader;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -174,6 +180,32 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		} catch (EngineException e) {
 		}
 		return CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
+	}
+	
+	public static void executeAutoStartSequences(final String projectName) {
+		try {
+			final Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			if (p != null) {
+				for (final Sequence sequence: p.getSequencesList()) {
+					if (sequence.isAutoStart()) {
+						Engine.execute(() -> {
+							try {
+								Map<String, String[]> parameters = new HashMap<String, String[]>();
+								parameters.put(Parameter.Project.getName(), new String[] {projectName});
+								parameters.put(Parameter.Sequence.getName(), new String[]{sequence.getName()});
+								InternalHttpServletRequest request = new InternalHttpServletRequest();
+								InternalRequester requester = new InternalRequester(GenericUtils.<Map<String, Object>>cast(parameters), request);
+								requester.processRequest();
+							} catch (Exception e) {
+								Engine.logEngine.error("Failed to execute the auto start sequence \"" + sequence.getQName() + "\"", e);
+							}
+						});
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to execute auto start sequences for project \"" + projectName + "\"", e);
+		}
 	}
 	
     /**
@@ -571,7 +603,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	
 	public MobileBuilder getMobileBuilder() {
 		if ((Engine.isStudioMode() || Engine.isCliMode()) && mobileBuilder == null) {
-			mobileBuilder = new MobileBuilder(this);
+			try {
+				synchronized (this) {
+					mobileBuilder = MobileBuilder.getInstance(this);
+				}
+			} catch (EngineException e) {
+				Engine.logEngine.warn(e.getMessage());
+			}
 		}
 		return mobileBuilder;
 	}
@@ -730,12 +768,18 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		
 		try {
-			String tplProject = mobileApplication.getApplicationComponent().getTplProjectName();
+			IApplicationComponent app = mobileApplication.getApplicationComponent();
+			
+			String tplProject = app.getTplProjectName();
 			if (!neededProjects.containsKey(tplProject)) {
 				neededProjects.put(tplProject, false);
 			}
-		} catch (Exception e) {
-		}
+			
+			for (DatabaseObject child: app.getAllChildren()) {
+				getNeededProjects(neededProjects, child);
+			}
+			
+		} catch (Exception e) {}
 		
 		return neededProjects;
 	}
@@ -764,6 +808,31 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		else if (dbo instanceof Sequence) {
 			getNeededProjects(neededProjects, ((Sequence) dbo).getSteps());
+		}
+		else if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent ||
+					dbo instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			try {
+				for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors()) {
+					if (pd.getPropertyEditorClass() != null) {
+						if (pd.getPropertyEditorClass().getSimpleName().equals("NamedSourceSelectorEditor")) {
+							Object args[] = { };
+							Method getter = pd.getReadMethod();
+							String qname = (String) getter.invoke(dbo, args);
+							if (!qname.isEmpty() && !qname.startsWith(dbo.getProject().getName() + ".")) {
+								int index = qname.indexOf(".");
+								if (index != -1) {
+									String targetProjectName = qname.substring(0, index);
+									neededProjects.put(targetProjectName, true);
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e)	{}
+			
+			for (DatabaseObject child: dbo.getAllChildren()) {
+				getNeededProjects(neededProjects, child);
+			}
 		}
 	}
 	

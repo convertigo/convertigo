@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,13 +22,13 @@ package com.twinsoft.convertigo.eclipse;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,9 +44,11 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.FileInfoMatcherDescription;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceFilterDescription;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -57,31 +59,21 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Monitor;
-import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
@@ -102,7 +94,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
-import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.part.ShowInContext;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.properties.PropertySheet;
 import org.eclipse.ui.views.properties.PropertySheetPage;
@@ -125,23 +117,22 @@ import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
+import com.twinsoft.convertigo.eclipse.editors.StartupEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput;
-import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
-import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.ProductVersion;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
@@ -153,11 +144,7 @@ import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
-import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.util.Log;
-
-import ts.eclipse.ide.core.TypeScriptCorePlugin;
-import ts.eclipse.ide.core.nodejs.IEmbeddedNodejs;
 
 /**
  * The main plugin class to be used in the desktop.
@@ -167,6 +154,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
 
 	public static final String PLUGIN_PERSPECTIVE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective"; //$NON-NLS-1$
+	
+	public static final String GRADLE_NATURE_ID = "org.eclipse.buildship.core.gradleprojectnature";
 
 	public static ProjectManager projectManager = null;
 
@@ -188,7 +177,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_LOCAL_BUILD_FOLDER = "localBuild.folder";
 	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
 	public static final String PREFERENCE_MOBILE_BUILDER_THRESHOLD = "mobileBuilder.threshold";
-
+	public static final String PREFERENCE_AUTO_CREATE_PROJECT_REFERENCE = "autoCreate.projectReference";
+	
+	private static final QualifiedName qnInit = new QualifiedName(PLUGIN_UNIQUE_ID + ".init", "done");
 
 	private static Display display = null;
 	public static synchronized Display getDisplay() {
@@ -205,7 +196,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	private static Shell mainShell = null;
 	public static synchronized Shell getMainShell() {
 		if (mainShell == null || mainShell.isDisposed()) {
-			mainShell = getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+			mainShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 		}
 		return mainShell;
 	}
@@ -468,272 +459,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	}
 
 	private EmbeddedTomcat embeddedTomcat = null;
-
-	private Button checkBox, closeButton;
-
-	private void displayWaitScreen() {
-		final Display display = getDisplay();
-
-		display.asyncExec(new Runnable() {
-			public void run() {
-
-				try {
-
-					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
-					final long[] timeout = {System.currentTimeMillis() + 30000};
-
-					GridLayout gridLayout = new GridLayout();
-					gridLayout.numColumns = 1;
-					gridLayout.horizontalSpacing = 0;
-					gridLayout.verticalSpacing = 0;
-					gridLayout.marginHeight = 0;
-					gridLayout.marginWidth = 0;
-					shell.setLayout(gridLayout);
-
-					shell.setText("Convertigo Studio");
-
-					Image image = getStudioIcon("icons/splash_wait_rss.png");
-
-					Composite compositeHeader = new Composite(shell, SWT.NONE);
-					compositeHeader.setBackgroundImage(image);
-					compositeHeader.setLayout(new GridLayout());
-
-					GridData gridData = new GridData ();
-					gridData.horizontalAlignment = GridData.FILL;
-					gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
-					gridData.heightHint = image.getBounds().height;
-					compositeHeader.setLayoutData(gridData);
-
-					Composite compositeBar = new Composite(compositeHeader, SWT.NONE);
-					FillLayout fillLayout = new FillLayout();
-					fillLayout.marginHeight = 0;
-					fillLayout.marginWidth = 0;
-					compositeBar.setLayout(fillLayout);
-
-					gridData = new GridData();
-					gridData.horizontalIndent = 172;
-					gridData.verticalIndent = 65;
-					gridData.widthHint = 300;
-					compositeBar.setLayoutData(gridData);
-
-					ProgressBar progressBar = new ProgressBar(compositeBar, SWT.INDETERMINATE);
-
-					//initialize browser
-					initializeBrowser(shell, new ProgressListener() {
-
-						public void completed(ProgressEvent event) {
-							timeout[0] = 0;
-						}
-
-						public void changed(ProgressEvent event) {
-						}
-					});
-
-					Composite toolComposite = new Composite(shell, SWT.NONE);
-					gridLayout = new GridLayout();
-					gridLayout.numColumns = 2;
-					gridLayout.marginHeight = 3;
-					gridLayout.marginWidth = 10;
-					toolComposite.setLayout(gridLayout);
-
-					gridData = new GridData();
-					gridData.horizontalAlignment = GridData.FILL;
-					gridData.grabExcessHorizontalSpace = true;
-					toolComposite.setLayoutData(gridData);
-
-					checkBox = new Button(toolComposite, SWT.CHECK);
-					checkBox.setText("Dismiss automatically");		
-					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
-						checkBox.setSelection(true);
-					}
-
-					image = getStudioIcon("icons/studio/unloadable_project.gif");
-
-					closeButton = new Button(toolComposite, SWT.PUSH);
-					closeButton.setText("Wait...");
-					closeButton.setEnabled(false);
-					closeButton.setImage(image);
-
-					gridData = new GridData();
-					gridData.grabExcessHorizontalSpace = true;
-					gridData.horizontalAlignment = GridData.END;
-					closeButton.setLayoutData(gridData);
-
-
-					int w = 640;
-					int h = 480;
-					try {
-						// mod jmc 31/07/2013
-
-						int x = 0;
-						int y = 0;
-
-						Point pt = display.getCursorLocation();
-						Monitor [] monitors = display.getMonitors();
-
-						for (int i= 0; i<monitors.length; i++) {
-							if (monitors[i].getBounds().contains(pt)) {
-								Rectangle rect = monitors[i].getClientArea();
-
-								if (rect.x < 0)
-									x = ((rect.width - w) / 2) + rect.x;
-								else
-									x = (rect.width - w) / 2;
-
-								if (rect.y < 0)
-									y = ((rect.height - h) / 2) + rect.y;
-								else
-									y = (rect.height - h) / 2;
-
-								break;
-							}
-						}
-
-						shell.setBounds(x, y, w, h);
-
-
-					}
-					catch (Exception e) {
-						shell.setBounds(100, 100, w, h);
-					}
-					shell.open();
-
-					while (!shell.isDisposed() && !Engine.isStartFailed && !Engine.isStarted) {
-						if (!display.readAndDispatch()) {
-							Thread.sleep(100);
-						}
-					}
-
-					progressBar.dispose();
-					compositeBar.dispose();
-
-					image = getStudioIcon("icons/splash_ready_rss.png");
-					compositeHeader.setBackgroundImage(image);
-
-					gridData = new GridData ();
-					gridData.horizontalAlignment = GridData.FILL;
-					gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
-					gridData.heightHint = 75;
-					compositeHeader.setLayoutData(gridData);
-
-					closeButton.addSelectionListener(new SelectionListener() {
-
-						public void widgetDefaultSelected(SelectionEvent e) {		
-						}
-
-						public void widgetSelected(SelectionEvent e) {
-							if (checkBox.getSelection()) {
-								ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "true");
-							}
-							else {
-								ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
-							}
-							shell.close();
-						}
-
-					});
-
-					while (!shell.isDisposed() && System.currentTimeMillis() < timeout[0]) {
-						if (!display.readAndDispatch()) {
-							Thread.sleep(100);
-						}
-					}
-
-					IWorkbenchPage activePage = PlatformUI
-							.getWorkbench()
-							.getActiveWorkbenchWindow()
-							.getActivePage();
-					if (activePage != null) {
-						try {
-							IProject toRemove = ResourcesPlugin.getWorkspace().getRoot().getProject("initEditor");
-							try {
-								toRemove.create(null);
-								toRemove.open(null);
-							} catch (Exception e) {
-							}
-							IFile iFile = toRemove.getFile("initEditor.js");
-							try (ByteArrayInputStream is = new ByteArrayInputStream(new String("// Performing editor initialization ...\nClosing automatically !").getBytes("UTF-8"))) {
-								iFile.create(is , true, null);	
-							} catch (Exception e2) {
-							}
-							IEditorInput input = new FileEditorInput(iFile);
-							IEditorPart part = activePage.openEditor(input, "org.eclipse.wst.jsdt.ui.CompilationUnitEditor");
-							SwtUtils.refreshTheme();
-							activePage.closeEditor(part, false);
-							toRemove.delete(true, null);
-						} catch(Exception e) {
-						}
-					}
-
-					closeButton.setText("Close");
-					closeButton.setEnabled(true);
-
-					shell.layout();
-
-					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
-						shell.close();
-					}
-
-					ProjectExplorerView pew = getProjectExplorerView();
-					pew.initialize();
-				}
-				catch (Exception e) {
-					ConvertigoPlugin.logException(e, "Error during splash wait screen");
-				}
-			};
-		});
-	}
-
-	private void initializeBrowser(Composite parent, ProgressListener progressListener) throws IOException {
-		final Composite filler = new Composite(parent, SWT.NONE); 
-		GridData gridData = new GridData();
-		gridData = new GridData();
-		gridData.horizontalAlignment = GridData.FILL;
-		gridData.verticalAlignment = GridData.FILL;
-		gridData.grabExcessHorizontalSpace = true;
-		gridData.grabExcessVerticalSpace = true;
-		filler.setLayoutData(gridData);
-		filler.setLayout(new FillLayout());
-
-		parent.getDisplay().asyncExec(() -> {
-			final C8oBrowser browser;
-			try {
-				if (filler.isDisposed()) {
-					progressListener.completed(null);
-					return;
-				}
-				browser = new C8oBrowser(filler, SWT.NONE);
-				String username = "n/a";
-				try {
-					Properties properties = decodePsc();
-					username = DeploymentKey.adminUser.value(properties, 1);
-				} catch (Exception e) {}
-
-				String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-				url += "&" + URLUtils.encodePart("user", username);
-				url += "&" + URLUtils.encodePart("version", ProductVersion.fullProductVersion);
-
-				browser.addProgressListener(progressListener);
-				browser.setUrl(url);
-				parent.layout(true, true);
-			} catch (Exception e) {
-				System.out.println("Could not instantiate Browser: " + e.getMessage());
-				progressListener.completed(null);
-				return;
-			}
-		});
-	}
-
+	
 	/**
 	 * This method is called upon plug-in activation
 	 */
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
-		
-//		Engine.execute(() -> {
-//			new Browser(BrowserContext.defaultContext()).dispose();
-//		});
 		
 		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 		if (activeWindow != null) {
@@ -870,7 +602,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 					configureDeployConfiguration();
 
-					displayWaitScreen();
+					//displayWaitScreen();
+					runAtStartup(() -> {
+						ProjectExplorerView pew = getProjectExplorerView();
+						pew.initialize();
+					});
 
 					new Thread(embeddedTomcat, "Embedded Tomcat").start();
 					new Thread(new Runnable() {
@@ -912,7 +648,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 						}
 
 					}, "Wait Embedded Tomcat started").start();
-
+					getDisplay().asyncExec(() -> {
+						launchStartupPage(true);
+					});
 				} catch (Exception e) {
 					afterPscException[0] = e;
 				}
@@ -952,28 +690,42 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 
 		runAtStartup(() -> {
-			File[] templates = new File(Engine.TEMPLATES_PATH + "/project").listFiles();
-			if (templates != null) {
-				for (File tpl: templates) {
-					try {
-						String name = tpl.getName();
-						name = name.substring(0, name.length() - 4);
-						if (name.startsWith("mobilebuilder_tpl")) {
-							if (!Engine.theApp.databaseObjectsManager.existsProject(name)) {
-								Engine.theApp.databaseObjectsManager.deployProject(tpl.getPath(), false);
+			String nodeVersion = ProcessUtils.getDefaultNodeVersion();
+			Job job = Job.create("Retrieve default nodejs " + nodeVersion, monitor -> {
+				try {
+					monitor.beginTask("In progress", 120);
+					monitor.subTask("checking for existing nodejs");
+					monitor.worked(1);
+					boolean first[] = {true};
+					File nodeDir = ProcessUtils.getNodeDir(nodeVersion, new org.apache.commons.fileupload.ProgressListener() {
+
+						@Override
+						public void update(long pBytesRead, long pContentLength, int pItems) {
+							if (first[0]) {
+								monitor.worked(10);
+								monitor.subTask("downloading nodejs [" + (pContentLength / (1024 * 1024)) + " MB]");
+								first[0] = false;
 							}
-							ConvertigoPlugin.getDefault().getProjectPluginResource(name, null);
+							Engine.logConvertigo.info("download NodeJS " + nodeVersion + ": " + Math.round(100f * pBytesRead / pContentLength) + "% [" + pBytesRead + "/" + pContentLength + "]");
+							monitor.worked(10 + Math.round(100f * pBytesRead / pContentLength));
+							if (pBytesRead == pContentLength) {
+								monitor.subTask("installing nodejs");
+								monitor.worked(110);
+							}	
 						}
-					} catch (Exception e) {
-						Engine.logEngine.error("Failed to deploy " + tpl.getName(), e);
-					}
+					});
+					monitor.worked(120);
+					File nodeExe = new File(nodeDir, Engine.isWindows() ? "node.exe" : "node");
+					Engine.logStudio.warn("node ready: " + nodeExe.getAbsolutePath() + " exists ? " + nodeExe.exists());
+					System.setProperty("org.eclipse.wildwebdeveloper.nodeJSLocation", nodeExe.getAbsolutePath());
+					ProcessUtils.setDefaultNodeDir(nodeDir);
+					monitor.done();
+				} catch (Exception e) {
+					Engine.logStudio.error("Failed to init NPM: " + e.getMessage(), e);
 				}
-			}
+			});
+			job.schedule();
 		});
-		
-		for (IEmbeddedNodejs node :TypeScriptCorePlugin.getNodejsInstallManager().getNodejsInstalls()) {
-			ProcessUtils.setDefaultNodeDir(node.getPath().getParentFile());
-		}
 		
 		studioLog.message("Convertigo studio started");
 	}
@@ -1499,7 +1251,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 * @return SourcePickerView : the source picker view of Convertigo Plugin
 	 * @throws  
 	 */
-	public MobileDebugView getMobileDebugView() {
+	public MobileDebugView getMobileDebugView(boolean force) {
 		MobileDebugView mobileDebugView = null;
 		try {
 			IWorkbenchPage activePage = getActivePage();
@@ -1508,7 +1260,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				if (viewPart != null)
 					mobileDebugView = (MobileDebugView) viewPart;
 			}
-			if (mobileDebugView == null) {
+			if (mobileDebugView == null && force) {
 				mobileDebugView = (MobileDebugView) getActivePage().showView("com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView");
 			}
 		} catch (PartInitException e) {
@@ -1516,36 +1268,26 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 		return mobileDebugView;
 	}
-
-	/**
-	 * Gets the jscript editor associated with given transaction.
-	 * !!MUST BE CALLED IN A UI-THREAD!!
-	 * @return IEditorPart : the found jscript editor or null
-	 */
-	public IEditorPart getJscriptTransactionEditor(Transaction transaction) {
-		IEditorPart editorPart = null;
+	
+	public JScriptEditorInput getJScriptEditorInput(Transaction transaction) {
+		JScriptEditorInput jScriptEditorInput = null;
 		IWorkbenchPage activePage = getActivePage();
-		if (activePage != null) {
-			if (transaction != null) {
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i=0;i<editorRefs.length;i++) {
-					IEditorReference editorRef = (IEditorReference)editorRefs[i];
-					try {
-						IEditorInput editorInput = editorRef.getEditorInput();
-						if ((editorInput != null) && (editorInput instanceof JScriptEditorInput)) {
-							if (transaction.equals(((JScriptEditorInput) editorInput).getJScriptContainer().getDatabaseObject())) {
-								editorPart = editorRef.getEditor(false);
-								break;
-							}
+		if (activePage != null && transaction != null) {
+			for (IEditorReference editorRef: activePage.getEditorReferences()) {
+				try {
+					IEditorInput editorInput = editorRef.getEditorInput();
+					if (editorInput != null && editorInput instanceof JScriptEditorInput) {							
+						if (((JScriptEditorInput) editorInput).is(transaction)) {
+							jScriptEditorInput = (JScriptEditorInput) editorInput;
+							break;
 						}
 					}
-					catch(PartInitException e) {
-						//ConvertigoPlugin.logException(e, "Error while retrieving the jscript transaction editor '" + editorRef.getName() + "'");
-					}
+				} catch(PartInitException e) {
+					//ConvertigoPlugin.logException(e, "Error while retrieving the jscript transaction editor '" + editorRef.getName() + "'");
 				}
 			}
 		}
-		return editorPart;
+		return jScriptEditorInput;
 	}
 
 	public IEditorPart getApplicationComponentEditor() {
@@ -1557,7 +1299,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				IEditorReference editorRef = (IEditorReference)editorRefs[i];
 				try {
 					IEditorInput editorInput = editorRef.getEditorInput();
-					if ((editorInput != null) && (editorInput instanceof ApplicationComponentEditorInput)) {
+					if ((editorInput != null) && 
+							(editorInput instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput ||
+									editorInput instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput)) {
 						editorPart = editorRef.getEditor(false);
 						break;
 					}
@@ -1609,39 +1353,44 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	 * @param databaseObjectBeanInfo : BeanInfo of the selected databaseObject in the TreeExplorerView
 	 * @return PropertyDescriptor
 	 */
+	protected ShowInContext showInContext;
 	public PropertyDescriptor getSelectedPropertyDescriptor(BeanInfo databaseObjectBeanInfo) {
 		PropertyDescriptor propertyDescriptor = null;
 
 		// gets the properties editor
 		PropertySheet view = ConvertigoPlugin.getDefault().getPropertiesView();
-		Tree tree = (Tree) view.getCurrentPage().getControl();
-		// gets the property selected in the property editor if one is selected
-		TreeItem[] items = tree.getSelection();
-		if (items.length > 0) {
-			TreeItem selectedItem = items[0];
+		Control ctr = view.getCurrentPage().getControl();
+		if (!(ctr instanceof Tree)) {
+			view.show(showInContext);
+			ctr = view.getCurrentPage().getControl();
+		}
+		if (ctr instanceof Tree) {
+			showInContext = view.getShowInContext();
+			Tree tree = (Tree) ctr;
+			// gets the property selected in the property editor if one is selected
+			TreeItem[] items = tree.getSelection();
+			if (items.length > 0) {
+				TreeItem selectedItem = items[0];
 
-			// gets the local name of the selected property
-			String text = selectedItem.getText();
+				// gets the local name of the selected property
+				String text = selectedItem.getText();
 
-			// gets the PropertyDescriptors of this databaseObject
-			PropertyDescriptor[] descriptors = databaseObjectBeanInfo.getPropertyDescriptors();
+				// gets the PropertyDescriptors of this databaseObject
+				PropertyDescriptor[] descriptors = databaseObjectBeanInfo.getPropertyDescriptors();
 
-			String displayName = null;
-			int i = 0;
+				String displayName = null;
+				int i = 0;
 
-			// gets the PropertyDescriptor of the selected property 
-			while (i < descriptors.length && propertyDescriptor == null) {
-				displayName = descriptors[i].getDisplayName();
-				if (displayName.equals(text))
-					propertyDescriptor = descriptors[i];
-				i++;
+				// gets the PropertyDescriptor of the selected property 
+				while (i < descriptors.length && propertyDescriptor == null) {
+					displayName = descriptors[i].getDisplayName();
+					if (displayName.equals(text))
+						propertyDescriptor = descriptors[i];
+					i++;
+				}
 			}
-		}	
+		}
 		return propertyDescriptor;
-	}
-
-	public IProject createProjectPluginResource(String projectName) throws CoreException {
-		return createProjectPluginResource(projectName, null, null);
 	}
 
 	public IProject createProjectPluginResource(String projectName, String projectDir) throws CoreException {
@@ -1660,7 +1409,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 			resourceProject = myWorkspaceRoot.getProject(projectName);
-	
 			if (!resourceProject.exists()) {
 				if (projectDir == null) {
 					sb.append(" in the workspace folder.");
@@ -1671,10 +1419,15 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
 					description.setLocation(projectPath);
 					resourceProject.create(description, monitor);
-					resourceProject.open(monitor);
 				}
+				openProject(resourceProject, monitor);
 			} else {
-				sb = null;
+				if (resourceProject.isOpen() && !projectName.equals(resourceProject.getDescription().getName())) {
+					resourceProject.delete(false, true, monitor);
+					return createProjectPluginResource(projectName, projectDir, monitor);
+				} else {
+					sb = null;
+				}
 			}
 		} finally {
 			if (sb != null) {
@@ -1683,27 +1436,49 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 		return resourceProject;
 	}
+	
+	private void openProject(IProject iproject, IProgressMonitor monitor) throws CoreException {
+		boolean doInit = !iproject.isOpen() || iproject.getSessionProperty(qnInit) == null;
+		if (doInit) {
+			if (iproject.getFilters().length == 0) {
+				iproject.createFilter(
+						IResourceFilterDescription.EXCLUDE_ALL
+						| IResourceFilterDescription.FOLDERS
+						| IResourceFilterDescription.INHERITABLE,
+						new FileInfoMatcherDescription("org.eclipse.ui.ide.multiFilter", "1.0-name-matches-false-false-node_modules"),
+						IResource.BACKGROUND_REFRESH, null);
+			}
+			iproject.open(monitor);
+			iproject.setSessionProperty(qnInit, true);
+		}
+	}
 
 	public IProject getProjectPluginResource(String projectName) throws CoreException {
 		return getProjectPluginResource(projectName, null);
 	}
 
 	public IProject getProjectPluginResource(String projectName, IProgressMonitor monitor) throws CoreException {
-		IProject resourceProject = createProjectPluginResource(projectName);
+		Project project = null;
+		try {
+			project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+		} catch (EngineException e1) {
+		}
+		if (project == null) {
+			return null;
+		}
+		IProject resourceProject = createProjectPluginResource(projectName, project.getDirPath());
 		if (resourceProject.exists()) {
-			if (!resourceProject.isOpen()) {
-				try {
-					resourceProject.open(monitor);
-				} catch (CoreException e) {
-					// case of missing .project on existing project
-					IPath projectPath = resourceProject.getLocation();
-					IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
-					IProjectDescription description = myWorkspace.newProjectDescription(projectName);
-					description.setLocation(projectPath);
-					resourceProject.delete(false, false, monitor);
-					resourceProject.create(description, monitor);
-					resourceProject.open(monitor);
-				}
+			try {
+				openProject(resourceProject, monitor);
+			} catch (CoreException e) {
+				// case of missing .project on existing project
+				IPath projectPath = resourceProject.getLocation();
+				IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
+				IProjectDescription description = myWorkspace.newProjectDescription(projectName);
+				description.setLocation(projectPath);
+				resourceProject.delete(false, false, monitor);
+				resourceProject.create(description, monitor);
+				openProject(resourceProject, monitor);
 			}
 		}
 		return resourceProject;
@@ -1797,7 +1572,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		File pscFile = new File(convertigoWorkspace, "studio/psc.txt");
 		if (pscFile.exists()) {
 			try {
-				String psc = FileUtils.readFileToString(pscFile, "utf-8");
+				String psc = FileUtils.readFileToString(pscFile, StandardCharsets.UTF_8);
 				return decodePsc(psc);
 			} catch (IOException e) {
 				throw new PscException("Invalid PSC (failed to read the file '" + pscFile.getAbsolutePath() + "' because of a '" + e.getClass().getSimpleName() + " : " + e.getMessage() +"')!");
@@ -1918,7 +1693,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	private File getProjectFile(IProject iProject) {
 		File file = null;
-		if (iProject != null) {
+		try {
 			String name = iProject.getName();
 			IPath iPath = iProject.getLocation();
 			if (iPath != null) {
@@ -1928,7 +1703,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				if (!file.exists()) {
 					file = new File(folder, name + ".xml");
 				}
+				if (!name.equals(DatabaseObjectsManager.getProjectName(file))) {
+					file = null;
+				}
 			}
+		} catch (EngineException e) {
+			file = null;
 		}
 		return file;
 	}
@@ -1943,11 +1723,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		boolean isOpen = false;
 		try {
 			IProject iProject = getIProject(projectName);
-			if (iProject != null) {
-				//				if (!resourceProject.exists() && Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
-				//					resourceProject = createProjectPluginResource(projectName, null);
-				//				}
-				isOpen = iProject.isOpen();
+			if (iProject != null && iProject.exists()) {
+				File projectFile = getProjectFile(iProject);
+				if (projectFile == null || !projectFile.exists()) {
+					iProject.delete(false, true, null);
+					iProject = createProjectPluginResource(projectName, null);
+					projectFile = getProjectFile(iProject);
+				}
+				isOpen = projectFile != null && projectFile.exists() && iProject.isOpen();
 			}
 		} catch (Exception e) {
 			logWarning(e, "Error when checking if '" + projectName + "' is open", false);
@@ -1999,6 +1782,37 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			if (page != null) {
 				page.refresh();
 			}
+		}
+	}
+	
+	public void projectLoaded(Project project) {
+		getDisplay().asyncExec(() -> {
+			ProjectExplorerView pew = getProjectExplorerView();
+			if (pew == null) {
+				return;
+			}
+			try {
+				TreeObject treeProject = pew.getProjectRootObject(project.getName());
+				if (treeProject != null && !project.equals(treeProject.getObject())) {
+					pew.reloadProject(treeProject);
+				}
+			} catch (Exception e) {
+			}
+		});
+	}
+	
+	public void launchStartupPage(boolean autoClose) {
+		try {
+			String username = "n/a";
+			String site = "n/a";
+			try {
+				Properties properties = decodePsc();
+				username = properties.getProperty("owner.email", DeploymentKey.adminUser.value(properties, 1));
+				site = properties.getProperty("deploy.1.server", "n/a").replace("(.*?)\\..*", "$1");
+			} catch (Exception e) {}
+			getActivePage().openEditor(StartupEditor.makeInput(username, site, autoClose), StartupEditor.ID);
+		} catch (PartInitException e) {
+			e.printStackTrace();
 		}
 	}
 }

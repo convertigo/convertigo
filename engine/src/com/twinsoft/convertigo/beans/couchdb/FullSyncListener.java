@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -28,6 +28,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.CouchKey;
+import com.twinsoft.convertigo.engine.providers.couchdb.CouchClient;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 
 public class FullSyncListener extends AbstractFullSyncViewListener {
@@ -63,32 +64,38 @@ public class FullSyncListener extends AbstractFullSyncViewListener {
 			
 			int len = ids.length();
 			
-			Map<String, String> query = new HashMap<String, String>(2);
+			Map<String, String> query = new HashMap<String, String>(5);
 			query.put("reduce", "false");
 			query.put("include_docs", "true");
-	
+			query.put("conflicts", "true");
+			query.put("stable", "true");
+			query.put("update", "true");
+			
+			String db = getDatabaseName();
 			try {
+				CouchClient client = getCouchClient();
 				for (int i = 0; i < len;) {
 					JSONArray doc_ids = getChunk(ids, i);
-					i += doc_ids.length();
-	
-					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view for _id keys " + doc_ids);
-					JSONObject json = getCouchClient().postView(getDatabaseName(), ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
-					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : post view returned following documents :\n" + json.toString());
-	
+					int ids_len = doc_ids.length();
+					i += ids_len;
+					
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post view '" + ddoc + "/" + view + "' for _id keys " + doc_ids);
+					JSONObject json = client.postView(db, ddoc, view, query, CouchKey.keys.put(new JSONObject(), doc_ids));
+					Engine.logBeans.debug("(FullSyncListener) Listener \"" + getName() + "\" : [" + db + "] post view '" + ddoc + "/" + view + "' returned following documents :\n" + json.toString());
+					
 					if (json != null) {
 						if (CouchKey.error.has(json)) {
 							String error = CouchKey.error.String(json);
 							error = error == null ? "unknown" : error;
 							String reason = CouchKey.reason.String(json);
 							reason = reason == null ? "unknown" : reason;
-							throw new EngineException("View returned error: " + error + ", reason: " + reason);
+							throw new EngineException("View '" + db + "/" + ddoc + "/" + view + "' returned error: " + error + ", reason: " + reason);
 						}
 						runDocs(request, CouchKey.rows.JSONArray(json));
 					}
 				}
 			} catch (Throwable t) {
-				throw new EngineException("Query view named \""+ view +"\" of \""+ ddoc +"\" design document failed", t);
+				throw new EngineException("Query view named '"+ db + "/" + ddoc + "/" + view + "' failed", t);
 			}
 		}
 	}

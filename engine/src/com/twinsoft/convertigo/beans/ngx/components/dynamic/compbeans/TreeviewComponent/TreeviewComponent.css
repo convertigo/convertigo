@@ -1,0 +1,115 @@
+.tree-children.tree-children-no-padding {
+	padding-left: 0;
+}
+.tree-children {
+	padding-left: 20px;
+	overflow: hidden
+}
+.node-drop-slot {
+	display: block;
+	height: 2px
+}
+.node-drop-slot.is-dragging-over {
+	background: #ddffee;
+	height: 20px;
+	border: 2px dotted #888;
+}
+.toggle-children-wrapper-expanded .toggle-children {
+    transform: rotate(90deg);
+}
+.toggle-children-wrapper-collapsed .toggle-children {
+    transform: rotate(0);
+}
+.toggle-children-wrapper {
+	padding: 2px 3px 5px 5px;
+}
+.toggle-children {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKMAAAD+CAMAAABhokWbAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURQAAACIiIiQkJC0tLS8vLzIyMjMzMzc3Nzo6Ojw8PEREREVFRUZGRkdHR09PT1BQUFFRUVdXV1lZWVxcXF9fX21tbW5ubm9vb3FxcXZ2dnt7e3x8fH19fX5+fn9/f4GBgYKCgoODg4SEhIWFhYaGhoiIiImJiYqKiouLi4yMjI2NjY+Pj5CQkJGRkZKSkpWVlZeXl52dnQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADsSfD4AAAEAdFJOU////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////wBT9wclAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjIx8SBplQAABgpJREFUeF7N3emW1UQUBeAbu8UBFbRRVMZmBhGb93+4WJWcm5uh5tpn2L8gNKe+dWrodFjknkb7KTC+uLn37c0L+o1GssaHA+UBXZBPznhFQperr3RNOmnj38SjPKXLwkkan5JtyTP6A9mkjM9JtooKMmE8dNFHAxk3Brroo7Amo8YnZDrkOX2BXGLG4ETPEZ/uiPEZeYKRnu6wMUkURwaNiYmeI7smQ8YscRie0JeKJGDMTPQcSeTReEuKTAR398H4gQzZyHVyb3xHgoKIdXJnLO6ij9Tu3hqriGLTvTFWTPQcmeleG9/TyBURQa6MDUSZNXkxVq7Fc17RX2fMYmwkSiDPxmaiAJKMHUR+5Gx8S6M1hhk5GT/TWM3hRU5GGqkjrEhvvKaBesKJdMZfaZi+vKSCDHFGGqQ3fJ3EGYdbKgnPafyThujPG6qJzmm8TyMAwjTdp/F7GgARno1zGn+h+pCwdPK0f57cmddUFxngvp7zngoD44w/UXVQPlBlXJxx/IaqgwLvpDeCZ3t4N1XGZTLeUXFUwNM9GeHIt1NVVGYjHPlxLosJGeFI5MY5Gy0jFyMcidvdF6Nd5MoIR6KOoLXRaic3RqMbZ2u0Od07o0nk3mhxug9Gg508Gu0hA0Y4svcIChmtrcmg0dh0h422OhkxmkLGjJaQUaMhZNwIRzYfQQkjHNm6u1NGK9OdNBqZ7rTRxnRnjCY6mTNaWJNZIxxZ/ywob9RfkwVGOLL2gVWJUbuTRUZlZJkRjqza3YVG1U6WGjU7WWxURJYb9ZAVRrU1WWOEIwsP8yqj0nTXGeHIolu1SqNKJ2uNGhun2qjQyXqjfCcbjOLIFiMcmdndTUbhNdlmlEU2GkWnu9UoiWw2wpHx3d1ulEN2GOHI2BOMHiMcGbmf7DLCkeEjqM8og+w0wpGhI6jX2P//CHYJILuNcOTxCOo38iMBRnYkwghH7nY3xMjcSYyRFwkywpHrIwhl5FyTMCMcebnBwBnhyOVWDWhkW5NII9eahBrhyH+mqlgjHPnZFwUb4cgvribaCEe6knAjGnmPw4hGPuIwopEsRjCSx4hF/sVjhCJ/ZjI2vesikvs8xpdUHpLHLMZXVB2TOw5j4ZuUSsOxr7FdHB4wGKFrcRiuGb4XgrvIcU+BJt65mmAjBxFsZCFijeBDh4hQ4xsqjQoRkUbwobMQgcbXVBqVhYgzsnURZ2TaLlNARsYuooxcO3oOxMjaRYyRb0fPARh5vgGu0m/k3NFzuo3sXew3In9I9QkQe40SxE6jCLHPKEPsMna9kDGQCLHHKEXsMIoR241Ca9Gn1ShIbDVKEhuNcmvRp8ko2sU2Y/WrpzPJEFuMH6k0Kjlig7HzXbqHZIn1RvEu1hul16JPpVH20KHUGYUPHUqVUaWLdUaNtehTYVTqYo1RjVhulD+6l5Qa9bpYbNQkFhpViWVGXWKRUeE2YpMCozaxwKg80S5Zo85txCY5o/pEu2SM+hPtkjZq3elskzQaWIs+KaOFteiTMNqYaJe40cR2mRI1muli3Gini1GjkR09J2w0RQwbbRGDRmPEkNHSdplyNBo6dCgHo7WJdtkbP1FpVADEvdHcWvTZGhUfmCSyMRpciz5ro1Hi2mjv0KFcjDbXos9iNNvFi9Ew8Wy0ul2mzEaTR/eSyfiFSqOCJc5GKo0KmDgZEZ+nuQqa6I2Yz9NcAid6I9UGBU90xq9UHBMGojPiPk/ThYPojD9SeURYiFgjD9EZ/6AB+sNEdMb/aITucBGdEXX2sBG98SEN0hc+ojeOVzRMTxiJkxEw25zE2dj9IjVW4mzsRfISydiHZCaejT3I6b0rnDkb25Hh9yEisxhbkfzElbENKUBcG1uQEsSNsR4pQtwaa5EyxJ2xDilE3BtrkFLEg3H8lwTZiBGPxtJHaHLEgLEMKUgMGUuQksSgMY8UJYaNOaQsMWJMI4WJMWMKKU2MGuNIcWLcGEPKExPGMFKBmDKGkBrEpPGIVCGmjfv3EdzSZeGkjZt/F7mmS+LJGccbEg6/0QX5ZI0uv3/3w2P6pUpKjLoZx/8BtxK9HklDzhIAAAAASUVORK5CYII=');
+    height: 11px;
+    width: 7px;
+    background-size: contain;
+    display: inline-block;
+    position: relative;
+    top: 1px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.toggle-children-placeholder {
+	display: inline-block;
+	height: 10px;
+	width: 10px;
+	position: relative;
+	top: 1px;
+	padding-right: 3px;
+}
+.node-content-wrapper {
+	display: inline-block;
+	padding: 2px 5px;
+	border-radius: 2px;
+	transition: background-color .15s, box-shadow .15s;
+}
+.node-wrapper {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: start;
+	-ms-flex-align: start;
+	align-items: flex-start;
+}
+.node-content-wrapper-active, .node-content-wrapper.node-content-wrapper-active:hover, .node-content-wrapper-active.node-content-wrapper-focused {
+	background: #beebff;
+}
+.node-content-wrapper-focused {
+	background: #e7f4f9
+}
+.node-content-wrapper:hover {
+	background: #f7fbff
+}
+.node-content-wrapper-active, .node-content-wrapper-focused, .node-content-wrapper:hover {
+	box-shadow: inset 0 0 1px #999;
+}
+.node-content-wrapper.is-dragging-over {
+	background: #ddffee;
+	box-shadow: inset 0 0 1px #999;
+}
+.node-content-wrapper.is-dragging-over-disabled {
+	opacity: 0.5
+}
+tree-viewport {
+	height: 100%;
+	overflow: auto;
+	display: block;
+}
+.tree-children {
+	padding-left: 20px
+}
+.empty-tree-drop-slot .node-drop-slot {
+	height: 20px;
+	min-width: 100px
+}
+.angular-tree-component {
+	width: 100%;
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+tree-root .angular-tree-component-rtl {
+	direction: rtl;
+}
+tree-root .angular-tree-component-rtl .toggle-children-wrapper-collapsed .toggle-children {
+	-webkit-transform: rotate(180deg) !important;
+	transform: rotate(180deg) !important;
+}
+tree-root .angular-tree-component-rtl .tree-children {
+	padding-right: 20px;
+	padding-left: 0;
+}
+tree-node-checkbox {
+	padding: 1px;
+}

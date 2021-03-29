@@ -19,8 +19,8 @@ sourceSets {
 
 eclipse {
 	project {
-		linkedResource name: 'patch/com', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/patch/com'
-		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/patch/org'
+		linkedResource name: 'patch/com', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/com'
+		linkedResource name: 'patch/org', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/patches/src/org'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/engine'
 		linkedResource name: 'src/com/twinsoft/convertigo/beans', type: '2', locationUri: 'PARENT-1-PROJECT_LOC/engine/src/com/twinsoft/convertigo/beans'
 		linkedResource name: 'src/com/twinsoft/convertigo/engine/parsers', type: '2', locationUri: 'PARENT-2-PROJECT_LOC/convertigo-provider-xul/src/com/twinsoft/convertigo/engine/parsers'
@@ -49,15 +49,15 @@ eclipse {
 tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 
 dependencies {
-	runtime project(':engine')
-	runtime 'com.convertigo.lib:jxbrowser-license:2019.04.02'
-	runtime 'com.teamdev.jxbrowser:jxbrowser:' + jxBrowserVersion
-	//runtime 'com.teamdev.jxbrowser:jxbrowser-swing:' + jxBrowserVersion
-	runtime 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
-	//runtime 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
-	runtime 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
-	runtime 'org.apache.axis2:axis2-adb:1.6.2@jar'
-	runtime project.property('sapjco3Version')
+	runtimeOnly project(':engine')
+	runtimeOnly 'com.convertigo.lib:jxbrowser-license:2019.04.02'
+	runtimeOnly "${jxBrowserGroup}:jxbrowser:${jxBrowserVersion}"
+	runtimeOnly "${jxBrowserGroup}:jxbrowser-swt:${jxBrowserVersion}"
+	runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	//runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
+	runtimeOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
+	runtimeOnly 'org.apache.axis2:axis2-adb:1.6.2@jar'
+	runtimeOnly project.property('sapjco3Version')
 }
 
 task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {
@@ -89,14 +89,19 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.swt',
 					'org.eclipse.ui',
 					'org.eclipse.ui.console',
+					'org.eclipse.ui.editors',
+					'org.eclipse.ui.genericeditor',
+					'org.eclipse.ui.ide',
+					'org.eclipse.ui.workbench.texteditor',
 					'org.eclipse.ui.ide',
 					'org.eclipse.ui.views',
+					'org.eclipse.wst.sse.ui',
+					'org.eclipse.wst.sse.core',
+					'org.eclipse.wildwebdeveloper'
+					/*,
 					'org.eclipse.wst.jsdt.ui',
 					'org.eclipse.wst.jsdt.core',
-					'org.eclipse.wst.sse.core',
-					'org.eclipse.wst.sse.ui',
-					'org.eclipse.wst.xml.ui',
-					'ts.eclipse.ide.core'].join(',')
+					'ts.eclipse.ide.core'*/].join(',')
 			)
 		}.writeTo(manifest)
 		manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
@@ -112,6 +117,6 @@ task copyLicense(type: Copy) {
 
 project(':engine').afterEvaluate {
 	syncLib {
-		inputs.property('engine-dependency', '' + project(':engine').configurations.runtime.getAllDependencies())
+		inputs.property('engine-dependency', '' + project(':engine').configurations.runtimeClasspath.getAllDependencies())
 	}
 }

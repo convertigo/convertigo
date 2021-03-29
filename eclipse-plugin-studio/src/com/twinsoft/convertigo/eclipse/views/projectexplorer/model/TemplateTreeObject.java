@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,11 +24,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.xsl.XslFileEditorInput;
 
 public class TemplateTreeObject extends TreeObject implements IEditableTreeObject {
 	private String xslPath;
@@ -46,9 +45,6 @@ public class TemplateTreeObject extends TreeObject implements IEditableTreeObjec
 			// Refresh project resource
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 
-			Sheet sheet = (Sheet) parent.getObject();
-			//String parentStyleSheet = sheet.getUrl();
-
 			// Gets the xsl file to be edited
 			IFile file = project.getFile(new Path(xslPath));
 
@@ -57,8 +53,8 @@ public class TemplateTreeObject extends TreeObject implements IEditableTreeObjec
 					.getWorkbench()
 					.getActiveWorkbenchWindow()
 					.getActivePage()
-					.openEditor(new XslFileEditorInput(file, projectName, sheet),
-							"com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor");
+					.openEditor(new FileEditorInput(file),
+							"org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart");
 		} catch (Exception pei) {
         	ConvertigoPlugin.logException(pei, "Unexpceted exception");
 		}

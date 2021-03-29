@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -30,6 +30,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIEventSubscriber extends UIComponent implements IEventListener {
 
@@ -159,8 +160,13 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	public String computeConstructor() {
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
-			computed += "\t\tthis.events.subscribe('"+ getTopic() +"', "
+			if (compareToTplVersion("7.9.0.5") < 0) {
+				computed += "\t\tthis.events.subscribe('"+ getTopic() +"', "
+							+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
+			} else {
+				computed += "\t\tthis.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
 						+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
+			}
 		}
 		return computed;
 	}
@@ -168,7 +174,11 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 	public String computeDestructor() {
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
-			computed += "\t\tthis.events.unsubscribe('"+ getTopic() +"');"+ System.lineSeparator();
+			if (compareToTplVersion("7.9.0.5") < 0) {
+				computed += "\t\tthis.events.unsubscribe('"+ getTopic() +"');"+ System.lineSeparator();
+			} else {
+				computed += "\t\tthis.subscriptions['"+ getTopic() +"'] != undefined ? this.subscriptions['"+ getTopic() +"'].unsubscribe(): null;"+ System.lineSeparator();
+			}
 		}
 		return computed;
 	}
@@ -244,4 +254,8 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 		return map;
 	}
 	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EVENT;
+	}	
 }

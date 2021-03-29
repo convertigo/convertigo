@@ -1,8 +1,0 @@
-↓Call_fill_maps [steps.SequenceStep-1504615141879]: 
-  sourceSequence: IonicConferenceApp.fill_maps
-↓Call_fill_schedule [steps.SequenceStep-1504615165357]: 
-  sourceSequence: IonicConferenceApp.fill_schedule
-↓Call_fill_speakers [steps.SequenceStep-1504615168209]: 
-  sourceSequence: IonicConferenceApp.fill_speakers
-↓Call_fill_tracks [steps.SequenceStep-1504615169273]: 
-  sourceSequence: IonicConferenceApp.fill_tracks

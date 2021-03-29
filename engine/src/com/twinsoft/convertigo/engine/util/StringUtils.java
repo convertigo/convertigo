@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,6 +21,9 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
+import org.apache.commons.codec.binary.Base32;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import com.twinsoft.util.StringEx;
 
@@ -230,5 +233,9 @@ public class StringUtils {
 			return str.subSequence(0, max - 1) + "…";
 		}
 		return str;
+	}
+	
+	public static String hash(String str) {
+		return new Base32().encodeAsString(DigestUtils.sha1(str)).substring(0, 10).toLowerCase();
 	}
 }

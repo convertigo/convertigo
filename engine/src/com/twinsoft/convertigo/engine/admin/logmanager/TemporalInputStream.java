@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -219,24 +219,27 @@ public class TemporalInputStream extends InputStream {
 			if (cur_date != null) {
 				int compare = date.compareTo(cur_date);
 				if (compare > 0) {
-					date.setTime(date.getTime() - 1);
 					long min = raf.getFilePointer();
 					long max = raf.length();
 					Date last_date = null;
 					long last_pos = 0;
-					while (cur_date != null && !cur_date.equals(last_date) && !cur_date.equals(date)) {
-						last_date = cur_date;
-						last_pos = raf.getFilePointer();
-						long cur = min + ((max - min) / 2);
-						raf.seek(cur);
-						cur_date = extractDate(raf);
-						if (cur_date == null || date.compareTo(cur_date) < 0) {
-							max = cur;
-						} else {
-							min = cur;
+					date.setTime(date.getTime() - 1);
+					try {
+						while (cur_date != null && !cur_date.equals(last_date) && !cur_date.equals(date)) {
+							last_date = cur_date;
+							last_pos = raf.getFilePointer();
+							long cur = min + ((max - min) / 2);
+							raf.seek(cur);
+							cur_date = extractDate(raf);
+							if (cur_date == null || date.compareTo(cur_date) < 0) {
+								max = cur;
+							} else {
+								min = cur;
+							}
 						}
+					} finally {
+						date.setTime(date.getTime() + 1);
 					}
-					date.setTime(date.getTime() + 1);
 					
 					if (cur_date != null && date.compareTo(cur_date) < 0) {
 						raf.seek(min);
@@ -334,11 +337,11 @@ public class TemporalInputStream extends InputStream {
 				break;
 			case 13:
 				keepReading = false;
-                long cur = raf.getFilePointer();
-                if ((raf.read()) != 10) {
-                	raf.seek(cur);
-                }
-                break;
+				long cur = raf.getFilePointer();
+				if ((raf.read()) != 10) {
+					raf.seek(cur);
+				}
+				break;
 			default:
 			}
 		}
@@ -347,7 +350,17 @@ public class TemporalInputStream extends InputStream {
 	}
 	
 	private String readSubLine(RandomAccessFile raf) throws IOException {
+		long p = raf.getFilePointer();
 		int r = raf.read(b);
+		if (r < 0) {
+			return null;
+		}
+		for (int i = 0; i < r; i++) {
+			if (b[i] == 10) { /* \n */
+				r = i;
+				raf.seek(p + r);
+			}
+		}
 		return new String(b, 0, r, encoding);
 	}
 	

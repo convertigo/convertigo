@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -47,8 +47,8 @@ public class NewProjectWizardPage6 extends WizardPage {
 	 */
 	public NewProjectWizardPage6(ISelection selection) {
 		super("wizardPage");
-		setTitle("Define HTTP or HTML Connector parameters");
-		setDescription("This step configures the HTTP or Web connector parameters");
+		setTitle("Define HTTP Connector parameters");
+		setDescription("This step configures the HTTP connector parameters");
 	}
 
 	/**

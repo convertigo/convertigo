@@ -1,0 +1,5340 @@
+{
+ "BarTitle": {
+  "   7   9   0": {
+   "name": "BarTitle",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Break": {
+  "   7   9   0": {
+   "name": "Break",
+   "properties": {}
+  }
+ },
+ "Button": {
+  "   7   9   0": {
+   "name": "Button",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonExpand": {
+     "name": "IonExpand",
+     "mode": "plain",
+     "value": false
+    },
+    "IonShape": {
+     "name": "IonShape",
+     "mode": "plain",
+     "value": false
+    },
+    "IonFill": {
+     "name": "IonFill",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    },
+    "IconSlot": {
+     "name": "IconSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonStrong": {
+     "name": "IonStrong",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ButtonSet": {
+  "   7   9   0": {
+   "name": "ButtonSet",
+   "properties": {
+    "SetPosition": {
+     "name": "SetPosition",
+     "mode": "plain",
+     "value": false
+    },
+    "Collapse": {
+     "name": "Collapse",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Content": {
+  "   7   9   0": {
+   "name": "Content",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "Padding": {
+     "name": "Padding",
+     "mode": "plain",
+     "value": "ion-padding"
+    },
+    "Fullscreen": {
+     "name": "Fullscreen",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ForceOverScroll": {
+     "name": "ForceOverScroll",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ScrollEvents": {
+     "name": "ScrollEvents",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ScrollX": {
+     "name": "ScrollX",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ScrollY": {
+     "name": "ScrollY",
+     "mode": "plain",
+     "value": "true"
+    }
+   }
+  }
+ },
+ "DivTag": {
+  "   7   9   0": {
+   "name": "DivTag",
+   "properties": {}
+  }
+ },
+ "Footer": {
+  "   7   9   0": {
+   "name": "Footer",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "GenericItem": {
+  "   7   9   0": {
+   "name": "GenericItem",
+   "properties": {
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    },
+    "Detail": {
+     "name": "Detail",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DetailIconName": {
+     "name": "DetailIconName",
+     "mode": "plain",
+     "value": "chevron-forward"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Header": {
+  "   7   9   0": {
+   "name": "Header",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Collapse": {
+     "name": "Collapse",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Heading": {
+  "   7   9   0": {
+   "name": "Heading",
+   "properties": {}
+  }
+ },
+ "Heading1": {
+  "   7   9   0": {
+   "name": "Heading1",
+   "properties": {}
+  }
+ },
+ "Heading2": {
+  "   7   9   0": {
+   "name": "Heading2",
+   "properties": {}
+  }
+ },
+ "Heading3": {
+  "   7   9   0": {
+   "name": "Heading3",
+   "properties": {}
+  }
+ },
+ "Heading4": {
+  "   7   9   0": {
+   "name": "Heading4",
+   "properties": {}
+  }
+ },
+ "Heading5": {
+  "   7   9   0": {
+   "name": "Heading5",
+   "properties": {}
+  }
+ },
+ "Heading6": {
+  "   7   9   0": {
+   "name": "Heading6",
+   "properties": {}
+  }
+ },
+ "Icon": {
+  "   7   9   0": {
+   "name": "Icon",
+   "properties": {
+    "IconName": {
+     "name": "IconName",
+     "mode": "plain",
+     "value": "add"
+    },
+    "IconMdName": {
+     "name": "IconMdName",
+     "mode": "plain",
+     "value": false
+    },
+    "IconIosName": {
+     "name": "IconIosName",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    },
+    "IconSlot": {
+     "name": "IconSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IconSource": {
+     "name": "IconSource",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Image": {
+  "   7   9   0": {
+   "name": "Image",
+   "properties": {
+    "url": {
+     "name": "url",
+     "mode": "script",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "alt": {
+     "name": "alt",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Label": {
+  "   7   9   0": {
+   "name": "Label",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Position": {
+     "name": "Position",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "List": {
+  "   7   9   0": {
+   "name": "List",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Inset": {
+     "name": "Inset",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ListItem": {
+  "   7   9   0": {
+   "name": "ListItem",
+   "properties": {
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    },
+    "Detail": {
+     "name": "Detail",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DetailIconName": {
+     "name": "DetailIconName",
+     "mode": "plain",
+     "value": "chevron-forward"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Listdivider": {
+  "   7   9   0": {
+   "name": "Listdivider",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Sticky": {
+     "name": "Sticky",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Listgroup": {
+  "   7   9   0": {
+   "name": "Listgroup",
+   "properties": {}
+  }
+ },
+ "Listheader": {
+  "   7   9   0": {
+   "name": "Listheader",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Menu": {
+  "   7   9   0": {
+   "name": "Menu",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "true"
+    },
+    "MenuType": {
+     "name": "MenuType",
+     "mode": "plain",
+     "value": false
+    },
+    "MenuSide": {
+     "name": "MenuSide",
+     "mode": "plain",
+     "value": "start"
+    },
+    "MenuSwipeEnabled": {
+     "name": "MenuSwipeEnabled",
+     "mode": "plain",
+     "value": "true"
+    },
+    "MenuMaxEdgeStart": {
+     "name": "MenuMaxEdgeStart",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "MenuAutoItems": {
+  "   7   9   0": {
+   "name": "MenuAutoItems",
+   "properties": {}
+  }
+ },
+ "MenuButton": {
+  "   7   9   0": {
+   "name": "MenuButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "AutoHide": {
+     "name": "AutoHide",
+     "mode": "plain",
+     "value": "true"
+    },
+    "MenuId": {
+     "name": "MenuId",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "MenuItem": {
+  "   7   9   0": {
+   "name": "MenuItem",
+   "properties": {}
+  }
+ },
+ "Paragraph": {
+  "   7   9   0": {
+   "name": "Paragraph",
+   "properties": {}
+  }
+ },
+ "ResetButton": {
+  "   7   9   0": {
+   "name": "ResetButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "reset"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonExpand": {
+     "name": "IonExpand",
+     "mode": "plain",
+     "value": false
+    },
+    "IonShape": {
+     "name": "IonShape",
+     "mode": "plain",
+     "value": false
+    },
+    "IonFill": {
+     "name": "IonFill",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    },
+    "IconSlot": {
+     "name": "IconSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonStrong": {
+     "name": "IonStrong",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SpanTag": {
+  "   7   9   0": {
+   "name": "SpanTag",
+   "properties": {}
+  }
+ },
+ "SubmitButton": {
+  "   7   9   0": {
+   "name": "SubmitButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "submit"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonExpand": {
+     "name": "IonExpand",
+     "mode": "plain",
+     "value": false
+    },
+    "IonShape": {
+     "name": "IonShape",
+     "mode": "plain",
+     "value": false
+    },
+    "IonFill": {
+     "name": "IonFill",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSize": {
+     "name": "IonSize",
+     "mode": "plain",
+     "value": false
+    },
+    "IconSlot": {
+     "name": "IconSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonStrong": {
+     "name": "IonStrong",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    },
+    "AutoDisable": {
+     "name": "AutoDisable",
+     "mode": "plain",
+     "value": "true"
+    }
+   }
+  }
+ },
+ "ToolBar": {
+  "   7   9   0": {
+   "name": "ToolBar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "BarMode": {
+     "name": "BarMode",
+     "mode": "plain",
+     "value": false
+    },
+    "BarSlot": {
+     "name": "BarSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TextItem": {
+  "   7   9   0": {
+   "name": "TextItem",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "MenuToggle": {
+  "   7   9   0": {
+   "name": "MenuToggle",
+   "properties": {
+    "AutoHide": {
+     "name": "AutoHide",
+     "mode": "plain",
+     "value": "true"
+    },
+    "MenuId": {
+     "name": "MenuId",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "BackButton": {
+  "   7   9   0": {
+   "name": "BackButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonIcon": {
+     "name": "IonIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "ButtonText": {
+     "name": "ButtonText",
+     "mode": "plain",
+     "value": false
+    },
+    "DefaultHref": {
+     "name": "DefaultHref",
+     "mode": "plain",
+     "value": "\/"
+    }
+   }
+  }
+ },
+ "Searchbar": {
+  "   7   9   0": {
+   "name": "Searchbar",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "false"
+    },
+    "autocomplete": {
+     "name": "autocomplete",
+     "mode": "plain",
+     "value": "off"
+    },
+    "autocorrect": {
+     "name": "autocorrect",
+     "mode": "plain",
+     "value": "off"
+    },
+    "cancelButtonIcon": {
+     "name": "cancelButtonIcon",
+     "mode": "plain",
+     "value": "arrow-back-sharp"
+    },
+    "cancelButtonText": {
+     "name": "cancelButtonText",
+     "mode": "plain",
+     "value": "Cancel"
+    },
+    "clearIcon": {
+     "name": "clearIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "searchIcon": {
+     "name": "searchIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "debounce": {
+     "name": "debounce",
+     "mode": "plain",
+     "value": "250"
+    },
+    "enterkeyhint": {
+     "name": "enterkeyhint",
+     "mode": "plain",
+     "value": false
+    },
+    "inputmode": {
+     "name": "inputmode",
+     "mode": "plain",
+     "value": false
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": "Search"
+    },
+    "showCancelButton": {
+     "name": "showCancelButton",
+     "mode": "plain",
+     "value": "never"
+    },
+    "spellcheck": {
+     "name": "spellcheck",
+     "mode": "plain",
+     "value": "false"
+    },
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": "search"
+    },
+    "value": {
+     "name": "value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "Input": {
+  "   7   9   0": {
+   "name": "Input",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Accept": {
+     "name": "Accept",
+     "mode": "plain",
+     "value": false
+    },
+    "Autocapitalize": {
+     "name": "Autocapitalize",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoComplete": {
+     "name": "AutoComplete",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoCorrect": {
+     "name": "AutoCorrect",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoFocus": {
+     "name": "AutoFocus",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ClearInput": {
+     "name": "ClearInput",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ClearOnEdit": {
+     "name": "ClearOnEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Debounce": {
+     "name": "Debounce",
+     "mode": "plain",
+     "value": 0
+    },
+    "EnterKeyHint": {
+     "name": "EnterKeyHint",
+     "mode": "plain",
+     "value": false
+    },
+    "InputMode": {
+     "name": "InputMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": false
+    },
+    "MaxLength": {
+     "name": "MaxLength",
+     "mode": "plain",
+     "value": false
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": false
+    },
+    "MinLength": {
+     "name": "MinLength",
+     "mode": "plain",
+     "value": false
+    },
+    "Multiple": {
+     "name": "Multiple",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Pattern": {
+     "name": "Pattern",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Required": {
+     "name": "Required",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Size": {
+     "name": "Size",
+     "mode": "plain",
+     "value": false
+    },
+    "Spellcheck": {
+     "name": "Spellcheck",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Step": {
+     "name": "Step",
+     "mode": "plain",
+     "value": false
+    },
+    "Type": {
+     "name": "Type",
+     "mode": "plain",
+     "value": "text"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "CheckBox": {
+  "   7   9   0": {
+   "name": "CheckBox",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Indeterminate": {
+     "name": "Indeterminate",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Select": {
+  "   7   9   0": {
+   "name": "Select",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "CancelText": {
+     "name": "CancelText",
+     "mode": "plain",
+     "value": "Cancel"
+    },
+    "OkText": {
+     "name": "OkText",
+     "mode": "plain",
+     "value": "Ok"
+    },
+    "CompareWith": {
+     "name": "CompareWith",
+     "mode": "plain",
+     "value": false
+    },
+    "Interface": {
+     "name": "Interface",
+     "mode": "plain",
+     "value": false
+    },
+    "InterfaceOptions": {
+     "name": "InterfaceOptions",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "SelectedText": {
+     "name": "SelectedText",
+     "mode": "plain",
+     "value": false
+    },
+    "Multiple": {
+     "name": "Multiple",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SelectOption": {
+  "   7   9   0": {
+   "name": "SelectOption",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Toggle": {
+  "   7   9   0": {
+   "name": "Toggle",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "RadioButton": {
+  "   7   9   0": {
+   "name": "RadioButton",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "RadioGroup": {
+  "   7   9   0": {
+   "name": "RadioGroup",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "AllowEmptySelection": {
+     "name": "AllowEmptySelection",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "FormItem": {
+  "   7   9   0": {
+   "name": "FormItem",
+   "properties": {
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    },
+    "Detail": {
+     "name": "Detail",
+     "mode": "plain",
+     "value": "false"
+    },
+    "DetailIconName": {
+     "name": "DetailIconName",
+     "mode": "plain",
+     "value": "chevron-forward"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "TextArea": {
+  "   7   9   0": {
+   "name": "TextArea",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "AutoGrow": {
+     "name": "AutoGrow",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Autocapitalize": {
+     "name": "Autocapitalize",
+     "mode": "plain",
+     "value": "off"
+    },
+    "AutoFocus": {
+     "name": "AutoFocus",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ClearOnEdit": {
+     "name": "ClearOnEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Debounce": {
+     "name": "Debounce",
+     "mode": "plain",
+     "value": 0
+    },
+    "EnterKeyHint": {
+     "name": "EnterKeyHint",
+     "mode": "plain",
+     "value": false
+    },
+    "InputMode": {
+     "name": "InputMode",
+     "mode": "plain",
+     "value": false
+    },
+    "MaxLength": {
+     "name": "MaxLength",
+     "mode": "plain",
+     "value": false
+    },
+    "MinLength": {
+     "name": "MinLength",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Required": {
+     "name": "Required",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Spellcheck": {
+     "name": "Spellcheck",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Cols": {
+     "name": "Cols",
+     "mode": "plain",
+     "value": false
+    },
+    "Rows": {
+     "name": "Rows",
+     "mode": "plain",
+     "value": false
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    },
+    "Wrap": {
+     "name": "Wrap",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "DateTime": {
+  "   7   9   0": {
+   "name": "DateTime",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "CancelText": {
+     "name": "CancelText",
+     "mode": "plain",
+     "value": false
+    },
+    "DoneText": {
+     "name": "DoneText",
+     "mode": "plain",
+     "value": false
+    },
+    "DisplayFormat": {
+     "name": "DisplayFormat",
+     "mode": "plain",
+     "value": false
+    },
+    "DisplayTimeZone": {
+     "name": "DisplayTimeZone",
+     "mode": "plain",
+     "value": false
+    },
+    "DayNames": {
+     "name": "DayNames",
+     "mode": "plain",
+     "value": false
+    },
+    "DayShortNames": {
+     "name": "DayShortNames",
+     "mode": "plain",
+     "value": false
+    },
+    "DayValues": {
+     "name": "DayValues",
+     "mode": "plain",
+     "value": false
+    },
+    "HourValues": {
+     "name": "HourValues",
+     "mode": "plain",
+     "value": false
+    },
+    "MonthNames": {
+     "name": "MonthNames",
+     "mode": "plain",
+     "value": false
+    },
+    "MonthShortNames": {
+     "name": "MonthShortNames",
+     "mode": "plain",
+     "value": false
+    },
+    "MonthValues": {
+     "name": "MonthValues",
+     "mode": "plain",
+     "value": false
+    },
+    "MinuteValues": {
+     "name": "MinuteValues",
+     "mode": "plain",
+     "value": false
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": false
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": false
+    },
+    "Placeholder": {
+     "name": "Placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "PickerFormat": {
+     "name": "PickerFormat",
+     "mode": "plain",
+     "value": false
+    },
+    "PickerOptions": {
+     "name": "PickerOptions",
+     "mode": "plain",
+     "value": false
+    },
+    "Readonly": {
+     "name": "Readonly",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    },
+    "YearValues": {
+     "name": "YearValues",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Range": {
+  "   7   9   0": {
+   "name": "Range",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Debounce": {
+     "name": "Debounce",
+     "mode": "plain",
+     "value": "0"
+    },
+    "DualKnobs": {
+     "name": "DualKnobs",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Min": {
+     "name": "Min",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Max": {
+     "name": "Max",
+     "mode": "plain",
+     "value": "100"
+    },
+    "Pin": {
+     "name": "Pin",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Snaps": {
+     "name": "Snaps",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Step": {
+     "name": "Step",
+     "mode": "plain",
+     "value": "1"
+    },
+    "Ticks": {
+     "name": "Ticks",
+     "mode": "plain",
+     "value": "true"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Grid": {
+  "   7   9   0": {
+   "name": "Grid",
+   "properties": {
+    "Fixed": {
+     "name": "Fixed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "100%"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "Style": {
+     "name": "Style",
+     "mode": "plain",
+     "value": "width: $[Width]; height: $[Height]"
+    }
+   }
+  }
+ },
+ "GridCol": {
+  "   7   9   0": {
+   "name": "GridCol",
+   "properties": {
+    "FlexAlignement": {
+     "name": "FlexAlignement",
+     "mode": "plain",
+     "value": false
+    },
+    "Offset": {
+     "name": "Offset",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetLg": {
+     "name": "OffsetLg",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetMd": {
+     "name": "OffsetMd",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetSm": {
+     "name": "OffsetSm",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetXl": {
+     "name": "OffsetXl",
+     "mode": "plain",
+     "value": false
+    },
+    "OffsetXs": {
+     "name": "OffsetXs",
+     "mode": "plain",
+     "value": false
+    },
+    "Pull": {
+     "name": "Pull",
+     "mode": "plain",
+     "value": false
+    },
+    "PullLg": {
+     "name": "PullLg",
+     "mode": "plain",
+     "value": false
+    },
+    "PullMd": {
+     "name": "PullMd",
+     "mode": "plain",
+     "value": false
+    },
+    "PullSm": {
+     "name": "PullSm",
+     "mode": "plain",
+     "value": false
+    },
+    "PullXl": {
+     "name": "PullXl",
+     "mode": "plain",
+     "value": false
+    },
+    "PullXs": {
+     "name": "PullXs",
+     "mode": "plain",
+     "value": false
+    },
+    "Push": {
+     "name": "Push",
+     "mode": "plain",
+     "value": false
+    },
+    "PushLg": {
+     "name": "PushLg",
+     "mode": "plain",
+     "value": false
+    },
+    "PushMd": {
+     "name": "PushMd",
+     "mode": "plain",
+     "value": false
+    },
+    "PushSm": {
+     "name": "PushSm",
+     "mode": "plain",
+     "value": false
+    },
+    "PushXl": {
+     "name": "PushXl",
+     "mode": "plain",
+     "value": false
+    },
+    "PushXs": {
+     "name": "PushXs",
+     "mode": "plain",
+     "value": false
+    },
+    "Size": {
+     "name": "Size",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeLg": {
+     "name": "SizeLg",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeMd": {
+     "name": "SizeMd",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeSm": {
+     "name": "SizeSm",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeXl": {
+     "name": "SizeXl",
+     "mode": "plain",
+     "value": false
+    },
+    "SizeXs": {
+     "name": "SizeXs",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "GridRow": {
+  "   7   9   0": {
+   "name": "GridRow",
+   "properties": {
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "100%"
+    },
+    "Style": {
+     "name": "Style",
+     "mode": "plain",
+     "value": "width: $[Width]; height: $[Height]"
+    },
+    "FlexJustifyContent": {
+     "name": "FlexJustifyContent",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexAlignement": {
+     "name": "FlexAlignement",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexWrap": {
+     "name": "FlexWrap",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Card": {
+  "   7   9   0": {
+   "name": "Card",
+   "properties": {
+    "Button": {
+     "name": "Button",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CardContent": {
+  "   7   9   0": {
+   "name": "CardContent",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CardHeader": {
+  "   7   9   0": {
+   "name": "CardHeader",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "CardSubTitle": {
+  "   7   9   0": {
+   "name": "CardSubTitle",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CardTitle": {
+  "   7   9   0": {
+   "name": "CardTitle",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "InfiniteScroll": {
+  "   7   9   0": {
+   "name": "InfiniteScroll",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Position": {
+     "name": "Position",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "Threshold": {
+     "name": "Threshold",
+     "mode": "plain",
+     "value": "15%"
+    }
+   }
+  }
+ },
+ "InfiniteScrollContent": {
+  "   7   9   0": {
+   "name": "InfiniteScrollContent",
+   "properties": {
+    "LoadingSpinner": {
+     "name": "LoadingSpinner",
+     "mode": "plain",
+     "value": "bubbles"
+    },
+    "LoadingText": {
+     "name": "LoadingText",
+     "mode": "plain",
+     "value": "Loading more data..."
+    }
+   }
+  }
+ },
+ "FabButton": {
+  "   7   9   0": {
+   "name": "FabButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterPath": {
+     "name": "LinkRouterPath",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterData": {
+     "name": "LinkRouterData",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRouterDirection": {
+     "name": "LinkRouterDirection",
+     "mode": "plain",
+     "value": false
+    },
+    "Activated": {
+     "name": "Activated",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Show": {
+     "name": "Show",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Size": {
+     "name": "Size",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "FabContainer": {
+  "   7   9   0": {
+   "name": "FabContainer",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "Activated": {
+     "name": "Activated",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Edge": {
+     "name": "Edge",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Horizontal": {
+     "name": "Horizontal",
+     "mode": "plain",
+     "value": false
+    },
+    "Vertical": {
+     "name": "Vertical",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FabList": {
+  "   7   9   0": {
+   "name": "FabList",
+   "properties": {
+    "Activated": {
+     "name": "Activated",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Side": {
+     "name": "Side",
+     "mode": "plain",
+     "value": "bottom"
+    }
+   }
+  }
+ },
+ "Spinner": {
+  "   7   9   0": {
+   "name": "Spinner",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Duration": {
+     "name": "Duration",
+     "mode": "plain",
+     "value": false
+    },
+    "Name": {
+     "name": "Name",
+     "mode": "plain",
+     "value": false
+    },
+    "Paused": {
+     "name": "Paused",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "ProgressBar": {
+  "   7   9   0": {
+   "name": "ProgressBar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Buffer": {
+     "name": "Buffer",
+     "mode": "plain",
+     "value": "1"
+    },
+    "Reversed": {
+     "name": "Reversed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Type": {
+     "name": "Type",
+     "mode": "plain",
+     "value": "determinate"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": "0"
+    }
+   }
+  }
+ },
+ "Refresher": {
+  "   7   9   0": {
+   "name": "Refresher",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": "fixed"
+    },
+    "CloseDuration": {
+     "name": "CloseDuration",
+     "mode": "plain",
+     "value": "280ms"
+    },
+    "PullFactor": {
+     "name": "PullFactor",
+     "mode": "plain",
+     "value": "1"
+    },
+    "PullMax": {
+     "name": "PullMax",
+     "mode": "plain",
+     "value": false
+    },
+    "PullMin": {
+     "name": "PullMin",
+     "mode": "plain",
+     "value": "60"
+    },
+    "SnapbackDuration": {
+     "name": "SnapbackDuration",
+     "mode": "plain",
+     "value": "280ms"
+    }
+   }
+  }
+ },
+ "RefresherContent": {
+  "   7   9   0": {
+   "name": "RefresherContent",
+   "properties": {
+    "PullingIcon": {
+     "name": "PullingIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "PullingText": {
+     "name": "PullingText",
+     "mode": "plain",
+     "value": false
+    },
+    "RefreshingSpinner": {
+     "name": "RefreshingSpinner",
+     "mode": "plain",
+     "value": false
+    },
+    "RefreshingText": {
+     "name": "RefreshingText",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Badge": {
+  "   7   9   0": {
+   "name": "Badge",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Slide": {
+  "   7   9   0": {
+   "name": "Slide",
+   "properties": {}
+  }
+ },
+ "Slides": {
+  "   7   9   0": {
+   "name": "Slides",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "height:100%"
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{}"
+    },
+    "Pager": {
+     "name": "Pager",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Scrollbar": {
+     "name": "Scrollbar",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Chip": {
+  "   7   9   0": {
+   "name": "Chip",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Outline": {
+     "name": "Outline",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Avatar": {
+  "   7   9   0": {
+   "name": "Avatar",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Thumbnail": {
+  "   7   9   0": {
+   "name": "Thumbnail",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "LazyImage": {
+  "   7   9   0": {
+   "name": "LazyImage",
+   "properties": {
+    "Alt": {
+     "name": "Alt",
+     "mode": "plain",
+     "value": false
+    },
+    "Src": {
+     "name": "Src",
+     "mode": "script",
+     "value": ""
+    }
+   }
+  }
+ },
+ "TabBar": {
+  "   7   9   0": {
+   "name": "TabBar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "SelectedTab": {
+     "name": "SelectedTab",
+     "mode": "plain",
+     "value": false
+    },
+    "Translucent": {
+     "name": "Translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "TabButton": {
+  "   7   9   0": {
+   "name": "TabButton",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "Layout": {
+     "name": "Layout",
+     "mode": "plain",
+     "value": "icon-top"
+    },
+    "Selected": {
+     "name": "Selected",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Tabs": {
+  "   7   9   0": {
+   "name": "Tabs",
+   "properties": {}
+  }
+ },
+ "Segment": {
+  "   7   9   0": {
+   "name": "Segment",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Scrollable": {
+     "name": "Scrollable",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SegmentButton": {
+  "   7   9   0": {
+   "name": "SegmentButton",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Layout": {
+     "name": "Layout",
+     "mode": "plain",
+     "value": "icon-top"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "Reorder": {
+  "   7   9   0": {
+   "name": "Reorder",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ReorderGroup": {
+  "   7   9   0": {
+   "name": "ReorderGroup",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "SlidingButton": {
+  "   7   9   0": {
+   "name": "SlidingButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkUrl": {
+     "name": "LinkUrl",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkDownload": {
+     "name": "LinkDownload",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkTarget": {
+     "name": "LinkTarget",
+     "mode": "plain",
+     "value": false
+    },
+    "LinkRel": {
+     "name": "LinkRel",
+     "mode": "plain",
+     "value": false
+    },
+    "Expandable": {
+     "name": "Expandable",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "SlidingButtonSet": {
+  "   7   9   0": {
+   "name": "SlidingButtonSet",
+   "properties": {
+    "Side": {
+     "name": "Side",
+     "mode": "plain",
+     "value": "end"
+    }
+   }
+  }
+ },
+ "SlidingContainer": {
+  "   7   9   0": {
+   "name": "SlidingContainer",
+   "properties": {
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "Note": {
+  "   7   9   0": {
+   "name": "Note",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SkeletonText": {
+  "   7   9   0": {
+   "name": "SkeletonText",
+   "properties": {
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "Animated": {
+     "name": "Animated",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": "60%"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": false
+    },
+    "Style": {
+     "name": "Style",
+     "mode": "plain",
+     "value": "width: $[Width]; height: $[Height]"
+    }
+   }
+  }
+ },
+ "FormatLayout": {
+  "   7   9   0": {
+   "name": "FormatLayout",
+   "properties": {
+    "TextAlignment": {
+     "name": "TextAlignment",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentXs": {
+     "name": "TextAlignmentXs",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentSm": {
+     "name": "TextAlignmentSm",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentMd": {
+     "name": "TextAlignmentMd",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentLg": {
+     "name": "TextAlignmentLg",
+     "mode": "plain",
+     "value": false
+    },
+    "TextAlignmentXl": {
+     "name": "TextAlignmentXl",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformation": {
+     "name": "TextTransformation",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationXs": {
+     "name": "TextTransformationXs",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationSm": {
+     "name": "TextTransformationSm",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationMd": {
+     "name": "TextTransformationMd",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationLg": {
+     "name": "TextTransformationLg",
+     "mode": "plain",
+     "value": false
+    },
+    "TextTransformationXl": {
+     "name": "TextTransformationXl",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacement": {
+     "name": "FloatPlacement",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementXs": {
+     "name": "FloatPlacementXs",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementSm": {
+     "name": "FloatPlacementSm",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementMd": {
+     "name": "FloatPlacementMd",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementLg": {
+     "name": "FloatPlacementLg",
+     "mode": "plain",
+     "value": false
+    },
+    "FloatPlacementXl": {
+     "name": "FloatPlacementXl",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenBorder": {
+     "name": "HiddenBorder",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplay": {
+     "name": "HiddenDisplay",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayXs": {
+     "name": "HiddenDisplayXs",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplaySm": {
+     "name": "HiddenDisplaySm",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayMd": {
+     "name": "HiddenDisplayMd",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayLg": {
+     "name": "HiddenDisplayLg",
+     "mode": "plain",
+     "value": false
+    },
+    "HiddenDisplayXl": {
+     "name": "HiddenDisplayXl",
+     "mode": "plain",
+     "value": false
+    },
+    "ContentPadding": {
+     "name": "ContentPadding",
+     "mode": "plain",
+     "value": false
+    },
+    "ContentMargin": {
+     "name": "ContentMargin",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexContainerAlignment": {
+     "name": "FlexContainerAlignment",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexItemAlignment": {
+     "name": "FlexItemAlignment",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "SignatureComponent": {
+  "   7   9   0": {
+   "name": "SignatureComponent",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "DotSize": {
+     "name": "DotSize",
+     "mode": "plain",
+     "value": false
+    },
+    "LineMinWidth": {
+     "name": "LineMinWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "LineMaxWidth": {
+     "name": "LineMaxWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "CanvasWidth": {
+     "name": "CanvasWidth",
+     "mode": "plain",
+     "value": false
+    },
+    "CanvasHeight": {
+     "name": "CanvasHeight",
+     "mode": "plain",
+     "value": false
+    },
+    "Throttle": {
+     "name": "Throttle",
+     "mode": "plain",
+     "value": false
+    },
+    "VelocityFilterWeight": {
+     "name": "VelocityFilterWeight",
+     "mode": "plain",
+     "value": false
+    },
+    "BackgroundColor": {
+     "name": "BackgroundColor",
+     "mode": "plain",
+     "value": false
+    },
+    "PenColor": {
+     "name": "PenColor",
+     "mode": "plain",
+     "value": false
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{dotSize: $[DotSize], minWidth: $[LineMinWidth], maxWidth: $[LineMaxWidth], canvasWidth: $[CanvasWidth], canvasHeight: $[CanvasHeight], throttle: $[Throttle], backgroundColor: $[BackgroundColor], penColor: $[PenColor], velocityFilterWeight: $[VelocityFilterWeight]}"
+    }
+   }
+  }
+ },
+ "TreeviewComponent": {
+  "   7   9   0": {
+   "name": "TreeviewComponent",
+   "properties": {
+    "treenodes": {
+     "name": "treenodes",
+     "mode": "script",
+     "value": "[{'id': 1,'name': 'root1','children': [{'id': 2,'name': 'child1'}, {'id': 3,'name': 'child2'}]}]"
+    },
+    "displayField": {
+     "name": "displayField",
+     "mode": "plain",
+     "value": "name"
+    },
+    "childrenField": {
+     "name": "childrenField",
+     "mode": "plain",
+     "value": "children"
+    },
+    "hasChildrenField": {
+     "name": "hasChildrenField",
+     "mode": "plain",
+     "value": "hasChildren"
+    },
+    "idField": {
+     "name": "idField",
+     "mode": "plain",
+     "value": "id"
+    },
+    "isExpandedField": {
+     "name": "isExpandedField",
+     "mode": "plain",
+     "value": "expanded"
+    },
+    "RTL": {
+     "name": "RTL",
+     "mode": "plain",
+     "value": "false"
+    },
+    "scrollOnSelect": {
+     "name": "scrollOnSelect",
+     "mode": "plain",
+     "value": "true"
+    },
+    "useCheckbox": {
+     "name": "useCheckbox",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{childrenField: $[childrenField], displayField: $[displayField], idField:$[idField], hasChildrenField:$[hasChildrenField], isExpandedField:$[isExpandedField], rtl:$[RTL], scrollOnSelect:$[scrollOnSelect], useCheckbox:$[useCheckbox]}"
+    }
+   }
+  }
+ },
+ "Tooltips": {
+  "   7   9   0": {
+   "name": "Tooltips",
+   "properties": {
+    "AnimationDuration": {
+     "name": "AnimationDuration",
+     "mode": "plain",
+     "value": "300"
+    },
+    "AutoPlacement": {
+     "name": "AutoPlacement",
+     "mode": "plain",
+     "value": "true"
+    },
+    "HideDelay": {
+     "name": "HideDelay",
+     "mode": "plain",
+     "value": "300"
+    },
+    "HideDelayAfterClick": {
+     "name": "HideDelayAfterClick",
+     "mode": "plain",
+     "value": "2000"
+    },
+    "HideDelayTouchscreen": {
+     "name": "HideDelayTouchscreen",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Offset": {
+     "name": "Offset",
+     "mode": "plain",
+     "value": "8"
+    },
+    "Shadow": {
+     "name": "Shadow",
+     "mode": "plain",
+     "value": "true"
+    },
+    "ShowDelay": {
+     "name": "ShowDelay",
+     "mode": "plain",
+     "value": "0"
+    },
+    "Placement": {
+     "name": "Placement",
+     "mode": "plain",
+     "value": "top"
+    },
+    "PointerEvents": {
+     "name": "PointerEvents",
+     "mode": "plain",
+     "value": "none"
+    },
+    "Position": {
+     "name": "Position",
+     "mode": "script",
+     "value": false
+    },
+    "Theme": {
+     "name": "Theme",
+     "mode": "plain",
+     "value": "dark"
+    },
+    "Tooltip": {
+     "name": "Tooltip",
+     "mode": "plain",
+     "value": "A tooltip string"
+    },
+    "TooltipClass": {
+     "name": "TooltipClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "TooltipContent": {
+     "name": "TooltipContent",
+     "mode": "plain",
+     "value": "string"
+    },
+    "Trigger": {
+     "name": "Trigger",
+     "mode": "plain",
+     "value": "hover"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "MaxWidth": {
+     "name": "MaxWidth",
+     "mode": "plain",
+     "value": "200"
+    },
+    "ZIndex": {
+     "name": "ZIndex",
+     "mode": "plain",
+     "value": "0"
+    }
+   }
+  }
+ },
+ "GoogleMap": {
+  "   7   9   0": {
+   "name": "GoogleMap",
+   "properties": {
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "script",
+     "value": "'100%'"
+    },
+    "Zoom": {
+     "name": "Zoom",
+     "mode": "script",
+     "value": "12"
+    }
+   }
+  }
+ },
+ "MapCircle": {
+  "   7   9   0": {
+   "name": "MapCircle",
+   "properties": {
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Radius": {
+     "name": "Radius",
+     "mode": "script",
+     "value": "3000"
+    },
+    "Draggable": {
+     "name": "Draggable",
+     "mode": "script",
+     "value": "false"
+    },
+    "Clickable": {
+     "name": "Clickable",
+     "mode": "script",
+     "value": "true"
+    },
+    "FillColor": {
+     "name": "FillColor",
+     "mode": "script",
+     "value": "'#004de8'"
+    },
+    "FillOpacity": {
+     "name": "FillOpacity",
+     "mode": "script",
+     "value": "0.15"
+    },
+    "StrokeColor": {
+     "name": "StrokeColor",
+     "mode": "script",
+     "value": "'#004de8'"
+    },
+    "StrokePosition": {
+     "name": "StrokePosition",
+     "mode": "script",
+     "value": "0"
+    },
+    "StrokeOpacity": {
+     "name": "StrokeOpacity",
+     "mode": "script",
+     "value": "0.60"
+    },
+    "StrokeWeight": {
+     "name": "StrokeWeight",
+     "mode": "script",
+     "value": "1"
+    },
+    "Visible": {
+     "name": "Visible",
+     "mode": "script",
+     "value": "true"
+    }
+   }
+  }
+ },
+ "MapInfoWindow": {
+  "   7   9   0": {
+   "name": "MapInfoWindow",
+   "properties": {}
+  }
+ },
+ "MapMarker": {
+  "   7   9   0": {
+   "name": "MapMarker",
+   "properties": {
+    "IconUrl": {
+     "name": "IconUrl",
+     "mode": "script",
+     "value": "''"
+    },
+    "Latitude": {
+     "name": "Latitude",
+     "mode": "script",
+     "value": "48.6969459"
+    },
+    "Longitude": {
+     "name": "Longitude",
+     "mode": "script",
+     "value": "2.1775981"
+    },
+    "Title": {
+     "name": "Title",
+     "mode": "script",
+     "value": "'Convertigo'"
+    }
+   }
+  }
+ },
+ "Video": {
+  "   7   9   0": {
+   "name": "Video",
+   "properties": {
+    "src": {
+     "name": "src",
+     "mode": "script",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "control": {
+     "name": "control",
+     "mode": "plain",
+     "value": false
+    },
+    "autoplay": {
+     "name": "autoplay",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "Charts": {
+  "   7   9   0": {
+   "name": "Charts",
+   "properties": {
+    "BaseChart": {
+     "name": "BaseChart",
+     "mode": "plain",
+     "value": "baseChart"
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": false
+    },
+    "datasets": {
+     "name": "datasets",
+     "mode": "script",
+     "value": "[{'label': 'My first dataset','data': [0, 10, 5, 2, 20, 30, 45]},{'label': 'My second dataset','data': [15, 45, 10, 20, 65, 38, 88]}]"
+    },
+    "labels": {
+     "name": "labels",
+     "mode": "script",
+     "value": "['January', 'February', 'March', 'April', 'May', 'June', 'July']"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": false
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }"
+    },
+    "Colors": {
+     "name": "Colors",
+     "mode": "script",
+     "value": "[{'backgroundColor': 'rgb(0, 127, 255)','borderColor': 'rgb(0, 0, 255)'},{'backgroundColor': 'rgb(136, 77, 167)','borderColor': 'rgb(102,0, 153)'}]"
+    },
+    "ChartType": {
+     "name": "ChartType",
+     "mode": "plain",
+     "value": "bar"
+    }
+   }
+  }
+ },
+ "Calendar": {
+  "   7   9   0": {
+   "name": "Calendar",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": "primary"
+    },
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": "string"
+    },
+    "format": {
+     "name": "format",
+     "mode": "plain",
+     "value": "'YYYY-MM-DD'"
+    },
+    "pickMode": {
+     "name": "pickMode",
+     "mode": "plain",
+     "value": "single"
+    },
+    "from": {
+     "name": "from",
+     "mode": "script",
+     "value": "undefined"
+    },
+    "to": {
+     "name": "to",
+     "mode": "script",
+     "value": "undefined"
+    },
+    "showToggleButtons": {
+     "name": "showToggleButtons",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showMonthPicker": {
+     "name": "showMonthPicker",
+     "mode": "plain",
+     "value": "false"
+    },
+    "defaultTitle": {
+     "name": "defaultTitle",
+     "mode": "plain",
+     "value": ""
+    },
+    "defaultSubtitle": {
+     "name": "defaultSubtitle",
+     "mode": "plain",
+     "value": ""
+    },
+    "disableWeeks": {
+     "name": "disableWeeks",
+     "mode": "script",
+     "value": "[]"
+    },
+    "monthFormat": {
+     "name": "monthFormat",
+     "mode": "plain",
+     "value": "MMM YYYY"
+    },
+    "monthPickerFormat": {
+     "name": "monthPickerFormat",
+     "mode": "script",
+     "value": "['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']"
+    },
+    "weekdays": {
+     "name": "weekdays",
+     "mode": "script",
+     "value": "['S', 'M', 'T', 'W', 'T', 'F', 'S']"
+    },
+    "weekStart": {
+     "name": "weekStart",
+     "mode": "plain",
+     "value": 0
+    },
+    "daysConfig": {
+     "name": "daysConfig",
+     "mode": "script",
+     "value": "[]"
+    },
+    "options": {
+     "name": "options",
+     "mode": "script",
+     "value": "{pickMode: $[pickMode], from: $[from], to: $[to], color: $[IonColor], showToggleButtons: $[showToggleButtons], showMonthPicker: $[showMonthPicker], monthPickerFormat: $[monthPickerFormat], defaultTitle: $[defaultTitle], defaultSubtitle: $[defaultSubtitle], disableWeeks: $[disableWeeks], monthFormat: $[monthFormat], weekdays: $[weekdays], weekStart: $[weekStart], daysConfig: $[daysConfig] }"
+    }
+   }
+  }
+ },
+ "CallFullSyncAction": {
+  "   7   9   0": {
+   "name": "CallFullSyncAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "verb": {
+     "name": "verb",
+     "mode": "plain",
+     "value": "get"
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "CallSequenceAction": {
+  "   7   9   0": {
+   "name": "CallSequenceAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": ""
+    },
+    "cachePolicy": {
+     "name": "cachePolicy",
+     "mode": "plain",
+     "value": false
+    },
+    "cacheTtl": {
+     "name": "cacheTtl",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "timeout": {
+     "name": "timeout",
+     "mode": "plain",
+     "value": false
+    },
+    "threshold": {
+     "name": "threshold",
+     "mode": "plain",
+     "value": false
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "noAutoLogin": {
+     "name": "noAutoLogin",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "ClearDataSourceAction": {
+  "   7   9   0": {
+   "name": "ClearDataSourceAction",
+   "properties": {
+    "requestables": {
+     "name": "requestables",
+     "mode": "script",
+     "value": "[]"
+    }
+   }
+  }
+ },
+ "ErrorAction": {
+  "   7   9   0": {
+   "name": "ErrorAction",
+   "properties": {
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some error"
+    }
+   }
+  }
+ },
+ "FullSyncDeleteAction": {
+  "   7   9   0": {
+   "name": "FullSyncDeleteAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "rev": {
+     "name": "rev",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncDeleteAttachmentAction": {
+  "   7   9   0": {
+   "name": "FullSyncDeleteAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncGetAction": {
+  "   7   9   0": {
+   "name": "FullSyncGetAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncPostAction": {
+  "   7   9   0": {
+   "name": "FullSyncPostAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "_id": {
+     "name": "_id",
+     "mode": "plain",
+     "value": false
+    },
+    "_use_policy": {
+     "name": "_use_policy",
+     "mode": "plain",
+     "value": "override"
+    },
+    "RootKey": {
+     "name": "RootKey",
+     "mode": "plain",
+     "value": false
+    },
+    "c8oGrp": {
+     "name": "c8oGrp",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncPutAttachmentAction": {
+  "   7   9   0": {
+   "name": "FullSyncPutAttachmentAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "name": {
+     "name": "name",
+     "mode": "plain",
+     "value": false
+    },
+    "content_type": {
+     "name": "content_type",
+     "mode": "plain",
+     "value": false
+    },
+    "content": {
+     "name": "content",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "FullSyncSyncAction": {
+  "   7   9   0": {
+   "name": "FullSyncSyncAction",
+   "properties": {
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "Direction": {
+     "name": "Direction",
+     "mode": "plain",
+     "value": "bi-directional"
+    },
+    "Mode": {
+     "name": "Mode",
+     "mode": "plain",
+     "value": "continuous"
+    },
+    "Retry": {
+     "name": "Retry",
+     "mode": "plain",
+     "value": "true"
+    },
+    "BatchSize": {
+     "name": "BatchSize",
+     "mode": "script",
+     "value": "100"
+    },
+    "BatchesLimit": {
+     "name": "BatchesLimit",
+     "mode": "script",
+     "value": "10"
+    }
+   }
+  }
+ },
+ "FullSyncViewAction": {
+  "   7   9   0": {
+   "name": "FullSyncViewAction",
+   "properties": {
+    "noLoading": {
+     "name": "noLoading",
+     "mode": "plain",
+     "value": "false"
+    },
+    "marker": {
+     "name": "marker",
+     "mode": "plain",
+     "value": false
+    },
+    "fsview": {
+     "name": "fsview",
+     "mode": "plain",
+     "value": ""
+    },
+    "__live": {
+     "name": "__live",
+     "mode": "plain",
+     "value": false
+    },
+    "include_docs": {
+     "name": "include_docs",
+     "mode": "plain",
+     "value": "false"
+    },
+    "conflicts": {
+     "name": "conflicts",
+     "mode": "plain",
+     "value": false
+    },
+    "reduce": {
+     "name": "reduce",
+     "mode": "plain",
+     "value": "false"
+    },
+    "attachments": {
+     "name": "attachments",
+     "mode": "plain",
+     "value": false
+    },
+    "binary": {
+     "name": "binary",
+     "mode": "plain",
+     "value": false
+    },
+    "startkey": {
+     "name": "startkey",
+     "mode": "plain",
+     "value": false
+    },
+    "endkey": {
+     "name": "endkey",
+     "mode": "plain",
+     "value": false
+    },
+    "inclusive_end": {
+     "name": "inclusive_end",
+     "mode": "plain",
+     "value": false
+    },
+    "limit": {
+     "name": "limit",
+     "mode": "script",
+     "value": "500"
+    },
+    "skip": {
+     "name": "skip",
+     "mode": "script",
+     "value": false
+    },
+    "descending": {
+     "name": "descending",
+     "mode": "plain",
+     "value": false
+    },
+    "key": {
+     "name": "key",
+     "mode": "plain",
+     "value": false
+    },
+    "keys": {
+     "name": "keys",
+     "mode": "plain",
+     "value": false
+    },
+    "group": {
+     "name": "group",
+     "mode": "plain",
+     "value": false
+    },
+    "group_level": {
+     "name": "group_level",
+     "mode": "plain",
+     "value": false
+    },
+    "stale": {
+     "name": "stale",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "IfAction": {
+  "   7   9   0": {
+   "name": "IfAction",
+   "properties": {
+    "condition": {
+     "name": "condition",
+     "mode": "script",
+     "value": "parent.out"
+    },
+    "negate": {
+     "name": "negate",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "IfElseAction": {
+  "   7   9   0": {
+   "name": "IfElseAction",
+   "properties": {
+    "condition": {
+     "name": "condition",
+     "mode": "script",
+     "value": "parent.out"
+    },
+    "negate": {
+     "name": "negate",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "InvokeAction": {
+  "   7   9   0": {
+   "name": "InvokeAction",
+   "properties": {}
+  }
+ },
+ "IterateAction": {
+  "   7   9   0": {
+   "name": "IterateAction",
+   "properties": {
+    "items": {
+     "name": "items",
+     "mode": "script",
+     "value": "[]"
+    }
+   }
+  }
+ },
+ "LogAction": {
+  "   7   9   0": {
+   "name": "LogAction",
+   "properties": {
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some log"
+    },
+    "level": {
+     "name": "level",
+     "mode": "plain",
+     "value": "info"
+    }
+   }
+  }
+ },
+ "PauseAction": {
+  "   7   9   0": {
+   "name": "PauseAction",
+   "properties": {
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "1000"
+    }
+   }
+  }
+ },
+ "SetGlobalAction": {
+  "   7   9   0": {
+   "name": "SetGlobalAction",
+   "properties": {
+    "Property": {
+     "name": "Property",
+     "mode": "plain",
+     "value": "myProperty"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "script",
+     "value": ""
+    }
+   }
+  }
+ },
+ "ToastAction": {
+  "   7   9   0": {
+   "name": "ToastAction",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "header": {
+     "name": "header",
+     "mode": "plain",
+     "value": false
+    },
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some message"
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": "bottom"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "showCloseButton": {
+     "name": "showCloseButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "closeButtonText": {
+     "name": "closeButtonText",
+     "mode": "plain",
+     "value": false
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "CloseModalAction": {
+  "   7   9   0": {
+   "name": "CloseModalAction",
+   "properties": {
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ModalAction": {
+  "   7   9   0": {
+   "name": "ModalAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "presentingElement": {
+     "name": "presentingElement",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "blockWhileDisplayed": {
+     "name": "blockWhileDisplayed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "swipeToClose": {
+     "name": "swipeToClose",
+     "mode": "plain",
+     "value": "false"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "ClosePopoverAction": {
+  "   7   9   0": {
+   "name": "ClosePopoverAction",
+   "properties": {
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "PopoverAction": {
+  "   7   9   0": {
+   "name": "PopoverAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    },
+    "enableBackdropDismiss": {
+     "name": "enableBackdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "event": {
+     "name": "event",
+     "mode": "script",
+     "value": "(event == undefined ? $event : event)"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "CloseLoadingAction": {
+  "   7   9   0": {
+   "name": "CloseLoadingAction",
+   "properties": {
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ShowLoadingAction": {
+  "   7   9   0": {
+   "name": "ShowLoadingAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "Please wait..."
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": "3000"
+    },
+    "spinner": {
+     "name": "spinner",
+     "mode": "plain",
+     "value": false
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "showBackdrop": {
+     "name": "showBackdrop",
+     "mode": "plain",
+     "value": "true"
+    },
+    "backdropDismiss": {
+     "name": "backdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "RootPageAction": {
+  "   7   9   0": {
+   "name": "RootPageAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "PopPageAction": {
+  "   7   9   0": {
+   "name": "PopPageAction",
+   "properties": {}
+  }
+ },
+ "PushPageAction": {
+  "   7   9   0": {
+   "name": "PushPageAction",
+   "properties": {
+    "page": {
+     "name": "page",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "GooglePlusLoginAction": {
+  "   7   9   0": {
+   "name": "GooglePlusLoginAction",
+   "properties": {
+    "mockedResponseE": {
+     "name": "mockedResponseE",
+     "mode": "plain",
+     "value": "user@convertigo.com"
+    },
+    "mockedResponseU": {
+     "name": "mockedResponseU",
+     "mode": "plain",
+     "value": "my_id"
+    },
+    "mockedResponseD": {
+     "name": "mockedResponseD",
+     "mode": "plain",
+     "value": "John Doe"
+    },
+    "mockedResponseF": {
+     "name": "mockedResponseF",
+     "mode": "plain",
+     "value": "Doe"
+    },
+    "mockedResponseG": {
+     "name": "mockedResponseG",
+     "mode": "plain",
+     "value": "John"
+    },
+    "mockedResponseImg": {
+     "name": "mockedResponseImg",
+     "mode": "plain",
+     "value": "http:\/\/saffroninteractive.com\/wp-content\/uploads\/2017\/10\/empty-avatar2.png"
+    },
+    "mockedResponseId": {
+     "name": "mockedResponseId",
+     "mode": "plain",
+     "value": "my_id_token"
+    },
+    "mockedResponseS": {
+     "name": "mockedResponseS",
+     "mode": "plain",
+     "value": "12"
+    },
+    "mockedResponseA": {
+     "name": "mockedResponseA",
+     "mode": "plain",
+     "value": "my_access_token"
+    },
+    "mockedResponseLogout": {
+     "name": "mockedResponseLogout",
+     "mode": "plain",
+     "value": "true"
+    },
+    "actionGoogle": {
+     "name": "actionGoogle",
+     "mode": "plain",
+     "value": "Login"
+    },
+    "webClientId": {
+     "name": "webClientId",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "BarcodeAction": {
+  "   7   9   0": {
+   "name": "BarcodeAction",
+   "properties": {
+    "mockedFormat": {
+     "name": "mockedFormat",
+     "mode": "plain",
+     "value": "QR_CODE"
+    },
+    "mockedCancel": {
+     "name": "mockedCancel",
+     "mode": "plain",
+     "value": "false"
+    },
+    "mockedText": {
+     "name": "mockedText",
+     "mode": "plain",
+     "value": "http:\/\/www.convertigo.com\/"
+    },
+    "preferFrontCamera": {
+     "name": "preferFrontCamera",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showFlipCameraButton": {
+     "name": "showFlipCameraButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "showTorchButton": {
+     "name": "showTorchButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableAnimations": {
+     "name": "disableAnimations",
+     "mode": "plain",
+     "value": "false"
+    },
+    "disableSuccessBeep": {
+     "name": "disableSuccessBeep",
+     "mode": "plain",
+     "value": "false"
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "formats": {
+     "name": "formats",
+     "mode": "plain",
+     "value": "QR_CODE,DATA_MATRIX,UPC_A,UPC_E,EAN_8,EAN_13,CODE_39,CODE_93,CODE_128,CODABAR,ITF,RSS14,PDF417,RSS_EXPANDED,MSI,AZTEC"
+    },
+    "orientation": {
+     "name": "orientation",
+     "mode": "plain",
+     "value": false
+    },
+    "torchOn": {
+     "name": "torchOn",
+     "mode": "plain",
+     "value": "false"
+    },
+    "resultDisplayDuration": {
+     "name": "resultDisplayDuration",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "CameraAction": {
+  "   7   9   0": {
+   "name": "CameraAction",
+   "properties": {
+    "quality": {
+     "name": "quality",
+     "mode": "script",
+     "value": 80
+    },
+    "destinationType": {
+     "name": "destinationType",
+     "mode": "plain",
+     "value": "FILE_URL"
+    },
+    "sourceType": {
+     "name": "sourceType",
+     "mode": "plain",
+     "value": "CAMERA"
+    },
+    "allowEdit": {
+     "name": "allowEdit",
+     "mode": "plain",
+     "value": "false"
+    },
+    "encodingType": {
+     "name": "encodingType",
+     "mode": "plain",
+     "value": "JPEG"
+    },
+    "targetWidth": {
+     "name": "targetWidth",
+     "mode": "script",
+     "value": 800
+    },
+    "targetHeight": {
+     "name": "targetHeight",
+     "mode": "script",
+     "value": 800
+    },
+    "mediaType": {
+     "name": "mediaType",
+     "mode": "plain",
+     "value": false
+    },
+    "correctOrientation": {
+     "name": "correctOrientation",
+     "mode": "plain",
+     "value": "true"
+    },
+    "saveToPhotoAlbum": {
+     "name": "saveToPhotoAlbum",
+     "mode": "plain",
+     "value": "false"
+    },
+    "cameraDirection": {
+     "name": "cameraDirection",
+     "mode": "plain",
+     "value": "BACK"
+    },
+    "x": {
+     "name": "x",
+     "mode": "script",
+     "value": false
+    },
+    "y": {
+     "name": "y",
+     "mode": "script",
+     "value": false
+    },
+    "width": {
+     "name": "width",
+     "mode": "script",
+     "value": false
+    },
+    "height": {
+     "name": "height",
+     "mode": "script",
+     "value": false
+    },
+    "arrowDir": {
+     "name": "arrowDir",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ChooserAction": {
+  "   7   9   0": {
+   "name": "ChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    },
+    "mimeType": {
+     "name": "mimeType",
+     "mode": "script",
+     "value": false
+    }
+   }
+  }
+ },
+ "FileChooserAction": {
+  "   7   9   0": {
+   "name": "FileChooserAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "https:\/\/www.convertigo.com\/wp-content\/uploads\/2015\/01\/logoStudio.png"
+    }
+   }
+  }
+ },
+ "FileOpenerAction": {
+  "   7   9   0": {
+   "name": "FileOpenerAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "filePath": {
+     "name": "filePath",
+     "mode": "plain",
+     "value": true
+    }
+   }
+  }
+ },
+ "CheckInstallAction": {
+  "   7   9   0": {
+   "name": "CheckInstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "SpeechToTextAction": {
+  "   7   9   0": {
+   "name": "SpeechToTextAction",
+   "properties": {
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "matches": {
+     "name": "matches",
+     "mode": "plain",
+     "value": false
+    },
+    "prompt": {
+     "name": "prompt",
+     "mode": "plain",
+     "value": false
+    },
+    "showPopup": {
+     "name": "showPopup",
+     "mode": "plain",
+     "value": "true"
+    },
+    "showPartial": {
+     "name": "showPartial",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "TextToSpeechAction": {
+  "   7   9   0": {
+   "name": "TextToSpeechAction",
+   "properties": {
+    "text": {
+     "name": "text",
+     "mode": "plain",
+     "value": false
+    },
+    "locale": {
+     "name": "locale",
+     "mode": "plain",
+     "value": false
+    },
+    "volume": {
+     "name": "volume",
+     "mode": "script",
+     "value": "1"
+    },
+    "pitch": {
+     "name": "pitch",
+     "mode": "script",
+     "value": "0"
+    },
+    "rate": {
+     "name": "rate",
+     "mode": "script",
+     "value": "1"
+    }
+   }
+  }
+ },
+ "UninstallAction": {
+  "   7   9   0": {
+   "name": "UninstallAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "plain",
+     "value": "true"
+    },
+    "packageID": {
+     "name": "packageID",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
+ },
+ "FSImage": {
+  "   7   9   0": {
+   "name": "FSImage",
+   "properties": {
+    "url": {
+     "name": "url",
+     "mode": "script",
+     "value": "getAttachmentUrl($[docid], $[attachment], $[placeholder], $[requestable])"
+    },
+    "docid": {
+     "name": "docid",
+     "mode": "plain",
+     "value": false
+    },
+    "attachment": {
+     "name": "attachment",
+     "mode": "plain",
+     "value": false
+    },
+    "placeholder": {
+     "name": "placeholder",
+     "mode": "plain",
+     "value": false
+    },
+    "requestable": {
+     "name": "requestable",
+     "mode": "plain",
+     "value": ""
+    },
+    "width": {
+     "name": "width",
+     "mode": "plain",
+     "value": ""
+    },
+    "height": {
+     "name": "height",
+     "mode": "plain",
+     "value": ""
+    },
+    "alt": {
+     "name": "alt",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "OAuthLoginAction": {
+  "   7   9   0": {
+   "name": "OAuthLoginAction",
+   "properties": {
+    "provider": {
+     "name": "provider",
+     "mode": "plain",
+     "value": "azure"
+    },
+    "clientid": {
+     "name": "clientid",
+     "mode": "plain",
+     "value": false
+    },
+    "tenantid": {
+     "name": "tenantid",
+     "mode": "plain",
+     "value": false
+    },
+    "scope": {
+     "name": "scope",
+     "mode": "plain",
+     "value": false
+    },
+    "response_type": {
+     "name": "response_type",
+     "mode": "plain",
+     "value": false
+    },
+    "loginRequestable": {
+     "name": "loginRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "checkAccessTokenRequestable": {
+     "name": "checkAccessTokenRequestable",
+     "mode": "plain",
+     "value": false
+    },
+    "authorization_endpoint": {
+     "name": "authorization_endpoint",
+     "mode": "plain",
+     "value": false
+    },
+    "callbackurl": {
+     "name": "callbackurl",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "AlertAction": {
+  "   7   9   0": {
+   "name": "AlertAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "header": {
+     "name": "header",
+     "mode": "plain",
+     "value": false
+    },
+    "subHeader": {
+     "name": "subHeader",
+     "mode": "plain",
+     "value": false
+    },
+    "message": {
+     "name": "message",
+     "mode": "plain",
+     "value": "some message"
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "backdropDismiss": {
+     "name": "backdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    },
+    "button1": {
+     "name": "button1",
+     "mode": "plain",
+     "value": false
+    },
+    "button2": {
+     "name": "button2",
+     "mode": "plain",
+     "value": false
+    },
+    "button3": {
+     "name": "button3",
+     "mode": "plain",
+     "value": false
+    },
+    "value1": {
+     "name": "value1",
+     "mode": "script",
+     "value": "{}"
+    },
+    "value2": {
+     "name": "value2",
+     "mode": "script",
+     "value": "{}"
+    },
+    "value3": {
+     "name": "value3",
+     "mode": "script",
+     "value": "{}"
+    },
+    "cancel1": {
+     "name": "cancel1",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel2": {
+     "name": "cancel2",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel3": {
+     "name": "cancel3",
+     "mode": "plain",
+     "value": false
+    },
+    "css1": {
+     "name": "css1",
+     "mode": "plain",
+     "value": false
+    },
+    "css2": {
+     "name": "css2",
+     "mode": "plain",
+     "value": false
+    },
+    "css3": {
+     "name": "css3",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "ActionSheetAction": {
+  "   7   9   0": {
+   "name": "ActionSheetAction",
+   "properties": {
+    "mockedResponse": {
+     "name": "mockedResponse",
+     "mode": "script",
+     "value": 0
+    },
+    "title": {
+     "name": "title",
+     "mode": "plain",
+     "value": false
+    },
+    "subtitle": {
+     "name": "subtitle",
+     "mode": "plain",
+     "value": false
+    },
+    "buttonLabels": {
+     "name": "buttonLabels",
+     "mode": "script",
+     "value": "['']"
+    },
+    "androidTheme": {
+     "name": "androidTheme",
+     "mode": "plain",
+     "value": false
+    },
+    "androidEnableCancelButton": {
+     "name": "androidEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "winphoneEnableCancelButton": {
+     "name": "winphoneEnableCancelButton",
+     "mode": "plain",
+     "value": "false"
+    },
+    "addCancelButtonWithLabel": {
+     "name": "addCancelButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "addDestructiveButtonWithLabel": {
+     "name": "addDestructiveButtonWithLabel",
+     "mode": "plain",
+     "value": false
+    },
+    "position": {
+     "name": "position",
+     "mode": "plain",
+     "value": false
+    },
+    "destructiveButtonLast": {
+     "name": "destructiveButtonLast",
+     "mode": "plain",
+     "value": "false"
+    }
+   }
+  }
+ },
+ "IonicActionSheetAction": {
+  "   7   9   0": {
+   "name": "IonicActionSheetAction",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "header": {
+     "name": "header",
+     "mode": "plain",
+     "value": false
+    },
+    "subHeader": {
+     "name": "subHeader",
+     "mode": "plain",
+     "value": false
+    },
+    "cssClass": {
+     "name": "cssClass",
+     "mode": "plain",
+     "value": ""
+    },
+    "animated": {
+     "name": "animated",
+     "mode": "plain",
+     "value": "true"
+    },
+    "enterAnimation": {
+     "name": "enterAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "leaveAnimation": {
+     "name": "leaveAnimation",
+     "mode": "plain",
+     "value": false
+    },
+    "keyboardClose": {
+     "name": "keyboardClose",
+     "mode": "plain",
+     "value": "true"
+    },
+    "backdropDismiss": {
+     "name": "backdropDismiss",
+     "mode": "plain",
+     "value": "true"
+    },
+    "translucent": {
+     "name": "translucent",
+     "mode": "plain",
+     "value": "false"
+    },
+    "button1": {
+     "name": "button1",
+     "mode": "plain",
+     "value": false
+    },
+    "button2": {
+     "name": "button2",
+     "mode": "plain",
+     "value": false
+    },
+    "button3": {
+     "name": "button3",
+     "mode": "plain",
+     "value": false
+    },
+    "value1": {
+     "name": "value1",
+     "mode": "script",
+     "value": "{}"
+    },
+    "value2": {
+     "name": "value2",
+     "mode": "script",
+     "value": "{}"
+    },
+    "value3": {
+     "name": "value3",
+     "mode": "script",
+     "value": "{}"
+    },
+    "cancel1": {
+     "name": "cancel1",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel2": {
+     "name": "cancel2",
+     "mode": "plain",
+     "value": false
+    },
+    "cancel3": {
+     "name": "cancel3",
+     "mode": "plain",
+     "value": false
+    },
+    "css1": {
+     "name": "css1",
+     "mode": "plain",
+     "value": false
+    },
+    "css2": {
+     "name": "css2",
+     "mode": "plain",
+     "value": false
+    },
+    "css3": {
+     "name": "css3",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "PublishEventAction": {
+  "   7   9   0": {
+   "name": "PublishEventAction",
+   "properties": {
+    "topic": {
+     "name": "topic",
+     "mode": "plain",
+     "value": false
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": "{}"
+    }
+   }
+  }
+ },
+ "AnimateAction": {
+  "   7   9   0": {
+   "name": "AnimateAction",
+   "properties": {
+    "type": {
+     "name": "type",
+     "mode": "plain",
+     "value": false
+    },
+    "timingFunction": {
+     "name": "timingFunction",
+     "mode": "plain",
+     "value": false
+    },
+    "playState": {
+     "name": "playState",
+     "mode": "plain",
+     "value": false
+    },
+    "direction": {
+     "name": "direction",
+     "mode": "plain",
+     "value": false
+    },
+    "fillMode": {
+     "name": "fillMode",
+     "mode": "plain",
+     "value": false
+    },
+    "iterationCount": {
+     "name": "iterationCount",
+     "mode": "plain",
+     "value": false
+    },
+    "duration": {
+     "name": "duration",
+     "mode": "plain",
+     "value": 1000
+    },
+    "delay": {
+     "name": "delay",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ },
+ "NavigatePageAction": {
+  "   7   9   0": {
+   "name": "NavigatePageAction",
+   "properties": {
+    "url": {
+     "name": "url",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
+ }
+}

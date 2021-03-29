@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -124,4 +124,16 @@ public class RequestableHttpVariable extends RequestableVariable {
 			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 7.4.7");
         }
     }
+	
+	@Override
+	public String toString() {
+		String label = "";
+		try {
+			label = getLabel();
+		} catch (EngineException e) {}
+		if (!getName().equals(httpName) && !httpName.isEmpty()) {
+			return getName() + " → " + httpName + label;
+		}
+		return super.toString();
+	}
 }

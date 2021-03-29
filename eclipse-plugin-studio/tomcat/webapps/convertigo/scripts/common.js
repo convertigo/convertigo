@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -86,7 +86,7 @@ function getEncodedYamlUri(project) {
 	var yamlUrl = "";
 	try {
 		var location = document.location.href;
-		yamlUrl = location.substring(0,location.lastIndexOf("/"))+"/api?YAML";
+		yamlUrl = location.substring(0,location.lastIndexOf("/"))+"/openapi?YAML";
 		if (typeof(project) !== "undefined") {
 			yamlUrl += "&__project="+project;
 		}

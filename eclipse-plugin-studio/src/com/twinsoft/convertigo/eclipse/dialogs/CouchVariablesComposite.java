@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -83,7 +83,7 @@ public class CouchVariablesComposite extends ScrolledComposite {
 				if ( (name.startsWith("q_") || name.startsWith("p_")) ) {
 					if (!parentObject.getClass().getCanonicalName().equals(property.getValue(MySimpleBeanInfo.BLACK_LIST_PARENT_CLASS))) {
 						Group choosenGroup = name.startsWith("q_") ? groupQueries : groupParameters;
-						description = description.replaceFirst("\\|", "");
+						description = description.replaceFirst("\\|", "<br/>\n");
 						addToComposite(choosenGroup, name, description, false);
 					}
 				} 
@@ -236,27 +236,32 @@ public class CouchVariablesComposite extends ScrolledComposite {
 			}
 			
 			labelName.setText(label);
-			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP | SWT.BORDER);
+			C8oBrowser browserDescription = new C8oBrowser(choosenGroup, SWT.MULTI | SWT.WRAP);
+			browserDescription.setUseExternalBrowser(true);
 			if (SwtUtils.isDark()) {
 				browserDescription.setBackground(getParent().getBackground());
 			}
-			browserDescription.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+			GridData gd = new GridData(GridData.FILL, GridData.CENTER, true, true);
+			gd.minimumHeight = 60;
+			browserDescription.setLayoutData(gd);
 			browserDescription.setText("<html>" +
-					"<head>" +
-					"<script type=\"text/javascript\">" +
-						"document.oncontextmenu = new Function(\"return false\");" +
-					"</script>" +
-							"<style type=\"text/css\">" +
-								  "body {" +
-								    "font-family: Tahoma new, sans-serif;" +
-								    "font-size: 0.7em;" +
-								    "margin-top: 5px;" +
-								    "overflow-y: auto;" +
-								    "color: $foreground$;" +
-								    "background-color: $background$ } \n" +
-								  "a { color: $link$; }" +
-							"</style></head><p>" + description + "</p></html>");
-
+				"<head>" +
+				"<script type=\"text/javascript\">" +
+					"document.oncontextmenu = new Function(\"return false\");" +
+				"</script>" +
+				"<style type=\"text/css\">" +
+					  "body {" +
+					    "margin: auto;" +
+					    "height: 60px;" +
+					    "display: table-cell;" +
+					    "vertical-align: middle;" +
+					    "font-family: Tahoma new, sans-serif;" +
+					    "font-size: 0.7em;" +
+					    "overflow-y: auto;" +
+					    "color: $foreground$;" +
+					    "background-color: $background$ } \n" +
+					  "a { color: $link$; }" +
+				"</style></head><body>" + description + "</body></html>");
 			parametersCouch.add(name);
 			
 			Control[] children = choosenGroup.getChildren();

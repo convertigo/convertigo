@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -343,6 +343,7 @@ public class ObjectsExplorerComposite extends Composite {
 		scrolledComposite.setLayoutData(gridData);
 
 		helpBrowser = new C8oBrowser(this, SWT.MULTI | SWT.WRAP);
+		helpBrowser.setUseExternalBrowser(true);
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;

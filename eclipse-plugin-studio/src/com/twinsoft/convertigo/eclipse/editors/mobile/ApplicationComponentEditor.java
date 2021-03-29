@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -82,29 +81,28 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
-import com.teamdev.jxbrowser.chromium.Browser;
-import com.teamdev.jxbrowser.chromium.ContextMenuHandler;
-import com.teamdev.jxbrowser.chromium.ContextMenuParams;
-import com.teamdev.jxbrowser.chromium.JSFunction;
-import com.teamdev.jxbrowser.chromium.JSObject;
-import com.teamdev.jxbrowser.chromium.JSValue;
-import com.teamdev.jxbrowser.chromium.PermissionStatus;
-import com.teamdev.jxbrowser.chromium.dom.By;
-import com.teamdev.jxbrowser.chromium.dom.DOMDocument;
-import com.teamdev.jxbrowser.chromium.dom.DOMElement;
-import com.teamdev.jxbrowser.chromium.dom.DOMNode;
-import com.teamdev.jxbrowser.chromium.dom.DOMNodeAtPoint;
-import com.teamdev.jxbrowser.chromium.events.ScriptContextAdapter;
-import com.teamdev.jxbrowser.chromium.events.ScriptContextEvent;
+import com.teamdev.jxbrowser.browser.Browser;
+import com.teamdev.jxbrowser.browser.callback.InjectJsCallback;
+import com.teamdev.jxbrowser.browser.callback.InjectJsCallback.Response;
+import com.teamdev.jxbrowser.browser.callback.ShowContextMenuCallback;
+import com.teamdev.jxbrowser.dom.Document;
+import com.teamdev.jxbrowser.dom.Element;
+import com.teamdev.jxbrowser.dom.Node;
+import com.teamdev.jxbrowser.frame.Frame;
+import com.teamdev.jxbrowser.js.JsAccessible;
+import com.teamdev.jxbrowser.js.JsObject;
+import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.MobileComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
+import com.twinsoft.convertigo.beans.mobile.components.MobileComponent;
 import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
+import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.mobile.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -113,6 +111,7 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
@@ -128,30 +127,24 @@ import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.convertigo.engine.util.ProcessUtils;
 
+
 public final class ApplicationComponentEditor extends EditorPart implements MobileEventListener {
 	
 	public class ApplicationComponentBrowserImpl {
 
-//		@JsAccessible
-//		public void onDragOver(JsObject o) {
-//			try {
-//				double x = (Double) o.property("screenX").get();
-//				double y = (Double) o.property("screenY").get();
-//				highlightPoint((int) x, (int) y);
-//			} catch (Exception e) {
-//				onDrop(o);
-//			}
-//		}
-		
-		public void onDragOver(JSObject o) {
-			int x = o.getProperty("screenX").asNumber().getInteger();
-			int y = o.getProperty("screenY").asNumber().getInteger();
-			highlightPoint(x, y);
+		@JsAccessible
+		public void onDragOver(JsObject o) {
+			try {
+				double x = (Double) o.property("screenX").get();
+				double y = (Double) o.property("screenY").get();
+				highlightPoint((int) x, (int) y);
+			} catch (Exception e) {
+				onDrop(o);
+			}
 		}
 
-//		@JsAccessible
-//		public void onDrop(JsObject o) {
-		public void onDrop(JSObject o) {
+		@JsAccessible
+		public void onDrop(JsObject o) {
 			try {
 				String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				DatabaseObject target = exHighlightMobileComponent;
@@ -426,88 +419,42 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		browserInterface = new ApplicationComponentBrowserImpl();
 		
-//		browser.set(InjectJsCallback.class, params -> {
-//			String url = params.frame().browser().url();
-//			if (baseUrl != null && url.startsWith(baseUrl)) {
-//				try {
-//					Frame frame = params.frame();
-//					JsObject sessionStorage = frame.executeJavaScript("sessionStorage");
-//					frame.executeJavaScript(
-//						""//"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
-//						+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
-//						+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
-//					);
-//					sessionStorage.call("setItem", "_c8ocafsession_storage_mode", "session");
-//					if (!dataset.equals("none")) {
-//						String json = FileUtils.readFileToString(new File(datasetDir, dataset + ".json"), "UTF-8");
-//						sessionStorage.call("setItem", "_c8ocafsession_storage_data", json);
-//					} else {
-//						sessionStorage.call("setItem", "_c8ocafsession_storage_data", null);
-//					}
-//					JsObject window = frame.executeJavaScript("window");
-//					window.putProperty("java", browserInterface);
-//				} catch (Exception e) {
-//					Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
-//				}
-//			}
-////			browser.setZoomLevel(zoomFactor.zoomLevel());
-//			return Response.proceed();
-//		});
-//		
-//		browser.set(ShowContextMenuCallback.class, (params, tell) -> {
-//			com.teamdev.jxbrowser.ui.Point location = params.location();
-//			highlightPoint(location.x(), location.y());
-//			tell.close();
-//		});
-//		
-//		browser.engine().permissions().set(RequestPermissionCallback.class, (params, tell) -> {
-//			tell.grant();
-//		});
-		
-		browser.addScriptContextListener(new ScriptContextAdapter() {
-
-			@Override
-			public void onScriptContextCreated(ScriptContextEvent event) {
-				String url = browser.getURL();
-				if (baseUrl != null && url.startsWith(baseUrl)) {
-					try {
-						JSObject sessionStorage = browser.executeJavaScriptAndReturnValue("sessionStorage").asObject();
-						JSFunction setItem = sessionStorage.getProperty("setItem").asFunction();
-						browser.executeJavaScript(
-							""//"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
-							+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
-							+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
-						);
-						setItem.invoke(sessionStorage, "_c8ocafsession_storage_mode", "session");
-						if (!dataset.equals("none")) {
-							String json = FileUtils.readFileToString(new File(datasetDir, dataset + ".json"), "UTF-8");
-							setItem.invoke(sessionStorage, "_c8ocafsession_storage_data", json);
-						} else {
-							setItem.invoke(sessionStorage, "_c8ocafsession_storage_data", null);
-						}
-						JSObject window = browser.executeJavaScriptAndReturnValue("window").asObject();
-						window.setProperty("java", browserInterface);
-					} catch (IOException e) {
-						Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
+		browser.set(InjectJsCallback.class, params -> {
+			String url = params.frame().browser().url();
+			if (baseUrl != null && url.startsWith(baseUrl)) {
+				try {
+					Frame frame = params.frame();
+					JsObject sessionStorage = frame.executeJavaScript("sessionStorage");
+					frame.executeJavaScript(
+						"sessionStorage.setItem('_c8ocafsession_storage_mode', 'session');\n"
+						+ "navigator.__defineGetter__('userAgent', function(){ return '" + deviceOS.agent() + "'});\n"
+						+ IOUtils.toString(getClass().getResourceAsStream("inject.js"), "UTF-8")
+					);
+					sessionStorage.call("setItem", "_c8ocafsession_storage_mode", "session");
+					if (!dataset.equals("none")) {
+						String json = FileUtils.readFileToString(new File(datasetDir, dataset + ".json"), "UTF-8");
+						sessionStorage.call("setItem", "_c8ocafsession_storage_data", json);
+					} else {
+						sessionStorage.call("setItem", "_c8ocafsession_storage_data", null);
 					}
+					JsObject window = frame.executeJavaScript("window");
+					window.putProperty("java", browserInterface);
+				} catch (Exception e) {
+					Engine.logStudio.info("onScriptContextCreate failed for '" + url + "' with baseUrl '" + baseUrl + "': " + e.getMessage());
 				}
-				browser.setZoomLevel(zoomFactor.zoomLevel());
-				super.onScriptContextCreated(event);
 			}
-			
+//			browser.setZoomLevel(zoomFactor.zoomLevel());
+			return Response.proceed();
 		});
 		
-		browser.setContextMenuHandler(new ContextMenuHandler() {
-			
-			@Override
-			public void showContextMenu(ContextMenuParams ctx) {
-				java.awt.Point location = ctx.getLocation();
-				highlightPoint(location.x, location.y);
-			}
+		browser.set(ShowContextMenuCallback.class, (params, tell) -> {
+			com.teamdev.jxbrowser.ui.Point location = params.location();
+			highlightPoint(location.x(), location.y());
+			tell.close();
 		});
 		
-		browser.setPermissionHandler((request) -> {
-			return PermissionStatus.GRANTED;
+		browser.engine().permissions().set(RequestPermissionCallback.class, (params, tell) -> {
+			tell.grant();
 		});
 	}
 	
@@ -578,7 +525,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			menuItem.setData(device);
 			menuItem.setImage(device.image());
 			menuItem.setText(device.displayName());
-			menuItem.addSelectionListener(selectionListener);			
+			menuItem.addSelectionListener(selectionListener);
 		}
 		
 		deviceOsToolItem.setToolTipText("Select device OS.");
@@ -840,7 +787,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				getSite().getPage().activate(ConvertigoPlugin.getDefault().getMobileDebugView());
+				MobileDebugView view = ConvertigoPlugin.getDefault().getMobileDebugView(true);
+				getSite().getPage().activate(view);
+				view.onActivated(ApplicationComponentEditor.this);
 			}
 			
 		});
@@ -1040,17 +989,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 				} while (!extra.isEmpty());
 				
-				C8oBrowser.run(() -> {
-					JSValue value = c8oBrowser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
-					try {
-//						FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value).toString(2), "UTF-8");
-						FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value.asString().getValue()).toString(2), "UTF-8");
-						toast("Dataset '" + name[0] + "' saved !");
-						dataset = name[0];
-					} catch (Exception e1) {
-						toast("Dataset '" + name[0] + "' NOT saved ! " + e1.getMessage());
-					}
-				});
+				if (response == 0) {
+					C8oBrowser.run(() -> {
+						String value = c8oBrowser.executeJavaScriptAndReturnValue("sessionStorage._c8ocafsession_storage_data");
+						try {
+							FileUtils.write(new File(datasetDir, name[0] + ".json"), new JSONArray(value).toString(2), "UTF-8");
+							toast("Dataset '" + name[0] + "' saved !");
+							dataset = name[0];
+						} catch (Exception e1) {
+							toast("Dataset '" + name[0] + "' NOT saved ! " + e1.getMessage());
+						}
+					});
+				}
 			}
 			
 		});
@@ -1186,7 +1136,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			if (c8oBrowser.getURL().equals("about:blank")) {
 				try {
 					for (String m: msg) {
-						c8oBrowser.executeFunctionAsync("loader_log", m);
+						c8oBrowser.executeFunctionAndReturnValue("loader_log", m);
 					}
 				} catch (Exception e) {
 					// silently ignore
@@ -1198,7 +1148,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private void toast(String msg) {
 		Engine.logStudio.info("[Toast] " + msg);
 		C8oBrowser.run(() -> {
-			c8oBrowser.executeFunctionAsync("_c8o_toast");
+			c8oBrowser.executeFunctionAndReturnValue("_c8o_toast");
 		});
 	}
 	
@@ -1216,7 +1166,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			new Runnable() {
 				public void run() {
 					try {
-						MobileComponent mc = applicationEditorInput.application;
+						ApplicationComponent mc = applicationEditorInput.application;
 						IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 						if (activePage != null) {
 							IEditorReference[] editorRefs = activePage.getEditorReferences();
@@ -1480,6 +1430,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					c8oBrowser.loadURL(url);
 				}
 			});
+			c8oBrowser.getDisplay().asyncExec(() -> {
+				MobileDebugView view = ConvertigoPlugin.getDefault().getMobileDebugView(false);
+				if (view != null) {
+					view.onActivated(ApplicationComponentEditor.this);
+				}
+			});
 		}
 	}
 	
@@ -1492,34 +1448,22 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		doLoad();
 	}
 	
-//	private Element exHighlightElement = null;
-	private DOMElement exHighlightElement = null;
+	private Element exHighlightElement = null;
 	private MobileComponent exHighlightMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-//		Node node = browser.mainFrame().get().inspect((int) Math.round(x * dpiFactorX), (int) Math.round(y * dpiFactorY)).node().get();
-//		while (!(node == null || node instanceof Element)) {
-//			node = node.parent().get();
-//		}
-//		while (node != null) {
-//			Element element = (Element) node;
-//			if (element.equals(exHighlightElement)) {
-//				return;
-//			}
-//			exHighlightElement = element;
-//			String classes = element.attributeValue("class");
-		DOMNodeAtPoint nodeAP = browser.getNodeAtPoint(x, y);
-		DOMNode node = nodeAP.getNode();
-		while (!(node == null || node instanceof DOMElement)) {
-			node = node.getParent();
+		Node node = browser.mainFrame().get().inspect(x, y).node().get();
+		while (!(node == null || node instanceof Element)) {
+			node = node.parent().orElse(null);
 		}
 		while (node != null) {
-			DOMElement element = (DOMElement) node;
+			Element element = (Element) node;
 			if (element.equals(exHighlightElement)) {
 				return;
 			}
 			exHighlightElement = element;
-			String classes = element.getAttribute("class");
+			String classes = element.attributeValue("class");
+
 			Matcher mPriority = pPriority.matcher(classes);
 			if (mPriority.find()) {
 				try {
@@ -1529,27 +1473,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 						@Override
 						protected void walk(DatabaseObject databaseObject) throws Exception {
-//							if (databaseObject instanceof UIUseShared) {
-//								UIUseShared uius = (UIUseShared)databaseObject;
-//								UISharedComponent uisc = uius.getTargetSharedComponent();
-//								if (uisc != null) {
-//									if (!uius.isRecursive()) {
-//										databaseObject = uisc;
-//									}
-//								}
-//							} else if (databaseObject instanceof UIDynamicInvoke) {
-//								UIDynamicInvoke uidi = (UIDynamicInvoke)databaseObject;
-//								UIActionStack uisa = uidi.getTargetSharedAction();
-//								if (uisa != null) {
-//									if (!uidi.isRecursive()) {
-//										databaseObject = uisa;
-//									}
-//								}
-//							}
 							if (databaseObject instanceof UIUseShared) {
 								UISharedComponent uisc = ((UIUseShared)databaseObject).getTargetSharedComponent();
 								if (uisc != null) {
 									databaseObject = uisc;
+								}
+							} else if (databaseObject instanceof UIDynamicInvoke) {
+								UIDynamicInvoke uidi = (UIDynamicInvoke) databaseObject;
+								UIActionStack uisa = uidi.getTargetSharedAction();
+								if (uisa != null) {
+									if (!uidi.isRecursive()) {
+										databaseObject = uisa;
+									}
 								}
 							}
 							
@@ -1566,31 +1501,30 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
 					
 					if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
-						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject);
+						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			} else {
-				node = node.getParent();
-				while (!(node == null || node instanceof DOMElement)) {
-					node = node.getParent();
+				node = node.parent().orElse(null);
+				while (!(node == null || node instanceof Element)) {
+					node = node.parent().orElse(null);
 				}
 			}
 		}
 	}
 
-	public void highlightComponent(MobileComponent mobileComponent) {
+	public void highlightComponent(MobileComponent mobileComponent, boolean selectPage) {
 		C8oBrowser.run(() -> {
-			if (mobileComponent instanceof UIComponent) {
+			if (selectPage && mobileComponent instanceof UIComponent) {
 				PageComponent pageComponent = ((UIComponent) mobileComponent).getPage();
 				if (pageComponent != null) {
 					selectPage(pageComponent.getSegment());
 				}
 			}
 			
-//			Document doc = browser.mainFrame().get().document().get();
-			DOMDocument doc = browser.getDocument();
+			Document doc = browser.mainFrame().get().document().get();
 			MobileComponent mc = mobileComponent;
 			if (mc instanceof UIUseShared) {
 				UISharedComponent uisc = ((UIUseShared)mc).getTargetSharedComponent();
@@ -1600,8 +1534,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					} catch (IndexOutOfBoundsException ioobe) {}
 				}
 			}
-//			while (doc.findElementsByClassName("class" + mc.priority).isEmpty()) {
-			while (doc.findElements(By.className("class" + mc.priority)).isEmpty()) {
+			while (doc.findElementsByClassName("class" + mc.priority).isEmpty()) {
 				DatabaseObject parent = mc.getParent();
 				if (parent instanceof MobileComponent) {
 					mc = (MobileComponent) parent;

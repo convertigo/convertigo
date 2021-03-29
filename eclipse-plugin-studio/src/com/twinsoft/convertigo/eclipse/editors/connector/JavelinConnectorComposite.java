@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -46,6 +46,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.views.properties.PropertySheet;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
@@ -630,9 +631,15 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 
 							StructuredSelection structuredSelection = new StructuredSelection(
 									((DatabaseObjectTreeObject) pev.getFirstSelectedTreeObject()));
-							ConvertigoPlugin.getDefault().getPropertiesView()
-									.selectionChanged((IWorkbenchPart) pev, structuredSelection);
-
+							PropertySheet pv = ConvertigoPlugin.getDefault().getPropertiesView();
+							boolean isPinned = pv.isPinned();
+							if (!isPinned) {
+								pv.setPinned(true);
+							}
+							pv.selectionChanged((IWorkbenchPart) pev, structuredSelection);
+							if (!isPinned) {
+								pv.setPinned(false);
+							}
 						}
 					} else {
 						// no PropertyDescriptor corresponding to the selected

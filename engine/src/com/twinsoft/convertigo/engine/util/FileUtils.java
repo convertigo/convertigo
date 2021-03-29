@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -163,6 +163,15 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 						code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
 					}
 				} catch (Exception e) {
+					try {
+						if (Engine.isWindows()) {
+							code = new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath()).start().waitFor();
+						} else {
+							code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
+						}
+					} catch (Exception e2) {
+						Engine.logEngine.warn("System remove dir failed to delete the folder " + dir + ". Use the Java version. Error is: " + e2);
+					}
 				}
 				
 				if (code != 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,8 +21,6 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,11 +162,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	
 	protected void cleanChildren() {
 		if (childrenSteps != null) {
-			//Enumeration e = childrenSteps.elements();
-			Enumeration<String> e = Collections.enumeration(childrenSteps.keySet());
-			while (e.hasMoreElements()) {
-				String timeID = (String)e.nextElement();
-				if (timeID != null) {
+			synchronized (childrenSteps) {
+				for (String timeID: childrenSteps.keySet()) {
 					Long stepPriority = null;
 					Step step = sequence.getCopy(timeID);
 					if (step != null) {
@@ -177,8 +172,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 					}
 					sequence.removeCopy(timeID, stepPriority);
 				}
+				childrenSteps.clear();
 			}
-			childrenSteps.clear();
 		}
 	}
 	
@@ -455,7 +450,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 					// If contains ParallelSteps, waits until child's threads finish
 					if (Engine.logBeans.isTraceEnabled())
 						Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") waiting...");
-					Thread.sleep(500);
+					Thread.sleep(100);
 					hasWait = true;
 				}
 				if (hasWait) {
@@ -477,18 +472,17 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	protected void removeTransactionContext() {
 		if (Engine.isEngineMode()) {
 			if (parent instanceof ParallelStep) {
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ getName() +"\"");
+				
 				if (sequence.useSameJSessionForSteps()) {
-					// TODO ??
-				}
-				else {
-					if (Engine.logBeans.isDebugEnabled())
-						Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ getName() +"\"");
-					
+					sequence.removeTransactionContexts(getContextName());
+				} else {
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
-					
-					if (Engine.logBeans.isDebugEnabled())
-						Engine.logBeans.debug("Deletion of transaction's context for step \""+ getName() +"\" done");
 				}
+				
+				if (Engine.logBeans.isDebugEnabled())
+					Engine.logBeans.debug("Deletion of transaction's context for step \""+ getName() +"\" done");
 			}
 		}
 	}
@@ -503,12 +497,12 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	
 	public synchronized void increaseAsyncThreadRunning() {
 		nbAsyncThreadRunning++;
-		//System.out.println("Incr step "+ name + " ("+executeTimeID+") threads :" + nbAsyncThreadRunning);
+		//System.out.println("Incr step "+ getName() + " ("+executeTimeID+") threads :" + nbAsyncThreadRunning);
 	}
 	
 	public synchronized void decreaseAsyncThreadRunning() {
 		if (nbAsyncThreadRunning > 0) nbAsyncThreadRunning--;
-		//System.out.println("Decr step "+ name + " ("+executeTimeID+") threads : " + nbAsyncThreadRunning);
+		//System.out.println("Decr step "+ getName() + " ("+executeTimeID+") threads : " + nbAsyncThreadRunning);
 	}
 		
 	//protected synchronized void invokeNextStep(Step step, Context javascriptContext, Scriptable scope) throws EngineException {
@@ -566,7 +560,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
            				if (step instanceof ParallelStep) {
            		    		try {
            		    			while (((ParallelStep)step).nbAsyncThreadRunning > 0) {
-           		    				Thread.sleep(500);
+           		    				Thread.sleep(100);
            		    			}
            		    		} catch (InterruptedException e) {
            		    			if (Engine.logBeans.isDebugEnabled())
@@ -586,8 +580,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
                	if (step.xpathApi != null) {
                		step.xpathApi.release();
                	}
-               	step.cleanCopy();
-               	refSequence.removeCopy(step.executeTimeID, Long.valueOf(step.priority));
+                step.cleanCopy();
+                refSequence.removeCopy(step.executeTimeID, Long.valueOf(step.priority));
                	if (Engine.logBeans.isDebugEnabled())
                		Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" done");
             }
@@ -637,18 +631,16 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 
 	private Step getStepCopy(Step step) throws EngineException {
 		step.checkSubLoaded();
-		
-    	Step stepCopy = null;
-    	if (step.isEnabled()) {
-    		Object ob = null;
-			try {
-				ob = step.copy();
-			} catch (CloneNotSupportedException e) {
-				throw new EngineException("Unable to get a copy of step \""+ step.getName()+"\" ("+step+")",e);
+	    if (step.isEnabled()) {
+    		synchronized (mutex) {
+				try {
+					return (Step) step.copy();
+				} catch (CloneNotSupportedException e) {
+					throw new EngineException("Unable to get a copy of step \""+ step.getName()+"\" ("+step+")",e);
+				}
 			}
-			stepCopy = (Step)ob;
 		}
-		return stepCopy;
+		return null;
 	}
 	
 	private Step getStepCopyToExecute(Step step) throws EngineException {
@@ -680,12 +672,14 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 
 	protected void executeNextStep(Step step, org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
-    	Step stepToExecute = getStepCopyToExecute(step);
+		Step stepToExecute = getStepCopyToExecute(step);
     	if (stepToExecute != null) {
     		// Execute step
     		if (stepToExecute.execute(javascriptContext, scope)) {
-    			childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
-   				executedSteps.putAll(stepToExecute.executedSteps);
+    			synchronized (this) {
+        			childrenSteps.put(stepToExecute.executeTimeID, Long.valueOf(stepToExecute.priority));
+       				executedSteps.putAll(stepToExecute.executedSteps);
+    			}
     		}
     		else {
     			stepToExecute.cleanCopy();

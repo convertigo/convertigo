@@ -2,32 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.eclipse.ui.intro">
-      <intro
-            class="org.eclipse.ui.intro.config.CustomizableIntroPart"
-            id="com.twinsoft.convertigo.studio.product.intro">
-      </intro>
-      <introProductBinding
-            introId="com.twinsoft.convertigo.studio.product.intro"
-            productId="com.twinsoft.convertigo.studio.product.ConvertigoProduct">
-      </introProductBinding>
-   </extension>
-   <extension
-         point="org.eclipse.ui.intro.config">
-      <config
-            content="introContent.xml"
-            id="com.twinsoft.convertigo.studio.product.introConfigId"
-            introId="com.twinsoft.convertigo.studio.product.intro">
-         <presentation
-               home-page-id="root">
-            <implementation
-                  kind="html"
-                  os="win32,linux,macosx">
-            </implementation>
-         </presentation>
-      </config>
-   </extension>
-   <extension
          point="org.eclipse.ui.splashHandlers">
       <splashHandler
             class="com.twinsoft.convertigo.studio.product.splashHandlers.InteractiveSplashHandler"

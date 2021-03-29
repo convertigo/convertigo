@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -86,7 +87,8 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject implem
 				if (this.equals(doto)) {
 					if (propertyName.equals("applicationName")) {
 						if (!newValue.equals(oldValue)) {
-							((MobileApplication)dbo).getApplicationComponent().markPwaAsDirty();
+							ApplicationComponent app = (ApplicationComponent)((MobileApplication)dbo).getApplicationComponent();
+							app.markPwaAsDirty();
 						}
 					}
 				}

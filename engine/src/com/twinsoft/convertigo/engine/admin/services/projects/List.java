@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -57,7 +57,7 @@ public class List extends XmlService{
 		boolean isStudio = Engine.isStudioMode();
 		for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 			try {
-				if (isStudio && projectName.startsWith("mobilebuilder_tpl_") && new File(Engine.TEMPLATES_PATH + "/project/" + projectName + ".car").exists()) {
+				if (isStudio && projectName.startsWith("mobilebuilder_tpl_")) {
 					continue;
 				}
 				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -112,6 +112,12 @@ public class Engine {
 		try {
 			USER_WORKSPACE_PATH = new File(USER_WORKSPACE_PATH).getCanonicalPath();
 		} catch (IOException e) {
+		}
+		
+    	// fix log4j 1.x init with new java version without dot
+		String javaVersion = System.getProperty("java.version", null);
+		if (javaVersion != null && javaVersion.indexOf('.') == -1) {
+			System.setProperty("java.version", javaVersion + ".0");
 		}
 	}
 	/**
@@ -364,6 +370,7 @@ public class Engine {
 	public static synchronized void start() throws EngineException {
 		if (Engine.theApp == null) {
 			System.out.println("Starting Convertigo Enterprise Mobility Server");
+			System.out.println("Version: " + ProductVersion.fullProductVersion);
 
 			// If the engine has been stopped by the admin, we must reload
 			// properties
@@ -766,15 +773,6 @@ public class Engine {
 					} else
 						Engine.logEngine.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
 				}
-
-				// SAP provider registration
-				try {
-					SapJcoDestinationDataProvider.init();
-					Engine.logEngine.debug("SAP destination provider successfully registered");
-				}
-				catch (Throwable e) {
-					Engine.logEngine.error("Error while registering SAP destination provider", e);
-				}
 				
 				isStarted = true;
 
@@ -798,7 +796,14 @@ public class Engine {
 									Engine.logEngine.error("Failed to load " + name, e);
 								}
 							}
-							Engine.theApp.referencedProjectManager.check();
+							boolean newProjectLoaded = Engine.theApp.referencedProjectManager.check();
+							
+							if (!newProjectLoaded && Thread.currentThread().getName().equalsIgnoreCase("Migration")) {
+								Engine.logEngine.info("Convertigo will run auto start Sequences.");
+								for (String name: names) {
+									Project.executeAutoStartSequences(name);
+								}
+							}
 						}
 					});
 				}
@@ -939,6 +944,9 @@ public class Engine {
 				Engine.logEngine.info("Unregistering the SAP destination provider");
 				try {
 					SapJcoDestinationDataProvider.destroy();
+				}
+				catch (NoClassDefFoundError e) {
+					// java.lang.NoClassDefFoundError: com/sap/conn/jco/ext/DestinationDataProvider
 				}
 				catch (Throwable e) {
 					Engine.logEngine.error("Error while unregistering SAP destination provider", e);

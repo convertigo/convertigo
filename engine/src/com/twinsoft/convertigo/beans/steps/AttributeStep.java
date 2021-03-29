@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -209,15 +209,22 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 		String namespaceURI = getNodeNameSpaceURI();
 		boolean hasQName = !namespace.equals("") && !namespaceURI.equals("");
 		
+		String attrName = getStepNodeName();
+		String attrText = getNodeText();
+		
 		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-		attribute.setName(getStepNodeName());
+		attribute.setName(attrName);
 		attribute.setSchemaTypeName(getSimpleTypeAffectation());
 		if (hasQName) {
-			attribute.setQName(new QName(namespaceURI,getStepNodeName(),namespace));
-		}
-		else {
+			attribute.setQName(new QName(namespaceURI, attrName, namespace));
+		} else {
 			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 		}
+		
+		if (!attrText.isBlank()) {
+			attribute.setDefaultValue(attrText);
+		}
+		
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}

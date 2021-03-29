@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 /**
  * The MobileDevice class is the base class for all mobile devices.
@@ -87,6 +88,9 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	
 	private void checkFolder() {
+		if (Engine.isCliMode()) {
+			return;
+		}
 		File folder = getResourceFolder();
 		File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/platforms/" + getClass().getSimpleName());
 
@@ -134,5 +138,10 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	public void setCordovaPlatform(String cordovaPlatform) {
 		this.cordovaPlatform = cordovaPlatform;
+	}
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.PLATFORM;
 	}
 }

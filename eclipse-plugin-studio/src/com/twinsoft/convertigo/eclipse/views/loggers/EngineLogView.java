@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -76,6 +76,7 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.part.ViewPart;
 
@@ -1066,8 +1067,8 @@ public class EngineLogView extends ViewPart {
 						
 						// Refresh the list view
 						Display.getDefault().syncExec(() -> {
-							int topIndex = tableViewer.getTable().getTopIndex();
 							if (!tableViewer.getTable().isDisposed()) {
+								int topIndex = tableViewer.getTable().getTopIndex();
 								tableViewer.getTable().setVisible(false);
 								if (rmRow[0] > -1) {
 									topIndex -= rmRow[0] + 1;
@@ -1079,7 +1080,7 @@ public class EngineLogView extends ViewPart {
 							}
 							
 							if (activateOnNewEvents) {
-								IWorkbenchWindow workbenchWindow = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+								IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 								if (workbenchWindow != null) {
 									workbenchWindow.getActivePage().bringToTop(engineLogView);
 								}
@@ -1108,6 +1109,10 @@ public class EngineLogView extends ViewPart {
 	
 	private boolean getLogs() {
 		try {
+			if (logViewThread == null) {
+				return false;
+			}
+			
 			JSONArray logs = logManager.getLines();
 			while (logs.length() == 0 && Thread.currentThread() == logViewThread) {
 				waiting = 6;

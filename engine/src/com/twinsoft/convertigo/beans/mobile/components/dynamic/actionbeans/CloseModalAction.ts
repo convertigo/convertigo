@@ -9,7 +9,7 @@
             if (modals != undefined) {
                 let view = page.router.sharedObject["ModalPages"].pop();
                 if (view != undefined) {
-                    view.dismiss().then(() => {
+                    view.dismiss(props.data).then(() => {
                         page.c8o.log.debug("[MB] Modal Page closed");
                         resolve();
                     });

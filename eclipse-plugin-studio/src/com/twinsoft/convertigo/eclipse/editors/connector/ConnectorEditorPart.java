@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -164,6 +164,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.png"));
 	private Image imageDisableNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.png"));
+	private Image imageDisabledFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.d.png"));
+	private Image imageFullResult = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png"));
 
 	private Canvas canvas = null;
 	private AnimatedGif animatedWait;
@@ -341,6 +343,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	ToolItem toolLearn = null;
 	ToolItem toolAccumulate = null;
 	ToolItem toolTestConnection = null;
+	ToolItem toolItemFullResult = null;
 
 	protected boolean bDebug = false;
 	protected boolean bShowBlocks = false;
@@ -874,9 +877,28 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			});
 			toolItemsIds.put("Accumulate", Integer.valueOf(incr));
 			incr++;
-
+			
+			new ToolItem(toolBar, SWT.SEPARATOR);
+			incr ++;
 		}
-
+		
+		toolItemFullResult = new ToolItem(toolBar, SWT.PUSH);
+		toolItemFullResult.setDisabledImage(imageDisabledFullResult);
+		toolItemFullResult.setToolTipText("Show the full result");
+		toolItemFullResult.setImage(imageFullResult);
+		toolItemFullResult.setEnabled(false);
+		toolItemFullResult.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+				String x = (String) xmlView.getData("full");
+				if (x != null) {
+					xmlView.getDocument().set(x);
+					toolItemFullResult.setEnabled(false);
+				}
+			}
+			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			}
+		});
+		incr ++;
 	}
 
 	public void toolBarSetEnable(String toolItemId, boolean enable) {
@@ -1149,7 +1171,9 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		imageAccumulate.dispose();
 		imageNewWaitAt.dispose();
 		imageDisableNewWaitAt.dispose();
-
+		imageDisabledFullResult.dispose();
+		imageFullResult.dispose();
+		
 		canvas.dispose();
 		colorManager.dispose();
 		super.dispose();
@@ -1281,7 +1305,16 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				xmlView.getDocument().set(strXML);
+				String x = strXML;
+				if (x.length() > 10000) {
+					toolItemFullResult.setEnabled(true);
+					xmlView.setData("full", x);
+					x = x.substring(0, 10000) + " ... [reduced content, click the Full Result button in the toolbar to show the full version]";
+				} else {
+					xmlView.setData("full", null);
+					toolItemFullResult.setEnabled(false);
+				}
+				xmlView.getDocument().set(x);
 				editor.setDirty(false);
 			}
 		});

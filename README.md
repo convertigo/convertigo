@@ -1,15 +1,16 @@
-# Convertigo Mobility Platform
-> Convertigo is an open source MBaaS/MADP platform for mobile application development and back-end.
+# Convertigo Low Code & No Code mobile & Web Platform
+> Convertigo is an open source Low code & No Code platform for mobile & web application development and back-end as a service.
 
 [![CircleCI][ci-image]][ci-url]
 
-Convertigo Community edition is an open source MBaaS (Mobile Back end as a Service) combined with a MADP (Mobile application development platform). The platform is used to build complex Cross-platform Enterprise Mobile apps in a few days. Convertigo platform is composed of several components:
+Convertigo Community edition is an open source fullstack Low Code & No Code platform. The platform is used to build and run complex Cross-platform Enterprise Mobile and web apps in a few days. Convertigo platform is composed of several components:
 
-1.	**Convertigo MBaaS**: The back-end MBaaS server part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Mobile Web apps.
-2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program MBaaS micro-services workflows and optionaly use the "Mobile Builder" edition to build Mobile apps UIs in a MRAD (Mobile Rapid Application Development) Low code mode. Can be directly downloaded from [Sourceforge.net](https://sourceforge.net/projects/convertigo/files/latest/download)
-3.	**Convertigo SDKs**: Can be used with third party Mobile development tools such as Xcode (iOS) Android Studio (Android) and Visual Studio (Windows Mobile, Windows UWP and Xamarin). SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and Nuget for .NET)
+1.	**Convertigo Server**: The back-end server MBaaS part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Mobile and PWA Web apps. Convertigo server can be downloaded from [GitHub](https://github.com/convertigo/convertigo/releases/latest) as a tomcat WAR file or run directly as containers from [DockerHub](https://hub.docker.com/_/convertigo) 
+2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program MBaaS micro-services workflows and use the "Mobile Builder" to build Mobile apps UIs in Low code mode. Can be directly downloaded from [GitHub](https://github.com/convertigo/convertigo/releases/latest)
+3.	**Convertigo SDKs**: Can be used with third party Mobile development tools such as Xcode (iOS) Android Studio (Android). SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and NPM for Angular, ReactNative and Vue.js)
+4.	**Convertigo Forms**:  The No Code App Builder to build form based apps as PWAs or Web applications with a Web Based NoCode studio intented for non technical developpers (Citizen Developpers) 
 
-Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 100K developers worldwide, building enterprise class mobile apps.
+Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 150K developers worldwide, building enterprise class mobile apps.
 
 [![convertigo-image]][convertigo-url]
 > [www.convertigo.com][convertigo-url]

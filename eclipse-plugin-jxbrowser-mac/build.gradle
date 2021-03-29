@@ -1,5 +1,5 @@
 dependencies {
-	runtime 'com.teamdev.jxbrowser:jxbrowser-mac:' + jxBrowserVersion, { exclude module: 'jxbrowser'}
+	runtimeOnly "${jxBrowserGroup}:jxbrowser-mac:${jxBrowserVersion}", { exclude module: 'jxbrowser'}
 }
 
 task writeManifest(dependsOn: syncLib) {

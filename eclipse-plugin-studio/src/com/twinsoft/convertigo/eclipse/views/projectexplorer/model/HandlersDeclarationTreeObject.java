@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -19,21 +19,17 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 
 public class HandlersDeclarationTreeObject extends TreeObject implements IEditableTreeObject {
 	public static final int TYPE_ROOT = 0;
@@ -51,64 +47,26 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
     }
 
 	public void launchEditor(String editorType) {
-		// TODO Auto-generated method stub
-
-		// Retrieve the project name
-		String projectName = getConnectorTreeObject().getObject().getProject().getName();	
-	
+		TreeObject object = this;
 		try {
-			// Refresh project resource
-			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			
-			// Open editor
-			if ((editorType == null) || ((editorType != null) && (editorType.equals("JscriptHandlerEditor")))) {
-				openJscriptHandlerEditor(project);
+			while (!(object instanceof TransactionTreeObject)) {
+				object = object.getParent();
 			}
-		} 
-		catch (CoreException e) {
-			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
-		}
-	}
-	
-	
-	public void openJscriptHandlerEditor(IProject project) {
-		
-		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
-		TreeObject selectedHandler = explorerView.getFirstSelectedTreeObject();
-		TreeObject object = selectedHandler; 
-
-		while (!(object instanceof TransactionTreeObject)) {
-			object = object.getParent();
-		}
-		
-		Transaction transaction = (Transaction) object.getObject();
-
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
-		if (activePage != null) {
-			try {
-				activePage.openEditor(new JScriptEditorInput(transaction, project),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
-				moveTo(selectedHandler.getName());
-			} catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + transaction.getName() + "'");
-			} 
+			JScriptEditorInput.openJScriptEditor((TransactionTreeObject) object);
+			moveTo(getName());
+		} catch (PartInitException e) {
+			ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + object.getName() + "'");
 		}
 	}
 	
 	public void moveTo(String handlerName) {
-		
 		IEditorPart editor =  PlatformUI
 									.getWorkbench()
 									.getActiveWorkbenchWindow()
 									.getActivePage()
 									.getActiveEditor();
-		
-		if (editor instanceof JScriptEditor) {
-			JScriptEditor myEditor = (JScriptEditor) editor;
+		if (editor instanceof ITextEditor) {
+			ITextEditor myEditor = (ITextEditor) editor;
 			IDocumentProvider provider = myEditor.getDocumentProvider();
 			IDocument document = provider.getDocument(editor.getEditorInput());
 			String content = document.get();

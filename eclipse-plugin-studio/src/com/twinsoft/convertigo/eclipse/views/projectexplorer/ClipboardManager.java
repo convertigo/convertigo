@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.core.MobileObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
@@ -64,22 +65,6 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType;
-import com.twinsoft.convertigo.beans.mobile.components.PageComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteComponent;
-import com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIActionStack;
-import com.twinsoft.convertigo.beans.mobile.components.UIAppEvent;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu;
-import com.twinsoft.convertigo.beans.mobile.components.UIForm;
-import com.twinsoft.convertigo.beans.mobile.components.UIPageEvent;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager;
-import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -100,6 +85,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ClipboardManager {
@@ -271,8 +257,21 @@ public class ClipboardManager {
 				e = clipboardDocument.createElement("connector");
 				e.setAttribute("name", transaction.getConnector().getName());
 				dnd.appendChild(e);
-			} else if (databaseObject instanceof UIComponent) {
-				UIComponent uic = (UIComponent)databaseObject;
+			} else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+				com.twinsoft.convertigo.beans.mobile.components.UIComponent uic = GenericUtils.cast(databaseObject);
+				e = clipboardDocument.createElement("project");
+				e.setAttribute("name", uic.getProject().getName());
+				dnd.appendChild(e);
+	
+				e = clipboardDocument.createElement("mobileapplication");
+				e.setAttribute("name", uic.getApplication().getParent().getName());
+				dnd.appendChild(e);
+	
+				e = clipboardDocument.createElement("application");
+				e.setAttribute("name", uic.getApplication().getName());
+				dnd.appendChild(e);
+			} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+				com.twinsoft.convertigo.beans.ngx.components.UIComponent uic = GenericUtils.cast(databaseObject);
 				e = clipboardDocument.createElement("project");
 				e.setAttribute("name", uic.getProject().getName());
 				dnd.appendChild(e);
@@ -291,7 +290,7 @@ public class ClipboardManager {
 
 	public Object[] pastedObjects = null;
 	public Map<String, Step> pastedSteps = new HashMap<String, Step>();
-	public Map<String, UIComponent> pastedComponents = new HashMap<String, UIComponent>();
+	public Map<String, MobileObject> pastedComponents = new HashMap<String, MobileObject>();
 
 	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
@@ -356,19 +355,41 @@ public class ClipboardManager {
 		}
 		
 		for (Object ob : pastedObjects) {
-			if (ob instanceof PageComponent) {
-				PageComponent page = (PageComponent)ob;
-				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
-					if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
-						page.markPageAsDirty();
+			// MOBILE COMPONENTS
+			if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+				if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+					com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(ob);
+					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+						if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+							page.markPageAsDirty();
+						}
+					}
+				}
+				else if (ob instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+					com.twinsoft.convertigo.beans.mobile.components.UIComponent uic = GenericUtils.cast(ob);
+					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+						if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+							uic.markAsDirty();
+						}
 					}
 				}
 			}
-			else if (ob instanceof UIComponent) {
-				UIComponent uic = (UIComponent)ob;
-				for (Entry<String, UIComponent> entry : pastedComponents.entrySet()) {
-					if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
-						uic.markAsDirty();
+			// NGX COMPONENTS
+			if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+				if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+					com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(ob);
+					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+						if (page.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+							page.markPageAsDirty();
+						}
+					}
+				}
+				else if (ob instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+					com.twinsoft.convertigo.beans.ngx.components.UIComponent uic = GenericUtils.cast(ob);
+					for (Entry<String, MobileObject> entry : pastedComponents.entrySet()) {
+						if (uic.updateSmartSources(entry.getKey(), String.valueOf(entry.getValue().priority))) {
+							uic.markAsDirty();
+						}
 					}
 				}
 			}
@@ -448,12 +469,22 @@ public class ClipboardManager {
 				if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 					throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
 				}
-				if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
-					throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
-				}
-				if (!ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
-					String tplVersion = ComponentManager.getTplRequired(databaseObject);
-					throw new EngineException("Template project "+ tplVersion +" compatibility required");
+				if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+					if (!com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+						throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
+					}
+					if (!com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
+						String tplVersion = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getTplRequired(databaseObject);
+						throw new EngineException("Template project "+ tplVersion +" compatibility required");
+					}
+				} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+					if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+						throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
+					}
+					if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.isTplCompatible(parentDatabaseObject, databaseObject)) {
+						String tplVersion = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getTplRequired(databaseObject);
+						throw new EngineException("Template project "+ tplVersion +" compatibility required");
+					}
 				}
 				
 				// Disable the isDefault boolean flag when the connector is pasted
@@ -463,13 +494,21 @@ public class ClipboardManager {
 						connector.isDefault = false;
 					}
 				}
+				
 				// Disable the isRoot boolean flag when the page is pasted
-				if (databaseObject instanceof PageComponent) {
-					PageComponent page = (PageComponent) databaseObject;
+				if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+					com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(databaseObject);
+					if (page.isRoot) {
+						page.isRoot = false;
+					}
+				} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+					com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(databaseObject);
 					if (page.isRoot) {
 						page.isRoot = false;
 					}
 				}
+				
+				
 				if (objectsType != ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CONNECTOR) {
 					// Disable the isDefault boolean flag when the transaction is pasted
 					if (databaseObject instanceof Transaction) {
@@ -547,23 +586,46 @@ public class ClipboardManager {
 			// reset ordered properties
 			if (databaseObject instanceof IContainerOrdered) {
 				// Mobile beans
-				if (databaseObject instanceof ApplicationComponent) {
-					((ApplicationComponent)databaseObject).setOrderedRoutes(getNewOrdered());
-					((ApplicationComponent)databaseObject).setOrderedMenus(getNewOrdered());
-					((ApplicationComponent)databaseObject).setOrderedPages(getNewOrdered());
-					((ApplicationComponent)databaseObject).setOrderedComponents(getNewOrdered());
-					((ApplicationComponent)databaseObject).setOrderedSharedActions(getNewOrdered());
-					((ApplicationComponent)databaseObject).setOrderedSharedComponents(getNewOrdered());
-				}
-				if (databaseObject instanceof RouteComponent) {
-					((RouteComponent)databaseObject).setOrderedActions(getNewOrdered());
-					((RouteComponent)databaseObject).setOrderedEvents(getNewOrdered());
-				}
-				if (databaseObject instanceof PageComponent) {
-					((PageComponent)databaseObject).setOrderedComponents(getNewOrdered());
-				}
-				if (databaseObject instanceof UIComponent) {
-					((UIComponent)databaseObject).setOrderedComponents(getNewOrdered());
+				if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent ac = GenericUtils.cast(databaseObject);
+						ac.setOrderedRoutes(getNewOrdered());
+						ac.setOrderedMenus(getNewOrdered());
+						ac.setOrderedPages(getNewOrdered());
+						ac.setOrderedComponents(getNewOrdered());
+						ac.setOrderedSharedActions(getNewOrdered());
+						ac.setOrderedSharedComponents(getNewOrdered());
+					}
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.RouteComponent rc = GenericUtils.cast(databaseObject);
+						rc.setOrderedActions(getNewOrdered());
+						rc.setOrderedEvents(getNewOrdered());
+					}
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.PageComponent pc = GenericUtils.cast(databaseObject);
+						pc.setOrderedComponents(getNewOrdered());
+					}
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.UIComponent uic = GenericUtils.cast(databaseObject);
+						uic.setOrderedComponents(getNewOrdered());
+					}
+				} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent ac = GenericUtils.cast(databaseObject);
+						ac.setOrderedMenus(getNewOrdered());
+						ac.setOrderedPages(getNewOrdered());
+						ac.setOrderedComponents(getNewOrdered());
+						ac.setOrderedSharedActions(getNewOrdered());
+						ac.setOrderedSharedComponents(getNewOrdered());
+					}
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.PageComponent pc = GenericUtils.cast(databaseObject);
+						pc.setOrderedComponents(getNewOrdered());
+					}
+					if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.UIComponent uic = GenericUtils.cast(databaseObject);
+						uic.setOrderedComponents(getNewOrdered());
+					}
 				}
 				
 				// Sequence beans
@@ -695,58 +757,97 @@ public class ClipboardManager {
 						databaseObject.priority = databaseObject.getNewOrderValue();
 						testCase.add(databaseObject);
 					}
-				} else if (parentDatabaseObject instanceof ApplicationComponent) {
-					ApplicationComponent app = (ApplicationComponent) parentDatabaseObject;
-					if (databaseObject instanceof PageComponent) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						app.add(databaseObject);
-					}
-					else if (databaseObject instanceof RouteComponent) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						app.add(databaseObject);
-					}
-					else if (databaseObject instanceof UIDynamicMenu) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						app.add(databaseObject);
-					}
-					else if (databaseObject instanceof UIComponent) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						app.add(databaseObject);
-					}
-				} else if (parentDatabaseObject instanceof RouteComponent) {
-					RouteComponent route = (RouteComponent)parentDatabaseObject;
-					if (databaseObject instanceof RouteActionComponent) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						RouteActionComponent rac = (RouteActionComponent)databaseObject;
-						int i = rac.getPage().lastIndexOf(".");
-						if (i != -1) {
-							String pageName = rac.getPage().substring(i);
-							String pageQName = route.getParent().getQName() + pageName;
-							rac.setPage(pageQName);
+				}
+				// MOBILE COMPONENTS
+				else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+					if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent app = GenericUtils.cast(parentDatabaseObject);
+						if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							app.add(databaseObject);
 						}
-						route.add(rac);
-					}
-					else if (databaseObject instanceof RouteEventComponent) {
+						else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							app.add(databaseObject);
+						}
+						else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							app.add(databaseObject);
+						}
+						else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							app.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.RouteComponent route = GenericUtils.cast(parentDatabaseObject);
+						if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							com.twinsoft.convertigo.beans.mobile.components.RouteActionComponent rac = GenericUtils.cast(databaseObject);
+							int i = rac.getPage().lastIndexOf(".");
+							if (i != -1) {
+								String pageName = rac.getPage().substring(i);
+								String pageQName = route.getParent().getQName() + pageName;
+								rac.setPage(pageQName);
+							}
+							route.add(rac);
+						}
+						else if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.RouteEventComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							route.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.PageComponent page = GenericUtils.cast(parentDatabaseObject);
+						if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							page.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu) {
+						com.twinsoft.convertigo.beans.mobile.components.UIDynamicMenu menu = GenericUtils.cast(parentDatabaseObject);
+						if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							menu.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIComponent) {
+						com.twinsoft.convertigo.beans.mobile.components.UIComponent component = GenericUtils.cast(parentDatabaseObject);
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						route.add(databaseObject);
+						component.add(databaseObject);
 					}
-				} else if (parentDatabaseObject instanceof PageComponent) {
-					PageComponent page = (PageComponent) parentDatabaseObject;
-					if (databaseObject instanceof UIComponent) {
+				}
+				// NGX COMPONENTS
+				else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+					if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent app = GenericUtils.cast(parentDatabaseObject);
+						if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							app.add(databaseObject);
+						}
+						else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							app.add(databaseObject);
+						}
+						else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							app.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.PageComponent page = GenericUtils.cast(parentDatabaseObject);
+						if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							page.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu) {
+						com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu menu = GenericUtils.cast(parentDatabaseObject);
+						if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+							databaseObject.priority = databaseObject.getNewOrderValue();
+							menu.add(databaseObject);
+						}
+					} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIComponent) {
+						com.twinsoft.convertigo.beans.ngx.components.UIComponent component = GenericUtils.cast(parentDatabaseObject);
 						databaseObject.priority = databaseObject.getNewOrderValue();
-						page.add(databaseObject);
+						component.add(databaseObject);
 					}
-				} else if (parentDatabaseObject instanceof UIDynamicMenu) {
-					UIDynamicMenu menu = (UIDynamicMenu) parentDatabaseObject;
-					if (databaseObject instanceof UIComponent) {
-						databaseObject.priority = databaseObject.getNewOrderValue();
-						menu.add(databaseObject);
-					}
-				} else if (parentDatabaseObject instanceof UIComponent) {
-					UIComponent component = (UIComponent) parentDatabaseObject;
-					databaseObject.priority = databaseObject.getNewOrderValue();
-					component.add(databaseObject);
-				} else if (parentDatabaseObject == null) {
+				}
+				else if (parentDatabaseObject == null) {
 					if (databaseObject instanceof Project) {
 						if (Engine.theApp.databaseObjectsManager.existsProject(databaseObject.getName())) {
 							throw new ObjectWithSameNameException("Project already exist!");
@@ -790,35 +891,90 @@ public class ClipboardManager {
 				pastedSteps.put(String.valueOf(oldPriority), (Step)databaseObject);
 			}
 			// For update of sources which reference this mobile component
-			if (databaseObject instanceof UIControlDirective || databaseObject instanceof UIForm) {
-				pastedComponents.put(String.valueOf(oldPriority), (UIComponent)databaseObject);
+			if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+				if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.IAction || 
+					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack || 
+					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIControlDirective || 
+					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIForm ||
+					databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UISharedComponent
+				) {
+					pastedComponents.put(String.valueOf(oldPriority), GenericUtils.cast(databaseObject));
+				}
+			} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+				if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.IAction || 
+					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack || 
+					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlDirective || 
+					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIForm ||
+					databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponent
+				) {
+					pastedComponents.put(String.valueOf(oldPriority), GenericUtils.cast(databaseObject));
+				}
 			}
 			
 			databaseObject.isImporting = false; // needed
 			databaseObject.isSubLoaded = true;
 			return databaseObject;
-		} else if (object instanceof JsonData && (parentDatabaseObject instanceof UIPageEvent || parentDatabaseObject instanceof UIAppEvent || 
-													parentDatabaseObject instanceof UIDynamicAction || parentDatabaseObject instanceof UIActionStack)) {
-			JsonData jsonData = (JsonData) object;
-			JSONObject json = jsonData.getData();
-			if (json.has("qname")) {
-				try {
-					UIComponent uiComponent = (UIComponent) parentDatabaseObject;
-						
-					DatabaseObject call = ComponentManager.createBean(ComponentManager.getComponentByName("FullSyncViewAction"));
-					if (call != null && call instanceof UIDynamicAction) {
-						IonBean ionBean = ((UIDynamicAction)call).getIonBean();
-						if (ionBean != null && ionBean.hasProperty("fsview")) {
-							call.bNew = true;
-							call.hasChanged = true;
-							ionBean.setPropertyValue("fsview", new MobileSmartSourceType(json.getString("qname")));
-							uiComponent.add(call);
-							uiComponent.hasChanged = true;
+		} else if (object instanceof JsonData) {
+			if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+				if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIPageEvent || 
+						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIAppEvent || 
+						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction || 
+						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.UIActionStack
+					) {
+					JsonData jsonData = (JsonData) object;
+					JSONObject json = jsonData.getData();
+					if (json.has("qname")) {
+						try {
+							com.twinsoft.convertigo.beans.mobile.components.UIComponent uiComponent = GenericUtils.cast(parentDatabaseObject);
+								
+							DatabaseObject call = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getComponentByName("FullSyncViewAction"));
+							if (call != null && call instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction) {
+								com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction dynAction = GenericUtils.cast(call);
+								com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = dynAction.getIonBean();
+								if (ionBean != null && ionBean.hasProperty("fsview")) {
+									call.bNew = true;
+									call.hasChanged = true;
+									ionBean.setPropertyValue("fsview", new com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType(json.getString("qname")));
+									uiComponent.add(call);
+									uiComponent.hasChanged = true;
+								}
+								return call;
+							}
+						} catch (JSONException e) {
+							Engine.logStudio.warn("Failed to create a FullSyncViewAction", e);
 						}
-						return call;
 					}
-				} catch (JSONException e) {
-					Engine.logStudio.warn("Failed to create a FullSyncViewAction", e);
+				}
+			}
+			else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+				if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
+						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
+						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction || 
+						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack
+					) {
+					JsonData jsonData = (JsonData) object;
+					JSONObject json = jsonData.getData();
+					if (json.has("qname")) {
+						try {
+							com.twinsoft.convertigo.beans.ngx.components.UIComponent uiComponent = GenericUtils.cast(parentDatabaseObject);
+								
+							DatabaseObject call = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("FullSyncViewAction"));
+							if (call != null && call instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction) {
+								com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction dynAction = GenericUtils.cast(call);
+								com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = dynAction.getIonBean();
+								if (ionBean != null && ionBean.hasProperty("fsview")) {
+									call.bNew = true;
+									call.hasChanged = true;
+									ionBean.setPropertyValue("fsview", new com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType(json.getString("qname")));
+									uiComponent.add(call);
+									uiComponent.hasChanged = true;
+								}
+								return call;
+							}
+						} catch (JSONException e) {
+							Engine.logStudio.warn("Failed to create a FullSyncViewAction", e);
+						}
+					}
 				}
 			}
 		}
@@ -918,14 +1074,24 @@ public class ClipboardManager {
 		if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
 			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
 		}
-		if (!ComponentManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
-			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
+		if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.MobileComponent) {
+			if (!com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
+				throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
+			}
+			if (!com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.isTplCompatible(parentDatabaseObject, object)) {
+				String tplVersion = com.twinsoft.convertigo.beans.mobile.components.dynamic.ComponentManager.getTplRequired(object);
+				throw new EngineException("Template project "+ tplVersion +" compatibility required");
+			}
+		} else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
+			if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
+				throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
+			}
+			if (!com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.isTplCompatible(parentDatabaseObject, object)) {
+				String tplVersion = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getTplRequired(object);
+				throw new EngineException("Template project "+ tplVersion +" compatibility required");
+			}
 		}
-		if (!ComponentManager.isTplCompatible(parentDatabaseObject, object)) {
-			String tplVersion = ComponentManager.getTplRequired(object);
-			throw new EngineException("Template project "+ tplVersion +" compatibility required");
-		}
-        
+		
         // Verify if a child object with same name exist
         try {
         	new WalkHelper() {
@@ -958,9 +1124,21 @@ public class ClipboardManager {
 							if (object instanceof Criteria && databaseObject.getParent() instanceof Connector) {
 								throw new EngineException("You cannot cut the criterion of default screen class");
 							}
-						} else if (databaseObject instanceof ApplicationComponent) {
-							if (object instanceof PageComponent && ((PageComponent) object).isRoot) {
-								throw new EngineException("You cannot cut the root page to another application");
+						} else if (databaseObject instanceof MobileObject) {
+							if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+								if (object instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+									com.twinsoft.convertigo.beans.mobile.components.PageComponent pc = GenericUtils.cast(object);
+									if (pc.isRoot) {
+										throw new EngineException("You cannot cut the root page to another application");
+									}
+								}
+							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+								if (object instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+									com.twinsoft.convertigo.beans.ngx.components.PageComponent pc = GenericUtils.cast(object);
+									if (pc.isRoot) {
+										throw new EngineException("You cannot cut the root page to another application");
+									}
+								}
 							}
 						}
 						

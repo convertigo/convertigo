@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -23,7 +23,6 @@ import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
@@ -64,6 +64,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
+import com.twinsoft.convertigo.engine.VersionException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -81,6 +83,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  */
 public abstract class DatabaseObject implements Serializable, Cloneable, ITokenPath {
 	private static final long serialVersionUID = -873065042105207891L;
+	private static final Pattern pIntSuffix = Pattern.compile("\\d+$");
 	protected final Object mutex = new Object();
 
 	@Retention(RetentionPolicy.RUNTIME)
@@ -358,16 +361,22 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 * 
 	 * @return the fully qualified name of the object.
 	 */
-	public String getQName() {
-		String qname;
+	public String getQName(boolean full) {
+		String qname = full ? getFolderType().qnamePart(this) : getName();
 		if (parent != null) {
-			qname = parent.getQName() + "." + getName();
-		} else {
-			qname = "?." + getName();
+			qname = parent.getQName(full) + "." + qname;
 		}
 		return qname;
 	}
 
+	public String getQName() {
+		return getQName(false);
+	}
+	
+	public String getFullQName() {
+		return getQName(true);
+	}
+	
 	/**
 	 * The priority of object.
 	 */
@@ -420,10 +429,45 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					+ getClass().getSimpleName() + ")");
 		}
 
+		if (parent != null) {
+			FolderType fd = getFolderType();
+			try {
+				new WalkHelper() {
+
+					@Override
+					protected void walk(DatabaseObject databaseObject) throws Exception {
+						if (DatabaseObject.this.parent == databaseObject) {
+							super.walk(databaseObject);
+						} else if (DatabaseObject.this != databaseObject && fd.equals(databaseObject.getFolderType()) && name.equals(databaseObject.getName())) {
+							throw new ObjectWithSameNameException("Unable to add the object \""
+									+ name
+									+ "\" because an object with the same name already exists.");
+						}
+					}
+					
+				}.init(parent);
+			} catch (ObjectWithSameNameException e) {
+				throw e;
+			} catch (Exception e) {
+				// should not occurs
+			}
+		}
+		
 		// set new name and new computed file name
 		setBeanName(name);
 	}
-
+	
+	public static String incrementName(String name) {
+		Matcher m = pIntSuffix.matcher(name);
+		if (m.find()) {
+			int inc = Integer.parseInt(m.group()) + 1;
+			name = m.replaceFirst(Integer.toString(inc));
+		} else {
+			name += "1";
+		}
+		return name;
+	}
+	
 	/**
 	 * Returns an available name for a new child database object to add.
 	 * 
@@ -435,14 +479,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 */
 	public String getChildBeanName(Collection<? extends DatabaseObject> v, String dboName, boolean isNew) {
 		String newDatabaseObjectName = dboName;
-		boolean bContinue = isNew;
-		int index = 0;
+		boolean bContinue = isNew || true;
 		while (bContinue) {
-			if (index == 0) {
-				newDatabaseObjectName = dboName;
-			} else {
-				newDatabaseObjectName = dboName + index;
-			}
 			try {
 				for (DatabaseObject databaseObject : v) {
 					if (newDatabaseObjectName.equals(databaseObject.getName())) {
@@ -453,7 +491,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				}
 				bContinue = false;
 			} catch (ObjectWithSameNameException e) {
-				index++;
+				newDatabaseObjectName = incrementName(newDatabaseObjectName);
 			}
 		}
 		return newDatabaseObjectName;
@@ -733,23 +771,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		// Do nothing by default
 	}
 
-	/**
-	 * Reads the object from XML serialized data.
-	 */
-	public static DatabaseObject read(String filename) throws EngineException, IOException {
-		Element rootElement = null;
-		try {
-			Document document = XMLUtils.parseDOM(filename);
-			rootElement = document.getDocumentElement();
-		} catch (IOException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new EngineException("Unable to create the object from the serialized data.", e);
-		}
-
-		return DatabaseObject.read(rootElement);
-	}
-
 	public static DatabaseObject read(Node node) throws EngineException {
 		String objectClassName = "n/a";
 		String childNodeName = "n/a";
@@ -773,13 +794,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			}
 		}
 		// Verifying product version
-		if (VersionUtils.compareProductVersion(Version.productVersion, version) < 0) {
-			String message = "Unable to create an object of product version superior to the current beans product version ("
-					+ com.twinsoft.convertigo.beans.Version.version
-					+ ").\n"
-					+ "Object class: "
-					+ objectClassName + "\n" + "Object version: " + version;
-			EngineException ee = new EngineException(message);
+		if ("com.twinsoft.convertigo.beans.core.Project".equals(objectClassName) && VersionUtils.compareProductVersion(Version.productVersion, version) < 0) {
+			VersionException ee = new VersionException(version);
 			throw ee;
 		}
 
@@ -1298,7 +1314,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
 		List<DatabaseObject> children = getDatabaseObjectChildren();
 		for (DatabaseObject child: children) {
-			if (child.getName().equals(name)) {
+			if (child.getFolderType().qnamePart(child).equals(name) || child.getName().equals(name)) {
 				return child;
 			}
 		}
@@ -1326,6 +1342,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 			objectClassName = Pattern.quote(objectClassName);
 			return value.matches("(^|.*;)" + objectClassName + "($|;.*)");
 		}
+		if (name.equals("objectPackageName")) {
+			String objectPackageName = getClass().getPackageName();
+			objectPackageName = Pattern.quote(objectPackageName);
+			return value.matches("(^|.*;)" + objectPackageName + "($|;.*)");
+		}
 		if (name.equals("isModified")) {
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(hasChanged));
@@ -1338,5 +1359,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	
 	protected void checkBatchOperation(Runnable runnable) {
 		BatchOperationHelper.check(runnable);
+	}
+	
+	public FolderType getFolderType() {
+		return FolderType.NONE;
 	}
 }

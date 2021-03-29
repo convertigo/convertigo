@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -73,7 +73,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     private boolean httpInfo = false;
     private String httpInfoTagName = "HttpInfo";
     
-	private HttpPool httpPool = HttpPool.global;
+	private HttpPool httpPool = HttpPool.no;
     
     /** Holds value of property httpVerb. */
     private HttpMethodType httpVerb = HttpMethodType.GET;

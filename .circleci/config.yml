@@ -7,7 +7,7 @@ defaults: &defaults
   - MAVEN_OPTS: -Xmx2800m
   
   docker:
-  - image: convertigo/builder-ci:circleci-4
+  - image: convertigo/builder-ci:circleci-6
   
 version: 2
 jobs:
@@ -15,7 +15,7 @@ jobs:
     <<: *defaults
     
     docker:
-    - image: circleci/openjdk:11-stretch
+    - image: cimg/openjdk:15.0
     
     steps:
     
@@ -142,7 +142,7 @@ jobs:
     
     - run:
         name: Clean workspace before saving
-        command: rm -rf .git convertigo-doc convertigo-templates gradle-plugin
+        command: rm -rf .git convertigo-doc gradle-plugin
     
     - store_artifacts:
         path: /home/circleci/s3
@@ -382,7 +382,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 7.8.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
+          git clone --depth 1 -b 7.9.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-3.git
           
     - run:
         name: Pull the docker default image
@@ -421,8 +421,8 @@ jobs:
         
     - restore_cache:
         keys:
-        - v2-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
-        - v2-m2-
+        - v3-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v3-m2-
         
     - run:
         name: Build Studio
@@ -433,7 +433,7 @@ jobs:
     - save_cache:
         paths:
         - ~/.m2
-        key: v2-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        key: v3-m2-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
         
     - save_cache:
         paths:
@@ -449,10 +449,7 @@ jobs:
         name: Download JDKs
         command: |
           if [ ! -d /tmp/c8o_jre ] ; then
-              JDK_ARCH=x64 sh installers/nsis/download-jdk.sh &
-              for job in $(jobs -p); do
-                  wait $job
-              done
+              sh installers/nsis/download-jdk.sh
           fi
           du -sh /tmp/c8o_jre/*
           

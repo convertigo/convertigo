@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.beans.core;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 @DboCategoryInfo(
 		getCategoryId = "Index",
@@ -51,5 +52,9 @@ public abstract class Index extends DatabaseObject {
 	public String getRenderer() {
 		return "IndexTreeObject";
 	}
-
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.INDEX;
+	}
 }

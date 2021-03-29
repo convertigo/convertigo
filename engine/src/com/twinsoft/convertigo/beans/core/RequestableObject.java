@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -445,6 +445,19 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	}
     	return res;
     }
+	
+	static public Object synchronize(org.mozilla.javascript.Context cx, Scriptable thisObj, Object[] args, Function funObj) {
+    	if (args.length < 2) {
+    		return null;
+    	}
+    	Object lock = ((NativeJavaObject) args[0]).unwrap();
+    	Function fun = (Function) args[1];
+    	Object res;
+    	synchronized (lock) {
+			res = fun.call(cx, thisObj, thisObj, null);
+		}
+    	return res;
+	}
     
     protected void insertObjectsInScope() throws EngineException {
 		// Insert the DOM into the scripting context
@@ -471,6 +484,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		
 		try {
 			scope.put("include", scope, new FunctionObject("include", getClass().getMethod("includeInScope", org.mozilla.javascript.Context.class, Scriptable.class, Object[].class, Function.class), scope));
+		} catch (Exception e) {
+			Engine.logBeans.warn("Failed to declare 'include' in the JS scope", e);
+		}
+		
+		try {
+			scope.put("synchronized", scope, new FunctionObject("synchronized", getClass().getMethod("synchronize", org.mozilla.javascript.Context.class, Scriptable.class, Object[].class, Function.class), scope));
 		} catch (Exception e) {
 			Engine.logBeans.warn("Failed to declare 'include' in the JS scope", e);
 		}

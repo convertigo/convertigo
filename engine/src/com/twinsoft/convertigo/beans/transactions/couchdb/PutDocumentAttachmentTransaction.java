@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -24,6 +24,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -36,6 +38,8 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 
 	private String p_attname = "";
 	private String p_attpath = "";
+	private String p_attbase64 = "";
+	private String p_attcontent_type = "";
 	private String q_rev = "";
 	
 	public PutDocumentAttachmentTransaction() {
@@ -54,21 +58,32 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 		String docid = getParameterStringValue(CouchParam.docid);
 		String attname = getParameterStringValue(CouchParam.attname);
 		String attpath = getParameterStringValue(CouchParam.attpath);
+		String attbase64 = getParameterStringValue(CouchParam.attbase64);
+		String contentType = getParameterStringValue(CouchParam.attcontent_type);
 		Map<String, String> query = getQueryVariableValues();
+		File file = null;
 		
-		attpath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attpath, getProject().getName());
-		String contentType = null;
-		
-		try {
-			contentType = context.httpServletRequest.getServletContext().getMimeType(attpath);
-		} catch (Exception e) {
+		if (StringUtils.isNotBlank(attpath)) {
+			attpath = Engine.theApp.filePropertyManager.getFilepathFromProperty(attpath, getProject().getName());
+			file = new File(attpath);
+			if (StringUtils.isBlank(contentType)) {
+				try {
+					contentType = context.httpServletRequest.getServletContext().getMimeType(attpath);
+				} catch (Exception e) {
+				}
+			}
 		}
-		if (contentType == null) {
+		if (StringUtils.isBlank(contentType)) {
 			Engine.logBeans.warn("(PutDocumentAttachmentTransaction) Failed to detect contentType");
 			contentType = MimeType.OctetStream.value();
 		}
 		
-		JSONObject response = getCouchClient().putDocumentAttachment(db, docid, attname, query, new File(attpath), contentType);
+		JSONObject response;
+		if ((file == null || !file.exists()) && StringUtils.isNotBlank(attbase64)) {
+			response = getCouchClient().putDocumentAttachment(db, docid, attname, query, Base64.decodeBase64(attbase64), contentType);
+		} else {
+			response = getCouchClient().putDocumentAttachment(db, docid, attname, query, new File(attpath), contentType);
+		}
 		
 		return response;
 	}
@@ -100,6 +115,22 @@ public class PutDocumentAttachmentTransaction extends AbstractDocumentTransactio
 
 	public void setQ_rev(String q_rev) {
 		this.q_rev = q_rev;
+	}
+
+	public String getP_attbase64() {
+		return p_attbase64;
+	}
+
+	public void setP_attbase64(String p_attbase64) {
+		this.p_attbase64 = p_attbase64;
+	}
+
+	public String getP_attcontent_type() {
+		return p_attcontent_type;
+	}
+
+	public void setP_attcontent_type(String p_attcontent_type) {
+		this.p_attcontent_type = p_attcontent_type;
 	}
 }
 

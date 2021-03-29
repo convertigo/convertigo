@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -27,17 +27,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -53,9 +48,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
-import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
-import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -302,12 +295,11 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	                		hasBeenModified(true);
 	            		}
 	            		
-	    				// Updating the opened handlers editor if any
-	    				IEditorPart jspart = ConvertigoPlugin.getDefault().getJscriptTransactionEditor(transaction);
-	    				if ((jspart != null) && (jspart instanceof JScriptEditor)) {
-	    					JScriptEditor jscriptTransactionEditor = (JScriptEditor) jspart;
-	    					jscriptTransactionEditor.reload();
-	    				}
+						// Update the opened handlers editor if any
+						JScriptEditorInput jsinput = ConvertigoPlugin.getDefault().getJScriptEditorInput(transaction);
+						if (jsinput != null) {
+							jsinput.reload();
+						}
 	    				
 	    		    	try {
 	    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
@@ -393,57 +385,13 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	}
 
 	public void launchEditor(String editorType) {
-		// Retrieve the project name
-		String projectName = getObject().getProject().getName();
 		try {
-			// Refresh project resource
-			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-
 			// Open editor
-			if ((editorType == null) || ((editorType != null) && (editorType.equals("JscriptTransactionEditor"))))
-				openJscriptTransactionEditor(project);
-			if ((editorType != null) && (editorType.equals("XMLTransactionEditor")))
-				openXMLTransactionEditor(project);
-			
-		} catch (CoreException e) {
-			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
-		}
-	}
-
-	public void openJscriptTransactionEditor(IProject project) {
-		Transaction transaction = (Transaction) this.getObject();
-
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
-		if (activePage != null) {
-			try {
-				activePage.openEditor(new JScriptEditorInput(transaction, project),
-										"com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor");
-			} catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + transaction.getName() + "'");
-			} 
-		}
-	}
-
-	public void openXMLTransactionEditor(IProject project) {
-		Transaction transaction = (Transaction)this.getObject();
-		
-		IFile	file = project.getFile("_private/"+transaction.getName()+".xml");
-		
-		
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
-		if (activePage != null) {
-			try {
-				activePage.openEditor(new XMLTransactionEditorInput(file,transaction),
-										"com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor");
-			} catch(PartInitException e) {
-				ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + transaction.getName() + "'");
-			} 
+			if (editorType == null || (editorType != null && editorType.equals("JscriptTransactionEditor"))) {
+				JScriptEditorInput.openJScriptEditor(this);
+			}
+		} catch (PartInitException e) {
+			ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + getObject().getName() + "'");
 		}
 	}
 	

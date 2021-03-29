@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,7 +29,7 @@ import com.twinsoft.convertigo.engine.providers.couchdb.FullSyncContext;
 public class FullSyncConnector extends CouchDbConnector {
 	private static final long serialVersionUID = 4063707392313093177L;
 	
-	private FullSyncAnonymousReplication anonymousReplication = FullSyncAnonymousReplication.allow; 
+	private FullSyncAnonymousReplication anonymousReplication = FullSyncAnonymousReplication.deny; 
 	
 	@Override
 	public CouchClient getCouchClient() {

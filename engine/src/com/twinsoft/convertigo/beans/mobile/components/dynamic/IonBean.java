@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -49,7 +49,8 @@ public class IonBean {
 		icon32,
 		properties,
 		events,
-		config
+		config,
+		displayFormat
 		;
 	}
 	
@@ -75,6 +76,7 @@ public class IonBean {
 				.put(Key.properties.name(), new JSONObject())
 				.put(Key.events.name(), new JSONObject())
 				.put(Key.config.name(), new JSONObject())
+				.put(Key.displayFormat.name(), "")
 				;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -186,6 +188,15 @@ public class IonBean {
 		try {
 			String displayName = jsonBean.getString(Key.displayName.name());
 			return displayName.isEmpty() ? getName(): displayName;
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return "?";
+		}
+	}
+	
+	public String getDisplayFormat() {
+		try {
+			return jsonBean.getString(Key.displayFormat.name());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return "?";

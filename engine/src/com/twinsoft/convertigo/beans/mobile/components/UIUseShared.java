@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -324,11 +324,15 @@ public class UIUseShared extends UIElement {
 					Project p = null;
 					try {
 						p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
+						if (p == null) {
+							throw new Exception();
+						}
 					} catch (Exception e) {
 						Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 					}
 					if (p != null) {
-						for (UISharedComponent uisc: p.getMobileApplication().getApplicationComponent().getSharedComponentList()) {
+						ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+						for (UISharedComponent uisc: app.getSharedComponentList()) {
 							if (uisc.getQName().equals(qname)) {
 								target = uisc;
 							}

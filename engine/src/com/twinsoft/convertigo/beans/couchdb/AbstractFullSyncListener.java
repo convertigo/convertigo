@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -151,24 +151,20 @@ public abstract class AbstractFullSyncListener extends Listener {
 				Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : execute sequence \""+sequenceName+"\"");
 				try {
 					Map<String, Object> requestParams = new HashMap<String, Object>();
-			    	boolean maintainContext = false;
-			    	boolean maintainSession = false;
-					
-			    	requestParams.put(Parameter.Project.getName(), new String[] { projectName });
-			    	requestParams.put(Parameter.Sequence.getName(), new String[] { sequenceName });
-					if (!maintainContext) requestParams.put(Parameter.RemoveContext.getName(), new String[] { "" });
-					if (!maintainSession) requestParams.put(Parameter.RemoveSession.getName(), new String[] { "" });
-					//request.put("docs", itemsElement);
+					requestParams.put(Parameter.Project.getName(), new String[] { projectName });
+					requestParams.put(Parameter.Sequence.getName(), new String[] { sequenceName });
+					requestParams.put(Parameter.Context.getName(), new String[] { "listener_" + getName() });
+					requestParams.put(Parameter.RemoveContext.getName(), new String[] { "true" });
 					requestParams.put("doc", docList);
 					
-		    		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : internal invoke requested");
-		        	InternalRequester internalRequester = new InternalRequester(requestParams, request);
-		    		Object result = internalRequester.processRequest();
-		        	if (result != null) {
-		        		Document xmlHttpDocument = (Document) result;
-		        		String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
-		        		Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
-		        	}
+					Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : internal invoke requested");
+					InternalRequester internalRequester = new InternalRequester(requestParams, request);
+					Object result = internalRequester.processRequest();
+					if (result != null) {
+						Document xmlHttpDocument = (Document) result;
+						String contents = XMLUtils.prettyPrintDOMWithEncoding(xmlHttpDocument, "UTF-8");
+						Engine.logBeans.debug("(FullSyncListener) Listener \""+ getName() +"\" : sequence successfully executed with following result\n"+ contents + "\n");
+					}
 				}
 				catch (Exception e) {
 					throw new EngineException("Sequence named \""+ sequenceName +"\" failed", e);

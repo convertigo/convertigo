@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -56,7 +56,7 @@ public class OpenProjectSwaggerConsoleAction extends MyAbstractAction {
     				Project project = (Project)treeObject.getObject();
     				Program.launch(
     						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/dist/index.html?"
-    						+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/api?YAML&__project=" + project.getName())
+    						+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/openapi?YAML&__project=" + project.getName())
     						+ (Engine.isStudioMode() ? "&showErrors" : ""));
     			}
     		}

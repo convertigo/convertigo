@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -189,6 +189,11 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 		if (name.equals("folderType")) {
 			int iTest = Integer.parseInt(value);
 			return folderType == iTest;
+		}
+		if (name.equals("parentPackageName")) {
+			if (getParent() instanceof DatabaseObjectTreeObject) {
+				return ((DatabaseObjectTreeObject)getParent()).testAttribute(target, "objectPackageName", value);
+			}
 		}
 		return super.testAttribute(target, name, value);
 	}

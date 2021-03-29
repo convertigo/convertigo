@@ -1314,7 +1314,7 @@
           "value": "0", // optional value (default is 0)
           "values": [ // possible values (false means no set)
 	    	false,
-            true,
+            true
           ]
         },
         "leftOffset": {
@@ -1325,7 +1325,7 @@
           "value": "0", // optional value (default is 0)
           "values": [ // possible values (false means no set)
 	    	false,
-            true,
+            true
           ]
         },
         "duration": {
@@ -1409,7 +1409,7 @@
           "value": false,
           "label": "Duration",
           "description": "How long it takes to do one loop. (in ms)",
-          "category": "Attributes",
+          "category": "Attributes"
         },
         "name": {
           "attr": "name",
@@ -4057,7 +4057,7 @@
           "label": "Month values",
           "description": "Values used to create the list of selectable months. By default the month values range from 1 to 12. However, to control exactly which months to display, the monthValues input can take either an array of numbers, or string of comma separated numbers. For example, if only summer months should be shown, then this input value would be monthValues=\"6,7,8\". Note that month numbers do not have a zero-based index, meaning January's value is 1, and December's is 12.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
         "minuteValues": {
           "attr": "minuteValues",
@@ -4102,14 +4102,14 @@
           "label": "Day values",
           "description": "Values used to create the list of selectable days. By default every day is shown for the given month. However, to control exactly which days of the month to display, the dayValues input can take either an array of numbers, or string of comma separated numbers. Note that even if the array days have an invalid number for the selected month, like 31 in February, it will correctly not show days which are not valid for the selected month.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
         "hourValues": {
           "attr": "hourValues",
           "label": "Hour values",
           "description": "Values used to create the list of selectable hours. By default the hour values range from 0 to 23 for 24-hour, or 1 to 12 for 12-hour. However, to control exactly which hours to display, the hourValues input can take either an array of numbers, or string of comma separated numbers.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
     	"placeholder":{
     		"attr":"placeholder",
@@ -4172,14 +4172,14 @@
           "label": "Picker Options",
           "description": "Any additional options that the picker interface can accept. See the Ionic Picker API docs for the picker options.",
           "category": "@Properties",
-          "value": false,
+          "value": false
         },
         "yearValues": {
           "attr": "yearValues",
           "label": "Year values",
           "description": "Values used to create the list of selectable years. By default the year values range between the min and max datetime inputs. However, to control exactly which years to display, the yearValues input can take either an array of numbers, or string of comma separated numbers. For example, to show upcoming and recent leap years, then this input's value would be yearValues=\"2024,2020,2016,2012,2008\".",
           "category": "@Properties",
-          "value": false,
+          "value": false
         }
       }
     },
@@ -4848,6 +4848,21 @@
       "group": "Cards",
       "icon16": "cardheader_color_16x16.png",
       "icon32": "cardheader_color_32x32.png",
+      "properties": {
+      }
+    },
+
+    "CardTitle": {
+      "tag": "ion-card-title",
+	  "displayName": "CardTitle",
+      "label": "Card Title",
+      "description": [
+"ion-card-title| Defines a <i>Card Title</i> component.<br/>",
+"Use a <i>Card Title</i> component inside of a <i>Card Header</i> component.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/v3/components/#card-header'>Card Header</a>."],
+      "group": "Cards",
+      "icon16": "cardtitle_color_16x16.png",
+      "icon32": "cardtitle_color_32x32.png",
       "properties": {
       }
     },
@@ -6335,6 +6350,7 @@
       "group": "Actions",
       "icon16": "modalaction_color_16x16.png",
       "icon32": "modalaction_color_32x32.png",
+ 	  "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'ModalPage ' + target; }",
       "properties": {
         "page": {
           "editor": "NamedSourceSelectorEditor",
@@ -6428,6 +6444,7 @@
       "group": "Actions",
       "icon16": "popoveraction_color_16x16.png",
       "icon32": "popoveraction_color_32x32.png",
+	  "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'Popover ' + target; }",
       "properties": {
         "page": {
           "editor": "NamedSourceSelectorEditor",
@@ -6618,6 +6635,7 @@
     "group": "Actions",
     "icon16": "ifaction_color_16x16.png",
     "icon32": "ifaction_color_32x32.png",
+    "displayFormat": "function displayFormat() { return 'if' + (negate == 'true'? ' not':'') + ' ('+ condition+')'; }",
     "properties": {
       "condition": {
         "mode": "script",
@@ -6652,6 +6670,7 @@
     "group": "Actions",
     "icon16": "ifelseaction_color_16x16.png",
     "icon32": "ifelseaction_color_32x32.png",
+    "displayFormat": "function displayFormat() { return 'ifElse' + (negate == 'true'? ' not':'') + ' ('+ condition+')'; }",
     "properties": {
       "condition": {
         "mode": "script",
@@ -6754,6 +6773,7 @@
       "group": "Actions",
       "icon16": "callsequenceaction_color_16x16.png",
       "icon32": "callsequenceaction_color_32x32.png",
+      "displayFormat": "function displayFormat() { return 'Call ('+ requestable +')'; }",
       "properties": {
         "requestable": {
           "editor": "NamedSourceSelectorEditor",
@@ -6861,6 +6881,7 @@
       "group": "FullSync Actions",
       "icon16": "callfullsyncaction_color_16x16.png",
       "icon32": "callfullsyncaction_color_32x32.png",
+      "displayFormat": "function displayFormat() { var db = requestable.substring(requestable.lastIndexOf('.')+1); return 'Call ('+ db + '.' + verb +')'; }",
       "properties": {
         "requestable": {
           "editor": "NamedSourceSelectorEditor",
@@ -6938,7 +6959,7 @@
           "type": "string",
 		  "mode": "script",
           "value": "[]"
-		},
+		}
 	  }
 	},
 	
@@ -6951,7 +6972,20 @@
 "Add a <i>Close Modal</i> action under an Event."],
       "group" : "Actions",
       "icon16": "closemodalaction_color_16x16.png",
-      "icon32": "closemodalaction_color_32x32.png"
+      "icon32": "closemodalaction_color_32x32.png",
+      "properties": {
+      "data": {
+	        "label": "data",
+	        "description": "Define the data to be returned by the modal bean (works only if modal has been used with block while display option)",
+	        "category": "@Properties",
+	        "type": "string",
+	        "value": false,
+	        "values": [
+	        	false,
+	        	true
+	        ]
+	      }
+      }
     },
 
     "PushPageAction" : {
@@ -6964,6 +6998,7 @@
       "group": "Actions",
       "icon16": "pushpageaction_color_16x16.png",
       "icon32": "pushpageaction_color_32x32.png",
+	  "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'PushPage ' + target; }",
       "properties": {
         "page": {
           "editor": "NamedSourceSelectorEditor",
@@ -7016,6 +7051,7 @@
       "group": "Actions",
       "icon16": "rootpageaction_color_16x16.png",
       "icon32": "rootpageaction_color_32x32.png",
+      "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'RootPage ' + target; }",
       "properties": {
         "page": {
           "editor": "NamedSourceSelectorEditor",
@@ -9620,7 +9656,9 @@
 	  "displayName": "PublishEvent",
       "label": "PublishEvent",
       "description": [
-"Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data. The event may be handled by an existing <i>Subscribe Handler</i> component in any available page.<br/>",
+"Defines a <i>PublishEvent</i> action component. |This component helps publishing an event giving its topic and optional data Object in (TS) mode, e.g.:</br>",
+"<code>{user: 'user89', id: 89}</code><br/>",
+"The event may be handled by an existing <i>Subscribe Handler</i> component in any available page.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/v3/api/util/Events/'>Events</a>"],
       "group": "Actions",
       "icon16": "publisheventaction_color_16x16.png",
@@ -9636,18 +9674,13 @@
 	      },   
 	      "data": {
 	        "label": "Event data",
-	        "description": "The event data",
+	        "description": "The event data Object (be sure to use a json object) in (TS) mode.",
 	        "category": "@parameters",
 	        "type": "string",
 	        "mode": "script",
-	        "value": false,
+	        "value": "{}",
 	        "values": [false,true]
 	      }
-      },
-      "config": {
-        "action_ts_imports": [
-			{"from":"ionic-angular", "components":["Events"]}
-        ]
       }
     },
     

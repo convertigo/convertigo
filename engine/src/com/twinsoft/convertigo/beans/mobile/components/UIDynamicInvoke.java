@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -86,10 +86,10 @@ public class UIDynamicInvoke extends UIDynamicAction {
 			if (qname != null && qname.indexOf('.') != -1) {
 				String p_name = qname.substring(0, qname.indexOf('.'));
 				Project project = this.getProject();
-				//Project p = p_name.equals(project.getName()) ? project: Engine.theApp.databaseObjectsManager.getOriginalProjectByName(p_name);
 				Project p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
 				if (p != null) {
-					for (UIActionStack uias: p.getMobileApplication().getApplicationComponent().getSharedActionList()) {
+					ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+					for (UIActionStack uias: app.getSharedActionList()) {
 						if (uias.getQName().equals(qname)) {
 							return uias;
 						}

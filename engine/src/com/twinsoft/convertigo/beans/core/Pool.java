@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 /**
@@ -153,5 +154,8 @@ public class Pool extends DatabaseObject implements ITagsProperty{
 		return getProject().getName() + "/" + getConnector().getName() + "/" + getName();
 	}
 
-
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.NONE;
+	}
 }

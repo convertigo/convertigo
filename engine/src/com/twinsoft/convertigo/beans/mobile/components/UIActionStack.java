@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -29,8 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UIActionStack extends UIComponent implements IShared {
 
@@ -243,7 +247,8 @@ public class UIActionStack extends UIComponent implements IShared {
 			computed += "\t\t" + System.lineSeparator();
 			computed += "\t\tpage.c8o.log.debug(\"[MB] "+functionName+": started\");" + System.lineSeparator();
 			computed += "\t\treturn new Promise((resolveP, rejectP)=>{" + System.lineSeparator();
-			computed += "\t\tparent = self = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+			//computed += "\t\tparent = self = stack[\""+ getName() +"\"] = {};"+ System.lineSeparator();
+			computed += "\t\tparent = self = stack[\""+ getName() +"\"] = stack[\""+ priority +"\"] = {};"+ System.lineSeparator();
 			computed += "\t\tself.in = {props: props, vars: params};"+ System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += ""+ computeStackContent();
@@ -410,4 +415,34 @@ public class UIActionStack extends UIComponent implements IShared {
 		super.addContributors(done, contributors);
 	}
 
+	@Override
+	public String computeJsonModel() {
+		JSONObject jsonModel = new JSONObject();
+		//if (isEnabled()) {
+			try {
+				jsonModel.put("in", new JSONObject()
+										.put("vars", new JSONObject()));
+				
+				JSONObject jsonVars = jsonModel.getJSONObject("in").getJSONObject("vars");
+				Iterator<UIComponent> it = getUIComponentList().iterator();
+				while (it.hasNext()) {
+					UIComponent component = (UIComponent)it.next();
+					if (component instanceof UIStackVariable) {
+						UIStackVariable var = (UIStackVariable)component;
+						jsonVars.put(var.getVariableName(), "");
+					}
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		//}
+		return jsonModel.toString();
+	}
+
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.SHARED_ACTION;
+	}
 }

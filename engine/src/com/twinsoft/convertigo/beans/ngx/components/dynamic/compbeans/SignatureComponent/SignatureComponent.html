@@ -1,0 +1,16 @@
+<div class="signature-pad">
+  <div class="signature-pad--body">
+    <canvas #sPad width="500" height="300" style="touch-action: none;"></canvas>
+  </div>
+  <div class="signature-pad--icon-bar">
+    <ion-button type="button" color="light" (click)="clear()">
+	  <ion-icon name="trash-outline" size="small"></ion-icon>
+    </ion-button>
+    <ion-button type="button" color="light" (click)="undo()">
+	  <ion-icon name="arrow-undo-outline" size="small"></ion-icon>
+    </ion-button>
+    <ion-button type="button" color="light" (click)="savePNG()">
+	  <ion-icon name="download-outline" size="small"></ion-icon>
+    </ion-button>
+  </div>
+</div>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -25,6 +25,8 @@ public enum CouchParam {
 	all_or_nothing,
 	attname,
 	attpath,
+	attbase64,
+	attcontent_type,
 	bookmark,
 	cancel,
 	continuous,
@@ -42,6 +44,7 @@ public enum CouchParam {
 	json_base,
 	key,
 	limit,
+	merge,
 	name,
 	new_edits,
 	password,
@@ -58,7 +61,8 @@ public enum CouchParam {
 	update,
 	use_index,
 	value,
-	view;
+	view,
+	w;
 	
 	public static final String prefix = "_use_";
 	
@@ -68,5 +72,9 @@ public enum CouchParam {
 	
 	public void put(Map<String, String> query, String value) {
 		query.put(name(), value);
+	}
+	
+	public boolean has(Map<String, String> query) {
+		return query != null && query.containsKey(name());
 	}
 }

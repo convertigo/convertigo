@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -54,12 +54,12 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	private WsReferenceComposite wsRefAuthenticated = null;
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
-	private int templateId;
+	private String wizardId;
 	
 	public NewProjectWizardComposite10(Composite parent,  int style, WizardPage page) {
 		super(parent, style);
 		this.parentWizard = page;
-		this.templateId = ((NewProjectWizard)page.getWizard()).templateId;
+		this.wizardId = ((NewProjectWizard)page.getWizard()).wizardId;
 		initialize();
 	}
 
@@ -126,11 +126,11 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	
 	protected String[] getFilterExtension() {
 		String[] filterExtension = new String[]{"*"};
-		switch (templateId) {
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
+		switch (wizardId) {
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
 				filterExtension = new String[]{"*.wsdl", "*.xml"};
 				break;
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
 				filterExtension = new String[]{"*.yaml", "*.json"};
 				break;
 			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
@@ -142,11 +142,11 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 
 	protected String[] getFilterNames() {
 		String[] filterNames = new String[]{"All files"};
-		switch (templateId) {
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SOAP_REFERENCE:
+		switch (wizardId) {
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard":
 				filterNames = new String[]{"WSDL files", "XML files"};
 				break;
-			case NewProjectWizard.TEMPLATE_WEB_SERVICE_SWAGGER_REFERENCE:
+			case "com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard":
 				filterNames = new String[]{"YAML files", "JSON files"};
 				break;
 			//case NewProjectWizard.TEMPLATE_WEB_SERVICE_REST_REFERENCE:
@@ -164,7 +164,8 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 				URL url = new URL(urlPath);
 				
 				if (urlPath.startsWith("file:/")) {
-					if (new File(url.getPath()).exists()) {
+					File f = FileUtils.toFile(url);
+					if (f.exists()) {
 						String[] filterExtensions = wsRefAuthenticated.getFilterExtension();//wsRefAuthenticated.getFilterExtension()[0].split(";");
 						for (String fileFilter: filterExtensions) {
 							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -20,17 +20,15 @@
 package com.twinsoft.convertigo.engine;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.xml.namespace.QName;
 
@@ -39,13 +37,12 @@ import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
 import org.apache.ws.commons.schema.XmlSchemaChoice;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaImport;
-import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
@@ -54,7 +51,6 @@ import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
 import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,25 +59,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
-import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
-import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaImportGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
-import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
-import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.steps.SequenceStep;
-import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
-import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -108,10 +91,395 @@ public class SchemaManager implements AbstractManager {
 		}
 	}
 	
+	protected class XmlResponseWalker extends XmlSchemaWalker {
+		List<XmlSchemaObject> elist = null;
+		List<XmlSchemaObject> alist = null;
+		Map<QName, XmlSchemaObject> mso = new HashMap<QName, XmlSchemaObject>();
+		Map<QName, XmlSchemaObject> mto = new HashMap<QName, XmlSchemaObject>();
+		Map<XmlSchemaObject, List<List<XmlSchemaObject>>> map = new LinkedHashMap<XmlSchemaObject, List<List<XmlSchemaObject>>>();
+		boolean debug = false;
+		
+		public XmlResponseWalker(boolean deep, boolean deepExternal, boolean debug) {
+			super(deep, deepExternal);
+			this.debug = debug;
+		}
+		
+		public void init(XmlSchema xmlSchema, QName qname, Element element) {
+			XmlSchemaElement rxe = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
+			if (rxe != null) {
+				List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+				list.add(new ArrayList<XmlSchemaObject>());
+				list.add(new ArrayList<XmlSchemaObject>());
+				map.put(rxe, list);
+				mso.put(qname, rxe);
+				elist = list.get(0);
+				alist = list.get(1);
+				
+				// walk schemas
+				walkElement(xmlSchema, rxe);
+				
+				if (debug) {
+					for (XmlSchemaObject xso: map.keySet()) {
+						System.out.println(((XmlSchemaElement)xso).getName());
+						System.out.print("\t[");
+						for (XmlSchemaObject child: map.get(xso).get(1)) {
+							System.out.print(((XmlSchemaAttribute)child).getName()+",");
+						}
+						System.out.println("]");
+						for (XmlSchemaObject child: map.get(xso).get(0)) {
+							System.out.println("\t"+((XmlSchemaElement)child).getName());
+						}
+					}
+				}
+				
+				// make compliant: add c8o_xxx attributes if needed
+				makeCompliant(rxe, element);
+				
+				if (debug) {
+					System.out.println("Before clean");
+					System.out.println(XMLUtils.prettyPrintElement(element));
+				}
+				
+				// removes unwanted prefixes or attributes (xsi, xmlns, ...)
+				clean(element);
+				
+				if (debug) {
+					System.out.println("After clean");
+					System.out.println(XMLUtils.prettyPrintElement(element));
+				}
+				
+				if (elist != null) {
+					elist.clear();
+					elist = null;
+				}
+				if (alist != null) {
+					alist.clear();
+					alist = null;
+				}
+				if (mso != null) {
+					mso.clear();
+					mso = null;
+				}
+				if (mto != null) {
+					mto.clear();
+					mto = null;
+				}
+				if (map != null) {
+					map.clear();
+					map = null;
+				}
+			}
+		}
+		
+		protected void renameNode(Node node) {
+			Document doc = node.getOwnerDocument();
+			String tns = node.getPrefix();
+			if ((tns != null) && !tns.equals("")) {
+				node = doc.renameNode(node, "", node.getLocalName());
+			}
+		}
+		
+		protected void clean(Node node) {
+			if (node.getNodeType() == Node.DOCUMENT_NODE) {
+				clean(((Document)node).getDocumentElement());
+			} else if (node.getNodeType() == Node.ELEMENT_NODE) {
+				Element element = (Element)node;
+
+				renameNode(element);
+				
+				if (element.hasAttributes()) {
+					List<Node> list = new ArrayList<Node>();
+					NamedNodeMap attributes = element.getAttributes();
+					for (int i=0; i <attributes.getLength(); i++) {
+						Node attr = attributes.item(i);
+						String prefix = attr.getPrefix();
+						if (prefix != null && (
+								prefix.toLowerCase().equals("xsi") || 
+								prefix.toLowerCase().equals("xmlns") ||
+								prefix.toLowerCase().startsWith("soap-")
+						)) {
+							list.add(attr);
+						} else {
+							renameNode(attr);
+						}
+					}
+					for (Node attr: list) {
+						element.removeAttributeNode((Attr) attr);
+					}
+				}
+				
+				if (element.hasChildNodes()) {
+					NodeList children = element.getChildNodes();
+					for (int i= 0; i < children.getLength(); i++) {
+						clean(children.item(i));
+					}
+				}
+			}
+		}
+		
+		public boolean makeCompliant(XmlSchemaObject xso, Node node) {
+			return false;
+		}
+		
+		
+		@Override
+		public void walkByTypeName(XmlSchema xmlSchema, QName qname) {
+			XmlSchemaType obj = SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname);
+			if (obj != null) {
+				if (!mso.containsKey(qname)) {
+					mso.put(qname, obj);
+					super.walkByTypeName(xmlSchema, qname);
+				}
+				else {
+					if (mto.containsKey(qname)) {
+						//System.out.println("\nWalk type "+ qname);
+						elist.addAll(map.get(mto.get(qname)).get(0));
+					}
+				}
+			}
+		}
+
+		@Override
+		public void walkByElementRef(XmlSchema xmlSchema, QName qname) {
+			XmlSchemaElement obj = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
+			if (obj != null) {
+				if (!mso.containsKey(qname)) {
+					mso.put(qname, obj);
+					super.walkByElementRef(xmlSchema, qname);
+				}
+				else {
+					if (mto.containsKey(qname)) {
+						//System.out.println("\nWalk elem ref "+ qname);
+						elist.add(mto.get(qname));
+					}
+				}
+			}
+		}
+
+		@Override
+		public void walkByAttributeGroupRef(XmlSchema xmlSchema, QName qname) {
+			XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+			XmlSchemaAttributeGroup obj = (XmlSchemaAttributeGroup) schema.getAttributeGroups().getItem(qname);
+			if (obj != null) {
+				if (!mso.containsKey(qname)) {
+					mso.put(qname, obj);
+					super.walkByAttributeGroupRef(xmlSchema, qname);
+				}
+			}
+		}
+
+		@Override
+		public void walkByAttributeRef(XmlSchema xmlSchema, QName qname) {
+			XmlSchemaAttribute obj = SchemaMeta.getCollection(xmlSchema).getAttributeByQName(qname);
+			if (obj != null) {
+				if (!mso.containsKey(qname)) {
+					mso.put(qname, obj);
+					super.walkByAttributeRef(xmlSchema, qname);
+				}
+				else {
+					if (mto.containsKey(qname)) {
+						//System.out.println("\nWalk attr ref "+ qname);
+						alist.add(mto.get(qname));
+					}
+				}
+			}
+		}
+
+		@Override
+		public void walkByGroupRef(XmlSchema xmlSchema, QName qname) {
+			XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+			XmlSchemaGroup obj = (XmlSchemaGroup) schema.getGroups().getItem(qname);
+			if (obj != null) {
+				if (!mso.containsKey(qname)) {
+					mso.put(qname, obj);
+					super.walkByGroupRef(xmlSchema, qname);
+				}
+			}
+		}
+		
+		@Override
+		protected void walkComplexContentExtension(XmlSchema xmlSchema, XmlSchemaComplexContentExtension obj) {
+			List<XmlSchemaObject> el = elist;
+			List<XmlSchemaObject> al = alist;
+			
+			QName baseTypeName = obj.getBaseTypeName();
+			if (!mso.containsKey(baseTypeName)) {
+				String nsURI = xmlSchema.getTargetNamespace();
+				String prefix = xmlSchema.getNamespaceContext().getPrefix(nsURI);
+				String localName = baseTypeName.getLocalPart() + "Extension";
+				XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
+				xmlSchemaElement.setName(localName);
+				xmlSchemaElement.setQName(new QName(nsURI, localName, prefix));
+				xmlSchemaElement.setSchemaTypeName(baseTypeName);
+				XmlSchemaUtils.add(xmlSchema, xmlSchemaElement);
+				SchemaMeta.setSchema(xmlSchemaElement, xmlSchema);
+				
+				List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+				list.add(new ArrayList<XmlSchemaObject>());
+				list.add(new ArrayList<XmlSchemaObject>());
+				
+				elist = list.get(0);
+				alist = list.get(1);
+				
+				walkElement(xmlSchema, xmlSchemaElement);
+				
+				elist = el;
+				alist = al;
+			}
+			
+			super.walkComplexContentExtension(xmlSchema, obj);
+		}
+
+		@Override
+		protected void walkChoice(XmlSchema xmlSchema, XmlSchemaChoice obj) {
+			List<XmlSchemaObject> el = elist;
+			List<XmlSchemaObject> al = alist;
+			
+			List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+			list.add(new ArrayList<XmlSchemaObject>());
+			list.add(new ArrayList<XmlSchemaObject>());
+			
+			elist = list.get(0);
+			alist = list.get(1);
+			super.walkChoice(xmlSchema, obj);
+			if (obj.getMaxOccurs() > 1) {
+				if (elist.size() > 0) {
+					XmlSchemaElement startC8oFakeOccurs = new XmlSchemaElement();
+					startC8oFakeOccurs.setName("StartC8oFakeOccurs");
+					elist.add(0, startC8oFakeOccurs);
+					XmlSchemaElement endC8oFakeOccurs = new XmlSchemaElement();
+					endC8oFakeOccurs.setName("EndC8oFakeOccurs");
+					elist.add(endC8oFakeOccurs);
+				}
+			}
+			el.addAll(elist);
+			al.addAll(alist);
+			
+			elist = el;
+			alist = al;			
+		}
+
+		@Override
+		protected void walkSequence(XmlSchema xmlSchema, XmlSchemaSequence obj) {
+			List<XmlSchemaObject> el = elist;
+			List<XmlSchemaObject> al = alist;
+			
+			List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+			list.add(new ArrayList<XmlSchemaObject>());
+			list.add(new ArrayList<XmlSchemaObject>());
+			
+			elist = list.get(0);
+			alist = list.get(1);
+			super.walkSequence(xmlSchema, obj);
+			if (obj.getMaxOccurs() > 1) {
+				if (elist.size() > 0) {
+					XmlSchemaElement startC8oFakeOccurs = new XmlSchemaElement();
+					startC8oFakeOccurs.setName("StartC8oFakeOccurs");
+					elist.add(0, startC8oFakeOccurs);
+					XmlSchemaElement endC8oFakeOccurs = new XmlSchemaElement();
+					endC8oFakeOccurs.setName("EndC8oFakeOccurs");
+					elist.add(endC8oFakeOccurs);
+				}
+			}
+			el.addAll(elist);
+			al.addAll(alist);
+			
+			elist = el;
+			alist = al;			
+		}
+		
+		@Override
+		protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
+			List<XmlSchemaObject> el = elist;
+			List<XmlSchemaObject> al = alist;
+			
+			QName qname = obj.getQName();
+			QName refName = obj.getRefName();
+			QName typeName = obj.getSchemaTypeName();
+			if (refName == null) {
+				el.add(obj);
+				List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+				list.add(new ArrayList<XmlSchemaObject>());
+				list.add(new ArrayList<XmlSchemaObject>());
+				map.put(obj, list);
+				
+				//System.out.print("\nwalkElement name="+obj.getName());
+				String ns = SchemaMeta.getSchema(obj).getTargetNamespace();
+				if (typeName != null) {
+					if (!mto.containsKey(typeName)) {
+						if (typeName.getNamespaceURI().equals(Constants.URI_2001_SCHEMA_XSD)) {
+							typeName = new QName(ns, obj.getName());
+						}
+						mto.put(typeName, obj);
+						//System.out.print("; mto put: typeN="+typeName);
+					} else {
+						map.put(obj, map.get(mto.get(typeName)));
+						
+						// type already done
+						return;
+					}
+				}
+				else {
+					if (qname != null) {
+						if (qname.getNamespaceURI().equals("")) {
+							qname = new QName(ns, obj.getName());
+						}
+					} else {
+						qname = new QName(ns, obj.getName());
+					}
+					
+					if (!mto.containsKey(qname)) {
+						mto.put(qname, obj);
+						//System.out.print("; mto put: qname="+qname);
+					}
+				}
+				
+				elist = list.get(0);
+				alist = list.get(1);
+				super.walkElement(xmlSchema, obj);
+				elist = el;
+				alist = al;
+			}
+			else {
+				el.add(obj);
+				List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+				list.add(new ArrayList<XmlSchemaObject>());
+				list.add(new ArrayList<XmlSchemaObject>());
+				map.put(obj, list);
+				
+				elist = list.get(0);
+				alist = list.get(1);
+				super.walkElement(xmlSchema, obj);
+				
+				if (elist.size() == 1) {
+					XmlSchemaElement original = (XmlSchemaElement) elist.remove(0);
+					if (original != null && map.containsKey(original)) {
+						elist.addAll(map.get(original).get(0));
+						alist.addAll(map.get(original).get(1));
+					}
+				}
+				
+				elist = el;
+				alist = al;
+			}
+		}
+
+		@Override
+		protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+			if (obj.getRefName() == null) {
+				alist.add(obj);
+			}
+			super.walkAttribute(xmlSchema, obj);
+			
+		}
+		
+	}
+	
 	private class XmlSchemaCacheEntry {
 		XmlSchema schema;
 		XmlSchema fullSchema;
 		long lastChange;
+		long lastBuildTime;
 	}
 	
 	Map<String, XmlSchemaCacheEntry> schemaCache = Collections.synchronizedMap(new HashMap<String, XmlSchemaCacheEntry>());
@@ -128,7 +496,95 @@ public class SchemaManager implements AbstractManager {
 		return SchemaMeta.getCollection(getSchemaForProject(projectName, options));
 	}
 
+	protected static void getProjectReferences(List<String> refs, String projectName) {
+		if (refs == null) return;
+		try {
+			Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			if (p != null) {
+				if (!refs.contains(projectName)) {
+					refs.add(projectName);
+					for (Reference ref: p.getReferenceList()) {
+						if (ref instanceof ProjectSchemaReference) {
+							ProjectSchemaReference psr = (ProjectSchemaReference)ref;
+							getProjectReferences(refs, psr.getParser().getProjectName());
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static boolean needSchemaRebuild(String projectName, long lastBuildTime) {
+		if (lastBuildTime > 0) {
+			List<String> refs = new ArrayList<String>();
+			SchemaManager.getProjectReferences(refs, projectName);
+			
+			for (String pname: refs) {
+				try {
+					Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname);
+					if (p != null && p.getLastChange() > lastBuildTime) {
+						return true;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return false;
+	}
+	
 	public XmlSchema getSchemaForProject(final String projectName, Option... options) throws Exception {
+		
+		final boolean fullSchema = Option.fullSchema.is(options);
+		
+		final Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		
+		XmlSchemaCacheEntry cacheEntry = getCacheEntry(projectName);
+		
+		synchronized (cacheEntry) {
+			
+			boolean forceRebuild = needSchemaRebuild(projectName, cacheEntry.lastBuildTime);
+			
+			long lastChange = project.getLastChange();
+			
+			if (Option.noCache.not(options)) {
+				if (cacheEntry != null && cacheEntry.lastChange == lastChange && !forceRebuild) {
+					if (!fullSchema && cacheEntry.schema != null) {
+						//System.out.println("Schema for project \"" + projectName + "\" returned from cache");
+						return cacheEntry.schema;
+					}
+					if (fullSchema && cacheEntry.fullSchema != null) {
+						//System.out.println("Full schema for project \"" + projectName + "\" returned from cache");
+						return cacheEntry.fullSchema;
+					}
+				}
+			}
+			
+			try {
+				XmlSchema schema = new XmlSchemaBuilderExecutor().buildSchema(projectName, options);
+				
+				// always cache
+				cacheEntry.lastChange = lastChange;
+				cacheEntry.lastBuildTime = System.currentTimeMillis();
+				if (fullSchema) {
+					cacheEntry.fullSchema = schema;
+				} else {
+					cacheEntry.schema = schema;
+				}
+				
+				return schema;
+				
+			} catch (Exception e) {
+				System.out.println("Unabled to build schema for project \""+ projectName +"\" (see the complete error in logs)");
+				Engine.logEngine.error("Unabled to build schema for project \""+ projectName +"\"", e);
+				throw e;
+			}
+		}
+	}
+
+	/*public XmlSchema getSchemaForProject(final String projectName, Option... options) throws Exception {
 		long timeStart = System.currentTimeMillis();
 		
 		final boolean fullSchema = Option.fullSchema.is(options);
@@ -710,7 +1166,7 @@ public class SchemaManager implements AbstractManager {
 
 			return schema;
 		}
-	}
+	}*/
 	
 	public static void addXmlSchemaImport(XmlSchemaCollection collection, XmlSchema xmlSchema, String ns) {
 		try {
@@ -741,7 +1197,7 @@ public class SchemaManager implements AbstractManager {
 		catch (Exception e) {}
 	}
 	
-	private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaElement element, XmlSchemaComplexType cType) {
+	static protected XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaElement element, XmlSchemaComplexType cType) {
 		QName typeName = element.getSchemaTypeName();
 		if (typeName != null) {
 			// the type must be customized, create an extension
@@ -752,7 +1208,7 @@ public class SchemaManager implements AbstractManager {
 		return null;
 	}
 	
-	private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaComplexType cType, QName typeName) {
+	static private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaComplexType cType, QName typeName) {
 		if (typeName != null) {
 			XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContent());
 			cType.setContentModel(sContent);
@@ -934,7 +1390,7 @@ public class SchemaManager implements AbstractManager {
 		return map;
 	}
 	
-	private static void merge(XmlSchema schema, XmlSchemaComplexType first, XmlSchemaComplexType second) {
+	protected static void merge(XmlSchema schema, XmlSchemaComplexType first, XmlSchemaComplexType second) {
 		// check if the type is dynamic and can be merged
 		if (SchemaMeta.isDynamic(first)) {
 			
@@ -1113,6 +1569,283 @@ public class SchemaManager implements AbstractManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	// add c8o_XXX attributes on element if needed (especially for self closed tags)
+	public Document makeXmlRestCompliant(Document document) {
+		return makeXmlRestCompliant(document, false);
+	}
+	public synchronized Document makeXmlRestCompliant(Document document, boolean debug) {
+		try {
+			Element documentElement = document.getDocumentElement();
+			if (documentElement != null) {
+				String project = documentElement.getAttribute("project");
+				String sequence = documentElement.getAttribute("sequence");
+				String connector = documentElement.getAttribute("connector");
+				String transaction = documentElement.getAttribute("transaction");
+				
+				XmlSchema schema = getSchemaForProject(project);
+				XmlSchemaCollection collection = SchemaMeta.getCollection(schema);
+				
+				String targetNamespace = schema.getTargetNamespace();
+				String prefix = collection.getNamespaceContext().getPrefix(targetNamespace);
+				String requestableName = sequence != null && sequence.length() > 0 ? sequence : connector + "__" + transaction;
+				String tagname = prefix+":"+requestableName + "Response";
+				QName qname = new QName(targetNamespace, requestableName + "Response");
+				
+				Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project);
+				boolean isIncludeResponseElement = true;
+				if (!"".equals(sequence)) {
+					try {
+						Sequence seqObj = p.getSequenceByName(sequence);
+						isIncludeResponseElement = seqObj.isIncludeResponseElement();
+					}
+					catch (Exception e) {}
+				}
+				
+				Document responseDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+				Element requestableResponse = responseDoc.createElementNS(targetNamespace, tagname);
+				if (isIncludeResponseElement) {
+					Node renamed = responseDoc.renameNode(responseDoc.importNode(documentElement, true), "", "response");
+					requestableResponse.appendChild(renamed);
+				}
+				else {
+					NodeList children = documentElement.getChildNodes();
+					for (int i=0; i<children.getLength(); i++) {
+						requestableResponse.appendChild(responseDoc.importNode(children.item(i), true));
+					}
+				}
+				
+				new XmlResponseWalker(true, true, debug) {
+					
+					private boolean keepText(String text) {
+						try {
+							if (!text.isEmpty()) {
+								String strResult = "";
+								StringTokenizer strtok = new StringTokenizer(text, "\r\n\t");
+								while (strtok.hasMoreTokens()) {
+									strResult += strtok.nextToken();
+								}
+								return text.equals(strResult);
+							}
+						} catch (Exception e) {}
+						return true;
+					}
+					
+					@Override
+					public boolean makeCompliant(XmlSchemaObject xso, Node node) {
+						return makeCompliant(xso, node, false);
+					}
+					
+					protected boolean makeCompliant(XmlSchemaObject xso, Node node, boolean forceArray) {
+						String tns = node.getNamespaceURI();
+						String nodeName = node.getNodeName();
+						String localName = nodeName.substring(nodeName.indexOf(":")+1);
+						String xsoName = xso instanceof XmlSchemaElement ? ((XmlSchemaElement)xso).getName() : ((XmlSchemaAttribute)xso).getName();
+						
+						if (xsoName.equals(localName)) {
+							if (node.getNodeType() == Node.ELEMENT_NODE) {
+								Element element = (Element)node;
+								
+								String elName = element.getNodeName();
+								
+								long maxOccurs = ((XmlSchemaElement)xso).getMaxOccurs();
+								if (debug && maxOccurs > 1L) {
+									System.out.println(elName + ": maxOccurs="+ maxOccurs);
+								}
+								
+								boolean isMixed = false;
+								XmlSchemaType xmlSchemaType = ((XmlSchemaElement)xso).getSchemaType();
+								if (xmlSchemaType != null) {
+									isMixed = xmlSchemaType.isMixed();
+								}
+								if (debug && isMixed) {
+									System.out.println(elName + ": is mixed !");
+								}
+								
+								if (element.hasAttributes()) {
+									List<Node> removeList = new ArrayList<Node>();
+									NamedNodeMap attributes = element.getAttributes();
+									for (int i=0; i <attributes.getLength(); i++) {
+										Node attr = attributes.item(i);
+										String prefix = attr.getPrefix();
+										if (prefix != null && (
+												prefix.toLowerCase().equals("xsi") || 
+												prefix.toLowerCase().equals("xmlns") ||
+												prefix.toLowerCase().startsWith("soap-")
+										)) {
+											removeList.add(attr);
+										}
+									}
+									
+									for (Node attr: removeList) {
+										element.removeAttributeNode((Attr) attr);
+									}
+									
+									try {
+										// fix unsupported boolean deserialization from json (openapi-generator with resttemplate)
+										// replace boolean string "0" or "1" with "false" or "true"
+										for (XmlSchemaObject xsa: map.get(xso).get(1)) {
+											if (xsa instanceof XmlSchemaAttribute) {
+												XmlSchemaAttribute xmlSchemaAttribute= (XmlSchemaAttribute)xsa;
+												String xsa_name = xmlSchemaAttribute.getName();
+												QName xsa_qname = xmlSchemaAttribute.getSchemaTypeName();
+												if (xsa_qname != null) {
+													String xsa_type = xsa_qname.getLocalPart();
+													Node attr = element.getAttributeNode(xsa_name);
+													if (attr != null && !xsa_type.equals("string")) {
+														String attr_value = attr.getNodeValue();
+														if (xsa_type.equals("boolean")) {
+															if (attr_value.equals("0")) {
+																attr.setNodeValue("false");
+															}
+															if (attr_value.equals("1")) {
+																attr.setNodeValue("true");
+															}
+														}
+													}
+												}
+											}
+										}
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									
+								}
+								
+								boolean hasAttributes = element.hasAttributes();
+								int numOfAttr = map.get(xso).get(1).size();
+								if (debug && !hasAttributes && numOfAttr > 0) {
+									System.out.println(elName + ": has NO attributes and should have "+ numOfAttr);
+								}
+								
+								boolean hasChildNode = element.hasChildNodes();
+								int numOfChildren = map.get(xso).get(0).size();
+								if (hasChildNode) {
+									NodeList children = element.getChildNodes();
+									int len = children.getLength();
+									for (int i=0; i <len; i++) {
+										Node n = children.item(i);
+										if (n.getNodeType() == Node.TEXT_NODE) {
+											String nv = n.getNodeValue();
+											if (keepText(nv)) {
+												//System.out.println("<text>"+nv+"</text>");
+											}
+											continue;
+										}
+										boolean needArray = false;
+										for (XmlSchemaObject e : map.get(xso).get(0)) {
+											if (e instanceof XmlSchemaElement) {
+												XmlSchemaElement xse = (XmlSchemaElement)e;
+												if ("StartC8oFakeOccurs".equals(xse.getName())) {
+													needArray = true;
+												}
+												if ("EndC8oFakeOccurs".equals(xse.getName())) {
+													needArray = false;
+												}
+											}
+											
+											if (makeCompliant(e, n, needArray)) {
+												break;
+											}
+										}
+									}
+								}
+								
+								if (debug && !hasChildNode && numOfChildren > 0) {
+									System.out.println(elName + ": has NO children and should have "+ numOfChildren);
+								}
+								
+								boolean selfClosedTag = !hasChildNode;
+								boolean needOfAttr = numOfAttr > 0;
+								boolean needOfChildren = numOfChildren > 0;
+								if (selfClosedTag) {
+									// <tag/>  => {"tag": ""}
+									// <tag c8o_emptyObject=""/>  => {"tag": {}}
+									// <tag c8o_needAttr=""/>  => {"tag": {"text":"", "attr":[]}}
+									// <tag c8o_emptyObject="" c8o_needAttr=""/>  => {"tag": {"attr":[]}}
+									if (needOfChildren) {
+										element.setAttribute("c8o_emptyObject", "");
+									} else {
+										element.setAttribute("c8o_nullObject", "");
+									}
+									if (needOfAttr) {
+										element.setAttribute("c8o_needAttr", "");
+									}
+								} else {
+									// <tag>text</tag>  => {"tag": {"text":"text"}}
+									// <tag><user>user</user></tag>  => {"tag": {"user":"user"}}
+									// <tag c8o_needAttr="">text</tag>  => {"tag": {"text":"text", "attr":[]}}
+									// <tag c8o_needAttr=""><user>user</user></tag>  => {"tag": {"user":"user", "attr":[]}}
+									if (isMixed || (needOfAttr && !hasAttributes)) {
+										element.setAttribute("c8o_needAttr", "");
+									}
+								}
+								// case need array
+								if (maxOccurs > 1L || forceArray) {
+									// <array c8o_arrayOfSingle=""/> => {"array": [""]}
+									// <enum c8o_arrayOfSingle="">text</enum> => {"enum":["text"]}		
+									// <user c8o_arrayOfSingle=""><name>name</name></user>  => {"user":[{"name":"name"}]}
+									if (nodeName.equals(localName)) {
+										if (immediateElementsByTagName(element, localName) == 1) {
+											element.setAttribute("c8o_arrayOfSingle", "");
+										}
+									} else {
+										if (immediateElementsByTagNameNS(element, tns, localName) == 1) {
+											element.setAttribute("c8o_arrayOfSingle", "");
+										}
+									}
+								}
+							}
+							return true;
+						}
+						else {
+							//System.out.println(""+nodeName); // not matching child
+						}
+						return false;
+					}
+					
+				}.init(schema, qname, requestableResponse);
+				
+				if (isIncludeResponseElement) {
+					responseDoc.appendChild(requestableResponse.getFirstChild());
+				}
+				else {
+					responseDoc.appendChild(requestableResponse);
+				}
+				return responseDoc;
+			}
+		}
+		catch (Throwable t) {
+			Engine.logContext.warn("An error occured while generating compliant XML for REST", t);
+		}
+		return document;
+	}
+	
+	private static int immediateElementsByTagName(Element element, String localName) {
+		int cpt = 0;
+		Element parentEl = (Element) element.getParentNode();
+		NodeList nodeList = parentEl.getElementsByTagName(localName);
+		for (int i=0; i < nodeList.getLength(); i++) {
+			Element el = (Element) nodeList.item(i);
+			if (el.getParentNode().equals(parentEl)) {
+				cpt++;
+			}
+		}
+		return cpt;
+	}
+	
+	private static int immediateElementsByTagNameNS(Element element, String tns, String localName) {
+		int cpt = 0;
+		Element parentEl = (Element) element.getParentNode();
+		NodeList nodeList = parentEl.getElementsByTagNameNS(tns, localName);
+		for (int i=0; i < nodeList.getLength(); i++) {
+			Element el = (Element) nodeList.item(i);
+			if (el.getParentNode().equals(parentEl)) {
+				cpt++;
+			}
+		}
+		return cpt;
 	}
 	
 	public synchronized Document makeResponse(Document document) {

@@ -1,5 +1,0 @@
-↑convertigo: 7.6.0.m006
-↓template_javelin [core.Project]: 
-  comment: Legacy Webization project
-  version: 7.8.0
-  ↓javelinTemplateConnector [connectors.JavelinConnector]: 🗏 connectors/javelinTemplateConnector.yaml

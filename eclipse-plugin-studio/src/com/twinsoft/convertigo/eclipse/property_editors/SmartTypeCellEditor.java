@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -41,14 +41,19 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PartInitException;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IJScriptContainer;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.eclipse.ColorEnum;
+import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class SmartTypeCellEditor extends AbstractDialogCellEditor {
+public class SmartTypeCellEditor extends AbstractDialogCellEditor implements IJScriptContainer {
 	
     public SmartTypeCellEditor(Composite parent) {
     	this(parent, SWT.NONE);
@@ -213,6 +218,14 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
 	}
 	
 	protected void openDialog() {
+		if (value.getMode() == Mode.JS) {
+			try {
+				JScriptEditorInput.openJScriptEditor(databaseObjectTreeObject, this);
+				return;
+			} catch (PartInitException e) {
+				Engine.logStudio.error("failed to open editor", e);
+			}
+		}
     	Object newValue = openDialogBox(null);
     	
     	if (newValue != null) {
@@ -496,4 +509,28 @@ public class SmartTypeCellEditor extends AbstractDialogCellEditor {
         checkSelection();
         checkDeleteable();
     }
+    
+	@Override
+	public String getExpression() {
+		return value.getExpression();
+	}
+
+	@Override
+	public void setExpression(String expression) {
+		if (value.getMode() == Mode.JS) {
+			SmartType st = value.clone();
+			st.setExpression(expression);
+			databaseObjectTreeObject.setPropertyValue(propertyDescriptor.getId(), st);
+		}
+	}
+
+	@Override
+	public String getName() {
+		return databaseObjectTreeObject.getName() + ":" + propertyDescriptor.getDisplayName();
+	}
+
+	@Override
+	public DatabaseObject getDatabaseObject() {
+		return databaseObjectTreeObject.getObject();
+	}
 }

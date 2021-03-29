@@ -8,6 +8,11 @@ buildscript {
 	}
 }
 
+//plugins {
+//	//// tool to see tasks dependencies, use: gradlew <mytask> taskTree
+//    id 'com.dorongold.task-tree' version '1.5'
+//}
+
 import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
 import groovy.xml.XmlUtil
@@ -17,17 +22,19 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.8.0'
+ext.convertigoVersion = '7.9.0'
 ext.convertigoTag = ''
-ext.convertigoCodename = 'platinum'
-ext.convertigoCode = 'Pt'
+ext.convertigoCodename = 'gold'
+ext.convertigoCode = 'Au'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
-ext.jxBrowserVersion = '6.24.2'
+ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
+//ext.jxBrowserGroup = 'com.convertigo.lib'
+ext.jxBrowserVersion = '7.13'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.33'
+ext.tomcatVersion = '9.0.44'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
-ext.convertigoEngineAPI = '7.7.0-SNAPSHOT'
+ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
@@ -57,7 +64,7 @@ allprojects {
 			url "https://m2.convertigo.com"
 		}
 		maven {
-			url "http://maven.teamdev.com/repository/products"
+			url "https://europe-maven.pkg.dev/jxbrowser/releases"
 		}
 		jcenter()
 	}
@@ -73,11 +80,11 @@ allprojects {
 			main {
 				java {
 					exclude '.placeholder'
-					srcDir 'src'
+					srcDirs = ['src']
 				}
 				resources {
 					exclude '.placeholder'
-					srcDir 'src'
+					srcDirs = ['src']
 				}
 			}
 		}
@@ -103,29 +110,30 @@ allprojects {
 			group 'convertigo'
 			
 			into 'lib'
-			from configurations.runtime
+			from configurations.runtimeClasspath
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
-		}
-		
-		task cleanBin(type: Delete) {
-			group 'convertigo'
-			
-			def f = file('bin')
-			if (f.exists()) {
-				f.eachFile {
-					if (it.getName() != 'main') {
-						delete it
-					}
-				}
-			}
 		}
 	}
 	
 	plugins.withId('java') {
 		compileJava.options.encoding = 'UTF-8'
-		sourceCompatibility = '1.8'
-		targetCompatibility = '1.8'
+		sourceCompatibility = '11'
+		targetCompatibility = '11'
+		
+		task cleanBin(type: Delete) {
+			group 'convertigo'
+			
+			def f = project.file('bin')
+			if (f.exists()) {
+				f.eachFile {
+					if (it.getName() != 'main') {
+						println it
+						delete it
+					}
+				}
+			}
+		}
 	}
 	
 	afterEvaluate {
@@ -157,16 +165,16 @@ publishing {
 					def dependencies = asNode().appendNode('dependencies')
 					[
 						'com.convertigo.twinsoft:api:2017.12.29',
-						'com.convertigo.twinsoft:tas:2017.12.29',
+						'com.convertigo.twinsoft:tas:2019.10.16',
 						'com.convertigo.twinsoft:util:2017.12.29',
 						'com.fasterxml.jackson.core:jackson-core:[2.8,2.9[',
-						'commons-io:commons-io:[2.2,)',
-						'javax.mail:mail:1.4',
+						'commons-io:commons-io:[2.8,3.0)',
+						'javax.mail:mail:1.4.7',
 						'javax.servlet:servlet-api:2.5',
-						'log4j:log4j:[1.2,)',
-						'org.apache.commons:commons-lang3:[3.4,)',
+						'log4j:log4j:[1.2,1.3)',
+						'org.apache.commons:commons-lang3:[3.7,)',
 						'org.apache.httpcomponents:httpclient:[4.5,)',
-						'org.codehaus.jettison:jettison:[1.3,)'
+						'org.codehaus.jettison:jettison:[1.4,)'
 					].each {
 						def values = it.split(':')
 						def dependency = dependencies.appendNode('dependency')
@@ -178,11 +186,39 @@ publishing {
 			}
 		}
 		
-		jxBrowserLicense (MavenPublication) {
+		jxBrowser (MavenPublication) {
 			groupId 'com.convertigo.lib'
-			artifactId 'jxbrowser-license'
-			version '2019.04.02'
-			artifact 'resources/jxbrowser-license.jar'
+			artifactId 'jxbrowser'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserLinux64 (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-linux64'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-linux64-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserMac (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-mac'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-mac-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserWin64 (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-win64'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-win64-${jxBrowserVersion}.jar"
+		}
+		
+		jxBrowserSwt (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'jxbrowser-swt'
+			version "${jxBrowserVersion}"
+			artifact "resources/jxbrowser-${jxBrowserVersion}/jxbrowser-swt-${jxBrowserVersion}.jar"
 		}
 		
 		ojdbc (MavenPublication) {
@@ -200,7 +236,7 @@ afterEvaluate {
 			'Bundle-ManifestVersion': '2',
 			'Bundle-Vendor': 'Convertigo',
 			'Bundle-Version': "${convertigoVersion}.qualifier",
-			'Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8',
+			'Bundle-RequiredExecutionEnvironment': 'JavaSE-11',
 		)
 	}
 }
@@ -300,7 +336,7 @@ task makeSplash(dependsOn: 'convertigo-splash:run') {
 	group 'convertigo'
 }
 
-task ciFirstStep(dependsOn: [':convertigo-templates:buildTemplates', ':engine:jar', ':gradle-plugin:publish']) {
+task ciFirstStep(dependsOn: [':engine:publishDependenciesJarPublicationToMavenLocal', ':engine:publishDependenciesJarPublicationToMavenRepository', ':engine:jar', ':gradle-plugin:publish']) {
 	group 'convertigo'
 }
 
@@ -309,7 +345,7 @@ task generateDockerfile {
 	
 	doLast {
 		def base = file('docker/Dockerfile.tpl').text
-		base = base.replace('%VERSION%', convertigoVersion).replace('%FROM%', 'tomcat:9-jdk11-openjdk')
+		base = base.replace('%VERSION%', convertigoVersion)
 		
 		file('docker/default/Dockerfile').text = base.replace('%BEGIN%', '')
 		file('docker/default/docker-entrypoint.sh').text = file('docker/docker-entrypoint.sh').text.replace('%ON_LAUNCH%', '')

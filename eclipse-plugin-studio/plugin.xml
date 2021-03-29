@@ -5,13 +5,6 @@
      <extension
          point="org.eclipse.ui.editors">
       <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xsl"
-            icon="icons/convertigo_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor"
-            name="Xsl rule editor"/>
-      <editor
             class="com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor"
             default="false"
             icon="icons/connector_color_16x16.gif"
@@ -25,48 +18,18 @@
             name="Sequence Editor">
       </editor>
       <editor
-            class="com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            icon="icons/studio/handlers_sc_entry.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditor"
-            name="Javascript convertigo Editor"/>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
-            name="Xml transaction Editor"/>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditor"
-            name="Xml transaction Step Editor">
-      </editor>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditor"
-            name="Xml sequence Step Editor">
-      </editor>
-      <editor
-            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml"
-            icon="icons/sample.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor"
-            name="Xml sequence Editor">
-      </editor>
-      <editor
             class="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"
             default="false"
             icon="icons/convertigo_doc_16x16.gif"
             id="com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditor"
             name="Application Editor">
+      </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
+            default="false"
+            icon="icons/convertigo_doc_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.StartupEditor"
+            name="Convertigo Startup">
       </editor>
    </extension>
    <extension
@@ -86,6 +49,13 @@
                icon="icons/convertigo_16x16.gif"
                id="com.twinsoft.convertigo.About"
                label="About Convertigo plug-in"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.OpenStartupPage"
+               icon="icons/studio/menu/statement_color_16x16.png"
+               id="com.twinsoft.convertigo.OpenStartupPage"
+               label="&amp;Open the Startup page"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
          </action>
          <action
@@ -170,323 +140,551 @@
 <!-- Mobile projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewMobileBuilderWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewMobileBuilderWizard"
-            name="Mobile Builder application project"
+            name="Ionic3 Mobile Builder application project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile Builder application project based on ionic and Convertigo Angular frameworks.</description> 
+            <description>Creates a Mobile Builder application project based on ionic3 and Convertigo Angular frameworks.</description>
+            {
+              "url": "template_mobileBuilderIonic=https://github.com/convertigo/c8oprj-template-mobile-builder/archive/7.9.0.zip",
+              "doPage1": true
+            } 
             </wizard>
 <!-- Legacy publishing projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270WebWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New3270WebWizard"
             name="3270 Web Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 3270 Web style webization project.</description> 
+            <description>Creates an IBM 3270 Web style webization project.</description>
+            {
+              "url": "template_javelin=https://github.com/convertigo/c8oprj-template-javelin/archive/7.8.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage4": true,
+              "doPage7": true
+            }
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250WebWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New5250WebWizard"
             name="5250 Web Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 5250 Web style webization project.</description> 
+            <description>Creates an IBM 5250 Web style webization project.</description>
+            {
+              "url": "template_javelin=https://github.com/convertigo/c8oprj-template-javelin/archive/7.8.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage4": true,
+              "doPage7": true
+            }
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDKUWebWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewDKUWebWizard"
             name="DKU7xxx Web Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a BULL DKUxxx Web style webization project.</description> 
+            <description>Creates a BULL DKUxxx Web style webization project.</description>
+            {
+              "url": "template_javelinDKU=https://github.com/convertigo/c8oprj-template-javelindku/archive/7.6.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage4": true,
+              "doPage7": true
+            }
             </wizard>
 <!-- Legacy integration projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270ConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New3270ConnectorWizard"
             name="3270 Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 3270 Screen based WebService connector project.</description> 
+            <description>Creates an IBM 3270 Screen based WebService connector project.</description>
+            {
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage4": true,
+              "doPage7": true
+            }
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250ConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New5250ConnectorWizard"
             name="5250 Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 5250 Screen based WebService connector project.</description> 
+            <description>Creates an IBM 5250 Screen based WebService connector project.</description>
+            {
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage4": true,
+              "doPage7": true
+            }
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDKUConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewDKUConnectorWizard"
             name="Bull DKUxxx Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a BULL DKU7xx Screen based WebService connector project.</description> 
+            <description>Creates a BULL DKU7xx Screen based WebService connector project.</description>
+            {
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage4": true,
+              "doPage7": true
+            }
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewVT220ConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewVT220ConnectorWizard"
             name="Unix VTxxx Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an UNIX VTxxx Screen based WebService connector project.</description> 
+            <description>Creates an UNIX VTxxx Screen based WebService connector project.</description>
+            {
+              "url": "template_javelinIntegration=https://github.com/convertigo/c8oprj-template-javelin-integration/archive/7.6.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage4": true,
+              "doPage7": true
+            }
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewCicsConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/cicsconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewCicsConnectorWizard"
             name="CICS COMMAREA"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM CICS COMMAREA based WebService connector project.</description> 
-            </wizard>
-<!-- Web integration projects -->
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHtmlConnectorWizard"
-            icon="icons/studio/htmlconnector_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewHtmlConnectorWizard"
-            name="HTML website"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates an HTML website based WebService connector project.</description> 
+            <description>Creates an IBM CICS COMMAREA based WebService connector project.</description>
+            {
+              "url": "template_CICS=https://github.com/convertigo/c8oprj-template-cics/archive/7.6.0.zip",
+              "doPage1": true,
+              "doPage2": true,
+              "doPage5": true,
+              "doPage9": true
+            }
             </wizard>
 <!-- Sequencer projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSequencerWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
              name="Sequencer project"
              preferredPerspectives="convertigo"
              project="true">
              <description>Creates a sequencer project.</description>
+             {
+               "url": "template_sequence=https://github.com/convertigo/c8oprj-template-sequence/archive/7.9.0.zip",
+               "doPage1": true
+             }
              </wizard>
 <!-- SQL projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLProjectWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLProjectWizard"
              name="SQL project"
              preferredPerspectives="convertigo"
              project="true">
              <description>Creates a SQL project.</description>
+             {
+               "url": "template_SQL=https://github.com/convertigo/c8oprj-template-sql/archive/7.6.0.zip",
+               "doPage1": true,
+               "doPage2": true,
+               "doConfigureSQLConnectorPage": true
+             }
              </wizard>
 <!-- SAP projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSAPProjectWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sapconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSAPProjectWizard"
              name="SAP BAPI JCO project"
              preferredPerspectives="convertigo"
              project="true">
              <description>Creates a SAP BAPI JCO project.</description>
+             {
+               "url": "template_SAP=https://github.com/convertigo/c8oprj-template-sap/archive/7.6.0.zip",
+               "doPage1": true,
+               "doPage2": true,
+               "doConfigureSAPConnectorPage": true
+             }
              </wizard>
 <!-- Site Clipper connector projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSiteClipperProjectWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/siteclipperconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
             name="Site Clipper project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Site Clipper connector project.</description> 
+            <description>Creates a Site Clipper connector project.</description>
+             {
+               "url": "template_siteClipper=https://github.com/convertigo/c8oprj-template-site-clipper/archive/7.6.0.zip",
+               "doPage1": true,
+               "doPage2": true,
+               "doPage11": true
+             }
 	   </wizard>
 <!-- Web services projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceRestReferenceWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceRestReferenceWizard"
             name="REST Empty Web service"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
+            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description>
+             {
+               "url": "template_HTTP=https://github.com/convertigo/c8oprj-template-http/archive/7.9.0.zip",
+               "doPage1": true,
+               "doPage2": true,
+               "doPage6": true,
+               "doPage8": true
+             }
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceSwaggerReferenceWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard"
             name="REST Swagger Web service"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service, by importing its SWAGGER description file.</description> 
+            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service, by importing its SWAGGER description file.</description>
+             {
+               "url": "template_HTTP=https://github.com/convertigo/c8oprj-template-http/archive/7.9.0.zip",
+               "doPage1": true,
+               "doPage10": true
+             }
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceSoapReferenceWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard"
              name="SOAP Web service"
              preferredPerspectives="convertigo"
              project="true">
           <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
+             {
+               "url": "template_HTTP=https://github.com/convertigo/c8oprj-template-http/archive/7.9.0.zip",
+               "doPage1": true,
+               "doPage10": true
+             }
        </wizard>
 <!-- Libraries projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryUserManagerWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_vonage_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryVonageWizard"
+             name="Vonage library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the Convertigo connector to Vonage API for SMS, Viber, Whatsapp, Facebook Messenger and MMS messaging services. The library also provides APIs for Video Components.</description>
+             {
+               "url": "lib_Vonage_ui=https://github.com/convertigo/c8oprj-lib-vonage-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_usermanager_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
-             name="User Manager"
+             name="User Manager library"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Convertigo User Manager library project.</description>
+          <description>The user manager library handling user/password or OpenID / OAuth single signons.</description>
+             {
+               "url": "lib_UserManager_ui=https://github.com/convertigo/c8oprj-lib-user-manager-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryAmazonLexWizard"
-             icon="icons/studio/library_amazonLex_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
-             name="Amazon LEX library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Amazon LEX library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryPushManagerWizard"
-             icon="icons/studio/library_pushManager_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
-             name="Push manager library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Push manager library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryTwitterWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_twitter_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryTwitterWizard"
              name="Twitter library"
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the Convertigo Twitter library project.</description>
+             {
+               "url": "lib_Twitter=https://github.com/convertigo/c8oprj-lib-twitter.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryOAuthWizard"
-             icon="icons/studio/library_oauth_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryOAuthWizard"
-             name="OAuth library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo OAuth library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryFileTransferWizard"
-             icon="icons/studio/library_filetransfer_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
-             name="FileTransfer library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo FileTransfer library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryFullSyncGrpWizard"
-             icon="icons/studio/library_fullsyncgrp_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFullSyncGrpWizard"
-             name="FullSync Groups library"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo FullSync Groups library project.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibrarySigfoxWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_sigfox_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
              name="Sigfox library"
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the Convertigo Sigfox library project.</description>
+             {
+               "url": "lib_Sigfox=https://github.com/convertigo/c8oprj-lib-sigfox.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibrarySalesforceWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_saml_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlWizard"
+             name="SAML SSO library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the SAML 2.0 Authentication library for Convertigo platform. Install this library to enable SAML 2.0 SSO to your Convertigo applications.</description>
+             {
+               "url": "lib_SAML_ui=https://github.com/convertigo/c8oprj-lib-saml-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_salesforce_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySalesforceWizard"
              name="Salesforce library"
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the Convertigo Salesforce library project.</description>
+             {
+               "url": "lib_Salesforce=https://github.com/convertigo/c8oprj-lib-salesforce.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_pushManager_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
+             name="Push manager library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the Firebase Cloud Messaging (FCM) Push notifications library for the Convertigo Low Code Platform. This library brings the server part and the client part for Firebase Push Notifications support for Convertigo mobile builder apps.</description>
+             {
+               "url": "lib_PushManager_ui=https://github.com/convertigo/c8oprj-lib-push-manager-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_oauth_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryOAuthWizard"
+             name="OAuth library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo OAuth library project.</description>
+             {
+               "url": "lib_OAuth=https://github.com/convertigo/c8oprj-lib-oauth.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_excel_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryMicrosoftExcelWizard"
+             name="Microsoft Excel library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Uses the Microsoft Excel connector for Convertigo platform. Install this library to enable reading from Microsoft Excel sheets on Office365 Cloud for your Convertigo applications.</description>
+             {
+               "url": "lib_MicrosoftExcel_ui=https://github.com/convertigo/c8oprj-lib-excel-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_googlesheets_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSheetWizard"
+             name="Google Sheets library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>This is the Google Sheets connector for Convertigo platform. Install this library to enable writing and reading from Google Sheets for your Convertigo applications.</description>
+             {
+               "url": "lib_GoogleSheet_ui=https://github.com/convertigo/c8oprj-lib-googlesheets-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_geocoding_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGeocodingWizard"
+             name="Geocoding library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Uses the geocoding library for Convertigo platform when network is reachable. Install this library to geocode coordinates for your Convertigo applications. It is based on Bing Maps location API. The shared component used in this library geocodes automatically browser's coordinates when network is reachable.</description>
+             {
+               "url": "lib_Geocoding_ui=https://github.com/convertigo/c8oprj-lib-geocoding-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_fullsyncgrp_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFullSyncGrpWizard"
+             name="FullSync Groups library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo FullSync Groups library project.</description>
+             {
+               "url": "lib_FullSyncGrp=https://github.com/convertigo/c8oprj-lib-fullsync-grp.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_filetransfer_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
+             name="FileTransfer library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo FileTransfer library project.</description>
+             {
+               "url": "lib_FileTransfer=https://github.com/convertigo/c8oprj-lib-filetransfer.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/angularjs_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryExtendedComponentsWizard"
+             name="Extended Components library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Set of shared components you can use in your projects: agGrid, ngxTagInput, angularxQRCode, CardIO, ZXing ...</description>
+             {
+               "url": "lib_ExtendedComponents_ui=https://github.com/convertigo/c8oprj-lib-extended-components-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/library_amazonLex_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
+             name="Amazon LEX library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Library for interacting with Amazon Lex Chatbots. This library Enables Convertigo to build conversational Apps for Mobile Web and Desktop Apps by interacting with Amazon's ChatBot Technology.</description>
+             {
+               "url": "lib_AmazonLEX_ui=https://github.com/convertigo/c8oprj-lib-amazonlex-ui.git:branch=7.9.0",
+               "doPageSummarySampleProject": true
+             }
        </wizard>
 <!-- Mobile sample projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleOffChatWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/offchat_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleOffChatWizard"
             name="OffChat sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an "Offline Chat" application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description> 
+            <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an "Offline Chat" application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description>
+             {
+               "url": "sampleMobileOffChat=https://github.com/convertigo/c8oprj-sample-offchat/archive/7.9.0.zip",
+               "doPageSummarySampleProject": true
+             } 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleConferenceAppWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/ionicconferenceapp_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleConferenceAppWizard"
             name="IonicConferenceApp sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a IonicConferenceApp application. This demo is based on Ionic Conference App but using the Convertigo Mobile Builder.</description> 
+            <description>Imports a project creating a IonicConferenceApp application. This demo is based on Ionic Conference App but using the Convertigo Mobile Builder.</description>
+             {
+               "url": "IonicConferenceApp=https://github.com/convertigo/c8oprj-sample-ionicconferenceapp/archive/7.9.0.zip",
+               "doPageSummarySampleProject": true
+             } 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleFlightShareWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/flightshare_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleFlightShareWizard"
             name="FlightShare sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a FlightShare application. Flight Share is an application able to share flights within Pilots using Flyin Club Planes.</description> 
+            <description>Imports a project creating a FlightShare application. Flight Share is an application able to share flights within Pilots using Flyin Club Planes.</description>
+             {
+               "url": "FlightShare=https://github.com/convertigo/c8oprj-sample-flightshare/archive/7.9.0.zip",
+               "doPageSummarySampleProject": true
+             } 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleHelloWorldWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
             name="HelloWorld sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a sample_HelloWorld application. Simple news reader application using the Convertigo Mobile Builder.</description> 
+            <description>Imports a project creating a sample_HelloWorld application. Simple news reader application using the Convertigo Mobile Builder.</description>
+             {
+               "url": "sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/7.9.0.zip",
+               "doPageSummarySampleProject": true
+             }
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleRetailStoreWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/retail_store_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleRetailStoreWizard"
             name="RetailStore sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone. For this demo, the data come from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on your workstation before running this demo.</description> 
+            <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone. For this demo, the data come from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on your workstation before running this demo.</description>
+             {
+               "url": "sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/7.9.0.zip",
+               "doPageSummarySampleProject": true
+             } 
        </wizard>
    </extension>
    <extension
@@ -679,8 +877,8 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/applicationcomponent_color_16x16.png"
-               id="convertigo.action.newApplicationComponent"
-               label="Application"
+               id="convertigo.action.newMobileApplicationComponent"
+               label="Ionic3 Application"
                menubarPath="convertigo.menu.new/content">
          </action>
       </objectContribution>
@@ -1243,6 +1441,12 @@
       <objectContribution
             id="convertigo.projectContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+         <menu
+               id="convertigo.menu.ci"
+               label="Continuous Integration"
+               path="ci">
+            <groupMarker name="content"/>
+         </menu>
 		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyProjectRemoteURLAction"
                enablesFor="1"
@@ -1272,6 +1476,27 @@
             </enablement>
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
+               enablesFor="1"
+               icon="icons/studio/circleci_16x16.png"
+               id="convertigo.action.upgradeCI.circleci"
+               label="Update CircleCI and Gradle"
+               menubarPath="convertigo.menu.ci/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
+               enablesFor="1"
+               icon="icons/studio/ghactions_16x16.png"
+               id="convertigo.action.upgradeCI.github-actions"
+               label="Update GitHub Actions and Gradle"
+               menubarPath="convertigo.menu.ci/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectContinuousIntegrationGradle"
+               enablesFor="1"
+               icon="icons/studio/gradle_16x16.png"
+               id="convertigo.action.upgradeCI.gradle"
+               label="Update Gradle only"
+               menubarPath="convertigo.menu.ci/content"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
                enablesFor="1"
                icon="icons/studio/project_export.gif"
@@ -1297,21 +1522,21 @@
                enablesFor="1"
                id="convertigo.action.importSoapWsReference"
                label="Import SOAP WS reference"
-               menubarPath="service" />      
+               menubarPath="service" />
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportRestWsReference"
                enablesFor="1"
                id="convertigo.action.importRestWsReference"
                label="Import REST WS reference"
-               menubarPath="service" />      
+               menubarPath="service" />
          <action
-	   	 	   class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
-			   enablesFor="1"
-			   icon="icons/studio/declare_global_symbols_16x16.png"
-			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
-			   label="Create Global Symbols"
-			   menubarPath="project"/>
-		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
+               enablesFor="1"
+               icon="icons/studio/declare_global_symbols_16x16.png"
+               id="convertigo.action.declareGlobalSymbolsFromThisProject"
+               label="Create Global Symbols"
+               menubarPath="project"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CustomStatisticsAction"
                icon="icons/studio/statistics.gif"
                id="convertigo.action.customStatisticsAction"
@@ -2081,13 +2306,19 @@
                enablesFor="1"
                icon="icons/studio/menu/pagecomponent_color_16x16.png"
                id="convertigo.action.newPageComponent"
-               label="Page"
+               label="Mobile Page"
                menubarPath="convertigo.menu.new/content">
             <enablement>
-               <objectState
-                     name="folderType"
-                     value="24">
-               </objectState>
+            	<and>
+	               <objectState
+	                     name="folderType"
+	                     value="24">
+	               </objectState>
+	               <objectState
+	                     name="parentPackageName"
+	                     value="com.twinsoft.convertigo.beans.mobile.components">
+	               </objectState>
+            	</and>
             </enablement>
          </action>
          <action
@@ -2095,8 +2326,14 @@
                enablesFor="1"
                icon="icons/studio/menu/uicomponent_color_16x16.png"
                id="convertigo.action.newUIComponent"
-               label="UI Component"
+               label="Mobile UI Component"
                menubarPath="convertigo.menu.new/content">
+             <enablement>
+	               <objectState
+	                     name="parentPackageName"
+	                     value="com.twinsoft.convertigo.beans.mobile.components">
+	               </objectState>
+            </enablement>
          </action>
          <menu
                id="convertigo.menu.new"
@@ -3661,7 +3898,7 @@
       </initializer>
    </extension>
    
-   
+ <!--  
 	<extension
         point="org.eclipse.wst.jsdt.ui.javaCompletionProposalComputer"
         id="ConvertigoCompletionProposalComputer"
@@ -3673,7 +3910,7 @@
                 <partition type="__dftl_partition_content_type" />
         </javaCompletionProposalComputer>
     </extension>
-
+-->
 	<extension
 	     id="com.twinsoft.convertigo.ctfCompletionProposals"
 	     point="org.eclipse.wst.sse.ui.completionProposal">         

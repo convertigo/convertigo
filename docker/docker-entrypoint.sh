@@ -48,28 +48,25 @@ if [ "$1" = "convertigo" ]; then
     
     ## check and adapt the Java Xmx for limited devices
     
-    if [ "$JXMX" = "" ]; then
-        JXMX=2048
+    if [ "$JXMX" != "" ]; then
+        export JAVA_OPTS="$JAVA_OPTS -Xms128m -Xmx${JXMX}m"
+        unset JXMX
+    else
+        export JAVA_OPTS="$JAVA_OPTS -XX:MaxRAMPercentage=80"
     fi
-    
-    java -Xmx${JXMX}m -version >/dev/null
-    while [ $? != 0 ] && [ $JXMX -gt 200 ]; do
-       JXMX=`expr $JXMX / 2 + $JXMX / 4`
-       java -Xmx${JXMX}m -version >/dev/null
-    done
-    
     
     ## default common JAVA_OPTS, can be extended with "docker run -e JAVA_OPTS=-custom" 
     
-    export JAVA_OPTS="\
-        -Xms128m \
-        -Xmx${JXMX}m \
+    export JAVA_OPTS="$JAVA_OPTS \
+        -XX:+UseG1GC \
+        -XX:+UseStringDeduplication \
+        -XX:MinHeapFreeRatio=10 \
+        -XX:MaxHeapFreeRatio=15 \
         -Xdebug \
         -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n \
-        -Dconvertigo.cems.user_workspace_path=/workspace \
-        $JAVA_OPTS"
-    
-    unset JXMX
+        -Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true \
+        -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true \
+        -Dconvertigo.cems.user_workspace_path=/workspace"
     
     ## the web-connector version can use an existing DISPLAY or declare one
     ## the mbaas version need to be headless and remove the DISPLAY variable
@@ -95,6 +92,14 @@ if [ "$1" = "convertigo" ]; then
     if [ "$COOKIE_SAMESITE" != "" ]; then
         sed -i.bak -e "s,sameSiteCookies=\"[^\"]*\",sameSiteCookies=\"$COOKIE_SAMESITE\"," $CATALINA_HOME/conf/context.xml
         unset COOKIE_SAMESITE
+    fi
+    
+    if [ "$SESSION_TIMEOUT" != "" ]; then
+        sed -i.bak -e "s,<.*session-timeout.*,<session-timeout>$SESSION_TIMEOUT</session-timeout>," $CATALINA_HOME/webapps/convertigo/WEB-INF/web.xml
+    fi
+    
+    if [ "$DISABLE_SUDO" = "true" ]; then
+        rm /etc/sudoers.d/convertigo
     fi
     
     %ON_LAUNCH%

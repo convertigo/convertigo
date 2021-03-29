@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public abstract class UrlAuthentication extends DatabaseObject {
 
@@ -63,5 +64,8 @@ public abstract class UrlAuthentication extends DatabaseObject {
 		return getType().name();
 	}
 	
-	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.AUTHENTICATION;
+	}	
 }

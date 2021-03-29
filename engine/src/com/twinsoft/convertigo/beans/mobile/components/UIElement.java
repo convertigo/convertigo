@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -156,7 +156,8 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		return sb;
 	}
 	
-	protected String computeJsonModel() {
+	@Override
+	public String computeJsonModel() {
 		if (isEnabled()) {
 			String formControlVarName = getFormControlName();
 			if (!formControlVarName.isEmpty()) {
@@ -275,16 +276,16 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			}
 			
 			try {
-				String declarations = jsonScripts.getString("declarations") + System.lineSeparator();
+				String declarations = jsonScripts.getString("declarations");
 				String all_dname = "all_" + identifier;
 				String all_dcode = "@ViewChildren(\""+ identifier +"\") public all_"+ identifier+" : QueryList<any>;";
 				if (main.addDeclaration(all_dname, all_dcode)) {
-					declarations += "\t" + all_dcode + System.lineSeparator();
+					declarations += System.lineSeparator() + "\t" + all_dcode;
 				}
 				String dname = identifier;
 				String dcode = "@ViewChild(\""+ identifier +"\") public "+ identifier+";";
 				if (main.addDeclaration(dname, dcode)) {
-					declarations += "\t" + dcode + System.lineSeparator();
+					declarations += System.lineSeparator() + "\t" + dcode;
 				}
 				jsonScripts.put("declarations", declarations);
 			} catch (JSONException e) {

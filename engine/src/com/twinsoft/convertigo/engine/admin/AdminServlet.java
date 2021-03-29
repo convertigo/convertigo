@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020 Convertigo SA.
+ * Copyright (c) 2001-2021 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -135,11 +135,15 @@ public class AdminServlet extends HttpServlet {
 				
 				Service service = (Service) serviceClass.getConstructor().newInstance();
 				
-				boolean xsrfAdmin = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN);
-				if (xsrfAdmin) {
-					if (!serviceDefinition.allow_cors() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
-						HttpUtils.checkXSRF(request, response);	
+				try {
+					boolean xsrfAdmin = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN);
+					if (xsrfAdmin) {
+						if (!serviceDefinition.allow_cors() || EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_API)) {
+							HttpUtils.checkXSRF(request, response);
+						}
 					}
+				} catch (IllegalStateException e) {
+					Engine.logAdmin.warn("Cannot retrieve properties for XSRF, Engine probably stopped.");
 				}
 				service.run(serviceName, request, response);
 			}
