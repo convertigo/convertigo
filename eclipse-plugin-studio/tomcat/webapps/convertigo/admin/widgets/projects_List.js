@@ -392,7 +392,9 @@ function projectsImportURL() {
 		buttons : {
 			Import: function () {
 				var url = $input.find("input").val();
+				startWait(50);
 				callService("projects.ImportURL", function(xml) {
+					endWait();
 					var error = $(xml).find("error").text();
 					if (error == "") {
 						$input.remove();
