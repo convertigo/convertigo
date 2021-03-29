@@ -164,7 +164,8 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 				URL url = new URL(urlPath);
 				
 				if (urlPath.startsWith("file:/")) {
-					if (new File(url.getPath()).exists()) {
+					File f = FileUtils.toFile(url);
+					if (f.exists()) {
 						String[] filterExtensions = wsRefAuthenticated.getFilterExtension();//wsRefAuthenticated.getFilterExtension()[0].split(";");
 						for (String fileFilter: filterExtensions) {
 							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));

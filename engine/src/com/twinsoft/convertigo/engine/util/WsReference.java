@@ -19,11 +19,6 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import io.swagger.models.Swagger;
-import io.swagger.parser.SwaggerParser;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.parser.OpenAPIV3Parser;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +28,7 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.wsdl.Definition;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -83,6 +79,11 @@ import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+
+import io.swagger.models.Swagger;
+import io.swagger.parser.SwaggerParser;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
 
 public class WsReference {
 	
@@ -290,7 +291,7 @@ public class WsReference {
 			}
 			else if (urlPath.startsWith("file")) {
 				URL url = new URL(urlPath);
-				File f = new File(url.getPath());
+				File f = FileUtils.toFile(url);
 				String filePath = f.getAbsolutePath();
 				
 				// Try to parse as a Swagger definition (oas2)
