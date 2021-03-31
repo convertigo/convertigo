@@ -800,10 +800,13 @@ public class Engine {
 									Engine.logEngine.error("Failed to load " + name, e);
 								}
 							}
-							Engine.theApp.referencedProjectManager.check();
+							boolean newProjectLoaded = Engine.theApp.referencedProjectManager.check();
 							
-							for (String name: names) {
-								Project.executeAutoStartSequences(name);
+							if (!newProjectLoaded && Thread.currentThread().getName().equalsIgnoreCase("Migration")) {
+								Engine.logEngine.info("Convertigo will run auto start Sequences.");
+								for (String name: names) {
+									Project.executeAutoStartSequences(name);
+								}
 							}
 						}
 					});

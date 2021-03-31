@@ -194,7 +194,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 				URL url = new URL(urlPath);
 				
 				if (urlPath.startsWith("file:/")) {
-					if (new File(url.getPath()).exists()) {
+					if (FileUtils.toFile(url).exists()) {
 						String[] filterExtensions = wsRefAuthenticated.getFilterExtension();//wsRefAuthenticated.getFilterExtension()[0].split(";");
 						for (String fileFilter: filterExtensions) {
 							String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));

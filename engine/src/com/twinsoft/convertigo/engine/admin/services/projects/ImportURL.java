@@ -25,6 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
@@ -44,8 +45,12 @@ public class ImportURL extends XmlService {
 			String url = request.getParameter("url");
 			ProjectUrlParser parser = new ProjectUrlParser(url);
 			if (parser.isValid()) {
-				if (Engine.theApp.referencedProjectManager.importProject(parser, true) == null) {
+				Project project;
+				if ((project = Engine.theApp.referencedProjectManager.importProject(parser, true)) == null) {
 					error = "No project loaded with: " + url;
+				} else {
+					String projectName = project.getName();
+					Project.executeAutoStartSequences(projectName);
 				}
 			} else {
 				error = "The format is invalid";
