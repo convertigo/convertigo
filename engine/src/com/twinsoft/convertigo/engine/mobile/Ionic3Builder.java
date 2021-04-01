@@ -655,7 +655,7 @@ public class Ionic3Builder extends MobileBuilder {
 		try {
 			File tAssets = new File(ionicTplDir, "src/assets");
 			File bAssets = new File(ionicWorkDir, "../../DisplayObjects/mobile/assets");
-			FileUtils.copyDirectory(tAssets, bAssets);
+			FileUtils.mergeDirectories(tAssets, bAssets);
 			Engine.logEngine.trace("(MobileBuilder) Assets files copied for ionic project '"+ project.getName() +"'");
 		}
 		catch (Exception e) {
