@@ -1,6 +1,14 @@
 # Changelog
 
-## 7.9.0
+## 7.9.1
+
+#### Bug Fixes:
+
+- [#474](https://github.com/convertigo/convertigo/issues/474) Fixed, PWA manifest.json can be now customized at project level
+- [#475](https://github.com/convertigo/convertigo/issues/475) [Admin] Fixed the CouchDB sidebar at the DB view (no more ajax error)
+- [#476](https://github.com/convertigo/convertigo/issues/476) Can now clone git+ssh project reference (added the ssh library dependency)
+
+---
 
 #### New Features:
 

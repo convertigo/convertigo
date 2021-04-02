@@ -216,9 +216,18 @@ public class FullSyncServlet extends HttpServlet {
 					.append("Authenticated groups: ").append(fsAuth.getGroups()).append('\n');
 			}
 			
-			URIBuilder builder = new URIBuilder(Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath());
-			if (request.getQueryString() != null) {
-				builder.setCustomQuery(request.getQueryString());
+			String url = Engine.theApp.couchDbManager.getFullSyncUrl() + requestParser.getPath();
+			URIBuilder builder = new URIBuilder(url);
+			String query = request.getQueryString();
+			if (query != null) {
+				try {
+					// needed for PouchDB replication
+					URI uri = URI.create(url + "?" + request.getQueryString());
+					query = uri.getQuery();
+				} catch (Exception e) {
+					debug.append("parse query failed (" + e.getMessage() +"), use as it; query=" + query + "\n");
+				}
+				builder.setCustomQuery(query);
 			}
 			
 			String special = requestParser.getSpecial();
