@@ -160,6 +160,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	private Map<String, Project> projects;
 	private Map<String, Object> importLocks;
+	private static final long lockTimeout = 10 * 60 * 1000;
 	
 	private String globalSymbolsFilePath = null;
 	/**
@@ -483,6 +484,27 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public void clearCache(String projectName) {
+		Object lock;
+		synchronized (importLocks) {
+			lock = importLocks.get(projectName);
+		}
+		if (lock != null) {
+			synchronized (lock) {
+				boolean locked;
+				synchronized (importLocks) {
+					locked = lock == importLocks.get(projectName);
+				}
+				if (locked) {
+					try {
+						Engine.logDatabaseObjectManager.info("[clearCache] Waiting the loading of: " + projectName);
+						lock.wait(lockTimeout);
+						Engine.logDatabaseObjectManager.info("[clearCache] Stop waiting the loading of: " + projectName);
+					} catch (InterruptedException e) {
+						Engine.logDatabaseObjectManager.warn("[clearCache] InterruptedException for: " + projectName, e);
+					}
+				}
+			}
+		}
 		synchronized (projects) {
 			Project project = projects.remove(projectName);
 			RestApiManager.getInstance().removeUrlMapper(projectName);
@@ -491,6 +513,27 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public void clearCacheIfSymbolError(String projectName) throws Exception {
+		Object lock;
+		synchronized (importLocks) {
+			lock = importLocks.get(projectName);
+		}
+		if (lock != null) {
+			synchronized (lock) {
+				boolean locked;
+				synchronized (importLocks) {
+					locked = lock == importLocks.get(projectName);
+				}
+				if (locked) {
+					try {
+						Engine.logDatabaseObjectManager.info("[clearCache] Waiting the loading of: " + projectName);
+						lock.wait(lockTimeout);
+						Engine.logDatabaseObjectManager.info("[clearCache] Stop waiting the loading of: " + projectName);
+					} catch (InterruptedException e) {
+						Engine.logDatabaseObjectManager.warn("[clearCache] InterruptedException for: " + projectName, e);
+					}
+				}
+			}
+		}
 		synchronized (projects) {
 			if (projects.containsKey(projectName)) {
 				if (symbolsProjectCheckUndefined(projectName)) {
@@ -1122,12 +1165,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			synchronized (lock) {
 				if (!first) {
-					try {
-						lock.wait();
-					} catch (InterruptedException e) {
-						Engine.logDatabaseObjectManager.error("Interruption", e);
+					boolean locked;
+					synchronized (importLocks) {
+						locked = lock == importLocks.get(projectName);
+					}
+					if (locked) {
+						try {
+							Engine.logDatabaseObjectManager.info("[importProject] Waiting the loading of: " + projectName);
+							lock.wait(lockTimeout);
+							Engine.logDatabaseObjectManager.info("[importProject] Stop waiting the loading of: " + projectName);
+						} catch (InterruptedException e) {
+							Engine.logDatabaseObjectManager.error("[importProject] InterruptedException for: " + projectName, e);
+						}
 					}
 					return getOriginalProjectByName(projectName);
+				} else {
+					Engine.logDatabaseObjectManager.info("[importProject] Locking loading of: " + projectName);
 				}
 			}
 			
@@ -1188,6 +1241,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			synchronized (projects) {
 				projects.put(project.getName(), project);
 			}
+			Engine.logDatabaseObjectManager.info("[importProject] Added to cache: " + project.getName());
 			studioProjects.projectLoaded(project);
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
@@ -1251,6 +1305,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					synchronized (lock) {
 						lock.notifyAll();
 					}
+					Engine.logDatabaseObjectManager.info("[importProject] Release import lock for: " + projectName);
 				}
 			}
 		}
