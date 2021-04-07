@@ -1,5 +1,18 @@
 # Changelog
 
+## 7.9.2
+
+#### Bug Fixes:
+
+- [#477](https://github.com/convertigo/convertigo/issues/477) [Studio] Fixed the syntax coloring of JS editors with the default Dark theme
+- [#479](https://github.com/convertigo/convertigo/issues/479) [Admin] Fixed the deadlock in case of double import of a project with circular dependencies
+
+#### Improvements:
+
+- [#481](https://github.com/convertigo/convertigo/issues/158) [Studio] Use the latest Browser component
+
+---
+
 ## 7.9.1
 
 #### Bug Fixes:
@@ -9,6 +22,8 @@
 - [#476](https://github.com/convertigo/convertigo/issues/476) Can now clone git+ssh project reference (added the ssh library dependency)
 
 ---
+
+## 7.9.0
 
 #### New Features:
 
