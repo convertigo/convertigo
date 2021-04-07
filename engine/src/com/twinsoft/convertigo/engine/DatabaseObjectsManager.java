@@ -483,22 +483,40 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public void clearCache(String projectName) {
-		synchronized (projects) {
-			Project project = projects.remove(projectName);
-			RestApiManager.getInstance().removeUrlMapper(projectName);
-			MobileBuilder.releaseBuilder(project);
+		Object lock;
+		synchronized (importLocks) {
+			lock = importLocks.get(projectName);
+			if (lock == null) {
+				importLocks.put(projectName, lock = new Object());
+			}
+		}
+		synchronized (lock) {
+			synchronized (projects) {
+				Project project = projects.remove(projectName);
+				RestApiManager.getInstance().removeUrlMapper(projectName);
+				MobileBuilder.releaseBuilder(project);
+			}
 		}
 	}
-	
+
 	public void clearCacheIfSymbolError(String projectName) throws Exception {
-		synchronized (projects) {
-			if (projects.containsKey(projectName)) {
-				if (symbolsProjectCheckUndefined(projectName)) {
-					Project project = projects.remove(projectName);
-					RestApiManager.getInstance().removeUrlMapper(projectName);
-					MobileBuilder.releaseBuilder(project);
+		Object lock;
+		synchronized (importLocks) {
+			lock = importLocks.get(projectName);
+			if (lock == null) {
+				importLocks.put(projectName, lock = new Object());
+			}
+		}
+		synchronized (lock) {
+			synchronized (projects) {
+				if (projects.containsKey(projectName)) {
+					if (symbolsProjectCheckUndefined(projectName)) {
+						Project project = projects.remove(projectName);
+						RestApiManager.getInstance().removeUrlMapper(projectName);
+						MobileBuilder.releaseBuilder(project);
+					}
 				}
-			}	
+			}
 		}
 	}
 
@@ -1102,10 +1120,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 			return null;
 		}
 		Object lock;
-		boolean first = false;
 		Project project = null;
 		try {
 			synchronized (importLocks) {
+				lock = importLocks.get(projectName);
+				if (lock == null) {
+					importLocks.put(projectName, lock = new Object());
+				}
+			}
+			String version;
+			boolean isMigrating;
+
+			Engine.logDatabaseObjectManager.info("[importProject] Waiting synchronized: " + projectName);
+			synchronized (lock) {
+				Engine.logDatabaseObjectManager.info("[importProject] Enter synchronized: " + projectName);
+
 				if (!override) {
 					synchronized (projects) {
 						project = projects.get(projectName);
@@ -1114,80 +1143,68 @@ public class DatabaseObjectsManager implements AbstractManager {
 						}
 					}
 				}
-				lock = importLocks.get(projectName);
-				if (lock == null) {
-					importLocks.put(projectName, lock = new Object());
-					first = true;
+
+				Document document;
+				Engine.logDatabaseObjectManager.info("Importing project from: " + importFile);
+				if (importFile.getName().equals("c8oProject.yaml")) {
+					document = YamlConverter.readYaml(importFile);
+					document = BeansDefaultValues.unshrinkProject(document);
+				} else {
+					document = XMLUtils.loadXml(importFile);
 				}
-			}
-			synchronized (lock) {
-				if (!first) {
-					try {
-						lock.wait();
-					} catch (InterruptedException e) {
-						Engine.logDatabaseObjectManager.error("Interruption", e);
+
+				// Performs necessary XML migration
+				Element projectNode = performXmlMigration(document);
+
+				Element rootElement = document.getDocumentElement();
+				Element projectElement = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
+
+				// Retrieve project version
+				version = rootElement.getAttribute("beans");
+				projectElement.setAttribute("version", version);
+
+				// Retrieve project name
+				NodeList properties = projectElement.getElementsByTagName("property");
+				Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
+				String xName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
+				if (!projectName.equals(xName)) {
+					throw new EngineException("Project name mismatch: " + projectName + " != " + xName);
+				}
+
+				isMigrating = "true".equals(document.getUserData("isMigrating"));
+				if (isMigrating) {
+					Engine.logDatabaseObjectManager.debug("Project '" + projectName + "' needs to be migrated");
+					// Delete project's data only (will backup project)
+					deleteProject(projectName, true, true);
+				}
+
+				studioProjects.declareProject(projectName, importFile);
+
+				projectLoadingDataThreadLocal.remove();
+				getProjectLoadingData().projectName = projectName;
+
+				// Import will perform necessary beans migration (see deserialization)
+				try {
+					project = (Project) importDatabaseObject(projectNode, null);
+				} catch (VersionException e) {
+					e.setProjectName(projectName);
+					e.setProjectPath(importFile.getAbsolutePath());
+					throw e;
+				} catch (Exception e) {
+					if (document != null) {
+						Engine.logDatabaseObjectManager.error("Failed to import project \"" + projectName + "\":\n" + XMLUtils.prettyPrintDOM(document));
 					}
-					return getOriginalProjectByName(projectName);
+					throw e;
 				}
-			}
-			
-			Document document;
-			Engine.logDatabaseObjectManager.info("Importing project from: " + importFile);
-			if (importFile.getName().equals("c8oProject.yaml")) {
-				document = YamlConverter.readYaml(importFile);
-				document = BeansDefaultValues.unshrinkProject(document);
-			} else {
-				document = XMLUtils.loadXml(importFile);
-			}
-			
-			// Performs necessary XML migration
-			Element projectNode = performXmlMigration(document);
-			
-			Element rootElement = document.getDocumentElement();
-			Element projectElement = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
-			
-			// Retrieve project version
-			String version = rootElement.getAttribute("beans");
-			projectElement.setAttribute("version", version);
-			
-			// Retrieve project name
-			NodeList properties = projectElement.getElementsByTagName("property");
-			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
-			String xName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
-			if (!projectName.equals(xName)) {
-				throw new EngineException("Project name mismatch: " + projectName + " != " + xName);
-			}
-			
-			boolean isMigrating = "true".equals(document.getUserData("isMigrating"));
-			if (isMigrating) {
-				Engine.logDatabaseObjectManager.debug("Project '" + projectName + "' needs to be migrated");
-				// Delete project's data only (will backup project)
-				deleteProject(projectName, true, true);
-			}
-			
-			getStudioProjects().declareProject(projectName, importFile);
-			
-			projectLoadingDataThreadLocal.remove();
-			getProjectLoadingData().projectName = projectName;
-			
-			// Import will perform necessary beans migration (see deserialization)
-			try {
-				project = (Project) importDatabaseObject(projectNode, null);
-			} catch (VersionException e) {
-				e.setProjectName(projectName);
-				e.setProjectPath(importFile.getAbsolutePath());
-				throw e;
-			} catch (Exception e) {
-				if (document != null) {
-					Engine.logDatabaseObjectManager.error("Failed to import project \"" + projectName + "\":\n" + XMLUtils.prettyPrintDOM(document));
+				project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
+
+				synchronized (projects) {
+					projects.put(project.getName(), project);
+					Engine.logDatabaseObjectManager.info("[importProject] Put in projects cache: " + project.getName());
 				}
-				throw e;
+				Engine.logDatabaseObjectManager.info("[importProject] Leave synchronized: " + projectName);
 			}
-			project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
 			
-			synchronized (projects) {
-				projects.put(project.getName(), project);
-			}
 			
 			if (this instanceof SystemDatabaseObjectsManager) {
 				return project;
@@ -1196,7 +1213,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			getStudioProjects().projectLoaded(project);
 			RestApiManager.getInstance().putUrlMapper(project);
 			MobileBuilder.initBuilder(project);
-			
+
 			if (!Engine.isStudioMode()) {
 				Engine.theApp.referencedProjectManager.check(project);
 			}
@@ -1206,7 +1223,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			// Performs POST migration
 			performPostMigration(version, projectName);
-			
+
 			// Export the project (Since 4.6.0)
 			if (isMigrating) {
 
@@ -1218,16 +1235,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 					exportProject(project);
 				} else {
 					Engine.logDatabaseObjectManager
-							.error("Project \""
-									+ projectName
-									+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");
+					.error("Project \""
+							+ projectName
+							+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");
 				}
 			}
-			
+
 			if (project.undefinedGlobalSymbols) {
 				Engine.logDatabaseObjectManager.error("Project \"" + projectName + "\" contains undefined global symbols: " + symbolsGetUndefined(projectName));
 			}
-			
+
 			if (Engine.isEngineMode() && !Engine.isCliMode()) {
 				File prjDir = project.getDirFile();
 				File pDir = new File(Engine.PROJECTS_PATH, projectName);
@@ -1235,7 +1252,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 					FileUtils.write(pDir, prjDir.getCanonicalPath(), StandardCharsets.UTF_8);
 				}
 			}
-			
+
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" imported!");
 
 			if (!Engine.isCliMode()) {
@@ -1243,21 +1260,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 				Engine.logDatabaseObjectManager.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFile);
 				Engine.execute(() -> CouchDbManager.syncDocument(p));
 			}
-			
+
 			return project;
 		} catch (VersionException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to import the project from \"" + importFile + "\".", e);
-		} finally {
-			if (first) {
-				synchronized (importLocks) {
-					lock = importLocks.remove(projectName);
-					synchronized (lock) {
-						lock.notifyAll();
-					}
-				}
-			}
 		}
 	}
 

@@ -230,6 +230,7 @@ dependencies {
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:[1.4,)'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:[5.4,)'
+	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:[5.4,)'
 	compileFlat    'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
 	compileFlat    'org.hibernate:hibernate-core:5.2.10.Final'
 	compileFlat    'org.mozilla:rhino:1.7.10'

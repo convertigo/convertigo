@@ -26,7 +26,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 public class SwtUtils {
@@ -82,6 +84,15 @@ public class SwtUtils {
 				file.setContents(is, true, false, null);
 			}
 		} catch (Exception e) {
+		}
+	}
+	
+	public static void refreshTheme() {
+		try {
+			IThemeEngine themeEngine = (IThemeEngine) Display.getDefault().getData("org.eclipse.e4.ui.css.swt.theme");
+			themeEngine.setTheme(themeEngine.getActiveTheme(), true);
+		} catch (Exception e) {
+			//e.printStackTrace();
 		}
 	}
 }

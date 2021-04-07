@@ -49,7 +49,7 @@ public class C8oBrowser extends Composite {
 	
 	private static Thread threadSwt = null;
 	private static Map<String, Engine> browserContexts = new HashMap<>();
-	private static final String jxKey = "x9384a09ae4e09d49453cf65cdf9424d92907689aeb3f3f2ade80fb8677856376abeabaefa4588a9c61ca7f28249bf3ae3ab6264768940ceec5c8759c3fc1b2033e692e006e0fb882b9876ad5c2cdc0d0";
+	private static final String jxKey = "xd66cf60f0cb4087351b4e6d0a1ce57f9acb628575fa2a1ed2faa333c80b40f7a4b031a2e5ecf4613bf8e117d22c33e246bd4d4ac0fd1643d2ba187537d936f2e18da8bd02d263bc7653bf921035b474a";
 	private static boolean render_offscreen = "offscreen".equals(System.getProperty("jxbrowser.render"));
 	
 	private String debugUrl;
@@ -239,5 +239,15 @@ public class C8oBrowser extends Composite {
 	
 	public void setUseExternalBrowser(boolean useExternalBrowser) {
 		this.useExternalBrowser = useExternalBrowser;
+	}
+	
+	public static void main(String[] args) {
+		String newKey = "6P835FT5HAV2EG8VQ5ZBIC76PR2YH2T40MCSXZ361FBESJ24DO3U9RRANTA2PFUWI2NP";
+		System.out.println("newKey " + newKey);
+		String jxKey = Crypto2.encodeToHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), newKey);
+		System.out.println("jxKey " + jxKey);
+		String key = Crypto2.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), jxKey);
+		System.out.println("key " + key);
+		System.out.println();
 	}
 }
