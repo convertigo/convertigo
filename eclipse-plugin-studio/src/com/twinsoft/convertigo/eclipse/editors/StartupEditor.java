@@ -44,6 +44,7 @@ import org.eclipse.ui.part.EditorPart;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.URLUtils;
@@ -89,6 +90,7 @@ public class StartupEditor extends EditorPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		SwtUtils.refreshTheme();
 		StartupInput si = (StartupInput) getEditorInput();
 		
 		parent.setLayout(new GridLayout(1, true));
