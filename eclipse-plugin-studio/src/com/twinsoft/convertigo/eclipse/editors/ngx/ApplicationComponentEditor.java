@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1421,8 +1420,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 			ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", "ionic:serve");
-			Map<String, String> pbEnv = pb.environment();
-			pbEnv.put("NODE_OPTIONS", "--max_old_space_size=8192"); //TODO: add parameterization
 			
 			List<String> cmd = pb.command();
 			synchronized (usedPort) {
