@@ -452,10 +452,24 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		return scope;
 	}
 	
+	private boolean isSubmitEvent() {
+		return getAttrName().equals(AttrEvent.onSubmit.event());
+	}
+	
 	@Override
 	public String getAttrValue() {
+		String formIdentifier = null;
+		if (isSubmitEvent()) {
+			UIForm uiForm = getUIForm();
+			if (uiForm != null) {
+				if (!uiForm.getIdentifier().isBlank()) {
+					formIdentifier = uiForm.getIdentifier();
+				}
+			}
+		}
+		
 		String scope = getScope();
-		String in = "{}";
+		String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
 		String attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";;
 		return attrValue;
 	}
