@@ -502,17 +502,21 @@ public class Context extends AbstractContext implements Cloneable {
 	}
 	
 	public void loadConnector() throws EngineException {
-		if(connectorName == null) connectorName = project.getDefaultConnector().getName();
-		String key = project.getName()+'\n'+connectorName;
-		if(used_connectors.containsKey(key)){
-			setConnector(used_connectors.get(key));
-			Engine.logContext.debug("Re-use connector: " + connectorName);
-		}else{
-			setConnector(project.getConnectorByName(connectorName));
-			Engine.logContext.debug("Loaded connector: " + connectorName);
-			getConnector().checkSymbols();
-			used_connectors.put(key, getConnector());
+		if (connectorName == null) {
+			connectorName = project.getDefaultConnector().getName();
 		}
+		String key = project.getName() + '\n' + connectorName;
+		Connector connector = used_connectors.get(key);
+		if (connector != null && connector.getProject() == project) {
+			Engine.logContext.debug("Re-use connector: " + connectorName);
+		} else {
+			used_connectors.remove(key);
+			connector = project.getConnectorByName(connectorName);
+			Engine.logContext.debug("Loaded connector: " + connectorName);
+			used_connectors.put(key, connector);
+		}
+		setConnector(connector);
+		connector.checkSymbols();
 	}
 	
 	public void loadSequence() throws EngineException {
