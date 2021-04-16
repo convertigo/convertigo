@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, ViewChild, forwardRef, ElementRef, Renderer2, ViewEncapsulation } from '@angular/core';
-import { TreeComponent, TreeNode, TreeModel, TREE_ACTIONS, KEYS, IActionMapping, ITreeOptions } from 'angular-tree-component';
+import { TreeComponent, TreeNode, TreeModel, TREE_ACTIONS, KEYS, IActionMapping, ITreeOptions } from '@circlon/angular-tree-component';
 
 // Note: due to styleUrls path problems, we use embedded styles notation  
 
