@@ -57,6 +57,7 @@ import { TreeComponent, TreeNode, TreeModel, TREE_ACTIONS, KEYS, IActionMapping,
 .node-content-wrapper.is-dragging-over-disabled { opacity: 0.5 }
 
 tree-viewport {
+  -webkit-tap-highlight-color: transparent;
   height: 100%;
   overflow: auto;
   display: block;
