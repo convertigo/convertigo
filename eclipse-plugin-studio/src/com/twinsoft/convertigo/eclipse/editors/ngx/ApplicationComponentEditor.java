@@ -1299,8 +1299,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
-					long start = System.currentTimeMillis();
-					
 					ProcessBuilder pb;
 					Process p;
 					
@@ -1324,7 +1322,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						File pnpmFile = new File(ionicDir.toString() + "/node_modules/.bin/pnpm");
 						if (!pnpmFile.exists()) {
 							Engine.logStudio.info("Installing Pnpm...");
-							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "pnpm");
+							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "pnpm", "--force");
 							pb.redirectErrorStream(true);
 							pb.directory(ionicDir);
 							p = pb.start();
