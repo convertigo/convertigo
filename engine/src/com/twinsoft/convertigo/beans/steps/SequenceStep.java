@@ -272,6 +272,9 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	
 	public Sequence getTargetSequence() throws EngineException {
 		Project p = getTargetProject(projectName);
+		if (p == null) {
+			throw new EngineException("There is no project named \"" + projectName + "\" found.");
+		}
 		List<Sequence> v = p.getSequencesList();
 		Sequence targetSequence = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
 		return targetSequence;
@@ -442,9 +445,9 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 						}
 						else {
 							//Check for sequence
-							List<Sequence> v = p.getSequencesList();
-							Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
-							if (seq == null) {
+							try {
+								p.getSequenceByName(sequenceName);
+							} catch (EngineException e) {
 								label = "! broken sequence !";
 							}
 						}

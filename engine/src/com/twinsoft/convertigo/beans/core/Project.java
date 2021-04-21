@@ -445,7 +445,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		checkSubLoaded();
 		for (Sequence sequence : vSequences)
 			if (sequence.getName().equalsIgnoreCase(sequenceName)) return sequence;
-		throw new EngineException("There is no sequence named \"" + sequenceName + "\" found into this project.");
+		throw new EngineException("There is no sequence named \"" + sequenceName + "\" found into the project \"" + getName() + "\".");
 	}
 
 	/**
