@@ -606,15 +606,23 @@ public class XmlSchemaBuilder {
 									
 									// SequenceStep case : walk target sequence first
 									if (step instanceof SequenceStep) {
-										Sequence targetSequence = ((SequenceStep)step).getTargetSequence();
-										String targetProjectName = targetSequence.getProject().getName();
-										String targetSequenceName = targetSequence.getName();
-										String stepSequenceName = step.getSequence().getName();
-										
-										if (projectName.equals(targetProjectName)) {
-											boolean isAfter = targetSequenceName.compareToIgnoreCase(stepSequenceName) > 0;
-											if (isAfter) {
-												walk(targetSequence);
+										try {
+											Sequence targetSequence = ((SequenceStep)step).getTargetSequence();
+											String targetProjectName = targetSequence.getProject().getName();
+											String targetSequenceName = targetSequence.getName();
+											String stepSequenceName = step.getSequence().getName();
+
+											if (projectName.equals(targetProjectName)) {
+												boolean isAfter = targetSequenceName.compareToIgnoreCase(stepSequenceName) > 0;
+												if (isAfter) {
+													walk(targetSequence);
+												}
+											}
+										} catch (EngineException e) {
+											if (!e.getMessage().startsWith("There is no ")) {
+												throw e;
+											} else {
+												Engine.logEngine.warn("(XmlSchemaBuilder) Not complet schema because: " + e.getMessage());
 											}
 										}
 									}

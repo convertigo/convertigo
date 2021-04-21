@@ -61,6 +61,9 @@ public class List extends XmlService{
 					continue;
 				}
 				Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+				if (project == null) {
+					continue;
+				}
 				String deployDate = "n/a";
 				File file = new File(Engine.projectDir(projectName) + ".car");
 				if (file.exists())
