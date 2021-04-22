@@ -388,7 +388,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 		try {
 			// Open editor
 			if (editorType == null || (editorType != null && editorType.equals("JscriptTransactionEditor"))) {
-				JScriptEditorInput.openJScriptEditor(this);
+				JScriptEditorInput.openJScriptEditor(this, getObject());
 			}
 		} catch (PartInitException e) {
 			ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + getObject().getName() + "'");

@@ -93,8 +93,25 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 		return editor;
 	}
 	
-	static public IEditorPart openJScriptEditor(DatabaseObjectTreeObject dboTree) throws PartInitException {
-		return openJScriptEditor(dboTree, (IJScriptContainer) dboTree.getObject());
+	static public IEditorPart openJScriptEditor(DatabaseObjectTreeObject dboTree, String propertyName) throws PartInitException {
+		return openJScriptEditor(dboTree, new IJScriptContainer() {
+			
+			@Override
+			public void setExpression(String expression) {
+				dboTree.setPropertyValue(propertyName, expression);
+			}
+			
+			@Override
+			public String getName() {
+				return dboTree.getName();
+			}
+			
+			@Override
+			public String getExpression() {
+				Object o = dboTree.getPropertyValue(propertyName);
+				return o instanceof String ? (String) o : "" + o;
+			}
+		});
 	}
 	
 	private DatabaseObjectTreeObject dboTree;

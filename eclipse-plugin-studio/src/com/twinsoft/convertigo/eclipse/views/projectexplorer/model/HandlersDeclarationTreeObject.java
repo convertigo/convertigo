@@ -52,7 +52,8 @@ public class HandlersDeclarationTreeObject extends TreeObject implements IEditab
 			while (!(object instanceof TransactionTreeObject)) {
 				object = object.getParent();
 			}
-			JScriptEditorInput.openJScriptEditor((TransactionTreeObject) object);
+			TransactionTreeObject tto = (TransactionTreeObject) object;
+			JScriptEditorInput.openJScriptEditor(tto, tto.getObject());
 			moveTo(getName());
 		} catch (PartInitException e) {
 			ConvertigoPlugin.logException(e, "Error while loading the transaction editor '" + object.getName() + "'");
