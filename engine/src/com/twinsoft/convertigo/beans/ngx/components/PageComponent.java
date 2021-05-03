@@ -800,22 +800,10 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	private String computeEventConstructors(List<UIEventSubscriber> subscriberList) {
 		String computed = "";
 		if (!subscriberList.isEmpty()) {
-			String nbi = getName() +".nbInstance";
-			computed += ""+nbi+"++;"+System.lineSeparator();
-			computed += "\t\tif ("+nbi+" == 1) {"+System.lineSeparator();
 			for (UIEventSubscriber subscriber: subscriberList) {
 				String constructor = subscriber.computeConstructor();
-				computed += constructor.isEmpty() ? "": "\t" + constructor;
+				computed += constructor.isEmpty() ? "": constructor;
 			}
-			//computed += "\t\t}"+ System.lineSeparator();
-			computed += "\t\t} else {"+ System.lineSeparator();
-			for (UIEventSubscriber subscriber: subscriberList) {
-				String desctructor = subscriber.computeDestructor();
-				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
-				String constructor = subscriber.computeConstructor();
-				computed += constructor.isEmpty() ? "": "\t" + constructor;
-			}
-			computed += "\t\t}"+ System.lineSeparator();
 			computed += "\t\t";
 		}
 		return computed;
@@ -849,15 +837,10 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			computed += "\t\tthis."+ ViewEvent.onWillUnload.event + "()" + System.lineSeparator();
 		}
 		if (!subscriberList.isEmpty()) {
-			String nbi = getName() +".nbInstance"; // declared in constructor
-			computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
-			computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
 			for (UIEventSubscriber subscriber: subscriberList) {
 				String desctructor = subscriber.computeDestructor();
-				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
+				computed += desctructor.isEmpty() ? "" : desctructor;
 			}
-			computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
-			computed += "\t\t}"+ System.lineSeparator();
 		}
 		computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
 		computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
