@@ -218,7 +218,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 
 			// Open editor
 			if (editorType.equals("JscriptStepEditor")) {
-				JScriptEditorInput.openJScriptEditor(this);
+				JScriptEditorInput.openJScriptEditor(this, "expression");
 			}
 
 		} catch (PartInitException e) {

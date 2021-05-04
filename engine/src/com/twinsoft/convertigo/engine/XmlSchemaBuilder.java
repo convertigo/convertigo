@@ -600,32 +600,32 @@ public class XmlSchemaBuilder {
 										String targetProjectName = requestableStep.getProjectName();
 										Project targetProject = requestableStep.getSequence().getLoadedProject(targetProjectName);
 										if (targetProject == null) {
-											throw new EngineException("Missing required or not loaded project \""+ targetProjectName +"\"");
+											Engine.logEngine.warn("(XmlSchemaBuilder) Not complet schema because: Missing required or not loaded project \"" + targetProjectName + "\"");
+										} else if (step instanceof SequenceStep) {
+											// SequenceStep case : walk target sequence first
+											try {
+												Sequence targetSequence = ((SequenceStep)step).getTargetSequence();
+												targetProjectName = targetSequence.getProject().getName();
+												String targetSequenceName = targetSequence.getName();
+												String stepSequenceName = step.getSequence().getName();
+
+												if (projectName.equals(targetProjectName)) {
+													boolean isAfter = targetSequenceName.compareToIgnoreCase(stepSequenceName) > 0;
+													if (isAfter) {
+														walk(targetSequence);
+													}
+												}
+											} catch (EngineException e) {
+												if (!e.getMessage().startsWith("There is no ")) {
+													throw e;
+												} else {
+													Engine.logEngine.warn("(XmlSchemaBuilder) Not complet schema because: " + e.getMessage());
+												}
+											}
 										}
 									}
 									
-									// SequenceStep case : walk target sequence first
-									if (step instanceof SequenceStep) {
-										try {
-											Sequence targetSequence = ((SequenceStep)step).getTargetSequence();
-											String targetProjectName = targetSequence.getProject().getName();
-											String targetSequenceName = targetSequence.getName();
-											String stepSequenceName = step.getSequence().getName();
-
-											if (projectName.equals(targetProjectName)) {
-												boolean isAfter = targetSequenceName.compareToIgnoreCase(stepSequenceName) > 0;
-												if (isAfter) {
-													walk(targetSequence);
-												}
-											}
-										} catch (EngineException e) {
-											if (!e.getMessage().startsWith("There is no ")) {
-												throw e;
-											} else {
-												Engine.logEngine.warn("(XmlSchemaBuilder) Not complet schema because: " + e.getMessage());
-											}
-										}
-									}
+									
 																			
 									// Particle case
 									XmlSchemaParticle particle = ((ISchemaParticleGenerator) step).getXmlSchemaObject(collection, schema);

@@ -242,7 +242,7 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 				
 			// Open editor
 			if (editorType.equals("JscriptStatementEditor")) {
-				JScriptEditorInput.openJScriptEditor(this);
+				JScriptEditorInput.openJScriptEditor(this, "expression");
 			}
 		} catch (PartInitException e) {
 			ConvertigoPlugin.logException(e, "Error while loading the statement editor '" + getObject().getName() + "'");

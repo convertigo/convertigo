@@ -1,5 +1,20 @@
 # Changelog
 
+## 7.9.3
+
+#### Bug Fixes:
+
+- [#478](https://github.com/convertigo/convertigo/issues/478) [Studio] Fixed, symbols usage in the JS Steps’ Editor (not replaced by values)
+- [#482](https://github.com/convertigo/convertigo/issues/482) [Admin] Fixed, no more NPE if deleting projects too quickly
+- [#483](https://github.com/convertigo/convertigo/issues/483) [Studio] Fixed, no more "Unknown transaction" with HTTP calls on a reloaded project
+- [#484](https://github.com/convertigo/convertigo/issues/484) [Studio] Fixed, Schema & Picker views are empty if a broken source exists in the project
+- [#485](https://github.com/convertigo/convertigo/issues/485) [Admin] Fixed, licence links are ok in footer
+- [#486](https://github.com/convertigo/convertigo/issues/486) Fixed, Form PDF Step now handles the originalKeyName attribute
+- [#489](https://github.com/convertigo/convertigo/issues/489) [MobileBuilder] Fixed, events are correctly unsubscribed on page leave
+- [#490](https://github.com/convertigo/convertigo/issues/490) [Studio] Fixed, new object wizards allow to set existing bean name but not to validate it
+
+---
+
 ## 7.9.2
 
 #### Bug Fixes:
