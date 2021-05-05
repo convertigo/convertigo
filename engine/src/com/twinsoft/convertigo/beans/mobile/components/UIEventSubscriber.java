@@ -164,7 +164,7 @@ public class UIEventSubscriber extends UIComponent implements IEventListener {
 				computed += "\t\tthis.events.subscribe('"+ getTopic() +"', "
 							+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
 			} else {
-				computed += "\t\tthis.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
+				computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
 						+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
 			}
 		}

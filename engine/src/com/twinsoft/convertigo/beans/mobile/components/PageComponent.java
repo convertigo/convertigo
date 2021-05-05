@@ -780,22 +780,28 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	private String computeEventConstructors(List<UIEventSubscriber> subscriberList) {
 		String computed = "";
 		if (!subscriberList.isEmpty()) {
-			String nbi = getName() +".nbInstance";
-			computed += ""+nbi+"++;"+System.lineSeparator();
-			computed += "\t\tif ("+nbi+" == 1) {"+System.lineSeparator();
-			for (UIEventSubscriber subscriber: subscriberList) {
-				String constructor = subscriber.computeConstructor();
-				computed += constructor.isEmpty() ? "": "\t" + constructor;
+			if (compareToTplVersion("7.9.0.5") < 0) {
+				String nbi = getName() +".nbInstance";
+				computed += ""+nbi+"++;"+System.lineSeparator();
+				computed += "\t\tif ("+nbi+" == 1) {"+System.lineSeparator();
+				for (UIEventSubscriber subscriber: subscriberList) {
+					String constructor = subscriber.computeConstructor();
+					computed += constructor.isEmpty() ? "": "\t" + constructor;
+				}
+				computed += "\t\t} else {"+ System.lineSeparator();
+				for (UIEventSubscriber subscriber: subscriberList) {
+					String desctructor = subscriber.computeDestructor();
+					computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
+					String constructor = subscriber.computeConstructor();
+					computed += constructor.isEmpty() ? "": "\t" + constructor;
+				}
+				computed += "\t\t}"+ System.lineSeparator();
+			} else {
+				for (UIEventSubscriber subscriber: subscriberList) {
+					String constructor = subscriber.computeConstructor();
+					computed += constructor.isEmpty() ? "": constructor;
+				}
 			}
-			//computed += "\t\t}"+ System.lineSeparator();
-			computed += "\t\t} else {"+ System.lineSeparator();
-			for (UIEventSubscriber subscriber: subscriberList) {
-				String desctructor = subscriber.computeDestructor();
-				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
-				String constructor = subscriber.computeConstructor();
-				computed += constructor.isEmpty() ? "": "\t" + constructor;
-			}
-			computed += "\t\t}"+ System.lineSeparator();
 			computed += "\t\t";
 		}
 		return computed;
@@ -804,21 +810,29 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	private String computeNgDestroy(List<UIEventSubscriber> subscriberList) {
 		String computed = "";
 		if (!subscriberList.isEmpty()) {
-			String nbi = getName() +".nbInstance";
-			computed += "ngOnDestroy() {"+ System.lineSeparator();
-			computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
-			computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
-			for (UIEventSubscriber subscriber: subscriberList) {
-				String desctructor = subscriber.computeDestructor();
-				computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
-			}
-			computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
-			computed += "\t\t}"+ System.lineSeparator();
-			if (compareToTplVersion("7.9.0.5") >= 0) {
+			if (compareToTplVersion("7.9.0.5") < 0) {
+				String nbi = getName() +".nbInstance";
+				computed += "ngOnDestroy() {"+ System.lineSeparator();
+				computed += "\t\t"+nbi+"--;"+ System.lineSeparator();
+				computed += "\t\tif ("+nbi+" <= 0) {"+ System.lineSeparator();
+				for (UIEventSubscriber subscriber: subscriberList) {
+					String desctructor = subscriber.computeDestructor();
+					computed += desctructor.isEmpty() ? "" : "\t" + desctructor;
+				}
+				computed += "\t\t\t"+nbi+" = 0;"+ System.lineSeparator();
+				computed += "\t\t}"+ System.lineSeparator();
+				computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+				computed += "\t}"+ System.lineSeparator();
+			} else {
+				computed += "ngOnDestroy() {"+ System.lineSeparator();
+				for (UIEventSubscriber subscriber: subscriberList) {
+					String desctructor = subscriber.computeDestructor();
+					computed += desctructor.isEmpty() ? "" : desctructor;
+				}
 				computed += "\t\tthis.subscriptions = {};"+ System.lineSeparator();
+				computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
+				computed += "\t}"+ System.lineSeparator();
 			}
-			computed += "\t\tsuper.ngOnDestroy();"+ System.lineSeparator();
-			computed += "\t}"+ System.lineSeparator();
 			computed += "\t";
 		}
 		return computed;

@@ -92,7 +92,7 @@ public class ComponentInfoWizardPage extends WizardPage {
 		beanName.setLayoutData(gd);
 		beanName.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				dialogChanged();
+				dialogChanged(false);
 			}
 		});
 		
@@ -120,14 +120,14 @@ public class ComponentInfoWizardPage extends WizardPage {
 								getBeanName().endsWith(ScHandlerStatement.EVENT_EXIT_HANDLER) ?
 										ScHandlerStatement.EVENT_EXIT_HANDLER : "";
 					setBeanName("on"+ treeItemName + suffix);
-					dialogChanged();
+					dialogChanged(true);
 				}
 			});
 			tree.setVisible(false);
 		}
 		
 		initialize();
-		dialogChanged();
+		dialogChanged(true);
 		setControl(container);
 	}
 	
@@ -199,7 +199,7 @@ public class ComponentInfoWizardPage extends WizardPage {
 		}
 	}
 	
-	private void dialogChanged() {
+	private void dialogChanged(boolean increment) {
 		DatabaseObject dbo = ((ComponentExplorerWizardPage)getWizard().getPage("ComponentExplorerWizardPage")).getCreatedBean();
 		if (dbo != null) {			
 			String name = getBeanName();
@@ -220,6 +220,10 @@ public class ComponentInfoWizardPage extends WizardPage {
 				try {
 					dbo.setName(name);
 				} catch (ObjectWithSameNameException e) {
+					if (!increment) {
+						updateStatus("Name already used by siblings");
+						return;
+					}
 					sameName = true;
 					m.reset(name);
 					if (m.find()) {
@@ -289,6 +293,7 @@ public class ComponentInfoWizardPage extends WizardPage {
 	
 	public void setBeanName(String name) {
 		beanName.setText(name);
+		dialogChanged(true);
 	}
 
 	@Override

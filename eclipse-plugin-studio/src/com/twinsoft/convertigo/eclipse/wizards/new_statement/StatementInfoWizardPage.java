@@ -62,11 +62,11 @@ public class StatementInfoWizardPage extends WizardPage {
 		beanName.setLayoutData(gd);
 		beanName.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				dialogChanged();
+				dialogChanged(false);
 			}
 		});
 		initialize();
-		dialogChanged();
+		dialogChanged(true);
 		setControl(container);
 	}
 	
@@ -75,7 +75,7 @@ public class StatementInfoWizardPage extends WizardPage {
 		((StatementGeneratorWizardPage)getWizard().getPage("StatementGeneratorWizardPage")).setPageComplete(true);
 	}
 	
-	private void dialogChanged() {
+	private void dialogChanged(boolean increment) {
 		String name = getBeanName();
 		if (name.length() == 0) {
 			updateStatus("Name must be specified");
@@ -95,6 +95,10 @@ public class StatementInfoWizardPage extends WizardPage {
 			try {
 				((StatementGeneratorWizardPage)getWizard().getPage("StatementGeneratorWizardPage")).getCreatedBean().setName(name);
 			} catch (ObjectWithSameNameException e) {
+				if (!increment) {
+					updateStatus("Name already used by siblings");
+					return;
+				}
 				sameName = true;
 				m.reset(name);
 				if (m.find()) {
@@ -138,5 +142,6 @@ public class StatementInfoWizardPage extends WizardPage {
 	
 	public void setBeanName(String name) {
 		beanName.setText(name);
+		dialogChanged(true);
 	}
 }

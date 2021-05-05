@@ -22,7 +22,7 @@ apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.9.2'
+ext.convertigoVersion = '7.9.3'
 ext.convertigoTag = ''
 ext.convertigoCodename = 'gold'
 ext.convertigoCode = 'Au'

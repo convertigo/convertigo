@@ -593,8 +593,14 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 							label = "! broken project!";
 						} else {
 							// Check for connector
-							Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
-									.getConnectorByName(connectorName));
+							Connector connector = connectorName.equals("") ? p.getDefaultConnector() : null;
+							if (connector == null) {
+								try {
+									connector = p.getConnectorByName(connectorName);
+								} catch (EngineException e) {
+								}
+							}
+									
 							if (connector == null) {
 								label = "! broken connector !";
 							} else {

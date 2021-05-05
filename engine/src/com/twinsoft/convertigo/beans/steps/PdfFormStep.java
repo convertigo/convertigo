@@ -223,7 +223,13 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 						NodeList lc = child.getChildNodes(); // get child for each elements
 						for (int j = 0; j < lc.getLength(); j++) {
 							Node cElement = lc.item(j);
-							String key = lc.item(j).getNodeName();
+							String key;
+							if(lc.item(j).getAttributes().getNamedItem("originalKeyName") != null) {
+								key = lc.item(j).getAttributes().getNamedItem("originalKeyName").getNodeValue();
+							}
+							else {
+								key = lc.item(j).getNodeName();
+							}
 							String value = cElement.getFirstChild().getNodeValue();
 							replaceField(key, value, pdf);
 							Engine.logBeans.debug("(PdfFormStep) Node name = " + key + " , value = " + value);
