@@ -600,7 +600,7 @@ public class XmlSchemaBuilder {
 										String targetProjectName = requestableStep.getProjectName();
 										Project targetProject = requestableStep.getSequence().getLoadedProject(targetProjectName);
 										if (targetProject == null) {
-											Engine.logEngine.warn("(XmlSchemaBuilder) Not complet schema because: Missing required or not loaded project \"" + targetProjectName + "\"");
+											Engine.logEngine.warn("(XmlSchemaBuilder) Not complete schema because: Missing required or not loaded project \"" + targetProjectName + "\"");
 										} else if (step instanceof SequenceStep) {
 											// SequenceStep case : walk target sequence first
 											try {
@@ -619,7 +619,7 @@ public class XmlSchemaBuilder {
 												if (!e.getMessage().startsWith("There is no ")) {
 													throw e;
 												} else {
-													Engine.logEngine.warn("(XmlSchemaBuilder) Not complet schema because: " + e.getMessage());
+													Engine.logEngine.warn("(XmlSchemaBuilder) Not complete schema because: " + e.getMessage());
 												}
 											}
 										}
