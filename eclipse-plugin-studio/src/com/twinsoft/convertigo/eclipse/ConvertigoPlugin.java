@@ -1623,7 +1623,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 					}
 
 					if (server == null || user == null || password == null) {
-						throw new PscException("Invalid PSC (incomplet data)!");
+						throw new PscException("Invalid PSC (incomplete data)!");
 					}
 
 					if (!user.equals(SimpleCipher.decode(password))) {

@@ -206,7 +206,7 @@ public class StartupEditor extends EditorPart {
 		
 		@Override
 		public String getToolTipText() {
-			return null;
+			return "Convertigo Startup";
 		}
 		
 		@Override
