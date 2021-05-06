@@ -1,6 +1,6 @@
 #!/bin/sh
 # see https://adoptopenjdk.net
-JDK_URL=https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.1%2B9/OpenJDK15U-jdk_x64_windows_hotspot_15.0.1_9.zip
+JDK_URL=https://github.com/AdoptOpenJDK/openjdk16-binaries/releases/download/jdk-16.0.1%2B9/OpenJDK16U-jdk_x64_windows_hotspot_16.0.1_9.zip
 JDK_NAME=$( echo $JDK_URL | sed "s,.*/\(.*\)\\.zip,\\1," )x64
 
 mkdir -p /tmp/${JDK_NAME} /tmp/c8o_jre
