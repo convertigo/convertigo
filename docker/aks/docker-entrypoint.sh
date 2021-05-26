@@ -58,7 +58,7 @@ if [ "$1" = "convertigo" ]; then
     ## default common JAVA_OPTS, can be extended with "docker run -e JAVA_OPTS=-custom" 
     
     export JAVA_OPTS="$JAVA_OPTS \
-        --illegal-access=permit
+        --illegal-access=permit \
         -XX:+UseG1GC \
         -XX:+UseStringDeduplication \
         -XX:MinHeapFreeRatio=10 \
