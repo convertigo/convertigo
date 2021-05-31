@@ -491,11 +491,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 		}
 		synchronized (lock) {
+			Project project;
 			synchronized (projects) {
-				Project project = projects.remove(projectName);
-				RestApiManager.getInstance().removeUrlMapper(projectName);
-				MobileBuilder.releaseBuilder(project);
+				project = projects.remove(projectName);
 			}
+			RestApiManager.getInstance().removeUrlMapper(projectName);
+			MobileBuilder.releaseBuilder(project);
 		}
 	}
 
@@ -508,14 +509,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 		}
 		synchronized (lock) {
+			Project project = null;
 			synchronized (projects) {
-				if (projects.containsKey(projectName)) {
-					if (symbolsProjectCheckUndefined(projectName)) {
-						Project project = projects.remove(projectName);
-						RestApiManager.getInstance().removeUrlMapper(projectName);
-						MobileBuilder.releaseBuilder(project);
-					}
+				if (projects.containsKey(projectName) && symbolsProjectCheckUndefined(projectName)) {
+					project = projects.remove(projectName);
 				}
+			}
+			if (project != null) {
+				RestApiManager.getInstance().removeUrlMapper(projectName);
+				MobileBuilder.releaseBuilder(project);
 			}
 		}
 	}
@@ -1200,8 +1202,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				synchronized (projects) {
 					projects.put(project.getName(), project);
-					Engine.logDatabaseObjectManager.info("[importProject] Put in projects cache: " + project.getName());
 				}
+				Engine.logDatabaseObjectManager.info("[importProject] Put in projects cache: " + project.getName());
 				Engine.logDatabaseObjectManager.info("[importProject] Leave synchronized: " + projectName);
 			}
 			studioProjects.projectLoaded(project);
