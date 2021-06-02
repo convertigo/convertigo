@@ -171,7 +171,7 @@ public class BeansDefaultValues {
 					nCopy.setAttribute("yaml_file", "mobilePages/" + pName + ".yaml");
 				} else if (cls.equals("mobile.components.UIActionStack") || cls.equals("ngx.components.UIActionStack")) {
 					nCopy.setAttribute("yaml_file", "mobileSharedActions/" + pName + ".yaml");
-				} else if (cls.equals("mobile.components.UISharedComponent") || cls.equals("ngx.components.UISharedComponent")) {
+				} else if (cls.equals("mobile.components.UISharedComponent") || cls.startsWith("ngx.components.UIShared")) {
 					nCopy.setAttribute("yaml_file", "mobileSharedComponents/" + pName + ".yaml");
 				} else if (cls.equals("mobile.components.UIDynamicMenu") || cls.equals("ngx.components.UIDynamicMenu")) {
 					nCopy.setAttribute("yaml_file", "mobileMenus/" + pName + ".yaml");

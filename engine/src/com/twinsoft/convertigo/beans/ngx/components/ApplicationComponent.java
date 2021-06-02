@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
+import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
@@ -851,6 +852,11 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		insertOrderedSharedComponent(stackComponent, after);
 		
 		if (stackComponent.bNew) {
+			if (stackComponent.isRegular()) {
+				stackComponent.doComputeContents();
+				getProject().getMobileBuilder().compAdded((ISharedComponent) stackComponent);
+			}
+			
 			markApplicationAsDirty();
 		}
 	}

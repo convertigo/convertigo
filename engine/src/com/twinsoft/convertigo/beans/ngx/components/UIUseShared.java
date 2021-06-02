@@ -19,11 +19,13 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -59,8 +61,8 @@ public class UIUseShared extends UIElement {
 
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
-		if (!(uiComponent instanceof UIControlVariable)) {
-			throw new EngineException("You can only add Variable to this component");
+		if (!(uiComponent instanceof UIControlVariable) && !(uiComponent instanceof UIControlEvent)) {
+			throw new EngineException("You can not add this component to a UIUseShared component!");
 		}
 		
 		super.addUIComponent(uiComponent, after);
@@ -83,6 +85,45 @@ public class UIUseShared extends UIElement {
 			}
 		}
 		return null;
+	}
+	
+	public String getEventAttr(String eventName) {
+		if (!eventName.isBlank()) {
+			if (!eventName.startsWith("(") && !eventName.endsWith(")")) {
+				return "("+ eventName +")";
+			}
+		}
+		return eventName;
+	}
+	
+	public UIControlEvent getEvent(String eventName) {
+		Iterator<UIComponent> it = getUIComponentList().iterator();
+		while (it.hasNext()) {
+			UIComponent component = (UIComponent)it.next();
+			if (component instanceof UIControlEvent) {
+				UIControlEvent event = (UIControlEvent)component;
+				if (event.getEventName().equals(eventName)) {
+					return event;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public List<String> getEventNames() {
+		List<String> list = new ArrayList<String>();
+		UISharedComponent targetSharedComp = this.getTargetSharedComponent();
+		if (targetSharedComp != null) {
+			for (UICompEvent uice: targetSharedComp.getUICompEventList()) {
+				String eventName = uice.getAttrName();
+				if (!eventName.isBlank()) {
+					if (!list.contains(eventName)) {
+						list.add(eventName);
+					}
+				}
+			}
+		}
+		return list;
 	}
 	
 	public boolean isRecursive() {
@@ -108,12 +149,12 @@ public class UIUseShared extends UIElement {
 			UISharedComponent parentSharedComp = ((UIUseShared)this.getOriginal()).getSharedComponent();
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null && uisc.isEnabled()) {
+				
 				StringBuilder compVars = new StringBuilder();
-				Iterator<UIComponent> it1 = uisc.getUIComponentList().iterator();
-				while (it1.hasNext()) {
-					UIComponent component = (UIComponent)it1.next();
-					if (component instanceof UICompVariable) {
-						UICompVariable uicv = (UICompVariable)component;
+				for (UIComponent uic: uisc.getUIComponentList()) {
+					// Defined component variables
+					if (uic instanceof UICompVariable) {
+						UICompVariable uicv = (UICompVariable)uic;
 						if (uicv.isEnabled()) {
 							String varValue = uicv.getVariableValue();
 							if (!varValue.isEmpty()) {
@@ -125,12 +166,12 @@ public class UIUseShared extends UIElement {
 					}
 				}
 				
+				StringBuilder eventBindings = new StringBuilder();
 				StringBuilder useVars = new StringBuilder();
-				Iterator<UIComponent> it2 = getUIComponentList().iterator();
-				while (it2.hasNext()) {
-					UIComponent component = (UIComponent)it2.next();
-					if (component instanceof UIControlVariable) {
-						UIControlVariable uicv = (UIControlVariable)component;
+				for (UIComponent uic: getUIComponentList()) {
+					// Overridden component variables
+					if (uic instanceof UIControlVariable) {
+						UIControlVariable uicv = (UIControlVariable)uic;
 						if (uicv.isEnabled()) {
 							String varValue = uicv.getVarValue();
 							if (!varValue.isEmpty()) {
@@ -140,23 +181,36 @@ public class UIUseShared extends UIElement {
 							}
 						}
 					}
+					// Overridden event bindings
+					if (uic instanceof UIControlEvent) {
+						UIControlEvent uice = (UIControlEvent)uic;
+						if (uice.isEnabled()) {
+							eventBindings.append(uice.computeTemplate());
+						}
+					}
 				}
 				
 				String scope = getScope();
 				String params = "merge(merge({" + compVars.toString() + "},{" + useVars.toString() + "}),{scope:"+ scope +"})";
 				
-				// recursive case
-				if (parentSharedComp != null && parentSharedComp.priority == uisc.priority) {
-					computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
-				}
-				// other cases
-				else {
-					IScriptComponent main = getMainScriptComponent();
-					if (main != null) {
-						String sharedTemplate = uisc.computeTemplate(this);
-						main.addTemplate("sc"+ uisc.priority, sharedTemplate);
+				if (uisc.isTemplate()) {
+					// recursive case
+					if (parentSharedComp != null && parentSharedComp.priority == uisc.priority) {
+						computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
 					}
-					computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
+					// other cases
+					else {
+						IScriptComponent main = getMainScriptComponent();
+						if (main != null) {
+							String sharedTemplate = uisc.computeTemplate(this);
+							main.addTemplate("sc"+ uisc.priority, sharedTemplate);
+						}
+						computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
+					}
+				} else {
+					String selector = "comp-" + uisc.getName().toLowerCase();
+					String identifier = "#"+ uisc.getRefIdentifier();
+					computed += "<"+selector+" "+ identifier +" [params"+uisc.priority+"]=\""+params+"\" "+ eventBindings +"></"+selector+">" + System.lineSeparator();
 				}
 			}
 		}
@@ -230,6 +284,42 @@ public class UIUseShared extends UIElement {
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null) {
 				if (!isRecursive()) {
+					IScriptComponent main = getMainScriptComponent();
+					if (main != null && uisc.isRegular()) {
+						try {
+							String imports = jsonScripts.getString("imports");
+							if (main.addImport("ViewChild", "@angular/core")) {
+								imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
+							}
+							if (main.addImport("ViewChildren", "@angular/core")) {
+								imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
+							}
+							if (main.addImport("QueryList", "@angular/core")) {
+								imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
+							}
+							jsonScripts.put("imports", imports);
+							
+							String declarations = jsonScripts.getString("declarations");
+							String dname = uisc.getRefIdentifier();
+							String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
+							if (main.addDeclaration(dname, dcode)) {
+								declarations += System.lineSeparator() + "\t" + dcode;
+							}
+							String all_dname = "all_" + dname;
+							String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
+							if (main.addDeclaration(all_dname, all_dcode)) {
+								declarations += System.lineSeparator() + "\t" + all_dcode;
+							}
+							jsonScripts.put("declarations", declarations);
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+					
+					for (UIComponent uic: getUIComponentList()) {
+						uic.computeScripts(jsonScripts);
+					}
+					
 					uisc.computeScripts(this, jsonScripts);
 				}
 			}
@@ -359,4 +449,5 @@ public class UIUseShared extends UIElement {
 		String compName = this.sharedcomponent.isEmpty() ? "?" : this.sharedcomponent.substring(this.sharedcomponent.lastIndexOf('.') + 1);
 		return "use " + compName;
 	}
+
 }

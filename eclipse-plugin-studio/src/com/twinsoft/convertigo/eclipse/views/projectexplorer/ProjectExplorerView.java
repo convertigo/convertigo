@@ -1251,6 +1251,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										objectType = "variable";
 										updateDlg = true;
 									}
+									if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UICompEvent) {
+										objectType = "event";
+										updateDlg = true;
+									}
 								}
 
 								if (updateDlg) {

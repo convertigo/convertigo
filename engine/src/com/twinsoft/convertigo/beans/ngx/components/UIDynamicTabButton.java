@@ -96,8 +96,8 @@ public class UIDynamicTabButton extends UIDynamicElement {
 			}
 
 			@Override
-			public Map<String, String> getModuleTsImports() {
-				return contributor.getModuleTsImports();
+			public Map<String, String> getModuleTsImports(MobileComponent container) {
+				return contributor.getModuleTsImports(container);
 			}
 
 			@Override

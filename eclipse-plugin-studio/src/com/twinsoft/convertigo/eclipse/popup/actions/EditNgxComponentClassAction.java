@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxApplicationComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -57,6 +58,10 @@ public class EditNgxComponentClassAction extends MyAbstractAction {
     				else if (treeObject instanceof NgxPageComponentTreeObject) {
     					NgxPageComponentTreeObject mpcto = GenericUtils.cast(treeObject);
     					mpcto.editPageTsFile();
+    				}
+    				else if (treeObject instanceof NgxUIComponentTreeObject) {
+    					NgxUIComponentTreeObject mpcto = GenericUtils.cast(treeObject);
+    					mpcto.editCompTsFile();
     				}
     			}
     		}

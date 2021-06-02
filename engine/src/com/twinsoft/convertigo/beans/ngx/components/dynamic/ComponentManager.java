@@ -62,12 +62,14 @@ import com.twinsoft.convertigo.beans.ngx.components.UIAppEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIAttribute;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UICustom;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
@@ -78,6 +80,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
@@ -373,9 +376,11 @@ public class ComponentManager {
 			
 			// Add shared components
 			group = GROUP_SHARED_COMPONENTS;
-			components.add(getDboComponent(UISharedComponent.class,group));
+			//components.add(getDboComponent(UISharedComponent.class,group)); // deprecated
+			components.add(getDboComponent(UISharedRegularComponent.class,group));
 			components.add(getDboComponent(UIUseShared.class,group));
 			components.add(getDboComponent(UICompVariable.class,group));
+			components.add(getDboComponent(UICompEvent.class,group));
 			
 			// Add shared actions
 			group = GROUP_SHARED_ACTIONS;
@@ -575,6 +580,14 @@ public class ComponentManager {
 	
 	protected static boolean acceptDatabaseObjects(DatabaseObject dboParent, Class<?> dboClass) {
 		if (UIComponent.class.isAssignableFrom(dboClass)) {
+			if (UIDynamicEmit.class.isAssignableFrom(dboClass)) {
+				if (dboParent instanceof UIComponent) {
+					UISharedComponent uisc = ((UIComponent)dboParent).getSharedComponent();
+					return uisc != null && uisc instanceof UISharedRegularComponent;
+				}
+				return false;
+			}
+			
 			if (dboParent instanceof ApplicationComponent) {
 				if (UIStyle.class.isAssignableFrom(dboClass) ||
 					UIDynamicMenu.class.isAssignableFrom(dboClass) ||
@@ -632,7 +645,9 @@ public class ComponentManager {
 						UIElement.class.isAssignableFrom(dboClass) ||
 						UIPageEvent.class.isAssignableFrom(dboClass) ||
 						UIEventSubscriber.class.isAssignableFrom(dboClass) ||
-						UICompVariable.class.isAssignableFrom(dboClass)) {
+						UICompEvent.class.isAssignableFrom(dboClass) ||
+						UICompVariable.class.isAssignableFrom(dboClass) || 
+						UIStyle.class.isAssignableFrom(dboClass)) {
 						if (!IAction.class.isAssignableFrom(dboClass) && 
 							!UIAppGuard.class.isAssignableFrom(dboClass)) {
 							return true;
@@ -680,7 +695,8 @@ public class ComponentManager {
 						return true;
 					}
 				} else if (dboParent instanceof UIUseShared) {
-					if (UIControlVariable.class.isAssignableFrom(dboClass)) {
+					if (UIControlVariable.class.isAssignableFrom(dboClass) ||
+						(UIControlEvent.class.isAssignableFrom(dboClass))) {
 						return true;
 					}
 				} else if (dboParent instanceof UIDynamicAttr) {

@@ -659,9 +659,14 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 	    	if (menu != null) {
 	    		menu.markMenuAsDirty();
 	    	} else {
-	    		ApplicationComponent app = getApplication();
-	    		if (app != null) {
-	    			app.markApplicationAsDirty();
+	    		UISharedComponent uisc = getSharedComponent();
+	    		if (uisc != null && uisc.isRegular()) {
+	    			uisc.markCompAsDirty();
+	    		} else {
+		    		ApplicationComponent app = getApplication();
+		    		if (app != null) {
+		    			app.markApplicationAsDirty();
+		    		}
 	    		}
 	    	}
     	}

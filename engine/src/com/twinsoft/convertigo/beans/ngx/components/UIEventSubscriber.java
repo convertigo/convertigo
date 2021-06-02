@@ -162,8 +162,19 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 	public String computeConstructor() {
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
-			computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
+			IScriptComponent main = getMainScriptComponent();
+			boolean fromRegularComp = main != null && main instanceof UISharedComponent && ((UISharedComponent)main).isRegular();
+			if (fromRegularComp) {
+				String identifier = ((UISharedComponent)main).getRefIdentifier();
+				long compPriority = ((UISharedComponent)main).priority;
+				String scope = "params"+ compPriority + ": " + "x."+ "params"+ compPriority;
+				computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
+						+ "(data) => {this.all_"+ identifier +".forEach(x => x."+ getFunctionName() +"(this.merge(data, {scope: {"+scope+"}})))});"+ System.lineSeparator();
+				
+			} else {
+				computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
 						+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
+			}
 		}
 		return computed;
 	}
@@ -320,7 +331,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 			computed += "\t\tlet scope;" + System.lineSeparator();
 			computed += "\t\tlet out;" + System.lineSeparator();
 			computed += "\t\tlet event;" + System.lineSeparator();
-			computed += "\t\tlet stack = {root: {scope:{}, in:{}, out:data}};" + System.lineSeparator();
+			computed += "\t\tlet stack = {root: {scope: data.scope ? data.scope : {}, in:{}, out:data}};" + System.lineSeparator();
 			computed += "\t\t" + System.lineSeparator();
 			computed += computeInnerGet("c8oPage",functionName);
 			computed += "\t\t" + System.lineSeparator();

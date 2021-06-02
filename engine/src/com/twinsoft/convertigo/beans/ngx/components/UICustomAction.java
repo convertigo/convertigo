@@ -712,7 +712,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 
 			@Override
-			public Map<String, String> getModuleTsImports() {
+			public Map<String, String> getModuleTsImports(MobileComponent container) {
 				Map<String, String> imports = new HashMap<String, String>();
 				for (XMLVector<String> v : module_ts_imports) {
 					String name = v.get(0).trim();

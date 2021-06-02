@@ -34,6 +34,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
+import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.core.IUIComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
@@ -480,6 +481,7 @@ public abstract class MobileBuilder {
 	protected abstract void writeWorker(File file, boolean bForce) throws IOException;
 	protected abstract Map<String, String> getTplAppCompTsImports();
 	protected abstract Map<String, String> getTplPageTsImports();
+	protected abstract Map<String, String> getTplCompTsImports();
 	
 	public abstract void pageAdded(final IPageComponent pageComponent) throws EngineException;
 	public abstract void pageRemoved(final IPageComponent pageComponent) throws EngineException;
@@ -490,6 +492,12 @@ public abstract class MobileBuilder {
 	public abstract void pageModuleTsChanged(final IPageComponent pageComponent) throws EngineException;
 	public abstract void pageStyleChanged(final IPageComponent pageComponent) throws EngineException;
 	public abstract void pageTemplateChanged(final IPageComponent pageComponent) throws EngineException;
+	
+	public abstract void compAdded(final ISharedComponent sharedComponent) throws EngineException;
+	public abstract void compRemoved(final ISharedComponent sharedComponent) throws EngineException;
+	public abstract void compTsChanged(final ISharedComponent sharedComponent, boolean b) throws EngineException;
+	public abstract void compTemplateChanged(final ISharedComponent sharedComponent) throws EngineException;
+	public abstract void compStyleChanged(final ISharedComponent sharedComponent) throws EngineException;
 	
 	public abstract void appContributorsChanged(final IApplicationComponent applicationComponent) throws EngineException;
 	public abstract void appTsChanged(final IApplicationComponent applicationComponent, boolean b) throws EngineException;
@@ -508,5 +516,7 @@ public abstract class MobileBuilder {
 	public abstract void writeAppComponentTempTs(final IApplicationComponent applicationComponent) throws EngineException;
 
 	public abstract String getTempTsRelativePath(final IPageComponent pageComponent) throws EngineException;
+	public abstract String getTempTsRelativePath(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void writePageTempTs(final IPageComponent pageComponent) throws EngineException;
+	public abstract void writeCompTempTs(final ISharedComponent sharedComponent) throws EngineException;
 }

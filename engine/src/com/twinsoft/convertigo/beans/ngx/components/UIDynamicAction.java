@@ -733,8 +733,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			}
 
 			@Override
-			public Map<String, String> getModuleTsImports() {
-				Map<String, String> map = contributor.getModuleTsImports();
+			public Map<String, String> getModuleTsImports(MobileComponent container) {
+				Map<String, String> map = contributor.getModuleTsImports(container);
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
 					if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {

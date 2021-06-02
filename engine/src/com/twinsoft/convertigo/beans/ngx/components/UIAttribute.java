@@ -39,7 +39,7 @@ public class UIAttribute extends UIComponent implements ITagsProperty {
 		return cloned;
 	}
 
-	private String attrName = "attr";
+	protected String attrName = "attr";
 	
 	public String getAttrName() {
 		return attrName;

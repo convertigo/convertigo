@@ -1365,6 +1365,26 @@
                label="Import variables from the targeted object"
                menubarPath="import">
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.NgxComponentImportEventsAction"
+               enablesFor="1"
+               id="convertigo.action.ngxComponentImportEvents"
+               label="Import events from the targeted object"
+               menubarPath="import">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.EditNgxComponentClassAction"
+               enablesFor="1"
+               id="convertigo.action.editNgxAppComponentClass"
+               label="Edit component class"
+               menubarPath="default">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent">
+                     </objectState>
+                  </enablement>
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.screenclassContribution"

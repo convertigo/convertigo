@@ -18259,6 +18259,40 @@
       }
     },
 
+    "EmitEventAction" : {
+      "tplVersion": "8.0.0.2",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit",
+	  "displayName": "EmitEvent",
+      "label": "EmitEvent",
+      "description": [
+"Defines a <i>EmitEvent</i> action component. |This component helps emiting an event from a shared component giving its name and optional data Object in (TS) mode, e.g.:</br>",
+"<code>{user: 'user89', id: 89}</code><br/>",
+"The event may be handled by an existing <i>Event</i> component added to a <i>Use Shared</i> component."],
+      "group": "Actions",
+      "icon16": "emiteventaction_color_16x16.png",
+      "icon32": "emiteventaction_color_32x32.png",
+      "displayFormat": "function displayFormat() {var target = event.substring(event.lastIndexOf('.')+1); return 'EmitEvent ' + target; }",
+      "properties": {
+	      "event": {
+            "editor": "NamedSourceSelectorEditor",
+            "label": "Event",
+            "description": "The event to emit.",
+            "category": "@parameters",
+            "type": "string",
+            "value": ""
+	      },   
+	      "data": {
+	        "label": "Data",
+	        "description": "The event data Object (be sure to use a json object) in (TS) mode.",
+	        "category": "@parameters",
+	        "type": "string",
+	        "mode": "script",
+	        "value": "{}",
+	        "values": [false,true]
+	      }
+      }
+    },
+    
     "AnimateAction" : {
       "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate",

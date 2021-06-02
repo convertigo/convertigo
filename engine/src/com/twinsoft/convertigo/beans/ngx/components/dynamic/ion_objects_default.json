@@ -5348,5 +5348,22 @@
     }
    }
   }
+ },
+ "EmitEventAction": {
+  "   8   0   0": {
+   "name": "EmitEventAction",
+   "properties": {
+    "event": {
+     "name": "event",
+     "mode": "plain",
+     "value": ""
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": "{}"
+    }
+   }
+  }
  }
 }

@@ -56,11 +56,17 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			StringBuffer children = new StringBuffer();
 			for (UIPageEvent pageEvent : eventList) {
 				if (pageEvent.getViewEvent().equals(this)) {
-//					String computed = pageEvent.computeEvent();
-//					if (!computed.isEmpty()) {
-//						children.append(computed.replace("$event", "'"+this.event+"'"));
-//					}
-					String functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+					String functionCall = "";
+					IScriptComponent main = pageEvent.getMainScriptComponent();
+					boolean fromRegularComp = main != null && main instanceof UISharedComponent && ((UISharedComponent)main).isRegular();
+					if (fromRegularComp) {
+						String identifier = ((UISharedComponent)main).getRefIdentifier();
+						long compPriority = ((UISharedComponent)main).priority;
+						String scope = "params"+ compPriority + ": " + "x."+ "params"+ compPriority;
+						functionCall = "this.all_"+ identifier +".forEach(x => x."+ pageEvent.getEventFunctionName() + "({root: {scope:{"+ scope +"}, in:{}, out:'"+ this.event +"'}}))";
+					} else {
+						functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+					}
 					children.append("\t\t\t\t\t" + functionCall).append(System.lineSeparator());
 				}
 			}

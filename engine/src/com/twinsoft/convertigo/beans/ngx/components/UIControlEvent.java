@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -192,6 +193,12 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	public String getAttrName() {
 		if (parent != null && parent instanceof UIDynamicElement) {
 			String eventAttr = ((UIDynamicElement)parent).getEventAttr(eventName);
+			if (!eventAttr.isEmpty()) {
+				return eventAttr;
+			}
+		}
+		if (parent != null && parent instanceof UIUseShared) {
+			String eventAttr = ((UIUseShared)parent).getEventAttr(eventName);
 			if (!eventAttr.isEmpty()) {
 				return eventAttr;
 			}
@@ -395,22 +402,35 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		
 		UIControlEvent original = (UIControlEvent) getOriginal();
 		UISharedComponent sharedComponent = original.getSharedComponent();
-		boolean isInSharedComponent = sharedComponent  != null;
+		boolean isInSharedComponent = sharedComponent != null;
 		
 		String scope = "";
 		
 		DatabaseObject parent = getParent();
 		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
+			if (parent instanceof UISharedComponent) {
+				UISharedComponent uisc = (UISharedComponent)parent;
+				if (uisc.isRegular()) {
+					scope += !scope.isEmpty() ? ", ":"";
+					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+					break;
+				}
+			}
 			if (parent instanceof UIUseShared) {
 				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
 				if (uisc != null) {
 					scope += !scope.isEmpty() ? ", ":"";
-					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+					if (uisc.isRegular()) {
+						scope += "params"+uisc.priority + ": "+ uisc.getRefIdentifier()+".params"+uisc.priority;
+					} else {
+						scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+					}
 				}
 				if (isInSharedComponent) {
 					break;
 				}
 			}
+			
 			if (parent instanceof UIControlDirective) {
 				UIControlDirective uicd = (UIControlDirective)parent;
 				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
@@ -478,12 +498,18 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("eventName")) {
 			String[] attrEvents = EnumUtils.toNames(AttrEvent.class);
-			if (parent != null && parent instanceof UIDynamicElement) {
-				String[] eventNames = ((UIDynamicElement)parent).getEventNames();
-	    		if (eventNames.length > 0) {
-	    			eventNames = ArrayUtils.add(eventNames, "");
-	    		}
-				return ArrayUtils.addAll(eventNames, attrEvents);
+			if (parent != null) {
+				if (parent instanceof UIDynamicElement) {
+					String[] eventNames = ((UIDynamicElement)parent).getEventNames();
+		    		if (eventNames.length > 0) {
+		    			eventNames = ArrayUtils.add(eventNames, "");
+		    		}
+					return ArrayUtils.addAll(eventNames, attrEvents);
+				}
+				if (parent instanceof UIUseShared) {
+					List<String> list = ((UIUseShared)parent).getEventNames();
+					return list.toArray(new String[list.size()]);
+				}
 			}
 			return attrEvents;
 		}

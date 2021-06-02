@@ -21,6 +21,8 @@ package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.Set;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public abstract class Contributor {
@@ -28,10 +30,24 @@ public abstract class Contributor {
 		return false;
 	}
 	
+	public Path getContainerPath(MobileComponent container) throws Exception {
+		File containerDir = null;
+		File appDir = new File (container.getProject().getDirFile(), "_private/ionic/src/app");
+		if (container instanceof ApplicationComponent) {
+			containerDir = appDir;
+		}
+		else if (container instanceof PageComponent) {
+			containerDir = new File(appDir, "/pages/"+container.getName().toLowerCase());
+		}
+		else if (container instanceof UISharedComponent && ((UISharedComponent)container).isRegular()) {
+			containerDir = new File(appDir, "/components/"+container.getName().toLowerCase());
+		}
+		return Paths.get(containerDir.getCanonicalPath());
+	}
 	abstract public Map<String, File> getCompBeanDir();
 	abstract public Map<String, String> getActionTsFunctions();
 	abstract public Map<String, String> getActionTsImports();
-	abstract public Map<String, String> getModuleTsImports();
+	abstract public Map<String, String> getModuleTsImports(MobileComponent container);
 	abstract public Map<String, String> getPackageDependencies();
 	abstract public Map<String, String> getConfigPlugins();
 	abstract public Set<String> getModuleNgImports();

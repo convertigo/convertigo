@@ -41,6 +41,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
+import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.core.IUIComponent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -51,6 +52,7 @@ import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -201,18 +203,29 @@ public class NgxBuilder extends MobileBuilder {
 
 	Map<String,String> tpl_appCompTsImports = null;
 	Map<String,String> tpl_pageTsImports = null;
+	Map<String,String> tpl_compTsImports = null;
+	
 	Map<String,String> tpl_appModuleTsImports = null;
 	Map<String,String> tpl_pageModuleTsImports = null;
+	Map<String,String> tpl_compModuleTsImports = null;
+	
 	Map<String,String> tpl_serviceActionTsImports = null;
+	
 	String tpl_appModuleNgImports = null;
 	String tpl_appModuleNgProviders = null;
 	String tpl_appModuleNgDeclarations = null;
 	String tpl_appModuleNgComponents = null;
+	
 	String tpl_pageModuleNgImports = null;
 	String tpl_pageModuleNgProviders = null;
 	String tpl_pageModuleNgDeclarations = null;
 	String tpl_pageModuleNgComponents = null;
 	String tpl_pageModuleNgRoutes = null;
+	
+	String tpl_compModuleNgImports = null;
+	String tpl_compModuleNgProviders = null;
+	String tpl_compModuleNgDeclarations = null;
+	String tpl_compModuleNgComponents = null;
 	
 	File appDir, pagesDir, interfacesDir, servicesDir, providersDir, componentsDir;
 	File assetsDir, envDir, themeDir;
@@ -259,6 +272,10 @@ public class NgxBuilder extends MobileBuilder {
 		return new File(pagesDir, page.getName().toLowerCase());
 	}
 	
+	private File compDir(UISharedComponent uisc) {
+		return new File(componentsDir, uisc.getName().toLowerCase());
+	}
+	
 	@Override
 	public void setAppBuildMode(MobileBuilderBuildMode buildMode) {
 		super.setAppBuildMode(buildMode);
@@ -284,6 +301,17 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	private void addComp(UISharedComponent comp) throws EngineException {
+		MobileApplication mobileApplication = project.getMobileApplication();
+		if (mobileApplication != null) {
+			ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+			if (application != null) {
+				writeCompSourceFiles(comp);
+				writeAppSourceFiles(application);
+			}
+		}
+	}
+
 	@Override
 	public synchronized void pageEnabled(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
@@ -320,6 +348,16 @@ public class NgxBuilder extends MobileBuilder {
 			Engine.logEngine.trace("(MobileBuilder) Handled 'pageAdded'");
 		}
 	}
+
+	@Override
+	public synchronized void compAdded(final ISharedComponent sharedComponent) throws EngineException {
+		UISharedComponent comp = (UISharedComponent)sharedComponent;
+		if (comp != null && comp.isEnabled() && comp.bNew && initDone) {
+			addComp(comp);
+			moveFiles();
+			Engine.logEngine.trace("(MobileBuilder) Handled 'compAdded'");
+		}
+	}
 	
 	@Override
 	public synchronized void pageRemoved(final IPageComponent pageComponent) throws EngineException {
@@ -330,7 +368,7 @@ public class NgxBuilder extends MobileBuilder {
 				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
 				if (application != null) {
 					writeAppSourceFiles(application);
-					deleteUselessDir(page.getName());
+					deleteUselessPageDir(page.getName());
 					moveFiles();
 					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRemoved'");
 				}
@@ -338,6 +376,23 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	@Override
+	public synchronized void compRemoved(final ISharedComponent sharedComponent) throws EngineException {
+		UISharedComponent comp = (UISharedComponent)sharedComponent;
+		if (comp != null && comp.isEnabled() && initDone) {
+			MobileApplication mobileApplication = project.getMobileApplication();
+			if (mobileApplication != null) {
+				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+				if (application != null) {
+					writeAppSourceFiles(application);
+					deleteUselessCompDir(comp.getName());
+					moveFiles();
+					Engine.logEngine.trace("(MobileBuilder) Handled 'compRemoved'");
+				}
+			}
+		}
+	}
+
 	@Override
 	public synchronized void pageRenamed(final IPageComponent pageComponent, final String oldName) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
@@ -348,7 +403,7 @@ public class NgxBuilder extends MobileBuilder {
 				if (application != null) {
 					writePageSourceFiles(page);
 					writeAppSourceFiles(application);
-					deleteUselessDir(oldName);
+					deleteUselessPageDir(oldName);
 					moveFiles();
 					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRenamed'");
 				}
@@ -365,6 +420,16 @@ public class NgxBuilder extends MobileBuilder {
 			Engine.logEngine.trace("(MobileBuilder) Handled 'pageTemplateChanged'");
 		}
 	}
+
+	@Override
+	public synchronized void compTemplateChanged(final ISharedComponent sharedComponent) throws EngineException {
+		UISharedComponent comp = (UISharedComponent)sharedComponent;
+		if (comp != null && comp.isEnabled() && initDone) {
+			writeCompTemplate(comp);
+			moveFiles();
+			Engine.logEngine.trace("(MobileBuilder) Handled 'compTemplateChanged'");
+		}
+	}
 	
 	@Override
 	public synchronized void pageStyleChanged(final IPageComponent pageComponent) throws EngineException {
@@ -376,6 +441,17 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+
+	@Override
+	public void compStyleChanged(ISharedComponent sharedComponent) throws EngineException {
+		UISharedComponent comp = (UISharedComponent)sharedComponent;
+		if (comp != null && comp.isEnabled() && initDone) {
+			writeCompStyle(comp);
+			moveFiles();
+			Engine.logEngine.trace("(MobileBuilder) Handled 'compStyleChanged'");
+		}
+	}
+	
 	@Override
 	public synchronized void appContributorsChanged(final IApplicationComponent appComponent) throws EngineException {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
@@ -407,6 +483,23 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	@Override
+	public void compTsChanged(ISharedComponent sharedComponent, boolean forceTemp) throws EngineException {
+		UISharedComponent comp = (UISharedComponent)sharedComponent;
+		if (comp != null && comp.isEnabled() && initDone) {
+			writeCompTs(comp);
+			moveFiles();
+			
+			/*File compDir = compDir(comp);
+			File tempTsFile = new File(compDir, comp.getName().toLowerCase() + ".temp.ts");
+			if (forceTemp && tempTsFile.exists()) {
+				writeCompTempTs(comp);
+			}*/
+			
+			Engine.logEngine.trace("(MobileBuilder) Handled 'compTsChanged'");
+		}
+	}
+	
 	@Override
 	public synchronized void pageModuleTsChanged(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
@@ -732,6 +825,11 @@ public class NgxBuilder extends MobileBuilder {
 				if (application != null) {
 					String appTplVersion = application.requiredTplVersion();
 					if (compareVersions(tplVersion, appTplVersion) >= 0) {
+						for (UISharedComponent comp: application.getSharedComponentList()) {
+							if (comp.isRegular()) {
+								writeCompSourceFiles(comp);
+							}
+						}
 						for (PageComponent page : getEnabledPages(application)) {
 							writePageSourceFiles(page);
 						}
@@ -776,6 +874,25 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	private void writeCompTemplate(UISharedComponent uisc) throws EngineException {
+		try {
+			if (uisc != null && uisc.isEnabled()) {
+				String compName = uisc.getName();
+				File compDir = compDir(uisc);
+				File compHtmlFile = new File(compDir, compName.toLowerCase() + ".html");
+				String computedTemplate = uisc.getComputedTemplate();
+				writeFile(compHtmlFile, computedTemplate, "UTF-8");
+				
+				if (initDone) {
+					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for component '"+compName+"'");
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page template file",e);
+		}
+	}
+	
 	private void writePageStyle(PageComponent page) throws EngineException {
 		try {
 			if (page != null && page.isEnabled()) {
@@ -787,6 +904,25 @@ public class NgxBuilder extends MobileBuilder {
 				
 				if (initDone) {
 					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for page '"+pageName+"'");
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page scss file",e);
+		}
+	}
+
+	private void writeCompStyle(UISharedComponent comp) throws EngineException {
+		try {
+			if (comp != null && comp.isEnabled()) {
+				String compName = comp.getName();
+				File compDir = compDir(comp);
+				File compScssFile = new File(compDir, compName.toLowerCase() + ".scss");
+				String computedScss = comp.getComputedStyle();
+				writeFile(compScssFile, computedScss, "UTF-8");
+				
+				if (initDone) {
+					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for component '"+compName+"'");
 				}
 			}
 		}
@@ -812,6 +948,24 @@ public class NgxBuilder extends MobileBuilder {
 		}
 		return null;
 	}
+
+	@Override
+	public String getTempTsRelativePath(final ISharedComponent compComponent) throws EngineException {
+		UISharedComponent comp = (UISharedComponent) compComponent;
+		try {
+			if (comp != null) {
+				String compName = comp.getName();
+				File compDir = compDir(comp);
+				File tempTsFile = new File(compDir, compName.toLowerCase() + ".temp.ts");
+				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
+				return filePath;
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write component temp ts file",e);
+		}
+		return null;
+	}
 	
 	@Override
 	public String getFunctionTempTsRelativePath(final IUIComponent uiComponent) throws EngineException {
@@ -831,6 +985,12 @@ public class NgxBuilder extends MobileBuilder {
 				String pageName = page.getName();
 				tempTsDir = pageDir(page);
 				tempTsFileName = pageName.toLowerCase() + ".function.temp.ts";
+			}
+			if (main instanceof UISharedComponent) {
+				UISharedComponent comp = (UISharedComponent)main;
+				String compName = comp.getName();
+				tempTsDir = compDir(comp);
+				tempTsFileName = compName.toLowerCase() + ".function.temp.ts";
 			}
 			
 			if (tempTsDir != null && tempTsFileName != null) {
@@ -894,6 +1054,28 @@ public class NgxBuilder extends MobileBuilder {
 						tsContent = FileUtils.readFileToString(pageTsFile, "UTF-8");
 					} else {
 						tsContent = getPageTsContent(page);
+					}
+				}
+				if (main instanceof UISharedComponent) {
+					UISharedComponent comp = (UISharedComponent)main;
+					String compName = comp.getName();
+					tempTsDir = compDir(comp);
+					tempTsFileName = compName.toLowerCase() + ".function.temp.ts";
+					
+					if (comp.isEnabled()) {
+						File compTsFile = new File(tempTsDir, compName.toLowerCase() + ".ts");
+						synchronized (writtenFiles) {
+							if (writtenFiles.contains(compTsFile)) {
+								File compTsFileTmp = toTmpFile(compTsFile);
+								if (compTsFileTmp.exists()) {
+									compTsFile = compTsFileTmp;
+								}
+							}
+						}
+						
+						tsContent = FileUtils.readFileToString(compTsFile, "UTF-8");
+					} else {
+						tsContent = getCompTsContent(comp);
 					}
 				}
 				
@@ -991,6 +1173,61 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	@Override
+	public void writeCompTempTs(final ISharedComponent compComponent) throws EngineException {
+		UISharedComponent comp = (UISharedComponent) compComponent;
+		try {
+			if (comp != null) {
+				String compName = comp.getName();
+				File compDir = compDir(comp);
+				
+				String tsContent;
+				if (comp.isEnabled()) {
+					File compTsFile = new File(compDir, compName.toLowerCase() + ".ts");
+					
+					synchronized (writtenFiles) {
+						if (writtenFiles.contains(compTsFile)) {
+							File compTsFileTmp = toTmpFile(compTsFile);
+							if (compTsFileTmp.exists()) {
+								compTsFile = compTsFileTmp;
+							}
+						}
+					}
+					
+					tsContent = FileUtils.readFileToString(compTsFile, "UTF-8");
+				} else {
+					tsContent = getCompTsContent(comp);
+				}
+				
+				// Replace all Begin_c8o_function:XXX, End_c8o_function:XXX
+				Pattern pattern = Pattern.compile("/\\*Begin_c8o_function:(.+)\\*/");
+				Matcher matcher = pattern.matcher(tsContent);
+				while (matcher.find()) {
+					String markerId = matcher.group(1);
+					String beginMarker = "/*Begin_c8o_function:" + markerId + "*/";
+					String endMarker = "/*End_c8o_function:" + markerId + "*/";
+					tsContent = tsContent.replace(beginMarker, "//---"+markerId+"---");
+					tsContent = tsContent.replace(endMarker, "//---"+markerId+"---");
+				}
+				
+				// Remove all CTSXXX
+				int index = tsContent.indexOf("/*End_c8o_CompFunction*/");
+				if (index != -1) {
+					tsContent = tsContent.substring(0, index) + "/*End_c8o_CompFunction*/"
+									+ System.lineSeparator() + "}";
+				}
+				
+				// Write file (do not need delay)
+				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
+				File tempTsFile = new File(compDir, compName.toLowerCase() + ".temp.ts");
+				FileUtils.write(tempTsFile, tsContent, "UTF-8");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic component temp ts file",e);
+		}
+	}
+	
 	private void writePageTs(PageComponent page) throws EngineException {
 		try {
 			if (page != null && page.isEnabled()) {
@@ -1001,6 +1238,24 @@ public class NgxBuilder extends MobileBuilder {
 				
 				if (initDone) {
 					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for page '"+pageName+"'");
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page ts file",e);
+		}
+	}
+	
+	private void writeCompTs(UISharedComponent comp) throws EngineException {
+		try {
+			if (comp != null && comp.isEnabled()) {
+				String compName = comp.getName();
+				File compDir = compDir(comp);
+				File compTsFile = new File(compDir, compName.toLowerCase() + ".ts");
+				writeFile(compTsFile, getCompTsContent(comp), "UTF-8");
+				
+				if (initDone) {
+					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for component '"+compName+"'");
 				}
 			}
 		}
@@ -1082,6 +1337,24 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	private void writeCompModuleTs(UISharedComponent comp) throws EngineException {
+		try {
+			if (comp != null && comp.isEnabled()) {
+				String compName = comp.getName();
+				File compDir = compDir(comp);
+				File compModuleTsFile = new File(compDir, compName.toLowerCase() + ".module.ts");
+				writeFile(compModuleTsFile, getCompModuleTsContent(comp), "UTF-8");
+				
+				if (initDone) {
+					Engine.logEngine.trace("(MobileBuilder) Ionic module file generated for component '"+compName+"'");
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write ionic page module file",e);
+		}
+	}
+
 	@Override
 	protected Map<String,String> getTplAppCompTsImports() {
 		if (tpl_appCompTsImports == null) {
@@ -1098,6 +1371,14 @@ public class NgxBuilder extends MobileBuilder {
 		return tpl_pageTsImports;
 	}
 	
+	@Override
+	protected Map<String,String> getTplCompTsImports() {
+		if (tpl_compTsImports == null) {
+			tpl_compTsImports = initTplImports(new File(ionicTplDir, "src/comp.tpl"));
+		}
+		return tpl_compTsImports;
+	}
+	
 	private Map<String,String> getTplAppModuleTsImports() {
 		if (tpl_appModuleTsImports == null) {
 			tpl_appModuleTsImports = initTplImports(new File(ionicTplDir, "src/app/app.module.ts"));
@@ -1110,6 +1391,13 @@ public class NgxBuilder extends MobileBuilder {
 			tpl_pageModuleTsImports = initTplImports(new File(ionicTplDir, "src/page.module.tpl"));
 		}
 		return tpl_pageModuleTsImports;
+	}
+	
+	private Map<String,String> getTplCompModuleTsImports() {
+		if (tpl_compModuleTsImports == null) {
+			tpl_compModuleTsImports = initTplImports(new File(ionicTplDir, "src/comp.module.tpl"));
+		}
+		return tpl_compModuleTsImports;
 	}
 	
 	private String getTplAppModuleNgImports() {
@@ -1148,6 +1436,23 @@ public class NgxBuilder extends MobileBuilder {
 		return tpl_pageModuleNgImports;
 	}
 	
+	private String getTplCompModuleNgImports() {
+		if (tpl_compModuleNgImports == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				tpl_compModuleNgImports = getMarker(tsContent, "NgModules")
+						.replaceAll("/\\*Begin_c8o_NgModules\\*/","")
+						.replaceAll("/\\*End_c8o_NgModules\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_compModuleNgImports = "";
+			}
+		}
+		return tpl_compModuleNgImports;
+	}
 	private String getTplAppModuleNgProviders() {
 		if (tpl_appModuleNgProviders == null) {
 			try {
@@ -1182,6 +1487,24 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		return tpl_pageModuleNgProviders;
+	}
+	
+	private String getTplCompModuleNgProviders() {
+		if (tpl_compModuleNgProviders == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				tpl_compModuleNgProviders = getMarker(tsContent, "NgProviders")
+						.replaceAll("/\\*Begin_c8o_NgProviders\\*/","")
+						.replaceAll("/\\*End_c8o_NgProviders\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_compModuleNgProviders = "";
+			}
+		}
+		return tpl_compModuleNgProviders;
 	}
 	
 	private String getTplAppModuleNgDeclarations() {
@@ -1220,6 +1543,24 @@ public class NgxBuilder extends MobileBuilder {
 		return tpl_pageModuleNgDeclarations;
 	}
 	
+	private String getTplCompModuleNgDeclarations() {
+		if (tpl_compModuleNgDeclarations == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				tpl_compModuleNgDeclarations = getMarker(tsContent, "NgDeclarations")
+						.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/","")
+						.replaceAll("/\\*End_c8o_NgDeclarations\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_compModuleNgDeclarations = "";
+			}
+		}
+		return tpl_compModuleNgDeclarations;
+	}
+
 	private String getTplAppModuleNgComponents() {
 		if (tpl_appModuleNgComponents == null) {
 			try {
@@ -1256,6 +1597,24 @@ public class NgxBuilder extends MobileBuilder {
 		return tpl_pageModuleNgComponents;
 	}
 	
+	private String getTplCompModuleNgComponents() {
+		if (tpl_compModuleNgComponents == null) {
+			try {
+				String tsContent = FileUtils.readFileToString(new File(ionicTplDir, "src/comp.module.tpl"), "UTF-8");
+				tpl_compModuleNgComponents = getMarker(tsContent, "NgComponents")
+						.replaceAll("/\\*Begin_c8o_NgComponents\\*/","")
+						.replaceAll("/\\*End_c8o_NgComponents\\*/","")
+						.replaceAll("\r\n", "").replaceAll("\n", "")
+						.replaceAll("\t", "")
+						.replaceAll("\\s", "");
+			} catch (Exception e) {
+				e.printStackTrace();
+				tpl_compModuleNgComponents = "";
+			}
+		}
+		return tpl_compModuleNgComponents;
+	}
+
 	private Map<String,String> getTplServiceActionTsImports() {
 		if (tpl_serviceActionTsImports == null) {
 			tpl_serviceActionTsImports = initTplImports(new File(ionicTplDir, "src/app/services/actionbeans.service.ts"));
@@ -1312,6 +1671,48 @@ public class NgxBuilder extends MobileBuilder {
 		
 		return tsContent;
 	}
+
+	private String getCompTsContent(UISharedComponent comp) throws IOException {
+		String compName = comp.getName();
+		String c8o_CompName = compName;
+		String c8o_CompChangeDetection = "ChangeDetectionStrategy.Default"; //comp.getChangeDetectionStrategy();
+		String c8o_CompTplUrl = compName.toLowerCase() + ".html";
+		String c8o_CompStyleUrls = compName.toLowerCase() + ".scss";
+		String c8o_CompSelector = "comp-"+compName.toLowerCase();
+		String c8o_CompImports = comp.getComputedImports();
+		String c8o_CompInterfaces = comp.getComputedInterfaces();
+		String c8o_CompDeclarations = comp.getComputedDeclarations();
+		String c8o_CompConstructors = comp.getComputedConstructors();
+		String c8o_CompFunctions = comp.getComputedFunctions();
+		String c8o_UserCustoms = comp.getScriptContent().getString();
+		
+		File compTplTs = new File(ionicTplDir, "src/comp.tpl");
+		String tsContent = FileUtils.readFileToString(compTplTs, "UTF-8");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompSelector\\*/","'"+c8o_CompSelector+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompTplUrl\\*/","'"+c8o_CompTplUrl+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompStyleUrls\\*/","'"+c8o_CompStyleUrls+"'");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompChangeDetection\\*/",c8o_CompChangeDetection);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompName\\*/",c8o_CompName);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompImports\\*/",c8o_CompImports);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompInterfaces\\*/",c8o_CompInterfaces);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompDeclarations\\*/",c8o_CompDeclarations);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompConstructors\\*/",c8o_CompConstructors);
+		
+		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
+		Matcher matcher = pattern.matcher(tsContent);
+		while (matcher.find()) {
+			String markerId = matcher.group(1);
+			String tplMarker = getMarker(tsContent, markerId);
+			String customMarker = getMarker(c8o_UserCustoms, markerId);
+			if (!customMarker.isEmpty()) {
+				tsContent = tsContent.replace(tplMarker, customMarker);
+			}
+		}
+		
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompFunctions\\*/", Matcher.quoteReplacement(c8o_CompFunctions));
+		
+		return tsContent;
+	}
 	
 	private String getPageModuleTsContent(PageComponent page) throws IOException {
 		// contributors
@@ -1326,7 +1727,7 @@ public class NgxBuilder extends MobileBuilder {
 		for (Contributor contributor : contributors) {
 			comp_beans_dirs.putAll(contributor.getCompBeanDir());
 			
-			module_ts_imports.putAll(contributor.getModuleTsImports());
+			module_ts_imports.putAll(contributor.getModuleTsImports(page));
 			module_ng_imports.addAll(contributor.getModuleNgImports());
 			module_ng_providers.addAll(contributor.getModuleNgProviders());
 			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
@@ -1419,6 +1820,137 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageModuleName\\*/",c8o_PageModuleName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageRoutingModuleName\\*/",c8o_PageRoutingModuleName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImport\\*/",c8o_PageImport);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgDeclarations\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgComponents\\*/",c8o_ModuleNgComponents);
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgComponents\\*/","");
+		
+		for (String compbean : comp_beans_dirs.keySet()) {
+			File srcCompDir = comp_beans_dirs.get(compbean);
+			File destCompDir = new File(componentsDir, compbean);
+			Matcher m = Pattern.compile("file:(/.*?)!/(.*)").matcher(srcCompDir.getPath().replace('\\', '/'));
+			if (m.matches()) {
+				ZipUtils.expandZip(m.group(1), destCompDir.getAbsolutePath(), m.group(2));
+			} else {
+				for (File f: srcCompDir.listFiles()) {
+					String fContent = FileUtils.readFileToString(f, "UTF-8");
+					File destFile = new File(componentsDir, compbean+ "/"+ f.getName());
+					writeFile(destFile, fContent, "UTF-8");
+				}
+			}
+		}
+		
+		return tsContent;
+	}
+	
+	private String getCompModuleTsContent(UISharedComponent comp) throws IOException {
+		// contributors
+		Map<String, File> comp_beans_dirs = new HashMap<>();
+		Map<String, String> module_ts_imports = new HashMap<>();
+		Set<String> module_ng_imports =  new HashSet<String>();
+		Set<String> module_ng_providers =  new HashSet<String>();
+		Set<String> module_ng_declarations =  new HashSet<String>();
+		Set<String> module_ng_components =  new HashSet<String>();
+		
+		List<Contributor> contributors = comp.getContributors();
+		for (Contributor contributor : contributors) {
+			comp_beans_dirs.putAll(contributor.getCompBeanDir());
+			
+			module_ts_imports.putAll(contributor.getModuleTsImports(comp));
+			module_ng_imports.addAll(contributor.getModuleNgImports());
+			module_ng_providers.addAll(contributor.getModuleNgProviders());
+			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+			module_ng_components.addAll(contributor.getModuleNgComponents());
+		}
+		// fix for BrowserAnimationsModule until it will be handled in config
+		module_ts_imports.remove("BrowserAnimationsModule");
+		module_ng_imports.remove("BrowserAnimationsModule");
+
+		String c8o_ModuleTsImports = "";
+		Map<String, String> tpl_ts_imports = getTplCompModuleTsImports();
+		if (!module_ts_imports.isEmpty()) {
+			for (String compo : module_ts_imports.keySet()) {
+				if (!tpl_ts_imports.containsKey(compo)) {
+					String from = module_ts_imports.get(compo);
+					if (compo.indexOf(" as ") != -1) {
+						c8o_ModuleTsImports += "import "+compo+" from '"+ from +"';"+ System.lineSeparator();
+					} else {
+						from = (from.startsWith("../components/") ? "../":"") + from;
+						c8o_ModuleTsImports += "import { "+compo+" } from '"+ from +"';"+ System.lineSeparator();
+					}
+				}
+			}
+		}
+		
+		String c8o_ModuleNgImports = "";
+		String tpl_ng_imports = getTplCompModuleNgImports();
+		if (!module_ng_imports.isEmpty()) {
+			for (String module: module_ng_imports) {
+				if (!tpl_ng_imports.contains(module)) {
+					c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgImports.isEmpty()) {
+				c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports + System.lineSeparator();
+			}
+		}
+		
+		String c8o_ModuleNgProviders = "";
+		String tpl_ng_providers = getTplCompModuleNgProviders();
+		if (!module_ng_providers.isEmpty()) {
+			for (String provider: module_ng_providers) {
+				if (!tpl_ng_providers.contains(provider)) {
+					c8o_ModuleNgProviders += "\t" + provider + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgProviders.isEmpty()) {
+				c8o_ModuleNgProviders = System.lineSeparator() + c8o_ModuleNgProviders;
+			}
+		}
+
+		String c8o_ModuleNgDeclarations = "";
+		String tpl_ng_declarations = getTplCompModuleNgDeclarations();
+		if (!module_ng_declarations.isEmpty()) {
+			for (String declaration: module_ng_declarations) {
+				if (!tpl_ng_declarations.contains(declaration)) {
+					c8o_ModuleNgDeclarations += "\t" + declaration + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgDeclarations.isEmpty()) {
+				c8o_ModuleNgDeclarations = System.lineSeparator() + c8o_ModuleNgDeclarations;
+			}
+		}
+		
+		String c8o_ModuleNgComponents = "";
+		String tpl_ng_components = getTplCompModuleNgComponents();
+		if (!module_ng_components.isEmpty()) {
+			for (String component: module_ng_components) {
+				if (!tpl_ng_components.contains(component)) {
+					c8o_ModuleNgComponents += "\t" + component + "," + System.lineSeparator();
+				}
+			}
+			if (!c8o_ModuleNgComponents.isEmpty()) {
+				c8o_ModuleNgComponents = System.lineSeparator() + c8o_ModuleNgComponents;
+			}
+		}
+		
+		String compName = comp.getName();
+		String c8o_CompName = compName;
+		String c8o_CompModuleName = compName + "Module";
+		String c8o_CompImport = "";
+		
+		c8o_CompImport += "import { "+compName+" } from \"./"+compName.toLowerCase()+"\";" + System.lineSeparator();
+		
+		File pageTplTs = new File(ionicTplDir, "src/comp.module.tpl");
+		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompName\\*/",c8o_CompName);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompModuleName\\*/",c8o_CompModuleName);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompImport\\*/",c8o_CompImport);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
@@ -1546,6 +2078,16 @@ public class NgxBuilder extends MobileBuilder {
 					}
 				}
 				
+				// Shared components contributors
+				for (UISharedComponent comp: app.getSharedComponentList()) {
+					if (comp.isRegular()) {
+						List<Contributor> contributors = comp.getContributors();
+						for (Contributor contributor : contributors) {
+							pkg_dependencies.putAll(contributor.getPackageDependencies());
+						}
+					}
+				}
+				
 				File appPkgJsonTpl = new File(ionicTplDir, "package.json");
 				String mContent = FileUtils.readFileToString(appPkgJsonTpl, "UTF-8");
 				mContent = mContent.replaceAll("../DisplayObjects","../../DisplayObjects");
@@ -1593,6 +2135,15 @@ public class NgxBuilder extends MobileBuilder {
 				for (Contributor contributor : app.getContributors()) {
 					action_ts_imports.putAll(contributor.getActionTsImports());
 					action_ts_functions.putAll(contributor.getActionTsFunctions());
+				}
+				
+				//Shared components
+				for (UISharedComponent comp: app.getSharedComponentList()) {
+					List<Contributor> contributors = comp.getContributors();
+					for (Contributor contributor : contributors) {
+						action_ts_imports.putAll(contributor.getActionTsImports());
+						action_ts_functions.putAll(contributor.getActionTsFunctions());
+					}
 				}
 				
 				//Pages contributors
@@ -1697,7 +2248,7 @@ public class NgxBuilder extends MobileBuilder {
 				for (Contributor contributor : app.getContributors()) {
 					comp_beans_dirs.putAll(contributor.getCompBeanDir());
 
-					module_ts_imports.putAll(contributor.getModuleTsImports());
+					module_ts_imports.putAll(contributor.getModuleTsImports(app));
 					module_ng_imports.addAll(contributor.getModuleNgImports());
 					module_ng_providers.addAll(contributor.getModuleNgProviders());
 					module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
@@ -1720,7 +2271,7 @@ public class NgxBuilder extends MobileBuilder {
 						for (Contributor contributor : contributors) {
 							comp_beans_dirs.putAll(contributor.getCompBeanDir());
 							
-							module_ts_imports.putAll(contributor.getModuleTsImports());
+							module_ts_imports.putAll(contributor.getModuleTsImports(page));
 							module_ng_imports.addAll(contributor.getModuleNgImports());
 							module_ng_providers.addAll(contributor.getModuleNgProviders());
 							module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
@@ -1733,7 +2284,7 @@ public class NgxBuilder extends MobileBuilder {
 							if (contributor.isNgModuleForApp()) {
 								comp_beans_dirs.putAll(contributor.getCompBeanDir());
 								
-								module_ts_imports.putAll(contributor.getModuleTsImports());
+								module_ts_imports.putAll(contributor.getModuleTsImports(page));
 								module_ng_imports.addAll(contributor.getModuleNgImports());
 								module_ng_providers.addAll(contributor.getModuleNgProviders());
 								module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
@@ -1753,10 +2304,12 @@ public class NgxBuilder extends MobileBuilder {
 				if (!module_ts_imports.isEmpty()) {
 					for (String comp : module_ts_imports.keySet()) {
 						if (!tpl_ts_imports.containsKey(comp)) {
+							String from = module_ts_imports.get(comp);
 							if (comp.indexOf(" as ") != -1) {
-								c8o_ModuleTsImports += "import "+comp+" from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+								c8o_ModuleTsImports += "import "+comp+" from '"+ from +"';"+ System.lineSeparator();
 							} else {
-								c8o_ModuleTsImports += "import { "+comp+" } from '"+ module_ts_imports.get(comp) +"';"+ System.lineSeparator();
+								from = from.startsWith("../components/") ? "."+ from.substring(2) : from;
+								c8o_ModuleTsImports += "import { "+comp+" } from '"+ from +"';"+ System.lineSeparator();
 							}
 						}
 					}
@@ -2034,9 +2587,14 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
-	private void deleteUselessDir(String pageName) {
+	private void deleteUselessPageDir(String pageName) {
 		File pageDir = new File(pagesDir, pageName.toLowerCase());
 		deleteDir(pageDir);
+	}
+
+	private void deleteUselessCompDir(String compName) {
+		File compDir = new File(componentsDir, compName.toLowerCase());
+		deleteDir(compDir);
 	}
 	
 	private void removeUselessPages(ApplicationComponent application) {
@@ -2107,6 +2665,28 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	private void writeCompSourceFiles(UISharedComponent comp) throws EngineException {
+		String compName = comp.getName();
+		try {
+			File compDir = compDir(comp);
+			compDir.mkdirs();
+			
+			FileUtils.deleteQuietly(new File(compDir, compName.toLowerCase() + ".temp.ts"));
+			
+			writeCompTs(comp);
+			writeCompModuleTs(comp);
+			writeCompStyle(comp);
+			writeCompTemplate(comp);
+			
+			if (initDone) {
+				Engine.logEngine.trace("(MobileBuilder) Ionic source files generated for component '"+compName+"'");
+			}
+		}
+		catch (Exception e) {
+			throw new EngineException("Unable to write source files for component '"+compName+"'",e);
+		}
+	}
+
 	private void deleteDir(File dir) {
 		if (initDone && Engine.isStudioMode()) {
 			// delete dir

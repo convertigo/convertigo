@@ -480,6 +480,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UITheme">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
@@ -528,10 +529,14 @@
 				</bean>
 			</beans>
 			<beans groupname="Control Components">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICompEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement"/>
-				</bean>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIUseShared"/>
+					</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlDirective">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustom"/>
@@ -587,6 +592,9 @@
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
 				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIUseShared">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
@@ -620,6 +628,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction">
@@ -636,6 +645,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate">
@@ -652,6 +662,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke">
@@ -668,6 +679,24 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
+				</bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate">
@@ -684,6 +713,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch">
@@ -700,6 +730,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf">
@@ -716,6 +747,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlVariable">

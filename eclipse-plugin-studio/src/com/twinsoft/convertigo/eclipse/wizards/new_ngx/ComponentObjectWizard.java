@@ -188,7 +188,7 @@ public class ComponentObjectWizard extends Wizard {
 									root = false;
 									super.walk(dbo);
 									if (!find) {
-										throw new EngineException("You cannot add to a " + newBean.getClass().getSimpleName() + " a database object of type " + parentObject.getClass().getSimpleName());
+										throw new EngineException("You cannot add to a " + parentObject.getClass().getSimpleName() + " a database object of type " + newBean.getClass().getSimpleName());
 									}
 								} else {
 									if (newBean.getName().equalsIgnoreCase(dbo.getName())) {

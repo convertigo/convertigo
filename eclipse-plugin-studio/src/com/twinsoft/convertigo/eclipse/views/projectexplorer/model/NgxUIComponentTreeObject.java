@@ -52,6 +52,7 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
@@ -64,6 +65,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UICustom;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
@@ -82,6 +84,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
+import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -138,6 +141,74 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			editFunction(uic, functionMarker, "actionValue");
 		} else {
 			super.launchEditor(editorType);
+		}
+	}
+	
+	public void editCompTsFile() {
+		if (!(getObject() instanceof ISharedComponent)) {
+			return;
+		}
+		
+		final UISharedComponent comp = (UISharedComponent)getObject();
+		try {
+			// Refresh project resource
+			String projectName = comp.getProject().getName();
+			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+			project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			
+			// Close editor
+			String filePath = comp.getProject().getMobileBuilder().getTempTsRelativePath((ISharedComponent)comp);
+			IFile file = project.getFile(filePath);
+			closeComponentFileEditor(file);
+			
+			// Write temporary file
+			comp.getProject().getMobileBuilder().writeCompTempTs((ISharedComponent) comp);
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
+
+			// Open file in editor
+			if (file.exists()) {
+				IEditorInput input = new ComponentFileEditorInput(file, comp);
+				if (input != null) {
+					IEditorDescriptor desc = PlatformUI
+							.getWorkbench()
+							.getEditorRegistry()
+							.getDefaultEditor(file.getName());
+					
+					IWorkbenchPage activePage = PlatformUI
+							.getWorkbench()
+							.getActiveWorkbenchWindow()
+							.getActivePage();
+	
+					String editorId = desc.getId();
+					
+					IEditorPart editorPart = activePage.openEditor(input, editorId);
+					addMarkers(file, editorPart);
+					editorPart.addPropertyListener(new IPropertyListener() {
+						boolean isFirstChange = false;
+						
+						@Override
+						public void propertyChanged(Object source, int propId) {
+							if (source instanceof ITextEditor) {
+								if (propId == IEditorPart.PROP_DIRTY) {
+									if (!isFirstChange) {
+										isFirstChange = true;
+										return;
+									}
+									
+									isFirstChange = false;
+									ITextEditor editor = (ITextEditor)source;
+									IDocumentProvider dp = editor.getDocumentProvider();
+									IDocument doc = dp.getDocument(editor.getEditorInput());
+									FormatedContent scriptContent = new FormatedContent(MobileBuilder.getMarkers(doc.get()));
+									NgxUIComponentTreeObject.this.setPropertyValue("scriptContent", scriptContent);
+								}
+							}
+						}
+					});
+				}			
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to open typescript file for component '" + comp.getName() + "'!");
 		}
 	}
 	
@@ -599,6 +670,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					}
 					
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxUIComponentTreeObject.class.isAssignableFrom(c))
+					{
+						list.add("event");
+					}
+					
+					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 						ConnectorTreeObject.class.isAssignableFrom(c) ||
 						DesignDocumentTreeObject.class.isAssignableFrom(c) ||
 						DesignDocumentViewTreeObject.class.isAssignableFrom(c))
@@ -634,7 +713,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				else if (object instanceof UIDynamicElement) {
 					return "requestable".equals(propertyName) || 
 								"fsview".equals(propertyName) ||
-									"page".equals(propertyName);
+									"page".equals(propertyName) ||
+										"event".equals(propertyName);
 				}
 				return false;
 			}
@@ -744,6 +824,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							return (((PageComponent)nsObject).getProject().equals(object.getProject()));
 						}
 					}
+					if ("event".equals(propertyName)) {
+						UIDynamicElement cc = (UIDynamicElement) object;
+						if (cc.getIonBean().getName().equals("EmitEventAction")) {
+							if (nsObject instanceof UICompEvent) {
+								return (((UICompEvent)nsObject).getSharedComponent().equals(object.getSharedComponent()));
+							}
+						}
+					}
 				}
 				return false;
 			}
@@ -823,6 +911,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								if ("page".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
 										setPropertyValue("page", new MobileSmartSourceType(_pValue));
+									hasBeenRenamed = true;
+								}
+								if ("event".equals(propertyName)) {
+									((UIDynamicElement)object).getIonBean().
+										setPropertyValue("event", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 							}
@@ -968,6 +1061,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
 		
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		
 		refactorSmartSources(treeObjectEvent);
 		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
@@ -976,7 +1072,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			
 			try {
 				if (this.equals(treeObject)) {
-					markMainAsDirty(getObject(), done);
+					if (propertyName.equals("scriptContent")) {
+						if (!newValue.equals(oldValue)) {
+							markMainTsAsDirty();
+							markMainAsDirty(getObject(), done);
+						}
+					} else {
+						markMainAsDirty(getObject(), done);
+					}
 					
 					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
 					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
@@ -1059,6 +1162,18 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 	}
 	
+	protected void markMainTsAsDirty() {
+		if (getObject() instanceof UISharedComponent) {
+			UISharedComponent comp = (UISharedComponent)getObject();
+			try {
+				comp.markCompTsAsDirty();
+			} catch (EngineException e) {
+				ConvertigoPlugin.logException(e,
+						"Error while writing the component.ts file for component '" + comp.getName() + "'");
+			}
+		}
+	}
+	
 	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
 		if (uic != null) {
 			IScriptComponent main = uic.getMainScriptComponent();
@@ -1067,6 +1182,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					return;
 				}
 				//System.out.println("---markMainAsDirty for dbo@"+ uic.priority +" " + uic.toString() + ", with done : '" + done + "'");
+				if (main instanceof UISharedComponent) {
+					((UISharedComponent)main).markCompAsDirty();
+				}
 				if (main instanceof ApplicationComponent) {
 					((ApplicationComponent)main).markApplicationAsDirty();
 				}
@@ -1297,10 +1415,26 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				}
 			}
 			// Case a UICompVariable has been renamed
-			if (databaseObject instanceof UICompVariable) {
+			else if (databaseObject instanceof UICompVariable) {
 				UICompVariable variable = (UICompVariable)databaseObject;
 				UISharedComponent comp = variable.getSharedComponent();
 				if (comp != null) {
+					// rename variable for comp
+					if (comp.equals(getObject())) {
+						if (comp.isRegular()) {
+							String oldString = "\\."+oldValue;
+							String newString = "."+newValue;
+							if (comp.updateSmartSources(oldString, newString)) {
+								try {
+									viewer.refresh();
+									markMainAsDirty(comp);
+								} catch (EngineException e) {
+									ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for SharedComponent !");
+								}
+							}
+						}
+					}
+					
 					// rename variable for UseShared
 					if (getObject() instanceof UIUseShared) {
 						UIUseShared uus = (UIUseShared)getObject();
@@ -1327,6 +1461,46 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 												break;
 											} catch (EngineException e) {
 												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for UseShared !");
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			// Case a UICompEvent has been renamed
+			else if (databaseObject instanceof UICompEvent) {
+				UICompEvent event = (UICompEvent)databaseObject;
+				UISharedComponent comp = event.getSharedComponent();
+				if (comp != null) {
+					// rename control event for UseShared
+					if (getObject() instanceof UIUseShared) {
+						UIUseShared uus = (UIUseShared)getObject();
+						if (uus.getSharedComponentQName().equals(comp.getQName())) {
+							boolean isLocalProject = event.getProject().equals(uus.getProject());
+							boolean isSameValue = event.getName().equals(oldValue);
+							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
+							
+							if (!isSameValue && shouldUpdate) {
+								Iterator<UIComponent> it = uus.getUIComponentList().iterator();
+								while (it.hasNext()) {
+									UIComponent component = (UIComponent)it.next();
+									if (component instanceof UIControlEvent) {
+										UIControlEvent uice = (UIControlEvent)component;
+										if (uice.getEventName().equals(oldValue)) {
+											try {
+												uice.setEventName((String) newValue);
+												uice.hasChanged = true;
+												
+												viewer.refresh();
+												markMainAsDirty(uus);
+												
+												notifyDataseObjectPropertyChanged(uice, "eventName", oldValue, newValue, new HashSet<Object>());
+												break;
+											} catch (EngineException e) {
+												ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' event for UseShared !");
 											}
 										}
 									}

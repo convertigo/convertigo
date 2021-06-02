@@ -41,6 +41,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IPageComponent;
+import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.core.IUIComponent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -1013,7 +1014,12 @@ public class Ionic3Builder extends MobileBuilder {
 		}
 		return tpl_pageTsImports;
 	}
-	
+
+	@Override
+	protected Map<String,String> getTplCompTsImports() {
+		return new HashMap<String, String>();
+	}
+
 	private Map<String,String> getTplAppModuleTsImports() {
 		if (tpl_appModuleTsImports == null) {
 			tpl_appModuleTsImports = initTplImports(new File(ionicTplDir, "src/app/app.module.ts"));
@@ -2150,4 +2156,40 @@ public class Ionic3Builder extends MobileBuilder {
 			}
 		}
 	}
+
+	@Override
+	public void compAdded(ISharedComponent sharedComponent) throws EngineException {
+		// Does nothing
+	}
+	
+	@Override
+	public void compRemoved(ISharedComponent sharedComponent) throws EngineException {
+		// Does nothing
+	}
+	
+	@Override
+	public void compTemplateChanged(ISharedComponent sharedComponent) throws EngineException {
+		// Does nothing
+	}
+
+	@Override
+	public void compStyleChanged(ISharedComponent sharedComponent) throws EngineException {
+		// Does nothing
+	}
+
+	@Override
+	public void compTsChanged(ISharedComponent sharedComponent, boolean b) throws EngineException {
+		// Does nothing
+	}
+
+	@Override
+	public void writeCompTempTs(ISharedComponent sharedComponent) throws EngineException {
+		// Does nothing
+	}
+
+	@Override
+	public String getTempTsRelativePath(ISharedComponent sharedComponent) throws EngineException {
+		return null;
+	}
+
 }

@@ -29,7 +29,9 @@ import java.util.Set;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
 public class UISharedComponent extends UIComponent implements IShared {
@@ -40,10 +42,49 @@ public class UISharedComponent extends UIComponent implements IShared {
 		super();
 	}
 
+	public UISharedComponent(boolean isRegular) {
+		super();
+		this.isRegular = isRegular;
+	}
+	
 	@Override
 	public UISharedComponent clone() throws CloneNotSupportedException {
 		UISharedComponent cloned = (UISharedComponent) super.clone();
 		return cloned;
+	}
+	
+	private boolean isRegular = false;
+
+	public boolean isTemplate() {
+		return !isRegular;
+	}
+	
+	public boolean isRegular() {
+		return isRegular;
+	}
+	
+	protected String identifier = "";
+	
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
+	}
+	
+	public String getRefIdentifier() {
+		return identifier.isBlank() ? "comp"+ priority : identifier;
+	}
+	
+	protected FormatedContent scriptContent = new FormatedContent("");
+
+	public FormatedContent getScriptContent() {
+		return scriptContent;
+	}
+
+	public void setScriptContent(FormatedContent scriptContent) {
+		this.scriptContent = scriptContent;
 	}
 	
 	public List<UICompVariable> getVariables() {
@@ -56,6 +97,10 @@ public class UISharedComponent extends UIComponent implements IShared {
 			}
 		}
 		return Collections.unmodifiableList(list);
+	}
+	
+	public List<UICompEvent> getUICompEventList() {
+		return new ArrayList<UICompEvent>();
 	}
 	
 	@Override
@@ -100,6 +145,10 @@ public class UISharedComponent extends UIComponent implements IShared {
 		// does nothing
 	}
 
+	protected synchronized void doComputeContents() {
+		// does nothing
+	}
+	
 	protected String computeTemplate(UIUseShared uiUse) {
 		String computed = "";
 		if (isEnabled()) {
@@ -220,5 +269,45 @@ public class UISharedComponent extends UIComponent implements IShared {
 	@Override
 	public FolderType getFolderType() {
 		return FolderType.SHARED_COMPONENT;
+	}
+	
+	public String getComputedTemplate() {
+		return "";
+	}
+	
+	public String getComputedStyle() {
+		return "";
+	}
+	
+	public String getComputedImports() {
+		return "";
+	}
+	
+	public String getComputedInterfaces() {
+		return "";
+	}
+	
+	public String getComputedDeclarations() {
+		return "";
+	}
+	
+	public String getComputedConstructors() {
+		return "";
+	}
+	
+	public String getComputedFunctions() {
+		return "";
+	}
+
+	public List<Contributor> getContributors() {
+		return new ArrayList<Contributor>();
+	}
+	
+	public void markCompTsAsDirty() throws EngineException {
+		// does nothing
+	}
+		
+	public void markCompAsDirty() throws EngineException {
+		// does nothing
 	}
 }
