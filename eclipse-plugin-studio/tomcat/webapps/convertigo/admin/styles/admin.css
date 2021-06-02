@@ -933,15 +933,15 @@ table.ui-pg-table {
 }
 
 .log-z-index-10000 {
-	z-index: 10000;
+	z-index: 95;
 }
 
 .log-z-index-11000 {
-	z-index: 11000;
+	z-index: 96;
 }
 
 .log-z-index-20000 {
-	z-index: 20000;
+	z-index: 99;
 }
 
 .log-toolbar-button {
