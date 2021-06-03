@@ -15,8 +15,7 @@
       <programArgsLin>--launcher.GTK_version
 2
       </programArgsLin>
-      <vmArgs>--add-opens=java.base/java.nio=ALL-UNNAMED
---add-opens=java.base/java.lang=ALL-UNNAMED
+      <vmArgs>--illegal-access=permit
          <argsX86>-Xms256m -Xmx1024m</argsX86>
          <argsX86_64>-Xms256m -Xmx2048m</argsX86_64>
       </vmArgs>

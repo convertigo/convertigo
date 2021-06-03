@@ -102,6 +102,11 @@ public class JScriptEditorInput extends FileInPlaceEditorInput implements IPrope
 			}
 			
 			@Override
+			public DatabaseObject getDatabaseObject() {
+				return dboTree.getObject();
+			}
+			
+			@Override
 			public String getName() {
 				return dboTree.getName();
 			}

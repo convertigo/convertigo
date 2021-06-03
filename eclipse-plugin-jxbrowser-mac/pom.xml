@@ -18,7 +18,7 @@ Contributors:
 	<name>Convertigo JxBrowser Mac</name>
 
 	<parent>
-<!-- SET-VERSION --><version>7.9.3-SNAPSHOT</version>
+<!-- SET-VERSION --><version>7.9.4-SNAPSHOT</version>
 		<groupId>com.convertigo.studio</groupId>
 		<artifactId>root</artifactId>
 	</parent>

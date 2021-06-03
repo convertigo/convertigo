@@ -81,7 +81,7 @@ public class PurgeDatabaseTransaction extends AbstractDatabaseTransaction implem
 		CouchClient couchClient = getCouchClient();
 		String version = couchClient.getServerVersion();
 		if (version.startsWith("2.0.") || version.startsWith("2.1.") || version.startsWith("2.2.")) {
-			return new JSONObject("{\"error\": \"'_purge' no implemented since CouchDB 2.3.0 and you are using CouchDB " + version + "\"}");
+			return new JSONObject("{\"error\": \"'_purge' is implemented since CouchDB 2.3.0 and you are using CouchDB " + version + "\"}");
 		}
 		boolean old = version != null && version.compareTo("2.") < 0;
 		if (isPurgeAll()) {
@@ -91,7 +91,7 @@ public class PurgeDatabaseTransaction extends AbstractDatabaseTransaction implem
 				query.put("filter", "_selector");
 				body = new JSONObject("{\"selector\":{\"_deleted\":true}}");
 			}
-			int limit = 100;
+			int limit = 50;
 			query.put("limit", Integer.toString(limit));
 			
 			String since = "0";
