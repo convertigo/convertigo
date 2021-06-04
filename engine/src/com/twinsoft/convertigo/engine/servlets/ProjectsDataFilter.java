@@ -129,7 +129,7 @@ public class ProjectsDataFilter implements Filter {
 		if (file.exists() && file.isDirectory()) {
 			// Handle ".../projects" requests
 			s = file.getCanonicalPath();
-			if (s.endsWith("projects") || s.equals(Engine.PROJECTS_PATH)) {
+			if (s.equals(Engine.PROJECTS_PATH)) {
 				if (requestURI.endsWith("/")) {
 					Engine.logContext.debug("Send redirect to: '../index.html'");
 					response.sendRedirect("../index.html");
