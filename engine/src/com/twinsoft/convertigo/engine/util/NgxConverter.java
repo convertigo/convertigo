@@ -24,8 +24,12 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,6 +84,19 @@ public class NgxConverter {
 			e.printStackTrace();
 		}
 		return "";
+	}
+	
+	private static String getBeanQName(Element beanEl) {
+		String beanName = "";
+		try {
+			String yaml_key = beanEl.getAttribute("yaml_key");
+			if (!yaml_key.isBlank()) {
+				beanName = yaml_key.substring(0, yaml_key.indexOf('[')).trim();
+				String qname = getBeanQName((Element) beanEl.getParentNode());
+				return qname + (qname.isBlank() ? "":".") + beanName;
+			}
+		} catch (Exception e) {}
+		return beanName;
 	}
 	
 	private static Element getBeanDataElement(Element beanEl) {
@@ -213,6 +230,11 @@ public class NgxConverter {
 			try {
 				xpath.selectList(beanEl, "tplProjectName").get(0).setTextContent("mobilebuilder_tpl_8_0_0_ngx");
 			} catch (Exception e) {}
+		}
+		
+		// for shared component
+		if (yaml_key.indexOf("ngx.components.UISharedComponent") != -1) {
+			beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UISharedComponent", "UISharedRegularComponent"));
 		}
 		
 		// for application theme
@@ -1102,6 +1124,72 @@ public class NgxConverter {
 		} catch (Exception e) {}
 	}
 	
+	private static void handleSharedComponent(Element beanEl, Map<Element, List<Element>> sharedMap) {
+		String yaml_key = beanEl.getAttribute("yaml_key");
+		for (Element el: sharedMap.get(beanEl)) {
+			try {
+				JSONObject jsonBean = getJsonBean(el);
+				
+				// for PublishEventAction inside a shared component
+				if ("PublishEventAction".equalsIgnoreCase(jsonBean.getString("ionBean"))) {
+					String eventName = null;
+					
+					String topic = jsonBean.getString("topic");
+					if (topic.indexOf("plain:") != -1) {
+						eventName = topic.substring(topic.indexOf(":")+1);
+					} else if (topic.indexOf("script:'") != -1) {
+						eventName = topic.substring(topic.indexOf("'")+1, topic.lastIndexOf("'"));
+					}
+					if (eventName != null) {
+						DatabaseObject dbo = null;
+						
+						// add a CompEvent for each event a shared component expose
+						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
+								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("UICompEvent"));
+						if (dbo != null) {
+							Element compEventEl = beanEl.getOwnerDocument().createElement("bean");
+							compEventEl.setAttribute("yaml_key", eventName + " [ngx.components.UICompEvent-"+ dbo.priority +"]");
+							
+							Element childAttr = beanEl.getOwnerDocument().createElement("attrName");
+							childAttr.appendChild(beanEl.getOwnerDocument().createTextNode(eventName));
+							compEventEl.appendChild(childAttr);
+							
+							if (xpath.selectList(beanEl, "bean[starts-with(@yaml_key,'"+eventName+" ')]").size() == 0) {
+								beanEl.appendChild(compEventEl);
+							}
+						}
+						
+						// add an EmitEventAction action beside each PublishEventAction
+						dbo = com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.createBean(
+								com.twinsoft.convertigo.beans.ngx.components.dynamic.ComponentManager.getComponentByName("EmitEventAction"));
+						if (dbo != null) {
+							Element emitEventEl = beanEl.getOwnerDocument().createElement("bean");
+							emitEventEl.setAttribute("yaml_key", "EmitEvent" + " [ngx.components.UIDynamicEmit-"+ dbo.priority +"]");
+							
+							String qname = getBeanQName(beanEl) + "." + eventName;
+							
+							JSONObject jsonEmit =  new JSONObject().put("ionBean", "EmitEventAction");
+							jsonEmit.put("event", "plain:"+ qname);
+							jsonEmit.put("data", jsonBean.getString("data"));
+							
+							Element emitDataChild = beanEl.getOwnerDocument().createElement("beanData");
+							emitDataChild.appendChild(beanEl.getOwnerDocument().createTextNode(jsonEmit.toString()));
+							emitEventEl.appendChild(emitDataChild);
+							
+							if (xpath.selectList(el.getParentNode(), "bean[starts-with(@yaml_key,'EmitEvent ')]").size() == 0) {
+								el.getParentNode().insertBefore(emitEventEl, el);
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				System.err.println("Error handling shared component : "+ yaml_key.replaceAll("ngx\\.components", "mobile.components"));
+				System.err.println(XMLUtils.prettyPrintElement(el).replaceAll("ngx\\.components", "mobile.components"));
+			}
+		}
+		
+	}
+	
 	private static void handleToggle(Element beanEl) {
 		JSONObject jsonBean = getJsonBean(beanEl);
 		try {
@@ -1234,6 +1322,8 @@ public class NgxConverter {
 			setBeanData(beanEl, jsonBean.toString());
 		} catch (Exception e) {}
 	}
+
+	private Element sharedCompEl = null;
 	
 	private void convertBean(Element element) throws Exception {
 		for (Node node: xpath.selectList(element, "//*[@classname]")) {
@@ -1250,7 +1340,14 @@ public class NgxConverter {
 			String _indent = indent;
 			
 			String yaml_key = beanEl.getAttribute("yaml_key");
+			
+			// Ionic3 project migration
 			if (yaml_key.indexOf("mobile.components") != -1) {
+				
+				if (yaml_key.indexOf("mobile.components.UISharedComponent") != -1) {
+					sharedCompEl = beanEl;
+					sharedMap.put(beanEl, new ArrayList<Element>());
+				}
 				
 				if (yaml_key.indexOf("mobile.components.UIPageEvent") != -1) {
 					isPageEvent = true;
@@ -1385,6 +1482,11 @@ public class NgxConverter {
 					else if ("ToastAction".equalsIgnoreCase(ionBeanName)) {
 						handleToastAction(beanEl);
 					}
+					else if ("PublishEventAction".equalsIgnoreCase(ionBeanName)) {
+						if (sharedCompEl != null) {
+							sharedMap.get(sharedCompEl).add(beanEl);
+						}
+					}
 					else if (!checkPseudoBean(beanEl)) {
 						continue;
 					}
@@ -1395,6 +1497,23 @@ public class NgxConverter {
 				}
 				
 				indent += "\t";
+			}
+			// Already migrated project
+			else if (yaml_key.indexOf("ngx.components") != -1) {
+				
+				// for shared component
+				if (yaml_key.indexOf("ngx.components.UISharedComponent") != -1) {
+					beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UISharedComponent", "UISharedRegularComponent"));
+					sharedCompEl = beanEl;
+					sharedMap.put(beanEl, new ArrayList<Element>());
+				}
+				
+				String ionBeanName = getIonBeanName(beanEl);
+				if ("PublishEventAction".equalsIgnoreCase(ionBeanName)) {
+					if (sharedCompEl != null) {
+						sharedMap.get(sharedCompEl).add(beanEl);
+					}
+				}
 			}
 			
 			convertBean(beanEl);
@@ -1407,20 +1526,30 @@ public class NgxConverter {
 			if (isPageEvent) {
 				handlePageEvent(beanEl); // for removed canEnter, canLeave
 			}
+			
+			if (beanEl.equals(sharedCompEl)) {
+				handleSharedComponent(beanEl, sharedMap); // add CompEvent, EmitEventAction
+				sharedCompEl = null;
+			}
 		}
 	}
+	
+	private Map<Element, List<Element>> sharedMap = new HashMap<Element, List<Element>>();
 	
 	public void convertFile() throws Exception {
 		File yaml = new File(outputDir, "c8oProject.yaml");
 		
 		Document document = YamlConverter.readYaml(yaml);
+		//XMLUtils.saveXml(document, new File(outputDir, "a.xml"));
 		Element root = document.getDocumentElement();
 		root.getAttributeNode("convertigo").setTextContent("8.0.0.m006");
 		convertBean(root);
-		
+		//XMLUtils.saveXml(document, new File(outputDir, "b.xml"));
 		document = BeansDefaultValues.unshrinkProject(document);
 		Document shrink = BeansDefaultValues.shrinkProject(document);
 		YamlConverter.writeYaml(shrink, new File(outputDir, "c8oProject.yaml"), new File(outputDir, "_c8oProject"));
+		
+		sharedMap.clear();
 	}
 
 	private static String time() {
