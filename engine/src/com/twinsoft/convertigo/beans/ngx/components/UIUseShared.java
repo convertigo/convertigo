@@ -374,11 +374,15 @@ public class UIUseShared extends UIElement {
 	@Override
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
 		if (isEnabled()) {		
+			if(!done.add(this)) {
+				return;
+			}
+			for (UIComponent uic : getUIComponentList()) {
+				uic.addContributors(done, contributors);
+			}
+			
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null) {
-				if (!done.add(this)) {
-					return;
-				}
 				if (!isRecursive()) {
 					uisc.addContributors(this, done, contributors);
 				}
