@@ -2183,6 +2183,11 @@ public class Ionic3Builder extends MobileBuilder {
 	}
 
 	@Override
+	public void compModuleTsChanged(ISharedComponent sharedComponent) throws EngineException {
+		// Does nothing
+	}
+	
+	@Override
 	public void writeCompTempTs(ISharedComponent sharedComponent) throws EngineException {
 		// Does nothing
 	}

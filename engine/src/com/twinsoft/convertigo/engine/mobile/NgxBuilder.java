@@ -511,6 +511,16 @@ public class NgxBuilder extends MobileBuilder {
 	}
 	
 	@Override
+	public void compModuleTsChanged(ISharedComponent sharedComponent) throws EngineException {
+		UISharedComponent comp = (UISharedComponent)sharedComponent;
+		if (comp != null && comp.isEnabled() && initDone) {
+			writeCompModuleTs(comp);
+			moveFiles();
+			Engine.logEngine.trace("(MobileBuilder) Handled 'compModuleTsChanged'");
+		}
+	}
+	
+	@Override
 	public synchronized void appTsChanged(final IApplicationComponent appComponent, boolean forceTemp) throws EngineException {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
 		if (app != null && initDone) {
