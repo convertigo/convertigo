@@ -1571,11 +1571,11 @@ public class NgxConverter {
 		File yaml = new File(outputDir, "c8oProject.yaml");
 		
 		Document document = YamlConverter.readYaml(yaml);
-		XMLUtils.saveXml(document, new File(outputDir, "a.xml"));
+		//XMLUtils.saveXml(document, new File(outputDir, "a.xml"));
 		Element root = document.getDocumentElement();
 		root.getAttributeNode("convertigo").setTextContent("8.0.0.m006");
 		convertBean(root);
-		XMLUtils.saveXml(document, new File(outputDir, "b.xml"));
+		//XMLUtils.saveXml(document, new File(outputDir, "b.xml"));
 		document = BeansDefaultValues.unshrinkProject(document);
 		Document shrink = BeansDefaultValues.shrinkProject(document);
 		YamlConverter.writeYaml(shrink, new File(outputDir, "c8oProject.yaml"), new File(outputDir, "_c8oProject"));
