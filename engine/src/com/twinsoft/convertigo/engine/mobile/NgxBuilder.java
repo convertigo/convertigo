@@ -1693,6 +1693,8 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_CompInterfaces = comp.getComputedInterfaces();
 		String c8o_CompDeclarations = comp.getComputedDeclarations();
 		String c8o_CompConstructors = comp.getComputedConstructors();
+		String c8o_CompInitializations = comp.getComputedInitializations();
+		String c8o_CompFinallizations = comp.getComputedDispositions();
 		String c8o_CompFunctions = comp.getComputedFunctions();
 		String c8o_UserCustoms = comp.getScriptContent().getString();
 		
@@ -1707,6 +1709,8 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompInterfaces\\*/",c8o_CompInterfaces);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompDeclarations\\*/",c8o_CompDeclarations);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompConstructors\\*/",c8o_CompConstructors);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompInitializations\\*/",c8o_CompInitializations);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_CompFinallizations\\*/",c8o_CompFinallizations);
 		
 		Pattern pattern = Pattern.compile("/\\*Begin_c8o_(.+)\\*/"); // begin c8o marker
 		Matcher matcher = pattern.matcher(tsContent);
@@ -2141,7 +2145,7 @@ public class NgxBuilder extends MobileBuilder {
 				Map<String, String> action_ts_imports = new HashMap<>();
 				Map<String, String> action_ts_functions = new HashMap<>();
 				
-				//Menus contributors
+				//App contributors
 				for (Contributor contributor : app.getContributors()) {
 					action_ts_imports.putAll(contributor.getActionTsImports());
 					action_ts_functions.putAll(contributor.getActionTsFunctions());
@@ -2149,10 +2153,17 @@ public class NgxBuilder extends MobileBuilder {
 				
 				//Shared components
 				for (UISharedComponent comp: app.getSharedComponentList()) {
-					List<Contributor> contributors = comp.getContributors();
-					for (Contributor contributor : contributors) {
-						action_ts_imports.putAll(contributor.getActionTsImports());
-						action_ts_functions.putAll(contributor.getActionTsFunctions());
+					if (comp.isRegular()) {
+						List<Contributor> contributors = comp.getContributors();
+						for (Contributor contributor : contributors) {
+							action_ts_imports.putAll(contributor.getActionTsImports());
+							Map<String, String> mapf = contributor.getActionTsFunctions();
+							for (String funcname: mapf.keySet()) {
+								if (!funcname.startsWith("CTS")) {
+									action_ts_functions.put(funcname, mapf.get(funcname));
+								}
+							}
+						}
 					}
 				}
 				

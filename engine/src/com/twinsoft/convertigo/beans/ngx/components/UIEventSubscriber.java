@@ -165,7 +165,7 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 			IScriptComponent main = getMainScriptComponent();
 			boolean fromRegularComp = main != null && main instanceof UISharedComponent && ((UISharedComponent)main).isRegular();
 			if (fromRegularComp) {
-				String identifier = ((UISharedComponent)main).getRefIdentifier();
+				String identifier = ((UISharedComponent)main).getIdentifier();
 				long compPriority = ((UISharedComponent)main).priority;
 				String scope = "params"+ compPriority + ": " + "x."+ "params"+ compPriority;
 				computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "

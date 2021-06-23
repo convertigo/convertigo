@@ -1060,6 +1060,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		for (UIAppEvent appEvent : getUIAppEventList()) {
 			appEvent.addContributors(done, contributors);
 		}
+		for(UIActionStack actionStack: getSharedActionList()) {
+			actionStack.addContributors(done, contributors);
+		}
 	}
     
 	private transient JSONObject computedContents = null;

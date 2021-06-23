@@ -646,7 +646,8 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 							SourceData sd = null;
 							try {
 								sd = Filter.Shared.toSourceData(new JSONObject()
-										.put("priority", uic.priority));
+										.put("priority", uic.priority)
+										.put("regular", ((UISharedComponent) uic).isRegular()));
 							} catch (JSONException e) {
 								e.printStackTrace();
 							}

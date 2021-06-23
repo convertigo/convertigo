@@ -61,7 +61,7 @@ public class UIUseShared extends UIElement {
 
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
-		if (!(uiComponent instanceof UIControlVariable) && !(uiComponent instanceof UIControlEvent)) {
+		if (!(uiComponent instanceof UIUseVariable) && !(uiComponent instanceof UIControlEvent)) {
 			throw new EngineException("You can not add this component to a UIUseShared component!");
 		}
 		
@@ -73,12 +73,12 @@ public class UIUseShared extends UIElement {
 		return super.getUIComponentList();
 	}
 	
-	public UIControlVariable getVariable(String variableName) {
+	public UIUseVariable getVariable(String variableName) {
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
 			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIControlVariable) {
-				UIControlVariable variable = (UIControlVariable)component;
+			if (component instanceof UIUseVariable) {
+				UIUseVariable variable = (UIUseVariable)component;
 				if (variable.getName().equals(variableName)) {
 					return variable;
 				}
@@ -149,51 +149,50 @@ public class UIUseShared extends UIElement {
 			UISharedComponent parentSharedComp = ((UIUseShared)this.getOriginal()).getSharedComponent();
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null && uisc.isEnabled()) {
-				
-				StringBuilder compVars = new StringBuilder();
-				for (UIComponent uic: uisc.getUIComponentList()) {
-					// Defined component variables
-					if (uic instanceof UICompVariable) {
-						UICompVariable uicv = (UICompVariable)uic;
-						if (uicv.isEnabled()) {
-							String varValue = uicv.getVariableValue();
-							if (!varValue.isEmpty()) {
-								compVars.append(compVars.length() > 0 ? ", ":"");
-								compVars.append(uicv.getVariableName()).append(": ");
-								compVars.append(varValue);
-							}
-						}
-					}
-				}
-				
-				StringBuilder eventBindings = new StringBuilder();
-				StringBuilder useVars = new StringBuilder();
-				for (UIComponent uic: getUIComponentList()) {
-					// Overridden component variables
-					if (uic instanceof UIControlVariable) {
-						UIControlVariable uicv = (UIControlVariable)uic;
-						if (uicv.isEnabled()) {
-							String varValue = uicv.getVarValue();
-							if (!varValue.isEmpty()) {
-								useVars.append(useVars.length() > 0 ? ", ":"");
-								useVars.append(uicv.getVarName()).append(": ");
-								useVars.append(varValue);
-							}
-						}
-					}
-					// Overridden event bindings
-					if (uic instanceof UIControlEvent) {
-						UIControlEvent uice = (UIControlEvent)uic;
-						if (uice.isEnabled()) {
-							eventBindings.append(uice.computeTemplate());
-						}
-					}
-				}
-				
-				String scope = getScope();
-				String params = "merge(merge({" + compVars.toString() + "},{" + useVars.toString() + "}),{scope:"+ scope +"})";
-				
 				if (uisc.isTemplate()) {
+					StringBuilder compVars = new StringBuilder();
+					for (UIComponent uic: uisc.getUIComponentList()) {
+						// Defined component variables
+						if (uic instanceof UICompVariable) {
+							UICompVariable uicv = (UICompVariable)uic;
+							if (uicv.isEnabled()) {
+								String varValue = uicv.getVariableValue();
+								if (!varValue.isEmpty()) {
+									compVars.append(compVars.length() > 0 ? ", ":"");
+									compVars.append(uicv.getVariableName()).append(": ");
+									compVars.append(varValue);
+								}
+							}
+						}
+					}
+					
+					StringBuilder eventBindings = new StringBuilder();
+					StringBuilder useVars = new StringBuilder();
+					for (UIComponent uic: getUIComponentList()) {
+						// Overridden component variables
+						if (uic instanceof UIControlVariable) {
+							UIControlVariable uicv = (UIControlVariable)uic;
+							if (uicv.isEnabled()) {
+								String varValue = uicv.getVarValue();
+								if (!varValue.isEmpty()) {
+									useVars.append(useVars.length() > 0 ? ", ":"");
+									useVars.append(uicv.getVarName()).append(": ");
+									useVars.append(varValue);
+								}
+							}
+						}
+						// Overridden event bindings
+						if (uic instanceof UIControlEvent) {
+							UIControlEvent uice = (UIControlEvent)uic;
+							if (uice.isEnabled()) {
+								eventBindings.append(uice.computeTemplate());
+							}
+						}
+					}
+					
+					String scope = getScope();
+					String params = "merge(merge({" + compVars.toString() + "},{" + useVars.toString() + "}),{scope:"+ scope +"})";
+					
 					// recursive case
 					if (parentSharedComp != null && parentSharedComp.priority == uisc.priority) {
 						computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
@@ -208,9 +207,32 @@ public class UIUseShared extends UIElement {
 						computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
 					}
 				} else {
-					String selector = "comp-" + uisc.getName().toLowerCase();
-					String identifier = "#"+ uisc.getRefIdentifier();
-					computed += "<"+selector+" "+ identifier +" [params"+uisc.priority+"]=\""+params+"\" "+ eventBindings +"></"+selector+">" + System.lineSeparator();
+					StringBuilder eventBindings = new StringBuilder();
+					StringBuilder params = new StringBuilder();
+					for (UIComponent uic: getUIComponentList()) {
+						// Overridden component variables
+						if (uic instanceof UIUseVariable) {
+							UIUseVariable uiuv = (UIUseVariable)uic;
+							if (uiuv.isEnabled()) {
+								params.append(uiuv.computeTemplate());
+							}
+						}
+						// Overridden event bindings
+						if (uic instanceof UIControlEvent) {
+							UIControlEvent uice = (UIControlEvent)uic;
+							if (uice.isEnabled()) {
+								eventBindings.append(uice.computeTemplate());
+							}
+						}
+					}
+					
+					//String scope = getScope();
+					
+					String compSelector = "comp-" + uisc.getName().toLowerCase();
+					String compIdentifier = "#"+ uisc.getIdentifier();
+					String useIdentifier = this.getIdentifier().isBlank() ? "":"#"+ this.getIdentifier();
+					String identifiers = compIdentifier + " " + useIdentifier;
+					computed += "<"+compSelector+" "+ identifiers +" [owner]=\"this\" "+params+" "+ eventBindings +"></"+compSelector+">" + System.lineSeparator();
 				}
 			}
 		}
@@ -230,7 +252,7 @@ public class UIUseShared extends UIElement {
 				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
 				if (uisc != null) {
 					scope += !scope.isEmpty() ? ", ":"";
-					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+					scope += "comp"+uisc.priority + ": "+ "comp"+uisc.priority;
 				}
 				if (isInSharedComponent) {
 					break;
@@ -267,7 +289,8 @@ public class UIUseShared extends UIElement {
 		
 		if (!scope.isEmpty()) {
 			if (isInSharedComponent) {
-				scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+				//scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+				scope = "merge({}, {"+ scope +"})";
 			} else {
 				scope = "merge({}, {"+ scope +"})";
 			}
@@ -300,7 +323,7 @@ public class UIUseShared extends UIElement {
 							jsonScripts.put("imports", imports);
 							
 							String declarations = jsonScripts.getString("declarations");
-							String dname = uisc.getRefIdentifier();
+							String dname = uisc.getIdentifier();
 							String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
 							if (main.addDeclaration(dname, dcode)) {
 								declarations += System.lineSeparator() + "\t" + dcode;
@@ -309,6 +332,18 @@ public class UIUseShared extends UIElement {
 							String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
 							if (main.addDeclaration(all_dname, all_dcode)) {
 								declarations += System.lineSeparator() + "\t" + all_dcode;
+							}
+							if (!this.getIdentifier().isBlank()) {
+								dname = this.getIdentifier();
+								dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
+								if (main.addDeclaration(dname, dcode)) {
+									declarations += System.lineSeparator() + "\t" + dcode;
+								}
+								all_dname = "all_" + dname;
+								all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
+								if (main.addDeclaration(all_dname, all_dcode)) {
+									declarations += System.lineSeparator() + "\t" + all_dcode;
+								}
 							}
 							jsonScripts.put("declarations", declarations);
 						} catch (JSONException e) {
@@ -451,7 +486,7 @@ public class UIUseShared extends UIElement {
 	@Override
 	public String toString() {
 		String compName = this.sharedcomponent.isEmpty() ? "?" : this.sharedcomponent.substring(this.sharedcomponent.lastIndexOf('.') + 1);
-		return "use " + compName;
+		return "use " + compName + (identifier.isBlank() ? "":" #"+identifier);
 	}
 
 }

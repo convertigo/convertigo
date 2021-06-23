@@ -162,9 +162,11 @@ public class MobileSmartSourceType implements XMLizable, Serializable, Cloneable
 			String value = cs != null ? cs.getValue(extended):"";
 			if (extended) {
 				String keyThis = MobileSmartSource.keyThis;
+				String keyThat = MobileSmartSource.keyThat;
 				value = value.replaceAll(keyThis + "\\.item", "scope.item");
 				value = value.replaceAll(keyThis + "\\.params", "scope.params");
 				value = value.replaceAll(keyThis + "\\.", "this.");
+				value = value.replaceAll(keyThat + "\\.", "this.");
 			}
 			return value;
 		}

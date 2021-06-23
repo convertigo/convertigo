@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
+import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -200,7 +201,7 @@ public class NgxComponentImportVariablesAction extends MyAbstractAction {
 			    					if (!StringUtils.isNormalized(variableName))
 			    						throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
 			    					
-			    					UIControlVariable uiVariable = new UIControlVariable();
+			    					UIUseVariable uiVariable = new UIUseVariable();
 			    					uiVariable.setName(variableName);
 			    					uiVariable.setComment(variable.getComment());
 			    					

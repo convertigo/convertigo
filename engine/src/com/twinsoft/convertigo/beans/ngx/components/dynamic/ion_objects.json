@@ -18293,6 +18293,29 @@
       }
     },
     
+    "EmitValueAction" : {
+      "tplVersion": "8.0.0.3",
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit",
+	  "displayName": "EmitValue",
+      "label": "EmitValue",
+      "description": [
+"Defines a <i>EmitValue</i> action component. |This component helps emiting an input variable value from a shared component."],
+      "group": "Actions",
+      "icon16": "emiteventaction_color_16x16.png",
+      "icon32": "emiteventaction_color_32x32.png",
+      "displayFormat": "function displayFormat() {var target = compvar.substring(compvar.lastIndexOf('.')+1); return 'EmitValue ' + target; }",
+      "properties": {
+	      "compvar": {
+            "editor": "NamedSourceSelectorEditor",
+            "label": "Variable",
+            "description": "The variable which value will be emited.",
+            "category": "@parameters",
+            "type": "string",
+            "value": ""
+	      }  
+      }
+    },
+    
     "AnimateAction" : {
       "tplVersion": "7.5.2.0",
 	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate",

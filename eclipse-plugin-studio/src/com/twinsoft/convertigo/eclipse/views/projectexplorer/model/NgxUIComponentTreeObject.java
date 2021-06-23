@@ -83,6 +83,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
+import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
 import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
@@ -675,6 +676,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							NgxUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("event");
+						list.add("compvar");
 					}
 					
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
@@ -714,7 +716,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					return "requestable".equals(propertyName) || 
 								"fsview".equals(propertyName) ||
 									"page".equals(propertyName) ||
-										"event".equals(propertyName);
+										"event".equals(propertyName) ||
+											"compvar".equals(propertyName);
 				}
 				return false;
 			}
@@ -832,6 +835,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							}
 						}
 					}
+					if ("compvar".equals(propertyName)) {
+						UIDynamicElement cc = (UIDynamicElement) object;
+						if (cc.getIonBean().getName().equals("EmitValueAction")) {
+							if (nsObject instanceof UICompVariable) {
+								return (((UICompVariable)nsObject).getSharedComponent().equals(object.getSharedComponent()));
+							}
+						}
+					}
 				}
 				return false;
 			}
@@ -916,6 +927,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								if ("event".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
 										setPropertyValue("event", new MobileSmartSourceType(_pValue));
+									hasBeenRenamed = true;
+								}
+								if ("compvar".equals(propertyName)) {
+									((UIDynamicElement)object).getIonBean().
+										setPropertyValue("compvar", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 							}
@@ -1447,8 +1463,8 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								Iterator<UIComponent> it = uus.getUIComponentList().iterator();
 								while (it.hasNext()) {
 									UIComponent component = (UIComponent)it.next();
-									if (component instanceof UIControlVariable) {
-										UIControlVariable uicv = (UIControlVariable)component;
+									if (component instanceof UIUseVariable) {
+										UIUseVariable uicv = (UIUseVariable)component;
 										if (uicv.getName().equals(oldValue)) {
 											try {
 												uicv.setName((String) newValue);

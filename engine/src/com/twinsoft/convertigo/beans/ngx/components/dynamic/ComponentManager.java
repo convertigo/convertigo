@@ -87,6 +87,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UITheme;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
+import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -380,6 +381,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UISharedRegularComponent.class,group));
 			components.add(getDboComponent(UIUseShared.class,group));
 			components.add(getDboComponent(UICompVariable.class,group));
+			components.add(getDboComponent(UIUseVariable.class,group));
 			components.add(getDboComponent(UICompEvent.class,group));
 			
 			// Add shared actions
@@ -695,7 +697,7 @@ public class ComponentManager {
 						return true;
 					}
 				} else if (dboParent instanceof UIUseShared) {
-					if (UIControlVariable.class.isAssignableFrom(dboClass) ||
+					if (UIUseVariable.class.isAssignableFrom(dboClass) ||
 						(UIControlEvent.class.isAssignableFrom(dboClass))) {
 						return true;
 					}

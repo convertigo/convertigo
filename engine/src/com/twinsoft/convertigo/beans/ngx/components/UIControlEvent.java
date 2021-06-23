@@ -411,18 +411,19 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			if (parent instanceof UISharedComponent) {
 				UISharedComponent uisc = (UISharedComponent)parent;
 				if (uisc.isRegular()) {
-					scope += !scope.isEmpty() ? ", ":"";
-					scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
+					//scope += !scope.isEmpty() ? ", ":"";
+					//scope += "comp"+uisc.priority + ": "+ "comp"+uisc.priority;
 					break;
 				}
 			}
 			if (parent instanceof UIUseShared) {
 				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
 				if (uisc != null) {
-					scope += !scope.isEmpty() ? ", ":"";
 					if (uisc.isRegular()) {
-						scope += "params"+uisc.priority + ": "+ uisc.getRefIdentifier()+".params"+uisc.priority;
+						//scope += !scope.isEmpty() ? ", ":"";
+						//scope += "comp"+uisc.priority + ": "+ "comp"+uisc.priority;
 					} else {
+						scope += !scope.isEmpty() ? ", ":"";
 						scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
 					}
 				}
@@ -462,7 +463,8 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		
 		if (!scope.isEmpty()) {
 			if (isInSharedComponent) {
-				scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+				//scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
+				scope = "merge({}, {"+ scope +"})";
 			} else {
 				scope = "merge({}, {"+ scope +"})";
 			}

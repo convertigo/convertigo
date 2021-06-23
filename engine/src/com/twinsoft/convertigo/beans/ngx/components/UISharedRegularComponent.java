@@ -49,6 +49,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	}
 	
 	@Override
+	public String getIdentifier() {
+		return identifier = "comp"+ priority;
+	}
+
+	@Override
 	public List<UICompEvent> getUICompEventList() {
 		List<UICompEvent> compEventList = new ArrayList<UICompEvent>();
 		for (UIComponent uic: getUIComponentList()) {
@@ -218,6 +223,8 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 												.put("interfaces", "")
 												.put("declarations", "")
 												.put("constructors", "")
+												.put("initializations", "")
+												.put("dispositions", "")
 												.put("functions", ""))
 						.put("template", "")
 						.put("style", "");
@@ -298,6 +305,26 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	}
 	
 	@Override
+	public String getComputedInitializations() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("initializations");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	@Override
+	public String getComputedDispositions() {
+		try {
+			return getComputedContents().getJSONObject("scripts").getString("dispositions");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+	@Override
 	public String getComputedFunctions() {
 		try {
 			return getComputedContents().getJSONObject("scripts").getString("functions");
@@ -314,7 +341,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			
 			String events = "";
 			String params = "";
-			String params_interfaces = "scope?: any";
+			//String params_interfaces = "scope?: any";
 			
 			it = getUIComponentList().iterator();
 			while (it.hasNext()) {
@@ -322,12 +349,13 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 				if (component instanceof UICompVariable) {
 					UICompVariable uicv = (UICompVariable)component;
 					if (uicv.isEnabled()) {
-						params_interfaces += params_interfaces.length() > 0 ? ", " : "";
-						params_interfaces += uicv.getVariableName() + "?: any";
-						
+						//params_interfaces += params_interfaces.length() > 0 ? ", " : "";
+						//params_interfaces += uicv.getVariableName() + "?: any";
+						String varName = uicv.getVariableName();
 						String varValue = uicv.getVariableValue();
-						params += params.length() > 0 ? ", " : "";
-						params += uicv.getVariableName() + ": " + (varValue.isEmpty() ? "undefined":varValue);
+						//params += params.length() > 0 ? ", " : "";
+						params += "\t@Input() "+ varName + ": any = " + (varValue.isEmpty() ? "undefined":varValue) + System.lineSeparator();
+						events += "\t@Output() "+ varName +"Change = new EventEmitter<any>();"+ System.lineSeparator();
 					}
 				}
 				if (component instanceof UICompEvent) {
@@ -341,14 +369,24 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 				}
 			}
 			try {
-				String interfaces = jsonScripts.getString("interfaces");
-				interfaces += "interface IParams {"+ params_interfaces +"}"+ System.lineSeparator();
-				jsonScripts.put("interfaces", interfaces);
+				//String interfaces = jsonScripts.getString("interfaces");
+				//interfaces += "interface IParams {"+ params_interfaces +"}"+ System.lineSeparator();
+				//jsonScripts.put("interfaces", interfaces);
 				
 				String declarations = jsonScripts.getString("declarations");
-				declarations += "@Input() params"+ priority + " : IParams = {" + params + "}"+ System.lineSeparator();
+				declarations += "@Input() owner : C8oPageBase = undefined"+ System.lineSeparator();
+				//declarations += "\t@Input() params"+ priority + " : IParams = {" + params + "}"+ System.lineSeparator();
+				declarations += params;
 				declarations += events;
+				//declarations += "\tpublic params : IParams = {" + params + "}"+ System.lineSeparator();
 				jsonScripts.put("declarations", declarations);
+				
+				String initializations = jsonScripts.getString("initializations");
+				//initializations += "this.params = this.params"+ priority + System.lineSeparator();
+				jsonScripts.put("initializations", initializations);
+
+				String dispositions = jsonScripts.getString("dispositions");
+				jsonScripts.put("dispositions", dispositions);
 				
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -544,7 +582,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return new HashSet<String>();
 			}
-
 		};
 	}
 	

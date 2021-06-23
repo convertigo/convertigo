@@ -754,6 +754,8 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIUseVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIUseShared"/>
 				</bean>
 			</beans>

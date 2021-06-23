@@ -5365,5 +5365,17 @@
     }
    }
   }
+ },
+ "EmitValueAction": {
+  "   8   0   0": {
+   "name": "EmitValueAction",
+   "properties": {
+    "compvar": {
+     "name": "compvar",
+     "mode": "plain",
+     "value": ""
+    }
+   }
+  }
  }
 }

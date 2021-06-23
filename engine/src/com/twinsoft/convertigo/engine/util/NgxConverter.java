@@ -236,6 +236,14 @@ public class NgxConverter {
 		if (yaml_key.indexOf("ngx.components.UISharedComponent") != -1) {
 			beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UISharedComponent", "UISharedRegularComponent"));
 		}
+
+		// for useshared variable
+		if (yaml_key.indexOf("ngx.components.UIControlVariable") != -1) {
+			Element parentEl = (Element) beanEl.getParentNode();
+			if (parentEl.getAttribute("yaml_key").indexOf("ngx.components.UIUseShared") != -1) {
+				beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UIControlVariable", "UIUseVariable"));
+			}
+		}
 		
 		// for application theme
 		if (yaml_key.indexOf("ngx.components.UITheme") != -1) {
@@ -1188,6 +1196,21 @@ public class NgxConverter {
 			}
 		}
 		
+		// replace 'paramsXXXXX' with 'this' (where XXXXX is the shared component priority)
+		String priority = yaml_key.substring(yaml_key.lastIndexOf('-')+1, yaml_key.indexOf(']'));
+		String params = "params"+ priority;
+		for (Node node: xpath.selectList(beanEl, "//*[text()[contains(.,'"+ params +"')]]")) {
+			String content = node.getTextContent();
+			try {
+				content = content.replaceAll("props.stack.root.scope."+ params, "this");
+				content = content.replaceAll("stack.root.scope."+ params, "this");
+				content = content.replaceAll(params, "this");
+				node.setTextContent(content);
+			} catch (Exception e) {
+				System.err.println("Error handling shared component : "+ yaml_key.replaceAll("ngx\\.components", "mobile.components"));
+				System.err.println("could not replace "+ params +" in "+ content);
+			}
+		}
 	}
 	
 	private static void handleToggle(Element beanEl) {
@@ -1508,6 +1531,14 @@ public class NgxConverter {
 					sharedMap.put(beanEl, new ArrayList<Element>());
 				}
 				
+				// for useshared variable
+				if (yaml_key.indexOf("ngx.components.UIControlVariable") != -1) {
+					Element parentEl = (Element) beanEl.getParentNode();
+					if (parentEl.getAttribute("yaml_key").indexOf("ngx.components.UIUseShared") != -1) {
+						beanEl.getAttributeNode("yaml_key").setTextContent(yaml_key.replaceFirst("UIControlVariable", "UIUseVariable"));
+					}
+				}
+				
 				String ionBeanName = getIonBeanName(beanEl);
 				if ("PublishEventAction".equalsIgnoreCase(ionBeanName)) {
 					if (sharedCompEl != null) {
@@ -1540,11 +1571,11 @@ public class NgxConverter {
 		File yaml = new File(outputDir, "c8oProject.yaml");
 		
 		Document document = YamlConverter.readYaml(yaml);
-		//XMLUtils.saveXml(document, new File(outputDir, "a.xml"));
+		XMLUtils.saveXml(document, new File(outputDir, "a.xml"));
 		Element root = document.getDocumentElement();
 		root.getAttributeNode("convertigo").setTextContent("8.0.0.m006");
 		convertBean(root);
-		//XMLUtils.saveXml(document, new File(outputDir, "b.xml"));
+		XMLUtils.saveXml(document, new File(outputDir, "b.xml"));
 		document = BeansDefaultValues.unshrinkProject(document);
 		Document shrink = BeansDefaultValues.shrinkProject(document);
 		YamlConverter.writeYaml(shrink, new File(outputDir, "c8oProject.yaml"), new File(outputDir, "_c8oProject"));

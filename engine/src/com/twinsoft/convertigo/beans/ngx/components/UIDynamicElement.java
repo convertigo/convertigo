@@ -537,7 +537,6 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return new HashSet<String>();
 			}
-
 		};
 	}
 	

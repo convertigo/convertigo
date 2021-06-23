@@ -61,12 +61,14 @@ public class MobileSmartSource {
 	public static Pattern cafPattern = Pattern.compile("'([^,]+)(,.+)?'");
 	public static Pattern globalPattern = Pattern.compile("(router\\.sharedObject)(.+)?");
 	public static Pattern actionPattern = Pattern.compile("(stack\\[['\"]\\d+['\"]\\])(.+)?");
-	public static Pattern sharedPattern = Pattern.compile("(params\\d+)(.+)?");
+	//public static Pattern sharedPattern = Pattern.compile("(params\\d+)(.+)?");
+	public static Pattern sharedPattern = Pattern.compile("(comp\\d+)(.+)?");
 
 	public static Pattern fsPattern = Pattern.compile("fs\\://(\\w+\\.)?(\\w+)\\.(\\w+)(#\\w+)?,?\\s*(\\{[^\\{\\}]*\\})?");
 	public static Pattern kvPattern = Pattern.compile("(\\w+)(?:=|\\:)('[^']+'|\\w+)");
 	
 	public static String keyThis = "_this_";
+	public static String keyThat = "_that_";
 	
 	static int findMatchingBracket(String input, int index) { 
 		char c = input.charAt(index);
@@ -202,7 +204,7 @@ public class MobileSmartSource {
 			if (this.equals(Filter.Action)) {
 				return "stack";
 			} else if (this.equals(Filter.Shared)) {
-				return "params";
+				return "comp";//"params";
 			} else if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
 				return "listen";
 			} else if (this.equals(Filter.Iteration)) {
@@ -746,12 +748,16 @@ public class MobileSmartSource {
 	
 	public class SharedData extends SourceData {
 		private long priority = 0L;
+		private boolean regular = false;
 		
 		public SharedData(JSONObject jsonObject) {
 			super(jsonObject);
 			try {
 				if (jsonObject.has("priority")) {
 					priority = jsonObject.getLong("priority");
+				}
+				if (jsonObject.has("regular")) {
+					regular = jsonObject.getBoolean("regular");
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -778,6 +784,7 @@ public class MobileSmartSource {
 			JSONObject jsonObject = new JSONObject();
 			try {
 				jsonObject.put("priority", priority);
+				jsonObject.put("regular", regular);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -787,14 +794,26 @@ public class MobileSmartSource {
 		
 		@Override
 		public String getValue() {
-			return getSource();
+			String value = null;
+			if (priority != 0L) {
+				if (regular) {
+					value = "this";
+				} else {
+					value = "params"+ priority;
+				}
+			}
+			return value;
 		}
 
 		@Override
 		public String getValueEx() {
 			String valueEx = null;
 			if (priority != 0L) {
-				valueEx = keyThis + ".params"+ priority;
+				if (regular) {
+					valueEx = "this";
+				} else {
+					valueEx = keyThis + ".params"+ priority;
+				}
 			}
 			return valueEx;
 		}
@@ -803,7 +822,7 @@ public class MobileSmartSource {
 		public String getSource() {
 			String source = null;
 			if (priority != 0L) {
-				source = "params"+ priority;
+				source = "comp"+ priority;
 			}
 			return source;
 		}
@@ -1408,7 +1427,7 @@ public class MobileSmartSource {
 				if (m.find()) {
 					String shared = m.group(1);
 					try {
-						long priority = Long.valueOf(shared.replaceFirst("params", ""), 10);
+						long priority = Long.valueOf(shared.replaceFirst("comp", ""), 10);
 						return findDatabaseObject(rootDboName, priority);
 					} catch (Exception e) {
 						e.printStackTrace();

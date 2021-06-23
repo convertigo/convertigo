@@ -60,7 +60,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 					IScriptComponent main = pageEvent.getMainScriptComponent();
 					boolean fromRegularComp = main != null && main instanceof UISharedComponent && ((UISharedComponent)main).isRegular();
 					if (fromRegularComp) {
-						String identifier = ((UISharedComponent)main).getRefIdentifier();
+						String identifier = ((UISharedComponent)main).getIdentifier();
 						long compPriority = ((UISharedComponent)main).priority;
 						String scope = "params"+ compPriority + ": " + "x."+ "params"+ compPriority;
 						functionCall = "this.all_"+ identifier +".forEach(x => x."+ pageEvent.getEventFunctionName() + "({root: {scope:{"+ scope +"}, in:{}, out:'"+ this.event +"'}}))";

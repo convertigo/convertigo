@@ -73,10 +73,6 @@ public class UISharedComponent extends UIComponent implements IShared {
 		this.identifier = identifier;
 	}
 	
-	public String getRefIdentifier() {
-		return identifier.isBlank() ? "comp"+ priority : identifier;
-	}
-	
 	protected FormatedContent scriptContent = new FormatedContent("");
 
 	public FormatedContent getScriptContent() {
@@ -294,7 +290,15 @@ public class UISharedComponent extends UIComponent implements IShared {
 	public String getComputedConstructors() {
 		return "";
 	}
+
+	public String getComputedInitializations() {
+		return "";
+	}
 	
+	public String getComputedDispositions() {
+		return "";
+	}
+
 	public String getComputedFunctions() {
 		return "";
 	}
