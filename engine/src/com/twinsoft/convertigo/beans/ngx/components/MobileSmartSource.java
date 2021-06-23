@@ -748,7 +748,7 @@ public class MobileSmartSource {
 	
 	public class SharedData extends SourceData {
 		private long priority = 0L;
-		private boolean regular = false;
+		private boolean regular = true;
 		
 		public SharedData(JSONObject jsonObject) {
 			super(jsonObject);
