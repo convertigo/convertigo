@@ -3,9 +3,6 @@
         <property name="comment">
             <java.lang.String value=""/>
         </property>
-        <property name="identifier">
-            <java.lang.String value="comp1624546900188"/>
-        </property>
         <property name="isEnabled">
             <java.lang.Boolean value="true"/>
         </property>
@@ -18,6 +15,23 @@
             </xmlizable>
         </property>
     </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent" priority="0" version="   8   0   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedTemplate"/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIUseVariable" priority="0" version="   8   0   0">
         <property name="binding">
             <java.lang.String value="oneWayBinding"/>
@@ -38,25 +52,7 @@
         </property>
     </mobilecomponent>
     
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent" priority="0" version="   8   0   0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="identifier">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="SharedTemplate"/>
-        </property>
-        <property name="scriptContent">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent/>
-            </xmlizable>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit" priority="0" version="   8   0   0">
         <property name="beanData">
             <java.lang.String value=""/>

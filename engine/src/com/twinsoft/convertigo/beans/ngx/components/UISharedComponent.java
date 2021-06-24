@@ -63,14 +63,8 @@ public class UISharedComponent extends UIComponent implements IShared {
 		return isRegular;
 	}
 	
-	protected String identifier = "";
-	
 	public String getIdentifier() {
-		return identifier;
-	}
-
-	public void setIdentifier(String identifier) {
-		this.identifier = identifier;
+		return "";
 	}
 	
 	protected FormatedContent scriptContent = new FormatedContent("");

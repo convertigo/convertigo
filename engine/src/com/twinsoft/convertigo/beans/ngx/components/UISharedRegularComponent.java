@@ -50,7 +50,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	public String getIdentifier() {
-		return identifier = "comp"+ priority;
+		return "comp"+ priority;
 	}
 
 	@Override
