@@ -249,11 +249,15 @@ public class ProcessUtils {
 					npmProxy = proxyUser + ":" + proxyPassword + "@" + npmProxy;
 				}
 				
+				String noProxy = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
+				
 				pbEnv.put("http-proxy", "http://" + npmProxy);
 				pbEnv.put("https-proxy", "http://" + npmProxy);
+				pbEnv.put("no-proxy", noProxy);
 				
 				pbEnv.put("HTTP_PROXY", "http://" + npmProxy);
 				pbEnv.put("HTTPS_PROXY", "http://" + npmProxy);
+				pbEnv.put("NO_PROXY", noProxy);
 			}
 		}
 		
