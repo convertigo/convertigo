@@ -42,7 +42,9 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
@@ -52,11 +54,15 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -233,6 +239,23 @@ public class HttpUtils {
 					if (Engine.theApp.proxyManager.proxyMode == ProxyMode.manual) {
 						HttpHost proxy = new HttpHost(Engine.theApp.proxyManager.getProxyServer(), Engine.theApp.proxyManager.getProxyPort());
 						httpClientBuilder.setProxy(proxy);
+						HttpRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy) {
+
+						    @Override
+						    public HttpRoute determineRoute(
+						            final HttpHost host,
+						            final HttpRequest request,
+						            final HttpContext context) throws HttpException {
+						        String hostname = host.getHostName();
+						        for (String domain: Engine.theApp.proxyManager.getBypassDomains()) {
+						        	if (hostname.equals(domain)) {
+						        		return new HttpRoute(host);
+						        	}
+						        }
+						        return super.determineRoute(host, request, context);
+						    }
+						};
+						httpClientBuilder.setRoutePlanner(routePlanner);
 						if (Engine.theApp.proxyManager.proxyMethod == ProxyMethod.basic) {
 							CredentialsProvider credsProvider = new BasicCredentialsProvider();
 							credsProvider.setCredentials(
