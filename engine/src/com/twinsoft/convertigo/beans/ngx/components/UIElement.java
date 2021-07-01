@@ -324,6 +324,9 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			else if (component instanceof UIElement) {
 				String tpl = ((UIElement)component).computeStyle();
 				if (!tpl.isEmpty()) {
+					if (tpl.startsWith("@import") && others.indexOf(tpl) != -1) {
+						continue;
+					}
 					others.append(tpl);
 				}
 			}

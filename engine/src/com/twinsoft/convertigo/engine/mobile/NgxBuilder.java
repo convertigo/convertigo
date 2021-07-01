@@ -1688,7 +1688,7 @@ public class NgxBuilder extends MobileBuilder {
 		String c8o_CompChangeDetection = "ChangeDetectionStrategy.Default"; //comp.getChangeDetectionStrategy();
 		String c8o_CompTplUrl = compName.toLowerCase() + ".html";
 		String c8o_CompStyleUrls = compName.toLowerCase() + ".scss";
-		String c8o_CompSelector = "comp-"+compName.toLowerCase();
+		String c8o_CompSelector = comp.getSelector();
 		String c8o_CompImports = comp.getComputedImports();
 		String c8o_CompInterfaces = comp.getComputedInterfaces();
 		String c8o_CompDeclarations = comp.getComputedDeclarations();

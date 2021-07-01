@@ -67,6 +67,10 @@ public class UISharedComponent extends UIComponent implements IShared {
 		return "";
 	}
 	
+	public String getSelector() {
+		return "";
+	}
+	
 	protected FormatedContent scriptContent = new FormatedContent("");
 
 	public FormatedContent getScriptContent() {

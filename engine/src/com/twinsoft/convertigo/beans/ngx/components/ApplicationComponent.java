@@ -1423,6 +1423,15 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			}
 		}
 		
+		// Pages scss
+		for (PageComponent pc: getPageComponentList()) {
+			if (pc.isEnabled()) {
+				String pageName = pc.getName();
+				String pageDir = pageName.toLowerCase();
+				sb.append("@import \"./pages/"+pageDir+"/"+pageName+".scss\";").append(System.getProperty("line.separator"));
+			}
+		}
+		
 		return sb.toString();
 	}
 

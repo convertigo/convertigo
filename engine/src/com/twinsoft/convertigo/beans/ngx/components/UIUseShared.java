@@ -61,7 +61,7 @@ public class UIUseShared extends UIElement {
 
 	@Override
 	protected void addUIComponent(UIComponent uiComponent, Long after) throws EngineException {
-		if (!(uiComponent instanceof UIUseVariable) && !(uiComponent instanceof UIControlEvent)) {
+		if (!(uiComponent instanceof UIUseVariable) && !(uiComponent instanceof UIControlEvent) && !(uiComponent instanceof UIAttribute)) {
 			throw new EngineException("You can not add this component to a UIUseShared component!");
 		}
 		
@@ -208,8 +208,20 @@ public class UIUseShared extends UIElement {
 					}
 				} else {
 					StringBuilder eventBindings = new StringBuilder();
+					StringBuilder attrclasses = new StringBuilder();
 					StringBuilder params = new StringBuilder();
 					for (UIComponent uic: getUIComponentList()) {
+						// Add attributes (class,..)
+						if (uic instanceof UIAttribute) {
+							UIAttribute uiAttribute = (UIAttribute)uic;
+							if (uiAttribute.isEnabled()) {
+								if (uiAttribute.getAttrName().equals("class")) {
+									attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+								} else {
+									params.append(uiAttribute.computeTemplate());
+								}
+							}
+						}
 						// Overridden component variables
 						if (uic instanceof UIUseVariable) {
 							UIUseVariable uiuv = (UIUseVariable)uic;
@@ -228,11 +240,12 @@ public class UIUseShared extends UIElement {
 					
 					//String scope = getScope();
 					
-					String compSelector = "comp-" + uisc.getName().toLowerCase();
+					String compSelector = uisc.getSelector();
 					String compIdentifier = "#"+ uisc.getIdentifier();
 					String useIdentifier = this.getIdentifier().isBlank() ? "":"#"+ this.getIdentifier();
 					String identifiers = compIdentifier + " " + useIdentifier;
-					computed += "<"+compSelector+" "+ identifiers +" [owner]=\"this\" "+params+" "+ eventBindings +"></"+compSelector+">" + System.lineSeparator();
+					String classes = attrclasses.length() > 0 ? "class=\""+attrclasses+"\"": "";
+					computed += "<"+compSelector+" "+ identifiers +" [owner]=\"this\" "+params+" "+classes+" "+eventBindings +"></"+compSelector+">" + System.lineSeparator();
 				}
 			}
 		}

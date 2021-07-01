@@ -54,6 +54,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	}
 
 	@Override
+	public String getSelector() {
+		return "comp-" + getName().toLowerCase();
+	}
+	
+	@Override
 	public List<UICompEvent> getUICompEventList() {
 		List<UICompEvent> compEventList = new ArrayList<UICompEvent>();
 		for (UIComponent uic: getUIComponentList()) {
@@ -468,7 +473,18 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	protected String computeStyle(UIUseShared uiUse) {
-		return "";
+		Project project = getProject();
+		String c8o_CompName = getName();
+		String c8o_CompScssPath;
+		try {
+			Path scssPath = Paths.get(new File (project.getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase() 
+									+ "/" +c8o_CompName.toLowerCase() + ".scss").getCanonicalPath());
+			c8o_CompScssPath = getContributor().getContainerPath((MobileComponent) uiUse.getMainScriptComponent()).relativize(scssPath).toString().replace('\\', '/');
+		} catch (Exception e) {
+			c8o_CompScssPath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".scss";
+		}
+		
+		return "@import \""+ c8o_CompScssPath + "\";" + System.lineSeparator();
 	}
 
 	@Override

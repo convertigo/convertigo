@@ -463,6 +463,7 @@
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAttribute">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIUseShared"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>

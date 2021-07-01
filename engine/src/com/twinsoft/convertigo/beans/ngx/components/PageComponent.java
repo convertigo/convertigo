@@ -1015,12 +1015,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	@Override
 	public String computeStyle() {
 		StringBuilder sb = new StringBuilder();
-//		sb.append("page-"+ getName().toLowerCase()).append(" {")
-//			.append(System.getProperty("line.separator"));
+		StringBuilder others = new StringBuilder();
 		
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
+		for (UIComponent component: getUIComponentList()) {
 			if (component instanceof UIStyle) {
 				String tpl = component.computeTemplate();
 				if (!tpl.isEmpty()) {
@@ -1030,13 +1027,15 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			else if (component instanceof UIElement) {
 				String tpl = ((UIElement)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					sb.append(tpl).append(System.getProperty("line.separator"));
+					if (tpl.startsWith("@import") && others.indexOf(tpl) != -1) {
+						continue;
+					}
+					others.append(tpl).append(System.getProperty("line.separator"));
 				}
 			}
 		}
 		
-//		sb.append("}")
-//			.append(System.getProperty("line.separator"));
+		sb.append(others).append(System.getProperty("line.separator"));
 		
 		return sb.toString();
 	}

@@ -698,6 +698,7 @@ public class ComponentManager {
 					}
 				} else if (dboParent instanceof UIUseShared) {
 					if (UIUseVariable.class.isAssignableFrom(dboClass) ||
+						UIAttribute.class.isAssignableFrom(dboClass) ||
 						(UIControlEvent.class.isAssignableFrom(dboClass))) {
 						return true;
 					}
