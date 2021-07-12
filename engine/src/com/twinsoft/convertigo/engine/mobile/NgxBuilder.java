@@ -313,131 +313,151 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	@Override
-	public synchronized void pageEnabled(final IPageComponent pageComponent) throws EngineException {
+	public void pageEnabled(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && initDone) {
-			addPage(page);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'pageEnabled'");
+			synchronized (page) {
+				addPage(page);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'pageEnabled'");
+			}
 		}
 	}
 	
 	@Override
-	public synchronized void pageDisabled(final IPageComponent pageComponent) throws EngineException {
+	public void pageDisabled(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && !page.isEnabled() && initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writePageSourceFiles(page);
-					writeAppSourceFiles(application);
-					moveFiles();
-					Engine.logEngine.trace("(MobileBuilder) Handled 'pageDisabled'");
+			synchronized (page) {
+				MobileApplication mobileApplication = project.getMobileApplication();
+				if (mobileApplication != null) {
+					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+					if (application != null) {
+						writePageSourceFiles(page);
+						writeAppSourceFiles(application);
+						moveFiles();
+						Engine.logEngine.trace("(MobileBuilder) Handled 'pageDisabled'");
+					}
 				}
 			}
 		}
 	}
 
 	@Override
-	public synchronized void pageAdded(final IPageComponent pageComponent) throws EngineException {
+	public void pageAdded(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && page.bNew && initDone) {
-			addPage(page);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'pageAdded'");
+			synchronized (page) {
+				addPage(page);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'pageAdded'");
+			}
 		}
 	}
 
 	@Override
-	public synchronized void compAdded(final ISharedComponent sharedComponent) throws EngineException {
+	public void compAdded(final ISharedComponent sharedComponent) throws EngineException {
 		UISharedComponent comp = (UISharedComponent)sharedComponent;
 		if (comp != null && comp.isEnabled() && comp.bNew && initDone) {
-			addComp(comp);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'compAdded'");
+			synchronized (comp) {
+				addComp(comp);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'compAdded'");
+			}
 		}
 	}
 	
 	@Override
-	public synchronized void pageRemoved(final IPageComponent pageComponent) throws EngineException {
+	public void pageRemoved(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writeAppSourceFiles(application);
-					deleteUselessPageDir(page.getName());
-					moveFiles();
-					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRemoved'");
+			synchronized (page) {
+				MobileApplication mobileApplication = project.getMobileApplication();
+				if (mobileApplication != null) {
+					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+					if (application != null) {
+						writeAppSourceFiles(application);
+						deleteUselessPageDir(page.getName());
+						moveFiles();
+						Engine.logEngine.trace("(MobileBuilder) Handled 'pageRemoved'");
+					}
 				}
 			}
 		}
 	}
 	
 	@Override
-	public synchronized void compRemoved(final ISharedComponent sharedComponent) throws EngineException {
+	public void compRemoved(final ISharedComponent sharedComponent) throws EngineException {
 		UISharedComponent comp = (UISharedComponent)sharedComponent;
 		if (comp != null && comp.isEnabled() && initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writeAppSourceFiles(application);
-					deleteUselessCompDir(comp.getName());
-					moveFiles();
-					Engine.logEngine.trace("(MobileBuilder) Handled 'compRemoved'");
+			synchronized (comp) {
+				MobileApplication mobileApplication = project.getMobileApplication();
+				if (mobileApplication != null) {
+					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+					if (application != null) {
+						writeAppSourceFiles(application);
+						deleteUselessCompDir(comp.getName());
+						moveFiles();
+						Engine.logEngine.trace("(MobileBuilder) Handled 'compRemoved'");
+					}
 				}
 			}
 		}
 	}
 
 	@Override
-	public synchronized void pageRenamed(final IPageComponent pageComponent, final String oldName) throws EngineException {
+	public void pageRenamed(final IPageComponent pageComponent, final String oldName) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && initDone) {
-			MobileApplication mobileApplication = project.getMobileApplication();
-			if (mobileApplication != null) {
-				ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
-				if (application != null) {
-					writePageSourceFiles(page);
-					writeAppSourceFiles(application);
-					deleteUselessPageDir(oldName);
-					moveFiles();
-					Engine.logEngine.trace("(MobileBuilder) Handled 'pageRenamed'");
+			synchronized (page) {
+				MobileApplication mobileApplication = project.getMobileApplication();
+				if (mobileApplication != null) {
+					ApplicationComponent application = (ApplicationComponent) mobileApplication.getApplicationComponent();
+					if (application != null) {
+						writePageSourceFiles(page);
+						writeAppSourceFiles(application);
+						deleteUselessPageDir(oldName);
+						moveFiles();
+						Engine.logEngine.trace("(MobileBuilder) Handled 'pageRenamed'");
+					}
 				}
 			}
 		}
 	}
 	
 	@Override
-	public synchronized void pageTemplateChanged(final IPageComponent pageComponent) throws EngineException {
+	public void pageTemplateChanged(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && initDone) {
-			writePageTemplate(page);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'pageTemplateChanged'");
+			synchronized (page) {
+				writePageTemplate(page);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'pageTemplateChanged'");
+			}
 		}
 	}
 
 	@Override
-	public synchronized void compTemplateChanged(final ISharedComponent sharedComponent) throws EngineException {
+	public void compTemplateChanged(final ISharedComponent sharedComponent) throws EngineException {
 		UISharedComponent comp = (UISharedComponent)sharedComponent;
 		if (comp != null && comp.isEnabled() && initDone) {
-			writeCompTemplate(comp);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'compTemplateChanged'");
+			synchronized (comp) {
+				writeCompTemplate(comp);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'compTemplateChanged'");
+			}
 		}
 	}
 	
 	@Override
-	public synchronized void pageStyleChanged(final IPageComponent pageComponent) throws EngineException {
+	public void pageStyleChanged(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && initDone) {
-			writePageStyle(page);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'pageStyleChanged'");
+			synchronized (page) {
+				writePageStyle(page);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'pageStyleChanged'");
+			}
 		}
 	}
 
@@ -446,40 +466,46 @@ public class NgxBuilder extends MobileBuilder {
 	public void compStyleChanged(ISharedComponent sharedComponent) throws EngineException {
 		UISharedComponent comp = (UISharedComponent)sharedComponent;
 		if (comp != null && comp.isEnabled() && initDone) {
-			writeCompStyle(comp);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'compStyleChanged'");
+			synchronized (comp) {
+				writeCompStyle(comp);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'compStyleChanged'");
+			}
 		}
 	}
 	
 	@Override
-	public synchronized void appContributorsChanged(final IApplicationComponent appComponent) throws EngineException {
+	public void appContributorsChanged(final IApplicationComponent appComponent) throws EngineException {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
 		if (app != null && initDone) {
-			writeAppPackageJson(app);
-			writeAppPluginsConfig(app);
-			writeAppServiceTs(app);
-			writeAppModuleTs(app);
-			writeAppRoutingTs(app);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
+			synchronized (app) {
+				writeAppPackageJson(app);
+				writeAppPluginsConfig(app);
+				writeAppServiceTs(app);
+				writeAppModuleTs(app);
+				writeAppRoutingTs(app);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
+			}
 		}
 	}
 	
 	@Override
-	public synchronized void pageTsChanged(final IPageComponent pageComponent, boolean forceTemp) throws EngineException {
+	public void pageTsChanged(final IPageComponent pageComponent, boolean forceTemp) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && initDone) {
-			writePageTs(page);
-			moveFiles();
-			
-			File pageDir = pageDir(page);
-			File tempTsFile = new File(pageDir, page.getName().toLowerCase() + ".temp.ts");
-			if (forceTemp && tempTsFile.exists()) {
-				writePageTempTs(page);
+			synchronized (page) {
+				writePageTs(page);
+				moveFiles();
+				
+				File pageDir = pageDir(page);
+				File tempTsFile = new File(pageDir, page.getName().toLowerCase() + ".temp.ts");
+				if (forceTemp && tempTsFile.exists()) {
+					writePageTempTs(page);
+				}
+				
+				Engine.logEngine.trace("(MobileBuilder) Handled 'pageTsChanged'");
 			}
-			
-			Engine.logEngine.trace("(MobileBuilder) Handled 'pageTsChanged'");
 		}
 	}
 
@@ -487,26 +513,30 @@ public class NgxBuilder extends MobileBuilder {
 	public void compTsChanged(ISharedComponent sharedComponent, boolean forceTemp) throws EngineException {
 		UISharedComponent comp = (UISharedComponent)sharedComponent;
 		if (comp != null && comp.isEnabled() && initDone) {
-			writeCompTs(comp);
-			moveFiles();
-			
-			/*File compDir = compDir(comp);
-			File tempTsFile = new File(compDir, comp.getName().toLowerCase() + ".temp.ts");
-			if (forceTemp && tempTsFile.exists()) {
-				writeCompTempTs(comp);
-			}*/
-			
-			Engine.logEngine.trace("(MobileBuilder) Handled 'compTsChanged'");
+			synchronized (comp) {
+				writeCompTs(comp);
+				moveFiles();
+				
+				/*File compDir = compDir(comp);
+				File tempTsFile = new File(compDir, comp.getName().toLowerCase() + ".temp.ts");
+				if (forceTemp && tempTsFile.exists()) {
+					writeCompTempTs(comp);
+				}*/
+				
+				Engine.logEngine.trace("(MobileBuilder) Handled 'compTsChanged'");
+			}
 		}
 	}
 	
 	@Override
-	public synchronized void pageModuleTsChanged(final IPageComponent pageComponent) throws EngineException {
+	public void pageModuleTsChanged(final IPageComponent pageComponent) throws EngineException {
 		PageComponent page = (PageComponent)pageComponent;
 		if (page != null && page.isEnabled() && initDone) {
-			writePageModuleTs(page);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'pageModuleTsChanged'");
+			synchronized (page) {
+				writePageModuleTs(page);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'pageModuleTsChanged'");
+			}
 		}
 	}
 	
@@ -514,115 +544,135 @@ public class NgxBuilder extends MobileBuilder {
 	public void compModuleTsChanged(ISharedComponent sharedComponent) throws EngineException {
 		UISharedComponent comp = (UISharedComponent)sharedComponent;
 		if (comp != null && comp.isEnabled() && initDone) {
-			writeCompModuleTs(comp);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'compModuleTsChanged'");
-		}
-	}
-	
-	@Override
-	public synchronized void appTsChanged(final IApplicationComponent appComponent, boolean forceTemp) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			writeAppComponentTs(app);
-			moveFiles();
-			
-			File tempTsFile = new File(appDir, "app.component.temp.ts");
-			if (forceTemp && tempTsFile.exists()) {
-				writeAppComponentTempTs(app);
+			synchronized (comp) {
+				writeCompModuleTs(comp);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'compModuleTsChanged'");
 			}
-			
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appTsChanged'");
-		}
-	}
-
-	@Override
-	public synchronized void appStyleChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			writeAppStyle(app);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appStyleChanged'");
-		}
-	}
-
-	@Override
-	public synchronized void appTemplateChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			writeAppTemplate(app);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appTemplateChanged'");
 		}
 	}
 	
 	@Override
-	public synchronized void appThemeChanged(final IApplicationComponent appComponent) throws EngineException {
+	public void appTsChanged(final IApplicationComponent appComponent, boolean forceTemp) throws EngineException {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
 		if (app != null && initDone) {
-			writeAppTheme(app);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appThemeChanged'");
-		}
-	}
-	
-	@Override
-	public synchronized void appCompTsChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			writeAppComponentTs(app);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appCompTsChanged'");
-		}
-	}
-	
-	@Override
-	public synchronized void appModuleTsChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			writeAppModuleTs(app);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appModuleTsChanged'");
-		}
-	}
-
-	@Override
-	public synchronized void appPwaChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			configurePwaApp(app);
-			moveFiles();
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
-		}
-	}
-	
-	@Override
-	public synchronized void appRootChanged(final IApplicationComponent appComponent) throws EngineException {
-		ApplicationComponent app = (ApplicationComponent)appComponent;
-		if (app != null && initDone) {
-			writeAppComponentTs(app);
-			moveFiles();
-			
-			File appComponentTsFile = new File(appDir, "app.component.temp.ts");
-			if (appComponentTsFile.exists()) {
-				writeAppComponentTempTs(app);
+			synchronized (app) {
+				writeAppComponentTs(app);
+				moveFiles();
+				
+				File tempTsFile = new File(appDir, "app.component.temp.ts");
+				if (forceTemp && tempTsFile.exists()) {
+					writeAppComponentTempTs(app);
+				}
+				
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appTsChanged'");
 			}
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appRootChanged'");
 		}
 	}
 
 	@Override
-	public synchronized void appRouteChanged(final IApplicationComponent appComponent) throws EngineException {
+	public void appStyleChanged(final IApplicationComponent appComponent) throws EngineException {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
 		if (app != null && initDone) {
-			writeAppComponentTs(app);
-			moveFiles();
-			
-			File appComponentTsFile = new File(appDir, "app.component.temp.ts");
-			if (appComponentTsFile.exists()) {
-				writeAppComponentTempTs(app);
+			synchronized (app) {
+				writeAppStyle(app);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appStyleChanged'");
 			}
-			Engine.logEngine.trace("(MobileBuilder) Handled 'appRouteChanged'");
+		}
+	}
+
+	@Override
+	public void appTemplateChanged(final IApplicationComponent appComponent) throws EngineException {
+		ApplicationComponent app = (ApplicationComponent)appComponent;
+		if (app != null && initDone) {
+			synchronized (app) {
+				writeAppTemplate(app);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appTemplateChanged'");
+			}
+		}
+	}
+	
+	@Override
+	public void appThemeChanged(final IApplicationComponent appComponent) throws EngineException {
+		ApplicationComponent app = (ApplicationComponent)appComponent;
+		if (app != null && initDone) {
+			synchronized (app) {
+				writeAppTheme(app);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appThemeChanged'");
+			}
+		}
+	}
+	
+	@Override
+	public void appCompTsChanged(final IApplicationComponent appComponent) throws EngineException {
+		ApplicationComponent app = (ApplicationComponent)appComponent;
+		if (app != null && initDone) {
+			synchronized (app) {
+				writeAppComponentTs(app);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appCompTsChanged'");
+			}
+		}
+	}
+	
+	@Override
+	public void appModuleTsChanged(final IApplicationComponent appComponent) throws EngineException {
+		ApplicationComponent app = (ApplicationComponent)appComponent;
+		if (app != null && initDone) {
+			synchronized (app) {
+				writeAppModuleTs(app);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appModuleTsChanged'");
+			}
+		}
+	}
+
+	@Override
+	public void appPwaChanged(final IApplicationComponent appComponent) throws EngineException {
+		ApplicationComponent app = (ApplicationComponent)appComponent;
+		if (app != null && initDone) {
+			synchronized (app) {
+				configurePwaApp(app);
+				moveFiles();
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
+			}
+		}
+	}
+	
+	@Override
+	public void appRootChanged(final IApplicationComponent appComponent) throws EngineException {
+		ApplicationComponent app = (ApplicationComponent)appComponent;
+		if (app != null && initDone) {
+			synchronized (app) {
+				writeAppComponentTs(app);
+				moveFiles();
+				
+				File appComponentTsFile = new File(appDir, "app.component.temp.ts");
+				if (appComponentTsFile.exists()) {
+					writeAppComponentTempTs(app);
+				}
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appRootChanged'");
+			}
+		}
+	}
+
+	@Override
+	public void appRouteChanged(final IApplicationComponent appComponent) throws EngineException {
+		ApplicationComponent app = (ApplicationComponent)appComponent;
+		if (app != null && initDone) {
+			synchronized (app) {
+				writeAppComponentTs(app);
+				moveFiles();
+				
+				File appComponentTsFile = new File(appDir, "app.component.temp.ts");
+				if (appComponentTsFile.exists()) {
+					writeAppComponentTempTs(app);
+				}
+				Engine.logEngine.trace("(MobileBuilder) Handled 'appRouteChanged'");
+			}
 		}
 	}
 	
