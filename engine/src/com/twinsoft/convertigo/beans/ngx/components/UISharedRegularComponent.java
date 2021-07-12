@@ -645,7 +645,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 					String newContributors = contributors == null ? null: contributors.toString();
 					if (oldContributors != null && newContributors != null) {
 						if (!(oldContributors.equals(newContributors))) {
-							//getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
+							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
 							getProject().getMobileBuilder().compModuleTsChanged(this);
 						}
 					}
