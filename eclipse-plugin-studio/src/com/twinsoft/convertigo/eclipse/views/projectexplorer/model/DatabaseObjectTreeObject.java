@@ -102,6 +102,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -1071,6 +1072,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	        }
 	        
 	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, propertyName, oldValue, value);
+	        BatchOperationHelper.start();
 	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
         }
         catch (Exception e) {
@@ -1078,6 +1080,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
             ConvertigoPlugin.logException(e, message);
         }
 		finally {
+	        BatchOperationHelper.stop();
 			isValueInProcess = false;
 		}
 	}

@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.io.File;
 import java.util.Map;
 
@@ -27,7 +28,49 @@ public abstract class Contributor {
 	public boolean isNgModuleForApp() {
 		return false;
 	}
-	
+
+	@Override
+	public String toString() {
+		String result = getCompBeanDir().entrySet()
+				.stream()
+				.map(entry -> entry.getKey() + " - " + entry.getValue())
+				.collect(Collectors.joining(", "))
+				+ getActionTsFunctions().entrySet()
+				.stream()
+				.map(entry -> entry.getKey() + " - " + entry.getValue())
+				.collect(Collectors.joining(", "))
+				+ getActionTsImports().entrySet()
+				.stream()
+				.map(entry -> entry.getKey() + " - " + entry.getValue())
+				.collect(Collectors.joining(", "))
+				+ getModuleTsImports().entrySet()
+				.stream()
+				.map(entry -> entry.getKey() + " - " + entry.getValue())
+				.collect(Collectors.joining(", "))
+				+ getPackageDependencies().entrySet()
+				.stream()
+				.map(entry -> entry.getKey() + " - " + entry.getValue())
+				.collect(Collectors.joining(", "))
+				+ getConfigPlugins().entrySet()
+				.stream()
+				.map(entry -> entry.getKey() + " - " + entry.getValue())
+				.collect(Collectors.joining(", "))
+				+ getModuleNgImports()
+				.stream()
+				.collect(Collectors.joining(", "))
+				+ getModuleNgProviders()
+				.stream()
+				.collect(Collectors.joining(", "))
+				+ getModuleNgDeclarations()
+				.stream()
+				.collect(Collectors.joining(", "))
+				+ getModuleNgComponents()
+				.stream()
+				.collect(Collectors.joining(", "));
+
+		return result;
+	}
+
 	abstract public Map<String, File> getCompBeanDir();
 	abstract public Map<String, String> getActionTsFunctions();
 	abstract public Map<String, String> getActionTsImports();
