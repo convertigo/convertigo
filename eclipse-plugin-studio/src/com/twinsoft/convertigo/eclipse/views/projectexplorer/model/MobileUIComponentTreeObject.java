@@ -1374,7 +1374,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		if (done == null) {
 			done = new HashSet<Object>();
 		}
-		if (!done.add(to)) {
+		if (!done.add(to.getObject())) {
 			return;
 		}
 		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");

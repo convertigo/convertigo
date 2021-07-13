@@ -57,4 +57,22 @@ public class TreeObjectEvent extends EventObject {
 		this.update = update;
 		this.done = done;
 	}
+
+	public void clear() {
+		if (this.done != null) {
+			this.done.clear();
+		}
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + 
+				"[source=" + source + 
+				", propertyName=" + propertyName +
+				", oldValue=" + oldValue +
+				", newValue=" + newValue +
+				", done="+ done +"]";
+	}
+	
+	
 }

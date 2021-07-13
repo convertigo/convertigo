@@ -21,6 +21,11 @@ package com.twinsoft.convertigo.engine.helpers;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import com.twinsoft.convertigo.engine.Engine;
 
 public class BatchOperationHelper {
 	private final static ThreadLocal<Set<Runnable>[]> batchOperation = new ThreadLocal<Set<Runnable>[]>() {
@@ -33,15 +38,36 @@ public class BatchOperationHelper {
 	};
 	
 	static public void start() {
-		batchOperation.get()[0] = new HashSet<Runnable>();
+		if (batchOperation.get()[0] == null) {
+			batchOperation.get()[0] = new HashSet<Runnable>();
+		} else {
+			Engine.logEngine.error("(BatchOperationHelper) already started!");
+		}
 	}
 	
 	static public void stop() {
 		Set<Runnable>[] array = batchOperation.get();
 		if (array[0] != null) {
-			for (Runnable runnable: array[0]) {
-				runnable.run();
+			if (array[0].size() > 0) {
+				ExecutorService executor = null;
+				try {
+					executor = Executors.newFixedThreadPool(
+							Math.min(
+									Runtime.getRuntime().availableProcessors(),
+									array[0].size()
+									)
+							);
+					for (Runnable runnable: array[0]) {
+						executor.execute(runnable);
+					}
+					executor.shutdown();
+					executor.awaitTermination(2, TimeUnit.MINUTES);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
+		} else {
+			Engine.logEngine.error("(BatchOperationHelper) not started or already stopped!");
 		}
 		batchOperation.remove();
 	}
