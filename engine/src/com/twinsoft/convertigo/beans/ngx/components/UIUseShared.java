@@ -211,17 +211,6 @@ public class UIUseShared extends UIElement {
 					StringBuilder attrclasses = new StringBuilder();
 					StringBuilder params = new StringBuilder();
 					for (UIComponent uic: getUIComponentList()) {
-						// Add attributes (class,..)
-						if (uic instanceof UIAttribute) {
-							UIAttribute uiAttribute = (UIAttribute)uic;
-							if (uiAttribute.isEnabled()) {
-								if (uiAttribute.getAttrName().equals("class")) {
-									attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
-								} else {
-									params.append(uiAttribute.computeTemplate());
-								}
-							}
-						}
 						// Overridden component variables
 						if (uic instanceof UIUseVariable) {
 							UIUseVariable uiuv = (UIUseVariable)uic;
@@ -230,10 +219,21 @@ public class UIUseShared extends UIElement {
 							}
 						}
 						// Overridden event bindings
-						if (uic instanceof UIControlEvent) {
+						else if (uic instanceof UIControlEvent) {
 							UIControlEvent uice = (UIControlEvent)uic;
 							if (uice.isEnabled()) {
 								eventBindings.append(uice.computeTemplate());
+							}
+						}
+						// Add attributes (class,..)
+						else if (uic instanceof UIAttribute) {
+							UIAttribute uiAttribute = (UIAttribute)uic;
+							if (uiAttribute.isEnabled()) {
+								if (uiAttribute.getAttrName().equals("class")) {
+									attrclasses.append(attrclasses.length()>0 ? " ":"").append(uiAttribute.getAttrValue());
+								} else {
+									params.append(uiAttribute.computeTemplate());
+								}
 							}
 						}
 					}
