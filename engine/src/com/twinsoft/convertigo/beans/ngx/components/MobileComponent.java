@@ -21,9 +21,6 @@ package com.twinsoft.convertigo.beans.ngx.components;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileObject;
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
 public abstract class MobileComponent extends MobileObject {
 
@@ -57,46 +54,46 @@ public abstract class MobileComponent extends MobileObject {
 		return "7.9.0.2"; // the 7.9.0 has been released with v7.9.0.2
 	}
 
-	public String requiredTplVersion() {
-		return getRequiredTplVersion();
-	}
-	
-	protected String getTplVersion() {
-		Project p = getProject();
-		MobileBuilder mb = p == null ? null : p.getMobileBuilder();
-		String version = mb == null ? null : mb.getTplVersion();
-		
-		if (p == null) {
-			String message = "(MobileComponent.getTplVersion()) project is null for component " + getName() + 
-								(Engine.isStudioMode() ? " (probably removed component)": "");
-			if (Engine.isStudioMode()) {
-				Engine.logBeans.trace(message);
-			} else {
-				Engine.logBeans.warn(message);
-			}
-		} else {
-			if (mb == null) {
-				Engine.logBeans.warn("(MobileComponent.getTplVersion()) MB is null for component " + getQName());
-			} else if (version == null) {
-				Engine.logBeans.warn("(MobileComponent.getTplVersion()) Tpl version is null for component " + getQName() +
-						" (MB probably not intialized)");
-			}
-		}
-		return version;
-	}
-	
-	public int compareToTplVersion(String version) {
-		int result = -1;
-		if (version != null) {
-			String tplVersion = getTplVersion();
-			if (tplVersion != null) {
-				if (tplVersion.trim().toLowerCase().equals("latest")) {
-					result = 1;
-				} else {
-					result = MobileBuilder.compareVersions(tplVersion, version);
-				}
-			}
-		}
-		return result;
-	}
+//	public String requiredTplVersion() {
+//		return getRequiredTplVersion();
+//	}
+//	
+//	protected String getTplVersion() {
+//		Project p = getProject();
+//		MobileBuilder mb = p == null ? null : p.getMobileBuilder();
+//		String version = mb == null ? null : mb.getTplVersion();
+//		
+//		if (p == null) {
+//			String message = "(MobileComponent.getTplVersion()) project is null for component " + getName() + 
+//								(Engine.isStudioMode() ? " (probably removed component)": "");
+//			if (Engine.isStudioMode()) {
+//				Engine.logBeans.trace(message);
+//			} else {
+//				Engine.logBeans.warn(message);
+//			}
+//		} else {
+//			if (mb == null) {
+//				Engine.logBeans.warn("(MobileComponent.getTplVersion()) MB is null for component " + getQName());
+//			} else if (version == null) {
+//				Engine.logBeans.warn("(MobileComponent.getTplVersion()) Tpl version is null for component " + getQName() +
+//						" (MB probably not intialized)");
+//			}
+//		}
+//		return version;
+//	}
+//	
+//	public int compareToTplVersion(String version) {
+//		int result = -1;
+//		if (version != null) {
+//			String tplVersion = getTplVersion();
+//			if (tplVersion != null) {
+//				if (tplVersion.trim().toLowerCase().equals("latest")) {
+//					result = 1;
+//				} else {
+//					result = MobileBuilder.compareVersions(tplVersion, version);
+//				}
+//			}
+//		}
+//		return result;
+//	}
 }

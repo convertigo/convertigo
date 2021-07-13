@@ -79,6 +79,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		cloned.pageTemplates = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
+		cloned.contributorsShot = null;
 		return cloned;
 	}
 
@@ -199,6 +200,8 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	private transient List<Contributor> contributors = null;
 	
+	private transient String contributorsShot = null;
+	
 	@Override
 	public List<Contributor> getContributors() {
 		if (contributors == null) {
@@ -215,6 +218,8 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 				uiComponent.addContributors(done, contributors);
 			}
 		//}		
+			
+		contributorsShot = contributors.toString();
 	}
 	
 	private transient JSONObject computedContents = null;
@@ -640,9 +645,9 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 						}
 					}
 					
-					String oldContributors = contributors == null ? null: contributors.toString();
+					String oldContributors = contributorsShot == null ? null:contributorsShot;
 					doGetContributors();
-					String newContributors = contributors == null ? null: contributors.toString();
+					String newContributors = contributorsShot == null ? null:contributorsShot;
 					if (oldContributors != null && newContributors != null) {
 						if (!(oldContributors.equals(newContributors))) {
 							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
