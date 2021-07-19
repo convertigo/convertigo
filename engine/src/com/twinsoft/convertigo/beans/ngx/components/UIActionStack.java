@@ -210,7 +210,7 @@ public class UIActionStack extends UIComponent implements IShared {
 				sbFinally.append(finallyEvent.computeEvent());
 			}
 			
-			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			String cafPageType = "C8oPageBase";
 			
 			StringBuilder cartridge = new StringBuilder();
 			cartridge.append("\t/**").append(System.lineSeparator())
@@ -354,10 +354,6 @@ public class UIActionStack extends UIComponent implements IShared {
 				Map<String, String> functions = new HashMap<String, String>();
 				String functionName = getFunctionName();
 				String functionCode = computeStackFunction();
-				if (compareToTplVersion("7.5.2.0") < 0 ) {
-					functionCode = functionCode.replaceFirst("C8oPageBase", "C8oPage");
-					functionCode = functionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
-				}
 				functions.put(functionName, functionCode);
 				return functions;
 			}

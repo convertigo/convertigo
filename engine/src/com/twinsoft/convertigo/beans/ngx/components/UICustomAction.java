@@ -508,7 +508,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			String cafPageType = "C8oPageBase";
 			String functionName = getFunctionName();
 			
 			computed += System.lineSeparator();
@@ -640,7 +640,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
 			
-			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			String cafPageType = "C8oPageBase";
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("page: "+ cafPageType +", props, vars, event: any");
@@ -686,10 +686,6 @@ public class UICustomAction extends UIComponent implements IAction {
 				if (getSharedAction() != null || getSharedComponent() != null) {
 					String actionName = getActionName();
 					String actionCode = computeActionMain();
-					if (compareToTplVersion("7.5.2.0") < 0 ) {
-						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
-						actionCode = actionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
-					}
 					functions.put(actionName, actionCode);
 				}
 				return functions;

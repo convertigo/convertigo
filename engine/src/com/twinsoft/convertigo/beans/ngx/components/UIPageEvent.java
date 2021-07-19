@@ -239,7 +239,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			String cafPageType = "C8oPageBase";
 			String functionName = getEventFunctionName();
 			
 			computed += System.lineSeparator();

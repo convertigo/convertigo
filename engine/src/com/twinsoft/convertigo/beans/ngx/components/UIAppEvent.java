@@ -403,7 +403,7 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 			}
 			
 			String eventName = appEvent.name();
-			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			String cafPageType = "C8oPageBase";
 			String functionName = getFunctionName();
 			
 			StringBuilder cartridge = new StringBuilder();

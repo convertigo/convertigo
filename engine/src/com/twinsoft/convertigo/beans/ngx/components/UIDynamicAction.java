@@ -520,7 +520,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			cartridge.append("\t * @param stack , the object which holds actions stack").append(System.lineSeparator());
 			cartridge.append("\t */").append(System.lineSeparator());
 			
-			String cafPageType = compareToTplVersion("7.5.2.0") >= 0 ? "C8oPageBase":"C8oPage";
+			String cafPageType = "C8oPageBase";
 			String functionName = getFunctionName();
 			
 			computed += System.lineSeparator();
@@ -688,10 +688,6 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				if (ionBean != null) {
 					String actionName = getActionName();
 					String actionCode = ComponentManager.getActionTsCode(actionName);
-					if (compareToTplVersion("7.5.2.0") < 0 ) {
-						actionCode = actionCode.replaceFirst("C8oPageBase", "C8oPage");
-						actionCode = actionCode.replaceAll("C8oCafUtils\\.merge", "page.merge");
-					}
 					functions.put(actionName, actionCode);
 				}
 				return functions;
