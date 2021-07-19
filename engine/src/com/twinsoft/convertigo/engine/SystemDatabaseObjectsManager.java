@@ -18,7 +18,11 @@ public class SystemDatabaseObjectsManager extends DatabaseObjectsManager {
 	public void init() throws EngineException {
 		super.init();
 		
-		importProject(Engine.WEBAPP_PATH + "/system/projects/lib_FlowViewer/c8oProject.yaml", false);
+		try {
+			importProject(Engine.WEBAPP_PATH + "/system/projects/lib_FlowViewer/c8oProject.yaml", false);
+		} catch (Exception e) {
+			Engine.logEngine.fatal("(SystemDatabaseObjectsManager) Failed to load system lib_FlowViewer", e);
+		}
 	}
 
 	@Override
