@@ -1433,7 +1433,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			if (pc.isEnabled()) {
 				String pageName = pc.getName();
 				String pageDir = pageName.toLowerCase();
-				sb.append("@import \"./pages/"+pageDir+"/"+pageName+".scss\";").append(System.getProperty("line.separator"));
+				sb.append("@import \"./pages/"+pageDir+"/"+pageName.toLowerCase()+".scss\";").append(System.getProperty("line.separator"));
 			}
 		}
 		
