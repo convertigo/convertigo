@@ -1290,6 +1290,17 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 									}
 								}
 							}
+							if (dbo instanceof UIComponent) {
+								if (!newValue.equals(oldValue)) {
+									try {
+										String oldName = (String)oldValue;
+										String newName = (String)newValue;
+										if (getObject().updateSmartSource("\\?\\."+oldName, "?."+newName)) {
+											sourcesUpdated = true;
+										}
+									} catch (Exception e) {}
+								}
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -1414,6 +1425,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
 												
+												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(udi);
 												
@@ -1442,7 +1454,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							String newString = "."+newValue;
 							if (comp.updateSmartSources(oldString, newString)) {
 								try {
+									hasBeenModified(true);
 									viewer.refresh();
+									
 									markMainAsDirty(comp);
 								} catch (EngineException e) {
 									ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for SharedComponent !");
@@ -1470,6 +1484,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
 												
+												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(uus);
 												
@@ -1510,6 +1525,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 												uice.setEventName((String) newValue);
 												uice.hasChanged = true;
 												
+												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(uus);
 												
@@ -1554,6 +1570,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 														uicv.setName((String) newValue);
 														uicv.hasChanged = true;
 														
+														hasBeenModified(true);
 														viewer.refresh();
 														markMainAsDirty(uia);
 														
