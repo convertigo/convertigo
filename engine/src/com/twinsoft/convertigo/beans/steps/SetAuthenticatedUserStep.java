@@ -74,7 +74,10 @@ public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeCont
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
-			evaluate(javascriptContext, scope, userid);			
+			evaluate(javascriptContext, scope, userid);
+			
+			getSequence().context.setAuthenticatedUser(userid.getSingleString(this));
+			
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
@@ -82,8 +85,6 @@ public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeCont
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		getSequence().context.setAuthenticatedUser(userid.getSingleString(this));
-
 		String nodeValue = getSequence().context.getAuthenticatedUser();
 		if (nodeValue != null && nodeValue.length() > 0) {
 			Node text = doc.createTextNode(nodeValue);
