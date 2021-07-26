@@ -1434,7 +1434,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			processes.add(p);
 			
 
-			Matcher matcher = Pattern.compile(" (\\d+)% (.*)").matcher("");
+			Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
 			
@@ -1445,7 +1445,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					matcher.reset(line);
 					if (matcher.find()) {
 						progress(Integer.parseInt(matcher.group(1)));
-						appendOutput(matcher.group(2).replaceFirst("(active).*", "$1"));
+						appendOutput(matcher.group(2));
 					} else {
 						appendOutput(line);
 					}
