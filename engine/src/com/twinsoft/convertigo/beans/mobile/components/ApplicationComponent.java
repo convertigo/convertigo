@@ -122,6 +122,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		cloned.appTemplates = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
+		cloned.contributorsShot = null;
 		cloned.rootPage = null;
 		cloned.theme = null;
 		
@@ -1080,6 +1081,8 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	
 	private transient List<Contributor> contributors = null;
 	
+	private transient String contributorsShot = null;
+	
 	public List<Contributor> getContributors() {
 		if (contributors == null) {
 			doGetContributors();
@@ -1099,6 +1102,8 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		for (UIAppEvent appEvent : getUIAppEventList()) {
 			appEvent.addContributors(done, contributors);
 		}
+		
+		contributorsShot = contributors.toString();
 	}
     
 	private transient JSONObject computedContents = null;
@@ -1200,9 +1205,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 						}
 					}
 					
-					String oldContributors = contributors == null ? null: contributors.toString();
+					String oldContributors = contributorsShot == null ? null: contributorsShot;
 					doGetContributors();
-					String newContributors = contributors == null ? null: contributors.toString();
+					String newContributors = contributorsShot == null ? null: contributorsShot;
 					if (oldContributors != null && newContributors != null) {
 						if (!(oldContributors.equals(newContributors))) {
 							getProject().getMobileBuilder().appContributorsChanged(this);

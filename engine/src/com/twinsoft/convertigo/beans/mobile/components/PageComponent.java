@@ -87,6 +87,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		cloned.pageTemplates = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
+		cloned.contributorsShot = null;
 		cloned.isRoot = isRoot;
 		return cloned;
 	}
@@ -606,6 +607,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	private transient List<Contributor> contributors = null;
 	
+	private transient String contributorsShot = null;
+	
 	public List<Contributor> getContributors() {
 		if (contributors == null) {
 			doGetContributors();
@@ -620,7 +623,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			for (UIComponent uiComponent : getUIComponentList()) {
 				uiComponent.addContributors(done, contributors);
 			}
-		//}		
+		//}
+		
+		contributorsShot = contributors.toString();
 	}
 	
 	private transient JSONObject computedContents = null;
@@ -706,9 +711,9 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 						}
 					}
 					
-					String oldContributors = contributors == null ? null: contributors.toString();
+					String oldContributors = contributorsShot == null ? null: contributorsShot;
 					doGetContributors();
-					String newContributors = contributors == null ? null: contributors.toString();
+					String newContributors = contributorsShot == null ? null: contributorsShot;
 					if (oldContributors != null && newContributors != null) {
 						if (!(oldContributors.equals(newContributors))) {
 							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
