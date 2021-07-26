@@ -1425,6 +1425,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--port="+ NetworkUtils.nextAvailable(8100, usedPort));
 			}
 			
+			// #183 add useless option to help terminateNode method to find the current path 
+			cmd.add("--ssl-key=" + ionicDir);
+			
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
 			Process p = pb.start();
@@ -1465,7 +1468,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 			}
 			
-			if (buildCount == this.buildCount) {				
+			if (buildCount == this.buildCount) {
 				appendOutput("\\o/");
 			} else {
 				appendOutput("previous build canceled !");
@@ -1765,6 +1768,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
 				cmd.add("--baseHref=./");
 				cmd.add("--deployUrl=./");
+				
+				// #183 add useless option to help terminateNode method to find the current path
+				cmd.add("--ngsw-config-path=" + ionicDir);
 				
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
