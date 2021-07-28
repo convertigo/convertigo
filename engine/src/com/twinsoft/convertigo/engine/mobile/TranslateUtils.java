@@ -131,10 +131,16 @@ public class TranslateUtils {
 	private static boolean existTranslationFiles(Project project) {
 		if (project != null) {
 			File i18nDir = new File(project.getDirPath(), "DisplayObjects/mobile/assets/i18n");
-			for (Locale locale: Locale.getAvailableLocales()) {
-				File translations = new File(i18nDir, locale.getLanguage() + ".json");
-				if (translations.exists()) {
-					return true;
+			if (i18nDir.exists()) {
+				for (File f: i18nDir.listFiles()) {
+					String name = f.getName();
+					if (name.endsWith(".json")) {
+						name = name.substring(0, name.length() - 5);
+						Locale locale = Locale.forLanguageTag(name);
+						if (locale != null && name.equals(locale.getLanguage())) {
+							return true;
+						}
+					}
 				}
 			}
 		}
