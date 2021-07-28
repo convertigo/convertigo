@@ -63,17 +63,18 @@ public class SessionSetObjectStep extends Step implements IStepSmartTypeContaine
 	}
 	
 	@Override
-    public SessionSetObjectStep clone() throws CloneNotSupportedException {
-    	SessionSetObjectStep clonedObject = (SessionSetObjectStep) super.clone();
-    	clonedObject.smartTypes = null;
-        return clonedObject;
-    }
+	public SessionSetObjectStep clone() throws CloneNotSupportedException {
+		SessionSetObjectStep clonedObject = (SessionSetObjectStep) super.clone();
+		clonedObject.smartTypes = null;
+		clonedObject.value = value;
+		return clonedObject;
+	}
 
 	@Override
-    public SessionSetObjectStep copy() throws CloneNotSupportedException {
-    	SessionSetObjectStep copiedObject = (SessionSetObjectStep) super.copy();
-        return copiedObject;
-    }
+	public SessionSetObjectStep copy() throws CloneNotSupportedException {
+		SessionSetObjectStep copiedObject = (SessionSetObjectStep) super.copy();
+		return copiedObject;
+	}
 	
 	@Override
 	public String getStepNodeName() {

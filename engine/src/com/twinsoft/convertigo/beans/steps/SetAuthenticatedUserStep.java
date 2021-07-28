@@ -49,17 +49,18 @@ public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeCont
 	}
 
 	@Override
-    public SetAuthenticatedUserStep clone() throws CloneNotSupportedException {
-    	SetAuthenticatedUserStep clonedObject = (SetAuthenticatedUserStep) super.clone();
-    	clonedObject.smartTypes = null;
-        return clonedObject;
-    }
+	public SetAuthenticatedUserStep clone() throws CloneNotSupportedException {
+		SetAuthenticatedUserStep clonedObject = (SetAuthenticatedUserStep) super.clone();
+		clonedObject.smartTypes = null;
+		clonedObject.userid = userid.clone();
+		return clonedObject;
+	}
 
 	@Override
-    public SetAuthenticatedUserStep copy() throws CloneNotSupportedException {
-    	SetAuthenticatedUserStep copiedObject = (SetAuthenticatedUserStep) super.copy();
-        return copiedObject;
-    }
+	public SetAuthenticatedUserStep copy() throws CloneNotSupportedException {
+		SetAuthenticatedUserStep copiedObject = (SetAuthenticatedUserStep) super.copy();
+		return copiedObject;
+	}
 
 	@Override
 	public String toJsString() {

@@ -54,6 +54,8 @@ public class SetResponseHeaderStep extends Step implements IStepSmartTypeContain
 	public SetResponseHeaderStep clone() throws CloneNotSupportedException {
 		SetResponseHeaderStep clonedObject = (SetResponseHeaderStep) super.clone();
 		clonedObject.smartTypes = null;
+		clonedObject.headerName = headerName;
+		clonedObject.headerValue = headerValue;
 		return clonedObject;
 	}
 	

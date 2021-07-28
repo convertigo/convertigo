@@ -57,17 +57,20 @@ public class XMLErrorStep extends StepWithExpressions implements IStepSmartTypeC
 	}
 
 	@Override
-    public XMLErrorStep clone() throws CloneNotSupportedException {
-    	XMLErrorStep clonedObject = (XMLErrorStep) super.clone();
-    	clonedObject.smartTypes = null;
-        return clonedObject;
-    }
+	public XMLErrorStep clone() throws CloneNotSupportedException {
+		XMLErrorStep clonedObject = (XMLErrorStep) super.clone();
+		clonedObject.smartTypes = null;
+		clonedObject.code = code;
+		clonedObject.message = message;
+		clonedObject.details = details;
+		return clonedObject;
+	}
 
 	@Override
-    public XMLErrorStep copy() throws CloneNotSupportedException {
-    	XMLErrorStep copiedObject = (XMLErrorStep) super.copy();
-        return copiedObject;
-    }
+	public XMLErrorStep copy() throws CloneNotSupportedException {
+		XMLErrorStep copiedObject = (XMLErrorStep) super.copy();
+		return copiedObject;
+	}
 
 	@Override
 	public String getStepNodeName() {

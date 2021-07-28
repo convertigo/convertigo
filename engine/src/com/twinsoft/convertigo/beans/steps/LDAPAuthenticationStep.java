@@ -21,7 +21,9 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +44,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -50,7 +53,7 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.TWSLDAP;
 
-public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectation {
+public class LDAPAuthenticationStep extends Step implements IStepSmartTypeContainer, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = -1894558458026853410L;
 	private static final Pattern pRDN = Pattern.compile("(\\w+)=([^,]*),?");
@@ -71,17 +74,47 @@ public class LDAPAuthenticationStep extends Step implements IComplexTypeAffectat
 	}
 
 	@Override
-    public LDAPAuthenticationStep clone() throws CloneNotSupportedException {
-    	LDAPAuthenticationStep clonedObject = (LDAPAuthenticationStep) super.clone();
-        return clonedObject;
-    }
+	public LDAPAuthenticationStep clone() throws CloneNotSupportedException {
+		LDAPAuthenticationStep clonedObject = (LDAPAuthenticationStep) super.clone();
+		clonedObject.server = server;
+		clonedObject.login = login;
+		clonedObject.password = password;
+		clonedObject.adminLogin = adminLogin;
+		clonedObject.adminPassword = adminPassword;
+		clonedObject.basePath = basePath;
+		clonedObject.attributes = attributes;
+		return clonedObject;
+	}
 
 	@Override
-    public LDAPAuthenticationStep copy() throws CloneNotSupportedException {
-    	LDAPAuthenticationStep copiedObject = (LDAPAuthenticationStep) super.copy();
-        return copiedObject;
-    }
+	public LDAPAuthenticationStep copy() throws CloneNotSupportedException {
+		LDAPAuthenticationStep copiedObject = (LDAPAuthenticationStep) super.copy();
+		return copiedObject;
+	}
 
+	private transient Set<SmartType> smartTypes = null;
+	
+	@Override
+	public Set<SmartType> getSmartTypes() {
+		if (smartTypes != null) {
+			if (!hasChanged) {
+				return smartTypes;
+			} else {
+				smartTypes.clear();
+			}
+		} else {
+			smartTypes = new HashSet<SmartType>();
+		}
+		smartTypes.add(server);
+		smartTypes.add(login);
+		smartTypes.add(password);
+		smartTypes.add(adminLogin);
+		smartTypes.add(adminPassword);
+		smartTypes.add(basePath);
+		smartTypes.add(attributes);
+		return smartTypes;
+	}
+	
 	@Override
 	public String toJsString() {
 		return null;
