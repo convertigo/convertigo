@@ -60,9 +60,9 @@ public class XMLErrorStep extends StepWithExpressions implements IStepSmartTypeC
 	public XMLErrorStep clone() throws CloneNotSupportedException {
 		XMLErrorStep clonedObject = (XMLErrorStep) super.clone();
 		clonedObject.smartTypes = null;
-		clonedObject.code = code;
-		clonedObject.message = message;
-		clonedObject.details = details;
+		clonedObject.code = code.clone();
+		clonedObject.message = message.clone();
+		clonedObject.details = details.clone();
 		return clonedObject;
 	}
 

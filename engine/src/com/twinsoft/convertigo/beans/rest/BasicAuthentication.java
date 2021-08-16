@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.beans.core.UrlAuthentication;
 import com.twinsoft.convertigo.engine.Engine;
@@ -50,11 +51,19 @@ public class BasicAuthentication extends UrlAuthentication {
 	}
 
 	@Override
+	public BasicAuthentication clone() throws CloneNotSupportedException {
+		BasicAuthentication clonedObject = (BasicAuthentication)super.clone();
+		return clonedObject;
+	}
+	
+	@Override
 	public String handleAuthRequest(HttpServletRequest request, HttpServletResponse response) throws EngineException {
 		String authRequestableQName = getAuthRequestable();
 		if (authRequestableQName.isEmpty()) {
 			throw new EngineException("Authentication \""+ getName() +"\" has no auth requestable defined");
 		}
+		
+		HttpSession httpSession = request.getSession();
 		
 		StringTokenizer st = new StringTokenizer(authRequestableQName,".");
 		int count = st.countTokens();
@@ -76,9 +85,9 @@ public class BasicAuthentication extends UrlAuthentication {
 				String password = decoded.length > 1 ? decoded[1]:null;
 				
 				// Check user is authenticated with same credentials
-				String authenticatedUser = SessionAttribute.authenticatedUser.string(request.getSession());
+				String authenticatedUser = SessionAttribute.authenticatedUser.string(httpSession);
 				if (authenticatedUser != null && authenticatedUser.equals(user)) {
-					if (authorization.equals(request.getSession().getAttribute("basic-authorization"))) {
+					if (authorization.equals(httpSession.getAttribute("basic-authorization"))) {
 						Engine.logEngine.debug("(BasicAuthentication) User already authenticated");
 						return null;
 					}
@@ -109,7 +118,8 @@ public class BasicAuthentication extends UrlAuthentication {
 	    		internalRequester.processRequest();
 	    		
 				// Authentication failed
-	    		if (SessionAttribute.authenticatedUser.string(request.getSession()) == null) {
+    			String authUser = SessionAttribute.authenticatedUser.string(httpSession);	    		
+	    		if (authUser == null) {
 	    			Map<Integer, String> status = RequestAttribute.responseStatus.get(request); // custom status
 	    			if (status.isEmpty()) {
 	    				// Set response status code
@@ -118,7 +128,11 @@ public class BasicAuthentication extends UrlAuthentication {
 	    		}
 	    		// Store Authorization
 	    		else {
-	    			request.getSession().setAttribute("basic-authorization", authorization);
+	    			if (!authUser.equals(user)) {
+	    				Engine.logEngine.warn("(BasicAuthentication) Session "+ httpSession.getId() + 
+	    								" has been authenticated with "+ authUser + " instead of "+ user);
+	    			}
+	    			httpSession.setAttribute("basic-authorization", authorization);
 	    		}
 			} else {
 				Engine.logEngine.debug("(BasicAuthentication) Authorization header NOT found.");

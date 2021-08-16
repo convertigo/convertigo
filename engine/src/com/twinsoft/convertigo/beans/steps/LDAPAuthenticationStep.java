@@ -76,13 +76,14 @@ public class LDAPAuthenticationStep extends Step implements IStepSmartTypeContai
 	@Override
 	public LDAPAuthenticationStep clone() throws CloneNotSupportedException {
 		LDAPAuthenticationStep clonedObject = (LDAPAuthenticationStep) super.clone();
-		clonedObject.server = server;
-		clonedObject.login = login;
-		clonedObject.password = password;
-		clonedObject.adminLogin = adminLogin;
-		clonedObject.adminPassword = adminPassword;
-		clonedObject.basePath = basePath;
-		clonedObject.attributes = attributes;
+		clonedObject.smartTypes = null;
+		clonedObject.server = server.clone();
+		clonedObject.login = login.clone();
+		clonedObject.password = password.clone();
+		clonedObject.adminLogin = adminLogin.clone();
+		clonedObject.adminPassword = adminPassword.clone();
+		clonedObject.basePath = basePath.clone();
+		clonedObject.attributes = attributes.clone();
 		return clonedObject;
 	}
 

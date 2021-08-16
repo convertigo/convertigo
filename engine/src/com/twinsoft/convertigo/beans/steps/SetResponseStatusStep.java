@@ -54,8 +54,8 @@ public class SetResponseStatusStep extends Step implements IStepSmartTypeContain
 	public SetResponseStatusStep clone() throws CloneNotSupportedException {
 		SetResponseStatusStep clonedObject = (SetResponseStatusStep) super.clone();
 		clonedObject.smartTypes = null;
-		clonedObject.statusCode = statusCode;
-		clonedObject.statusText = statusText;
+		clonedObject.statusCode = statusCode.clone();
+		clonedObject.statusText = statusText.clone();
 		return clonedObject;
 	}
 	
