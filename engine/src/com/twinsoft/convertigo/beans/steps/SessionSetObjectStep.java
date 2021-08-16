@@ -66,6 +66,7 @@ public class SessionSetObjectStep extends Step implements IStepSmartTypeContaine
     public SessionSetObjectStep clone() throws CloneNotSupportedException {
     	SessionSetObjectStep clonedObject = (SessionSetObjectStep) super.clone();
     	clonedObject.smartTypes = null;
+		clonedObject.value = value.clone();
         return clonedObject;
     }
 

@@ -52,6 +52,7 @@ public class SetAuthenticatedUserStep extends Step implements IStepSmartTypeCont
     public SetAuthenticatedUserStep clone() throws CloneNotSupportedException {
     	SetAuthenticatedUserStep clonedObject = (SetAuthenticatedUserStep) super.clone();
     	clonedObject.smartTypes = null;
+    	clonedObject.userid = userid.clone();
         return clonedObject;
     }
 

@@ -57,6 +57,7 @@ public class SessionSetStep extends Step implements IStepSmartTypeContainer, ICo
     public SessionSetStep clone() throws CloneNotSupportedException {
     	SessionSetStep clonedObject = (SessionSetStep) super.clone();
     	clonedObject.smartTypes = null;
+    	clonedObject.expression = expression.clone();
         return clonedObject;
     }
 

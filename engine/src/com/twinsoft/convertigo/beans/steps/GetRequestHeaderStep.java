@@ -55,6 +55,7 @@ public class GetRequestHeaderStep extends Step implements IStepSmartTypeContaine
 	public GetRequestHeaderStep clone() throws CloneNotSupportedException {
 		GetRequestHeaderStep clonedObject = (GetRequestHeaderStep) super.clone();
 		clonedObject.smartTypes = null;
+		clonedObject.headerName = headerName.clone();
 		return clonedObject;
 	}
 	
