@@ -19,8 +19,10 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -52,38 +54,57 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			this.event = event;
 		}
 		
-		String computeEvent(List<UIPageEvent> eventList) {
+		String computeEvent(MobileComponent mc, List<UIPageEvent> eventList) {
 			StringBuffer children = new StringBuffer();
+			Set<String> done = new HashSet<String>();
 			for (UIPageEvent pageEvent : eventList) {
 				if (pageEvent.getViewEvent().equals(this)) {
 					String functionCall = "";
-					IScriptComponent main = pageEvent.getMainScriptComponent();
-					boolean fromRegularComp = main != null && main instanceof UISharedComponent && ((UISharedComponent)main).isRegular();
-					if (fromRegularComp) {
-						String identifier = ((UISharedComponent)main).getIdentifier();
-						long compPriority = ((UISharedComponent)main).priority;
-						String scope = "params"+ compPriority + ": " + "x."+ "params"+ compPriority;
-						functionCall = "this.all_"+ identifier +".forEach(x => x."+ pageEvent.getEventFunctionName() + "({root: {scope:{"+ scope +"}, in:{}, out:'"+ this.event +"'}}))";
+					if (mc instanceof UISharedComponent) {
+						IScriptComponent main = pageEvent.getMainScriptComponent();
+						if (mc.equals(((UISharedComponent)main))) {
+							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+						} else {
+							String identifier = ((UISharedComponent)main).getIdentifier();
+							if (done.add(identifier)) {
+								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
+							}
+						}
 					} else {
-						functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+						IScriptComponent main = pageEvent.getMainScriptComponent();
+						if (main instanceof UISharedComponent) {
+							String identifier = ((UISharedComponent)main).getIdentifier();
+							if (done.add(identifier)) {
+								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
+							}
+						} else {
+							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+						}
 					}
-					children.append("\t\t\t\t\t" + functionCall).append(System.lineSeparator());
+					if (!functionCall.isBlank()) {
+						children.append("\t\t\t\t" + functionCall).append(System.lineSeparator());
+					}
 				}
 			}
 			
-			boolean hasSuper = !ViewEvent.onDidLoad.equals(this) && !ViewEvent.onWillUnload.equals(this);
+			boolean hasSuper = !ViewEvent.onDidLoad.equals(this) && !ViewEvent.onWillUnload.equals(this) && !(mc instanceof UISharedComponent);
 			StringBuffer sb = new StringBuffer();
-			if (children.length() > 0) {
+			//if (children.length() > 0) {
 				sb.append(System.lineSeparator());
 				sb.append("\t"+event).append("() {").append(System.lineSeparator());
 				if (hasSuper) {
 					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
 				}
-				sb.append("\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());				
+				sb.append("\t\t//Avoid [HMR] Update failed: Error: Injector has already been destroyed").append(System.lineSeparator());
+				sb.append("\t\ttry {").append(System.lineSeparator());
+				sb.append("\t\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());				
 				sb.append(children);	
-				sb.append("\t\t});").append(System.lineSeparator());
+				sb.append("\t\t\t});").append(System.lineSeparator());
+				sb.append("\t\t} catch(e) {").append(System.lineSeparator());
+				sb.append(children);
+				sb.append("\t\t}").append(System.lineSeparator());
 				sb.append("\t}").append(System.lineSeparator());
-			}
+			//}
 			return sb.toString();
 		}
 	}
@@ -91,7 +112,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	public UIPageEvent() {
 		super();
 	}
-	
+
 	@Override
 	public UIPageEvent clone() throws CloneNotSupportedException {
 		UIPageEvent cloned = (UIPageEvent) super.clone();
@@ -108,6 +129,10 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 
 	public void setViewEvent(ViewEvent viewEvent) {
 		this.viewEvent = viewEvent;
+	}
+	
+	protected void setChildOf(DatabaseObject dbo) {
+		this.parent = dbo;
 	}
 	
 	protected UIActionErrorEvent getErrorEvent() {

@@ -162,19 +162,8 @@ public class UIEventSubscriber extends UIComponent implements IEventGenerator, I
 	public String computeConstructor() {
 		String computed = "";
 		if (isEnabled() && !getTopic().isEmpty()) {
-			IScriptComponent main = getMainScriptComponent();
-			boolean fromRegularComp = main != null && main instanceof UISharedComponent && ((UISharedComponent)main).isRegular();
-			if (fromRegularComp) {
-				String identifier = ((UISharedComponent)main).getIdentifier();
-				long compPriority = ((UISharedComponent)main).priority;
-				String scope = "params"+ compPriority + ": " + "x."+ "params"+ compPriority;
-				computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
-						+ "(data) => {this.all_"+ identifier +".forEach(x => x."+ getFunctionName() +"(this.merge(data, {scope: {"+scope+"}})))});"+ System.lineSeparator();
-				
-			} else {
-				computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
-						+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
-			}
+			computed += "this.subscriptions['"+ getTopic() +"'] = this.events.subscribe('"+ getTopic() +"', "
+					+ "(data) => {this."+ getFunctionName() +"(data)});"+ System.lineSeparator();
 		}
 		return computed;
 	}

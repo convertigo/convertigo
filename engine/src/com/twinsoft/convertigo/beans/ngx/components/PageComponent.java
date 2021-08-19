@@ -324,14 +324,11 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	}
 
 	public List<UIEventSubscriber> getUIEventSubscriberList() {
-		Set<UIComponent> done = new HashSet<>();
 		List<UIEventSubscriber> eventList = new ArrayList<>();
 		for (UIComponent uiComponent : getUIComponentList()) {
 			if (uiComponent.isEnabled()) {
 				if (uiComponent instanceof UIEventSubscriber) {
 					eventList.add((UIEventSubscriber) uiComponent);
-				} else {
-					uiComponent.addEventSubscriber(done, eventList);
 				}
 			}
 		}
@@ -835,12 +832,12 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	}
 	
 	private String computeNgDestroy() {
-		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
 		String computed = "";
 		computed += "ngOnDestroy() {"+ System.lineSeparator();
 		if (hasEvent(ViewEvent.onWillUnload)) {
 			computed += "\t\tthis."+ ViewEvent.onWillUnload.event + "()" + System.lineSeparator();
 		}
+		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
 		if (!subscriberList.isEmpty()) {
 			for (UIEventSubscriber subscriber: subscriberList) {
 				String desctructor = subscriber.computeDestructor();
@@ -916,11 +913,11 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		
 		// Page events
 		List<UIPageEvent> eventList = getUIPageEventList();
-		if (!eventList.isEmpty()) {
+		//if (!eventList.isEmpty()) {
 			//System.out.println("For page: "+ getName());
 			for (ViewEvent viewEvent: ViewEvent.values()) {
 				//System.out.println("Event :"+ viewEvent.name());
-				String computedEvent = viewEvent.computeEvent(eventList);
+				String computedEvent = viewEvent.computeEvent(this, eventList);
 				//System.out.println("Code :"+ computedEvent);
 				if (!computedEvent.isEmpty()) {
 					try {
@@ -936,7 +933,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 					}
 				}
 			}
-		}
+		//}
 		
 		// ngOnInit, ngOnDestroy
 		try {

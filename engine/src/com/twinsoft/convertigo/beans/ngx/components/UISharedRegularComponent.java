@@ -35,6 +35,8 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent.ViewEvent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 
@@ -351,7 +353,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			
 			String events = "";
 			String params = "";
-			//String params_interfaces = "scope?: any";
 			
 			it = getUIComponentList().iterator();
 			while (it.hasNext()) {
@@ -359,11 +360,8 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 				if (component instanceof UICompVariable) {
 					UICompVariable uicv = (UICompVariable)component;
 					if (uicv.isEnabled()) {
-						//params_interfaces += params_interfaces.length() > 0 ? ", " : "";
-						//params_interfaces += uicv.getVariableName() + "?: any";
 						String varName = uicv.getVariableName();
 						String varValue = uicv.getVariableValue();
-						//params += params.length() > 0 ? ", " : "";
 						params += "\t@Input() "+ varName + ": any = " + (varValue.isEmpty() ? "undefined":varValue) + System.lineSeparator();
 						events += "\t@Output() "+ varName +"Change = new EventEmitter<any>();"+ System.lineSeparator();
 					}
@@ -379,38 +377,172 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 				}
 			}
 			try {
-				//String interfaces = jsonScripts.getString("interfaces");
-				//interfaces += "interface IParams {"+ params_interfaces +"}"+ System.lineSeparator();
-				//jsonScripts.put("interfaces", interfaces);
-				
 				String declarations = jsonScripts.getString("declarations");
 				declarations += "@Input() owner : C8oPageBase = undefined"+ System.lineSeparator();
-				//declarations += "\t@Input() params"+ priority + " : IParams = {" + params + "}"+ System.lineSeparator();
 				declarations += params;
 				declarations += events;
-				//declarations += "\tpublic params : IParams = {" + params + "}"+ System.lineSeparator();
 				jsonScripts.put("declarations", declarations);
-				
-				String initializations = jsonScripts.getString("initializations");
-				//initializations += "this.params = this.params"+ priority + System.lineSeparator();
-				jsonScripts.put("initializations", initializations);
-
-				String dispositions = jsonScripts.getString("dispositions");
-				jsonScripts.put("dispositions", dispositions);
-				
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 			
+			// Comp subscribers
+			List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
+			if (!subscriberList.isEmpty()) {
+				try {
+					String initializations = jsonScripts.getString("initializations");
+					String ccode = computeEventConstructors(subscriberList);
+					initializations += ccode + (ccode.isEmpty() ? "" : System.lineSeparator() + "\t\t");
+					jsonScripts.put("initializations", initializations);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				try {
+					String dispositions = jsonScripts.getString("dispositions");
+					String ccode = computeEventDestructors(subscriberList);
+					dispositions += ccode + (ccode.isEmpty() ? "" : System.lineSeparator() + "\t\t");
+					jsonScripts.put("dispositions", dispositions);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			// Comp Page events
+			List<UIPageEvent> eventList = getUIPageEventList();
+			//if (!eventList.isEmpty()) {
+				for (ViewEvent viewEvent: ViewEvent.values()) {
+					String computedEvent = viewEvent.computeEvent(this, eventList);
+					if (!computedEvent.isEmpty()) {
+						try {
+							String functions = jsonScripts.getString("functions");
+							String fname = viewEvent.name();
+							String fcode = computedEvent;
+							if (addFunction(fname, fcode)) {
+								functions += fcode + System.lineSeparator();
+							}
+							jsonScripts.put("functions", functions);
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			//}
 			
 			it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
 				component.computeScripts(jsonScripts);
-			}
+			}			
 		}
 	}
 
+	public List<UIEventSubscriber> getUIEventSubscriberList() {
+		List<UIEventSubscriber> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent.isEnabled()) {
+				if (uiComponent instanceof UIEventSubscriber) {
+					eventList.add((UIEventSubscriber) uiComponent);
+				}
+			}
+		}
+		return eventList;
+	}
+	
+	private String computeEventConstructors(List<UIEventSubscriber> subscriberList) {
+		String computed = "";
+		if (!subscriberList.isEmpty()) {
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String constructor = subscriber.computeConstructor();
+				computed += constructor.isEmpty() ? "": constructor;
+			}
+			computed += "\t\t";
+		}
+		return computed;
+	}
+
+	private String computeEventDestructors(List<UIEventSubscriber> subscriberList) {
+		String computed = "";
+		if (!subscriberList.isEmpty()) {
+			for (UIEventSubscriber subscriber: subscriberList) {
+				String desctructor = subscriber.computeDestructor();
+				computed += desctructor.isEmpty() ? "" : desctructor;
+			}
+			computed += "\t\t";
+		}
+		return computed;
+	}
+	
+	public List<UIPageEvent> getUIPageEventList() {
+		Set<UIComponent> done = new HashSet<>();
+		List<UIPageEvent> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent.isEnabled()) {
+				if (uiComponent instanceof UIPageEvent) {
+					eventList.add((UIPageEvent) uiComponent);
+				} else {
+					uiComponent.addPageEvent(done, eventList);
+				}
+			}
+		}
+		return eventList;
+	}
+	
+	@Override
+	public void addPageEvent(UIUseShared uiUse, Set<UIComponent> done, List<UIPageEvent> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
+		if (isEnabled()) {
+			List<UIPageEvent> list = new ArrayList<UIPageEvent>();
+			for (UIComponent uic : getUIComponentList()) {
+				try {
+					if (uic instanceof UIPageEvent && uic.isEnabled()) {
+						list.add((UIPageEvent)uic);
+					}
+				} catch (Exception e) {
+					Engine.logBeans.warn("(UISharedComponent) addPageEvent: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
+			}
+			
+			for (ViewEvent viewEvent: ViewEvent.values()) {
+				boolean found = false;
+				for (UIPageEvent evt: list) {
+					if (viewEvent.equals(evt.getViewEvent())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					UIPageEvent upe = new UIPageEvent();
+					upe.setViewEvent(viewEvent);
+					upe.setChildOf(this);
+					list.add(upe);
+				}
+			}
+			
+			eventList.addAll(list);
+		}
+	}
+
+	@Override
+	public void addEventSubscriber(UIUseShared uiUse, Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
+		if (isEnabled()) {
+			for (UIComponent uic : getUIComponentList()) {
+				try {
+					if (uic instanceof UIEventSubscriber && uic.isEnabled()) {
+						eventList.add((UIEventSubscriber)uic);
+					}
+				} catch (Exception e) {
+					Engine.logBeans.warn("(UISharedComponent) addEventSubscriber: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
+				}
+			}
+		}
+	}
+	
 	@Override
 	protected void computeScripts(UIUseShared uiUse, JSONObject jsonScripts) {
 		// TODO Auto-generated method stub
