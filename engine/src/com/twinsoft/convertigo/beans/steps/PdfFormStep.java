@@ -169,6 +169,9 @@ public class PdfFormStep extends Step implements IStepSmartTypeContainer, IStepS
 	public PdfFormStep clone() throws CloneNotSupportedException {
 		PdfFormStep clonedObject = (PdfFormStep) super.clone();
 		clonedObject.smartTypes = null;
+		clonedObject.filePath = filePath.clone();
+		clonedObject.targetFile = targetFile.clone();
+		clonedObject.fieldsList = fieldsList.clone();
 		return clonedObject;
 	}
 
