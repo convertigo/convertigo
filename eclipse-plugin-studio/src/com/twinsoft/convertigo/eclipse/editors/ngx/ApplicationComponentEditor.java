@@ -1780,7 +1780,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				String line;
 				
-				Matcher matcher = Pattern.compile(" (\\d+)% (.*)").matcher("");
+				Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 				int lastProgress = 0;
 				
 				while ((line = br.readLine()) != null) {
