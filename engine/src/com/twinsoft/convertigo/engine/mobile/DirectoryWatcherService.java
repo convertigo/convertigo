@@ -41,7 +41,7 @@ public class DirectoryWatcherService implements Runnable {
     /*
      * Wait this long after an event before processing the files.
      */
-    private final int DELAY = 500; // ms
+    private final int DELAY = 10; // ms
 
     /*
      * Use a SET to prevent duplicates from being added when multiple events on the 
