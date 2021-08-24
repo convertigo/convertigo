@@ -628,7 +628,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		if (!done.add(this)) {
 			return;
 		}
-		if (isEnabled()) {
+		//if (isEnabled()) {
 			Contributor contributor = getContributor();
 			if (contributor != null) {
 				if (!contributors.contains(contributor)) {
@@ -638,7 +638,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			for (UIComponent uic : getUIComponentList()) {
 				uic.addContributors(done, contributors);
 			}
-		}
+		//}
 	}
 
 	@Override
@@ -646,7 +646,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		if (!done.add(this)) {
 			return;
 		}
-		if (isEnabled()) {
+		//if (isEnabled()) {
 			Contributor contributor = getContributor();
 			if (contributor != null) {
 				if (!contributors.contains(contributor)) {
@@ -656,7 +656,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			for (UIComponent uic : getUIComponentList()) {
 				uic.addContributors(done, contributors);
 			}
-		}
+		//}
 	}
 	
 	@Override
