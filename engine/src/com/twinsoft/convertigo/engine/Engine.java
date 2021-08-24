@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProvider;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
@@ -483,7 +484,7 @@ public class Engine {
 
 				Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
 				Engine.theApp.databaseObjectsManager.init();
-				Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(ComponentRefManager.get());
+				Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(ComponentRefManager.get(Mode.start));
 
 				Engine.theApp.systemDatabaseObjectsManager = new SystemDatabaseObjectsManager();
 				Engine.theApp.systemDatabaseObjectsManager.init();
@@ -939,7 +940,7 @@ public class Engine {
 				
 				if (Engine.theApp.databaseObjectsManager != null) {
 					Engine.logEngine.info("Removing the database objects manager");
-					Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(ComponentRefManager.get());
+					Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(ComponentRefManager.get(Mode.stop));
 					Engine.theApp.databaseObjectsManager.destroy();
 				}
 				

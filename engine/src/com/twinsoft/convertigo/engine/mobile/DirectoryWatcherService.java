@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class DirectoryWatcherService implements Runnable {
@@ -143,7 +144,7 @@ public class DirectoryWatcherService implements Runnable {
             
             String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
             if (compName != null) {
-	    		for (String pname: ComponentRefManager.get().getConsumers(getCompQName(compName))) {
+	    		for (String pname: ComponentRefManager.get(Mode.use).getConsumers(getCompQName(compName))) {
 	    			if (pname.equals(project.getName()))
 	    				continue;
 	        		try {

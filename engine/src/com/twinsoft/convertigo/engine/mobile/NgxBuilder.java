@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
@@ -749,8 +750,9 @@ public class NgxBuilder extends MobileBuilder {
 				
 				if (watcherService == null) {
 					if (Engine.isStudioMode()) {
-				    	for (String qname: ComponentRefManager.get().getKeys()) {
-				    		for (String key: ComponentRefManager.get().getConsumers(qname)) {
+						ComponentRefManager crf = ComponentRefManager.get(Mode.use);
+				    	for (String qname: crf.getKeys()) {
+				    		for (String key: crf.getConsumers(qname)) {
 				        		if (key.equals(project.getName())) {
 				        			try {
 				        				String pname = qname.split("\\.")[0];
@@ -798,7 +800,7 @@ public class NgxBuilder extends MobileBuilder {
     private void updateConsumers(UISharedComponent uisc, Project to) {
 		String compName = uisc.getName();
 		String qname = uisc.getQName();
-		for (String pname: ComponentRefManager.get().getConsumers(qname)) {
+		for (String pname: ComponentRefManager.get(Mode.use).getConsumers(qname)) {
 			if (pname.equals(project.getName()))
 				continue;
 			if (to != null && !to.getName().equals(pname))
@@ -835,7 +837,7 @@ public class NgxBuilder extends MobileBuilder {
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
 			
-			if (watcherService == null) {
+			if (watcherService != null) {
 				watcherService.stop();
 				watcherService = null;
 			}

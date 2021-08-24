@@ -14,10 +14,19 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ComponentRefManager implements DatabaseObjectListener {
-
+	
+	public enum Mode {
+		start,
+		stop,
+		use
+	}
+	
 	static private ComponentRefManager cm = new ComponentRefManager();
 	
-	static public ComponentRefManager get() {
+	static public ComponentRefManager get(Mode mode) {
+		if (mode.equals(Mode.stop)) {
+			cm.clear();
+		}
 		return cm;
 	}
 	
@@ -27,6 +36,12 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		
 	}
 
+	private void clear() {
+		synchronized (consumers) {
+			consumers.clear();
+		}
+	}
+	
 	public void addConsumer(String qname, String pname) {
 		if (qname.startsWith(pname+"."))
 			return;
