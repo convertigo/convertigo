@@ -749,25 +749,22 @@ public class NgxBuilder extends MobileBuilder {
 				}
 				
 				if (watcherService == null) {
-					if (Engine.isStudioMode()) {
-						ComponentRefManager crf = ComponentRefManager.get(Mode.use);
-				    	for (String qname: crf.getKeys()) {
-				    		for (String key: crf.getConsumers(qname)) {
-				        		if (key.equals(project.getName())) {
-				        			try {
-				        				String pname = qname.split("\\.")[0];
-										Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
-										((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
-									} catch (Exception e) {
-										Engine.logEngine.warn(e.getMessage());
-									}
-				        		}
-				    		}
-				    	}
-					}
-					if (Engine.isStudioMode() || Engine.isCliMode()) {
-						updateConsumers();
-					}
+					ComponentRefManager crf = ComponentRefManager.get(Mode.use);
+			    	for (String qname: crf.getKeys()) {
+			    		for (String key: crf.getConsumers(qname)) {
+			        		if (key.equals(project.getName())) {
+			        			try {
+			        				String pname = qname.split("\\.")[0];
+									Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
+									((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
+								} catch (Exception e) {
+									Engine.logEngine.warn(e.getMessage());
+								}
+			        		}
+			    		}
+			    	}
+					
+			    	updateConsumers();
 					
 					if (Engine.isStudioMode()) {
 				        try {

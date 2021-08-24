@@ -63,7 +63,9 @@ import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally.Status;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -121,6 +123,7 @@ public class CLI {
 		Engine.theApp.referencedProjectManager = new ReferencedProjectManager();
 		Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
 		Engine.theApp.databaseObjectsManager.init();
+		Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(ComponentRefManager.get(Mode.start));
 		Engine.theApp.proxyManager = new ProxyManager();
 		Engine.theApp.proxyManager.init();
 		
