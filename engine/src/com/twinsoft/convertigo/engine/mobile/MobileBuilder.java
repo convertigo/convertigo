@@ -72,7 +72,6 @@ public abstract class MobileBuilder {
 
 	protected MobileBuilderBuildMode buildMode = MobileBuilderBuildMode.fast;
 	
-
 	static public void initBuilder(Project project) {
 		initBuilder(project, false);
 	}
@@ -371,6 +370,7 @@ public abstract class MobileBuilder {
 	}
 	
 	public String getTplVersion() {
+		updateTplVersion();
 		return tplVersion;
 	}
 	
