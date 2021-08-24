@@ -478,6 +478,7 @@ public class UIUseShared extends UIElement {
 							for (UISharedComponent uisc: app.getSharedComponentList()) {
 								if (uisc.getQName().equals(qname)) {
 									target = uisc;
+									break;
 								}
 							}
 						} catch (ClassCastException e) {

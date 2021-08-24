@@ -231,6 +231,7 @@ public class NgxBuilder extends MobileBuilder {
 	File assetsDir, envDir, themeDir;
 	File srcDir;
 	
+	DirectoryWatcherService watcherService = null;
 	MbWorker worker = null;
 	
 	static private boolean isAppFile(String path) {
@@ -745,12 +746,75 @@ public class NgxBuilder extends MobileBuilder {
 						worker.process();
 					}
 				}
+				
+				if (watcherService == null) {
+					if (Engine.isStudioMode()) {
+				    	for (String qname: ComponentRefManager.get().getKeys()) {
+				    		for (String key: ComponentRefManager.get().getConsumers(qname)) {
+				        		if (key.equals(project.getName())) {
+				        			try {
+				        				String pname = qname.split("\\.")[0];
+										Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
+										((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
+									} catch (Exception e) {
+										Engine.logEngine.warn(e.getMessage());
+									}
+				        		}
+				    		}
+				    	}
+					}
+					if (Engine.isStudioMode() || Engine.isCliMode()) {
+						updateConsumers();
+					}
+					
+					if (Engine.isStudioMode()) {
+				        try {
+				            watcherService = new DirectoryWatcherService(project, true);
+				            watcherService.start();
+				        } catch (Exception e) {
+				        	Engine.logEngine.warn(e.getMessage());
+				        }
+					}
+				}
 			}
 						
 			initDone = true;
 			Engine.logEngine.debug("(MobileBuilder) Initialized builder for ionic project '"+ project.getName() +"'");
 		}
 	}
+
+    protected void updateConsumers() {
+    	updateConsumers(null);
+    }
+    
+    protected void updateConsumers(Project to) {
+    	MobileApplication mobileApplication = project.getMobileApplication();
+    	ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
+    	for (UISharedComponent uisc: app.getSharedComponentList()) {
+    		updateConsumers(uisc, to);
+    	}
+    }
+    
+    private void updateConsumers(UISharedComponent uisc, Project to) {
+		String compName = uisc.getName();
+		String qname = uisc.getQName();
+		for (String pname: ComponentRefManager.get().getConsumers(qname)) {
+			if (pname.equals(project.getName()))
+				continue;
+			if (to != null && !to.getName().equals(pname))
+				continue;
+    		try {
+     			File dest = new File(Engine.projectDir(pname),"_private/ionic/src/app/components/"+ compName.toLowerCase());
+    			File src = new File(project.getDirPath(),"_private/ionic/src/app/components/"+ compName.toLowerCase());
+    			if (src.exists() && !dest.exists()) {
+    				Engine.logEngine.debug("(MobileBuilder) Copying " + src + " to " + dest);
+    				FileUtils.copyDirectory(src, dest);
+    			}
+    		} catch (Exception e) {
+    			Engine.logEngine.warn(e.getMessage());
+    		}
+		}
+    }
 	
 	private void updateEnvFile() {
 		JSONObject envJSON = new JSONObject();
@@ -770,6 +834,11 @@ public class NgxBuilder extends MobileBuilder {
 		
 		if (isIonicTemplateBased()) {
 			moveFilesForce();
+			
+			if (watcherService == null) {
+				watcherService.stop();
+				watcherService = null;
+			}
 			
 			if (worker != null) {
 				worker.isRunning = false;

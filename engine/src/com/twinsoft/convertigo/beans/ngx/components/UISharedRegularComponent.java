@@ -34,7 +34,6 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent.ViewEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -610,13 +609,13 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	protected String computeStyle(UIUseShared uiUse) {
-		Project project = getProject();
 		String c8o_CompName = getName();
 		String c8o_CompScssPath;
+		MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
 		try {
-			Path scssPath = Paths.get(new File (project.getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase() 
+			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
 									+ "/" +c8o_CompName.toLowerCase() + ".scss").getCanonicalPath());
-			c8o_CompScssPath = getContributor().getContainerPath((MobileComponent) uiUse.getMainScriptComponent()).relativize(scssPath).toString().replace('\\', '/');
+			c8o_CompScssPath = getContributor().getContainerPath(container).relativize(scssPath).toString().replace('\\', '/');
 		} catch (Exception e) {
 			c8o_CompScssPath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".scss";
 		}
@@ -654,15 +653,14 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 					contributors.add(contributor);
 				}
 			}
-			/*for (UIComponent uic : getUIComponentList()) {
+			for (UIComponent uic : getUIComponentList()) {
 				uic.addContributors(done, contributors);
-			}*/
+			}
 		}
 	}
 	
 	@Override
 	protected Contributor getContributor() {
-		final Project project = getProject();
 		final String compName = getName();
 		final String c8o_CompName = compName;
 		final String c8o_CompModuleName = compName + "Module";
@@ -689,7 +687,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 				
 				Map<String, String> imports = new HashMap<String, String>();
 				try {
-					Path modulePath = Paths.get(new File (project.getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase() 
+					Path modulePath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
 											+ "/" +c8o_CompName.toLowerCase() + ".module").getCanonicalPath());
 					c8o_CompModulePath = getContainerPath(container).relativize(modulePath).toString().replace('\\', '/');
 				} catch (Exception e) {

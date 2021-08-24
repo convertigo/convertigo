@@ -1603,9 +1603,17 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		if (done == null) {
 			done = new HashSet<Object>();
 		}
-		if (!done.add(to.getObject())) {
+		if (!done.add(to)) {
 			return;
 		}
+		
+		if (to instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject tdbo = (DatabaseObjectTreeObject)to;
+    		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
+    		tdbo.hasBeenModified(true);
+    		viewer.update(tdbo, null);
+		}
+		
 		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");
         TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, 0, done);
         ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
