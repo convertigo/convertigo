@@ -63,6 +63,23 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
+	public void copyKey(String old_qname, String new_qname) {
+		synchronized (consumers) {
+			if (consumers.get(old_qname) != null) {
+				Set<String> newSet = new HashSet<String>(consumers.get(old_qname));
+				consumers.put(new_qname, newSet);
+			}
+		}
+	}
+	
+	public void removeKey(String qname) {
+		synchronized (consumers) {
+			if (consumers.get(qname) != null) {
+				consumers.remove(qname);
+			}
+		}
+	}
+	
 	public Set<String> getConsumers(String qname) {
 		synchronized (consumers) {
 			if (consumers.get(qname) != null) {

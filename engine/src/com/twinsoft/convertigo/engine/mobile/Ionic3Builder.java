@@ -2207,6 +2207,11 @@ public class Ionic3Builder extends MobileBuilder {
 	}
 	
 	@Override
+	public void compRenamed(ISharedComponent sharedComponent, String oldName) throws EngineException {
+		// Does nothing
+	}
+	
+	@Override
 	public void compTemplateChanged(ISharedComponent sharedComponent) throws EngineException {
 		// Does nothing
 	}
@@ -2235,5 +2240,4 @@ public class Ionic3Builder extends MobileBuilder {
 	public String getTempTsRelativePath(ISharedComponent sharedComponent) throws EngineException {
 		return null;
 	}
-
 }

@@ -47,7 +47,7 @@ public class DirectoryWatcherService implements Runnable {
      * Use a SET to prevent duplicates from being added when multiple events on the 
      * same file arrive in quick succession.
      */
-    HashSet<String> filesToReload = new HashSet<String>();
+    private HashSet<String> filesToProcess = new HashSet<String>();
 
     /*
      * Keep a map that will be used to resolve WatchKeys to the parent directory
@@ -100,18 +100,47 @@ public class DirectoryWatcherService implements Runnable {
     	return false;
     }
     
+    private boolean isDirectory(String filename) {
+        File f = new File(filename);
+        if (f.exists()) {
+            return f.isDirectory();
+        } else {
+             return f.getName().lastIndexOf('.') == -1;
+        }
+    }
+    
+    private boolean isFile(String filename) {
+        File f = new File(filename);
+        if (f.exists()) {
+            return f.isFile();
+        } else {
+             return f.getName().lastIndexOf('.') != -1;
+        }
+    }
+    
     private boolean ignore(String filename) {
         Path p = Paths.get(filename);
-        File f = new File(filename);
         
-        if (f.isDirectory() && !p.getParent().endsWith("components")) {
+        // ignore non components directory or files
+        if (isDirectory(filename) && !p.getParent().endsWith("components")) {
         	return true;
         }
-        if (f.isFile() && !p.getParent().getParent().endsWith("components")) {
+        if (isFile(filename) && !p.getParent().getParent().endsWith("components")) {
         	return true;
         }
+
+        // ignore temporary files
+    	if (filename.endsWith(".temp.ts")) {
+    		return true;
+    	}
     	
-        return !hasComp(f.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString());
+        // accept deleted component directory - ignore deleted component files
+    	File f = new File(filename);
+    	if (!f.exists()) {
+    		return isFile(filename);
+    	}
+    	
+        return !hasComp(isDirectory(filename) ? p.getFileName().toString() : p.getParent().getFileName().toString());
     }
     
     private synchronized void addFileToProcess(String filename) {
@@ -119,7 +148,7 @@ public class DirectoryWatcherService implements Runnable {
     		return;
     	}
     	
-        filesToReload.add(filename);
+        filesToProcess.add(filename);
         
         if (processDelayTimer != null) {
             processDelayTimer.cancel();
@@ -137,28 +166,43 @@ public class DirectoryWatcherService implements Runnable {
         /*
          * Iterate over the set of file to be processed
          */
-        for (Iterator<String> it = filesToReload.iterator(); it.hasNext();) {
+        for (Iterator<String> it = filesToProcess.iterator(); it.hasNext();) {
             String filename = it.next();
             Path p = Paths.get(filename);
             File src = new File(filename);
             
-            String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
-            if (compName != null) {
-	    		for (String pname: ComponentRefManager.get(Mode.use).getConsumers(getCompQName(compName))) {
-	    			if (pname.equals(project.getName()))
-	    				continue;
-	        		try {
-	                    File dest = new File(filename.replace(project.getName(), pname));
-	    				Engine.logEngine.debug("(DirectotyWatcherService) Copying " + src + " to " + dest);
-	        			if (src.isDirectory()) {
-	        				FileUtils.copyDirectory(src, dest);
-	        			} else {
-	        				FileUtils.copyFile(src, dest);
-	        			}
-	        		} catch (Exception e) {
-	        			Engine.logEngine.warn(e.getMessage());
-	        		}
-	    		}
+            // copy
+            if (src.exists()) {
+            	if (src.isDirectory()) {
+            		try {
+						registerAll(p);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+            	}
+            	
+	            String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
+	            if (compName != null) {
+		    		for (String pname: ComponentRefManager.get(Mode.use).getConsumers(getCompQName(compName))) {
+		    			if (pname.equals(project.getName()))
+		    				continue;
+		        		try {
+		                    File dest = new File(filename.replace(project.getName(), pname));
+		    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
+		        			if (src.isDirectory()) {
+		        				FileUtils.copyDirectory(src, dest, true);
+		        			} else {
+		        				FileUtils.copyFile(src, dest, true);
+		        			}
+		        		} catch (Exception e) {
+		        			Engine.logEngine.warn(e.getMessage());
+		        		}
+		    		}
+	            }
+            }
+            // delete
+            else {
+   				Engine.logEngine.debug("(DirectoryWatcherService) Deleted " + filename);
             }
             
             /*
@@ -233,14 +277,22 @@ public class DirectoryWatcherService implements Runnable {
                     if (kind == OVERFLOW) {
                         continue;
                     }
-
-                    if (kind == ENTRY_MODIFY || kind == ENTRY_CREATE) {
+                    if (kind == ENTRY_MODIFY || kind == ENTRY_CREATE || kind == ENTRY_DELETE) {
                         WatchEvent<Path> ev = (WatchEvent<Path>)event;
                         Path name = ev.context();
                         Path child = dir.resolve(name);
 
                         String filename = child.toAbsolutePath().toString();
-
+                        if (trace) {
+	                        if (kind == ENTRY_CREATE) {
+	                            System.out.println("created: " +filename);
+	                        } else if (kind == ENTRY_MODIFY) {
+	                        	System.out.println("modified: " +filename);
+	                        } else if (kind == ENTRY_DELETE) {
+	                        	System.out.println("deleted: " +filename);
+	                        }
+                        }
+                        
                         addFileToProcess(filename);
                     }
                 }
@@ -271,8 +323,8 @@ public class DirectoryWatcherService implements Runnable {
     	} finally {
     		this.watcher = null;
     		this.project = null;
-    		if (filesToReload != null) {
-    			filesToReload.clear();
+    		if (filesToProcess != null) {
+    			filesToProcess.clear();
     		}
     		if (keys != null) {
     			keys.clear();

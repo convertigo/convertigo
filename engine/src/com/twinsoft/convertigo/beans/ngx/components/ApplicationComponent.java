@@ -869,6 +869,10 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		removeOrderedSharedComponent(stackComponent.priority);
 		
 		markApplicationAsDirty();
+		
+		if (stackComponent instanceof UISharedRegularComponent) {
+			getProject().getMobileBuilder().compRemoved((UISharedRegularComponent)stackComponent);
+		}
 	}
 
 	public List<UISharedComponent> getSharedComponentList() {

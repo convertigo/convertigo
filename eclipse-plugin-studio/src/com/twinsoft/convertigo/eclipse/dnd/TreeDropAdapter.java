@@ -116,7 +116,9 @@ import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -976,12 +978,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					
 					com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = new com.twinsoft.convertigo.beans.ngx.components.UIUseShared();
 					if (use != null) {
-						use.setSharedComponentQName(projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName());
+						String qname = projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName();
+						use.setSharedComponentQName(qname);
 						use.bNew = true;
 						use.hasChanged = true;
 						
 						mc.add(use);
 						mc.hasChanged = true;
+						ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(qname, mc.getProject().getName());
+						((NgxBuilder)mc.getProject().getMobileBuilder()).updateConsumer();
 					}
 					return true;
 				}

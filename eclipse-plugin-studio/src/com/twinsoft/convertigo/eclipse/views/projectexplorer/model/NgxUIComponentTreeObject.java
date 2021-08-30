@@ -97,7 +97,9 @@ import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDe
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -1048,10 +1050,18 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject deletedObject = deletedTreeObject.getObject();
 			try {
 				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
 					UIComponent currentDbo = getObject();
 					
+					if (deletedObject instanceof UIUseShared) {
+						UIUseShared use = (UIUseShared)deletedObject;
+						String qname = use.getSharedComponentQName();
+						String pname = currentDbo.getProject().getName();
+						ComponentRefManager.get(Mode.use).removeConsumer(qname, pname);
+					}
+										
 					UIActionStack uisa = currentDbo.getSharedAction();
 					UISharedComponent uisc = currentDbo.getSharedComponent();
 					if (uisa != null) {
@@ -1094,6 +1104,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							markMainAsDirty(getObject(), done);
 						}
 					} else {
+						if (propertyName.equals("sharedcomponent")) {
+							if (!newValue.equals(oldValue)) {
+								if (!((String)newValue).isBlank()) {
+									ComponentRefManager.get(Mode.use).addConsumer((String)newValue, dbo.getProject().getName());
+								}
+							}
+						}
+						
 						markMainAsDirty(getObject(), done);
 					}
 					

@@ -1324,6 +1324,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										e1.printStackTrace();
 									}
 								}
+								if (theTreeObject instanceof NgxUIComponentTreeObject) {
+									try {
+										if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+											mbo.compRenamed((com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) theTreeObject.getObject(), oldName);
+										}
+									} catch (EngineException e1) {
+										e1.printStackTrace();
+									}
+								}
 							}
 						BatchOperationHelper.stop();
 							Engine.logStudio.info("---------------------- Rename ended   ----------------------");

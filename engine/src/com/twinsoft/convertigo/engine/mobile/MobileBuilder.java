@@ -495,6 +495,7 @@ public abstract class MobileBuilder {
 	
 	public abstract void compAdded(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void compRemoved(final ISharedComponent sharedComponent) throws EngineException;
+	public abstract void compRenamed(final ISharedComponent sharedComponent, String oldName) throws EngineException;
 	public abstract void compTsChanged(final ISharedComponent sharedComponent, boolean b) throws EngineException;
 	public abstract void compModuleTsChanged(final ISharedComponent sharedComponent) throws EngineException;
 	public abstract void compTemplateChanged(final ISharedComponent sharedComponent) throws EngineException;

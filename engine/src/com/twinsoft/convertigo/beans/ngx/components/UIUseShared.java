@@ -146,67 +146,9 @@ public class UIUseShared extends UIElement {
 	public String computeTemplate() {
 		String computed = "";
 		if (isEnabled()) {
-			UISharedComponent parentSharedComp = ((UIUseShared)this.getOriginal()).getSharedComponent();
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null && uisc.isEnabled()) {
-				if (uisc.isTemplate()) {
-					StringBuilder compVars = new StringBuilder();
-					for (UIComponent uic: uisc.getUIComponentList()) {
-						// Defined component variables
-						if (uic instanceof UICompVariable) {
-							UICompVariable uicv = (UICompVariable)uic;
-							if (uicv.isEnabled()) {
-								String varValue = uicv.getVariableValue();
-								if (!varValue.isEmpty()) {
-									compVars.append(compVars.length() > 0 ? ", ":"");
-									compVars.append(uicv.getVariableName()).append(": ");
-									compVars.append(varValue);
-								}
-							}
-						}
-					}
-					
-					StringBuilder eventBindings = new StringBuilder();
-					StringBuilder useVars = new StringBuilder();
-					for (UIComponent uic: getUIComponentList()) {
-						// Overridden component variables
-						if (uic instanceof UIControlVariable) {
-							UIControlVariable uicv = (UIControlVariable)uic;
-							if (uicv.isEnabled()) {
-								String varValue = uicv.getVarValue();
-								if (!varValue.isEmpty()) {
-									useVars.append(useVars.length() > 0 ? ", ":"");
-									useVars.append(uicv.getVarName()).append(": ");
-									useVars.append(varValue);
-								}
-							}
-						}
-						// Overridden event bindings
-						if (uic instanceof UIControlEvent) {
-							UIControlEvent uice = (UIControlEvent)uic;
-							if (uice.isEnabled()) {
-								eventBindings.append(uice.computeTemplate());
-							}
-						}
-					}
-					
-					String scope = getScope();
-					String params = "merge(merge({" + compVars.toString() + "},{" + useVars.toString() + "}),{scope:"+ scope +"})";
-					
-					// recursive case
-					if (parentSharedComp != null && parentSharedComp.priority == uisc.priority) {
-						computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
-					}
-					// other cases
-					else {
-						IScriptComponent main = getMainScriptComponent();
-						if (main != null) {
-							String sharedTemplate = uisc.computeTemplate(this);
-							main.addTemplate("sc"+ uisc.priority, sharedTemplate);
-						}
-						computed += "<ng-container [ngTemplateOutlet]=\"sc"+ uisc.priority +"\" [ngTemplateOutletContext]=\"{params"+ uisc.priority +": "+params+"}\"></ng-container>" + System.getProperty("line.separator");
-					}
-				} else {
+				if (uisc.isRegular()) {
 					StringBuilder eventBindings = new StringBuilder();
 					StringBuilder attrclasses = new StringBuilder();
 					StringBuilder params = new StringBuilder();
@@ -302,7 +244,6 @@ public class UIUseShared extends UIElement {
 		
 		if (!scope.isEmpty()) {
 			if (isInSharedComponent) {
-				//scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
 				scope = "merge({}, {"+ scope +"})";
 			} else {
 				scope = "merge({}, {"+ scope +"})";
@@ -316,59 +257,55 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
-		if (isEnabled()) {
-			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null) {
-				if (!isRecursive()) {
-					IScriptComponent main = getMainScriptComponent();
-					if (main != null && uisc.isRegular()) {
-						try {
-							String imports = jsonScripts.getString("imports");
-							if (main.addImport("ViewChild", "@angular/core")) {
-								imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
-							}
-							if (main.addImport("ViewChildren", "@angular/core")) {
-								imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
-							}
-							if (main.addImport("QueryList", "@angular/core")) {
-								imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
-							}
-							jsonScripts.put("imports", imports);
-							
-							String declarations = jsonScripts.getString("declarations");
-							String dname = uisc.getIdentifier();
-							String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
+		UISharedComponent uisc = getTargetSharedComponent();
+		if (uisc != null) {
+			if (!isRecursive()) {
+				IScriptComponent main = getMainScriptComponent();
+				if (main != null && uisc.isRegular()) {
+					try {
+						String imports = jsonScripts.getString("imports");
+						if (main.addImport("ViewChild", "@angular/core")) {
+							imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
+						}
+						if (main.addImport("ViewChildren", "@angular/core")) {
+							imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
+						}
+						if (main.addImport("QueryList", "@angular/core")) {
+							imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
+						}
+						jsonScripts.put("imports", imports);
+						
+						String declarations = jsonScripts.getString("declarations");
+						String dname = uisc.getIdentifier();
+						String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
+						if (main.addDeclaration(dname, dcode)) {
+							declarations += System.lineSeparator() + "\t" + dcode;
+						}
+						String all_dname = "all_" + dname;
+						String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
+						if (main.addDeclaration(all_dname, all_dcode)) {
+							declarations += System.lineSeparator() + "\t" + all_dcode;
+						}
+						if (!this.getIdentifier().isBlank()) {
+							dname = this.getIdentifier();
+							dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
 							if (main.addDeclaration(dname, dcode)) {
 								declarations += System.lineSeparator() + "\t" + dcode;
 							}
-							String all_dname = "all_" + dname;
-							String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
+							all_dname = "all_" + dname;
+							all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
 							if (main.addDeclaration(all_dname, all_dcode)) {
 								declarations += System.lineSeparator() + "\t" + all_dcode;
 							}
-							if (!this.getIdentifier().isBlank()) {
-								dname = this.getIdentifier();
-								dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
-								if (main.addDeclaration(dname, dcode)) {
-									declarations += System.lineSeparator() + "\t" + dcode;
-								}
-								all_dname = "all_" + dname;
-								all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
-								if (main.addDeclaration(all_dname, all_dcode)) {
-									declarations += System.lineSeparator() + "\t" + all_dcode;
-								}
-							}
-							jsonScripts.put("declarations", declarations);
-						} catch (JSONException e) {
-							e.printStackTrace();
 						}
+						jsonScripts.put("declarations", declarations);
+					} catch (JSONException e) {
+						e.printStackTrace();
 					}
 					
 					for (UIComponent uic: getUIComponentList()) {
 						uic.computeScripts(jsonScripts);
 					}
-					
-					uisc.computeScripts(this, jsonScripts);
 				}
 			}
 		}
@@ -376,12 +313,10 @@ public class UIUseShared extends UIElement {
 
 	@Override
 	public String computeStyle() {
-		if (isEnabled()) {
-			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null) {
-				if (!isRecursive()) {
-					return uisc.computeStyle(this);
-				}
+		UISharedComponent uisc = getTargetSharedComponent();
+		if (uisc != null) {
+			if (!isRecursive()) {
+				return uisc.computeStyle(this);
 			}
 		}
 		return "";
@@ -390,15 +325,13 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
-		if (isEnabled()) {
-			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null) {
-				if (!done.add(this)) {
-					return;
-				}
-				if (!isRecursive()) {
-					uisc.addPageEvent(this, done, eventList);
-				}
+		UISharedComponent uisc = getTargetSharedComponent();
+		if (uisc != null) {
+			if (!done.add(this)) {
+				return;
+			}
+			if (!isRecursive()) {
+				uisc.addPageEvent(this, done, eventList);
 			}
 		}
 	}
@@ -406,49 +339,43 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void addEventSubscriber(Set<UIComponent> done, List<UIEventSubscriber> eventList) {
-		if (isEnabled()) {
-			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null) {
-				if (!done.add(this)) {
-					return;
-				}
-				if (!isRecursive()) {
-					uisc.addEventSubscriber(this, done, eventList);
-				}
+		UISharedComponent uisc = getTargetSharedComponent();
+		if (uisc != null) {
+			if (!done.add(this)) {
+				return;
+			}
+			if (!isRecursive()) {
+				uisc.addEventSubscriber(this, done, eventList);
 			}
 		}
 	}
 
 	@Override
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
-		if (isEnabled()) {		
-			if(!done.add(this)) {
-				return;
-			}
-			for (UIComponent uic : getUIComponentList()) {
-				uic.addContributors(done, contributors);
-			}
-			
-			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null) {
-				if (!isRecursive()) {
-					uisc.addContributors(this, done, contributors);
-				}
+		if(!done.add(this)) {
+			return;
+		}
+		for (UIComponent uic : getUIComponentList()) {
+			uic.addContributors(done, contributors);
+		}
+		
+		UISharedComponent uisc = getTargetSharedComponent();
+		if (uisc != null) {
+			if (!isRecursive()) {
+				uisc.addContributors(this, done, contributors);
 			}
 		}
 	}
 	
 	@Override
 	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
-		if (isEnabled()) {
-			UISharedComponent uisc = getTargetSharedComponent();
-			if (uisc != null) {
-				if (!done.add(this)) {
-					return;
-				}
-				if (!isRecursive()) {
-					uisc.addInfos(this, done, infoMap);
-				}
+		UISharedComponent uisc = getTargetSharedComponent();
+		if (uisc != null) {
+			if (!done.add(this)) {
+				return;
+			}
+			if (!isRecursive()) {
+				uisc.addInfos(this, done, infoMap);
 			}
 		}
 	}

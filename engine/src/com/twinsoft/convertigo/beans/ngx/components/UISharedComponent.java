@@ -30,7 +30,6 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.common.FormatedContent;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
@@ -100,22 +99,19 @@ public class UISharedComponent extends UIComponent implements IShared {
 	@Override
 	public String computeJsonModel() {
 		JSONObject jsonModel = new JSONObject();
-		//if (isEnabled()) {
-			try {
-				Iterator<UIComponent> it = getUIComponentList().iterator();
-				while (it.hasNext()) {
-					UIComponent component = (UIComponent)it.next();
-					if (component instanceof UICompVariable) {
-						UICompVariable var = (UICompVariable)component;
-						jsonModel.put(var.getVariableName(), "");
-					}
+		try {
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UICompVariable) {
+					UICompVariable var = (UICompVariable)component;
+					jsonModel.put(var.getVariableName(), "");
 				}
-				
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-		//}
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		return jsonModel.toString();
 	}
 	
@@ -144,120 +140,31 @@ public class UISharedComponent extends UIComponent implements IShared {
 	}
 	
 	protected String computeTemplate(UIUseShared uiUse) {
-		String computed = "";
-		if (isEnabled()) {
-			computed += "<!-- '"+ getName() +"' shared component template -->" + System.lineSeparator();
-			computed += "<ng-template #sc"+ this.priority +" let-params"+ this.priority +"=\"params"+ this.priority +"\" >" + System.lineSeparator();
-			for (UIComponent uic: getUIComponentList()) {
-				if (!(uic instanceof UICompVariable)) {
-					try {
-						computed += uic.cloneSetParent(uiUse).computeTemplate();
-					} catch (CloneNotSupportedException e) {
-						Engine.logBeans.warn("(UISharedComponent) computeTemplate: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
-					}
-				}
-			}
-			computed += "</ng-template >" + System.lineSeparator();
-		}
-		return computed;
+		return "";
 	}
 	
 	protected void computeScripts(UIUseShared uiUse, JSONObject jsonScripts) {
-		if (isEnabled()) {
-			for (UIComponent uic: getUIComponentList()) {
-				try {
-					uic.cloneSetParent(uiUse).computeScripts(jsonScripts);
-				} catch (CloneNotSupportedException e) {
-					Engine.logBeans.warn("(UISharedComponent) computeScripts: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
-				}
-			}
-		}
+		// does nothing
 	}
 	
 	protected String computeStyle(UIUseShared uiUse) {
-		String computed = "";
-		if (isEnabled()) {
-			for (UIComponent uic: getUIComponentList()) {
-				if (uic instanceof UIElement) {
-					try {
-						computed += ((UIElement)uic.cloneSetParent(uiUse)).computeStyle();
-					} catch (CloneNotSupportedException e) {
-						Engine.logBeans.warn("(UISharedComponent) computeStyle: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
-					}
-				}
-			}
-		}
-		return computed;
+		return "";
 	}
 	
 	protected void addContributors(UIUseShared uiUse, Set<UIComponent> done, List<Contributor> contributors) {
-		if (!done.add(this)) {
-			return;
-		}
-		if (isEnabled()) {
-			Contributor contributor = getContributor();
-			if (contributor != null) {
-				if (!contributors.contains(contributor)) {
-					contributors.add(contributor);
-				}
-			}
-			for (UIComponent uic : getUIComponentList()) {
-				try {
-					uic.cloneSetParent(uiUse).addContributors(done, contributors);
-				} catch (CloneNotSupportedException e) {
-					Engine.logBeans.warn("(UISharedComponent) addContributors: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
-				}
-			}
-		}
+		// does nothing
 	}
 	
 	protected void addInfos(UIUseShared uiUse, Set<UIComponent> done, Map<String, Set<String>> infoMap) {
-		if (!done.add(this)) {
-			return;
-		}
-		if (isEnabled()) {
-			for (UIComponent uic : getUIComponentList()) {
-				try {
-					uic.cloneSetParent(uiUse).addInfos(done, infoMap);
-				} catch (CloneNotSupportedException e) {
-					Engine.logBeans.warn("(UISharedComponent) addInfos: enabled to clone \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
-				}
-			}
-		}
+		// does nothing
 	}
 
 	public void addPageEvent(UIUseShared uiUse, Set<UIComponent> done, List<UIPageEvent> eventList) {
-		if (!done.add(this)) {
-			return;
-		}
-		if (isEnabled()) {
-			for (UIComponent uic : getUIComponentList()) {
-				try {
-					if (uic instanceof UIPageEvent && uic.isEnabled()) {
-						eventList.add((UIPageEvent)uic);
-					}
-				} catch (Exception e) {
-					Engine.logBeans.warn("(UISharedComponent) addPageEvent: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
-				}
-			}
-		}
+		// does nothing
 	}
 
 	public void addEventSubscriber(UIUseShared uiUse, Set<UIComponent> done, List<UIEventSubscriber> eventList) {
-		if (!done.add(this)) {
-			return;
-		}
-		if (isEnabled()) {
-			for (UIComponent uic : getUIComponentList()) {
-				try {
-					if (uic instanceof UIEventSubscriber && uic.isEnabled()) {
-						eventList.add((UIEventSubscriber)uic);
-					}
-				} catch (Exception e) {
-					Engine.logBeans.warn("(UISharedComponent) addEventSubscriber: enabled to add \""+ uic.getName() +"\" component for \""+ uiUse.toString() +"\" component");
-				}
-			}
-		}
+		// does nothing
 	}
 
 	@Override
