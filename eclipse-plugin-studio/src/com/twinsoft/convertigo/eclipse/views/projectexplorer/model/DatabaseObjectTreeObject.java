@@ -59,6 +59,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionFilter;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.IPropertySource;
@@ -103,8 +105,10 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -854,6 +858,22 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public void resetPropertyValue(Object id) {	}
 	
 	public void setPropertyValue(Object id, Object value) {
+		MobileBuilder mb = null;
+		boolean autoBuild = false;
+
+		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
+		if (editorPart != null) {
+			IEditorInput input = editorPart.getEditorInput();
+			if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
+				com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+				mb = editorInput.getApplication().getProject().getMobileBuilder();
+			}
+			if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+				com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+				mb = editorInput.getApplication().getProject().getMobileBuilder();
+			}
+		}
+
 		DatabaseObject databaseObject = getObject();
 		Object oldValue = getPropertyValue(id);
 		String propertyName = (String) id;
@@ -1071,16 +1091,33 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		        }	        
 	        }
 	        
+			Engine.logStudio.info("---------------------- SetPropertyValue started: "+ propertyName + "----------------------");
+			if (mb != null) {
+				autoBuild = mb.isAutoBuild();
+				if (autoBuild) {
+					mb.setAutoBuild(false);
+				}
+			}
+			BatchOperationHelper.start();
+			
 	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, propertyName, oldValue, value);
-	        BatchOperationHelper.start();
 	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+	        
+	        BatchOperationHelper.stop();
         }
         catch (Exception e) {
             String message = "Error while trying to set property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
             ConvertigoPlugin.logException(e, message);
         }
 		finally {
-	        BatchOperationHelper.stop();
+			BatchOperationHelper.cancel();
+			Engine.logStudio.info("---------------------- SetPropertyValue ended:   "+ propertyName + "----------------------");
+			if (mb != null) {
+				if (autoBuild) {
+					mb.setAutoBuild(true);
+				}
+			}
+	        
 			isValueInProcess = false;
 		}
 	}
