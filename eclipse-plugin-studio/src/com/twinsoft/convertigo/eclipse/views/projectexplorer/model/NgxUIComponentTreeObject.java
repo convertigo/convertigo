@@ -99,6 +99,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -1053,17 +1054,17 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			DatabaseObject deletedObject = deletedTreeObject.getObject();
 			try {
 				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
-					UIComponent currentDbo = getObject();
+					UIComponent parentDbo = getObject();
 					
 					if (deletedObject instanceof UIUseShared) {
 						UIUseShared use = (UIUseShared)deletedObject;
-						String qname = use.getSharedComponentQName();
-						String pname = currentDbo.getProject().getName();
-						ComponentRefManager.get(Mode.use).removeConsumer(qname, pname);
+						String compQName = use.getSharedComponentQName();
+						String useQNname = parentDbo.getQName() + "." + deletedObject.getName();
+						ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQNname);
 					}
 										
-					UIActionStack uisa = currentDbo.getSharedAction();
-					UISharedComponent uisc = currentDbo.getSharedComponent();
+					UIActionStack uisa = parentDbo.getSharedAction();
+					UISharedComponent uisc = parentDbo.getSharedComponent();
 					if (uisa != null) {
 						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
 					}
@@ -1107,7 +1108,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						if (propertyName.equals("sharedcomponent")) {
 							if (!newValue.equals(oldValue)) {
 								if (!((String)newValue).isBlank()) {
-									ComponentRefManager.get(Mode.use).addConsumer((String)newValue, dbo.getProject().getName());
+									ComponentRefManager.get(Mode.use).addConsumer((String)newValue, dbo.getQName());
 								}
 							}
 						}
@@ -1132,6 +1133,15 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						handleSharedActionChanged((UIActionStack) dbo, done);
 					}
 					else if (dbo instanceof UISharedComponent) {
+						if (getObject() instanceof UIUseShared) {
+							UIUseShared uiUse = (UIUseShared)getObject();
+							String useQName = uiUse.getQName();
+							String compQName = dbo.getQName();
+							if (ComponentRefManager.get(Mode.use).getAllConsumers(compQName).contains(useQName)) {
+								((NgxBuilder)uiUse.getProject().getMobileBuilder()).updateConsumer();
+							}
+						}
+						
 						handleSharedComponentChanged((UISharedComponent) dbo, done);
 					}
 				}

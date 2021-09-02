@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -638,7 +637,8 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		if (!done.add(this)) {
 			return;
 		}
-		Contributor contributor = getContributor();
+		
+		Contributor contributor = getContributor(uiUse);
 		if (contributor != null) {
 			if (!contributors.contains(contributor)) {
 				contributors.add(contributor);
@@ -651,11 +651,26 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	protected Contributor getContributor() {
+		return getContributor(null);
+	}
+	
+	protected Contributor getContributor(UIUseShared uiUse) {
 		final String compName = getName();
 		final String c8o_CompName = compName;
 		final String c8o_CompModuleName = compName + "Module";
-
+		final UIUseShared use = uiUse;
+		
 		return new Contributor() {
+			
+			private boolean accept() {
+				if (getContainer() == null) {
+					return true;
+				} else if (use != null) {
+					return ((MobileComponent)use.getMainScriptComponent()).equals(getContainer());
+				}
+				return false;
+			}
+			
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				return new HashMap<String, String>();
@@ -672,25 +687,30 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			}
 			
 			@Override
-			public Map<String, String> getModuleTsImports(MobileComponent container) {
-				String c8o_CompModulePath;
-				
+			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				try {
-					Path modulePath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
-											+ "/" +c8o_CompName.toLowerCase() + ".module").getCanonicalPath());
-					c8o_CompModulePath = getContainerPath(container).relativize(modulePath).toString().replace('\\', '/');
-				} catch (Exception e) {
-					c8o_CompModulePath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".module";
+				
+				if (accept()) {
+					MobileComponent container = getContainer();
+					String c8o_CompModulePath;
+					try {
+						Path modulePath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
+												+ "/" +c8o_CompName.toLowerCase() + ".module").getCanonicalPath());
+						c8o_CompModulePath = getContainerPath(container).relativize(modulePath).toString().replace('\\', '/');
+					} catch (Exception e) {
+						c8o_CompModulePath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".module";
+					}
+					imports.put(c8o_CompModuleName, c8o_CompModulePath);
 				}
-				imports.put(c8o_CompModuleName, c8o_CompModulePath);
 				return imports;
 			}
 
 			@Override
 			public Set<String> getModuleNgImports() {
 				Set<String> ngImports = new HashSet<String>();
-				ngImports.add(c8o_CompModuleName);
+				if (accept()) {
+					ngImports.add(c8o_CompModuleName);
+				}
 				return ngImports;
 			}
 

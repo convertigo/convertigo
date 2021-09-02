@@ -162,6 +162,17 @@ public class DirectoryWatcherService implements Runnable {
         }, DELAY);
     }
 
+    private static String pname(String qname) {
+    	if (qname != null && !qname.isBlank()) {
+    		try {
+    			return qname.substring(0, qname.indexOf('.'));
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
+    	return "none";
+    }
+    
     private synchronized void processFiles() {
         /*
          * Iterate over the set of file to be processed
@@ -183,11 +194,11 @@ public class DirectoryWatcherService implements Runnable {
             	
 	            String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
 	            if (compName != null) {
-		    		for (String pname: ComponentRefManager.get(Mode.use).getConsumers(getCompQName(compName))) {
-		    			if (pname.equals(project.getName()))
+	            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(getCompQName(compName))) {
+		    			if (pname(useQName).equals(project.getName()))
 		    				continue;
 		        		try {
-		                    File dest = new File(filename.replace(project.getName(), pname));
+		                    File dest = new File(filename.replace(project.getName(), pname(useQName)));
 		    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
 		        			if (src.isDirectory()) {
 		        				FileUtils.copyDirectory(src, dest, true);

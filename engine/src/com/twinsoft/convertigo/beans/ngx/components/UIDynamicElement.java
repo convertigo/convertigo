@@ -425,7 +425,7 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			}
 			
 			@Override
-			public Map<String, String> getModuleTsImports(MobileComponent container) {
+			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {

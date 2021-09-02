@@ -371,7 +371,7 @@ public class UIActionStack extends UIComponent implements IShared {
 			}
 
 			@Override
-			public Map<String, String> getModuleTsImports(MobileComponent container) {
+			public Map<String, String> getModuleTsImports() {
 				return new HashMap<String, String>();
 			}
 

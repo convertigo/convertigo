@@ -42,23 +42,23 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public void addConsumer(String qname, String pname) {
-		if (qname.startsWith(pname+"."))
+	public void addConsumer(String compQName, String useQName) {
+		if (compQName.startsWith(MobileBuilder.projectName(useQName)))
 			return;
 		synchronized (consumers) {
-			if (consumers.get(qname) == null) {
-				consumers.put(qname, new HashSet<String>());
+			if (consumers.get(compQName) == null) {
+				consumers.put(compQName, new HashSet<String>());
 			}
-			if (consumers.get(qname).add(pname)) {
-				Engine.logEngine.trace(pname + " has been added as consumer for comp: "+ qname + ", consummers:"+consumers.get(qname).size());
+			if (consumers.get(compQName).add(useQName)) {
+				Engine.logEngine.trace(useQName + " has been added as consumer for comp: "+ compQName + ", consummers:"+consumers.get(compQName).size());
 			}
 		}
 	}
 	
-	public void removeConsumer(String qname, String pname) {
+	public void removeConsumer(String compQName, String useQName) {
 		synchronized (consumers) {
-			if (consumers.get(qname) != null) {
-				consumers.get(qname).remove(pname);
+			if (consumers.get(compQName) != null) {
+				consumers.get(compQName).remove(useQName);
 			}
 		}
 	}
@@ -72,18 +72,45 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 	}
 	
-	public void removeKey(String qname) {
+	public void removeKey(String compQName) {
 		synchronized (consumers) {
-			if (consumers.get(qname) != null) {
-				consumers.remove(qname);
+			if (consumers.get(compQName) != null) {
+				consumers.remove(compQName);
 			}
 		}
 	}
 	
-	public Set<String> getConsumers(String qname) {
+	public Set<String> getAllConsumers(String compQName) {
+		Set<String> set = new HashSet<String>();
+		try {
+	    	for (String keyQName: getKeys()) {
+	    		if (!keyQName.equals(compQName)) {
+		    		for (String useQName: getConsumers(compQName)) {
+		    			if (useQName.startsWith(keyQName)) {
+		    				if (!set.contains(useQName)) {
+		    					set.addAll(getAllConsumers(keyQName));
+		    				}
+		    			}
+		    		}
+	    		}
+	    	}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		synchronized (consumers) {
-			if (consumers.get(qname) != null) {
-				return Collections.unmodifiableSet(consumers.get(qname));
+			if (consumers.get(compQName) != null) {
+				set.addAll(consumers.get(compQName));
+			}
+		}
+
+		return Collections.unmodifiableSet(set);
+	}
+	
+	private Set<String> getConsumers(String compQName) {
+		synchronized (consumers) {
+			if (consumers.get(compQName) != null) {
+				return Collections.unmodifiableSet(consumers.get(compQName));
 			}
 			return Collections.emptySet();
 		}
@@ -106,9 +133,9 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		
 		if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIUseShared) {
 			com.twinsoft.convertigo.beans.ngx.components.UIUseShared uius = GenericUtils.cast(dbo);
-			String pname = uius.getProject().getName();
-			String qname = uius.getSharedComponentQName();
-			addConsumer(qname, pname);
+			String useQName = uius.getQName();
+			String compQName = uius.getSharedComponentQName();
+			addConsumer(compQName, useQName);
 		}
 	}
 	

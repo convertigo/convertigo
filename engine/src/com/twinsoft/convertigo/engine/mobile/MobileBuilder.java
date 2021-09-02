@@ -108,6 +108,17 @@ public abstract class MobileBuilder {
 		}
 	}
 	
+    static public String projectName(String qname) {
+    	if (qname != null && !qname.isBlank()) {
+    		try {
+    			return qname.split("\\.")[0];
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
+    	return "none";
+    }
+    
 	static public int compareVersions(String v1, String v2) {
 		return VersionUtils.compare(v1, v2);
 	}

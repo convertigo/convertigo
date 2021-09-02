@@ -978,14 +978,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					
 					com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = new com.twinsoft.convertigo.beans.ngx.components.UIUseShared();
 					if (use != null) {
-						String qname = projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName();
-						use.setSharedComponentQName(qname);
+						String compQName = projectName + "." + mobileAppName + "." +  applicationName + "." + usc.getName();
+						use.setSharedComponentQName(compQName);
 						use.bNew = true;
 						use.hasChanged = true;
 						
 						mc.add(use);
 						mc.hasChanged = true;
-						ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(qname, mc.getProject().getName());
+						ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
 						((NgxBuilder)mc.getProject().getMobileBuilder()).updateConsumer();
 					}
 					return true;

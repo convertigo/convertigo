@@ -187,8 +187,8 @@ public class UIDynamicInfiniteScroll extends UIDynamicComponent {
 			}
 
 			@Override
-			public Map<String, String> getModuleTsImports(MobileComponent container) {
-				return contributor.getModuleTsImports(container);
+			public Map<String, String> getModuleTsImports() {
+				return contributor.getModuleTsImports();
 			}
 
 			@Override

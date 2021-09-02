@@ -27,6 +27,21 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 public abstract class Contributor {
+	private MobileComponent container = null;
+	
+	public void forContainer(MobileComponent container, ILambda lambda) {
+		setContainer(container);
+		lambda.apply();
+		setContainer(null);
+	}
+	
+	protected void setContainer(MobileComponent container) {
+		this.container = container;
+	}
+	protected MobileComponent getContainer() {
+		return container;
+	}
+	
 	public boolean isNgModuleForApp() {
 		return false;
 	}
@@ -60,7 +75,7 @@ public abstract class Contributor {
                 			.stream()
                 			.map(entry -> entry.getKey() + " - " + entry.getValue())
                 			.collect(Collectors.joining(", "))
-                    	+ getModuleTsImports(null).entrySet()
+                    	+ getModuleTsImports().entrySet()
                 			.stream()
                 			.map(entry -> entry.getKey() + " - " + entry.getValue())
                 			.collect(Collectors.joining(", "))
@@ -94,7 +109,7 @@ public abstract class Contributor {
 	abstract public Map<String, File> getCompBeanDir();
 	abstract public Map<String, String> getActionTsFunctions();
 	abstract public Map<String, String> getActionTsImports();
-	abstract public Map<String, String> getModuleTsImports(MobileComponent container);
+	abstract public Map<String, String> getModuleTsImports();
 	abstract public Map<String, String> getPackageDependencies();
 	abstract public Map<String, String> getConfigPlugins();
 	abstract public Set<String> getModuleNgImports();

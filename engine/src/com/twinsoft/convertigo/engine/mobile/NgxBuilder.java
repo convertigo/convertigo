@@ -769,15 +769,18 @@ public class NgxBuilder extends MobileBuilder {
 
 	public void updateConsumer() {
 		ComponentRefManager crf = ComponentRefManager.get(Mode.use);
-    	for (String qname: crf.getKeys()) {
-    		for (String key: crf.getConsumers(qname)) {
-        		if (key.equals(project.getName())) {
+    	for (String compQName: crf.getKeys()) {
+    		for (String useQName: crf.getAllConsumers(compQName)) {
+    			if (projectName(useQName).equals(project.getName())) {
+    				String pname = projectName(compQName);
         			try {
-        				String pname = qname.split("\\.")[0];
 						Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
-						((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
+						if (p != null) {
+							((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
+						}
 					} catch (Exception e) {
-						Engine.logEngine.warn(e.getMessage());
+						e.printStackTrace();
+						Engine.logEngine.warn("Unable to update consummer for project "+ pname + ": "+ e.getMessage());
 					}
         		}
     		}
@@ -799,14 +802,15 @@ public class NgxBuilder extends MobileBuilder {
     // for created or modified files
     private void updateConsumers(UISharedComponent uisc, Project to) {
 		String compName = uisc.getName();
-		String qname = uisc.getQName();
-		for (String pname: ComponentRefManager.get(Mode.use).getConsumers(qname)) {
-			if (pname.equals(project.getName()))
+		String compQName = uisc.getQName();
+		
+		for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(compQName)) {
+			if (projectName(useQName).equals(project.getName()))
 				continue;
-			if (to != null && !to.getName().equals(pname))
+			if (to != null && !to.getName().equals(projectName(useQName)))
 				continue;
     		try {
-     			File dest = new File(Engine.projectDir(pname),"_private/ionic/src/app/components/"+ compName.toLowerCase());
+     			File dest = new File(Engine.projectDir(projectName(useQName)),"_private/ionic/src/app/components/"+ compName.toLowerCase());
     			File src = new File(project.getDirPath(),"_private/ionic/src/app/components/"+ compName.toLowerCase());
     			
     			if (src.exists() && shouldUpdate(src, dest)) {
@@ -814,25 +818,25 @@ public class NgxBuilder extends MobileBuilder {
     				FileUtils.copyDirectory(src, dest, true);
     			}
     		} catch (Exception e) {
-    			Engine.logEngine.warn(e.getMessage());
+    			Engine.logEngine.warn("Unable to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
     		}
 		}
     }
 
     // for deleted files
-    private void updateConsumers(String compName, String qname) {
-		for (String pname: ComponentRefManager.get(Mode.use).getConsumers(qname)) {
-			if (pname.equals(project.getName()))
+    private void updateConsumers(String compName, String compQName) {
+		for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(compQName)) {
+			if (projectName(useQName).equals(project.getName()))
 				continue;
     		try {
-     			File dest = new File(Engine.projectDir(pname),"_private/ionic/src/app/components/"+ compName.toLowerCase());
+     			File dest = new File(Engine.projectDir(projectName(useQName)),"_private/ionic/src/app/components/"+ compName.toLowerCase());
     			File src = new File(project.getDirPath(),"_private/ionic/src/app/components/"+ compName.toLowerCase());
     			if (!src.exists() && dest.exists()) {
     				FileUtils.deleteQuietly(dest);
-    				ComponentRefManager.get(Mode.use).removeConsumer(qname, pname);
+    				ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
     			}
     		} catch (Exception e) {
-    			Engine.logEngine.warn(e.getMessage());
+    			Engine.logEngine.warn("Unable to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
     		}
 		}
     }
@@ -1903,13 +1907,14 @@ public class NgxBuilder extends MobileBuilder {
 		
 		List<Contributor> contributors = page.getContributors();
 		for (Contributor contributor : contributors) {
-			comp_beans_dirs.putAll(contributor.getCompBeanDir());
-			
-			module_ts_imports.putAll(contributor.getModuleTsImports(page));
-			module_ng_imports.addAll(contributor.getModuleNgImports());
-			module_ng_providers.addAll(contributor.getModuleNgProviders());
-			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-			module_ng_components.addAll(contributor.getModuleNgComponents());
+			contributor.forContainer(page, () -> {
+				comp_beans_dirs.putAll(contributor.getCompBeanDir());
+				module_ts_imports.putAll(contributor.getModuleTsImports());
+				module_ng_imports.addAll(contributor.getModuleNgImports());
+				module_ng_providers.addAll(contributor.getModuleNgProviders());
+				module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+				module_ng_components.addAll(contributor.getModuleNgComponents());
+			});
 		}
 		// fix for BrowserAnimationsModule until it will be handled in config
 		module_ts_imports.remove("BrowserAnimationsModule");
@@ -2037,13 +2042,14 @@ public class NgxBuilder extends MobileBuilder {
 		
 		List<Contributor> contributors = comp.getContributors();
 		for (Contributor contributor : contributors) {
-			comp_beans_dirs.putAll(contributor.getCompBeanDir());
-			
-			module_ts_imports.putAll(contributor.getModuleTsImports(comp));
-			module_ng_imports.addAll(contributor.getModuleNgImports());
-			module_ng_providers.addAll(contributor.getModuleNgProviders());
-			module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-			module_ng_components.addAll(contributor.getModuleNgComponents());
+			contributor.forContainer(comp, () -> {
+				comp_beans_dirs.putAll(contributor.getCompBeanDir());
+				module_ts_imports.putAll(contributor.getModuleTsImports());
+				module_ng_imports.addAll(contributor.getModuleNgImports());
+				module_ng_providers.addAll(contributor.getModuleNgProviders());
+				module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+				module_ng_components.addAll(contributor.getModuleNgComponents());
+			});
 		}
 		// fix for BrowserAnimationsModule until it will be handled in config
 		module_ts_imports.remove("BrowserAnimationsModule");
@@ -2431,13 +2437,14 @@ public class NgxBuilder extends MobileBuilder {
 				
 				//App contributors
 				for (Contributor contributor : app.getContributors()) {
-					comp_beans_dirs.putAll(contributor.getCompBeanDir());
-
-					module_ts_imports.putAll(contributor.getModuleTsImports(app));
-					module_ng_imports.addAll(contributor.getModuleNgImports());
-					module_ng_providers.addAll(contributor.getModuleNgProviders());
-					module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-					module_ng_components.addAll(contributor.getModuleNgComponents());
+					contributor.forContainer(app, () -> {
+						comp_beans_dirs.putAll(contributor.getCompBeanDir());
+						module_ts_imports.putAll(contributor.getModuleTsImports());
+						module_ng_imports.addAll(contributor.getModuleNgImports());
+						module_ng_providers.addAll(contributor.getModuleNgProviders());
+						module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+						module_ng_components.addAll(contributor.getModuleNgComponents());
+					});
 				}
 				
 				//Pages contributors
@@ -2454,27 +2461,28 @@ public class NgxBuilder extends MobileBuilder {
 						
 						List<Contributor> contributors = page.getContributors();
 						for (Contributor contributor : contributors) {
-							comp_beans_dirs.putAll(contributor.getCompBeanDir());
-							
-							module_ts_imports.putAll(contributor.getModuleTsImports(page));
-							module_ng_imports.addAll(contributor.getModuleNgImports());
-							module_ng_providers.addAll(contributor.getModuleNgProviders());
-							module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-							module_ng_components.addAll(contributor.getModuleNgComponents());
-						}
-					} else {
-
-						List<Contributor> contributors = page.getContributors();
-						for (Contributor contributor : contributors) {
-							if (contributor.isNgModuleForApp()) {
+							contributor.forContainer(page, () -> {
 								comp_beans_dirs.putAll(contributor.getCompBeanDir());
-								
-								module_ts_imports.putAll(contributor.getModuleTsImports(page));
+								module_ts_imports.putAll(contributor.getModuleTsImports());
 								module_ng_imports.addAll(contributor.getModuleNgImports());
 								module_ng_providers.addAll(contributor.getModuleNgProviders());
 								module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
 								module_ng_components.addAll(contributor.getModuleNgComponents());
-							}
+							});
+						}
+					} else {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							contributor.forContainer(page, () -> {
+								if (contributor.isNgModuleForApp()) {
+									comp_beans_dirs.putAll(contributor.getCompBeanDir());
+									module_ts_imports.putAll(contributor.getModuleTsImports());
+									module_ng_imports.addAll(contributor.getModuleNgImports());
+									module_ng_providers.addAll(contributor.getModuleNgProviders());
+									module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+									module_ng_components.addAll(contributor.getModuleNgComponents());
+								}
+							});
 						}
 						
 						writePageModuleTs(page);
