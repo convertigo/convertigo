@@ -1581,7 +1581,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 						@Override
 						protected void walk(DatabaseObject databaseObject) throws Exception {
-							if (databaseObject instanceof UIUseShared) {
+							if (databaseObject instanceof UISharedComponent) {
+								UISharedComponent uisc = (UISharedComponent)databaseObject;
+								if (uisc != null) {
+									databaseObject = uisc;
+								}
+							} else if (databaseObject instanceof UIUseShared) {
 								UISharedComponent uisc = ((UIUseShared)databaseObject).getTargetSharedComponent();
 								if (uisc != null) {
 									databaseObject = uisc;
@@ -1634,14 +1639,22 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			
 			Document doc = browser.mainFrame().get().document().get();
 			MobileComponent mc = mobileComponent;
-			if (mc instanceof UIUseShared) {
+			if (mc instanceof UISharedComponent) {
+				UISharedComponent uisc = (UISharedComponent)mc;
+				if (uisc != null) {
+					try {
+						mc = uisc.getDisplayableComponentList().get(0);
+					} catch (IndexOutOfBoundsException ioobe) {}
+				}
+			} else if (mc instanceof UIUseShared) {
 				UISharedComponent uisc = ((UIUseShared)mc).getTargetSharedComponent();
 				if (uisc != null) {
 					try {
-						mc = uisc.getUIComponentList().get(0);
+						mc = uisc.getDisplayableComponentList().get(0);
 					} catch (IndexOutOfBoundsException ioobe) {}
 				}
 			}
+			
 			while (doc.findElementsByClassName("class" + mc.priority).isEmpty()) {
 				DatabaseObject parent = mc.getParent();
 				if (parent instanceof MobileComponent) {

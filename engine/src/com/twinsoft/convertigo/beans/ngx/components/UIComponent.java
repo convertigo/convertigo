@@ -426,6 +426,16 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		return sort(vUIComponents);
 	}
 
+	public List<UIComponent> getDisplayableComponentList() {
+		List<UIComponent> list = new ArrayList<UIComponent>();
+		for (UIComponent uic :getUIComponentList()) {
+			if (uic instanceof UIElement || uic instanceof UIText) {
+				list.add(uic);
+			}
+		}
+		return list;
+	}
+	
 	public boolean hasStyle() {
 		for (UIComponent uic :getUIComponentList()) {
 			if (uic instanceof UIStyle) {
