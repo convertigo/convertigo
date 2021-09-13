@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -471,6 +472,15 @@ public abstract class MobileBuilder {
 					}
 				}
 			}
+		}
+	}
+	
+	public void prepareBatchBuild() {
+		if (isAutoBuild()) {
+			setAutoBuild(false);
+			BatchOperationHelper.prepareEnd(() -> {
+				setAutoBuild(true);
+			});
 		}
 	}
 

@@ -859,7 +859,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	
 	public void setPropertyValue(Object id, Object value) {
 		MobileBuilder mb = null;
-		boolean autoBuild = false;
 
 		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
 		if (editorPart != null) {
@@ -1088,15 +1087,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		        	}
 		        	
 		        	tree.update();
-		        }	        
+		        }
 	        }
 	        
 			Engine.logStudio.info("---------------------- SetPropertyValue started: "+ propertyName + "----------------------");
 			if (mb != null) {
-				autoBuild = mb.isAutoBuild();
-				if (autoBuild) {
-					mb.setAutoBuild(false);
-				}
+				mb.prepareBatchBuild();
 			}
 			BatchOperationHelper.start();
 			
@@ -1112,12 +1108,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		finally {
 			BatchOperationHelper.cancel();
 			Engine.logStudio.info("---------------------- SetPropertyValue ended:   "+ propertyName + "----------------------");
-			if (mb != null) {
-				if (autoBuild) {
-					mb.setAutoBuild(true);
-				}
-			}
-	        
 			isValueInProcess = false;
 		}
 	}

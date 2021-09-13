@@ -20,6 +20,8 @@
 package com.twinsoft.convertigo.engine.helpers;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +39,15 @@ public class BatchOperationHelper {
 		
 	};
 	
+	private final static ThreadLocal<List<Runnable>[]> endOperation = new ThreadLocal<List<Runnable>[]>() {
+		@SuppressWarnings("unchecked")
+		@Override
+		protected List<Runnable>[] initialValue() {
+			return new List[1];
+		}
+		
+	};
+	
 	static public void start() {
 		if (batchOperation.get()[0] == null) {
 			batchOperation.get()[0] = new HashSet<Runnable>();
@@ -49,9 +60,8 @@ public class BatchOperationHelper {
 		Set<Runnable>[] array = batchOperation.get();
 		if (array[0] != null) {
 			if (array[0].size() > 0) {
-				ExecutorService executor = null;
 				try {
-					executor = Executors.newFixedThreadPool(
+					ExecutorService executor = Executors.newFixedThreadPool(
 							Math.min(
 									Runtime.getRuntime().availableProcessors(),
 									array[0].size()
@@ -61,7 +71,20 @@ public class BatchOperationHelper {
 						executor.execute(runnable);
 					}
 					executor.shutdown();
-					executor.awaitTermination(2, TimeUnit.MINUTES);
+					List<Runnable> endOp = endOperation.get()[0];
+					endOperation.remove();
+					if (endOp != null && !endOp.isEmpty()) {
+						Engine.execute(() -> {
+							try {
+								executor.awaitTermination(1, TimeUnit.MINUTES);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							for (Runnable runnable: endOp) {
+								runnable.run();
+							}
+						});
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -74,6 +97,12 @@ public class BatchOperationHelper {
 	
 	static public void cancel() {
 		batchOperation.remove();
+		if (endOperation.get()[0] != null) {
+			for (Runnable runnable: endOperation.get()[0]) {
+				runnable.run();
+			}
+		}
+		endOperation.remove();
 	}
 	
 	static public void check(Runnable runnable) {
@@ -83,5 +112,12 @@ public class BatchOperationHelper {
 		} else {
 			runnable.run();
 		}
+	}
+	
+	static public void prepareEnd(Runnable runnable) {
+		if (endOperation.get()[0] == null) {
+			endOperation.get()[0] = new LinkedList<Runnable>();
+		}
+		endOperation.get()[0].add(runnable);
 	}
 }

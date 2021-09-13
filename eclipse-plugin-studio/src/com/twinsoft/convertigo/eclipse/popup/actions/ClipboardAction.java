@@ -61,7 +61,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 
 public class ClipboardAction extends MyAbstractAction {
@@ -131,14 +130,7 @@ public class ClipboardAction extends MyAbstractAction {
 	}
 
 	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
-		try {
-			BatchOperationHelper.start();
-			paste(source, shell, explorerView, selectedTreeObject, false);
-			BatchOperationHelper.stop();
-		} catch (Throwable t) {
-			BatchOperationHelper.cancel();
-			throw t;
-		}
+		paste(source, shell, explorerView, selectedTreeObject, false);
 	}
 	
 	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject, boolean isDND) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
