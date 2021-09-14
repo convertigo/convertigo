@@ -16,7 +16,7 @@
 2
       </programArgsLin>
       <programArgsMac>-vm
-./..jre/bin/java
+./../jre/bin/java
       </programArgsMac>
       <vmArgs>--illegal-access=permit
          <argsX86>-Xms256m -Xmx1024m</argsX86>
