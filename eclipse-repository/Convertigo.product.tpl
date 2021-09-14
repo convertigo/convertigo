@@ -15,11 +15,14 @@
       <programArgsLin>--launcher.GTK_version
 2
       </programArgsLin>
+      <programArgsMac>-vm
+./..jre/bin/java
+      </programArgsMac>
       <vmArgs>--illegal-access=permit
          <argsX86>-Xms256m -Xmx1024m</argsX86>
          <argsX86_64>-Xms256m -Xmx2048m</argsX86_64>
       </vmArgs>
-      <vmArgsMac>-vm=../jre/bin/java -Djxbrowser.ipc.external=true
+      <vmArgsMac>-Djxbrowser.ipc.external=true
       </vmArgsMac>
    </launcherArgs>
 
