@@ -19,7 +19,7 @@
          <argsX86>-Xms256m -Xmx1024m</argsX86>
          <argsX86_64>-Xms256m -Xmx2048m</argsX86_64>
       </vmArgs>
-      <vmArgsMac>-Djxbrowser.ipc.external=true
+      <vmArgsMac>-vm=../jre/bin/java -Djxbrowser.ipc.external=true
       </vmArgsMac>
    </launcherArgs>
 

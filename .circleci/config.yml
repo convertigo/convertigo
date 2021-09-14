@@ -496,7 +496,7 @@ jobs:
               tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64 &
           fi
           if [ -d ${dir_mac} ]; then
-              mv /tmp/c8o_jre/mac ${dir_mac}/ConvertigoStudio.app/Contents/MacOS/jre
+              mv /tmp/c8o_jre/mac ${dir_mac}/ConvertigoStudio.app/Contents/jre
               dir_mac_web=$(dirname ${dir_mac}/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
               echo "build.version=${convertigoRevision}" > ${dir_mac_web}/build.txt
               echo "build.date=$(date)" >> ${dir_mac_web}/build.txt
