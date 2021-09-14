@@ -92,6 +92,7 @@
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.update.configurator" autoStart="true" startLevel="4" />
       <property name="org.eclipse.update.reconcile" value="false" />
+      <property name="osgi.instance.area.default" value="@user.home/ConvertigoWorkspace" os="macosx" />
       <property name="osgi.framework.extensions" value="org.eclipse.wst.jsdt.nashorn.extension" />
    </configurations>
 
