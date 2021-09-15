@@ -1649,6 +1649,8 @@ public class NgxConverter {
 				String sourceProjectName = args[1];
 				String targetProjectName = args[2];
 				
+				boolean needCopy = !sourceProjectName.equalsIgnoreCase(targetProjectName);
+				
 				if (!projectsDir.exists() || !projectsDir.isDirectory()) {
 					System.err.println("Directory " + projectsDir.getCanonicalPath() + " doesn't exists nor a directory.");
 					return;
@@ -1660,20 +1662,25 @@ public class NgxConverter {
 					return;
 				}
 				
-				// Copy project
 				File outputDir = new File(projectsDir, targetProjectName);
-				System.out.println(time() + "\tCopying from \""+ inputDir.getAbsolutePath() + "\" to \""+ outputDir.getAbsolutePath() +"\"");
-				FileUtils.copyDirectory(inputDir, outputDir, new CustomDirectoryFilter());
-				if (!outputDir.exists() || !outputDir.isDirectory()) {
-					System.err.println("Directory " + outputDir.getCanonicalPath() + " doesn't exists nor is a directory.");
-					return;
+				
+				// Copy project
+				if (needCopy) {
+					System.out.println(time() + "\tCopying from \""+ inputDir.getAbsolutePath() + "\" to \""+ outputDir.getAbsolutePath() +"\"");
+					FileUtils.copyDirectory(inputDir, outputDir, new CustomDirectoryFilter());
+					if (!outputDir.exists() || !outputDir.isDirectory()) {
+						System.err.println("Directory " + outputDir.getCanonicalPath() + " doesn't exists nor is a directory.");
+						return;
+					}
 				}
 				
 				initEngine();
 				
 				// Rename project
-				System.out.println(time() + "\tRenaming project in target files");
-				ProjectUtils.renameProjectFile(new File(outputDir, "c8oProject.yaml"), targetProjectName, false);
+				if (needCopy) {
+					System.out.println(time() + "\tRenaming project in target files");
+					ProjectUtils.renameProjectFile(new File(outputDir, "c8oProject.yaml"), targetProjectName, false);
+				}
 				
 				// Convert project
 				System.out.println(time() + "\tConverting project");
