@@ -242,7 +242,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	 */
 	@Override
 	public boolean performDrop(Object data) {
-		boolean autoBuild = false;
 		MobileBuilder mb = null;
 		
 		Engine.logStudio.info("---------------------- Drop started ----------------------");
@@ -261,12 +260,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					mb = editorInput.getApplication().getProject().getMobileBuilder();
 				}
 			}
-			if (mb != null) {
-				autoBuild = mb.isAutoBuild();
-				if (autoBuild) {
-					mb.setAutoBuild(false);
-				}
-			}
 			
 			// Handle tree objects reordering with Drag and Drop
 			if (data instanceof String) {
@@ -281,10 +274,16 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					int delta = destPosition - srcPosition;
 					int count = (delta < 0) ? (insertBefore ? delta:delta+1):(insertBefore ? delta-1:delta);
 					if (count != 0) {
-						if (count < 0)
+						if (mb != null) {
+							mb.prepareBatchBuild();
+						}
+						BatchOperationHelper.start();
+						if (count < 0) {
 							new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
-						else
+						} else {
 							new DatabaseObjectDecreasePriorityAction(Math.abs(count)).run();
+						}
+						BatchOperationHelper.stop();
 					}
 					return true;
 				}
@@ -303,12 +302,18 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							// Try to parse text data into an XML document
 							String source = data.toString();
 							document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(source)));
+							if (mb != null) {
+								mb.prepareBatchBuild();
+							}
 							BatchOperationHelper.start();
 							ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
 							BatchOperationHelper.stop();
 							return true;
 						} catch (SAXException sax) {
 							BatchOperationHelper.cancel();
+							if (mb != null) {
+								mb.prepareBatchBuild();
+							}
 							BatchOperationHelper.start();
 							// Parse failed probably because data was not XML but an XPATH String
 							// in this case, create DatabaseObjects of the correct Type according to the folder where the XPATH is dropped on  
@@ -386,11 +391,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			return false;
 		} finally {
 			Engine.logStudio.info("---------------------- Drop ended   ----------------------");
-			if (mb != null) {
-				if (autoBuild) {
-					mb.setAutoBuild(true);
-				}
-			}
+			BatchOperationHelper.cancel();
 		}
 	}
 

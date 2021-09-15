@@ -159,7 +159,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				}
 				DatabaseObject fTarget = target;
 				c8oBrowser.getDisplay().asyncExec(() -> {
-					boolean autoBuild = false;
 					MobileBuilder mb = null;
 
 					Engine.logStudio.info("---------------------- Drop started ----------------------");
@@ -170,10 +169,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
 						}
 						if (mb != null) {
-							autoBuild = mb.isAutoBuild();
-							if (autoBuild) {
-								mb.setAutoBuild(false);
-							}
+							mb.prepareBatchBuild();
 						}
 
 						ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
@@ -182,17 +178,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
 						BatchOperationHelper.stop();
 					} catch (Exception e) {
-						BatchOperationHelper.cancel();
 						Engine.logStudio.debug("Failed to drop: " + e.getMessage());
 					} finally {
 						PaletteSourceTransfer.getInstance().setPaletteSource(null);
-
+						BatchOperationHelper.cancel();
 						Engine.logStudio.info("---------------------- Drop ended   ----------------------");
-						if (mb != null) {
-							if (autoBuild) {
-								mb.setAutoBuild(true);
-							}
-						}
 					}
 				});
 			} catch (Exception e) {

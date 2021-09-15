@@ -15,6 +15,9 @@
       <programArgsLin>--launcher.GTK_version
 2
       </programArgsLin>
+      <programArgsMac>-vm
+./../jre/bin/java
+      </programArgsMac>
       <vmArgs>--illegal-access=permit
          <argsX86>-Xms256m -Xmx1024m</argsX86>
          <argsX86_64>-Xms256m -Xmx2048m</argsX86_64>
@@ -89,6 +92,7 @@
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
       <plugin id="org.eclipse.update.configurator" autoStart="true" startLevel="4" />
       <property name="org.eclipse.update.reconcile" value="false" />
+      <property name="osgi.instance.area.default" value="@user.home/ConvertigoWorkspace" os="macosx" />
       <property name="osgi.framework.extensions" value="org.eclipse.wst.jsdt.nashorn.extension" />
    </configurations>
 

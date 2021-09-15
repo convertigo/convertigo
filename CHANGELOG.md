@@ -1,5 +1,20 @@
 # Changelog
 
+## 7.9.5
+
+#### Improvements:
+
+- [#505](https://github.com/convertigo/convertigo/issues/505) [Studio] Speed up MobileBuilder page generation at SharedComponent modification
+- [#508](https://github.com/convertigo/convertigo/issues/508) [MobileBuilder] Speed up project opening by checking translation availability from existing files
+
+#### Bug Fixes:
+
+- [#503](https://github.com/convertigo/convertigo/issues/503) Fixed, proxy domains exceptions now configured for CouchDB/FullSync and NPM
+- [#504](https://github.com/convertigo/convertigo/issues/504) [SiteClipper] Fixed, updated certificate using the Certificate Manager used without need to restart
+- [#507](https://github.com/convertigo/convertigo/issues/507) Fixed, the evaluation of a SmartType property is isolated from parallel execution
+
+---
+
 ## 7.9.4
 
 #### Improvements:
@@ -11,7 +26,7 @@
 - [#494](https://github.com/convertigo/convertigo/issues/494) [Studio] Fixed, prevents random freeze at Studio startup while opening MobileBuilder projects
 - [#495](https://github.com/convertigo/convertigo/issues/495) [FullSync] Fixed, no more update conflict for PostBulk with "update if change" property in case of multiple docs with the same _id
 - [#496](https://github.com/convertigo/convertigo/issues/496) [Studio] Fixed, no more Editor conflict for SequenceJS with the same name inside a same project
-- [#497](https://github.com/convertigo/convertigo/issues/497) [FullSync] Fixed, prevents the "function_clause error" for the “Purge database” transaction
+- [#497](https://github.com/convertigo/convertigo/issues/497) [FullSync] Fixed, prevents the "function_clause error" for the �Purge database� transaction
 - [#499](https://github.com/convertigo/convertigo/issues/499) [Admin] Fixed, confirmation pop-up appears on top of the Log levels
 - [#500](https://github.com/convertigo/convertigo/issues/500) Fixed, TestPlaform redirect works for project that ends with "projects"
 
@@ -21,7 +36,7 @@
 
 #### Bug Fixes:
 
-- [#478](https://github.com/convertigo/convertigo/issues/478) [Studio] Fixed, symbols usage in the JS Steps’ Editor (not replaced by values)
+- [#478](https://github.com/convertigo/convertigo/issues/478) [Studio] Fixed, symbols usage in the JS Steps� Editor (not replaced by values)
 - [#482](https://github.com/convertigo/convertigo/issues/482) [Admin] Fixed, no more NPE if deleting projects too quickly
 - [#483](https://github.com/convertigo/convertigo/issues/483) [Studio] Fixed, no more "Unknown transaction" with HTTP calls on a reloaded project
 - [#484](https://github.com/convertigo/convertigo/issues/484) [Studio] Fixed, Schema & Picker views are empty if a broken source exists in the project

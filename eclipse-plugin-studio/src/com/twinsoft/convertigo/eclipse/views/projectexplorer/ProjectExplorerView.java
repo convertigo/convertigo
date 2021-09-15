@@ -1048,7 +1048,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				});
 				Listener textListener = new Listener() {
 					public void handleEvent (final Event e) {
-						boolean autoBuild = false;
 						MobileBuilder mba = null;
 						MobileBuilder mbo = null;
 
@@ -1109,10 +1108,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							case SWT.TRAVERSE_RETURN:
 								Engine.logStudio.info("---------------------- Rename started ----------------------");
 								if (mba != null) {
-									autoBuild = mba.isAutoBuild();
-									if (autoBuild) {
-										mba.setAutoBuild(false);
-									}
+									mba.prepareBatchBuild();
 								}
 
 								newName = text.getText();
@@ -1175,7 +1171,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									(theTreeObject instanceof MobilePageComponentTreeObject) || 
 									(theTreeObject instanceof MobileUIComponentTreeObject) ||
 									(theTreeObject instanceof NgxPageComponentTreeObject) ||
-									(theTreeObject instanceof NgxUIComponentTreeObject)) {								
+									(theTreeObject instanceof NgxUIComponentTreeObject)) {
 								String objectType = "";
 								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
@@ -1336,11 +1332,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 						BatchOperationHelper.stop();
 							Engine.logStudio.info("---------------------- Rename ended   ----------------------");
-							if (mba != null) {
-								if (autoBuild) {
-									mba.setAutoBuild(true);
-								}
-							}
 
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
 							ISelectionListener listener = null;
