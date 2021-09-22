@@ -246,6 +246,7 @@ import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.MigrationListener;
 import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.ObjectsProvider;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -724,6 +725,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				};
 			}
 		}
+		
+		treeObjectEvent.clear();
 	}
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
@@ -743,6 +746,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				};
 			}
 		}
+		treeObjectEvent.clear();
+		
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 
@@ -818,6 +823,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				};
 			}
 		}
+		treeObjectEvent.clear();
 	}
 
 	public IEditorPart getConnectorEditor(Connector connector) {
@@ -1042,7 +1048,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				});
 				Listener textListener = new Listener() {
 					public void handleEvent (final Event e) {
-						boolean autoBuild = false;
 						MobileBuilder mba = null;
 						MobileBuilder mbo = null;
 
@@ -1103,10 +1108,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							case SWT.TRAVERSE_RETURN:
 								Engine.logStudio.info("---------------------- Rename started ----------------------");
 								if (mba != null) {
-									autoBuild = mba.isAutoBuild();
-									if (autoBuild) {
-										mba.setAutoBuild(false);
-									}
+									mba.prepareBatchBuild();
 								}
 
 								newName = text.getText();
@@ -1169,7 +1171,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									(theTreeObject instanceof MobilePageComponentTreeObject) || 
 									(theTreeObject instanceof MobileUIComponentTreeObject) ||
 									(theTreeObject instanceof NgxPageComponentTreeObject) ||
-									(theTreeObject instanceof NgxUIComponentTreeObject)) {								
+									(theTreeObject instanceof NgxUIComponentTreeObject)) {
 								String objectType = "";
 								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
@@ -1291,7 +1293,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							} else {
 								treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName);
 							}
-
+						BatchOperationHelper.start();
 							ProjectExplorerView.this.refreshTree();
 							ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
 							ProjectExplorerView.this.fireTreeObjectPropertyChanged(treeObjectEvent);
@@ -1315,13 +1317,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									}
 								}
 							}
-
+						BatchOperationHelper.stop();
 							Engine.logStudio.info("---------------------- Rename ended   ----------------------");
-							if (mba != null) {
-								if (autoBuild) {
-									mba.setAutoBuild(true);
-								}
-							}
 
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
 							ISelectionListener listener = null;
@@ -1448,7 +1445,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				// Updating the tree viewer
 				if (parentTreeObject != null) {
 					Display.getDefault().syncExec(() -> {
-
 						// Reload is complete, notify now for newly added objects
 						Set<Object> done = new HashSet<Object>();
 						for (TreeObject ob: addedTreeObjects) {
@@ -1456,7 +1452,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						}
 						addedTreeObjects.clear();
 						done.clear();
-
 						refreshTreeObject(parentTreeObject);
 					});
 

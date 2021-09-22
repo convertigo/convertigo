@@ -159,11 +159,7 @@ public class C8oBrowser extends Composite {
 			String link = bg.getRed() < 128 ? "cyan" : "blue";
 			html = html.replace("$background$", background).replace("$foreground$", foreground).replace("$link$", link);
 		}
-		if (html.contains("</html>")) {
-			getBrowser().mainFrame().get().loadHtml(html);
-		} else {
-			getBrowser().mainFrame().get().document().get().documentElement().get().innerHtml(html);
-		}
+		getBrowser().mainFrame().get().document().get().documentElement().get().innerHtml(html);
 	}
 	
 	public void reloadText() {

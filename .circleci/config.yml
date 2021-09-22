@@ -469,7 +469,7 @@ jobs:
           dir_mac=eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64
           
           if [ -d ${dir_w64} ]; then
-             (mv /tmp/c8o_jre/x64 ${dir_w64}/jre
+             (mv /tmp/c8o_jre/win ${dir_w64}/jre
               mv ${dir_w64}/ConvertigoStudio.exe /tmp/ConvertigoStudio_x86_64.exe
               TIMESTAMP=http://timestamp.digicert.com
               if [ ! $(osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe) ]; then
@@ -487,6 +487,7 @@ jobs:
               osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/convertigo-studio-$CONVERTIGO_VERSION-win64.exe -out $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe) &
           fi
           if [ -d ${dir_lin} ]; then
+              mv /tmp/c8o_jre/lin ${dir_lin}/jre
               dir_lin_web=$(dirname ${dir_lin}/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
               echo "build.version=${convertigoRevision}" > ${dir_lin_web}/build.txt
               echo "build.date=$(date)" >> ${dir_lin_web}/build.txt
@@ -495,6 +496,7 @@ jobs:
               tar -I "gzip --fast" -cf $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-linux64.tar.gz convertigo-studio-$CONVERTIGO_VERSION-linux64 &
           fi
           if [ -d ${dir_mac} ]; then
+              mv /tmp/c8o_jre/mac ${dir_mac}/ConvertigoStudio.app/Contents/jre
               dir_mac_web=$(dirname ${dir_mac}/ConvertigoStudio.app/Contents/Eclipse/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
               echo "build.version=${convertigoRevision}" > ${dir_mac_web}/build.txt
               echo "build.date=$(date)" >> ${dir_mac_web}/build.txt

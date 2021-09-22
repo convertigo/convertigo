@@ -627,8 +627,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	private XMLVector<XMLVector<String>> domainsListing = new XMLVector<XMLVector<String>>();
 	private boolean trustAllServerCertificates;
 	
-	transient final private Map<Thread, Shuttle> siteClipperRequestObjectsPerThread = Collections.synchronizedMap(new HashMap<Thread, Shuttle>());
-	transient final public CertificateManager certificateManager = new CertificateManager();
+	transient private Map<Thread, Shuttle> siteClipperRequestObjectsPerThread = Collections.synchronizedMap(new HashMap<Thread, Shuttle>());
+	transient public CertificateManager certificateManager = new CertificateManager();
 
 	transient private ScreenClassHelper<SiteClipperScreenClass> screenClassHelper = new ScreenClassHelper<SiteClipperScreenClass>(this);
 	transient private DomainsFilterHelper domainsFilter = new DomainsFilterHelper(this);
@@ -1072,6 +1072,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		siteClipperConnector.givenAuthPassword = null;
 		siteClipperConnector.givenAuthUser = null;
 		siteClipperConnector.givenAuthMode = null;
+		siteClipperConnector.certificateManager = new CertificateManager();
+		siteClipperConnector.siteClipperRequestObjectsPerThread = Collections.synchronizedMap(new HashMap<Thread, Shuttle>());
 		return siteClipperConnector;
 	}
 	

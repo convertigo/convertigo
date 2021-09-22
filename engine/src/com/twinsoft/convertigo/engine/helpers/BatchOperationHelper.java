@@ -20,7 +20,14 @@
 package com.twinsoft.convertigo.engine.helpers;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import com.twinsoft.convertigo.engine.Engine;
 
 public class BatchOperationHelper {
 	private final static ThreadLocal<Set<Runnable>[]> batchOperation = new ThreadLocal<Set<Runnable>[]>() {
@@ -32,22 +39,70 @@ public class BatchOperationHelper {
 		
 	};
 	
+	private final static ThreadLocal<List<Runnable>[]> endOperation = new ThreadLocal<List<Runnable>[]>() {
+		@SuppressWarnings("unchecked")
+		@Override
+		protected List<Runnable>[] initialValue() {
+			return new List[1];
+		}
+		
+	};
+	
 	static public void start() {
-		batchOperation.get()[0] = new HashSet<Runnable>();
+		if (batchOperation.get()[0] == null) {
+			batchOperation.get()[0] = new HashSet<Runnable>();
+		} else {
+			Engine.logEngine.error("(BatchOperationHelper) already started!");
+		}
 	}
 	
 	static public void stop() {
 		Set<Runnable>[] array = batchOperation.get();
 		if (array[0] != null) {
-			for (Runnable runnable: array[0]) {
-				runnable.run();
+			if (array[0].size() > 0) {
+				try {
+					ExecutorService executor = Executors.newFixedThreadPool(
+							Math.min(
+									Runtime.getRuntime().availableProcessors(),
+									array[0].size()
+									)
+							);
+					for (Runnable runnable: array[0]) {
+						executor.execute(runnable);
+					}
+					executor.shutdown();
+					List<Runnable> endOp = endOperation.get()[0];
+					endOperation.remove();
+					if (endOp != null && !endOp.isEmpty()) {
+						Engine.execute(() -> {
+							try {
+								executor.awaitTermination(1, TimeUnit.MINUTES);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							for (Runnable runnable: endOp) {
+								runnable.run();
+							}
+						});
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
+		} else {
+			Engine.logEngine.error("(BatchOperationHelper) not started or already stopped!");
 		}
 		batchOperation.remove();
 	}
 	
 	static public void cancel() {
 		batchOperation.remove();
+		if (endOperation.get()[0] != null) {
+			for (Runnable runnable: endOperation.get()[0]) {
+				runnable.run();
+			}
+		}
+		endOperation.remove();
 	}
 	
 	static public void check(Runnable runnable) {
@@ -57,5 +112,12 @@ public class BatchOperationHelper {
 		} else {
 			runnable.run();
 		}
+	}
+	
+	static public void prepareEnd(Runnable runnable) {
+		if (endOperation.get()[0] == null) {
+			endOperation.get()[0] = new LinkedList<Runnable>();
+		}
+		endOperation.get()[0].add(runnable);
 	}
 }

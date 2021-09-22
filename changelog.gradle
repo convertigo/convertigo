@@ -34,11 +34,11 @@ task makeChangelog {
 		def changelog = ''
 		def addAtTheEnd = ''
 		def good_version = false
-		
+		println "tickets: $tickets" 
 		def handleCategory = { line, inc, key, name ->
 			inc *= 5
 			redo = false
-			//println "inc $inc ; state $state ; key $key ; name $name ; line $line"
+			println "inc $inc ; state $state ; key $key ; name $name ; line $line"
 			if (state == 1 + inc) { // search new feature
 				def m = (line =~ /#### (.*)/)
 				if (m.matches()) {
@@ -68,6 +68,7 @@ task makeChangelog {
 					state += 3
 				} else {
 					state += 5
+					redo = true
 				}
 			} else if (state == 4 + inc) { // filter new feature
 				if (line.isEmpty()) {
@@ -110,7 +111,7 @@ task makeChangelog {
 							state += 1
 						} else {
 							changelog += "## $convertigoVersion\n\n"
-							addAtTheEnd = '---\n\n'
+							addAtTheEnd = "---\n\n"
 							redo = true
 							state += 3
 						}
@@ -132,7 +133,7 @@ task makeChangelog {
 			}
 		}
 		
-		println changelog
+		//println changelog
 		changelog_file.text = changelog
 	}
 }

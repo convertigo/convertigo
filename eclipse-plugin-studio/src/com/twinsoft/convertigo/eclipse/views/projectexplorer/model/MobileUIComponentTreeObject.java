@@ -1146,6 +1146,17 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									}
 								}
 							}
+							if (dbo instanceof UIComponent) {
+								if (!newValue.equals(oldValue)) {
+									try {
+										String oldName = (String)oldValue;
+										String newName = (String)newValue;
+										if (getObject().updateSmartSource("\\?\\."+oldName, "?."+newName)) {
+											sourcesUpdated = true;
+										}
+									} catch (Exception e) {}
+								}
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -1258,6 +1269,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
 												
+												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(udi);
 												
@@ -1298,6 +1310,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
 												
+												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(uus);
 												
@@ -1342,6 +1355,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 														uicv.setName((String) newValue);
 														uicv.hasChanged = true;
 														
+														hasBeenModified(true);
 														viewer.refresh();
 														markMainAsDirty(uia);
 														
@@ -1374,7 +1388,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		if (done == null) {
 			done = new HashSet<Object>();
 		}
-		if (!done.add(to)) {
+		if (!done.add(to.getObject())) {
 			return;
 		}
 		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");

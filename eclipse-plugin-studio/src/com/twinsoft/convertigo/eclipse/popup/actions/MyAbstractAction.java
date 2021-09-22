@@ -85,7 +85,6 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 		this.action = action;
 		
 		MobileBuilder mb = null;
-		boolean autoBuild = false;
 		
 		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
 		if (editorPart != null) {
@@ -103,10 +102,7 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 		try {
 			Engine.logStudio.info("---------------------- Action started: "+ action.getId() + "----------------------");
 			if (mb != null) {
-				autoBuild = mb.isAutoBuild();
-				if (autoBuild) {
-					mb.setAutoBuild(false);
-				}
+				mb.prepareBatchBuild();
 			}
 			BatchOperationHelper.start();
 			
@@ -116,11 +112,6 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 		} finally {
 			BatchOperationHelper.cancel();
 			Engine.logStudio.info("---------------------- Action ended:   "+ action.getId() + "----------------------");
-			if (mb != null) {
-				if (autoBuild) {
-					mb.setAutoBuild(true);
-				}
-			}
 		}
 	}
 	
