@@ -469,6 +469,8 @@ function getRequester() {
 		return ".pxml";
 	} else if (selected_mode == "json") {
 		return ".json";
+	} else if (selected_mode == "bin") {
+		return ".bin";
 	}
 	return "index.html";
 }
