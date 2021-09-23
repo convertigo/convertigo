@@ -344,7 +344,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 							}
 						} catch (Exception e) {
 							Engine.logBeans.info("Unable attach " + filepath, e);
-						}							
+						}
 					}
 
 					sendMess();
@@ -466,6 +466,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 							props.put("mail.smtps.host", smtpServer);
 							props.put("mail.smtps.port", smtpPort);
 							props.put("mail.smtps.auth", "true");
+							props.put("mail.smtps.ssl.protocols", "TLSv1.2");
 
 							//Initializing
 							SMTPAuthenticator auth = new SMTPAuthenticator();
@@ -507,6 +508,8 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 							props.put("mail.smtp.port", smtpPort);
 							props.put("mail.smtp.auth", "true");
 							props.put("mail.smtp.starttls.enable", "true");
+							props.put("mail.smtp.starttls.required", "true");
+							props.put("mail.smtp.ssl.protocols", "TLSv1.2");
 
 							//Initializing
 							Session mailSession = Session.getInstance(props);

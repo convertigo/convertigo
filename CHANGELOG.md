@@ -6,12 +6,15 @@
 
 - [#505](https://github.com/convertigo/convertigo/issues/505) [Studio] Speed up MobileBuilder page generation at SharedComponent modification
 - [#508](https://github.com/convertigo/convertigo/issues/508) [MobileBuilder] Speed up project opening by checking translation availability from existing files
+- [#513](https://github.com/convertigo/convertigo/issues/513) [Studio] Ship the JVM for MacOS and Linux too
+- [#516](https://github.com/convertigo/convertigo/issues/516) [TestPlatform] Add a "Binary" mode next to "XML" and "Json"
 
 #### Bug Fixes:
 
 - [#503](https://github.com/convertigo/convertigo/issues/503) Fixed, proxy domains exceptions now configured for CouchDB/FullSync and NPM
 - [#504](https://github.com/convertigo/convertigo/issues/504) [SiteClipper] Fixed, updated certificate using the Certificate Manager used without need to restart
 - [#507](https://github.com/convertigo/convertigo/issues/507) Fixed, the evaluation of a SmartType property is isolated from parallel execution
+- [#514](https://github.com/convertigo/convertigo/issues/514) Fixed, SMTP Step now force usage of TLSv1.2 to prevent the SSLHandshakeException
 
 ---
 

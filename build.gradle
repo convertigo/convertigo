@@ -29,9 +29,9 @@ ext.convertigoCode = 'Hg'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
-ext.jxBrowserVersion = '7.15'
+ext.jxBrowserVersion = '7.19'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.50'
+ext.tomcatVersion = '9.0.53'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
