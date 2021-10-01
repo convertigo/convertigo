@@ -398,13 +398,14 @@ public abstract class GenericServlet extends HttpServlet {
 	
 	protected void removeContext(HttpServletRequest request) {
 		if (Engine.isEngineMode()) {
-			String contextID = (String) request.getAttribute("convertigo.context.contextID");
-			if (contextID != null) {
-				Engine.logContext.debug("[GenericServlet] End of context " + contextID
-						+ " required => removing context");
-				Engine.theApp.contextManager.remove(contextID);
+			Context context = (Context) request.getAttribute("convertigo.context");
+			if (context != null) {
+				Engine.logContext.debug("[GenericServlet] End of context " + context.contextID
+						+ " (" + context + ") required => removing context");
+				Engine.theApp.contextManager.remove(context);
 			}
 		}
+		request.removeAttribute("convertigo.context");
 	}
 
 	protected void removeSession(HttpServletRequest request, int interval) {
@@ -570,7 +571,7 @@ public abstract class GenericServlet extends HttpServlet {
 		}
 		
 		request.setAttribute("convertigo.cacheControl", context.cacheControl);
-		request.setAttribute("convertigo.context.contextID", context.contextID);
+		request.setAttribute("convertigo.context", context);
 		request.setAttribute("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
 		request.setAttribute("convertigo.context.removalRequired", Boolean.valueOf(context.removalRequired()));
 		if (request.getAttribute("convertigo.charset") == null) {
