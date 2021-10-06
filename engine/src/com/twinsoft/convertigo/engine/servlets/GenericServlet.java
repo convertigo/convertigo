@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -397,13 +398,14 @@ public abstract class GenericServlet extends HttpServlet {
 	
 	protected void removeContext(HttpServletRequest request) {
 		if (Engine.isEngineMode()) {
-			String contextID = (String) request.getAttribute("convertigo.context.contextID");
-			if (contextID != null) {
-				Engine.logContext.debug("[GenericServlet] End of context " + contextID
-						+ " required => removing context");
-				Engine.theApp.contextManager.remove(contextID);
+			Context context = (Context) request.getAttribute("convertigo.context");
+			if (context != null) {
+				Engine.logContext.debug("[GenericServlet] End of context " + context.contextID
+						+ " (" + context + ") required => removing context");
+				Engine.theApp.contextManager.remove(context);
 			}
 		}
+		request.removeAttribute("convertigo.context");
 	}
 
 	protected void removeSession(HttpServletRequest request, int interval) {
@@ -478,7 +480,7 @@ public abstract class GenericServlet extends HttpServlet {
 	
 				// Create a new file upload handler
 				ServletFileUpload upload = new ServletFileUpload(factory);
-	
+				
 				// Set overall request size constraint
 				upload.setSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE));
 				upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
@@ -490,7 +492,8 @@ public abstract class GenericServlet extends HttpServlet {
 					String parameterName = fileItem.getFieldName();
 					String parameterValue;
 					if (fileItem.isFormField()) {
-						parameterValue = fileItem.getString();
+						String ct = fileItem.getContentType();
+						parameterValue = ct != null && ct.contains("charset=") ? fileItem.getString() : fileItem.getString(StandardCharsets.UTF_8.name());
 						Engine.logContext.trace("(ServletRequester.initContext) Value for field '" + parameterName + "' : " + parameterValue);
 					} else {
 						String name = fileItem.getName().replaceFirst("^.*(?:\\\\|/)(.*?)$", "$1");
@@ -568,7 +571,7 @@ public abstract class GenericServlet extends HttpServlet {
 		}
 		
 		request.setAttribute("convertigo.cacheControl", context.cacheControl);
-		request.setAttribute("convertigo.context.contextID", context.contextID);
+		request.setAttribute("convertigo.context", context);
 		request.setAttribute("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
 		request.setAttribute("convertigo.context.removalRequired", Boolean.valueOf(context.removalRequired()));
 		if (request.getAttribute("convertigo.charset") == null) {
