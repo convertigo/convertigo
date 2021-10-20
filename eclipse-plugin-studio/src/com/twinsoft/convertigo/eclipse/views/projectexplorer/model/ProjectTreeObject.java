@@ -312,14 +312,18 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			if (databaseObject instanceof CouchDbConnector) {
 				CouchDbConnector couchDbConnector = (CouchDbConnector) databaseObject;
 				if (couchDbConnector.bNew) {
-					CouchDbManager.syncDocument(couchDbConnector);
+					Engine.execute(() -> {
+						CouchDbManager.syncDocument(couchDbConnector);
+					});
 				}
 			}
 			
 			if (databaseObject instanceof JsonIndex) {
 				JsonIndex jsonIndex = (JsonIndex) databaseObject;
 				if (jsonIndex.bNew && jsonIndex.getConnector() != null) {
-					CouchDbManager.syncDocument(jsonIndex.getConnector());
+					Engine.execute(() -> {
+						CouchDbManager.syncDocument(jsonIndex.getConnector());
+					});
 				}
 			}
 			

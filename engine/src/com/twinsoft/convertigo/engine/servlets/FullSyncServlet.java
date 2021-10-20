@@ -640,6 +640,14 @@ public class FullSyncServlet extends HttpServlet {
 						byte[] b = sb.toString().getBytes("UTF-8");
 						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
 						os.write(b);
+					} else if (Pattern.matches(".*/bundle-.*?\\.js", uri.getPath())) {
+						StringBuilder sb = new StringBuilder();
+						sb.append(IOUtils.toString(is, "UTF-8")
+								.replace("ajax:function(e,t){", "ajax:function(e,t){console.log('> ' + e.url);if(e.url.startsWith('/')){e.url='..'+e.url}else{e.url=e.url.replace('../..','..')}console.log('< ' + e.url);"));
+//						sb.append("\n$(\"#primary-navbar\").remove();");
+						byte[] b = sb.toString().getBytes("UTF-8");
+						HeaderName.ContentLength.addHeader(response, Integer.toString(b.length));
+						os.write(b);
 					} else if (Pattern.matches(".*/styles\\..*?\\.css", uri.getPath())) {
 						StringBuilder sb = new StringBuilder();
 						sb.append(IOUtils.toString(is, "UTF-8"));

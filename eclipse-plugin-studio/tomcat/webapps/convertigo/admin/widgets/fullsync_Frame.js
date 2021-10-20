@@ -18,7 +18,7 @@
  */
 
 function fullsync_Frame_init() {
-	$("#fullsync_Frame").empty().append('<iframe src="../fullsync/_utils/" id="couchdbframe"></iframe>');
+	$("#fullsync_Frame").empty().append('<iframe src="_utils/" id="couchdbframe"></iframe>');
 	$("#couchdbframe")[0].onload = function () {
 		var $doc = $($("#couchdbframe")[0].contentWindow.document);
 		$doc.find('#app-container > div > div').bind('DOMNodeInserted', function(event) {
@@ -36,6 +36,13 @@ function fullsync_Frame_init() {
 					$("#couchdbframe")[0].contentWindow.location.reload()
 				});
 			}
+			if ($doc.find(".fauxton-table-list th:eq(1)").text() == "Size") {
+				$doc.find(".fauxton-table-list th:eq(1)").remove();
+				$doc.find(".fauxton-table-list tr").find("td:eq(1)").remove();
+			}
+			$doc.find(".design-doc-body li:has(a:contains('Metadata'))").remove();
+			$doc.find(".nav-list li:has(a:contains('Permissions'))").remove()
+			$doc.find(".nav-list li:has(a:contains('Changes'))").remove()
 		});
 	};
 }

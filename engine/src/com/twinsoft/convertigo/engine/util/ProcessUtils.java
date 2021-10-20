@@ -213,17 +213,20 @@ public class ProcessUtils {
 	}
 	
 	public static ProcessBuilder getNpmProcessBuilder(String paths, List<String> command) throws IOException {
-		if (command == null || command.size() == 0 || (!command.get(0).equals("npm") && !command.get(0).equals("yarn") && !command.get(0).equals("pnpm"))) {
+		if (command == null || command.size() == 0 || (!command.get(0).equals("npm") && !command.get(0).equals("yarn") && !command.get(0).equals("pnpm") && !command.get(0).equals("npx"))) {
 			throw new IOException("not a npm or yarn or pnpm command");
 		}
 		
 		if (Engine.isWindows()) {
-			if (command.get(0).equals("npm"))
+			if (command.get(0).equals("npm")) {
 				command.set(0, "npm.cmd");
-			if (command.get(0).equals("yarn"))
+			} else if (command.get(0).equals("yarn")) {
 				command.set(0, "yarn.cmd");
-			if (command.get(0).equals("pnpm"))
+			} else if (command.get(0).equals("pnpm")) {
 				command.set(0, "pnpm.cmd");
+			} else if (command.get(0).equals("npx")) {
+				command.set(0, "npx.cmd");
+			}
 		}
 		
 		ProcessBuilder pb = getProcessBuilder(paths, command);
@@ -320,61 +323,63 @@ public class ProcessUtils {
 	}
 	
 	public static File getNodeDir(String version, ProgressListener progress) throws Exception {
-		File dir = getLocalNodeDir(version);
-		Engine.logEngine.info("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
-		if (dir.exists()) {
-			if (!Engine.isWindows()) {
-				dir = new File(dir, "bin");
+		synchronized (defaultNodeVersion) {
+			File dir = getLocalNodeDir(version);
+			Engine.logEngine.info("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
+			if (dir.exists()) {
+				if (!Engine.isWindows()) {
+					dir = new File(dir, "bin");
+				}
+				return dir;
 			}
-			return dir;
-		}
-		File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
-		HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
-		
-		Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
-		
-		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
-			FileUtils.deleteQuietly(archive);
-			archive.getParentFile().mkdirs();
-			if (progress != null) {
-				long length = response.getEntity().getContentLength();
-				try (FileOutputStream fos = new FileOutputStream(archive)) {
-					InputStream is = response.getEntity().getContent();
-					byte[] buf = new byte[1024 * 1024];
-					int n;
-					long t = 0, now, ts = 0;
-					while ((n = is.read(buf)) > -1) {
-						fos.write(buf, 0, n);
-						t += n;
-						now = System.currentTimeMillis();
-						if (now > ts) {
-							progress.update(t, length, 1);
-							ts = now + 2000;
+			File archive = new File(dir.getPath() + (Engine.isWindows() ? ".zip" : ".tar.gz"));
+			HttpGet get = new HttpGet("https://nodejs.org/dist/" + version + "/" + archive.getName());
+
+			Engine.logEngine.info("getNodeDir archive " + dir + " downloaded from " + get.getURI().toString());
+
+			try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+				FileUtils.deleteQuietly(archive);
+				archive.getParentFile().mkdirs();
+				if (progress != null) {
+					long length = response.getEntity().getContentLength();
+					try (FileOutputStream fos = new FileOutputStream(archive)) {
+						InputStream is = response.getEntity().getContent();
+						byte[] buf = new byte[1024 * 1024];
+						int n;
+						long t = 0, now, ts = 0;
+						while ((n = is.read(buf)) > -1) {
+							fos.write(buf, 0, n);
+							t += n;
+							now = System.currentTimeMillis();
+							if (now > ts) {
+								progress.update(t, length, 1);
+								ts = now + 2000;
+							}
 						}
+						progress.update(t, length, 1);
 					}
-					progress.update(t, length, 1);
+				} else {
+					FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+				}
+			}
+			if (Engine.isWindows()) {
+				Level l = Engine.logEngine.getLevel();
+				try {
+					Engine.logEngine.setLevel(Level.OFF);
+					Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+					ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
+					Engine.logEngine.info("unzip terminated!");
+				} finally {
+					Engine.logEngine.setLevel(l);
 				}
 			} else {
-				FileUtils.copyInputStreamToFile(response.getEntity().getContent(), archive);
+				Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
+				ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile()).start().waitFor();
+				dir = new File(dir, "bin");
 			}
+			FileUtils.deleteQuietly(archive);
+			return dir;
 		}
-		if (Engine.isWindows()) {
-			Level l = Engine.logEngine.getLevel();
-			try {
-				Engine.logEngine.setLevel(Level.OFF);
-				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
-				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
-				Engine.logEngine.info("unzip terminated!");
-			} finally {
-				Engine.logEngine.setLevel(l);
-			}
-		} else {
-			Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
-			ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile()).start().waitFor();
-			dir = new File(dir, "bin");
-		}
-		FileUtils.deleteQuietly(archive);
-		return dir;
 	}
 	
 	public static File getJDK8(ProgressListener progress) throws ClientProtocolException, IOException, JSONException, InterruptedException {
