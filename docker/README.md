@@ -52,16 +52,22 @@ Projects are deployed in the Convertigo workspace, a simple file system director
 
     docker run --name C8O -v $(pwd):/workspace -d -p 28080:28080 convertigo
 
-You can share the same workspace by all Convertigo containers. This this case, when you deploy a project on a Convertigo container, it will be seen by others. This is the best way to build multi-instance load balanced Convertigo server farms.
+You can share the same workspace by all Convertigo containers. In this case, when you deploy a project on a Convertigo container, it will be seen by others. This is the best way to build multi-instance load balanced Convertigo server farms.
+
+**Be sure to have a really fast file sharing between instances !!!**
+
+To avoid log and cache mixing, you have to add 2 variables for instance specific paths:
+
+    -Dconvertigo.engine.cache_manager.filecache.directory=/workspace/cache/[instance name]
+    -Dconvertigo.engine.log4j.appender.CemsAppender.File=/workspace/logs/[instance name]/engine.log
 
 ## Make image with pre-deployed projects
 
 If you want to make a vertical image ready to start with your application inside, you have to have your built projects **.car** files next to your `Dockerfile`:
-```console
-FROM convertigo
-COPY myProject.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
-COPY myDependency.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
-```
+
+    FROM convertigo
+    COPY myProject.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
+    COPY myDependency.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
 
 ## Migrate from an earlier version of Convertigo
 
