@@ -82,7 +82,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright "${COMPANY} (c) 2000-${curr
 # Installer sections
 Section ""
     
-    SetOutPath $INSTDIR
+    SetOutPath \\?\$INSTDIR
     SetOverwrite ifnewer
     File /r ..\..\eclipse-repository\target\products\com.convertigo.studio\win32\win32\${Arch}\*
     File ..\data\convertigo.ico
