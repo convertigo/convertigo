@@ -1,10 +1,11 @@
 # What is Convertigo Mobility Platform ?
 
-Convertigo is an open source Low Code Application Platform (LCAP) featuring MXDP (Multi eXperience Development Platform) / MBaaS (Mobile Back end as a Service) for full-stack mobile and web application development. The platform is used to build complex Cross-platform Enterprise Mobile apps in a few days. Convertigo platform is composed of several components:
+Convertigo is an open source fullstack Low Code & No Code platform.. The platform is used to build complex Cross-platform Enterprise Mobile apps in a few days. Convertigo platform is composed of several components:
 
-1.	**Convertigo MBaaS**: The back-end MBaaS server part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Mobile Web apps. Runs as a Docker container with the `convertigo` (official) or `convertigo/convertigo` images
+1.	**Convertigo MBaaS**: The back-end MBaaS server part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Mobile Web apps. Runs as a Docker container with the `convertigo` image
 2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program MBaaS micro-services workflows and optionaly use the "Mobile Builder" edition to build Mobile apps UIs in a MXDP (Multi eXperience Development Platform) Low code mode. Can be directly downloaded from [Sourceforge.net](https://sourceforge.net/projects/convertigo/files/latest/download)
-3.	**Convertigo SDKs**: Can be used with third party Mobile development tools such as Xcode (iOS) Android Studio (Android) and Visual Studio (Windows Mobile, Windows UWP and Xamarin). SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and Nuget for .NET)
+3.	**Convertigo SDKs**: Can be used with third party Mobile development tools such as Xcode (iOS) Android Studio (Android). SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and Nuget for .NET)
+4.	**Convertigo Forms**: The No Code App Builder to build form based apps as PWAs or Web applications with a Web Based NoCode studio intented for non technical developpers (Citizen Developpers)
 
 Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 100K developers worldwide, building enterprise class mobile apps.
 
@@ -36,9 +37,9 @@ Then launch Convertigo and link it to the running 'fullsync' container. Converti
 
 ### MySQL
 
-MySQL is the recommended database for holding Convertigo MBaaS server analytics. You can use this command to run convertigo and link it to a running MySQL container. Change [mysql](as the container name), [data base admin user], [data base admin user] with the values for your MySQL configuration.
+MySQL is the recommended database for holding Convertigo MBaaS server analytics. You can use this command to run convertigo and link it to a running MySQL container. Change `[mysql-container]` to the container name, and `[username for the c8oAnalytics db]`, `[password for specified db user]` with the values for your MySQL configuration.
 
-    docker run -d --name C8O --link [mysql]:mysql -p 28080:28080                                         \
+    docker run -d --name C8O --link [mysql-container]:mysql -p 28080:28080                                         \
         -e JAVA_OPTS="-Dconvertigo.engine.billing.enabled=true                                           \ 
                 -Dconvertigo.engine.billing.persistence.jdbc.username=[username for the c8oAnalytics db] \
                 -Dconvertigo.engine.billing.persistence.jdbc.password=[password for specified db user]   \
@@ -51,7 +52,22 @@ Projects are deployed in the Convertigo workspace, a simple file system director
 
     docker run --name C8O -v $(pwd):/workspace -d -p 28080:28080 convertigo
 
-You can share the same workspace by all Convertigo containers. This this case, when you deploy a project on a Convertigo container, it will be seen by others. This is the best way to build multi-instance load balanced Convertigo server farms.
+You can share the same workspace by all Convertigo containers. In this case, when you deploy a project on a Convertigo container, it will be seen by others. This is the best way to build multi-instance load balanced Convertigo server farms.
+
+**Be sure to have a really fast file sharing between instances !!!**
+
+To avoid log and cache mixing, you have to add 2 variables for instance specific paths:
+
+    -Dconvertigo.engine.cache_manager.filecache.directory=/workspace/cache/[instance name]
+    -Dconvertigo.engine.log4j.appender.CemsAppender.File=/workspace/logs/[instance name]/engine.log
+
+## Make image with pre-deployed projects
+
+If you want to make a vertical image ready to start with your application inside, you have to have your built projects **.car** files next to your `Dockerfile`:
+
+    FROM convertigo
+    COPY myProject.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
+    COPY myDependency.car /usr/local/tomcat/webapps/convertigo/WEB-INF/default_user_workspace/projects/
 
 ## Migrate from an earlier version of Convertigo
 
@@ -65,13 +81,13 @@ The default administration account of a Convertigo serveur is **admin** / **admi
 
 These accounts can be configured through the *administration console* and saved in the **workspace**.
 
-### `CONVERTIGO_ADMIN_USER` and `CONVERTIGO_ADMIN_PASSWORD` variables
+### `CONVERTIGO_ADMIN_USER` and `CONVERTIGO_ADMIN_PASSWORD` Environment variables
 
 You can change the default administration account :
 
     docker run -d --name C8O -e CONVERTIGO_ADMIN_USER=administrator -e CONVERTIGO_ADMIN_PASSWORD=s3cret -p 28080:28080 convertigo
 
-### `CONVERTIGO_TESTPLATFORM_USER` and `CONVERTIGO_TESTPLATFORM_PASSWORD` variables
+### `CONVERTIGO_TESTPLATFORM_USER` and `CONVERTIGO_TESTPLATFORM_PASSWORD` Environment variables
 
 You can lock the **testplatform** by setting the account :
 
@@ -84,13 +100,16 @@ Convertigo is based on a *Java* process with some defaults *JVM* options. You ca
 Add any *Java JVM* options such as -D[something] :
 
     docker run -d --name C8O -e JAVA_OPTS="-DjvmRoute=server1" -p 28080:28080 convertigo
+
+[Here the list of convertigo specific properties](https://www.convertigo.com/documentation/latest/operating-guide/appendixes/#list-of-convertigo-java-system-properties) (don't forget the `-Dconvertigo.engine.` prefix).
+
 ## `JXMX` Environment variable
 
-Convertigo relies on the container limit resources and allocate 80% of the memory limit for the heap. The heap limit can be set with the JXMX variable that set the *JVM Xmx* parameter in megabytes instead.
+Convertigo tries to allocate this amount of memory in the container and will automatically reduce it until the value is compatible for the Docker memory constraints. Once the best value found, it is used as `-Xmx=${JXMX}m` parameter for the JVM.
 
-The default `JXMX` value is *empty* and can be defined :
+The default `JXMX` value is `2048` and can be defined :
 
-    docker run -d --name C8O -e JXMX="2048" -p 28080:28080 convertigo
+    docker run -d --name C8O -e JXMX="4096" -p 28080:28080 convertigo
 
 ## `COOKIE_PATH` Environment variable
 
@@ -102,22 +121,13 @@ The default `COOKIE_PATH` value is `/` and can be defined :
 
 ## `COOKIE_SECURE` Environment variable
 
-Convertigo use a *cookie* to maintain sessions. Requests on port `28080` are *HTTP* but we advice to use an *HTTPS* front for production (nginx, kubenetes ingress, ...).
-In this case, you can secure yours cookies to be used only with secured connections by adding the `Secure` flag.
-The Secure flag can be enabled by setting the `COOKIE_SECURE` environment variable to `true`.
-Once enabled, cookies and sessions aren't working through an *HTTP* connection.
+Convertigo use a *cookie* to maintain sessions. Requests on port `28080` are *HTTP* but we advice to use an *HTTPS* front for production (nginx, kubenetes ingress, ...). In this case, you can secure yours cookies to be used only with secured connections by adding the `Secure` flag.
+
+The Secure flag can be enabled by setting the `COOKIE_SECURE` environment variable to `true`. Once enabled, cookies and sessions aren't working through an *HTTP* connection.
 
 The default `COOKIE_SECURE` value is `false` and can be defined :
 
     docker run -d --name C8O -e COOKIE_SECURE="true" -p 28080:28080 convertigo
-
-## `COOKIE_SAMESITE` Environment variable
-
-Allow to configure the *SameSite* parameter for generated cookies. Can be empty, `none`, `lax` or `strict`.
-
-The default `COOKIE_SAMESITE` value is *empty* and can be defined this way:
-
-    docker run -d –name C8O -e COOKIE_SAMESITE=lax -p 28080:28080 convertigo
 
 ## `COOKIE_SAMESITE` Environment variable
 

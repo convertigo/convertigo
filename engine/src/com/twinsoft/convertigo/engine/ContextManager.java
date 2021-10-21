@@ -359,8 +359,8 @@ public class ContextManager extends AbstractRunnableManager {
 			String contextID = context.contextID;
 			Engine.logContextManager.info("Removing context " + contextID);
 			
-	        	contexts.remove(contextID);
-	
+			contexts.remove(contextID, context);
+			
 			if ((context.requestedObject != null) && (context.requestedObject.runningThread != null)) {
 				Engine.logContextManager.debug("Stopping requestable thread for context " + contextID);
 				//context.requestedObject.runningThread.bContinue = false;
@@ -395,7 +395,7 @@ public class ContextManager extends AbstractRunnableManager {
 							"end transaction: " + endTransactionName,
 							e);
 					} finally {
-						context.isDestroying = true;					
+						context.isDestroying = true;
 					}
 					// Unlocks device if any
 					// WARNING: removing the device pool MUST BE DONE AFTER the end transaction!!!

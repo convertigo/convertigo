@@ -110,7 +110,7 @@ public class InternalRequester extends GenericRequester {
 		}
 		
 		request.put("convertigo.cacheControl", context.cacheControl);
-		request.put("convertigo.context.contextID", context.contextID);
+		request.put("convertigo.context", context);
 		request.put("convertigo.isErrorDocument", Boolean.valueOf(context.isErrorDocument));
 		request.put("convertigo.context.removalRequired", Boolean.valueOf(context.removalRequired()));
 		if (request.get("convertigo.charset") == null) {
