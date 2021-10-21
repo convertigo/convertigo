@@ -23,7 +23,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 ext.convertigoVersion = '7.9.6'
-ext.convertigoTag = 'beta'
+ext.convertigoTag = ''
 ext.convertigoCodename = 'gold'
 ext.convertigoCode = 'Au'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
@@ -31,7 +31,7 @@ ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
 ext.jxBrowserVersion = '7.19'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.53'
+ext.tomcatVersion = '9.0.54'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
