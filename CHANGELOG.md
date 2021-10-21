@@ -1,5 +1,19 @@
 # Changelog
 
+## 7.9.6
+
+#### Improvements:
+
+- [#519](https://github.com/convertigo/convertigo/issues/519) Workspace relatives paths can resolve sibling projects with ./projects/AnotherProject/
+
+#### Bug Fixes:
+
+- [#517](https://github.com/convertigo/convertigo/issues/517) Fixed, multipart 'text/plain' parts are read as UTF-8 by default
+- [#518](https://github.com/convertigo/convertigo/issues/518) Fixed, prevents same named contexts to terminate concurrent execution
+- [#521](https://github.com/convertigo/convertigo/issues/521) [Studio] Fixed, Windows installer supports long path filename (no file lost)
+
+---
+
 ## 7.9.5
 
 #### Improvements:
@@ -29,7 +43,7 @@
 - [#494](https://github.com/convertigo/convertigo/issues/494) [Studio] Fixed, prevents random freeze at Studio startup while opening MobileBuilder projects
 - [#495](https://github.com/convertigo/convertigo/issues/495) [FullSync] Fixed, no more update conflict for PostBulk with "update if change" property in case of multiple docs with the same _id
 - [#496](https://github.com/convertigo/convertigo/issues/496) [Studio] Fixed, no more Editor conflict for SequenceJS with the same name inside a same project
-- [#497](https://github.com/convertigo/convertigo/issues/497) [FullSync] Fixed, prevents the "function_clause error" for the �Purge database� transaction
+- [#497](https://github.com/convertigo/convertigo/issues/497) [FullSync] Fixed, prevents the "function_clause error" for the ?Purge database? transaction
 - [#499](https://github.com/convertigo/convertigo/issues/499) [Admin] Fixed, confirmation pop-up appears on top of the Log levels
 - [#500](https://github.com/convertigo/convertigo/issues/500) Fixed, TestPlaform redirect works for project that ends with "projects"
 
@@ -39,7 +53,7 @@
 
 #### Bug Fixes:
 
-- [#478](https://github.com/convertigo/convertigo/issues/478) [Studio] Fixed, symbols usage in the JS Steps� Editor (not replaced by values)
+- [#478](https://github.com/convertigo/convertigo/issues/478) [Studio] Fixed, symbols usage in the JS Steps? Editor (not replaced by values)
 - [#482](https://github.com/convertigo/convertigo/issues/482) [Admin] Fixed, no more NPE if deleting projects too quickly
 - [#483](https://github.com/convertigo/convertigo/issues/483) [Studio] Fixed, no more "Unknown transaction" with HTTP calls on a reloaded project
 - [#484](https://github.com/convertigo/convertigo/issues/484) [Studio] Fixed, Schema & Picker views are empty if a broken source exists in the project
