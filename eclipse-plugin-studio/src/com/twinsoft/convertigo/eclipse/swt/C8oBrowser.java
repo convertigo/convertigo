@@ -160,6 +160,16 @@ public class C8oBrowser extends Composite {
 			html = html.replace("$background$", background).replace("$foreground$", foreground).replace("$link$", link);
 		}
 		getBrowser().mainFrame().get().document().get().documentElement().get().innerHtml(html);
+		
+		/** fix #522, have to recreate script after innerHtml **/
+		getBrowser().mainFrame().get().executeJavaScript(
+		"Array.from(document.querySelectorAll(\"script\")).forEach( oldScript => {\r\n"
+		+ "    const newScript = document.createElement(\"script\");\r\n"
+		+ "    Array.from(oldScript.attributes)\r\n"
+		+ "      .forEach( attr => newScript.setAttribute(attr.name, attr.value) );\r\n"
+		+ "    newScript.appendChild(document.createTextNode(oldScript.innerHTML));\r\n"
+		+ "    oldScript.parentNode.replaceChild(newScript, oldScript);\r\n"
+		+ "});");
 	}
 	
 	public void reloadText() {
@@ -238,7 +248,7 @@ public class C8oBrowser extends Composite {
 	}
 	
 	public static void main(String[] args) {
-		String newKey = "6P835FT5HAV2EG8VQ5ZBIC76PR2YH2T40MCSXZ361FBESJ24DO3U9RRANTA2PFUWI2NP";
+		String newKey = "";
 		System.out.println("newKey " + newKey);
 		String jxKey = Crypto2.encodeToHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), newKey);
 		System.out.println("jxKey " + jxKey);
