@@ -24,8 +24,8 @@ public class ProductVersion {
 
     public static String majorProductVersion = "7";
     public static String minorProductVersion = "9";
-    public static String servicePack = "6";
-    public static String tag = null;
+    public static String servicePack = "7";
+    public static String tag = "beta";
     public static String revision = null;
     
     public static String productVersion =
