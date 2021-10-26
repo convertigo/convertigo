@@ -12717,35 +12717,35 @@
           "value": false
          },
          "OffsetLg": {
-          "attr": "offset-lg",
+          "attr": "offsetLg",
           "label": "Offset 992-1200 px (lg)",
           "description": "The amount to offset the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetMd": {
-          "attr": "offset-md",
+          "attr": "offsetMd",
           "label": "Offset 768-992 px (md)",
           "description": "The amount to offset the column for md screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetSm": {
-          "attr": "offset-sm",
+          "attr": "offsetSm",
           "label": "Offset 576-768 px (sm)",
           "description": "The amount to offset the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetXl": {
-          "attr": "offset-xl",
+          "attr": "offsetXl",
           "label": "Offset 1200-over px (xl)",
           "description": "The amount to offset the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetXs": {
-          "attr": "offset-xs",
+          "attr": "offsetXs",
           "label": "Offset 0-576 px (xs)",
           "description": "The amount to offset the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
@@ -12759,35 +12759,35 @@
           "value": false
          },
          "PullLg": {
-          "attr": "pull-lg",
+          "attr": "pullLg",
           "label": "Pull 992-1200 px (lg)",
           "description": "The amount to pull the column for lg screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullMd": {
-          "attr": "pull-md",
+          "attr": "pullMd",
           "label": "Pull 768-992 px (md)",
           "description": "The amount to pull the column for md screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullSm": {
-          "attr": "pull-sm",
+          "attr": "pullSm",
           "label": "Pull 576-768 px (sm)",
           "description": "The amount to pull the column for sm screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullXl": {
-          "attr": "pull-xl",
+          "attr": "pullXl",
           "label": "Pull 1200-over px (xl)",
           "description": "The amount to pull the column for xl screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullXs": {
-          "attr": "pull-xs",
+          "attr": "pullXs",
           "label": "Pull 0-576 px (xs)",
           "description": "The amount to pull the column for xs screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
@@ -12801,35 +12801,35 @@
           "value": false
          },
          "PushLg": {
-          "attr": "push-lg",
+          "attr": "pushLg",
           "label": "Push 992-1200 px (lg)",
           "description": "The amount to push the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushMd": {
-          "attr": "push-md",
+          "attr": "pushMd",
           "label": "Push 768-992 px (md)",
           "description": "The amount to push the column for md screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushSm": {
-          "attr": "push-sm",
+          "attr": "pushSm",
           "label": "Push 576-768 px (sm)",
           "description": "The amount to push the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushXl": {
-          "attr": "push-xl",
+          "attr": "pushXl",
           "label": "Push 1200-over px (xl)",
           "description": "The amount to push the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushXs": {
-          "attr": "push-xs",
+          "attr": "pushXs",
           "label": "Push 0-576 px (xs)",
           "description": "The amount to push the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
@@ -12860,7 +12860,7 @@
           ]
          },
          "SizeLg": {
-          "attr": "size-lg",
+          "attr": "sizeLg",
           "label": "Size 992-1200 px (lg)",
           "description": "The size of the column for lg screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -12884,7 +12884,7 @@
           ]
          },
          "SizeMd": {
-          "attr": "size-md",
+          "attr": "sizeMd",
           "label": "Size 768-992 px (md)",
           "description": "The size of the column for md screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -12908,7 +12908,7 @@
           ]
          },
          "SizeSm": {
-          "attr": "size-sm",
+          "attr": "sizeSm",
           "label": "Size 576-768 px (sm)",
           "description": "The size of the column for sm screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -12932,7 +12932,7 @@
           ]
          },
          "SizeXl": {
-          "attr": "size-xl",
+          "attr": "sizeXl",
           "label": "Size 1200-over px (xl)",
           "description": "The size of the column for xl screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -12956,7 +12956,7 @@
           ]
          },
          "SizeXs": {
-          "attr": "size-xs",
+          "attr": "sizeXs",
           "label": "Size 0-576 px (xs)",
           "description": "The size of the column for xs screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
