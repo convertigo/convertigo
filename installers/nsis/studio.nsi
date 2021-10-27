@@ -1,7 +1,7 @@
 # 2018-03-06 13:59:07
 
 !ifndef APPNAME
- !define APPNAME "Convertigo Mobility Platform Studio"
+ !define APPNAME "Studio"
 !endif
 
 Name "${APPNAME}"
@@ -21,8 +21,8 @@ SetCompressor /FINAL zlib
  !error "Missing Arch (x86, x86_64)"
 !endif
 
-!define COMPANY "Convertigo Mobility Platform"
-!define URL http://www.convertigo.com
+!define COMPANY "Convertigo"
+!define URL https://www.convertigo.com
 !define /date currYear %Y
 
 # MUI defines
@@ -82,7 +82,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} LegalCopyright "${COMPANY} (c) 2000-${curr
 # Installer sections
 Section ""
     
-    SetOutPath \\?\$INSTDIR
+    SetOutPath $INSTDIR
     SetOverwrite ifnewer
     File /r ..\..\eclipse-repository\target\products\com.convertigo.studio\win32\win32\${Arch}\*
     File ..\data\convertigo.ico

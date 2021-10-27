@@ -10,7 +10,8 @@
 
 - [#517](https://github.com/convertigo/convertigo/issues/517) Fixed, multipart 'text/plain' parts are read as UTF-8 by default
 - [#518](https://github.com/convertigo/convertigo/issues/518) Fixed, prevents same named contexts to terminate concurrent execution
-- [#521](https://github.com/convertigo/convertigo/issues/521) [Studio] Fixed, Windows installer supports long path filename (no file lost)
+- [#522](https://github.com/convertigo/convertigo/issues/522) [Studio] Fixed, MobileBuilder progression message restored
+- [#523](https://github.com/convertigo/convertigo/issues/523) [Studio] Fixed, Windows installer use a shorter install path prefix
 
 ---
 
