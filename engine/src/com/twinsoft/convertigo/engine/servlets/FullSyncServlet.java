@@ -149,11 +149,11 @@ public class FullSyncServlet extends HttpServlet {
 			
 			boolean isUtilsSession = "true".equals(httpSession.getAttribute("__isUtilsSession"));
 			boolean isUtilsRequest = false;
-			if (isUtilsSession || "_utils".equals(requestParser.special)) {
+			String referer = request.getHeader("Referer");
+			if (isUtilsSession || (referer != null &&  referer.endsWith("/admin/_utils/"))) {
 				Engine.authenticatedSessionManager.checkRoles(httpSession, Role.WEB_ADMIN, Role.FULLSYNC_CONFIG, Role.FULLSYNC_VIEW);
 				httpSession.setAttribute("__isUtilsSession", "true");
-				String referer = request.getHeader("Referer");
-				isUtilsRequest = (referer != null && referer.contains("/_utils/") && !"_all_dbs".equals(requestParser.getSpecial()));
+				isUtilsRequest = !"_all_dbs".equals(requestParser.getSpecial());
 			} else {
 				Engine.theApp.couchDbManager.checkRequest(requestParser.getPath(), requestParser.getSpecial(), requestParser.getDocId());
 			}
