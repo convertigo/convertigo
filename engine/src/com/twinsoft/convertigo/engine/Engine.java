@@ -1041,7 +1041,6 @@ public class Engine {
 	 * Constructs a new Engine object.
 	 */
 	public Engine() {
-		engineClassLoader = getClass().getClassLoader();
 		Engine.logEngine.info("===========================================================");
 		Engine.logEngine.info(" Convertigo Enterprise Mobility Server "
 				+ com.twinsoft.convertigo.engine.Version.fullProductVersion);
