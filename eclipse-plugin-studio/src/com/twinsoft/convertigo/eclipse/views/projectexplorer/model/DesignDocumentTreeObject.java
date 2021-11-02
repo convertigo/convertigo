@@ -66,7 +66,9 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 			CouchKey._rev.remove(json);
 		}
 		
-		syncDocument();
+		Engine.execute(() -> {
+			syncDocument();
+		});
 	}
 
 	@Override
@@ -199,9 +201,9 @@ public class DesignDocumentTreeObject extends DocumentTreeObject implements IDes
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 		}
-		
-        TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
-    	viewer.update(this, null);
+
+		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
+		viewer.update(this, null);
 	}
 	
 	private void syncDocument() {

@@ -1260,7 +1260,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (!Engine.isCliMode()) {
 				Project p = project;
 				Engine.logDatabaseObjectManager.debug("Syncing FullSync DesignDocument for the projet loaded from: " + importFile);
-				Engine.execute(() -> CouchDbManager.syncDocument(p));
+				Engine.execute(() -> {
+					CouchDbManager.syncDocument(p);
+				});
 			}
 
 			return project;

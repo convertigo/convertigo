@@ -859,7 +859,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	
 	public void setPropertyValue(Object id, Object value) {
 		MobileBuilder mb = null;
-		boolean autoBuild = false;
 		
 		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
 		if (editorPart != null) {

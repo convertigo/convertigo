@@ -137,6 +137,8 @@ import com.twinsoft.convertigo.engine.DatabaseObjectsManager.StudioProjects;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.events.ProgressEvent;
+import com.twinsoft.convertigo.engine.events.ProgressEventListener;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.InternalHttpServletRequest;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
@@ -152,7 +154,7 @@ import com.twinsoft.util.Log;
 /**
  * The main plugin class to be used in the desktop.
  */
-public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, StudioProjects {
+public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, StudioProjects, ProgressEventListener {
 
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
 
@@ -562,6 +564,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 		// Adds listeners
 		addListeners();
+		
+		runAtStartup(() -> {
+			Engine.theApp.eventManager.addListener(this, ProgressEventListener.class);
+			Engine.execute(() -> Engine.theApp.couchDbManager.getFullSyncClient());
+		});
 
 		DatabaseObjectsManager.studioProjects = this;
 
@@ -1848,5 +1855,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				}
 			}
 		}
+	}
+
+	@Override
+	public void onEvent(ProgressEvent event) {
+		Job job = Job.create(event.getName(), monitor -> {
+			monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
+			while (event.waitNextStatus()) {
+				monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
+			}
+			monitor.done();
+		});
+		job.schedule();
 	}
 }
