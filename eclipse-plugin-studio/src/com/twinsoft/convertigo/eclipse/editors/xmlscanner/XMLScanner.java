@@ -19,11 +19,13 @@
 
 package com.twinsoft.convertigo.eclipse.editors.xmlscanner;
 
-import org.eclipse.jface.text.rules.*;
-import org.eclipse.jface.text.*;
-
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLWhitespaceDetector;
+import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.rules.IRule;
+import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.RuleBasedScanner;
+import org.eclipse.jface.text.rules.SingleLineRule;
+import org.eclipse.jface.text.rules.Token;
+import org.eclipse.jface.text.rules.WhitespaceRule;
 
 public class XMLScanner extends RuleBasedScanner {
 

@@ -28,8 +28,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import org.apache.fop.apps.MimeConstants;
 import org.xml.sax.SAXException;
 
-import com.twinsoft.convertigo.engine.print.ConvertigoPrint;
-import com.twinsoft.convertigo.engine.print.PrintStatus;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class PrintPDF extends ConvertigoPrint{

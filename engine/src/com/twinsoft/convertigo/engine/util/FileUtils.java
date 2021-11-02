@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import com.twinsoft.convertigo.engine.Engine;
 
 
+@SuppressWarnings("deprecation")
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
 
@@ -88,11 +89,11 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	public static boolean isCRLF() {
 		return System.getProperty("line.separator").contains("\r\n");
 	}
-	
+
 	public static String CrlfToLf(String content) {
 		return CrlfPattern.matcher(content).replaceAll("\n");
 	}
-	
+
 	public static void saveProperties(Map<String, String> map, File file, String encoding) throws IOException {
 		PrintStream ps = new PrintStream(file, encoding);
 		for (Entry<String, String> entry : map.entrySet()) {
@@ -102,7 +103,7 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		}
 		ps.close();
 	}
-	
+
 	public static void loadProperties(Map<String, String> map, File file, String encoding) throws IOException {
 		BufferedReader br = null;
 		try {
@@ -130,29 +131,29 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			if (br != null) br.close();
 		}
 	}
-	
+
 	public static String toUriString(File file) throws MalformedURLException {
 		String fileUrl = file.toURI().toURL().toString();
 		return fileUrl;
 	}
 
-    public static String createTmpFileWithUTF8Data(String parentPath, String childPath, String content) throws FileNotFoundException, IOException {
-        File tempEditorFile = new File(parentPath, childPath);
-        try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(tempEditorFile), StandardCharsets.UTF_8)) {
-            osw.append(content);
-        }
-        return tempEditorFile.getName();
-    }
+	public static String createTmpFileWithUTF8Data(String parentPath, String childPath, String content) throws FileNotFoundException, IOException {
+		File tempEditorFile = new File(parentPath, childPath);
+		try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(tempEditorFile), StandardCharsets.UTF_8)) {
+			osw.append(content);
+		}
+		return tempEditorFile.getName();
+	}
 
-    public static boolean createFolderIfNotExist(String parent, String child) {
-        File privateFolder = new File(parent, child);
-        if (!privateFolder.exists()) {
-            return privateFolder.mkdir();
-        }
-        return false;
-    }
-    
-    public static void deleteDirectory(File dir) throws IOException {
+	public static boolean createFolderIfNotExist(String parent, String child) {
+		File privateFolder = new File(parent, child);
+		if (!privateFolder.exists()) {
+			return privateFolder.mkdir();
+		}
+		return false;
+	}
+
+	public static void deleteDirectory(File dir) throws IOException {
 		if (dir.exists()) {
 			if (dir.isDirectory()) {
 				int code = -1;
@@ -173,23 +174,23 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 						Engine.logEngine.warn("System remove dir failed to delete the folder " + dir + ". Use the Java version. Error is: " + e2);
 					}
 				}
-				
+
 				if (code != 0) {
 					org.apache.commons.io.FileUtils.deleteDirectory(dir);
 				}
 			}
 		}
-    }
-    
-    public static boolean deleteQuietly(File f) {
-    	if (f != null && f.isDirectory()) {
-    		try {
-        		FileUtils.deleteDirectory(f);
-        		return true;
-    		} catch (Exception e) {
+	}
+
+	public static boolean deleteQuietly(File f) {
+		if (f != null && f.isDirectory()) {
+			try {
+				FileUtils.deleteDirectory(f);
+				return true;
+			} catch (Exception e) {
 			}
-    	}
-    	return org.apache.commons.io.FileUtils.deleteQuietly(f);
-    }
-    
+		}
+		return org.apache.commons.io.FileUtils.deleteQuietly(f);
+	}
+
 }

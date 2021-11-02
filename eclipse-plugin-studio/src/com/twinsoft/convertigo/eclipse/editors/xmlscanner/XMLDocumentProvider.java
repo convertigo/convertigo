@@ -25,8 +25,6 @@ import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.ui.editors.text.FileDocumentProvider;
 
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLPartitionScanner;
-
 public class XMLDocumentProvider extends FileDocumentProvider {
 
 	protected IDocument createDocument(Object element) throws CoreException {

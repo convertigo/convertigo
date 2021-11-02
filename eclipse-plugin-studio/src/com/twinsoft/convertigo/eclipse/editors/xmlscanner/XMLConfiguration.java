@@ -29,12 +29,6 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.NonRuleBasedDamagerRepairer;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLDoubleClickStrategy;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLScanner;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLTagScanner;
-
 public class XMLConfiguration extends SourceViewerConfiguration {
 	private XMLDoubleClickStrategy doubleClickStrategy;
 

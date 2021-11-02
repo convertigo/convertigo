@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.engine;
 
-import com.twinsoft.convertigo.engine.EngineException;
-
 public class AuthenticationException extends EngineException {
 
 	private static final long serialVersionUID = 445688846990845155L;

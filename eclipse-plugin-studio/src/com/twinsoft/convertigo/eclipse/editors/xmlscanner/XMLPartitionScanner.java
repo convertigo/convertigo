@@ -19,9 +19,11 @@
 
 package com.twinsoft.convertigo.eclipse.editors.xmlscanner;
 
-import org.eclipse.jface.text.rules.*;
-
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.TagRule;
+import org.eclipse.jface.text.rules.IPredicateRule;
+import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.MultiLineRule;
+import org.eclipse.jface.text.rules.RuleBasedPartitionScanner;
+import org.eclipse.jface.text.rules.Token;
 
 public class XMLPartitionScanner extends RuleBasedPartitionScanner {
 	public final static String XML_DEFAULT = "__xml_default";

@@ -27,9 +27,6 @@ import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLWhitespaceDetector;
-
 public class XMLTagScanner extends RuleBasedScanner {
 
 	public XMLTagScanner(ColorManager manager) {
