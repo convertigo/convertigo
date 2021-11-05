@@ -1211,7 +1211,6 @@ public class XMLUtils {
 	
 	private static Object getValue(Element elt, boolean ignoreStepIds, boolean useType) throws JSONException {
 		Object value = null;
-
 		try {
 			if (elt.hasAttribute("type")) {
 				String type = elt.getAttribute("type");
@@ -1229,7 +1228,7 @@ public class XMLUtils {
 							Object childValue = getValue(child, ignoreStepIds, useType);
 							
 							if (childValue != null) {
-								jsonObject.put(childName, childValue);			
+								jsonObject.put(childName, childValue);
 							} else {
 								handleElement(child, jsonObject, ignoreStepIds, useType);
 							}
@@ -1248,7 +1247,7 @@ public class XMLUtils {
 							Object childValue = getValue(child, ignoreStepIds, useType);
 							
 							if (childValue != null) {
-								array.put(childValue);							
+								array.put(childValue);
 							} else {
 								JSONObject obj = new JSONObject();
 								array.put(obj);
@@ -1298,9 +1297,10 @@ public class XMLUtils {
 				Object childValue = useType ? getValue(child, ignoreStepIds, useType) : null;
 				
 				if (childValue != null) {
-					value.accumulate(child.getTagName(), childValue);
+					String childName = child.hasAttribute("originalKeyName") ? child.getAttribute("originalKeyName") : child.getTagName();
+					value.accumulate(childName, childValue);
 				} else {
-					handleElement(child, value, ignoreStepIds, useType);					
+					handleElement(child, value, ignoreStepIds, useType);
 				}
 			}
 		}

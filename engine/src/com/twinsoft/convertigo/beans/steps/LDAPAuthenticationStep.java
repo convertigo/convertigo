@@ -361,7 +361,7 @@ public class LDAPAuthenticationStep extends Step implements IStepSmartTypeContai
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-		element.setType(cType);		
+		element.setType(cType);
 		
 		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		cType.setParticle(sequence);
