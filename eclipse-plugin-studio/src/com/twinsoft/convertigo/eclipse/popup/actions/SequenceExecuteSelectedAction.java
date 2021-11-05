@@ -50,50 +50,47 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 	public SequenceExecuteSelectedAction() {
 		super();
 	}
-	
+
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			if ((treeObject != null) && (treeObject instanceof SequenceTreeObject)) {
-    				SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;
-    				openEditors(explorerView, sequenceTreeObject);
-    				
-    				Sequence sequence = sequenceTreeObject.getObject();
-    				ProjectTreeObject projectTreeObject = sequenceTreeObject.getProjectTreeObject();
-    				SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
-    				if (sequenceEditor != null) {
-    					getActivePage().activate(sequenceEditor);
-    					sequenceEditor.getDocument(sequence.getName(), isStubRequested());
-    				}
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to execute the selected sequence!");
-        }
-        finally {
+
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				if ((treeObject != null) && (treeObject instanceof SequenceTreeObject)) {
+					SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;
+					openEditors(explorerView, sequenceTreeObject);
+
+					Sequence sequence = sequenceTreeObject.getObject();
+					ProjectTreeObject projectTreeObject = sequenceTreeObject.getProjectTreeObject();
+					SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
+					if (sequenceEditor != null) {
+						getActivePage().activate(sequenceEditor);
+						boolean fromStub = action.getId().contains("FromStub");
+						sequenceEditor.getSequenceEditorPart().getDocument(sequence.getName(), null, fromStub);
+					}
+				}
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to execute the selected sequence!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
-	protected boolean isStubRequested() {
-		return false;
-	}
-	
 	protected void openEditors(ProjectExplorerView explorerView, TreeObject treeObject) {
 		openEditors(explorerView, treeObject, new HashSet<SequenceStep>());
 	}
-	
+
 	private void openEditors(ProjectExplorerView explorerView, TreeObject treeObject, Set<SequenceStep> alreadyOpened) {
 		if (treeObject instanceof SequenceTreeObject) {
 			SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;
@@ -101,7 +98,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 			sequenceTreeObject.openSequenceEditor();
 		}
 	}
-	
+
 	private void openEditors(ProjectExplorerView explorerView, List<Step> steps, Set<SequenceStep> alreadyOpened) {
 		for (Step step: steps) {
 			if (step.isEnabled()) {
@@ -111,12 +108,12 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 					// load project if necessary
 					if (!step.getSequence().getProject().getName().equals(projectName))
 						loadProject(explorerView, projectName);
-					
+
 					if (alreadyOpened.contains(sequenceStep)) {
 						return; // avoid sequence recursion
 					}
 					alreadyOpened.add(sequenceStep);
-					
+
 					try {
 						ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
 						Sequence subSequence = projectTreeObject.getObject().getSequenceByName(sequenceStep.getSequenceName());
@@ -131,7 +128,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 					String projectName = transactionStep.getProjectName();
 					if (!step.getSequence().getProject().getName().equals(projectName))
 						loadProject(explorerView, projectName); // load project if necessary
-					
+
 					try {
 						ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
 						Connector connector = projectTreeObject.getObject().getConnectorByName(transactionStep.getConnectorName());
@@ -147,7 +144,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 			}
 		}
 	}
-	
+
 	private void loadProject(ProjectExplorerView explorerView, String projectName) {
 		if (!explorerView.isProjectLoaded(projectName)) {
 			TreeObject unloadedProjectTreeObject;
@@ -155,13 +152,13 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 				unloadedProjectTreeObject = ((ViewContentProvider) explorerView.viewer
 						.getContentProvider()).getProjectRootObject(projectName);
 				explorerView.loadProject((UnloadedProjectTreeObject)unloadedProjectTreeObject);
-				
+
 				try {
 					while (!explorerView.isProjectLoaded(projectName))
 						Thread.sleep(10000);
 				} catch (InterruptedException e) {
 				}
-				
+
 			} catch (EngineException e) {
 				e.printStackTrace();
 			}

@@ -26,12 +26,14 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.codehaus.jettison.json.JSONException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -78,7 +80,9 @@ import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.RequestableEngineEvent;
+import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @SuppressWarnings("restriction")
@@ -128,8 +132,12 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.png"));
 	private Image imageDisableStep = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.d.png"));
-	private Image imageGenerateXml = new Image(Display.getCurrent(), getClass().getResourceAsStream(
+	private Image imageGenerate = new Image(Display.getCurrent(), getClass().getResourceAsStream(
+			"/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.png"));
+	private Image imageRenderXml = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/xml.png"));
+	private Image imageRenderJson = new Image(Display.getCurrent(), getClass().getResourceAsStream(
+			"/com/twinsoft/convertigo/eclipse/editors/images/json.png"));
 	private Image imageStop = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png"));
 	private Image imageDisableStop = new Image(Display.getCurrent(), getClass().getResourceAsStream(
@@ -236,8 +244,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		if (toolItemRefresh != null)
 			toolItemRefresh.setEnabled(true);
 
-		if (toolItemGenerateXml != null)
-			toolItemGenerateXml.setEnabled(true);
+		if (toolItemGenerate != null)
+			toolItemGenerate.setEnabled(true);
 		if (toolItemStopTransaction != null)
 			toolItemStopTransaction.setEnabled(false);
 
@@ -327,7 +335,9 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	ToolItem toolItemDisconnect = null;
 	ToolItem toolItemRefresh = null;
 	ToolItem toolItemReset = null;
-	ToolItem toolItemGenerateXml = null;
+	ToolItem toolItemGenerate = null;
+	ToolItem toolItemRenderXml = null;
+	ToolItem toolItemRenderJson = null;
 	ToolItem toolItemStopTransaction = null;
 	ToolItem toolItemDebug = null;
 	ToolItem toolItemRun = null;
@@ -577,10 +587,10 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		incr++;
 
-		toolItemGenerateXml = new ToolItem(toolBar, SWT.PUSH);
-		toolItemGenerateXml.setImage(imageGenerateXml);
-		toolItemGenerateXml.setToolTipText("Generate XML");
-		toolItemGenerateXml.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+		toolItemGenerate = new ToolItem(toolBar, SWT.PUSH);
+		toolItemGenerate.setImage(imageGenerate);
+		toolItemGenerate.setToolTipText("Generate XML");
+		toolItemGenerate.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				getDocument();
 			}
@@ -629,7 +639,42 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		});
 		toolItemsIds.put("StopTransaction", Integer.valueOf(incr));
 		incr++;
+		
+		new ToolItem(toolBar, SWT.SEPARATOR);
+		incr++;
 
+		SelectionListener sl = new SelectionListener() {
+			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+				Engine.execute(() -> {
+					ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE, e.widget == toolItemRenderJson ? "json" : "xml");
+					renderDocument();
+				});
+			}
+
+			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			}
+		};
+		
+		toolItemRenderXml = new ToolItem(toolBar, SWT.RADIO);
+		toolItemRenderXml.setImage(imageRenderXml);
+		toolItemRenderXml.setToolTipText("XML Ouput");
+		toolItemRenderXml.addSelectionListener(sl);
+		toolItemsIds.put("RenderXML", Integer.valueOf(incr));
+		incr ++;
+
+		toolItemRenderJson = new ToolItem(toolBar, SWT.RADIO);
+		toolItemRenderJson.setImage(imageRenderJson);
+		toolItemRenderJson.setToolTipText("JSON Output");
+		toolItemRenderJson.addSelectionListener(sl);
+		toolItemsIds.put("RenderJSON", Integer.valueOf(incr));
+
+		if ("json".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE))) {
+			toolItemRenderJson.setSelection(true);
+		} else {
+			toolItemRenderXml.setSelection(true);
+		}
+		incr ++;
+		
 		if (IScreenClassAware.class.isAssignableFrom(compositeConnectorClass)) {
 			new ToolItem(toolBar, SWT.SEPARATOR);
 			incr++;
@@ -1154,7 +1199,9 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		imageDisablePause.dispose();
 		imageStep.dispose();
 		imageDisableStep.dispose();
-		imageGenerateXml.dispose();
+		imageGenerate.dispose();
+		imageRenderXml.dispose();
+		imageRenderJson.dispose();
 		imageStop.dispose();
 		imageDisableStop.dispose();
 		imageShowScreenclass.dispose();
@@ -1222,7 +1269,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			public void run() {
 				try {
 					toolItemStopTransaction.setEnabled(true);
-					toolItemGenerateXml.setEnabled(false);
+					toolItemGenerate.setEnabled(false);
 				} catch (Exception e) {
 				}
 
@@ -1238,10 +1285,17 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				animatedWait.stop();
-
+				
+				if ("json".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE))) {
+					toolItemRenderJson.setSelection(true);
+					toolItemRenderXml.setSelection(false);
+				} else {
+					toolItemRenderJson.setSelection(false);
+					toolItemRenderXml.setSelection(true);
+				}
 				try {
 					toolItemStopTransaction.setEnabled(false);
-					toolItemGenerateXml.setEnabled(true);
+					toolItemGenerate.setEnabled(true);
 				} catch (Exception e) {
 				}
 			}
@@ -1302,21 +1356,41 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			}
 		}
 		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
-		final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-		getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				String x = strXML;
-				if (x.length() > 10000) {
-					toolItemFullResult.setEnabled(true);
-					xmlView.setData("full", x);
-					x = x.substring(0, 10000) + " ... [reduced content, click the Full Result button in the toolbar to show the full version]";
-				} else {
-					xmlView.setData("full", null);
-					toolItemFullResult.setEnabled(false);
-				}
-				xmlView.getDocument().set(x);
-				editor.setDirty(false);
+		renderDocument();
+	}
+	
+	private void renderDocument() {
+		String str;
+		boolean[] isJsonMode = {false};
+		getDisplay().syncExec(() -> {
+			isJsonMode[0] = toolItemRenderJson.getSelection();
+		});
+		if (isJsonMode[0]) {
+			boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
+			JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
+			try {
+				str =  XMLUtils.XmlToJson(lastGeneratedDocument.getDocumentElement(), true, useType, jsonRoot);
+				str = str.replaceAll("\n( +)", "\n$1$1$1$1");
+			} catch (JSONException e) {
+				str = e.getMessage();
 			}
+		} else {
+			str = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+		}
+
+		final String s = str; 
+		getDisplay().asyncExec(() -> {
+			String x = s;
+			if (x.length() > 10000) {
+				toolItemFullResult.setEnabled(true);
+				xmlView.setData("full", x);
+				x = x.substring(0, 10000) + " ... [reduced content, click the Full Result button in the toolbar to show the full version]";
+			} else {
+				xmlView.setData("full", null);
+				toolItemFullResult.setEnabled(false);
+			}
+			xmlView.getDocument().set(x);
+			editor.setDirty(false);
 		});
 	}
 

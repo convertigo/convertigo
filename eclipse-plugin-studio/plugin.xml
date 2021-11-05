@@ -3185,7 +3185,7 @@
                      menubarPath="convertigo.menu.new/content">
                </action>
                <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedFromStubAction"
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
                      icon="icons/studio/transaction_execute_selected.gif"
                      id="convertigo.action.executeSelectedSequenceFromStub"
                      label="Execute from stub"
