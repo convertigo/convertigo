@@ -30,12 +30,13 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.ISaveablePart2;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor;
 import org.eclipse.ui.part.EditorPart;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-public class SequenceEditor extends EditorPart implements ISaveablePart2 {
+public class SequenceEditor extends ExtensionBasedTextEditor implements ISaveablePart2 {
 	private boolean dirty = false;
 	
 	public void doSave(IProgressMonitor monitor) {
@@ -49,12 +50,11 @@ public class SequenceEditor extends EditorPart implements ISaveablePart2 {
 	}
 	
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-	     if (!(input instanceof SequenceEditorInput))
+		if (!(input instanceof SequenceEditorInput))
 			throw new PartInitException("Invalid input: must be SequenceEditorInput");
 		setSite(site);
 		setInput(input);
-
-		SequenceEditorInput sequenceEditorInput = (SequenceEditorInput) getEditorInput();
+		SequenceEditorInput sequenceEditorInput = (SequenceEditorInput) input;
 		setPartName(sequenceEditorInput.sequence.getParent().getName() + " [S: " + sequenceEditorInput.sequence.getName()+"]");
 	}
 
@@ -75,6 +75,10 @@ public class SequenceEditor extends EditorPart implements ISaveablePart2 {
 	
 	public void dispose() {
 		super.dispose();
+	}
+	
+	public void createEditorControl(Composite parent) {
+		super.createPartControl(parent);
 	}
 	
 	public void createPartControl(Composite parent) {
@@ -129,7 +133,17 @@ public class SequenceEditor extends EditorPart implements ISaveablePart2 {
 		messageBox.setText("Convertigo");
 		messageBox.setMessage("A sequence is currently running.\nThe sequence editor can't be closed.");
 		messageBox.open();
-		
 		return CANCEL;
 	}
+
+	@Override
+	public boolean isEditable() {
+		return false;
+	}
+
+	@Override
+	public boolean isEditorInputReadOnly() {
+		return true;
+	}
+	
 }

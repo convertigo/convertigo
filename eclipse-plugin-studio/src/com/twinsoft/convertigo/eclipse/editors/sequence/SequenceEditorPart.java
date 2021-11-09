@@ -26,11 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jettison.json.JSONException;
-import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.IDocumentPartitioner;
-import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
@@ -44,7 +42,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.wst.sse.ui.internal.StructuredTextViewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -53,9 +50,6 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLConfiguration;
-import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLPartitionScanner;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -67,7 +61,6 @@ import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-@SuppressWarnings("restriction")
 public class SequenceEditorPart extends Composite implements EngineListener{
 
 	private Image imageDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/debug.png"));
@@ -97,6 +90,12 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	public org.w3c.dom.Document lastGeneratedDocument;
 
 	private AnimatedGif animatedWait;
+	private String fullResultXML;
+	private String fullResultJSON;
+	
+	SequenceEditorInput inputXML = null;
+	SequenceEditorInput inputJSON = null;
+	SequenceEditorInput inputTXT = null;
 
 	public SequenceEditorPart(SequenceEditor editor, Sequence sequence, Composite parent, int style) {
 		super(parent, style);
@@ -151,7 +150,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		imageFullResult.dispose();
 
 		canvas.dispose();
-		colorManager.dispose();
 		super.dispose();
 	}
 
@@ -338,13 +336,12 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemDebug.setDisabledImage(imageDisableDebug);
 		toolItemDebug.setToolTipText("Debug mode");
 		toolItemDebug.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				if (ConvertigoPlugin.projectManager.currentProject == null) return;
 				if (toolItemDebug.getSelection()) {
 					try {
 						ConvertigoPlugin.getDefault().debugConsoleStream.write("Starting debug mode in step by step state...\n");
 					} catch (IOException ex) {}
-					//Studio.theApp.consolePanel.jTabbedPane.setSelectedComponent(Studio.theApp.consolePanel.jScrollPaneDebug);
 					bDebug = true;
 					bDebugStepByStep = Boolean.valueOf(true);
 					toolItemRun.setEnabled(true);
@@ -367,7 +364,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				}
 			}
 			public void widgetDefaultSelected(
-					org.eclipse.swt.events.SelectionEvent e) {
+					SelectionEvent e) {
 			}
 		});
 		toolItemsIds.put("Debug", Integer.valueOf(incr));
@@ -378,7 +375,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemRun.setDisabledImage(imageDisableRun);
 		toolItemRun.setToolTipText("Continuous debug mode");
 		toolItemRun.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				if (ConvertigoPlugin.projectManager.currentProject == null) return;
 				synchronized(bDebugStepByStep) {
 					try {
@@ -394,7 +391,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				}
 			}
 			public void widgetDefaultSelected(
-					org.eclipse.swt.events.SelectionEvent e) {
+					SelectionEvent e) {
 			}
 		});
 		toolItemsIds.put("Run", Integer.valueOf(incr));
@@ -405,7 +402,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemPause.setDisabledImage(imageDisablePause);
 		toolItemPause.setToolTipText("Pause the debug process");
 		toolItemPause.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				if (ConvertigoPlugin.projectManager.currentProject == null) return;
 				synchronized(bDebugStepByStep) {
 					try {
@@ -418,8 +415,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				}
 
 			}
-			public void widgetDefaultSelected(
-					org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
 		toolItemsIds.put("Pause", Integer.valueOf(incr));
@@ -430,7 +426,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemStep.setDisabledImage(imageDisableStep);
 		toolItemStep.setToolTipText("Step by step debug mode");
 		toolItemStep.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				if (ConvertigoPlugin.projectManager.currentProject == null) return;
 				synchronized(debugDatabaseObject) {
 					debugDatabaseObject.notify();
@@ -438,7 +434,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				}
 			}
 			public void widgetDefaultSelected(
-					org.eclipse.swt.events.SelectionEvent e) {
+					SelectionEvent e) {
 			}
 		});
 		toolItemsIds.put("Step", Integer.valueOf(incr));
@@ -451,11 +447,11 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemGenerate.setImage(imageGenerate);
 		toolItemGenerate.setToolTipText("Execute");
 		toolItemGenerate.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				getDocument(null, null, false);
 			}
 
-			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
 		toolItemsIds.put("Execute", Integer.valueOf(incr));
@@ -466,7 +462,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemStopSequence.setToolTipText("Stop the current sequence");
 		toolItemStopSequence.setImage(imageDisableStop);
 		toolItemStopSequence.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				try {
 					context.abortRequestable();
 				}
@@ -475,7 +471,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 					// because of normal transaction termination... 
 				}
 			}
-			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
 		toolItemsIds.put("StopTransaction", Integer.valueOf(incr));
@@ -485,14 +481,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		incr ++;
 
 		SelectionListener sl = new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetSelected(SelectionEvent e) {
+				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE, e.widget == toolItemRenderJson ? "json" : "xml");
 				Engine.execute(() -> {
-					ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE, e.widget == toolItemRenderJson ? "json" : "xml");
 					renderDocument();
 				});
 			}
 
-			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		};
 		
@@ -525,14 +521,21 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemFullResult.setImage(imageFullResult);
 		toolItemFullResult.setEnabled(false);
 		toolItemFullResult.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				String x = (String) xmlView.getData("full");
-				if (x != null) {
-					xmlView.getDocument().set(x);
+			public void widgetSelected(SelectionEvent e) {
+				if (toolItemRenderJson.getSelection()) {
+					if (fullResultJSON != null) {
+						getInput().fileWrite(fullResultJSON);
+						fullResultJSON = null;
+						toolItemFullResult.setEnabled(false);
+					}
+				} else if (fullResultXML != null) {
+					getInput().fileWrite(fullResultXML);
 					toolItemFullResult.setEnabled(false);
+					fullResultXML = null;
 				}
+				editor.setInput(getInput());
 			}
-			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
 		incr ++;
@@ -614,10 +617,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		}
 	}
 
-	private ColorManager colorManager;  //  @jve:decl-index=0:
-
-	public StructuredTextViewer xmlView = null;
-
 	/**
 	 * This method initializes compositeXml	
 	 *
@@ -626,30 +625,21 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		compositeXml = new Composite(sashForm, SWT.NONE);
 		compositeXml.setLayout(new FillLayout());
 
-		xmlView = new StructuredTextViewer(compositeXml, null, null, false, SWT.H_SCROLL | SWT.V_SCROLL);
-		xmlView.setEditable(false);
-
-		colorManager = new ColorManager();
-		xmlView.configure(new XMLConfiguration(colorManager));
-
-		Document document = new Document("Click on the XML generation button to view the XML document generated by Convertigo.");
-		IDocumentPartitioner partitioner =
-				new FastPartitioner(
-						new XMLPartitionScanner(),
-						new String[] {
-								XMLPartitionScanner.XML_TAG,
-								XMLPartitionScanner.XML_COMMENT,
-						}
-						);
-		partitioner.connect(document);
-		document.setDocumentPartitioner(partitioner);
-		xmlView.setDocument(document);
+		editor.createEditorControl(compositeXml);
+		
+		inputTXT = getInput();
+		if (!inputTXT.fileExists()) {
+			inputTXT.fileWrite("Click on the generation button to view the response generated by Convertigo.");
+			editor.setInput(inputTXT);
+		}
 	}
 
 	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested) {
 		final Map<String, String[]> parameters = new HashMap<String, String[]>();
 
 		editor.setDirty(true);
+		toolItemRenderJson.setEnabled(false);
+		toolItemRenderXml.setEnabled(false);
 
 		if (sequenceName == null) {
 			sequenceName = sequence.getName();
@@ -683,8 +673,10 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				ConvertigoPlugin.getDefault().debugConsoleStream.write("The XML document has been successfully generated.\n");
 			} catch (IOException e) {}
 		}
-
+		
 		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
+		inputJSON = inputXML = null;
+		fullResultJSON = fullResultXML = null;
 		renderDocument();
 	}
 	
@@ -692,34 +684,57 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		String str;
 		boolean[] isJsonMode = {false};
 		getDisplay().syncExec(() -> {
+			editor.setDirty(false);
+			toolItemRenderJson.setEnabled(true);
+			toolItemRenderXml.setEnabled(true);
 			isJsonMode[0] = toolItemRenderJson.getSelection();
+			
+			if (isJsonMode[0] && inputJSON != null) {
+				editor.setInput(inputJSON);
+				toolItemFullResult.setEnabled(fullResultJSON != null);
+			} else if (!isJsonMode[0] && inputXML != null) {
+				editor.setInput(inputXML);
+				toolItemFullResult.setEnabled(fullResultXML != null);
+			}
 		});
+		
+		if ((isJsonMode[0] && inputJSON != null) || (!isJsonMode[0] && inputXML != null)) {
+			return;
+		}
+		
+		SequenceEditorInput input = getInput();
 		if (isJsonMode[0]) {
 			boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 			JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 			try {
 				str =  XMLUtils.XmlToJson(lastGeneratedDocument.getDocumentElement(), true, useType, jsonRoot);
-				str = str.replaceAll("\n( +)", "\n$1$1$1$1");
+				str = str.replaceAll("\n( +)", "\n$1$1");
 			} catch (JSONException e) {
 				str = e.getMessage();
 			}
+			input = inputJSON = new SequenceEditorInput(input.getSequence(), ".json");
 		} else {
 			str = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+			input = inputXML = new SequenceEditorInput(input.getSequence(), ".xml");
 		}
-
-		final String s = str; 
-		getDisplay().asyncExec(() -> {
-			String x = s;
-			if (x.length() > 10000) {
-				toolItemFullResult.setEnabled(true);
-				xmlView.setData("full", x);
-				x = x.substring(0, 10000) + " ... [reduced content, click the Full Result button in the toolbar to show the full version]";
+		
+		boolean hasFull = str.length() > 10000;
+		if (hasFull) {
+			if (isJsonMode[0]) {
+				fullResultJSON = str;
 			} else {
-				xmlView.setData("full", null);
-				toolItemFullResult.setEnabled(false);
+				fullResultXML = str;
 			}
-			xmlView.getDocument().set(x);
-			editor.setDirty(false);
+			
+			str = str.substring(0, 10000) + "\n... [reduced content, click the Full Result button in the toolbar to show the full version]";
+		}
+		
+		input.fileWrite(str);
+		
+		SequenceEditorInput i = input;
+		getDisplay().asyncExec(() -> {
+			toolItemFullResult.setEnabled(hasFull);
+			editor.setInput(i);
 		});
 	}
 
@@ -727,11 +742,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 
-		getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				compositeSequence.clearContent();
-				xmlView.getDocument().set("Click on the XML generation button to view the XML document generated by Convertigo.");
-			}
+		getDisplay().asyncExec(() -> {
+			editor.setInput(inputTXT);
 		});
 	}
 
@@ -749,6 +761,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			public void run() {
 				toolItemStopSequence.setEnabled(true);
 				toolItemGenerate.setEnabled(false);
+				toolItemRenderJson.setEnabled(false);
+				toolItemRenderXml.setEnabled(false);
 
 				animatedWait.start();
 			}
@@ -762,10 +776,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				animatedWait.stop();
+				toolItemRenderJson.setEnabled(true);
+				toolItemRenderXml.setEnabled(true);
 				if ("json".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE))) {
 					toolItemRenderJson.setSelection(true);
+					toolItemRenderXml.setSelection(false);
 				} else {
 					toolItemRenderXml.setSelection(true);
+					toolItemRenderJson.setSelection(false);
 				}
 				toolItemStopSequence.setEnabled(false);
 				toolItemGenerate.setEnabled(true);
@@ -841,5 +859,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	public void transactionStarted(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
+	}
+	
+	private SequenceEditorInput getInput() {
+		return (SequenceEditorInput) editor.getEditorInput();
 	}
 }

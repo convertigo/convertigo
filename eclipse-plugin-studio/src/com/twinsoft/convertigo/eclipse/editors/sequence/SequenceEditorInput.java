@@ -19,19 +19,46 @@
 
 package com.twinsoft.convertigo.eclipse.editors.sequence;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.part.FileInPlaceEditorInput;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 
-public class SequenceEditorInput implements IEditorInput {
+public class SequenceEditorInput extends FileInPlaceEditorInput {
 
 	Sequence sequence;
 	private String qname;
 	
+	static IFile getTmpFile(Sequence sequence) {
+		try {
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/studio/wait.txt");
+		} catch (Exception e) {
+		}
+		return null;
+	}
+	
+	static IFile getTmpFile(Sequence sequence, String extension) {
+		try {
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/studio/" + sequence.getQName() + extension);
+		} catch (Exception e) {
+		}
+		return null;
+	}
+	
 	public SequenceEditorInput(Sequence sequence) {
+		super(getTmpFile(sequence));
+		this.sequence = sequence;
+		qname = sequence.getQName();
+	}
+	
+	public SequenceEditorInput(Sequence sequence, String extension) {
+		super(getTmpFile(sequence, extension));
 		this.sequence = sequence;
 		qname = sequence.getQName();
 	}
@@ -45,7 +72,7 @@ public class SequenceEditorInput implements IEditorInput {
 	}
 
 	public String getName() {
-		return sequence.getName();
+		return sequence.getName() + ".json";
 	}
 
 	public IPersistableElement getPersistable() {
@@ -67,5 +94,24 @@ public class SequenceEditorInput implements IEditorInput {
 	
 	public boolean is(Project project) {
 		return qname.startsWith(project.getQName());
+	}
+	
+	public Sequence getSequence() {
+		return sequence;
+	}
+	
+	public void fileDelete() {
+		try {
+			getFile().delete(true, null);
+		} catch (CoreException e) {
+		}
+	}
+	
+	public boolean fileExists() {
+		return getFile().exists();
+	}
+	
+	public void fileWrite(String str) {
+		SwtUtils.fillFile(getFile(), str);
 	}
 }

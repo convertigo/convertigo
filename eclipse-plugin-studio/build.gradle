@@ -38,6 +38,7 @@ eclipse {
 		def accessrules = rp.appendNode('accessrules')
 		accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/egit/ui/**'])
 		accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/e4/ui/**'])
+		accessrules.appendNode('accessrule', [kind: 'accessible', pattern: 'org/eclipse/ui/internal/genericeditor/**'])
 		
 		def depJar
 		if ((depJar = node.classpathentry.find { it.@path.contains('libs/dependencies') }) != null) {
