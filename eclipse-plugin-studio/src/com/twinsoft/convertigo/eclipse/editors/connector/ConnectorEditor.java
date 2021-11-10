@@ -30,13 +30,14 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.ISaveablePart2;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor;
 import org.eclipse.ui.part.EditorPart;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-public class ConnectorEditor extends EditorPart implements ISaveablePart2  {
+public class ConnectorEditor extends ExtensionBasedTextEditor implements ISaveablePart2  {
 	private boolean dirty = false;
 	
 	public void doSave(IProgressMonitor monitor) {
@@ -50,7 +51,7 @@ public class ConnectorEditor extends EditorPart implements ISaveablePart2  {
 	}
 	
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-	     if (!(input instanceof ConnectorEditorInput))
+		if (!(input instanceof ConnectorEditorInput))
 			throw new PartInitException("Invalid input: must be ConnectorEditorInput");
 		setSite(site);
 		setInput(input);
@@ -76,6 +77,10 @@ public class ConnectorEditor extends EditorPart implements ISaveablePart2  {
 	
 	public void dispose() {
 		super.dispose();
+	}
+	
+	public void createEditorControl(Composite parent) {
+		super.createPartControl(parent);
 	}
 	
 	public void createPartControl(Composite parent) {
@@ -134,7 +139,16 @@ public class ConnectorEditor extends EditorPart implements ISaveablePart2  {
 		messageBox.setText("Convertigo");
 		messageBox.setMessage("A transaction is currently running.\nThe connector editor can't be closed.");
 		messageBox.open();
-		
 		return CANCEL;
+	}
+
+	@Override
+	public boolean isEditable() {
+		return false;
+	}
+
+	@Override
+	public boolean isEditorInputReadOnly() {
+		return true;
 	}
 }

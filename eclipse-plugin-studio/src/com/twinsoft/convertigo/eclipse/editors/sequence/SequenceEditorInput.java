@@ -37,7 +37,7 @@ public class SequenceEditorInput extends FileInPlaceEditorInput {
 	
 	static IFile getTmpFile(Sequence sequence) {
 		try {
-			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/studio/wait.txt");
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/editor/wait.txt");
 		} catch (Exception e) {
 		}
 		return null;
@@ -45,7 +45,7 @@ public class SequenceEditorInput extends FileInPlaceEditorInput {
 	
 	static IFile getTmpFile(Sequence sequence, String extension) {
 		try {
-			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/studio/" + sequence.getQName() + extension);
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(sequence.getProject().getName()).getFile("_private/editor/" + sequence.getQName() + extension);
 		} catch (Exception e) {
 		}
 		return null;
@@ -63,26 +63,32 @@ public class SequenceEditorInput extends FileInPlaceEditorInput {
 		qname = sequence.getQName();
 	}
 	
+	@Override
 	public boolean exists() {
 		return false;
 	}
 
+	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return null;
 	}
 
+	@Override
 	public String getName() {
-		return sequence.getName() + ".json";
+		return getFile().getName();
 	}
 
+	@Override
 	public IPersistableElement getPersistable() {
 		return null;
 	}
 
+	@Override
 	public String getToolTipText() {
 		return sequence.getParent().getName() + "/" + sequence.getName();
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return null;

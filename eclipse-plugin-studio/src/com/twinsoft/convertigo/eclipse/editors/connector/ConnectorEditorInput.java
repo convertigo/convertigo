@@ -19,43 +19,76 @@
 
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
+import org.eclipse.ui.part.FileInPlaceEditorInput;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 
-public class ConnectorEditorInput implements IEditorInput {
+public class ConnectorEditorInput extends FileInPlaceEditorInput {
 
 	public Connector connector;
 	private String qname;
 	
+	static IFile getTmpFile(Connector connector) {
+		try {
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(connector.getProject().getName()).getFile("_private/editor/wait.txt");
+		} catch (Exception e) {
+		}
+		return null;
+	}
+	
+	static IFile getTmpFile(Connector connector, String extension) {
+		try {
+			return ConvertigoPlugin.getDefault().getProjectPluginResource(connector.getProject().getName()).getFile("_private/editor/" + connector.getQName() + extension);
+		} catch (Exception e) {
+		}
+		return null;
+	}
+	
 	public ConnectorEditorInput(Connector connector) {
+		super(getTmpFile(connector));
 		this.connector = connector;
 		qname = connector.getQName();
 	}
 	
+	public ConnectorEditorInput(Connector connector, String extension) {
+		super(getTmpFile(connector, extension));
+		this.connector = connector;
+		qname = connector.getQName();
+	}
+	
+	@Override
 	public boolean exists() {
 		return false;
 	}
 
+	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return null;
 	}
 
+	@Override
 	public String getName() {
-		return connector.getName();
+		return getFile().getName();
 	}
 
+	@Override
 	public IPersistableElement getPersistable() {
 		return null;
 	}
 
+	@Override
 	public String getToolTipText() {
 		return connector.getParent().getName() + "/" + connector.getName();
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
 		return null;
@@ -67,5 +100,24 @@ public class ConnectorEditorInput implements IEditorInput {
 	
 	public boolean is(Project project) {
 		return qname.startsWith(project.getQName());
+	}
+	
+	public Connector getConnector() {
+		return connector;
+	}
+	
+	public void fileDelete() {
+		try {
+			getFile().delete(true, null);
+		} catch (CoreException e) {
+		}
+	}
+	
+	public boolean fileExists() {
+		return getFile().exists();
+	}
+	
+	public void fileWrite(String str) {
+		SwtUtils.fillFile(getFile(), str);
 	}
 }

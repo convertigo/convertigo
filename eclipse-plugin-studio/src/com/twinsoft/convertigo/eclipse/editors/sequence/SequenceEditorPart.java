@@ -115,10 +115,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 	public void close() {
 		// Must stop the GIF animation before closing the sequence editor
-		getDisplay().syncExec(new Runnable() {
-			public void run() {
-				animatedWait.stop();
-			}
+		getDisplay().syncExec(() -> {
+			animatedWait.stop();
 		});
 
 		compositeSequence.close();
@@ -544,26 +542,22 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	void toolBarSetEnable(String toolItemId, boolean enable) {
 		final int i = toolItemsIds.get(toolItemId).intValue();
 		final boolean enabled = enable;
-		getDisplay().syncExec(new Runnable() {
-			public void run() {
-				ToolItem[] toolItems = toolBar.getItems();
-				ToolItem toolItem = toolItems[i];
-				if (toolItem != null)
-					toolItem.setEnabled(enabled);
-			}
+		getDisplay().syncExec(() -> {
+			ToolItem[] toolItems = toolBar.getItems();
+			ToolItem toolItem = toolItems[i];
+			if (toolItem != null)
+				toolItem.setEnabled(enabled);
 		});
 	}
 
 	void toolBarSetSelection(String toolItemId, boolean select) {
 		final int i = toolItemsIds.get(toolItemId).intValue();
 		final boolean selected = select;
-		getDisplay().syncExec(new Runnable() {
-			public void run() {
-				ToolItem[] toolItems = toolBar.getItems();
-				ToolItem toolItem = toolItems[i];
-				if (toolItem != null)
-					toolItem.setSelection(selected);
-			}
+		getDisplay().syncExec(() -> {
+			ToolItem[] toolItems = toolBar.getItems();
+			ToolItem toolItem = toolItems[i];
+			if (toolItem != null)
+				toolItem.setSelection(selected);
 		});
 	}
 
@@ -757,15 +751,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 		clearEditor(engineEvent);
-		getDisplay().syncExec(new Runnable() {
-			public void run() {
-				toolItemStopSequence.setEnabled(true);
-				toolItemGenerate.setEnabled(false);
-				toolItemRenderJson.setEnabled(false);
-				toolItemRenderXml.setEnabled(false);
+		getDisplay().syncExec(() -> {
+			toolItemStopSequence.setEnabled(true);
+			toolItemGenerate.setEnabled(false);
+			toolItemRenderJson.setEnabled(false);
+			toolItemRenderXml.setEnabled(false);
 
-				animatedWait.start();
-			}
+			animatedWait.start();
 		});
 	}
 
@@ -773,21 +765,19 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 
-		getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				animatedWait.stop();
-				toolItemRenderJson.setEnabled(true);
-				toolItemRenderXml.setEnabled(true);
-				if ("json".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE))) {
-					toolItemRenderJson.setSelection(true);
-					toolItemRenderXml.setSelection(false);
-				} else {
-					toolItemRenderXml.setSelection(true);
-					toolItemRenderJson.setSelection(false);
-				}
-				toolItemStopSequence.setEnabled(false);
-				toolItemGenerate.setEnabled(true);
+		getDisplay().asyncExec(() -> {
+			animatedWait.stop();
+			toolItemRenderJson.setEnabled(true);
+			toolItemRenderXml.setEnabled(true);
+			if ("json".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_EDITOR_OUTPUT_MODE))) {
+				toolItemRenderJson.setSelection(true);
+				toolItemRenderXml.setSelection(false);
+			} else {
+				toolItemRenderXml.setSelection(true);
+				toolItemRenderJson.setSelection(false);
 			}
+			toolItemStopSequence.setEnabled(false);
+			toolItemGenerate.setEnabled(true);
 		});
 	}
 
@@ -835,10 +825,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (bDebugStepByStep.booleanValue()) {
 			try {
 				synchronized(debugDatabaseObject) {
-					getDisplay().syncExec(new Runnable() {
-						public void run() {
-							toolItemStep.setEnabled(true);
-						}
+					getDisplay().syncExec(() -> {
+						toolItemStep.setEnabled(true);
 					});
 					debugDatabaseObject.wait();
 				}
