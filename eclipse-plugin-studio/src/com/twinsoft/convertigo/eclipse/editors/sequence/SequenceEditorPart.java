@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.eclipse.editors.sequence;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +37,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
@@ -47,7 +44,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Context;
@@ -190,13 +186,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	ToolItem toolItemFullResult = null;
 
 	private void initialize() {
-		GridLayout gridLayout1 = new GridLayout();
-		gridLayout1.horizontalSpacing = 0;
-		gridLayout1.marginWidth = 0;
-		gridLayout1.marginHeight = 0;
-		gridLayout1.verticalSpacing = 0;
-		this.setLayout(gridLayout1);
-		createTabFolderOutputDesign();
+		this.setLayout(new FillLayout());
+		createCompositeOutput(this);
 		setSize(new org.eclipse.swt.graphics.Point(547,360));
 
 		if (toolItemRenderXml != null)
@@ -216,36 +207,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			toolItemStep.setEnabled(false);
 	}
 
-	private TabFolder tabFolderOutputDesign = null;
-	private TabItem tabItemOutput = null;
-
-	private void createTabFolderOutputDesign() {
-		GridData gridData2 = new org.eclipse.swt.layout.GridData();
-		gridData2.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gridData2.grabExcessVerticalSpace = true;
-		gridData2.grabExcessHorizontalSpace = true;
-		gridData2.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		tabFolderOutputDesign = new TabFolder(this, SWT.BOTTOM);
-		tabFolderOutputDesign.setLayoutData(gridData2);
-		createCompositeOutput();
-		tabItemOutput = new TabItem(tabFolderOutputDesign, SWT.NONE);
-		tabItemOutput.setText("Output");
-		tabItemOutput.setControl(compositeOutput);
-	}
-
-	private void createCompositeOutput() {
+	private void createCompositeOutput(Composite parent) {
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.horizontalSpacing = 0;
 		gridLayout.marginHeight = 0;
 		gridLayout.verticalSpacing = 0;
 		gridLayout.numColumns = 1;
 		gridLayout.marginWidth = 0;
-		GridData gridData = new org.eclipse.swt.layout.GridData();
-		gridData.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gridData.grabExcessHorizontalSpace = true;
-		gridData.grabExcessVerticalSpace = true;
-		gridData.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		compositeOutput = new Composite(tabFolderOutputDesign, SWT.NONE);
+		compositeOutput = new Composite(parent, SWT.NONE);
 		compositeOutput.setLayout(gridLayout);
 		createCompositeOutputHeader();
 		createSashForm();
@@ -320,7 +289,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	 */
 	private void createToolBar() {
 		int incr = 0;
-		getSequenceCompositeClass();
 
 		GridData gridData5 = new org.eclipse.swt.layout.GridData();
 		gridData5.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
@@ -578,17 +546,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		sashForm.setWeights(new int[]{20, 80});
 	}
 
-	private Class<?> compositeSequenceClass;  //  @jve:decl-index=0:
-
-	private void getSequenceCompositeClass() {
-		if (sequence instanceof GenericSequence) {
-			compositeSequenceClass = SequenceComposite.class;
-		}
-		else {
-			throw new IllegalArgumentException("The sequence class is not handled: " + sequence.getClass().getName());
-		}
-	}
-
 	/**
 	 * This method initializes compositeSequence
 	 *
@@ -601,10 +558,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		gridLayout2.verticalSpacing = 0;
 
 		try {
-			Constructor<?> constructor = compositeSequenceClass.getConstructor(new Class[] { SequenceEditorPart.class, Sequence.class, Composite.class, int.class});
-			compositeSequence = (AbstractSequenceComposite) constructor.newInstance(new Object[] {this, sequence, sashForm, Integer.valueOf(SWT.NONE) });
-
-			compositeSequence.setParent(sashForm);
+			compositeSequence = new SequenceComposite(this, sequence, sashForm, SWT.NONE);
 			compositeSequence.setLayout(gridLayout2);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "An unexpected exception has occured while creating the sequence composite.");

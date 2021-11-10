@@ -42,28 +42,28 @@ public abstract class AbstractSequenceComposite extends Composite implements ISe
 
 	protected SequenceEditorPart sequenceEditorPart;
 	protected Sequence sequence;
-	
+
 	protected ProjectExplorerView projectExplorerView = null;
-	
+
 	public AbstractSequenceComposite(SequenceEditorPart SequenceEditorPart, Sequence sequence, Composite parent, int style) {
 		super(parent, style);
 		this.sequenceEditorPart = SequenceEditorPart;
 		this.sequence = sequence;
-		
+
 		// add ProjectExplorerView to the listeners of the composite sequence
 		projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (projectExplorerView != null) {
 			projectExplorerView.addSelectionChangedListener(this);
 			addCompositeListener(projectExplorerView);
 		}
-		
+
 		initialize();
 	}
 
 	protected void toolBarSetEnable(String toolItemId, boolean enable) {
 		sequenceEditorPart.toolBarSetEnable(toolItemId, enable);
 	}
-	
+
 	protected void toolBarSetSelection(String toolItemId, boolean select) {
 		sequenceEditorPart.toolBarSetSelection(toolItemId, select);
 	}
@@ -82,11 +82,11 @@ public abstract class AbstractSequenceComposite extends Composite implements ISe
 		}
 		return isSourceFromSequence;
 	}
-	
+
 	protected abstract void initialize();
-	
+
 	public abstract void initSequence(Sequence sequence);
-	
+
 	protected abstract void clearContent();
 
 	/**
@@ -100,12 +100,12 @@ public abstract class AbstractSequenceComposite extends Composite implements ISe
 			removeCompositeListener(projectExplorerView);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Handles tree view selection
 	 */
-	
+
 	public void selectionChanged(SelectionChangedEvent event) {
 		if (event.getSource() instanceof ISelectionProvider) {
 			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
@@ -114,43 +114,43 @@ public abstract class AbstractSequenceComposite extends Composite implements ISe
 			}
 		}
 	}
-	
+
 	/**
 	 * Notify changes for tree view 
 	 */
-	
+
 	private EventListenerList compositeListeners = new EventListenerList();
-    
-    public void addCompositeListener(CompositeListener compositeListener) {
-    	compositeListeners.add(CompositeListener.class, compositeListener);
-    }
-    
-    public void removeCompositeListener(CompositeListener compositeListener) {
-    	compositeListeners.remove(CompositeListener.class, compositeListener);
-    }
-    
-    public void fireObjectSelected(CompositeEvent compositeEvent) {
-        // Guaranteed to return a non-null array
-        Object[] listeners = compositeListeners.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
-        	if (listeners[i] == CompositeListener.class) {
-                ((CompositeListener) listeners[i+1]).objectSelected(compositeEvent);
-            }
-        }
-    }
-	
-    public void fireObjectChanged(CompositeEvent compositeEvent) {
-        // Guaranteed to return a non-null array
-        Object[] listeners = compositeListeners.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
-        	if (listeners[i] == CompositeListener.class) {
-                ((CompositeListener) listeners[i+1]).objectChanged(compositeEvent);
-            }
-        }
-    }
-    
+
+	public void addCompositeListener(CompositeListener compositeListener) {
+		compositeListeners.add(CompositeListener.class, compositeListener);
+	}
+
+	public void removeCompositeListener(CompositeListener compositeListener) {
+		compositeListeners.remove(CompositeListener.class, compositeListener);
+	}
+
+	public void fireObjectSelected(CompositeEvent compositeEvent) {
+		// Guaranteed to return a non-null array
+		Object[] listeners = compositeListeners.getListenerList();
+		// Process the listeners last to first, notifying
+		// those that are interested in this event
+		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
+			if (listeners[i] == CompositeListener.class) {
+				((CompositeListener) listeners[i+1]).objectSelected(compositeEvent);
+			}
+		}
+	}
+
+	public void fireObjectChanged(CompositeEvent compositeEvent) {
+		// Guaranteed to return a non-null array
+		Object[] listeners = compositeListeners.getListenerList();
+		// Process the listeners last to first, notifying
+		// those that are interested in this event
+		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
+			if (listeners[i] == CompositeListener.class) {
+				((CompositeListener) listeners[i+1]).objectChanged(compositeEvent);
+			}
+		}
+	}
+
 }
