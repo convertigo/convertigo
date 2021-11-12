@@ -246,6 +246,7 @@ import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.MigrationListener;
 import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.ObjectsProvider;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -2961,6 +2962,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void objectDetected(EngineEvent engineEvent) {
 		final Object source = engineEvent.getSource();
 		boolean highlightDetectedObject = ConvertigoPlugin.getHighlightDetectedObject();
+		
+		if (source instanceof Step) {
+			highlightDetectedObject = Boolean.TRUE.equals(RequestAttribute.debug.get(((Step) source).getSequence().context.httpServletRequest));
+		}
+		
 		if (highlightDetectedObject) {
 			if (source instanceof DatabaseObject) {
 				getSite().getShell().getDisplay().syncExec(new Runnable() {

@@ -26,7 +26,6 @@ import java.util.Map;
 
 import org.codehaus.jettison.json.JSONException;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -55,6 +54,7 @@ import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SequenceEditorPart extends Composite implements EngineListener{
@@ -81,11 +81,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	private String projectName = null;
 
 	protected Context context;
-	protected AbstractSequenceComposite compositeSequence = null;
+//	protected AbstractSequenceComposite compositeSequence = null;
 
 	public org.w3c.dom.Document lastGeneratedDocument;
 
 	private AnimatedGif animatedWait;
+	private String shortResultXML;
+	private String shortResultJSON;
 	private String fullResultXML;
 	private String fullResultJSON;
 	
@@ -101,6 +103,11 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		this.contextID = context.contextID;
 		this.projectName = context.projectName;
 		toolItemsIds = new HashMap<String, Integer>();
+		
+		inputXML = new SequenceEditorInput(sequence, sequence.getQName() + ".xml");
+		inputJSON = new SequenceEditorInput(sequence, sequence.getQName() + ".json");
+		inputTXT = new SequenceEditorInput(sequence, "wait.txt");
+		
 		initialize();
 
 		// Registering as Engine listener
@@ -114,8 +121,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		getDisplay().syncExec(() -> {
 			animatedWait.stop();
 		});
-
-		compositeSequence.close();
 
 		// Remove Studio context
 		Engine.theApp.contextManager.remove(context);
@@ -216,21 +221,18 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		gridLayout.marginWidth = 0;
 		compositeOutput = new Composite(parent, SWT.NONE);
 		compositeOutput.setLayout(gridLayout);
-		createCompositeOutputHeader();
-		createSashForm();
-		createComposite();
+		createCompositeOutputHeader(compositeOutput);
+		createCompositeXml(compositeOutput);
 	}
-
-	private SashForm sashForm = null;
+	
 	private Composite compositeOutput = null;
 	private ToolBar toolBar = null;
 	private Map<String, Integer> toolItemsIds = null;
 	private Composite compositeXml = null;
 	private Composite compositeOutputHeader = null;
-	private Composite compositeOutputFooter = null;
 	private Canvas canvas = null;
 
-	private void createCompositeOutputHeader() {
+	private void createCompositeOutputHeader(Composite parent) {
 		final Color background = getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 
 		GridLayout gridLayout3 = new GridLayout();
@@ -240,7 +242,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		gridData1.grabExcessHorizontalSpace = true;
 		gridData1.grabExcessVerticalSpace = false;
 		gridData1.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
-		compositeOutputHeader = new Composite(compositeOutput, SWT.NONE);
+		compositeOutputHeader = new Composite(parent, SWT.NONE);
 		compositeOutputHeader.setBackground(background);
 		compositeOutputHeader.setLayoutData(gridData1);
 		compositeOutputHeader.setLayout(gridLayout3);
@@ -256,26 +258,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		canvas = new Canvas(compositeOutputHeader, SWT.NONE);
 		canvas.setLayoutData(gridData6);
 		canvas.setVisible(false);
-	}
-
-	/**
-	 * This method initializes composite
-	 *
-	 */
-	private void createComposite() {
-		GridData gridData7 = new org.eclipse.swt.layout.GridData();
-		gridData7.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gridData7.verticalAlignment = org.eclipse.swt.layout.GridData.CENTER;
-		GridData gridData4 = new org.eclipse.swt.layout.GridData();
-		gridData4.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gridData4.grabExcessHorizontalSpace = false;
-		gridData4.verticalAlignment = org.eclipse.swt.layout.GridData.CENTER;
-		GridLayout gridLayout4 = new GridLayout();
-		gridLayout4.numColumns = 2;
-		compositeOutputFooter = new Composite(compositeOutput, SWT.NONE);
-		compositeOutputFooter.setBackground(new Color(Display.getCurrent(), 162, 194, 250));
-		compositeOutputFooter.setLayout(gridLayout4);
-		compositeOutputFooter.setLayoutData(gridData4);
 	}
 
 	protected boolean bDebug = false;
@@ -460,14 +442,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		toolItemRenderXml = new ToolItem(toolBar, SWT.RADIO);
 		toolItemRenderXml.setImage(imageRenderXml);
-		toolItemRenderXml.setToolTipText("XML Ouput");
+		toolItemRenderXml.setToolTipText("XML Requester");
 		toolItemRenderXml.addSelectionListener(sl);
 		toolItemsIds.put("RenderXML", Integer.valueOf(incr));
 		incr ++;
 
 		toolItemRenderJson = new ToolItem(toolBar, SWT.RADIO);
 		toolItemRenderJson.setImage(imageRenderJson);
-		toolItemRenderJson.setToolTipText("JSON Output");
+		toolItemRenderJson.setToolTipText("JSON Requester");
 		toolItemRenderJson.addSelectionListener(sl);
 		toolItemsIds.put("RenderJSON", Integer.valueOf(incr));
 
@@ -499,7 +481,6 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 					toolItemFullResult.setEnabled(false);
 					fullResultXML = null;
 				}
-				editor.setInput(getInput());
 			}
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
@@ -530,56 +511,20 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 
 	/**
-	 * This method initializes sashForm
-	 *
-	 */
-	private void createSashForm() {
-		GridData gridData3 = new org.eclipse.swt.layout.GridData();
-		gridData3.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gridData3.grabExcessHorizontalSpace = true;
-		gridData3.grabExcessVerticalSpace = true;
-		gridData3.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		sashForm = new SashForm(compositeOutput, SWT.NONE);
-		sashForm.setLayoutData(gridData3);
-		createCompositeSequence();
-		createCompositeXml();
-		sashForm.setWeights(new int[]{20, 80});
-	}
-
-	/**
-	 * This method initializes compositeSequence
-	 *
-	 */
-	private void createCompositeSequence() {
-		GridLayout gridLayout2 = new GridLayout();
-		gridLayout2.horizontalSpacing = 0;
-		gridLayout2.marginWidth = 0;
-		gridLayout2.marginHeight = 0;
-		gridLayout2.verticalSpacing = 0;
-
-		try {
-			compositeSequence = new SequenceComposite(this, sequence, sashForm, SWT.NONE);
-			compositeSequence.setLayout(gridLayout2);
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "An unexpected exception has occured while creating the sequence composite.");
-		}
-	}
-
-	/**
 	 * This method initializes compositeXml	
 	 *
 	 */
-	private void createCompositeXml() {
-		compositeXml = new Composite(sashForm, SWT.NONE);
+	private void createCompositeXml(Composite parent) {
+		compositeXml = new Composite(parent, SWT.NONE);
+		GridData gd = new org.eclipse.swt.layout.GridData();
+		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		gd.grabExcessVerticalSpace = true;
+		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		compositeXml.setLayoutData(gd);
 		compositeXml.setLayout(new FillLayout());
 
 		editor.createEditorControl(compositeXml);
-		
-		inputTXT = getInput();
-		if (!inputTXT.fileExists()) {
-			inputTXT.fileWrite("Click on the generation button to view the response generated by Convertigo.");
-			editor.setInput(inputTXT);
-		}
 	}
 
 	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested) {
@@ -623,8 +568,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		}
 		
 		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
-		inputJSON = inputXML = null;
-		fullResultJSON = fullResultXML = null;
+		shortResultJSON = shortResultXML = fullResultJSON = fullResultXML = null;
 		renderDocument();
 	}
 	
@@ -637,16 +581,20 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			toolItemRenderXml.setEnabled(true);
 			isJsonMode[0] = toolItemRenderJson.getSelection();
 			
-			if (isJsonMode[0] && inputJSON != null) {
-				editor.setInput(inputJSON);
+			if (isJsonMode[0]) {
+				if (editor.getEditorInput() != inputJSON && shortResultJSON != null) {
+					editor.setInput(inputJSON);
+				}
 				toolItemFullResult.setEnabled(fullResultJSON != null);
-			} else if (!isJsonMode[0] && inputXML != null) {
-				editor.setInput(inputXML);
+			} else if (!isJsonMode[0]) {
+				if (editor.getEditorInput() != inputXML && shortResultXML != null) {
+					editor.setInput(inputXML);
+				}
 				toolItemFullResult.setEnabled(fullResultXML != null);
 			}
 		});
 		
-		if ((isJsonMode[0] && inputJSON != null) || (!isJsonMode[0] && inputXML != null)) {
+		if ((isJsonMode[0] && shortResultJSON != null) || (!isJsonMode[0] && shortResultXML != null)) {
 			return;
 		}
 		
@@ -660,10 +608,10 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			} catch (JSONException e) {
 				str = e.getMessage();
 			}
-			input = inputJSON = new SequenceEditorInput(input.getSequence(), ".json");
+			input = inputJSON;
 		} else {
 			str = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-			input = inputXML = new SequenceEditorInput(input.getSequence(), ".xml");
+			input = inputXML;
 		}
 		
 		boolean hasFull = str.length() > 10000;
@@ -677,12 +625,20 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			str = str.substring(0, 10000) + "\n... [reduced content, click the Full Result button in the toolbar to show the full version]";
 		}
 		
+		if (isJsonMode[0]) {
+			shortResultJSON = str;
+		} else {
+			shortResultXML = str;
+		}
+		
 		input.fileWrite(str);
 		
 		SequenceEditorInput i = input;
-		getDisplay().asyncExec(() -> {
+		getDisplay().syncExec(() -> {
 			toolItemFullResult.setEnabled(hasFull);
-			editor.setInput(i);
+			if (editor.getEditorInput() != i) {
+				editor.setInput(i);
+			}
 		});
 	}
 
@@ -690,8 +646,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 
-		getDisplay().asyncExec(() -> {
-			editor.setInput(inputTXT);
+		getDisplay().syncExec(() -> {
+			if (!inputTXT.fileExists()) {
+				inputTXT.fileWrite("Please wait during the Sequence execution.");
+			}
+			if (editor.getEditorInput() != inputTXT) {
+				editor.setInput(inputTXT);
+			}
 		});
 	}
 
@@ -705,6 +666,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 		clearEditor(engineEvent);
+		if (engineEvent.getSource() instanceof Sequence) {
+			RequestAttribute.debug.set(((Sequence) engineEvent.getSource()).context.httpServletRequest, bDebug);
+		}
 		getDisplay().syncExec(() -> {
 			toolItemStopSequence.setEnabled(true);
 			toolItemGenerate.setEnabled(false);
@@ -719,7 +683,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
 
-		getDisplay().asyncExec(() -> {
+		getDisplay().syncExec(() -> {
 			animatedWait.stop();
 			toolItemRenderJson.setEnabled(true);
 			toolItemRenderXml.setEnabled(true);
@@ -767,7 +731,40 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			return;
 
 		if (!bDebug) return;
+//		if (!bDebugStepByStep) return;
 		final Object source = engineEvent.getSource();
+		
+		String str;
+		boolean[] isJsonMode = {false};
+		getDisplay().syncExec(() -> {
+			isJsonMode[0] = toolItemRenderJson.getSelection();
+		});
+		
+		SequenceEditorInput input;
+		if (isJsonMode[0]) {
+			boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
+			JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
+			try {
+				str =  XMLUtils.XmlToJson(context.outputDocument.getDocumentElement(), true, useType, jsonRoot);
+				str = str.replaceAll("\n( +)", "\n$1$1");
+			} catch (JSONException e) {
+				str = e.getMessage();
+			}
+			input = inputJSON;
+		} else {
+			str = XMLUtils.prettyPrintDOMWithEncoding(context.outputDocument);
+			input = inputXML;
+		}
+		
+		input.fileWrite(str);
+		
+		if (editor.getEditorInput() != input) {
+			SequenceEditorInput i = input;
+			getDisplay().syncExec(() -> {
+				editor.setInput(i);
+			});
+		}
+		
 		synchronized(debugDatabaseObject) {
 			debugDatabaseObject = (DatabaseObject) source;
 		}
@@ -779,11 +776,11 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (bDebugStepByStep.booleanValue()) {
 			try {
 				synchronized(debugDatabaseObject) {
-					getDisplay().syncExec(() -> {
-						toolItemStep.setEnabled(true);
-					});
 					debugDatabaseObject.wait();
 				}
+				getDisplay().syncExec(() -> {
+					toolItemStep.setEnabled(true);
+				});
 			}
 			catch(InterruptedException e) {
 				try {

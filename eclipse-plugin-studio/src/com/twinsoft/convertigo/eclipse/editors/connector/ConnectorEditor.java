@@ -53,11 +53,7 @@ public class ConnectorEditor extends ExtensionBasedTextEditor implements ISaveab
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		if (!(input instanceof ConnectorEditorInput))
 			throw new PartInitException("Invalid input: must be ConnectorEditorInput");
-		setSite(site);
-		setInput(input);
-
-		ConnectorEditorInput connectorEditorInput = (ConnectorEditorInput) getEditorInput();
-		setPartName(connectorEditorInput.connector.getParent().getName() + " [C: " + connectorEditorInput.connector.getName()+"]");
+		super.init(site, input);
 	}
 
 	public boolean isDirty() {

@@ -84,6 +84,7 @@ public class SwtUtils {
 				file.setContents(is, true, false, null);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

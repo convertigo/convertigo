@@ -52,10 +52,7 @@ public class SequenceEditor extends ExtensionBasedTextEditor implements ISaveabl
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		if (!(input instanceof SequenceEditorInput))
 			throw new PartInitException("Invalid input: must be SequenceEditorInput");
-		setSite(site);
-		setInput(input);
-		SequenceEditorInput sequenceEditorInput = (SequenceEditorInput) input;
-		setPartName(sequenceEditorInput.sequence.getParent().getName() + " [S: " + sequenceEditorInput.sequence.getName()+"]");
+		super.init(site, input);
 	}
 
 	public boolean isDirty() {
@@ -72,10 +69,6 @@ public class SequenceEditor extends ExtensionBasedTextEditor implements ISaveabl
 	}
 
 	SequenceEditorPart sequenceEditorPart;
-	
-	public void dispose() {
-		super.dispose();
-	}
 	
 	public void createEditorControl(Composite parent) {
 		super.createPartControl(parent);
@@ -105,10 +98,6 @@ public class SequenceEditor extends ExtensionBasedTextEditor implements ISaveabl
 		catch(Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to create editor part");
 		}
-	}
-
-	public void setFocus() {
-		sequenceEditorPart.compositeSequence.setFocus();
 	}
 
 	public SequenceEditorPart getSequenceEditorPart() {
@@ -145,5 +134,4 @@ public class SequenceEditor extends ExtensionBasedTextEditor implements ISaveabl
 	public boolean isEditorInputReadOnly() {
 		return true;
 	}
-	
 }
