@@ -51,7 +51,7 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 		super();
 		setOutput(true);
 		xml = true;
-		key.setExpression("key");
+		key.setExpression("field");
 	}
 
 	public JsonFieldStep clone() throws CloneNotSupportedException {

@@ -49,7 +49,7 @@ public class JsonObjectStep extends StepWithExpressions implements IStepSmartTyp
 		super();
 		setOutput(true);
 		xml = true;
-		key.setExpression("key");
+		key.setExpression("object");
 	}
 
 	public JsonObjectStep clone() throws CloneNotSupportedException {

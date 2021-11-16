@@ -1,4 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <step classname="com.twinsoft.convertigo.beans.steps.JsonToXmlStep" priority="0" version="   8   0   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="jsonObject">
+            <xmlizable classname="com.twinsoft.convertigo.beans.steps.SmartType">
+                <SmartType mode="PLAIN"/>
+            </xmlizable>
+        </property>
+        <property name="key">
+            <xmlizable classname="com.twinsoft.convertigo.beans.steps.SmartType">
+                <SmartType mode="PLAIN">key</SmartType>
+            </xmlizable>
+        </property>
+        <property name="name">
+            <java.lang.String value="JSON_to_XML"/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
+    
     <step classname="com.twinsoft.convertigo.beans.steps.JsonSourceStep" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>

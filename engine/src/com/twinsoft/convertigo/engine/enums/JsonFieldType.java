@@ -21,7 +21,7 @@ package com.twinsoft.convertigo.engine.enums;
 
 public enum JsonFieldType {
 	string,
-	number,
+	number("double"),
 	bool("boolean"),
 	nul("null");
 	

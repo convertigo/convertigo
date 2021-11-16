@@ -23,9 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
@@ -42,8 +40,7 @@ public class ParameterUtils {
 		String parameterToString;
 		if (ob != null) {
 			if (ob instanceof NativeObject) {
-				NativeObject nativeObject = (NativeObject) ob;
-				parameterToString = nativeToString(nativeObject);
+				parameterToString = RhinoUtils.jsonStringify(ob);
 			} else if (ob instanceof NativeJavaObject) {
 				NativeJavaObject nativeJavaObject = (NativeJavaObject) ob;
 				parameterToString = toString(nativeJavaObject.unwrap());
@@ -115,73 +112,4 @@ public class ParameterUtils {
 				return null;
 		}
 	}
-	
-    private static String nativeToString(NativeObject nativeObject) { 
-        Object[] ids = nativeObject.getIds(); 
-        Map<Object,String> map = new HashMap<Object, String>(ids.length); 
-        for (Object id : ids) { 
-            if (id instanceof String) { 
-                Object object = nativeObject.get((String) id, nativeObject); 
-                map.put(id, toString(object)); 
-            } 
-            else if (id instanceof Integer) { 
-                Object object = nativeObject.get((Integer) id, nativeObject); 
-                map.put(id, toString(object));
-            } 
-            else { 
-            	; 
-            }
-        } 
-        return map.toString(); 
-    }	
-/*
-	private static void testCollections() {
-		List<String> l1 = new ArrayList<String>();
-		l1.add("1");l1.add("2");l1.add("3");l1.add("4");
-		System.out.println("\nlist of String : "+ toString(l1));
-		
-		java.util.Vector<String> v1 = new java.util.Vector<String>();
-		v1.add("i1");v1.add("i2");v1.add("i3");
-		System.out.println("\nvector of String : "+ toString(v1));
-		
-		List<Object> l2 = new ArrayList<Object>();
-		l2.add(l1);l2.add(v1);
-		System.out.println("\nlist of Object : "+ toString(l2));
-	}
-	
-	private static void testArrays() {
-		String[] ar1 = new String[]{"a","b","c"};
-		System.out.println("\nvector of String : "+ toString(ar1));
-
-		Object[] ar2 = new Object[]{ar1,ar1};
-		System.out.println("\nvector of Object : "+ toString(ar2));
-	}
-	
-	private static void testDom() {
-		try {
-			javax.xml.parsers.DocumentBuilderFactory documentBuilderFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-			javax.xml.parsers.DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			
-			org.w3c.dom.Document doc = documentBuilder.newDocument();
-			org.w3c.dom.Element root = doc.createElement("root");
-			org.w3c.dom.Element child = doc.createElement("child");
-			child.setAttribute("attr", "attr");
-			child.appendChild(doc.createTextNode("text"));
-			root.appendChild(child);
-			doc.appendChild(root);
-			System.out.println("\ndom Document : "+ toString(doc));
-			System.out.println("\ndom NodeList : "+ toString(doc.getElementsByTagName("child")));
-			System.out.println("\ndom Text : "+ toString(child.getTextContent()));
-		}
-		catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
-	
-	public static void main(String[] args) {
-		testCollections();
-		testArrays();
-		testDom();
-	}
-*/
 }

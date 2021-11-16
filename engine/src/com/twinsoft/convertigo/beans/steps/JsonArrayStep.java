@@ -51,7 +51,7 @@ public class JsonArrayStep extends StepWithExpressions implements IStepSmartType
 		super();
 		setOutput(true);
 		xml = true;
-		key.setExpression("key");
+		key.setExpression("array");
 	}
 
 	public JsonArrayStep clone() throws CloneNotSupportedException {

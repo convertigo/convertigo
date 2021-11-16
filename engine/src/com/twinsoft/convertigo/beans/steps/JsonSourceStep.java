@@ -21,15 +21,14 @@ package com.twinsoft.convertigo.beans.steps;
 
 import org.codehaus.jettison.json.JSONException;
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.NativeJSON;
 import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JsonSourceStep extends SourceStep {
@@ -71,8 +70,7 @@ public class JsonSourceStep extends SourceStep {
 				if (isArray) {
 					string += "]";
 				}
-				NativeJSON json = (NativeJSON) scope.get("JSON", scope);
-				Object obj = ScriptableObject.callMethod(json, "parse", new Object[]{string});
+				Object obj = RhinoUtils.jsonParse(string);
 
 				scope.put(variableName, scope, obj);
 				return true;

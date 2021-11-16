@@ -23,11 +23,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.NativeJSON;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 public class RhinoUtils {
 	static final private Map<String, Script> compiledScript = new ConcurrentHashMap<String, Script>();
+	static final private NativeJSON json;
+	static {
+		ScriptableObject scope = Context.enter().initStandardObjects();
+		json = (NativeJSON) scope.get("JSON", scope);
+		Context.exit();
+	}
 	
 	static public Scriptable copyScope(Context context, Scriptable scope) {
 		Scriptable scopeCopy = context.initStandardObjects();
@@ -52,5 +60,13 @@ public class RhinoUtils {
 		cx.setOptimizationLevel(-1);
 		Object result = cx.evaluateString(scope, source, sourceName, lineno, securityDomain);
 		return result;
+	}
+	
+	static public Object jsonParse(String string) {
+		return ScriptableObject.callMethod(json, "parse", new Object[]{string});
+	}
+	
+	static public String jsonStringify(Object object) {
+		return ScriptableObject.callMethod(json, "stringify", new Object[]{object}).toString();
 	}
 }
