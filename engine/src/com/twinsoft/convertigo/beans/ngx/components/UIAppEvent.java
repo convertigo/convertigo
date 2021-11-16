@@ -43,6 +43,7 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 	private transient UIActionFinallyEvent finallyEvent = null;
 	
 	public enum AppEventType {
+		appObservable,
 		ionicPromise,
 		ionicObservable,
 		c8oObservable
@@ -50,6 +51,7 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 	
 	public enum AppEvent {
 		//onAppReady("ready", AppEventType.ionicPromise, ?),
+		onAppInit("appInit", AppEventType.appObservable, "8.0.0.7"),
 		onAppPause("pause", AppEventType.ionicObservable, "7.6.0.1"),
 		onAppResume("resume", AppEventType.ionicObservable, "7.6.0.1"),
 		onAppResize("resize", AppEventType.ionicObservable, "7.6.0.1"),
@@ -82,6 +84,9 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 		}
 		
 		String computeConstructor(String functionName) {
+			if (type.equals(AppEventType.appObservable)) {
+				return "\t\tthis."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
+			}
 			if (type.equals(AppEventType.ionicObservable)) {
 				return "\t\tthis.platform."+ event +".subscribe((data) => {this."+ functionName +"(data)});"+ System.lineSeparator();
 			}
@@ -109,6 +114,9 @@ public class UIAppEvent extends UIComponent implements IEventGenerator, ITagsPro
 		}
 		
 		String computeDestructor() {
+			if (type.equals(AppEventType.appObservable)) {
+				return "\t\tthis."+ event +".unsubscribe();"+ System.lineSeparator();
+			}
 			if (type.equals(AppEventType.ionicObservable)) {
 				return "\t\tthis.platform."+ event +".unsubscribe();"+ System.lineSeparator();
 			}
