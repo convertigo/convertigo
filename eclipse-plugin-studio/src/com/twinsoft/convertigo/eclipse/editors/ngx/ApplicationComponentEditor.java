@@ -1309,17 +1309,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						pb.directory(ionicDir);
 						p = pb.start();
 					} else {
-						File pnpmFile = new File(ionicDir.toString() + "/node_modules/.bin/pnpm");
-						if (!pnpmFile.exists()) {
+						File pnpmDir = new File(ionicDir.toString() + "/node_modules/.pnpm");
+						if (!pnpmDir.exists()) {
 							Engine.logStudio.info("Installing Pnpm...");
-							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "pnpm", "--force");
+							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "pnpm", "-g");
 							pb.redirectErrorStream(true);
 							pb.directory(ionicDir);
 							p = pb.start();
 							p.waitFor();
 						}
 						
-						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "pnpm", "install", "--shamefully-hoist");
+						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "pnpm", "install", "--shamefully-hoist");
 						pb.redirectErrorStream(true);
 						pb.directory(ionicDir);
 						p = pb.start();
