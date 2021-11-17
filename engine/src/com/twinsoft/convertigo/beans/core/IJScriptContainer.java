@@ -19,8 +19,6 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import com.twinsoft.convertigo.engine.util.StringUtils;
-
 public interface IJScriptContainer {
 	public String getExpression();
 	public void setExpression(String expression);
@@ -36,13 +34,7 @@ public interface IJScriptContainer {
 	public default String getFullName() {
 		DatabaseObject dbo = getDatabaseObject();
 		if (dbo != null) {
-			String qn = dbo.getQName(true).replace(':', '-');
-			int i = qn.lastIndexOf('.');
-			if (i > 0) {
-				return StringUtils.hash(qn.substring(0, i)) + qn.substring(i); 
-			} else {
-				return qn;
-			}
+			return dbo.getShortQName();
 		}
 		return getName();
 	}

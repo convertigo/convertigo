@@ -377,6 +377,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 		return getQName(true);
 	}
 	
+	public String getShortQName() {
+		String qn = getQName(true).replace(':', '-');
+		int i = qn.lastIndexOf('.');
+		if (i > 0) {
+			return StringUtils.hash(qn.substring(0, i)) + qn.substring(i); 
+		} else {
+			return qn;
+		}
+	}
+	
 	/**
 	 * The priority of object.
 	 */

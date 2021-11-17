@@ -27,6 +27,8 @@ import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -147,11 +149,19 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		element.setType(cType);
 		
+		XmlSchemaSimpleContent simpleContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
+		cType.setContentModel(simpleContent);
+		
+		XmlSchemaSimpleContentExtension simpleContentExtension = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
+		simpleContent.setContent(simpleContentExtension);
+		
+		simpleContentExtension.setBaseTypeName(getSimpleTypeAffectation());
+		
 		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attribute.setName("type");
 		attribute.setSchemaTypeName(Constants.XSD_STRING);
 		attribute.setDefaultValue(type.toString());
-		cType.getAttributes().add(attribute);
+		simpleContentExtension.getAttributes().add(attribute);
 		
 		attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attribute.setName("originalKeyName");
@@ -159,7 +169,7 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 		if (key.getMode().equals(SmartType.Mode.PLAIN)) {
 			attribute.setDefaultValue(key.getExpression());
 		}
-		cType.getAttributes().add(attribute);
+		simpleContentExtension.getAttributes().add(attribute);
 		
 		return element;
 	}

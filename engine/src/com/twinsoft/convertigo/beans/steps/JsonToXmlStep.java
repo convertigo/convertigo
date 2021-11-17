@@ -23,15 +23,24 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -39,6 +48,7 @@ import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 
@@ -46,6 +56,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 	
 	private SmartType key = new SmartType();
 	private SmartType jsonObject = new SmartType();
+	private String jsonSample = "";
 	transient private String jsonSource;
 
 	public JsonToXmlStep() {
@@ -101,22 +112,30 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		this.jsonObject = jsonObject;
 	}
 
+	public String getJsonSample() {
+		return jsonSample;
+	}
+
+	public void setJsonSample(String jsonSample) {
+		this.jsonSample = jsonSample;
+	}
+
 	@Override
 	protected Node createStepNode() throws EngineException {
 		Document doc = getOutputDocument();
 		Element elt = doc.createElement("e");
 
 		try {
-		Object o;
-		if (jsonSource.startsWith("{")) {
-			o = new JSONObject(jsonSource);
-		} else if (jsonSource.startsWith("[")) {
-			o = new JSONArray(jsonSource);
-		} else {
-			o = RhinoUtils.jsonParse(jsonSource);
-		}
-		
-		XMLUtils.jsonToXml(o, getStepNodeName(), elt, true, false, "item");
+			Object o;
+			if (jsonSource.startsWith("{")) {
+				o = new JSONObject(jsonSource);
+			} else if (jsonSource.startsWith("[")) {
+				o = new JSONArray(jsonSource);
+			} else {
+				o = RhinoUtils.jsonParse(jsonSource);
+			}
+
+			XMLUtils.jsonToXml(o, getStepNodeName(), elt, true, false, "item");
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -135,46 +154,102 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 			if (jsonObject.getMode() == Mode.JS) {
 				jsonSource = RhinoUtils.jsonStringify(jsonObject.getEvaluated());
 			} else {
-				jsonSource = jsonObject.getSingleString(this);
+				jsonSource = jsonObject.getSingleString(this).trim();
 			}
 			
 			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
 	}
+	
+	private void handleXsdElement(XmlSchemaElement xsdElt, Element elt, XmlSchema schema) {
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		xsdElt.setType(cType);
+		
+		NodeList nl = elt.getChildNodes();
+		boolean hasChild = false;
+		for (int i = 0; i < nl.getLength(); i++) {
+			if (nl.item(i) instanceof Element) {
+				hasChild = true;
+				break;
+			}
+		}
+		
+		XmlSchemaObjectCollection attributes;
+		if (hasChild) {
+			XmlSchemaSequence seq = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			cType.setParticle(seq);
+			
+			for (int i = 0; i < nl.getLength(); i++) {
+				if (nl.item(i) instanceof Element) {
+					Element child = (Element) nl.item(i);
+					if (child.getPreviousSibling() == null || !child.getPreviousSibling().getNodeName().equals(child.getNodeName())) {
+						XmlSchemaElement xsdChild = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+						xsdChild.setName(child.getTagName());
+						xsdChild.setMinOccurs(0);
+						xsdChild.setMaxOccurs(Long.MAX_VALUE);
+						seq.getItems().add(xsdChild);
+						handleXsdElement(xsdChild, child, schema);
+					}
+				}
+			}
+			attributes = cType.getAttributes();
+		} else {
+			XmlSchemaSimpleContent simpleContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
+			cType.setContentModel(simpleContent);
+			
+			XmlSchemaSimpleContentExtension simpleContentExtension = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
+			simpleContent.setContent(simpleContentExtension);
+			
+			simpleContentExtension.setBaseTypeName(getSimpleTypeAffectation());
+			attributes = simpleContentExtension.getAttributes();
+		}
+		
+		XmlSchemaAttribute attribute;
+		NamedNodeMap attrs = elt.getAttributes();
+		for (int i = 0; i < attrs.getLength(); i++) {
+			Node n = attrs.item(i);
+			attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+			attribute.setName(n.getNodeName());
+			attribute.setSchemaTypeName(Constants.XSD_STRING);
+			if ("type".equals(n.getNodeName()) || "originalKeyName".equals(n.getNodeName())) {
+				attribute.setDefaultValue(n.getNodeValue());
+			}
+			attribute.setUse(XmlSchemaUtils.attributeUseOptional);
+			attributes.add(attribute);
+		}
+	}
 
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-//		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-//		element.setType(cType);
-//		
-//		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-//		attribute.setName("type");
-//		attribute.setSchemaTypeName(Constants.XSD_STRING);
-//		cType.getAttributes().add(attribute);
-//		
-//		attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-//		attribute.setName("originalKeyName");
-//		attribute.setSchemaTypeName(Constants.XSD_STRING);
-//		if (key.getMode().equals(SmartType.Mode.PLAIN)) {
-//			attribute.setDefaultValue(key.getExpression());
-//		}
-//		cType.getAttributes().add(attribute);
-//		
-//		attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-//		attribute.setName("length");
-//		attribute.setSchemaTypeName(Constants.XSD_STRING);
-//		attribute.setUse(XmlSchemaUtils.attributeUseOptional);
-//		cType.getAttributes().add(attribute);
-//		
-//		XmlSchemaSequence seq = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
-//		XmlSchemaAny any = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAny());
-//		any.setMinOccurs(0);
-//		any.setMaxOccurs(Long.MAX_VALUE);
-//		
-//		seq.getItems().add(any);
-//		cType.setParticle(seq);
+		try {
+			String s = getJsonSample().trim();
+			if (s.isEmpty() && jsonObject.getMode() == Mode.PLAIN) {
+				s = jsonObject.getExpression().trim();
+			}
+			if (!s.startsWith("{") && !s.startsWith("[")) {
+				return element;
+			}
+			Object json = s.startsWith("[") ? new JSONArray(s) : new JSONObject(s);
+			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			Element root = doc.createElement("root");
+			doc.appendChild(root);
+			XMLUtils.jsonToXml(json, root);
+			handleXsdElement(element, root, schema);
+			
+			XmlSchemaComplexType cType = (XmlSchemaComplexType) element.getSchemaType();
+			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+			attribute.setName("originalKeyName");
+			attribute.setSchemaTypeName(Constants.XSD_STRING);
+			if (key.getMode().equals(SmartType.Mode.PLAIN)) {
+				attribute.setDefaultValue(key.getExpression());
+			}
+			attribute.setUse(XmlSchemaUtils.attributeUseOptional);
+			cType.getAttributes().add(attribute);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		return element;
 	}
