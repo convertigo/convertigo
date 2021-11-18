@@ -98,6 +98,11 @@ public class Update extends XmlService {
 								keyElement.setAttribute("valid", "false");
 								keyElement.setAttribute("text", newKey);
 								keysListElement.appendChild(keyElement);
+							} else if (twsKey.hasExpired(newKey)) {
+								keyElement.setAttribute("errorMessage", "The key is already expired!");
+								keyElement.setAttribute("valid", "false");
+								keyElement.setAttribute("text", newKey);
+								keysListElement.appendChild(keyElement);
 							} else {
 								Properties keysProperties = PropertiesUtils.load(tasRoot + "/Java/keys.txt");
 								
@@ -107,8 +112,7 @@ public class Update extends XmlService {
 									keyElement.setAttribute("valid", "false");
 									keyElement.setAttribute("text", newKey);
 									keysListElement.appendChild(keyElement);
-								}
-								else {
+								} else {
 									keysProperties.setProperty(newKey, "");
 									PropertiesUtils.store(keysProperties, tasRoot + "/Java/keys.txt");
 									
