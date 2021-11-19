@@ -113,10 +113,10 @@ import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
+import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.BigMimeMultipart;
@@ -1229,7 +1229,7 @@ public class HttpConnector extends Connector {
 
 			if (statuscode != -1) {
 				InputStream in = method.getResponseBodyAsStream();
-				if (in != null) {
+				if (in != null)	try {
 
 					/**
 					 * Retrieve response charset if available in responseHeaders
@@ -1257,44 +1257,44 @@ public class HttpConnector extends Connector {
 								}
 						}
 					}
-					
+
 					if (context.contentType != null && context.contentType.startsWith("multipart/") && context.requestedObject instanceof AbstractHttpTransaction) {
 						Engine.logBeans.debug("(HttpConnector) Decoding multipart contentType");
-						
-						try {														
+
+						try {
 							BigMimeMultipart mp = new BigMimeMultipart(new BufferedInputStream(in), context.contentType);
-							
+
 							ByteArrayOutputStream bos = new ByteArrayOutputStream();
 							mp.nextPart(bos);
 							result = bos.toByteArray();
-							
+
 							if (transaction.getAllowDownloadAttachment()) {
 								Document doc = context.outputDocument;
 								Element attInfo = null;
-								
+
 								File file = File.createTempFile("c8o_", ".part");
-								
+
 								for (MimePart bp = mp.nextPart(file); bp != null; bp = mp.nextPart(file)) {
 									try {
 										file.deleteOnExit();
-										
+
 										if (attInfo == null) {
 											Engine.logBeans.debug("(HttpConnector) Saving attachment(s)");
-											
+
 											attInfo = doc.createElement("AttachmentInfo");
 											doc.getDocumentElement().appendChild(attInfo);
 										}
-										
+
 										Element att = doc.createElement("attachment");
 										attInfo.appendChild(att);
 
 										String cid = bp.getContentID();
-										
+
 										if (cid != null) {
 											cid = cid.replaceFirst("^<?(.*?)>?$", "$1");
 											att.setAttribute("cid", "cid:" + cid);
 										}
-										
+
 										Engine.logBeans.debug("(HttpConnector) Saving the attachment cid: " + cid + " in file: " + file.getAbsolutePath());
 
 										att.setAttribute("filepath", file.getAbsolutePath());
@@ -1311,20 +1311,20 @@ public class HttpConnector extends Connector {
 									} catch (Exception e1) {
 										Engine.logBeans.error("(HttpConnector) Failed to retrieve the attachment in " + file.getAbsolutePath(), e1);
 									}
-									
+
 									file = File.createTempFile("c8o_", ".part");
 								}
-								
+
 								file.delete();
-								in.close();
 							}
 						} catch (Exception e) {
 							Engine.logBeans.error("(HttpConnector) Failed to retrieve attachments", e);
 						}
 					} else {
-						result = IOUtils.toByteArray(in);
-						in.close();						
+						result = transaction.readResult(in);
 					}
+				} finally {
+					in.close();
 				}
 
 				if (Engine.logBeans.isTraceEnabled()) {
@@ -1498,18 +1498,11 @@ public class HttpConnector extends Connector {
 		} catch (SocketTimeoutException e) {
 			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)");
 		} catch (IOException e) {
-			if (!context.requestedObject.runningThread.bContinue)
+			if (!context.requestedObject.runningThread.bContinue) {
 				return statuscode;
-
-			try {
-				HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, httpPool);
-				Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + sUrl + ": "
-						+ e.getMessage() + "; retrying method");
-				statuscode = httpClient.executeMethod(hostConfiguration, method, httpState);
-				Engine.logBeans.debug("(HttpConnector) HttpClient: end of method successfull");
-			} catch (IOException ee) {
-				throw new ConnectionException("Connection error to " + sUrl, ee);
 			}
+			HttpUtils.logCurrentHttpConnection(httpClient, hostConfiguration, httpPool);
+			Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + sUrl + ": " + e.getMessage());
 		} catch (OAuthException eee) {
 			throw new ConnectionException("OAuth Connection error to " + sUrl, eee);
 		}

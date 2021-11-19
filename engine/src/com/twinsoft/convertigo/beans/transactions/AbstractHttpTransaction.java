@@ -20,12 +20,14 @@
 package com.twinsoft.convertigo.beans.transactions;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
@@ -580,5 +582,9 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 
 	public void setFollowRedirect(boolean followRedirect) {
 		this.followRedirect = followRedirect;
+	}
+
+	public byte[] readResult(InputStream in) throws IOException {
+		return IOUtils.toByteArray(in);
 	}
 }
