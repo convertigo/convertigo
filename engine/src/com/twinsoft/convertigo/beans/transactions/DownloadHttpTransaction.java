@@ -29,8 +29,18 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -174,6 +184,7 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 	public byte[] readResult(InputStream in, HttpMethod method) throws IOException {
 		status = method.getStatusCode();
 		if (status < 200 || status >= 300) {
+			Engine.logBeans.info("(DownloadHttpTransaction) Status HTTP is " + status + " not 2xx, doesn't try to download file.");
 			return null;
 		}
 		
@@ -207,7 +218,7 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		
 		filepath += filename;
 		file = Engine.theApp.filePropertyManager.getFileFromProperty(filepath, getProject().getName());
-		System.out.println("file: " + file);
+		Engine.logBeans.debug("(DownloadHttpTransaction) Prepare to download to: " + file);
 		if (file.exists()) {
 			if (fileExistPolicy == FileExistPolicy.noDownload) {
 				skip = true;
@@ -250,6 +261,59 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		return empty;
 	}
 
+	protected XmlSchemaElement createXmlSchemaElement(XmlSchema xmlSchema, String tagname, NameValuePair... nvp) {
+		XmlSchemaElement element = new XmlSchemaElement();
+		element.setName(tagname);
+		if (nvp.length > 0) {
+			XmlSchemaComplexType cType = new XmlSchemaComplexType(xmlSchema);
+			element.setType(cType);
+
+			XmlSchemaSimpleContent simpleContent = new XmlSchemaSimpleContent();
+			cType.setContentModel(simpleContent);
+
+			XmlSchemaSimpleContentExtension simpleContentExtension = new XmlSchemaSimpleContentExtension();
+			simpleContent.setContent(simpleContentExtension);
+
+			simpleContentExtension.setBaseTypeName(Constants.XSD_STRING);
+
+			XmlSchemaObjectCollection attrs = simpleContentExtension.getAttributes();
+			for (NameValuePair p: nvp) {
+				XmlSchemaAttribute attribute = new XmlSchemaAttribute();
+				attribute.setName(p.getName());
+				attribute.setSchemaTypeName(Constants.XSD_STRING);
+				attribute.setDefaultValue(p.getValue());
+				attrs.add(attribute);
+			}
+		} else {
+			element.setSchemaTypeName(Constants.XSD_STRING);
+		}
+		element.setMinOccurs(0);
+		element.setMaxOccurs(1);
+		return element;
+	}
+	
+	@Override
+	protected XmlSchemaComplexType addSchemaResponseDataType(XmlSchema xmlSchema) {
+		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaResponseDataType(xmlSchema);
+		XmlSchemaSequence xmlSchemaSequence = (XmlSchemaSequence)xmlSchemaComplexType.getParticle();
+		if (xmlSchemaSequence == null) {
+			xmlSchemaComplexType.setParticle(xmlSchemaSequence = new XmlSchemaSequence());
+		}
+		XmlSchemaObjectCollection items = xmlSchemaSequence.getItems();
+		
+		items.add(createXmlSchemaElement(xmlSchema, "success", new NameValuePair("type", "boolean")));
+		items.add(createXmlSchemaElement(xmlSchema, "status", new NameValuePair("type", "integer")));
+		items.add(createXmlSchemaElement(xmlSchema, "filepath"));
+		items.add(createXmlSchemaElement(xmlSchema, "filename"));
+		items.add(createXmlSchemaElement(xmlSchema, "folder"));
+		items.add(createXmlSchemaElement(xmlSchema, "length", new NameValuePair("type", "long")));
+		items.add(createXmlSchemaElement(xmlSchema, "contentType"));
+		items.add(createXmlSchemaElement(xmlSchema, "lastModified", new NameValuePair("type", "long")));
+		items.add(createXmlSchemaElement(xmlSchema, "skip", new NameValuePair("type", "boolean")));
+		items.add(createXmlSchemaElement(xmlSchema, "url"));
+		return xmlSchemaComplexType;
+	}
+	
 	public boolean getAutoDelete() {
 		return autoDelete;
 	}
