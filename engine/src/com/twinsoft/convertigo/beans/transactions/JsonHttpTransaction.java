@@ -96,7 +96,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		if (mJSONP.matches()) {
 			jsonData = mJSONP.group(1);
 		} else {
-			jsonData = jsonData.trim();			
+			jsonData = jsonData.trim();
 		}
 		
 		Engine.logBeans.debug("Trimmed JSON part (limit 250): " + StringUtils.reduce(jsonData, 250));
@@ -144,7 +144,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 						try {
 							value = Double.parseDouble(jsonData);
 							Engine.logBeans.debug("Detected decimal JSON");
-						} catch (NumberFormatException nfe2) {						
+						} catch (NumberFormatException nfe2) {
 						}
 					}
 				}
@@ -155,7 +155,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			if (value != null || jsonData.equals("null")) {
 				XMLUtils.jsonToXml(value, null, outputDocumentRootElement, includeDataType, jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT, null);
 			} else if (message == null) {
-				message = "no JSON delimitor [ or {, nor null, boolean, string or number";					
+				message = "no JSON delimitor [ or {, nor null, boolean, string or number";
 			}
 			
 			if (message != null) {
@@ -163,7 +163,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 					"Invalid JSON value:\n" +
 					message + 
 					";\nanalyzed JSON:\n" + StringUtils.reduce(jsonData, 500)
-				);				
+				);
 			}
 		}
 	}

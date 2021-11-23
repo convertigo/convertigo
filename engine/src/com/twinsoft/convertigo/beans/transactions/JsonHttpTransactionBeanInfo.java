@@ -23,7 +23,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class JsonHttpTransactionBeanInfo extends MySimpleBeanInfo {
-    
+	
 	public JsonHttpTransactionBeanInfo() {
 		try {
 			beanClass = JsonHttpTransaction.class;
@@ -39,17 +39,17 @@ public class JsonHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[3];
 			
-			properties[0] = new PropertyDescriptor("jsonEncoding", JsonHttpTransaction.class, "getJsonEncoding", "setJsonEncoding");
+			properties[0] = new PropertyDescriptor("jsonEncoding", beanClass, "getJsonEncoding", "setJsonEncoding");
 			properties[0].setDisplayName(getExternalizedString("property.jsonEncoding.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.jsonEncoding.short_description"));
 			properties[0].setExpert(true);
 			
-			properties[1] = new PropertyDescriptor("includeDataType", JsonHttpTransaction.class, "getIncludeDataType", "setIncludeDataType");
+			properties[1] = new PropertyDescriptor("includeDataType", beanClass, "getIncludeDataType", "setIncludeDataType");
 			properties[1].setDisplayName(getExternalizedString("property.includeDataType.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.includeDataType.short_description"));
 			properties[1].setExpert(true);
 			
-			properties[2] = new PropertyDescriptor("jsonArrayTranslationPolicy", JsonHttpTransaction.class, "getJsonArrayTranslationPolicy", "setJsonArrayTranslationPolicy");
+			properties[2] = new PropertyDescriptor("jsonArrayTranslationPolicy", beanClass, "getJsonArrayTranslationPolicy", "setJsonArrayTranslationPolicy");
 			properties[2].setDisplayName(getExternalizedString("property.jsonArrayTranslationPolicy.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.jsonArrayTranslationPolicy.short_description"));
 			properties[2].setExpert(true);

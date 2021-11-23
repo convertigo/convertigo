@@ -26,13 +26,15 @@ public enum Parameter {
 	Context("__context"),
 	Connector("__connector"),
 	ConnectorConnectionString("_OVER__ConnectionString"),
-	DynamicVariablePost("__POST_"),		// __POST_XX
-	DynamicVariableGet("__GET_"), 		// __GET_XX
+	DynamicVariablePost(DynamicHttpVariable.__POST_.name()),		// __POST_XX
+	DynamicVariableGet(DynamicHttpVariable.__GET_.name()), 		// __GET_XX
 	HtmlStatefull("__statefull"),
-	HttpHeader("__header_"), 			// __header_XX
-	HttpUri("__uri"),
-	HttpBody("__body"),
-	HttpContentType("__contentType"),
+	HttpHeader(DynamicHttpVariable.__header_.name()), 			// __header_XX
+	HttpUri(DynamicHttpVariable.__uri.name()),
+	HttpBody(DynamicHttpVariable.__body.name()),
+	HttpContentType(DynamicHttpVariable.__contentType.name()),
+	HttpDownloadFolder(DynamicHttpVariable.__download_folder.name()),
+	HttpDownloadFilename(DynamicHttpVariable.__download_filename.name()),
 	Lang("__lang"),
 	NoCache("__nocache"),
 	Pool("__pool"),

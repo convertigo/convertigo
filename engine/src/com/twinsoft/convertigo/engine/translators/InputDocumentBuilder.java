@@ -182,7 +182,7 @@ class InputDocumentBuilder {
 			Engine.logContext.info("Header parameter: '" + headerName + "' = '" + headerValue + "'");
 		}
 		// This is a transaction uri
-		else if (parameterName.indexOf(Parameter.HttpUri.getName()) == 0) {			
+		else if (parameterName.indexOf(Parameter.HttpUri.getName()) == 0) {
 			Element item = context.inputDocument.createElement("uri");
 			//item.setAttribute("name", parameterName);
 			item.setAttribute("value", parameterValue);
@@ -191,7 +191,7 @@ class InputDocumentBuilder {
 			Engine.logContext.info("URI parameter: '" + parameterValue + "'");
 		}
 		// This is an HTML transaction parameter
-		else if (parameterName.indexOf(Parameter.HtmlStatefull.getName()) == 0) {			
+		else if (parameterName.indexOf(Parameter.HtmlStatefull.getName()) == 0) {
 			Element item = context.inputDocument.createElement("statefull");
 			//item.setAttribute("name", parameterName);
 			item.setAttribute("value", parameterValue);
@@ -212,6 +212,20 @@ class InputDocumentBuilder {
 				
 				Engine.logContext.info("Dynamically defining a requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
 			}
+		}
+		else if (parameterName.indexOf(Parameter.HttpDownloadFolder.getName()) == 0) {
+			Element item = context.inputDocument.createElement("download-folder");
+			item.setAttribute("value", parameterValue);
+			root.appendChild(item);
+			
+			Engine.logContext.info("Download folder parameter: '" + parameterValue + "'");
+		}
+		else if (parameterName.indexOf(Parameter.HttpDownloadFilename.getName()) == 0) {
+			Element item = context.inputDocument.createElement("download-filename");
+			item.setAttribute("value", parameterValue);
+			root.appendChild(item);
+			
+			Engine.logContext.info("Download filename parameter: '" + parameterValue + "'");
 		}
 		// Action of event on WebViewer definition
 		else if (parameterName.equals(Parameter.WebEventAction.getName())) {

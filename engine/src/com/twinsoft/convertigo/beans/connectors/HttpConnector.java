@@ -1321,7 +1321,7 @@ public class HttpConnector extends Connector {
 							Engine.logBeans.error("(HttpConnector) Failed to retrieve attachments", e);
 						}
 					} else {
-						result = transaction.readResult(in);
+						result = transaction.readResult(in, method);
 					}
 				} finally {
 					in.close();

@@ -23,7 +23,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
-    
+	
 	public XmlHttpTransactionBeanInfo() {
 		try {
 			beanClass = XmlHttpTransaction.class;
@@ -39,30 +39,30 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties[0] = new PropertyDescriptor("xmlEncoding", XmlHttpTransaction.class, "getXmlEncoding", "setXmlEncoding");
+			properties[0] = new PropertyDescriptor("xmlEncoding", beanClass, "getXmlEncoding", "setXmlEncoding");
 			properties[0].setDisplayName(getExternalizedString("property.xmlEncoding.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.xmlEncoding.short_description"));
 			properties[0].setExpert(true);
 			
-			properties[1] = new PropertyDescriptor("responseElementQName", XmlHttpTransaction.class, "getResponseElementQName", "setResponseElementQName");
+			properties[1] = new PropertyDescriptor("responseElementQName", beanClass, "getResponseElementQName", "setResponseElementQName");
 			properties[1].setDisplayName(getExternalizedString("property.responseElementQName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.responseElementQName.short_description"));
 			properties[1].setExpert(true);
 			//TODO : properties[1].setHidden(false);
 			
-			properties[2] = new PropertyDescriptor("ignoreSoapEnveloppe", XmlHttpTransaction.class, "isIgnoreSoapEnveloppe", "setIgnoreSoapEnveloppe");
+			properties[2] = new PropertyDescriptor("ignoreSoapEnveloppe", beanClass, "isIgnoreSoapEnveloppe", "setIgnoreSoapEnveloppe");
 			properties[2].setDisplayName(getExternalizedString("property.ignoreSoapEnveloppe.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.ignoreSoapEnveloppe.short_description"));
 			properties[2].setExpert(true);
 			
-            properties[3] = new PropertyDescriptor("xmlElementRefAffectation", beanClass, "getXmlElementRefAffectation", "setXmlElementRefAffectation");
+			properties[3] = new PropertyDescriptor("xmlElementRefAffectation", beanClass, "getXmlElementRefAffectation", "setXmlElementRefAffectation");
 			properties[3].setDisplayName(getExternalizedString("property.xmlElementRefAffectation.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.xmlElementRefAffectation.short_description"));
 			properties[3].setExpert(true);
 			properties[3].setHidden(false);
 			properties[3].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
 			
-			properties[4] = new PropertyDescriptor("errorOnSoapFault", XmlHttpTransaction.class, "isErrorOnSoapFault", "setErrorOnSoapFault");
+			properties[4] = new PropertyDescriptor("errorOnSoapFault", beanClass, "isErrorOnSoapFault", "setErrorOnSoapFault");
 			properties[4].setDisplayName(getExternalizedString("property.errorOnSoapFault.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.errorOnSoapFault.short_description"));
 			properties[4].setExpert(true);

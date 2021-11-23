@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class HtmlTransactionBeanInfo extends MySimpleBeanInfo {
-    
+	
 	public HtmlTransactionBeanInfo() {
 		try {
 			beanClass = HtmlTransaction.class;
@@ -43,34 +43,34 @@ public class HtmlTransactionBeanInfo extends MySimpleBeanInfo {
 			// Overide variableDefinition with enhanced editor
 			//properties[0] = new PropertyDescriptor("variablesDefinition", HttpTransaction.class, "getVariablesDefinition", "setVariablesDefinition");
 			//properties[0].setPropertyEditorClass(getEditorClass("HtmlTransactionVariablesEditor"));
-			
-			properties[0] = new PropertyDescriptor("stateFull", HtmlTransaction.class, "isStateFull", "setStateFull");
+
+			properties[0] = new PropertyDescriptor("stateFull", beanClass, "isStateFull", "setStateFull");
 			properties[0].setDisplayName(getExternalizedString("property.stateFull.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.stateFull.short_description"));
 			properties[0].setExpert(true);
-			
+
 			properties[1] = new PropertyDescriptor("trigger", beanClass, "getTrigger", "setTrigger");
 			properties[1].setDisplayName(getExternalizedString("property.trigger.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.trigger.short_description"));
 			properties[1].setExpert(true);
 			properties[1].setPropertyEditorClass(getEditorClass("HttpTriggerEditor"));            
-			
+
 			PropertyDescriptor property = getPropertyDescriptor("subDir");
-            property.setDisplayName(getExternalizedString("property.subDir.display_name"));
-            property.setShortDescription(getExternalizedString("property.subDir.short_description"));
-            
-            property = getPropertyDescriptor("httpParameters");
-            property.setDisplayName(getExternalizedString("property.httpParameters.display_name"));
-            property.setShortDescription(getExternalizedString("property.httpParameters.short_description"));
-            
-            property = getPropertyDescriptor("dataEncoding");
-            property.setHidden(true);
-			
-            property = getPropertyDescriptor("httpInfo");
-            property.setHidden(true);
-            
-            property = getPropertyDescriptor("httpInfoTagName");
-            property.setHidden(true);
+			property.setDisplayName(getExternalizedString("property.subDir.display_name"));
+			property.setShortDescription(getExternalizedString("property.subDir.short_description"));
+
+			property = getPropertyDescriptor("httpParameters");
+			property.setDisplayName(getExternalizedString("property.httpParameters.display_name"));
+			property.setShortDescription(getExternalizedString("property.httpParameters.short_description"));
+
+			property = getPropertyDescriptor("dataEncoding");
+			property.setHidden(true);
+
+			property = getPropertyDescriptor("httpInfo");
+			property.setHidden(true);
+
+			property = getPropertyDescriptor("httpInfoTagName");
+			property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

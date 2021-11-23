@@ -1112,49 +1112,49 @@
 			<beans groupname="JSON steps">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.JsonToXmlStep">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonObjectStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonArrayStep"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.JsonFieldStep">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonObjectStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonArrayStep"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.JsonArrayStep">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonObjectStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonArrayStep"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.JsonObjectStep">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonObjectStep"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.JsonArrayStep"/>
 				</bean>
@@ -2064,6 +2064,10 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction">
+					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.DownloadHttpTransaction">
 					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
 				</bean>

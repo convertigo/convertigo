@@ -1390,12 +1390,15 @@ public class XMLUtils {
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType, JsonRoot jsonRoot) throws JSONException {
 		JSONObject json = new JSONObject();
 		handleElement(elt, json, ignoreStepIds, useType);
-		String jsonString =   json.toString(1);
+
+		json.setEscapeForwardSlashAlways(false);
+		String jsonString = json.toString(1);
 		if (jsonRoot != null && !jsonRoot.equals(JsonRoot.docNode)) {
 			JSONObject jso = new JSONObject(jsonString).getJSONObject(elt.getTagName());
 			if (jsonRoot.equals(JsonRoot.docChildNodes)) {
 				jso.remove("attr");
 			}
+			jso.setEscapeForwardSlashAlways(false);
 			jsonString = jso.toString(1);
 		}
 		return jsonString;

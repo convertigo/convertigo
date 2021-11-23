@@ -3739,6 +3739,23 @@
             		id="convertigo.action.couchAddVariables"
             		label="Add variables for dynamic properties"/>
             </objectContribution>
+			<objectContribution
+				id="convertigo.couchAddVariables"
+				objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
+				<visibility>
+					<or>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.HttpTransaction"/>
+						<objectState name="objectClassName" value="com.twinsoft.convertigo.beans.transactions.DownloadHttpTransaction"/>
+					</or>
+				</visibility>
+				<action
+					class="com.twinsoft.convertigo.eclipse.popup.actions.HttpTransactionAddVariables"
+					enablesFor="1"
+					id="convertigo.action.httpTransactionAddVariables"
+					label="Add variables for dynamic properties"/>
+			</objectContribution>
 	      <objectContribution
 	            id="convertigo.urlmapperContribution"
 	            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UrlMapperTreeObject">

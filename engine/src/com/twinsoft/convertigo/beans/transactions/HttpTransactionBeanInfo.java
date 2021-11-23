@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class HttpTransactionBeanInfo extends MySimpleBeanInfo {
-    
+	
 	public HttpTransactionBeanInfo() {
 		try {
 			beanClass = HttpTransaction.class;
@@ -40,16 +40,16 @@ public class HttpTransactionBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties[0] = new PropertyDescriptor("dataEncoding", HttpTransaction.class, "getDataEncoding", "setDataEncoding");
+			properties[0] = new PropertyDescriptor("dataEncoding", beanClass, "getDataEncoding", "setDataEncoding");
 			properties[0].setDisplayName(getExternalizedString("property.dataEncoding.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.dataEncoding.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("HttpDataEncodingEditor"));
 			
-			properties[1] = new PropertyDescriptor("dataStringCharset", HttpTransaction.class, "getDataStringCharset", "setDataStringCharset");
+			properties[1] = new PropertyDescriptor("dataStringCharset", beanClass, "getDataStringCharset", "setDataStringCharset");
 			properties[1].setDisplayName(getExternalizedString("property.dataStringCharset.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.dataStringCharset.short_description"));
 			
-			properties[2] = new PropertyDescriptor("responseInCDATA", HttpTransaction.class, "isResponseInCDATA", "setResponseInCDATA");
+			properties[2] = new PropertyDescriptor("responseInCDATA", beanClass, "isResponseInCDATA", "setResponseInCDATA");
 			properties[2].setDisplayName(getExternalizedString("property.responseInCDATA.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.responseInCDATA.short_description"));
 		}

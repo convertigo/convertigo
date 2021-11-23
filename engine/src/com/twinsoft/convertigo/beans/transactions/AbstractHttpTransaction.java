@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.EcmaError;
@@ -338,10 +339,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		executeSimpleHandlerCore(handlerType, javascriptContext);
 	}
 
-    /* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.TransactionWithVariables#parseInputDocument(com.twinsoft.convertigo.engine.Context)
-	 */
-    @Override
+	@Override
 	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
 		
@@ -376,7 +374,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	}
 
 	public abstract void makeDocument(byte[] httpData) throws Exception;
-    
+
 	public AttachmentManager getAttachmentManager(){
 		if(attachmentManager==null) attachmentManager = new AttachmentManager(this);
 		return attachmentManager;
@@ -584,7 +582,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		this.followRedirect = followRedirect;
 	}
 
-	public byte[] readResult(InputStream in) throws IOException {
+	public byte[] readResult(InputStream in, HttpMethod method) throws IOException {
 		return IOUtils.toByteArray(in);
 	}
 }

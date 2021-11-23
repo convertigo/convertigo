@@ -1,4 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.DownloadHttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowDownloadAttachment">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="autoDelete">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="customHttpVerb">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="fileExistPolicy">
+            <java.lang.String value="override"/>
+        </property>
+        <property name="filename">
+            <java.lang.String value=""/>
+        </property>
+        <property name="folder">
+            <java.lang.String value=""/>
+        </property>
+        <property name="followRedirect">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="handleCookie">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="httpInfo">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="httpInfoTagName">
+            <java.lang.String value="HttpInfo"/>
+        </property>
+        <property name="httpParameters">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector>
+                    <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                        <com.twinsoft.convertigo.beans.common.XMLVector>
+                            <java.lang.String value="Content-Type"/>
+                            <java.lang.String value="application/x-www-form-urlencoded"/>
+                        </com.twinsoft.convertigo.beans.common.XMLVector>
+                    </xmlizable>
+                </com.twinsoft.convertigo.beans.common.XMLVector>
+            </xmlizable>
+        </property>
+        <property name="httpPool">
+            <java.lang.String value="no"/>
+        </property>
+        <property name="httpVerb">
+            <java.lang.String value="GET"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Download_HTTP_transaction"/>
+        </property>
+        <property name="requestTemplate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="subDir">
+            <java.lang.String value=""/>
+        </property>
+        <property name="urlEncodingCharset">
+            <java.lang.String value=""/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
     <step classname="com.twinsoft.convertigo.beans.steps.JsonToXmlStep" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>
