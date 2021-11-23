@@ -435,6 +435,17 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 		return false;
 	}
 	
+	protected boolean hasDynamic(String name) {
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent.isEnabled()) {
+				if (uiComponent.hasDynamic(name)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	public UIComponent getUIComponentByName(String uiName) throws EngineException {
 		checkSubLoaded();
 		for (UIComponent uiComponent : vUIComponents)

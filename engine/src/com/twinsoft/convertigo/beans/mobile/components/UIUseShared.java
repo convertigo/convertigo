@@ -249,7 +249,17 @@ public class UIUseShared extends UIElement {
 		return "";
 	}
 	
-	
+	@Override
+	protected boolean hasDynamic(String name) {
+		if (isEnabled()) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null) {
+				return uisc.hasDynamic(name);
+			}
+		}
+		return super.hasDynamic(name);
+	}
+
 	@Override
 	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
 		if (isEnabled()) {

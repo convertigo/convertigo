@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.text.StrSubstitutor;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EcmaError;
@@ -117,6 +118,73 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			e.printStackTrace();
 		}
 		return ionBean;
+	}
+
+	
+	@Override
+	protected boolean hasDynamic(String name) {
+		if (is(name)) {
+			return true;
+		}
+		
+		return super.hasDynamic(name);
+	}
+
+	private boolean is(String name) {
+		if (ionBean != null) {
+			return ionBean.getName().equals(name);
+		}
+		return false;
+	}
+	
+	
+	@Override
+	public void computeScripts(JSONObject jsonScripts) {
+		if (is("Tabs")) {
+			IScriptComponent main = getMainScriptComponent();
+			if (main == null) {
+				return;
+			}
+			
+			String tabs_identifier = "c8oTabs";
+			if (!tabs_identifier.isEmpty()) {
+				try {
+					String imports = jsonScripts.getString("imports");
+					if (main.addImport("ViewChild", "@angular/forms")) {
+						imports += "import { ViewChild } from '@angular/core';" + System.lineSeparator();
+					}
+					if (main.addImport("ViewChildren", "@angular/forms")) {
+						imports += "import { ViewChildren } from '@angular/core';" + System.lineSeparator();
+					}
+					if (main.addImport("QueryList", "@angular/forms")) {
+						imports += "import { QueryList } from '@angular/core';" + System.lineSeparator();
+					}
+					
+					jsonScripts.put("imports", imports);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				
+				try {
+					String declarations = jsonScripts.getString("declarations");
+					String all_dname = "all_" + tabs_identifier;
+					String all_dcode = "@ViewChildren(\""+ tabs_identifier +"\") public all_"+ tabs_identifier+" : QueryList<any>;";
+					if (main.addDeclaration(all_dname, all_dcode)) {
+						declarations += System.lineSeparator() + "\t" + all_dcode;
+					}
+					String dname = tabs_identifier;
+					String dcode = "@ViewChild(\""+ tabs_identifier +"\") public "+ tabs_identifier+";";
+					if (main.addDeclaration(dname, dcode)) {
+						declarations += System.lineSeparator() + "\t" + dcode;
+					}
+					jsonScripts.put("declarations", declarations);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		super.computeScripts(jsonScripts);
 	}
 
 	@Override
@@ -209,6 +277,10 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 		IonBean ionBean = getIonBean();
 		
     	if (ionBean != null) {
+    		if (is("Tabs")) {
+    			attributes.append(" #c8oTabs");
+    		}
+    		
     		String formControlVarName = getFormControlName();
 
     		Map<String, String> vm = new HashMap<String, String>();
