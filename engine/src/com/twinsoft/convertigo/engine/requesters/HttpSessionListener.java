@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.servlets.DelegateServlet;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.TASException;
@@ -101,6 +102,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 		}
 	}
 
+	@Override
 	public void valueUnbound(HttpSessionBindingEvent event) {
 		try {
 			Engine.logContext.debug("HTTP session stopping...");
@@ -109,7 +111,7 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 
 			if (Engine.theApp != null) Engine.theApp.contextManager.removeAll(httpSession);
 			removeSession(httpSessionID);
-
+			
 			Engine.logContext.debug("HTTP session stopped [" + httpSessionID + "]");
 		} catch(Exception e) {
 			Engine.logContext.error("Exception during unbinding HTTP session listener", e);
@@ -124,7 +126,18 @@ public class HttpSessionListener implements HttpSessionBindingListener {
 	}
 
 	static public void removeSession(String httpSessionID) {
-		httpSessions.remove(httpSessionID);
+		HttpSession httpSession = httpSessions.remove(httpSessionID);
+		if (httpSession != null) {
+			try {
+				Set<File> files = GenericUtils.cast(httpSession.getAttribute("fileToDeleteAtEndOfContext"));
+				if (files != null) {
+					for (File file: files) {
+						FileUtils.deleteQuietly(file);
+					}
+				}
+			} catch (Exception e) {
+			}
+		}
 	}
 
 	static public HttpSession getHttpSession(String sessionID) {

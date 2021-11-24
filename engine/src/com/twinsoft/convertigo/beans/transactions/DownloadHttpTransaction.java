@@ -49,9 +49,12 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.AutoRemoveFilePolicy;
 import com.twinsoft.convertigo.engine.enums.FileExistPolicy;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class DownloadHttpTransaction extends AbstractHttpTransaction {
@@ -60,10 +63,10 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 	private static final byte[] empty = new byte[0];
 	private static final SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 	
-	private boolean autoDelete = true;
 	private FileExistPolicy fileExistPolicy = FileExistPolicy.override;
 	private String folder = "";
 	private String filename = "";
+	private AutoRemoveFilePolicy autoRemoveFilePolicy = AutoRemoveFilePolicy.contextEnding;
 	
 	private transient File file;
 	private transient boolean skip;
@@ -101,7 +104,11 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			Element elt = (Element) nl.item(0);
 			String val  = elt.getAttribute("value");
 			if (StringUtils.isNotBlank(val)) {
-				currentFolder = val;
+				if (getAccessibility() == Accessibility.Private) {
+					currentFolder = val;
+				} else {
+					Engine.logBeans.error("(DownloadHttpTransaction) The transaction isn't Private, the download-folder cannot be override.");
+				}
 			}
 		}
 		 
@@ -111,7 +118,11 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			Element elt = (Element) nl.item(0);
 			String val  = elt.getAttribute("value");
 			if (StringUtils.isNotBlank(val)) {
-				currentFilename = val;
+				if (getAccessibility() == Accessibility.Private) {
+					currentFilename = val;
+				} else {
+					Engine.logBeans.error("(DownloadHttpTransaction) The transaction isn't Private, the download-folder cannot be override.");
+				}
 			}
 		}
 	}
@@ -188,9 +199,12 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			return null;
 		}
 		
+		boolean removeParent = false;
+		
 		String folder = currentFolder;
 		if (folder.isBlank()) {
 			folder = ".//_data/download/" + Long.toString(Math.round(Math.random() * 999999), Character.MAX_RADIX);
+			removeParent = true;
 		}
 		String filename = currentFilename;
 		if (filename.isBlank()) {
@@ -218,17 +232,28 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		
 		filepath += filename;
 		file = Engine.theApp.filePropertyManager.getFileFromProperty(filepath, getProject().getName());
+		
+		if (fileExistPolicy == FileExistPolicy.increment) {
+			file = FileUtils.incrementFilename(file);
+		}
+		
+		switch (autoRemoveFilePolicy) {
+		case contextEnding: context.addFileToDeleteAtEndOfContext(removeParent ? file.getParentFile() : file); break;
+		case sessionEnding: context.addFileToDeleteAtEndOfSession(removeParent ? file.getParentFile() : file); break;
+		default: break;
+		}
+		
 		Engine.logBeans.debug("(DownloadHttpTransaction) Prepare to download to: " + file);
 		if (file.exists()) {
-			if (fileExistPolicy == FileExistPolicy.noDownload) {
-				skip = true;
-			} else if (fileExistPolicy == FileExistPolicy.overrideNewer) {
+			if (fileExistPolicy == FileExistPolicy.overrideNewer) {
 				skip = lastModified >= file.lastModified();
 			} else if (fileExistPolicy == FileExistPolicy.overrideSize) {
 				String sLen = HeaderName.ContentLength.getResponseHeader(method);
 				if (sLen != null && Long.parseLong(sLen) == file.length()) {
 					skip = true;
 				}
+			} else {
+				skip = true;
 			}
 		}
 		
@@ -313,14 +338,6 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		items.add(createXmlSchemaElement(xmlSchema, "url"));
 		return xmlSchemaComplexType;
 	}
-	
-	public boolean getAutoDelete() {
-		return autoDelete;
-	}
-
-	public void setAutoDelete(boolean autoDelete) {
-		this.autoDelete = autoDelete;
-	}
 
 	public FileExistPolicy getFileExistPolicy() {
 		return fileExistPolicy;
@@ -344,5 +361,13 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 	
 	public void setFilename(String filename) {
 		this.filename = filename;
+	}
+
+	public AutoRemoveFilePolicy getAutoRemoveFilePolicy() {
+		return autoRemoveFilePolicy;
+	}
+
+	public void setAutoRemoveFilePolicy(AutoRemoveFilePolicy autoRemoveFilePolicy) {
+		this.autoRemoveFilePolicy = autoRemoveFilePolicy;
 	}
 }

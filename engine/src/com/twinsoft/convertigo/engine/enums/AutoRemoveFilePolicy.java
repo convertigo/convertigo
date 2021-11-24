@@ -19,19 +19,18 @@
 
 package com.twinsoft.convertigo.engine.enums;
 
-public enum FileExistPolicy {
-	noDownload("Don't download"),
-	override("Override"),
-	overrideSize("Override if different size"),
-	overrideNewer("Override if newer"),
-	increment("Increment filename"),
+public enum AutoRemoveFilePolicy {
+	noRemove("Don't remove"),
+	contextEnding("Context ending"),
+	sessionEnding("Session ending"),
 	;
 	
 	private String toString;
-	FileExistPolicy(String toString) {
+	AutoRemoveFilePolicy(String toString) {
 		this.toString = toString;
 	}
 
+	@Override
 	public String toString() {
 		return toString;
 	}

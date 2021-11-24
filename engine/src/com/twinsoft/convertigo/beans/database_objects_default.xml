@@ -15,8 +15,8 @@
         <property name="authenticatedUserAsCacheKey">
             <java.lang.Boolean value="false"/>
         </property>
-        <property name="autoDelete">
-            <java.lang.Boolean value="true"/>
+        <property name="autoRemoveFilePolicy">
+            <java.lang.String value="contextEnding"/>
         </property>
         <property name="bIncludeCertificateGroup">
             <java.lang.Boolean value="false"/>
@@ -102,6 +102,7 @@
         <wsdltype/>
         <handlers/>
     </transaction>
+    
     <step classname="com.twinsoft.convertigo.beans.steps.JsonToXmlStep" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>

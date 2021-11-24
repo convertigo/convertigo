@@ -52,6 +52,7 @@ import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
 import com.twinsoft.convertigo.engine.requesters.HttpSessionListener;
 import com.twinsoft.convertigo.engine.requesters.PoolRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.twinj.iJavelin;
 import com.twinsoft.util.DevicePool;
@@ -420,6 +421,16 @@ public class ContextManager extends AbstractRunnableManager {
 			
 			// Set TwsCachedXPathAPI to null
 			context.cleanXpathApi();
+			
+			try {
+				Set<File> files = GenericUtils.cast(context.get("fileToDeleteAtEndOfContext"));
+				if (files != null) {
+					for (File file: files) {
+						FileUtils.deleteQuietly(file);
+					}
+				}
+			} catch (Exception e) {
+			}
 			
 			Engine.theApp.sessionManager.removeSession(contextID);
 			String projectName = (String) context.projectName;

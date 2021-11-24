@@ -765,4 +765,22 @@ public class Context extends AbstractContext implements Cloneable {
 			status.put(code, text);
 		}
 	}
+	
+	public void addFileToDeleteAtEndOfContext(File file) {
+		Set<File> files = GenericUtils.cast(get("fileToDeleteAtEndOfContext"));
+		if (files == null) {
+			files = new HashSet<>();
+			set("fileToDeleteAtEndOfContext", files);
+		}
+		files.add(file);
+	}
+	
+	public void addFileToDeleteAtEndOfSession(File file) {
+		Set<File> files = GenericUtils.cast(httpSession.getAttribute("fileToDeleteAtEndOfContext"));
+		if (files == null) {
+			files = new HashSet<>();
+			httpSession.setAttribute("fileToDeleteAtEndOfContext", files);
+		}
+		files.add(file);
+	}
 }

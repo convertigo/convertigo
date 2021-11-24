@@ -32,6 +32,7 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.engine.Engine;
@@ -193,4 +194,37 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		return org.apache.commons.io.FileUtils.deleteQuietly(f);
 	}
 
+	
+	private static final Pattern incrementFilenamePattern = Pattern.compile("(.*?)(?:(_)(\\d+))?(?:(\\.\\w*?)(\\d+)?)?$");
+	public static File incrementFilename(File file) {
+		while (file.exists()) {
+			String filename = file.getName();
+			Matcher matcher = incrementFilenamePattern.matcher(filename);
+			if (matcher.matches()) {
+				filename = matcher.group(1);
+				if (matcher.group(5) != null) {
+					String cpt = org.apache.commons.lang3.StringUtils.leftPad(Integer.toString(Integer.parseInt(matcher.group(5)) + 1), matcher.group(5).length(), '0');
+					if (matcher.group(2) != null) {
+						filename += matcher.group(2) + matcher.group(3);
+					}
+					filename += matcher.group(4) + cpt;
+				} else {
+					if (matcher.group(3) != null) {
+						String cpt = org.apache.commons.lang3.StringUtils.leftPad(Integer.toString(Integer.parseInt(matcher.group(3)) + 1), matcher.group(3).length(), '0');
+						filename += matcher.group(2) + cpt;
+					} else {
+						filename += "_1";
+					}
+					if (matcher.group(4) != null) {
+						filename += matcher.group(4);
+					}
+				}
+			} else {
+				break;
+			}
+			
+			file = new File(file.getParentFile(), filename);
+		}
+		return file;
+	}
 }
