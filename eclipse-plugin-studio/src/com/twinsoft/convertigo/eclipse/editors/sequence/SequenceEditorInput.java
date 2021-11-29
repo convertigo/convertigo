@@ -113,4 +113,12 @@ public class SequenceEditorInput extends FileInPlaceEditorInput {
 	public void fileWrite(String str) {
 		SwtUtils.fillFile(getFile(), str);
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof SequenceEditorInput) {
+			return sequence.equals(((SequenceEditorInput) obj).sequence);
+		}
+		return false;
+	}
 }

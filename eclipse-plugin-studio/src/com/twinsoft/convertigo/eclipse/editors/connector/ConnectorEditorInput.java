@@ -113,4 +113,12 @@ public class ConnectorEditorInput extends FileInPlaceEditorInput {
 	public void fileWrite(String str) {
 		SwtUtils.fillFile(getFile(), str);
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ConnectorEditorInput) {
+			return connector.equals(((ConnectorEditorInput) obj).connector);
+		}
+		return false;
+	}
 }
