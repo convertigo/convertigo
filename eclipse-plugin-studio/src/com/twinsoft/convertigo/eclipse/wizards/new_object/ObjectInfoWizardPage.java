@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.common.XMLTable;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.FullSyncConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -60,10 +61,12 @@ import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
 import com.twinsoft.convertigo.eclipse.dialogs.CouchVariablesComposite;
+import com.twinsoft.convertigo.eclipse.dialogs.HttpTransactionVariablesComposite;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -77,6 +80,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 	private String treeItemName = null;
 	
 	private CouchVariablesComposite couchVariablesComposite = null;
+	private HttpTransactionVariablesComposite httpTransactionVariablesComposite = null;
 	private Composite container = null;
 	
 	public ObjectInfoWizardPage(Object parentObject) {
@@ -108,18 +112,24 @@ public class ObjectInfoWizardPage extends WizardPage {
 		if (parentObject instanceof CouchDbConnector || parentObject instanceof FullSyncConnector) {
 			couchVariablesComposite = new CouchVariablesComposite(container, SWT.V_SCROLL);
 			
-			GridData couchVarData = new GridData(GridData.FILL_BOTH);
-			couchVarData.horizontalSpan = 2;
+			gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
 			
-			couchVariablesComposite.setLayoutData(couchVarData);
+			couchVariablesComposite.setLayoutData(gd);
+		} else if (parentObject instanceof HttpConnector) {
+			httpTransactionVariablesComposite = new HttpTransactionVariablesComposite(container, SWT.V_SCROLL);
 			
+			gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
+			
+			httpTransactionVariablesComposite.setLayoutData(gd);
 		} else {
 			tree = new Tree(container, SWT.SINGLE | SWT.BORDER);
 			tree.setHeaderVisible(false);
-			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-			gridData.verticalSpan = 20;
-			gridData.horizontalSpan = 2;
-			tree.setLayoutData(gridData);		
+			gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+			gd.verticalSpan = 20;
+			gd.horizontalSpan = 2;
+			tree.setLayoutData(gd);		
 			tree.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(final Event event) {
 					TreeItem item = (TreeItem) event.item;
@@ -166,7 +176,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
 						
 						for (ScreenClass screenClass : screenClasses) {
-							getInHeritedScreenClass(screenClass, branch);				
+							getInHeritedScreenClass(screenClass, branch);
 						}
 					} else if (connector instanceof JavelinConnector) {
 						JavelinConnector javelinConnector = (JavelinConnector) connector;
@@ -177,7 +187,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
 						
 						for (ScreenClass screenClass : screenClasses) {
-							getInHeritedScreenClass(screenClass, branch);				
+							getInHeritedScreenClass(screenClass, branch);
 						}	
 					}
 					tree.setVisible(true);
@@ -187,7 +197,7 @@ public class ObjectInfoWizardPage extends WizardPage {
 				TreeItem branch;
 				
 				branch = new TreeItem(tree, SWT.NONE);
-				branch.setText(HandlerStatement.EVENT_TRANSACTION_STARTED);				
+				branch.setText(HandlerStatement.EVENT_TRANSACTION_STARTED);
 
 				branch = new TreeItem(tree, SWT.NONE);
 				branch.setText(HandlerStatement.EVENT_XML_GENERATED);
@@ -332,6 +342,11 @@ public class ObjectInfoWizardPage extends WizardPage {
 						couchVariablesComposite.setPropertyDescriptor(dbo, CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(), 
 								(DatabaseObject) parentObject);
 					}
+				} else if (o instanceof AbstractHttpTransaction) {
+					AbstractHttpTransaction dbo = (AbstractHttpTransaction) objectExplorerWizardPage.getCreatedBean();
+					if (dbo != null && httpTransactionVariablesComposite != null){
+						httpTransactionVariablesComposite.build(dbo);
+					}
 				}
 			} catch (IntrospectionException e) {
 				// TODO Auto-generated catch block
@@ -344,5 +359,22 @@ public class ObjectInfoWizardPage extends WizardPage {
 		return couchVariablesComposite.getSelectedParameters();
 	}
 	
+	public void doApply() {
+		ObjectExplorerWizardPage objectExplorerWizardPage = (ObjectExplorerWizardPage) this.getPreviousPage();
+		objectExplorerWizardPage.getControl().getDisplay().syncExec(() -> {
+		Object o = objectExplorerWizardPage.getCreatedBean();
+			if (o instanceof AbstractCouchDbTransaction) {
+				AbstractCouchDbTransaction dbo = (AbstractCouchDbTransaction) objectExplorerWizardPage.getCreatedBean();
+				if (dbo != null && couchVariablesComposite != null) {
+					dbo.createVariables(couchVariablesComposite.getSelectedParameters());
+				}
+			} else if (o instanceof AbstractHttpTransaction) {
+				AbstractHttpTransaction dbo = (AbstractHttpTransaction) objectExplorerWizardPage.getCreatedBean();
+				if (dbo != null && httpTransactionVariablesComposite != null) {
+					httpTransactionVariablesComposite.applyProceed();
+				}
+			}
+		});
+	}
 	
 }

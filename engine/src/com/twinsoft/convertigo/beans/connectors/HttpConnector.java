@@ -110,6 +110,7 @@ import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.AuthenticationMode;
 import com.twinsoft.convertigo.engine.enums.DoFileUploadMode;
+import com.twinsoft.convertigo.engine.enums.DynamicHttpVariable;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.enums.HttpPool;
@@ -490,6 +491,7 @@ public class HttpConnector extends Connector {
 
 			bIgnoreVariable = urlPathVariableList.contains(variable) ||
 								httpObjectVariableValue == null ||
+								variable.startsWith(DynamicHttpVariable.__header_.name()) ||
 								httpVariable.isEmpty() ||
 								!method.equals("GET");
 			
@@ -648,8 +650,9 @@ public class HttpConnector extends Connector {
 			isLogHidden = Visibility.Logs.isMasked(trVariable.getVisibility());
 			
 			// do not add variable to query if empty name
-			if (httpVariable.equals(""))
+			if (httpVariable.equals("") || variable.startsWith(DynamicHttpVariable.__header_.name())) {
 				bIgnoreVariable = true;
+			}
 
 			// Retrieves variable value
 			httpObjectVariableValue = httpTransaction.getParameterValue(variable);

@@ -43,7 +43,8 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
-import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.CertificateManager;
@@ -395,6 +396,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		if (needRestoreVariables) {
 			if (originalVariables != null) {
 				vVariables = new ArrayList<RequestableVariable>(originalVariables);
+				originalVariables = null;
 			}
 			needRestoreVariables = false;
 		}
@@ -404,13 +406,21 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		checkSubLoaded();
 		
 		needRestoreVariables = true;
-		originalVariables = new ArrayList<RequestableVariable>(vVariables);
+		if (originalVariables == null) {
+			originalVariables = new ArrayList<RequestableVariable>(vVariables);
+		}
 		
-		RequestableVariable variable = (RequestableVariable)getVariable(variableName);
+		RequestableVariable variable = (RequestableVariable) getVariable(variableName);
 		try {
 			// variable definition does not exist, creates it
 			if (variable == null) {
-				variable = (multi ? new RequestableMultiValuedVariable():new RequestableVariable());
+				if ("POST".equals(variableMethod) || "GET".equals(variableMethod)) {
+					variable = (multi ? new RequestableHttpMultiValuedVariable():new RequestableHttpVariable());
+					((RequestableHttpVariable) variable).setHttpMethod(variableMethod);
+					((RequestableHttpVariable) variable).setHttpName(variableMethod);
+				} else {
+					variable = new RequestableVariable();
+				}
 				variable.bNew = true;
 				variable.hasChanged = true;
 			}

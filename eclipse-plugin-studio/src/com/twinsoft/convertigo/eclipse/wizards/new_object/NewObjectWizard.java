@@ -24,7 +24,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -87,8 +86,6 @@ import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
-import com.twinsoft.convertigo.beans.transactions.couchdb.CouchVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
@@ -600,15 +597,13 @@ public class NewObjectWizard extends Wizard {
 						sapLogonTransaction.addCredentialsVariables();
 					}
 
-					if (newBean instanceof AbstractCouchDbTransaction) {
-						AbstractCouchDbTransaction abstractCouchDbTransaction = (AbstractCouchDbTransaction) newBean;
-						List<CouchVariable> selectedVariables = objectInfoPage.getSelectedParameters();
-						abstractCouchDbTransaction.createVariables(selectedVariables);
+					if (objectInfoPage != null) {
+						objectInfoPage.doApply();
 					}
 
 					ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
-	    			monitor.setTaskName("Object setted up");
-	    			monitor.worked(1);
+					monitor.setTaskName("Object setted up");
+					monitor.worked(1);
 
 					bContinue = false;
 				}
@@ -617,17 +612,17 @@ public class NewObjectWizard extends Wizard {
 						throw owsne;
 					}
 				}
-            }
-            else {
-            	throw new Exception("Could not instantiate bean!");
-            }
+			}
+			else {
+				throw new Exception("Could not instantiate bean!");
+			}
 		}
 		catch (Exception e) {
-            String message = "Unable to create a new object from class '"+ this.className +"'.";
-            ConvertigoPlugin.logException(e, message);
-    		if (objectExplorerPage != null) {
-    			objectExplorerPage.doCancel();
-    		}
+			String message = "Unable to create a new object from class '"+ this.className +"'.";
+			ConvertigoPlugin.logException(e, message);
+			if (objectExplorerPage != null) {
+				objectExplorerPage.doCancel();
+			}
 		}
 	}
 	

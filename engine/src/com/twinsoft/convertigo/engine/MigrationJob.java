@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.Calendar;
 
 import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class MigrationJob extends Thread {
 	protected boolean isFinished;
@@ -46,6 +47,7 @@ public class MigrationJob extends Thread {
 			// Migrates project
 			File projectDir = new File(Engine.projectDir(projectName));
 			if (projectDir.exists()) {
+				FileUtils.deleteQuietly(new File(projectDir, "_data/download"));
 				File toLoad = new File(projectDir, "c8oProject.yaml");
 				if (!toLoad.exists()) {
 					toLoad = new File(projectDir, projectName + ".xml");
@@ -62,9 +64,9 @@ public class MigrationJob extends Thread {
 			Engine.logEngine.error("An error occured while migrating project \"" + projectName + "\".", t);
 		}
 		finally {
-            isFinished = true;
-            long t1 = Calendar.getInstance().getTime().getTime();
-            Engine.logEngine.trace("MigrationJob for project \"" + projectName + "\" finished (" + (t1 - t0) + "ms).");
+			isFinished = true;
+			long t1 = Calendar.getInstance().getTime().getTime();
+			Engine.logEngine.trace("MigrationJob for project \"" + projectName + "\" finished (" + (t1 - t0) + "ms).");
 			if (Engine.isStarted && Engine.isStudioMode())
 				Engine.theApp.fireProjectMigrated(new EngineEvent(projectName));
 		}
