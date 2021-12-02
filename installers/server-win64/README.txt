@@ -9,4 +9,4 @@ To start the service, you have to use service-start.bat as admin.
 To stop the service, you have to use service-stop.bat as admin.
 To uninstall as a service, you have to use service-uninstall.bat as admin.
 
-The service display name is "Apache Tomcat 9.0 ConvertigoServer".
+The service display name is "Convertigo Server".

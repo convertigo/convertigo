@@ -144,7 +144,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 			try {
 				int httpCode = GAClient.executeMethod(method);
 				String body = method.getResponseBodyAsString();
-				log.debug("[" + httpCode + "] " + body);				
+				log.debug("[" + httpCode + "] " + body);
 			} catch (MalformedURLException e) {
 				log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient, bad url", e);
 			} catch (HttpException e) {

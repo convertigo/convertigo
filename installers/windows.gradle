@@ -13,7 +13,7 @@ task unzipWin64ServerTomcat {
 	doLast {
 		file('build/tmp').mkdirs()
 		new URL("https://dlcdn.apache.org/tomcat/tomcat-9/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}-windows-x64.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}
-		dist.delete()
+		project.delete(dist)
 		copy {
 			from zipTree(zip)
 			exclude '*/webapps/**'
@@ -22,6 +22,7 @@ task unzipWin64ServerTomcat {
 			eachFile { f ->
 				f.path = f.path.replaceFirst('.*?/', '')
 			}
+			rename('tomcat9(w?\\.exe)', 'ConvertigoServer$1')
 		}
 		def server = file("${dist}/conf/server.xml")
 		server.text = server.text.replaceFirst('.*protocol="AJP.*', '')
@@ -29,9 +30,14 @@ task unzipWin64ServerTomcat {
 						.replaceFirst('.*JasperListener.*', '')
 						.replaceFirst('port="8080"', 'port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"')
 						.replaceFirst('</Host>', '  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n      </Host>')
+						.replaceFirst('webapps', '../webapps')
 		def context = file("${dist}/conf/context.xml")
 		context.text = context.text.replaceFirst('<Context>', '<Context sessionCookiePath="/">')
 						.replaceFirst('</Context>','<Manager pathname="" /><CookieProcessor sameSiteCookies="unset" /></Context>')
+		def service = file("${dist}/bin/service.bat")
+		service.text = service.text.replaceAll('(?i)Tomcat9', 'ConvertigoServer')
+						.replaceFirst('(.*--Description).*', '$1 "Convertigo Server (https://www.convertigo.com)" ^')
+						.replaceFirst('(.*--DisplayName).*','$1 "Convertigo Server" ^')
 		zip.delete()
 	}
 }
@@ -50,7 +56,7 @@ task unzipWin64ServerJdk {
 		file('build/tmp').mkdirs()
 		def url = file('installers/nsis/download-jdk.sh').text.replaceFirst('(?s).*?JDK_URL=(.*?\\.zip).*', '$1')
 		new URL(url).withInputStream{ i -> zip.withOutputStream{ it << i }}
-		dist.delete()
+		project.delete(dist)
 		copy {
 			from zipTree(zip)
 			exclude '*/jmods/**', '*/lib/src.zip'
