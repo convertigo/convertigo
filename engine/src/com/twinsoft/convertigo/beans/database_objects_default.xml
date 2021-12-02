@@ -1,7 +1,3162 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="ResetDatabase"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutUpdateTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PutUpdate"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_ddoc">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_func">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="updatename">
+            <java.lang.String value=""/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutServerConfigTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PutServerConfig"/>
+        </property>
+        <property name="p_key">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_section">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_value">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PutDocumentAttachment"/>
+        </property>
+        <property name="p_attbase64">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_attcontent_type">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_attname">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_attpath">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDatabaseTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PutDatabase"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_n">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_q">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PurgeDatabaseTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PurgeDatabase"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="purgeAll">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostUpdateTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostUpdate"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_ddoc">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_func">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="updatename">
+            <java.lang.String value=""/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostSessionTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostSession"/>
+        </property>
+        <property name="p_name">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_password">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostServerRestartTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostServerRestart"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostReplicateTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostReplicate"/>
+        </property>
+        <property name="p_cancel">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_continuous">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_create_target">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_doc_ids">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_filter">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_proxy">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_source">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_target">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostFindTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostFind"/>
+        </property>
+        <property name="p_bookmark">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_execution_stats">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_fields">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_limit">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_selector">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_skip">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_sort">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_stable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_update">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_use_index">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostDocumentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="fullSyncAclPolicy">
+            <java.lang.String value="fromAuthenticatedUser"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostDocument"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_merge">
+            <java.lang.String value=""/>
+        </property>
+        <property name="policy">
+            <java.lang.String value="none"/>
+        </property>
+        <property name="q_batch">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="useHash">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostCompactTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostCompact"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PostBulkDocumentsTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="fullSyncAclPolicy">
+            <java.lang.String value="fromAuthenticatedUser"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="PostBulkDocuments"/>
+        </property>
+        <property name="p_all_or_nothing">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_json_base">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_merge">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_new_edits">
+            <java.lang.String value=""/>
+        </property>
+        <property name="policy">
+            <java.lang.String value="none"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="useHash">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDocumentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="HeadDocument"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_attachments">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_atts_since">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_conflicts">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_deleted_conflicts">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_latest">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_local_seq">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_meta">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_open_revs">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_q_att_encoding_info">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_revs">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_revs_info">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.HeadDatabaseTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="HeadDatabase"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetViewTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetView"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_ddoc">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_view">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_att_encoding_info">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_attachments">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_conflicts">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_descending">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_endkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_endkey_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_group">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_group_level">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_include_docs">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_inclusive_end">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_key">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_keys">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_limit">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_reduce">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_skip">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_sorted">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_stable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_stale">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_startkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_startkey_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_update_seq">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="viewname">
+            <java.lang.String value=""/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetSessionTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetSession"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUuidsTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerUuids"/>
+        </property>
+        <property name="q_count">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerUpdatesTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerUpdates"/>
+        </property>
+        <property name="q_feed">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_heartbeat">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_since">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_timeout">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerTasksTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerTasks"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerStatsTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerStats"/>
+        </property>
+        <property name="p_key">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_section">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerLogTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerLog"/>
+        </property>
+        <property name="q_bytes">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_offset">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerInfo"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerDatabasesTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerDatabases"/>
+        </property>
+        <property name="q_descending">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_endkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_limit">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_skip">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_startkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerConfigTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetServerConfig"/>
+        </property>
+        <property name="p_key">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_section">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetDocument"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_attachments">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_atts_since">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_conflicts">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_deleted_conflicts">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_latest">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_local_seq">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_meta">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_open_revs">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_q_att_encoding_info">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_revs">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_revs_info">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDocumentAttachmentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetDocumentAttachment"/>
+        </property>
+        <property name="p_attname">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_attpath">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetDatabaseInfoTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="GetDatabaseInfo"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteSessionTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DeleteSession"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteServerConfigTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DeleteServerConfig"/>
+        </property>
+        <property name="p_key">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_section">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DeleteDocument"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_batch">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDocumentAttachmentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DeleteDocumentAttachment"/>
+        </property>
+        <property name="p_attname">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_batch">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="DeleteDatabase"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="httpData">
+            <java.lang.String value=""/>
+        </property>
+        <property name="httpVerb">
+            <java.lang.String value="GET"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="CustomTransaction"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="subUrl">
+            <java.lang.String value="&quot;&quot;"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.CopyDocumentTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="CopyDocument"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_destination">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_destination_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="p_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_batch">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_rev">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="AllDocs"/>
+        </property>
+        <property name="p_db">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_conflicts">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_descending">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_endkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_endkey_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_include_docs">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_inclusive_end">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_key">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_keys">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_limit">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_skip">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_sorted">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_stable">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_stale">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_startkey">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_startkey_docid">
+            <java.lang.String value=""/>
+        </property>
+        <property name="q_update_seq">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowDownloadAttachment">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="customHttpVerb">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="errorOnSoapFault">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="followRedirect">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="handleCookie">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="httpInfo">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="httpInfoTagName">
+            <java.lang.String value="HttpInfo"/>
+        </property>
+        <property name="httpParameters">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector>
+                    <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                        <com.twinsoft.convertigo.beans.common.XMLVector>
+                            <java.lang.String value="Content-Type"/>
+                            <java.lang.String value="application/x-www-form-urlencoded"/>
+                        </com.twinsoft.convertigo.beans.common.XMLVector>
+                    </xmlizable>
+                </com.twinsoft.convertigo.beans.common.XMLVector>
+            </xmlizable>
+        </property>
+        <property name="httpPool">
+            <java.lang.String value="no"/>
+        </property>
+        <property name="httpVerb">
+            <java.lang.String value="GET"/>
+        </property>
+        <property name="ignoreSoapEnveloppe">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="XML_HTTP_transaction"/>
+        </property>
+        <property name="requestTemplate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseElementQName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="subDir">
+            <java.lang.String value=""/>
+        </property>
+        <property name="urlEncodingCharset">
+            <java.lang.String value=""/>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlEncoding">
+            <java.lang.String value="ISO-8859-1"/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="autoCommit">
+            <java.lang.Integer value="1"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="generateJsonTypes">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="maxResult">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SQL_transaction"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="sqlQuery">
+            <java.lang.String value=""/>
+        </property>
+        <property name="xmlDefaultColumnTagname">
+            <java.lang.String value="column"/>
+        </property>
+        <property name="xmlDefaultRowTagname">
+            <java.lang.String value="row"/>
+        </property>
+        <property name="xmlGrouping">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="xmlOutput">
+            <java.lang.Integer value="4"/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Site_Clipper_transaction"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="targetURL">
+            <java.lang.String value="http://www.convertigo.com/"/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SapJcoTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bapiName">
+            <java.lang.String value="&lt;Configure BAPI Name Here&gt;"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SAP_transaction"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bapiName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SAP_logon_transaction"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowDownloadAttachment">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="customHttpVerb">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="followRedirect">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="handleCookie">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="httpInfo">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="httpInfoTagName">
+            <java.lang.String value="HttpInfo"/>
+        </property>
+        <property name="httpParameters">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector>
+                    <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                        <com.twinsoft.convertigo.beans.common.XMLVector>
+                            <java.lang.String value="Content-Type"/>
+                            <java.lang.String value="application/x-www-form-urlencoded"/>
+                        </com.twinsoft.convertigo.beans.common.XMLVector>
+                    </xmlizable>
+                </com.twinsoft.convertigo.beans.common.XMLVector>
+            </xmlizable>
+        </property>
+        <property name="httpPool">
+            <java.lang.String value="no"/>
+        </property>
+        <property name="httpVerb">
+            <java.lang.String value="GET"/>
+        </property>
+        <property name="includeDataType">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="jsonArrayTranslationPolicy">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="jsonEncoding">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="JSON_HTTP_transaction"/>
+        </property>
+        <property name="requestTemplate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="subDir">
+            <java.lang.String value=""/>
+        </property>
+        <property name="urlEncodingCharset">
+            <java.lang.String value=""/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="dataStableThreshold">
+            <java.lang.Integer value="300"/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="executeExtractionRulesInPanels">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="includedTagAttributes">
+            <array classname="boolean" length="11">
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+                <java.lang.Boolean value="true"/>
+            </array>
+        </property>
+        <property name="name">
+            <java.lang.String value="Javelin_transaction"/>
+        </property>
+        <property name="onlyOnePage">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="removeBlocksNode">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="timeoutForConnect">
+            <java.lang.Integer value="20000"/>
+        </property>
+        <property name="timeoutForDataStable">
+            <java.lang.Integer value="10000"/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowDownloadAttachment">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="customHttpVerb">
+            <java.lang.String value=""/>
+        </property>
+        <property name="dataEncoding">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="dataStringCharset">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="followRedirect">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="handleCookie">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="httpInfo">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="httpInfoTagName">
+            <java.lang.String value="HttpInfo"/>
+        </property>
+        <property name="httpParameters">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector>
+                    <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                        <com.twinsoft.convertigo.beans.common.XMLVector>
+                            <java.lang.String value="Content-Type"/>
+                            <java.lang.String value="application/x-www-form-urlencoded"/>
+                        </com.twinsoft.convertigo.beans.common.XMLVector>
+                    </xmlizable>
+                </com.twinsoft.convertigo.beans.common.XMLVector>
+            </xmlizable>
+        </property>
+        <property name="httpPool">
+            <java.lang.String value="no"/>
+        </property>
+        <property name="httpVerb">
+            <java.lang.String value="GET"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="HTTP_transaction"/>
+        </property>
+        <property name="requestTemplate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseInCDATA">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="subDir">
+            <java.lang.String value=""/>
+        </property>
+        <property name="urlEncodingCharset">
+            <java.lang.String value=""/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="allowDownloadAttachment">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="bIncludeCertificateGroup">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="customHttpVerb">
+            <java.lang.String value=""/>
+        </property>
+        <property name="dataEncoding">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="dataStringCharset">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="followRedirect">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="handleCookie">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="httpInfo">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="httpInfoTagName">
+            <java.lang.String value="HttpInfo"/>
+        </property>
+        <property name="httpParameters">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector>
+                    <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                        <com.twinsoft.convertigo.beans.common.XMLVector>
+                            <java.lang.String value="Content-Type"/>
+                            <java.lang.String value="application/x-www-form-urlencoded"/>
+                        </com.twinsoft.convertigo.beans.common.XMLVector>
+                    </xmlizable>
+                </com.twinsoft.convertigo.beans.common.XMLVector>
+            </xmlizable>
+        </property>
+        <property name="httpPool">
+            <java.lang.String value="no"/>
+        </property>
+        <property name="httpVerb">
+            <java.lang.String value="GET"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="HTML_transaction"/>
+        </property>
+        <property name="requestTemplate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseInCDATA">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="stateFull">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="subDir">
+            <java.lang.String value=""/>
+        </property>
+        <property name="trigger">
+            <xmlizable classname="com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer">
+                <com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer>
+                    <timeout>
+                        <java.lang.Long value="60000"/>
+                    </timeout>
+                    <classname>
+                        <java.lang.String value="com.twinsoft.convertigo.engine.parsers.triggers.DocumentCompletedTrigger"/>
+                    </classname>
+                    <count>
+                        <java.lang.Integer value="1"/>
+                    </count>
+                    <stopOnAlert>
+                        <java.lang.Boolean value="true"/>
+                    </stopOnAlert>
+                </com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer>
+            </xmlizable>
+        </property>
+        <property name="urlEncodingCharset">
+            <java.lang.String value=""/>
+        </property>
+        <wsdltype/>
+        <handlers><![CDATA[// handlers are handled by Statements for HTML Transaction.]]></handlers>
+    </transaction>
     <transaction classname="com.twinsoft.convertigo.beans.transactions.DownloadHttpTransaction" default="false" priority="0" version="   8   0   0">
         <property name="accessibility">
-            <java.lang.String value="Public"/>
+            <java.lang.String value="Private"/>
         </property>
         <property name="addStatistics">
             <java.lang.Boolean value="false"/>
@@ -102,6 +3257,156 @@
         <wsdltype/>
         <handlers/>
     </transaction>
+    <transaction classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction" default="false" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Private"/>
+        </property>
+        <property name="addStatistics">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedContextRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="authenticatedUserAsCacheKey">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="billable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="clientCachable">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encodingCharSet">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="inputMap">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="inputMapSize">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="CICS_transaction"/>
+        </property>
+        <property name="outputMap">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="program">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseExpiryDate">
+            <java.lang.String value=""/>
+        </property>
+        <property name="responseTimeout">
+            <java.lang.Long value="60"/>
+        </property>
+        <property name="secureConnectionRequired">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="sheetLocation">
+            <java.lang.Integer value="0"/>
+        </property>
+        <property name="transactionId">
+            <java.lang.String value=""/>
+        </property>
+        <property name="userId">
+            <java.lang.String value=""/>
+        </property>
+        <property ciphered="true" name="userPassword">
+            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
+        </property>
+        <wsdltype/>
+        <handlers/>
+    </transaction>
+    <step classname="com.twinsoft.convertigo.beans.steps.SmtpStep" priority="0" version="   8   0   0">
+        <property name="attachments">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="contentType">
+            <java.lang.String value=""/>
+        </property>
+        <property name="deliveryReceipt">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SMTP_send"/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="readReceipt">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="smtpAuthType">
+            <java.lang.String value="none"/>
+        </property>
+        <property ciphered="true" name="smtpPassword">
+            <java.lang.String value="xd8e180806a1c1d83a6255212121ab827"/>
+        </property>
+        <property name="smtpPort">
+            <java.lang.String value="25"/>
+        </property>
+        <property name="smtpRecipients">
+            <java.lang.String value="&quot;someone@domain.org&quot;"/>
+        </property>
+        <property name="smtpSender">
+            <java.lang.String value="&quot;Convertigo &lt;noreply@fakedomain.fake&gt;&quot;"/>
+        </property>
+        <property name="smtpServer">
+            <java.lang.String value="xxx.xxx.xxx.xxx"/>
+        </property>
+        <property name="smtpSubject">
+            <java.lang.String value="&quot;Convertigo sequence report&quot;"/>
+        </property>
+        <property name="smtpUsername">
+            <java.lang.String value=""/>
+        </property>
+        <property name="sourceDefinition">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="sslProtocols">
+            <java.lang.String value=""/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+        <property name="xslFilepath">
+            <java.lang.String value=""/>
+        </property>
+    </step>
+    
     
     <step classname="com.twinsoft.convertigo.beans.steps.JsonToXmlStep" priority="0" version="   8   0   0">
         <property name="comment">

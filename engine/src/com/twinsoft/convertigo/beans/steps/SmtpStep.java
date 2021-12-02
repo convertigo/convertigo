@@ -101,6 +101,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	private XMLVector<XMLVector<String>> attachments = new XMLVector<XMLVector<String>>();
 	private boolean deliveryReceipt = false;
 	private boolean readReceipt = false;
+	private String sslProtocols = "";
 	
 	private transient String sMessageText = "";
 	private transient String sContentType;
@@ -461,12 +462,14 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 							}
 						}
 						
+						String sslProtocols = SmtpStep.this.sslProtocols.isBlank() ? "TLSv1.2" : SmtpStep.this.sslProtocols;
+						
 						if (smtpAuthType == SmtpAuthType.sslTls) {
 							props.put("mail.transport.protocol", "smtps");
 							props.put("mail.smtps.host", smtpServer);
 							props.put("mail.smtps.port", smtpPort);
 							props.put("mail.smtps.auth", "true");
-							props.put("mail.smtps.ssl.protocols", "TLSv1.2");
+							props.put("mail.smtps.ssl.protocols", sslProtocols);
 
 							//Initializing
 							SMTPAuthenticator auth = new SMTPAuthenticator();
@@ -509,7 +512,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 							props.put("mail.smtp.auth", "true");
 							props.put("mail.smtp.starttls.enable", "true");
 							props.put("mail.smtp.starttls.required", "true");
-							props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+							props.put("mail.smtp.ssl.protocols", sslProtocols);
 
 							//Initializing
 							Session mailSession = Session.getInstance(props);
@@ -596,5 +599,13 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 			return true;
 		}
 		return super.isCipheredProperty(propertyName);
+	}
+
+	public String getSslProtocols() {
+		return sslProtocols;
+	}
+
+	public void setSslProtocols(String sslProtocols) {
+		this.sslProtocols = sslProtocols;
 	}
 }
