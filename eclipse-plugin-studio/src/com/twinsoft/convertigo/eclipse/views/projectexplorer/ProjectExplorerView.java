@@ -2964,7 +2964,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		boolean highlightDetectedObject = ConvertigoPlugin.getHighlightDetectedObject();
 		
 		if (source instanceof Step) {
-			highlightDetectedObject = Boolean.TRUE.equals(RequestAttribute.debug.get(((Step) source).getSequence().context.httpServletRequest));
+			try {
+				highlightDetectedObject = Boolean.TRUE.equals(RequestAttribute.debug.get(((Step) source).getSequence().context.httpServletRequest));
+			} catch (Exception e) {
+				// silently ignore
+			}
 		}
 		
 		if (highlightDetectedObject) {
