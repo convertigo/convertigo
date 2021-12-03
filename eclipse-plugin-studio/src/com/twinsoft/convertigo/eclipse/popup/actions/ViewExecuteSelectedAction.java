@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -47,7 +50,7 @@ public class ViewExecuteSelectedAction extends MyAbstractAction {
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
@@ -90,7 +93,16 @@ public class ViewExecuteSelectedAction extends MyAbstractAction {
 			waitCursor.dispose();
         }
 	}
-
+	
+	public void selectionChanged(IAction action, ISelection selection) {
+		super.selectionChanged(action, selection);
+		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+		if (treeObject instanceof DesignDocumentViewTreeObject) {
+			action.setEnabled(((DesignDocumentViewTreeObject)treeObject).hasReduce());
+		}
+	}
+	
 	protected boolean isStubRequested() {
 		return false;
 	}

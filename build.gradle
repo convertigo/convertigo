@@ -17,8 +17,6 @@ import com.monochromeroad.gradle.plugin.aws.s3.S3Sync
 import org.apache.tools.ant.filters.ReplaceTokens
 import groovy.xml.XmlUtil
 
-apply from: 'headers.gradle'
-apply from: 'changelog.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
@@ -38,6 +36,10 @@ ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
 ext.currentYear = '' + Calendar.getInstance().get(Calendar.YEAR)
+
+apply from: 'headers.gradle'
+apply from: 'changelog.gradle'
+apply from: 'installers/windows.gradle'
 
 task updateVersion(dependsOn: [':engine:updateProductVersion', 'writeManifest', 'generateDockerfile']) {
 	group 'convertigo'

@@ -1229,7 +1229,6 @@ public class Ionic3Builder extends MobileBuilder {
 		String c8o_PageName = pageName;
 		//String c8o_PageIonicName = pageName;
 		String c8o_PageHistory = page.getDefaultHistory();
-		String c8o_PagePriority = page.getPreloadPriority();
 		String c8o_PageSegment = page.getSegment();
 		String c8o_PageChangeDetection = page.getChangeDetectionStrategy();
 		String c8o_PageTplUrl = pageName.toLowerCase() + ".html";
@@ -1239,6 +1238,7 @@ public class Ionic3Builder extends MobileBuilder {
 		String c8o_PageConstructors = page.getComputedConstructors();
 		String c8o_PageFunctions = page.getComputedFunctions();
 		String c8o_UserCustoms = page.getScriptContent().getString();
+		String c8o_PagePriority = page.getPreloadPriority();
 		
 		File pageTplTs = new File(ionicTplDir, "src/page.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");

@@ -311,6 +311,22 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	public List<UIPageEvent> getUIPageEventList() {
 		Set<UIComponent> done = new HashSet<>();
 		List<UIPageEvent> eventList = new ArrayList<>();
+		
+		if (hasTabsContainer()) {
+			if (!getPreloadPriority().equals("high")) {
+				setPreloadPriority("high");
+				hasChanged = true;
+			}
+			
+			UIPageEvent e1 = new UIPageEvent();
+			e1.setViewEvent(ViewEvent.onTabsWillEnter);
+			eventList.add(e1);
+			
+			UIPageEvent e2 = new UIPageEvent();
+			e2.setViewEvent(ViewEvent.onTabsDidEnter);
+			eventList.add(e2);
+		}
+		
 		for (UIComponent uiComponent : getUIComponentList()) {
 			if (uiComponent.isEnabled()) {
 				if (uiComponent instanceof UIPageEvent) {
@@ -320,9 +336,21 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 				}
 			}
 		}
+		
 		return eventList;
 	}
 
+	private boolean hasTabsContainer() {
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent.isEnabled()) {
+				if (uiComponent.hasDynamic("Tabs")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	public List<UIEventSubscriber> getUIEventSubscriberList() {
 		Set<UIComponent> done = new HashSet<>();
 		List<UIEventSubscriber> eventList = new ArrayList<>();

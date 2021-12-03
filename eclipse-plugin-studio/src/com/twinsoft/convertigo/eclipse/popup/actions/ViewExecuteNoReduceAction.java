@@ -21,24 +21,11 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ViewExecuteNoReduceAction extends ViewExecuteSelectedAction {
 
 	public ViewExecuteNoReduceAction() {
 		super();
-	}
-
-	public void selectionChanged(IAction action, ISelection selection) {
-		super.selectionChanged(action, selection);
-		IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-		TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-		if (treeObject instanceof DesignDocumentViewTreeObject) {
-			action.setEnabled(((DesignDocumentViewTreeObject)treeObject).hasReduce());
-		}
 	}
 	
 	@Override
@@ -46,4 +33,8 @@ public class ViewExecuteNoReduceAction extends ViewExecuteSelectedAction {
 		return false;
 	}
 
+	public void selectionChanged(IAction action, ISelection selection) {
+		super.selectionChanged(action, selection);
+		action.setEnabled(true);
+	}
 }

@@ -1,0 +1,107 @@
+task unzipWin64ServerTomcat {
+	group 'convertigo'
+	
+	def zip = file "build/tmp/tomcat-v${tomcatVersion}.zip"
+	
+	inputs.properties(
+		'tomcatVersion': tomcatVersion
+	)
+	
+	def dist = file "build/convertigo-server-${convertigoVersion}-win64/tomcat"
+	outputs.dir dist
+	
+	doLast {
+		file('build/tmp').mkdirs()
+		new URL("https://dlcdn.apache.org/tomcat/tomcat-9/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}-windows-x64.zip").withInputStream{ i -> zip.withOutputStream{ it << i }}
+		project.delete(dist)
+		copy {
+			from zipTree(zip)
+			exclude '*/webapps/**'
+			includeEmptyDirs = false
+			into dist
+			eachFile { f ->
+				f.path = f.path.replaceFirst('.*?/', '')
+			}
+			rename('tomcat9(w?\\.exe)', 'ConvertigoServer$1')
+		}
+		def server = file("${dist}/conf/server.xml")
+		server.text = server.text.replaceFirst('.*protocol="AJP.*', '')
+						.replaceFirst('.*AprLifecycleListener.*', '')
+						.replaceFirst('.*JasperListener.*', '')
+						.replaceFirst('port="8080"', 'port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"')
+						.replaceFirst('</Host>', '  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n      </Host>')
+						.replaceFirst('webapps', '../webapps')
+		def context = file("${dist}/conf/context.xml")
+		context.text = context.text.replaceFirst('<Context>', '<Context sessionCookiePath="/">')
+						.replaceFirst('</Context>','<Manager pathname="" /><CookieProcessor sameSiteCookies="unset" /></Context>')
+		def service = file("${dist}/bin/service.bat")
+		service.text = service.text.replaceAll('(?i)Tomcat9', 'ConvertigoServer')
+						.replaceFirst('(.*--Description).*', '$1 "Convertigo Server (https://www.convertigo.com)" ^')
+						.replaceFirst('(.*--DisplayName).*','$1 "Convertigo Server" ^')
+		zip.delete()
+	}
+}
+
+task unzipWin64ServerJdk {
+	group 'convertigo'
+	
+	def zip = file "build/tmp/jre-win64.zip"
+	
+	inputs.file 'installers/nsis/download-jdk.sh'
+	
+	def dist = file "build/convertigo-server-${convertigoVersion}-win64/jdk"
+	outputs.dir dist
+	
+	doLast {
+		file('build/tmp').mkdirs()
+		def url = file('installers/nsis/download-jdk.sh').text.replaceFirst('(?s).*?JDK_URL=(.*?\\.zip).*', '$1')
+		new URL(url).withInputStream{ i -> zip.withOutputStream{ it << i }}
+		project.delete(dist)
+		copy {
+			from zipTree(zip)
+			exclude '*/jmods/**', '*/lib/src.zip'
+			includeEmptyDirs = false
+			into dist
+			eachFile { f ->
+				f.path = f.path.replaceFirst('.*?/', '')
+			}
+		}
+		zip.delete()
+	}
+}
+
+task unzipWin64ServerWar(type: Copy) {
+	group 'convertigo'
+	
+	def war = file("engine/build/libs/convertigo-${convertigoVersionFull}.war")
+	
+	if (!war.exists()) {
+		dependsOn(':engine:war')
+	}
+	
+	from zipTree(war)
+	into "build/convertigo-server-${convertigoVersion}-win64/webapps/convertigo"
+}
+
+task copyWin64ServerIndex(type: Copy) {
+	group 'convertigo'
+	
+	from 'docker/root-index.html'
+	into "build/convertigo-server-${convertigoVersion}-win64/webapps/ROOT"
+	rename '.*', 'index.html'
+}
+
+task copyWin64ServerFiles(type: Copy) {
+	group 'convertigo'
+	
+	from 'installers/server-win64/'
+	into "build/convertigo-server-${convertigoVersion}-win64/"
+}
+
+task makeWin64ServerZip(type: Zip, dependsOn: [unzipWin64ServerTomcat, unzipWin64ServerJdk, unzipWin64ServerWar, copyWin64ServerIndex, copyWin64ServerFiles]) {
+	group 'convertigo'
+	
+	from "build/convertigo-server-${convertigoVersion}-win64"
+	archiveFileName = "convertigo-server-${convertigoVersion}-win64.zip"
+	destinationDirectory = file('build')
+}
