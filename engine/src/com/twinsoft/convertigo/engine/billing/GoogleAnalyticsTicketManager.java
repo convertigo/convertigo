@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.engine.billing;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +33,7 @@ import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.log4j.Logger;
+import org.apache.log4j.spi.NOPLogger;
 
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
@@ -39,13 +41,17 @@ import com.twinsoft.convertigo.engine.ProxyManager;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.util.UuidUtils;
+import com.twinsoft.tas.Key;
+import com.twinsoft.tas.KeyManager;
 
 public class GoogleAnalyticsTicketManager implements ITicketManager {
-	private 	Logger log;
-	protected 	ProxyManager proxyManager;
-	private 	HttpClient GAClient;
-	private 	String[] urls = { "http://www.google-analytics.com/collect" };
-	private		String analyticsID;
+	private Logger log;
+	protected ProxyManager proxyManager;
+	private HttpClient GAClient;
+	private String[] urls = { "http://www.google-analytics.com/collect" };
+	private String analyticsID;
+	private String overrideCustomer = null;
+	private long nextCheck = 0;
 	
 	private HttpClient prepareHttpClient(String[] url) throws EngineException,	MalformedURLException {
 		final Pattern scheme_host_pattern = Pattern.compile("https://(.*?)(?::([\\d]*))?(/.*|$)");
@@ -129,7 +135,7 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 		method.setParameter("t", "event");
 		method.setParameter("an", ticket.getProjectName());
 		method.setParameter("ec", ticket.getProjectName());
-		method.setParameter("el", ticket.getCustomerName());
+		method.setParameter("el", getCustomer(ticket.getCustomerName()));
 		
 		StringBuffer requestableName = new StringBuffer(ticket.getConnectorName());
 		if (requestableName.length() > 0) {
@@ -164,5 +170,40 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 	}
 	
 	public synchronized void destroy() throws BillingException {
+	}
+	
+	private String getCustomer(String customer) {
+		if (!(log instanceof NOPLogger)) {
+			return customer;
+		}
+		
+		long now = System.currentTimeMillis();
+		if (now < nextCheck) {
+			return overrideCustomer;
+		}
+		
+		if ("CONVERTIGO Server".equals(customer)) {
+			Iterator<?> iter = KeyManager.keys.values().iterator();
+			Key seKey = null;
+			while (iter.hasNext()) {
+				Key key = (Key) iter.next();
+				if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
+					// check (unlimited key or currentKey expiration date later than previous)
+					if ((seKey == null) || (key.expiration == 0) || (key.expiration >= seKey.expiration)) {
+						seKey = key;
+					}
+				}
+			}
+			if (seKey != null) {
+				overrideCustomer = Integer.toString(990000000 + seKey.licence);
+			} else {
+				overrideCustomer = customer;
+			}
+		} else {
+			overrideCustomer = customer;
+		}
+		
+		nextCheck = now + 600000;
+		return overrideCustomer;
 	}
 }
