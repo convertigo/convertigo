@@ -31,6 +31,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -45,12 +47,12 @@ public class DefaultInternalTranslator implements Translator {
 	}
 	
 	public void buildInputDocument(Context context, Object inputData) throws Exception {
-        Engine.logContext.debug("Making input document");
+		Engine.logContext.debug("Making input document");
 
 		Map<String, Object> request = GenericUtils.cast(inputData);
-		
+
 		InputDocumentBuilder inputDocumentBuilder = new InputDocumentBuilder(context);
-		
+
 		// Indicates whether variable values were generated using strict mode or nor(text/childs only)
 		inputDocumentBuilder.transactionVariablesElement.setAttribute("strictMode", Boolean.toString(bStrictMode));
 		
@@ -67,9 +69,27 @@ public class DefaultInternalTranslator implements Translator {
 				}
 			}
 		}
+		
+		TestCase tc = TestCase.getTestCase(request, context.projectName);
+		if (tc != null) {
+			for (TestCaseVariable var: tc.getVariables()) {
+				String parameterName = var.getName();
+				Object parameterObject = var.getValueOrNull();
+
+				if (!request.containsKey(parameterName) && !inputDocumentBuilder.handleSpecialParameter(parameterName, parameterObject)) {
+					if (parameterObject instanceof XMLVector) {
+						String[] strings = ((XMLVector<?>) parameterObject).toArray(new String[0]);
+						inputDocumentBuilder.addVariable(parameterName, strings);
+					} else {
+						addParameterObject(context.inputDocument,
+								inputDocumentBuilder.transactionVariablesElement, parameterName, parameterObject);
+					}
+				}
+			}
+		}
 
 		Engine.logContext.info("Input document created");
-    }
+	}
 	
 	private void addParameterObject(Document doc, Node parentItem, String parameterName, Object parameterObject) {
 		if (parameterObject instanceof NativeJavaObject) {

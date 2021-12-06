@@ -240,15 +240,6 @@ class InputDocumentBuilder {
 			item.setAttribute("value", parameterValue);
 			webviewerActionElement.appendChild(item);
 		}
-		// Transaction/Sequence test case
-		else if (parameterName.indexOf(Parameter.Testcase.getName()) == 0) {
-			Element item = context.inputDocument.createElement("variable");
-			item.setAttribute("name", parameterName);
-			item.setAttribute("value", parameterValue);
-			transactionVariablesElement.appendChild(item);
-			
-			Engine.logContext.info("Input test case = '" + parameterValue + "'");
-		}
 		// This is an internal parameter
 		else if (parameterName.startsWith("__")) {
 			// The Body part for HTTP requests; handled in connector

@@ -25,6 +25,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -203,6 +206,27 @@ public abstract class ServletRequester extends GenericRequester {
 			
 			if (parameterName.equals(Parameter.Connector.getName())) {
 				bConnectorGivenByUser = true;
+			}
+		}
+		
+		TestCase tc = TestCase.getTestCase(request, context.projectName);
+		if (tc != null) {
+			for (TestCaseVariable var: tc.getVariables()) {
+				parameterName = var.getName();
+				
+				if (request.getParameter(parameterName) == null) {
+					Object value = var.getValueOrNull();
+					if (value == null || (var.isMultiValued() && ((XMLVector<?>) value).isEmpty())) {
+						continue;
+					}
+					parameterValue = (String) (var.isMultiValued() ? ((XMLVector<?>) value).get(0) : value);
+					
+					handleParameter(context, parameterName, parameterValue);
+					
+					if (parameterName.equals(Parameter.Connector.getName())) {
+						bConnectorGivenByUser = true;
+					}
+				}
 			}
 		}
 		
