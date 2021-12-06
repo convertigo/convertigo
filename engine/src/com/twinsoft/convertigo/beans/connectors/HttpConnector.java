@@ -487,6 +487,9 @@ public class HttpConnector extends Connector {
 			isMultiValued = rVariable.isMultiValued();
 			method = rVariable.getHttpMethod();
 			httpVariable = rVariable.getHttpName();
+			if (httpVariable.isBlank()) {
+				httpVariable = variable;
+			}
 			httpObjectVariableValue = httpTransaction.getParameterValue(variable);
 
 			bIgnoreVariable = urlPathVariableList.contains(variable) ||

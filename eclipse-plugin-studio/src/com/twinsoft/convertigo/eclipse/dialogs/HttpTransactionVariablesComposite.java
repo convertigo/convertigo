@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -184,10 +185,24 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 				
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					Text txt = new Text(addComposite, SWT.BORDER);
+					Composite line = new Composite(addComposite, SWT.NONE);
+					line.setLayout(new GridLayout(4, false));
+					
+					new Label(line, SWT.NONE).setText("Name:");
+					
+					Text txt = new Text(line, SWT.BORDER);
+					txt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 					txt.setData(DynamicHttpVariable.class.getName(), v);
-					customs.add(txt);
 					txt.setToolTipText("set the variable name (empty is ignored)");
+					customs.add(txt);
+					
+					new Label(line, SWT.NONE).setText(" Value:");
+					
+					txt = new Text(line, SWT.BORDER);
+					txt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+					txt.setToolTipText("set the variable default value (empty is the null value)");
+					customs.add(txt);
+					
 					scrolledComposite.setContent(composite);
 					composite.pack();
 				}
@@ -216,19 +231,26 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 				httpTransaction.removeVariable((RequestableVariable) dboVar);
 			}
 		}
-		for (Text txt: customs) {
-			if (txt.getText().isBlank()) {
+		for (Iterator<Text> i = customs.iterator(); i.hasNext();) {
+			Text txtName = i.next();
+			Text txtValue = i.next();
+			if (txtName.getText().isBlank()) {
 				continue;
 			}
-			DynamicHttpVariable v = (DynamicHttpVariable) txt.getData(DynamicHttpVariable.class.getName());
+			DynamicHttpVariable v = (DynamicHttpVariable) txtName.getData(DynamicHttpVariable.class.getName());
 			try {
 				RequestableHttpVariable newDboVar = new RequestableHttpVariable();
-				String name = v.prefix() + txt.getText();
+				String name = v.prefix() + txtName.getText();
 				String normalized = StringUtils.normalize(name);
 				newDboVar.setName(normalized);
-				newDboVar.setHttpName(name);
+				if (!name.equals(normalized)) {
+					newDboVar.setHttpName(txtName.getText());
+				}
 				if (v == DynamicHttpVariable.__POST_) {
 					newDboVar.setHttpMethod("POST");
+				}
+				if (!txtValue.getText().isEmpty()) {
+					newDboVar.setValueOrNull(txtValue.getText());
 				}
 				httpTransaction.addVariable(newDboVar);
 			} catch (EngineException e) {

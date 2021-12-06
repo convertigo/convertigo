@@ -363,8 +363,13 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		for (RequestableVariable v: getAllVariables()) {
 			if (v.getName().startsWith(DynamicHttpVariable.__header_.name())) {
 				RequestableHttpVariable var = (RequestableHttpVariable) v;
-				NameValuePair nvp = new BasicNameValuePair(var.getHttpName(), (String) var.getDefaultValue());
-				map.put(v.getName().substring(DynamicHttpVariable.__header_.name().length()), nvp);
+				String varName = v.getName().substring(DynamicHttpVariable.__header_.name().length());
+				String headerName = var.getHttpName();
+				if (headerName.isBlank()) {
+					headerName = varName;
+				}
+				NameValuePair nvp = new BasicNameValuePair(headerName, (String) var.getValueOrNull());
+				map.put(varName, nvp);
 			}
 		}
 		
@@ -388,9 +393,11 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			
 			for (NameValuePair nvp: map.values()) {
 				XMLVector<String> header = new XMLVector<String>();
-				header.add(nvp.getName());
-				header.add(nvp.getValue());
-				headers.add(header);
+				if (nvp.getValue() != null) {
+					header.add(nvp.getName());
+					header.add(nvp.getValue());
+					headers.add(header);
+				}
 			}
 			
 			setCurrentHttpParameters(headers);
