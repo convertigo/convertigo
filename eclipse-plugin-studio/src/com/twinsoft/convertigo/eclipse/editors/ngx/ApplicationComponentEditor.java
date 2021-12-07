@@ -1516,7 +1516,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					c8oBrowser.executeFunctionAndReturnValue("_c8o_doLoad", url);
 				} else if (!currentUrl.equals(url)) {
 					c8oBrowser.setUseExternalBrowser(false);
-					c8oBrowser.loadURL(url);
+					boolean done = false;
+					if (pagePath != null) {
+						try {
+							done = "done".equals(c8oBrowser.executeFunctionAndReturnValue("_c8o_changePage", pagePath));
+						} catch (Exception e) {
+						}
+					}
+					if (!done) {
+						c8oBrowser.loadURL(url);
+					}
 				}
 			});
 			c8oBrowser.getDisplay().asyncExec(() -> {
