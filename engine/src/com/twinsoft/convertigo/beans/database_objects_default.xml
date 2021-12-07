@@ -17475,7 +17475,7 @@
             <java.lang.String value="Convertigo"/>
         </property>
         <property name="applicationAuthorSite">
-            <java.lang.String value="http://www.convertigo.com"/>
+            <java.lang.String value="https://www.convertigo.com"/>
         </property>
         <property name="applicationDescription">
             <java.lang.String value=""/>
