@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.ConnectorListener;
 import com.twinsoft.convertigo.beans.core.Transaction;
 
-public class SapJcoConnectorComposite extends AbstractConnectorComposite implements ConnectorListener, IRefreshable {
+public class SapJcoConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 	private Text httpData;
 
 	public SapJcoConnectorComposite(ConnectorEditorPart connectorEditorPart, Connector connector, Composite parent, int style) {
@@ -62,12 +62,6 @@ public class SapJcoConnectorComposite extends AbstractConnectorComposite impleme
 	@Override
 	public void dispose() {
 		super.dispose();
-	}
-
-	@Override
-	public void refresh() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

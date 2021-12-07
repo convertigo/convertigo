@@ -91,6 +91,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	private String fullResultXML;
 	private String fullResultJSON;
 	
+	private Map<String, String[]> lastParameters = null;
+	
 	SequenceEditorInput inputXML = null;
 	SequenceEditorInput inputJSON = null;
 	SequenceEditorInput inputTXT = null;
@@ -393,10 +395,17 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 		toolItemGenerate = new ToolItem(toolBar, SWT.PUSH);
 		toolItemGenerate.setImage(imageGenerate);
-		toolItemGenerate.setToolTipText("Execute");
+		toolItemGenerate.setToolTipText("Execute again");
 		toolItemGenerate.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
-				getDocument(null, null, false);
+				editor.setDirty(true);
+				toolItemRenderJson.setEnabled(false);
+				toolItemRenderXml.setEnabled(false);
+				if (lastParameters != null) {
+					ConvertigoPlugin.getDefault().runRequestable(projectName, lastParameters);
+				} else {
+					getDocument(null, null, false);
+				}
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -665,6 +674,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	public void sequenceStarted(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
+		
 		clearEditor(engineEvent);
 		if (engineEvent.getSource() instanceof Sequence) {
 			RequestAttribute.debug.set(((Sequence) engineEvent.getSource()).context.httpServletRequest, bDebug);
@@ -682,7 +692,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	public void sequenceFinished(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
-
+		
+		lastParameters = new HashMap<>(context.httpServletRequest.getParameterMap());
+		
 		getDisplay().syncExec(() -> {
 			animatedWait.stop();
 			toolItemRenderJson.setEnabled(true);

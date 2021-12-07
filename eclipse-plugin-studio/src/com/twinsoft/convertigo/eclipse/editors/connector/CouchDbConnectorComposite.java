@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.ConnectorListener;
 import com.twinsoft.convertigo.beans.core.Transaction;
 
-public class CouchDbConnectorComposite extends AbstractConnectorComposite implements ConnectorListener, IRefreshable {
+public class CouchDbConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 
 	private Text httpData;
 	

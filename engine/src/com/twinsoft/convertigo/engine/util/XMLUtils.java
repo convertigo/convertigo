@@ -1390,17 +1390,15 @@ public class XMLUtils {
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType, JsonRoot jsonRoot) throws JSONException {
 		JSONObject json = new JSONObject();
 		handleElement(elt, json, ignoreStepIds, useType);
-
-		json.setEscapeForwardSlashAlways(false);
-		String jsonString = json.toString(1);
+		
 		if (jsonRoot != null && !jsonRoot.equals(JsonRoot.docNode)) {
-			JSONObject jso = new JSONObject(jsonString).getJSONObject(elt.getTagName());
+			json = json.getJSONObject(elt.getTagName());
 			if (jsonRoot.equals(JsonRoot.docChildNodes)) {
-				jso.remove("attr");
+				json.remove("attr");
 			}
-			jso.setEscapeForwardSlashAlways(false);
-			jsonString = jso.toString(1);
 		}
+		setEscapeForwardSlashAlways(json, false);
+		String jsonString = json.toString(1);
 		return jsonString;
 	}
 	
@@ -1557,20 +1555,49 @@ public class XMLUtils {
 		if (text == null || ("".equals(text))) {
 			return "";
 		}
-		
+
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < text.length(); i++) {
-		    int codePoint = text.codePointAt(i);
-		    if (codePoint > 0xFFFF) {
-		        i++;
-		    }
-		    if ((codePoint == 0x9) || (codePoint == 0xA) || (codePoint == 0xD)
-		            || ((codePoint >= 0x20) && (codePoint <= 0xD7FF))
-		            || ((codePoint >= 0xE000) && (codePoint <= 0xFFFD))
-		            || ((codePoint >= 0x10000) && (codePoint <= 0x10FFFF))) {
-		        sb.appendCodePoint(codePoint);
-		    }
+			int codePoint = text.codePointAt(i);
+			if (codePoint > 0xFFFF) {
+				i++;
+			}
+			if ((codePoint == 0x9) || (codePoint == 0xA) || (codePoint == 0xD)
+					|| ((codePoint >= 0x20) && (codePoint <= 0xD7FF))
+					|| ((codePoint >= 0xE000) && (codePoint <= 0xFFFD))
+					|| ((codePoint >= 0x10000) && (codePoint <= 0x10FFFF))) {
+				sb.appendCodePoint(codePoint);
+			}
 		}
 		return sb.toString();
+	}
+	
+	public static void setEscapeForwardSlashAlways(JSONObject json, boolean escapeForwardSlashAlways) throws JSONException {
+		json.setEscapeForwardSlashAlways(escapeForwardSlashAlways);
+		for (Iterator<?> i = json.keys(); i.hasNext();) {
+			String key = (String) i.next();
+			Object o = json.get(key);
+			if (o != null) {
+				if (o instanceof JSONObject) {
+					setEscapeForwardSlashAlways((JSONObject) o, escapeForwardSlashAlways);
+				} else if (o instanceof JSONArray) {
+					setEscapeForwardSlashAlways((JSONArray) o, escapeForwardSlashAlways);
+				}
+			}
+		}
+	}
+	
+	public static void setEscapeForwardSlashAlways(JSONArray json, boolean escapeForwardSlashAlways) throws JSONException {
+		json.setEscapeForwardSlashAlways(escapeForwardSlashAlways);
+		for (int i = 0; i < json.length(); i++) {
+			Object o = json.get(i);
+			if (o != null) {
+				if (o instanceof JSONObject) {
+					setEscapeForwardSlashAlways((JSONObject) o, escapeForwardSlashAlways);
+				} else if (o instanceof JSONArray) {
+					setEscapeForwardSlashAlways((JSONArray) o, escapeForwardSlashAlways);
+				}
+			}
+		}
 	}
 }

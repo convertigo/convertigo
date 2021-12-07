@@ -175,6 +175,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	private String shortResultJSON;
 	private String fullResultXML;
 	private String fullResultJSON;
+	private Map<String, String[]> lastParameters = null;
 	
 	ConnectorEditorInput inputXML = null;
 	ConnectorEditorInput inputJSON = null;
@@ -381,22 +382,22 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 		gridData5.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
 		toolBar = new ToolBar(compositeOutputHeader, SWT.FLAT);
 		toolBar.setLayoutData(gridData5);
-
-		toolItemRenewConnector = new ToolItem(toolBar, SWT.PUSH);
-		toolItemRenewConnector.setImage(imageRenew);
-		toolItemRenewConnector.setToolTipText("Renew the connector");
-		toolItemRenewConnector.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				compositeConnector.renew();
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-		toolItemsIds.put("Renew", Integer.valueOf(incr));
-		incr++;
-
+		
 		if (IConnectable.class.isAssignableFrom(compositeConnectorClass)) {
+			toolItemRenewConnector = new ToolItem(toolBar, SWT.PUSH);
+			toolItemRenewConnector.setImage(imageRenew);
+			toolItemRenewConnector.setToolTipText("Renew the connector");
+			toolItemRenewConnector.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					compositeConnector.renew();
+				}
+	
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			toolItemsIds.put("Renew", Integer.valueOf(incr));
+			incr++;
+			
 			toolItemConnect = new ToolItem(toolBar, SWT.PUSH);
 			toolItemConnect.setToolTipText("Connect the connector");
 			toolItemConnect.setImage(imageConnect);
@@ -588,17 +589,24 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 			});
 			toolItemsIds.put("Step", Integer.valueOf(incr));
 			incr++;
-		}
 
-		new ToolItem(toolBar, SWT.SEPARATOR);
-		incr++;
+			new ToolItem(toolBar, SWT.SEPARATOR);
+			incr++;
+		}
 
 		toolItemGenerate = new ToolItem(toolBar, SWT.PUSH);
 		toolItemGenerate.setImage(imageGenerate);
-		toolItemGenerate.setToolTipText("Execute");
+		toolItemGenerate.setToolTipText(compositeConnector instanceof JavelinConnectorComposite ? "Execute" : "Execute again");
 		toolItemGenerate.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
-				getDocument();
+				editor.setDirty(true);
+				toolItemRenderJson.setEnabled(false);
+				toolItemRenderXml.setEnabled(false);
+				if (lastParameters != null) {
+					ConvertigoPlugin.getDefault().runRequestable(projectName, lastParameters);
+				} else {
+					getDocument();
+				}
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -1271,7 +1279,11 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 	public void transactionFinished(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
-
+		
+		if (!(compositeConnector instanceof JavelinConnectorComposite)) {
+			lastParameters = new HashMap<>(context.httpServletRequest.getParameterMap());
+		}
+		
 		getDisplay().asyncExec(() -> {
 			animatedWait.stop();
 			toolItemRenderJson.setEnabled(true);

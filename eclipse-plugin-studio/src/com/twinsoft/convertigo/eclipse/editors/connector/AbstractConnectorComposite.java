@@ -46,28 +46,28 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 
 	protected ConnectorEditorPart connectorEditorPart;
 	protected Connector connector;
-	
+
 	protected ProjectExplorerView projectExplorerView = null;
-	
+
 	public AbstractConnectorComposite(ConnectorEditorPart connectorEditorPart, Connector connector, Composite parent, int style) {
 		super(parent, style);
 		this.connectorEditorPart = connectorEditorPart;
 		this.connector = connector;
-		
+
 		// add ProjectExplorerView to the listeners of the composite connector
 		projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (projectExplorerView != null) {
 			projectExplorerView.addSelectionChangedListener(this);
 			addCompositeListener(projectExplorerView);
 		}
-		
+
 		initialize();
 	}
 
 	protected void toolBarSetEnable(String toolItemId, boolean enable) {
 		connectorEditorPart.toolBarSetEnable(toolItemId, enable);
 	}
-	
+
 	protected void toolBarSetSelection(String toolItemId, boolean select) {
 		connectorEditorPart.toolBarSetSelection(toolItemId, select);
 	}
@@ -75,7 +75,7 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 	protected Object getLastDetectedScreenClass() {
 		return connectorEditorPart.getLastDetectedScreenClass();
 	}
-	
+
 	protected boolean checkEventSource(EventObject event) {
 		boolean isSourceFromConnector = false;
 		Object source = event.getSource();
@@ -88,11 +88,11 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 		}
 		return isSourceFromConnector;
 	}
-	
+
 	protected abstract void clearContent();
-	
+
 	protected abstract void initialize();
-	
+
 	public abstract void initConnector(Transaction transaction);
 
 	/**
@@ -112,18 +112,18 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 			removeCompositeListener(projectExplorerView);
 		}
 	}
-	
+
 	public void setAccumulate(boolean accumulate) {
 		connector.setAccumulate(accumulate);
 	}
-	
+
 	public void startLearn() {
 		if (connector.isLearning())
 			stopLearn();
-		
+
 		// set learning flag
 		connector.markAsLearning(true);
-		
+
 		Transaction transaction = connector.getLearningTransaction();
 		if (transaction == null) {
 			if (projectExplorerView != null) {
@@ -145,25 +145,25 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 	public void stopLearn() {
 		if (!connector.isLearning())
 			return;
-		
+
 		Transaction transaction = connector.getLearningTransaction();
 
 		// unset learning flag
 		connector.markAsLearning(false);
 		ConvertigoPlugin.logDebug2("("+ connector.getClass().getName() +") stop learning transaction named '"+ transaction.getName() +"'");
-		
+
 		try {
 			transaction.markAsLearning(false);
 		} catch (EngineException e) {}
-		
+
 		toolBarSetEnable("Learn", false);
 		toolBarSetSelection("Learn", false);
 	}
-	
+
 	/**
 	 * Handles tree view selection
 	 */
-	
+
 	public void selectionChanged(SelectionChangedEvent event) {
 		if (event.getSource() instanceof ISelectionProvider) {
 			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
@@ -192,43 +192,46 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 			}
 		}
 	}
-	
+
 	/**
 	 * Notify changes for tree view 
 	 */
-	
+
 	private EventListenerList compositeListeners = new EventListenerList();
-    
-    public void addCompositeListener(CompositeListener compositeListener) {
-    	compositeListeners.add(CompositeListener.class, compositeListener);
-    }
-    
-    public void removeCompositeListener(CompositeListener compositeListener) {
-    	compositeListeners.remove(CompositeListener.class, compositeListener);
-    }
-    
-    public void fireObjectSelected(CompositeEvent compositeEvent) {
-        // Guaranteed to return a non-null array
-        Object[] listeners = compositeListeners.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
-        	if (listeners[i] == CompositeListener.class) {
-                ((CompositeListener) listeners[i+1]).objectSelected(compositeEvent);
-            }
-        }
-    }
+
+	public void addCompositeListener(CompositeListener compositeListener) {
+		compositeListeners.add(CompositeListener.class, compositeListener);
+	}
+
+	public void removeCompositeListener(CompositeListener compositeListener) {
+		compositeListeners.remove(CompositeListener.class, compositeListener);
+	}
+
+	public void fireObjectSelected(CompositeEvent compositeEvent) {
+		// Guaranteed to return a non-null array
+		Object[] listeners = compositeListeners.getListenerList();
+		// Process the listeners last to first, notifying
+		// those that are interested in this event
+		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
+			if (listeners[i] == CompositeListener.class) {
+				((CompositeListener) listeners[i+1]).objectSelected(compositeEvent);
+			}
+		}
+	}
+
+	public void fireObjectChanged(CompositeEvent compositeEvent) {
+		// Guaranteed to return a non-null array
+		Object[] listeners = compositeListeners.getListenerList();
+		// Process the listeners last to first, notifying
+		// those that are interested in this event
+		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
+			if (listeners[i] == CompositeListener.class) {
+				((CompositeListener) listeners[i+1]).objectChanged(compositeEvent);
+			}
+		}
+	}
 	
-    public void fireObjectChanged(CompositeEvent compositeEvent) {
-        // Guaranteed to return a non-null array
-        Object[] listeners = compositeListeners.getListenerList();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
-        	if (listeners[i] == CompositeListener.class) {
-                ((CompositeListener) listeners[i+1]).objectChanged(compositeEvent);
-            }
-        }
-    }
-    
+	public boolean hasConnect() {
+		return false;
+	}
 }
