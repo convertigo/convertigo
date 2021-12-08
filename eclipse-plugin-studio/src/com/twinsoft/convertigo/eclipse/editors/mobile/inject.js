@@ -8,7 +8,7 @@ function _c8o_toast(msg) {
 		"margin: 2% 5%;" +
 		"background-color: black;" +
 		"color: white;" +
-		"font-size: 1.5em;" +
+		"font-size: 1.2em;" +
 		"font-family: sans-serif" +
 		"padding: 5px;" +
 		"width: 90%;" +
