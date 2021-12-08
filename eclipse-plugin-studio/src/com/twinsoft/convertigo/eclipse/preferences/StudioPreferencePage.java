@@ -46,7 +46,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbEngineLoadAllProjects = null;
 	private BooleanFieldEditor cbAutoOpenDefaultConnector;
 	private BooleanFieldEditor cbAutoCreateProjectReference = null;
-	private BooleanFieldEditor cbUseSystemFlowViewer = null;
+//	private BooleanFieldEditor cbUseSystemFlowViewer = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
 	private StringFieldEditor localBuildFolder = null;
@@ -170,7 +170,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 			mobileBuilderThreshold.setStringValue(Integer.toString(ConvertigoPlugin.getMobileBuilderThreshold()));
 		}
 		mobileBuilderThreshold.setEmptyStringAllowed(false);
-		
+		/*
 		Group groupSystemProject = new Group(top, SWT.SHADOW_IN);
 		groupSystemProject.setText("System projects");
 		groupSystemProject.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -182,7 +182,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbUseSystemFlowViewer.setPreferenceStore(getPreferenceStore());
 		getPreferenceStore().setDefault(ConvertigoPlugin.PREFERENCE_USE_SYSTEM_FLOWVIEWER, true);
 		cbUseSystemFlowViewer.load();
-		
+		*/
 		BooleanFieldEditor btest = new BooleanFieldEditor("", "", groupLocalBuild);
 		btest.getDescriptionControl(groupLocalBuild).setVisible(false);
 		
@@ -205,7 +205,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
 		mobileBuilderThreshold.loadDefault();
-		cbUseSystemFlowViewer.loadDefault();
+//		cbUseSystemFlowViewer.loadDefault();
 		
 		super.performDefaults();
 	}
@@ -238,7 +238,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoCreateProjectReference.store();
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();
-		cbUseSystemFlowViewer.store();
+//		cbUseSystemFlowViewer.store();
 		
 		return super.performOk();
 	}
