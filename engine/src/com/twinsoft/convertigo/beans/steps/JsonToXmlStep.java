@@ -27,10 +27,6 @@ import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
-import org.apache.ws.commons.schema.XmlSchemaSequence;
-import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
-import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -38,9 +34,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.IStepSmartTypeContainer;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -161,64 +155,6 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 		}
 		return false;
 	}
-	
-	private void handleXsdElement(XmlSchemaElement xsdElt, Element elt, XmlSchema schema) {
-		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-		xsdElt.setType(cType);
-		
-		NodeList nl = elt.getChildNodes();
-		boolean hasChild = false;
-		for (int i = 0; i < nl.getLength(); i++) {
-			if (nl.item(i) instanceof Element) {
-				hasChild = true;
-				break;
-			}
-		}
-		
-		XmlSchemaObjectCollection attributes;
-		if (hasChild) {
-			XmlSchemaSequence seq = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
-			cType.setParticle(seq);
-			
-			for (int i = 0; i < nl.getLength(); i++) {
-				if (nl.item(i) instanceof Element) {
-					Element child = (Element) nl.item(i);
-					if (child.getPreviousSibling() == null || !child.getPreviousSibling().getNodeName().equals(child.getNodeName())) {
-						XmlSchemaElement xsdChild = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
-						xsdChild.setName(child.getTagName());
-						xsdChild.setMinOccurs(0);
-						xsdChild.setMaxOccurs(Long.MAX_VALUE);
-						seq.getItems().add(xsdChild);
-						handleXsdElement(xsdChild, child, schema);
-					}
-				}
-			}
-			attributes = cType.getAttributes();
-		} else {
-			XmlSchemaSimpleContent simpleContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
-			cType.setContentModel(simpleContent);
-			
-			XmlSchemaSimpleContentExtension simpleContentExtension = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
-			simpleContent.setContent(simpleContentExtension);
-			
-			simpleContentExtension.setBaseTypeName(getSimpleTypeAffectation());
-			attributes = simpleContentExtension.getAttributes();
-		}
-		
-		XmlSchemaAttribute attribute;
-		NamedNodeMap attrs = elt.getAttributes();
-		for (int i = 0; i < attrs.getLength(); i++) {
-			Node n = attrs.item(i);
-			attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-			attribute.setName(n.getNodeName());
-			attribute.setSchemaTypeName(Constants.XSD_STRING);
-			if ("type".equals(n.getNodeName()) || "originalKeyName".equals(n.getNodeName())) {
-				attribute.setDefaultValue(n.getNodeValue());
-			}
-			attribute.setUse(XmlSchemaUtils.attributeUseOptional);
-			attributes.add(attribute);
-		}
-	}
 
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
@@ -236,7 +172,7 @@ public class JsonToXmlStep extends Step implements IStepSmartTypeContainer {
 			Element root = doc.createElement("root");
 			doc.appendChild(root);
 			XMLUtils.jsonToXml(json, root);
-			handleXsdElement(element, root, schema);
+			XmlSchemaUtils.handleXsdElement(this, element, root, schema);
 			
 			XmlSchemaComplexType cType = (XmlSchemaComplexType) element.getSchemaType();
 			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());

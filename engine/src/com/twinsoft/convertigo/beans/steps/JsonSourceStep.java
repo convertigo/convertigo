@@ -27,7 +27,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -53,10 +52,10 @@ public class JsonSourceStep extends SourceStep {
 				boolean isArray = list.getLength() > 1;
 				String string = isArray ? "[" : "";
 				for (int i = 0; i < list.getLength();) {
-					Node node = list.item(0);
+					Node node = list.item(i);
 					if (node instanceof Element) {
 						try {
-							string += XMLUtils.XmlToJson((Element) node, true, true, JsonRoot.docChildNodes);
+							string += XMLUtils.XmlToJson((Element) node, true, true, null);
 						} catch (JSONException e) {
 							string += node.getNodeValue();
 						}

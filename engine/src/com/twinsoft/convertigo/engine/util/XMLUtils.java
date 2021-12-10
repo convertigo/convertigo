@@ -1388,17 +1388,32 @@ public class XMLUtils {
 	}
 	
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType, JsonRoot jsonRoot) throws JSONException {
-		JSONObject json = new JSONObject();
-		handleElement(elt, json, ignoreStepIds, useType);
+		JSONObject json = null;
+		Object value = null;
+		if (useType && elt.hasAttribute("type")) {
+			value = getValue(elt, ignoreStepIds, useType);
+			if (value instanceof JSONObject) {
+				json = (JSONObject) value;
+			} else if (value != null) {
+				jsonRoot = null;
+			}
+		}
 		
-		if (jsonRoot != null && !jsonRoot.equals(JsonRoot.docNode)) {
+		if (value == null) {
+			json = new JSONObject();
+			handleElement(elt, json, ignoreStepIds, useType);
+		}
+		
+		if (json != null && jsonRoot != null && !jsonRoot.equals(JsonRoot.docNode)) {
 			json = json.getJSONObject(elt.getTagName());
 			if (jsonRoot.equals(JsonRoot.docChildNodes)) {
 				json.remove("attr");
 			}
 		}
-		setEscapeForwardSlashAlways(json, false);
-		String jsonString = json.toString(1);
+		if (json != null) {
+			setEscapeForwardSlashAlways(json, false);
+		}
+		String jsonString = json != null ? json.toString(1) : value.toString();
 		return jsonString;
 	}
 	

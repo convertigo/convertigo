@@ -59,6 +59,9 @@ import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaObjectTable;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaSimpleTypeContent;
@@ -69,13 +72,16 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -841,4 +847,61 @@ public class XmlSchemaUtils {
 		return -1;
 	}
 
+	public static void handleXsdElement(Step step, XmlSchemaElement xsdElt, Element elt, XmlSchema schema) {
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(step, new XmlSchemaComplexType(schema));
+		xsdElt.setType(cType);
+		
+		NodeList nl = elt.getChildNodes();
+		boolean hasChild = false;
+		for (int i = 0; i < nl.getLength(); i++) {
+			if (nl.item(i) instanceof Element) {
+				hasChild = true;
+				break;
+			}
+		}
+		
+		XmlSchemaObjectCollection attributes;
+		if (hasChild) {
+			XmlSchemaSequence seq = XmlSchemaUtils.makeDynamic(step, new XmlSchemaSequence());
+			cType.setParticle(seq);
+			
+			for (int i = 0; i < nl.getLength(); i++) {
+				if (nl.item(i) instanceof Element) {
+					Element child = (Element) nl.item(i);
+					if (child.getPreviousSibling() == null || !child.getPreviousSibling().getNodeName().equals(child.getNodeName())) {
+						XmlSchemaElement xsdChild = XmlSchemaUtils.makeDynamic(step, new XmlSchemaElement());
+						xsdChild.setName(child.getTagName());
+						xsdChild.setMinOccurs(0);
+						xsdChild.setMaxOccurs(Long.MAX_VALUE);
+						seq.getItems().add(xsdChild);
+						handleXsdElement(step, xsdChild, child, schema);
+					}
+				}
+			}
+			attributes = cType.getAttributes();
+		} else {
+			XmlSchemaSimpleContent simpleContent = XmlSchemaUtils.makeDynamic(step, new XmlSchemaSimpleContent());
+			cType.setContentModel(simpleContent);
+			
+			XmlSchemaSimpleContentExtension simpleContentExtension = XmlSchemaUtils.makeDynamic(step, new XmlSchemaSimpleContentExtension());
+			simpleContent.setContent(simpleContentExtension);
+			
+			simpleContentExtension.setBaseTypeName(step.getSimpleTypeAffectation());
+			attributes = simpleContentExtension.getAttributes();
+		}
+		
+		XmlSchemaAttribute attribute;
+		NamedNodeMap attrs = elt.getAttributes();
+		for (int i = 0; i < attrs.getLength(); i++) {
+			Node n = attrs.item(i);
+			attribute = XmlSchemaUtils.makeDynamic(step, new XmlSchemaAttribute());
+			attribute.setName(n.getNodeName());
+			attribute.setSchemaTypeName(Constants.XSD_STRING);
+			if ("type".equals(n.getNodeName()) || "originalKeyName".equals(n.getNodeName())) {
+				attribute.setDefaultValue(n.getNodeValue());
+			}
+			attribute.setUse(XmlSchemaUtils.attributeUseOptional);
+			attributes.add(attribute);
+		}
+	}
 }

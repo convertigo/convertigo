@@ -21,21 +21,20 @@ package com.twinsoft.convertigo.beans.steps;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class ReadXMLStepBeanInfo extends MySimpleBeanInfo{
+public class WriteJSONStepBeanInfo extends MySimpleBeanInfo{
 
-	public ReadXMLStepBeanInfo() {
+	public WriteJSONStepBeanInfo() {
 		try {
-			beanClass = ReadXMLStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.steps.ReadFileStep.class;
+			beanClass = WriteJSONStep.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.steps.WriteFileStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/xmlR_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/xmlR_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsonW_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsonW_32x32.png";
 
-			resourceBundle = getResourceBundle("res/ReadXMLStep");
+			resourceBundle = getResourceBundle("res/WriteJSONStep");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

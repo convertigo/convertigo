@@ -1,4 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <step classname="com.twinsoft.convertigo.beans.steps.WriteJSONStep" priority="0" version="   8   0   0">
+        <property name="appendResult">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="appendTimestamp">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="dataFile">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encoding">
+            <java.lang.String value="UTF-8"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Write_JSON"/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="sourceDefinition">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="writeOutputFalse">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
+    <step classname="com.twinsoft.convertigo.beans.steps.ReadJSONStep" priority="0" version="   8   0   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="dataFile">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="jsonSample">
+            <java.lang.String value=""/>
+        </property>
+        <property name="key">
+            <xmlizable classname="com.twinsoft.convertigo.beans.steps.SmartType">
+                <SmartType mode="PLAIN"/>
+            </xmlizable>
+        </property>
+        <property name="name">
+            <java.lang.String value="Read_JSON"/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
+    
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.ResetDatabaseTransaction" default="false" priority="0" version="   8   0   0">
         <property name="accessibility">
             <java.lang.String value="Private"/>
