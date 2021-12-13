@@ -29,7 +29,7 @@ ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
 ext.jxBrowserVersion = '7.19'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.54'
+ext.tomcatVersion = '9.0.56'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
