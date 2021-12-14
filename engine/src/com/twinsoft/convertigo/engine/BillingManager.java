@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.apache.log4j.spi.NOPLogger;
 import org.hibernate.exception.JDBCConnectionException;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -35,6 +36,7 @@ import com.twinsoft.convertigo.engine.billing.Ticket;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class BillingManager implements AbstractManager, PropertyChangeEventListener {
 	private boolean isDestroying = true;
@@ -47,15 +49,18 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	
 	private Thread consumer;
 	
+	private boolean serverMonitor = false;
+	
 	public BillingManager() throws EngineException {
-		
+		serverMonitor = Engine.isEngineMode();
 	}
 	
 	public void init() throws EngineException {
 		customer_name = Engine.isCloudMode() ? Engine.cloud_customer_name : (Engine.isStudioMode() ? "CONVERTIGO Studio" : "CONVERTIGO Server");
 		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
 		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED) ||
-			EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)) {
+			EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED) ||
+			serverMonitor) {
 			isDestroying = false;
 			tickets = new LinkedList<Ticket>();
 			consumer = new Thread(new Runnable() {
@@ -176,10 +181,19 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 					managers.add(new HibernateTicketManager(Engine.logBillers));
 				} catch (Throwable t) {
 					throw new EngineException("TicketManager instanciation failed", t);
-				}			
+				}
 			}
 			
-			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)) {
+			String key = Crypto2.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), "xac909b630d418d27b33d9e01c2f1ff87");
+			if (serverMonitor) {
+				try {
+					managers.add(new GoogleAnalyticsTicketManager(key, new NOPLogger(null, "void")));
+				} catch (Throwable t) {
+					throw new EngineException("TicketManager instanciation failed", t);
+				}
+			}
+			
+			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED) && !key.equals(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID))) {
 				try {
 					managers.add(new GoogleAnalyticsTicketManager(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID), Engine.logBillers));
 				} catch (Throwable t) {

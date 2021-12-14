@@ -94,7 +94,7 @@ public class MobileApplication extends DatabaseObject {
 	private String applicationVersion = "";
 	private String applicationAuthorName = "Convertigo";
 	private String applicationAuthorEmail = "sales@convertigo.com";
-	private String applicationAuthorSite = "http://www.convertigo.com";
+	private String applicationAuthorSite = "https://www.convertigo.com";
 	private Accessibility accessibility = Accessibility.Public;
 	
 	private String endpoint = "";
@@ -105,11 +105,11 @@ public class MobileApplication extends DatabaseObject {
 	private String fsDesignDocument = "";
 	
 	public MobileApplication() {
-        super();
-        databaseType = "MobileApplication";
-    }
+		super();
+		databaseType = "MobileApplication";
+	}
 
-    public boolean getEnableFlashUpdate() {
+	public boolean getEnableFlashUpdate() {
 		return enableFlashUpdate;
 	}
 
@@ -174,7 +174,7 @@ public class MobileApplication extends DatabaseObject {
 	}
 
 	@Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof MobilePlatform) {
 			addMobilePlatform((MobilePlatform) databaseObject);
 		} else if (databaseObject instanceof IApplicationComponent) {
@@ -182,10 +182,10 @@ public class MobileApplication extends DatabaseObject {
 		} else {
 			throw new EngineException("You cannot add to a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
-    }
+	}
 
-    @Override
-    public void remove(DatabaseObject databaseObject) throws EngineException {
+	@Override
+	public void remove(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof MobilePlatform) {
 			removeMobilePlatform((MobilePlatform) databaseObject);
 		} else if (databaseObject instanceof IApplicationComponent) {
@@ -194,8 +194,8 @@ public class MobileApplication extends DatabaseObject {
 			throw new EngineException("You cannot remove from a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
 		super.remove(databaseObject);
-    }
-	
+	}
+
 	/**
 	 * The list of available mobile platform for this project.
 	 */
@@ -230,25 +230,25 @@ public class MobileApplication extends DatabaseObject {
 	 * The application component
 	 */
 	private transient DatabaseObject applicationComponent = null;
-	
+
 	public IApplicationComponent getApplicationComponent() {
 		return (IApplicationComponent) applicationComponent;
 	}
-	
-    public void addApplicationComponent(DatabaseObject applicationComponent) throws EngineException {
-    	if (this.applicationComponent != null) {
-    		throw new EngineException("The mobile application \"" + getName() + "\" already contains an application component! Please delete it first.");
-    	}
-    	this.applicationComponent = applicationComponent;
+
+	public void addApplicationComponent(DatabaseObject applicationComponent) throws EngineException {
+		if (this.applicationComponent != null) {
+			throw new EngineException("The mobile application \"" + getName() + "\" already contains an application component! Please delete it first.");
+		}
+		this.applicationComponent = applicationComponent;
 		super.add(applicationComponent);
-    }
-    
-    public void removeApplicationComponent(DatabaseObject applicationComponent) {
-    	if (applicationComponent != null && applicationComponent.equals(this.applicationComponent)) {
-    		this.applicationComponent = null;
-    	}
-    }
-	
+	}
+
+	public void removeApplicationComponent(DatabaseObject applicationComponent) {
+		if (applicationComponent != null && applicationComponent.equals(this.applicationComponent)) {
+			this.applicationComponent = null;
+		}
+	}
+
 	public String getComputedApplicationId() {
 		String applicationId = this.applicationId;
 		if ("".equals(applicationId)) {

@@ -1,5 +1,20 @@
 # Changelog
 
+## 7.9.7
+
+#### Improvements:
+
+- [#534](https://github.com/convertigo/convertigo/issues/534) [Server] Add a new product zip file distribution for Windows Server (Convertigo + JDK + Tomcat)
+- [#536](https://github.com/convertigo/convertigo/issues/536) Test Cases can use internal variables or parameters
+- [#538](https://github.com/convertigo/convertigo/issues/538) Daily check for Activation keys about to expire and write Error in logs as warning
+
+#### Bug Fixes:
+
+- [#525](https://github.com/convertigo/convertigo/issues/525) Fixed, common jar files from <workspace>/libs/ are now in classpath
+- [#532](https://github.com/convertigo/convertigo/issues/532) [MobileBuilder] Fixed, switching between pages holding tabs loads the first tab page
+
+---
+
 ## 7.9.6
 
 #### Improvements:

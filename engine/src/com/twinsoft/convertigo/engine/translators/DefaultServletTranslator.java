@@ -23,6 +23,9 @@ import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -57,6 +60,22 @@ public class DefaultServletTranslator implements Translator {
 
 			if (!inputDocumentBuilder.handleSpecialParameter(parameterName, parameterValues)) {
 				inputDocumentBuilder.addVariable(parameterName, parameterValues, isHandleComplex);
+			}
+		}
+		
+		TestCase tc = TestCase.getTestCase(request, context.projectName);
+		if (tc != null) {
+			for (TestCaseVariable var: tc.getVariables()) {
+				String parameterName = var.getName();
+				if (request.getParameter(parameterName) == null) {
+					Object parameterObject = var.getValueOrNull();
+					String[] parameterValues = (parameterObject instanceof XMLVector<?>) ?
+							((XMLVector<?>) parameterObject).toArray(new String[0]) : new String[] {(String) parameterObject};
+	
+					if (!inputDocumentBuilder.handleSpecialParameter(parameterName, parameterValues)) {
+						inputDocumentBuilder.addVariable(parameterName, parameterValues, isHandleComplex);
+					}
+				}
 			}
 		}
 

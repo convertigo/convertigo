@@ -205,6 +205,51 @@ jobs:
             aws s3 rm s3://convertigo-ci/${folder} --recursive
           done
           
+  build_windows_server:
+    <<: *defaults
+    
+    steps:
+    
+    - attach_workspace:
+        at: ..
+        
+    - restore_cache:
+        keys:
+        - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+        
+    - restore_cache:
+        keys:
+        - v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        - v1-resources-
+        
+    - run:
+        name: Make ZIP
+        command: |
+          source /tmp/build.env
+          aws s3 cp s3://convertigo-ci/convertigo-$CONVERTIGO_BUILD_NAME/convertigo-$CONVERTIGO_VERSION.war engine/build/libs/
+          sh gradlew --info --stacktrace -PconvertigoRevision=$CONVERTIGO_BUILD_NAME :makeWin64ServerZip
+          mv build/*.zip $CONVERTIGO_DIST/
+          
+    - save_cache:
+        paths:
+        - resources
+        key: v1-resources-{{ checksum "build.gradle" }}-{{ checksum ".circleci/config.yml" }}
+        
+    - run:
+        name: Sign ZIP with GPG
+        command: |
+          source /tmp/build.env
+          openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
+          mkdir -p ~/.gnupg
+          tar -xvf installers/convertigo.gpg -C ~/.gnupg
+          find $CONVERTIGO_DIST -type f -name "*.zip" -exec gpg -ab {} \;
+          
+    - run:
+        name: Sync ZIP to S3
+        command: |
+          source /tmp/build.env
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+          
   build_docker_default:
     <<: *defaults
     
@@ -591,6 +636,12 @@ workflows:
         filters:
           tags:
             only: /^\d+\..*$/
+    - build_windows_server:
+        requires:
+        - build_engine_war
+        filters:
+          tags:
+            only: /^\d+\..*$/
     - build_docker_default:
         requires:
         - build_engine_war
@@ -626,6 +677,7 @@ workflows:
         - build_docker_default
         - build_docker_aks
         - build_studio
+        - build_windows_server
         filters:
           branches:
             ignore: /.*/

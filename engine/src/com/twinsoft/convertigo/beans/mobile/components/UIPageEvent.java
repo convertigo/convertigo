@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.mobile.components;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -35,7 +36,10 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	private transient UIActionErrorEvent errorEvent = null;
 	private transient UIActionFinallyEvent finallyEvent = null;
 	
+	private static String tabs_page_event = "if (this['all_c8oTabs'] != undefined) {this['all_c8oTabs'].forEach(x => x.select(0))}";
+	
 	public enum ViewEvent {
+		// visible
 		onDidLoad("ionViewDidLoad"),
 		onWillEnter("ionViewWillEnter"),
 		onDidEnter("ionViewDidEnter"),
@@ -43,23 +47,34 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		onDidLeave("ionViewDidLeave"),
 		onWillUnload("ionViewWillUnload"),
 		onCanEnter("ionViewCanEnter"),
-		onCanLeave("ionViewCanLeave");
+		onCanLeave("ionViewCanLeave"),
 		
+		// not visible
+		onTabsWillEnter("ionViewWillEnter", tabs_page_event),
+		onTabsDidEnter("ionViewDidEnter", tabs_page_event);
+				
 		String event;
+		String code;
 		ViewEvent(String event) {
 			this.event = event;
+		}
+		ViewEvent(String event, String code) {
+			this.event = event;
+			this.code = code;
 		}
 		
 		String computeEvent(List<UIPageEvent> eventList) {
 			StringBuffer children = new StringBuffer();
 			for (UIPageEvent pageEvent : eventList) {
-				if (pageEvent.getViewEvent().equals(this)) {
+				if (pageEvent.getViewEvent().event.equals(this.event)) {
 					String computed = pageEvent.computeEvent();
 					if (!computed.isEmpty()) {
 						if (this.equals(ViewEvent.onCanEnter) || this.equals(ViewEvent.onCanLeave)) {
 							children.append(children.length() > 0 ? "," : "");
 						}
-						children.append(computed.replace("$event", "'"+this.event+"'"));
+						if (!this.equals(ViewEvent.onTabsWillEnter) && !this.equals(ViewEvent.onTabsDidEnter)) {
+							children.append(computed.replace("$event", "'"+this.event+"'"));
+						}
 					}
 				}
 			}
@@ -199,6 +214,11 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	public String computeEvent() {
 		if (isEnabled()) {
 			List<String> list = new ArrayList<String>();
+			
+			if (viewEvent.equals(ViewEvent.onTabsWillEnter) || viewEvent.equals(ViewEvent.onTabsDidEnter)) {
+				list.add(viewEvent.code);
+			}
+			
 			Iterator<UIComponent> it = getUIComponentList().iterator();
 			while (it.hasNext()) {
 				UIComponent component = (UIComponent)it.next();
@@ -229,7 +249,11 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("viewEvent")) {
-			return EnumUtils.toNames(ViewEvent.class);
+			List<String> list = new ArrayList<String>();
+			list.addAll(Arrays.asList(EnumUtils.toNames(ViewEvent.class)));
+			list.remove(ViewEvent.onTabsWillEnter.name());
+			list.remove(ViewEvent.onTabsDidEnter.name());
+			return list.toArray(new String[list.size()]);
 		}
 		return new String[0];
 	}

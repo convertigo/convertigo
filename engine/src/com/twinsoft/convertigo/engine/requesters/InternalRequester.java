@@ -35,6 +35,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -247,6 +249,27 @@ public class InternalRequester extends GenericRequester {
 				
 				if (parameterName.equals(Parameter.Connector.getName())) {
 					bConnectorGivenByUser = true;
+				}
+			}
+		}
+		
+		TestCase tc = TestCase.getTestCase(request, context.projectName);
+		if (tc != null) {
+			for (TestCaseVariable var: tc.getVariables()) {
+				String parameterName = var.getName();
+				String parameterValue;
+				// Handle only convertigo parameters
+				if (!request.containsKey(parameterName) && parameterName.startsWith("__")) {
+					Object parameterObjectValue = var.getValueOrNull();
+					parameterValue = getParameterValue(parameterObjectValue);
+					
+					if (parameterValue != null) {
+						handleParameter(context, parameterName, parameterValue);
+						
+						if (parameterName.equals(Parameter.Connector.getName())) {
+							bConnectorGivenByUser = true;
+						}
+					}
 				}
 			}
 		}
