@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Level;
 
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -54,6 +57,8 @@ import com.twinsoft.convertigo.engine.requesters.PoolRequester;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.tas.Key;
+import com.twinsoft.tas.KeyManager;
 import com.twinsoft.twinj.iJavelin;
 import com.twinsoft.util.DevicePool;
 
@@ -544,6 +549,7 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.warn("Studio context => pools won't be initialized!");
 		}
 		long nextGC = System.currentTimeMillis() + 600000; /* 10 min */
+		long nextKeyCheck = 0;
 
 		while (isRunning) {
 			Engine.logContextManager.debug("Vulture task in progress");
@@ -555,6 +561,10 @@ public class ContextManager extends AbstractRunnableManager {
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] In use", com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads + " (" + 100 * com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads / maxNbCurrentWorkerThreads + "%)");
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] [Worker threads] Max", maxNbCurrentWorkerThreads);
 
+				if (now > nextKeyCheck && Engine.logEngine.isEnabledFor(Level.ERROR)) {
+					nextKeyCheck = now + (1000 * 60 * 60 * 24);
+					verifyKeyExpiration();
+				}
 				removeExpiredContexts();
 				managePoolContexts();
 				clearOldLogs();
@@ -961,6 +971,45 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 		if (sb != null) {
 			Engine.logEngine.info(sb);
+		}
+	}
+	
+	private void verifyKeyExpiration() {
+		try {
+			Iterator<?> iter = KeyManager.keys.values().iterator();
+			Key seKey = null;
+			long now = System.currentTimeMillis()/(1000*3600*24);
+			SimpleDateFormat formater = new SimpleDateFormat("dd/MM/yyyy");
+			while (iter.hasNext()) {
+				Key key = (Key) iter.next();
+				
+				if (key.emulatorID == com.twinsoft.api.Session.EmulIDSE) {
+					// check (unlimited key or currentKey expiration date later than previous)
+					if ((seKey == null) || (key.expiration == 0) || (key.expiration >= seKey.expiration)) {
+						seKey = key;
+					}
+					continue; // skip overdated or overriden session key, only ONE is allowed
+				}
+			}
+			
+			iter = KeyManager.keys.values().iterator();
+			while (iter.hasNext()) {
+				Key key = (Key) iter.next();
+				
+				if (key.expiration > 0 && (key.emulatorID != com.twinsoft.api.Session.EmulIDSE || key == seKey)) {
+					long nbDays = key.expiration - now;
+					if (nbDays <= 28) {
+						String expiDate = formater.format((long) key.expiration * 3600000 * 24);
+						Engine.logEngine.error("Activation KEY [" + key.sKey + "] for '" + KeyManager.getEmulatorName(key.emulatorID) + "' will expire in " + nbDays + " days, the " + expiDate + ".\n"
+							+ "Please renew licenses by sending a mail to: sales@convertigo.com\n"
+							+ "Once keys are expired, Convertigo server failures can be expected.\n"
+							+ "Renewal of activation key is at the responsibility of the customer.\n"
+							+ "Convertigo shall not be responsible for non renewal of Keys due to late Purchase Orders.");
+					}
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to check expiration of keys", e);
 		}
 	}
 }
