@@ -52,7 +52,7 @@ public class UIText extends UIComponent implements ITagsProperty {
 		this.textValue = textValue;
 	}
 
-	private boolean i18n = true;
+	private boolean i18n = false;
 
 	public boolean isI18n() {
 		return i18n;
