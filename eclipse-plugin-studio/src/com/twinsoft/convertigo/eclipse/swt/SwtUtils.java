@@ -20,14 +20,19 @@
 package com.twinsoft.convertigo.eclipse.swt;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.e4.ui.css.core.engine.CSSEngine;
+import org.eclipse.e4.ui.css.swt.dom.CompositeElement;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
@@ -94,6 +99,15 @@ public class SwtUtils {
 			themeEngine.setTheme(themeEngine.getActiveTheme(), true);
 		} catch (Exception e) {
 			//e.printStackTrace();
+		}
+	}
+	
+	public static void applyStyle(Control control, String style) {
+		CSSEngine engine = CompositeElement.getEngine(control);
+		try {
+			engine.parseStyleSheet(new StringReader("#handle" + control.handle + " " + style));
+			control.setData("org.eclipse.e4.ui.css.id", "handle" + control.handle);
+		} catch (IOException e) {
 		}
 	}
 }

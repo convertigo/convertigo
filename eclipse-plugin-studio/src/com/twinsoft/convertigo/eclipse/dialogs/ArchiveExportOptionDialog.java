@@ -21,33 +21,42 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.io.File;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class ArchiveExportOptionDialog extends Dialog {
+	private boolean bDeploy;
 	private Project project;
 	private String version;
 	private Set<ArchiveExportOption> archiveExportOptions;
+	private boolean isMobileUnbuilt = false;
 	
 	private Text versionSWT;
 	private Button[] archiveExportOptionsSWT;
 	
-	public ArchiveExportOptionDialog(Shell parent, Project project) {
+	public ArchiveExportOptionDialog(Shell parent, Project project, boolean bDeploy) {
 		super(parent);
 		this.project = project;
+		this.bDeploy = bDeploy;
 		this.version = project.getVersion();
 		this.archiveExportOptions = ArchiveExportOption.load(project.getDirFile());
 	}
@@ -55,22 +64,30 @@ public class ArchiveExportOptionDialog extends Dialog {
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = (Composite) super.createDialogArea(parent);
-		composite.setLayout(new FillLayout(SWT.VERTICAL));
-		((FillLayout) composite.getLayout()).marginWidth = 5;
+		GridLayout gl = new GridLayout(1, false);
+		gl.verticalSpacing = 10;
+		composite.setLayout(gl);
 		
 		Label label = new Label(composite, SWT.NONE);
-		label.setText("You can update the version of your project before export or deployment.\n" +
-				"If you wish to, please change the value below :");
-		versionSWT = new Text(composite, SWT.NONE);
+		label.setText("You can update the version of your project before export or deployment.");
+		Group group = new Group(composite, SWT.NONE);
+		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		group.setText("If you wish to, please change the value below: ");
+		group.setLayout(new FillLayout(SWT.VERTICAL));
+		versionSWT = new Text(group, SWT.NONE);
 		versionSWT.setText(version);
 		
+		group = new Group(composite, SWT.NONE);
+		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		group.setText("Check to include: ");
+		group.setLayout(new FillLayout(SWT.VERTICAL));
 		archiveExportOptionsSWT = new Button[ArchiveExportOption.values().length];
 		int i = 0;
 		File projectDir = project.getDirFile();
 		for (ArchiveExportOption option: ArchiveExportOption.values()) {
 			long size = option.size(projectDir);
 			if (size > 0) {
-				Button check = new Button(composite, SWT.CHECK);
+				Button check = new Button(group, SWT.CHECK);
 				check.setData(option);
 				if (option == ArchiveExportOption.includeTestCase) {
 					check.setText(option.display());
@@ -83,17 +100,44 @@ public class ArchiveExportOptionDialog extends Dialog {
 				archiveExportOptionsSWT[i++] = null;
 			}
 		}
+		
+		if (!bDeploy) {
+			isMobileUnbuilt = false;
+			IApplicationComponent app = null;
+			if (project.getMobileApplication() != null && (app = project.getMobileApplication().getApplicationComponent()) != null) {
+				if (app instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+					isMobileUnbuilt = !new File(projectDir, "DisplayObjects/mobile/build/main.js").exists();
+				} else if (app instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+					isMobileUnbuilt = true;
+					for (File f: new File(projectDir, "DisplayObjects/mobile/").listFiles()) {
+						if (Pattern.matches("main.*\\.js", f.getName())) {
+							isMobileUnbuilt = false;
+							break;
+						}
+					};
+				}
+			}
+			
+			if (isMobileUnbuilt) {
+				label = new Label(composite, SWT.NONE);
+				label.setText("The Mobile Application isn't build yet. You should build it before continuing.\n"
+					+ "Open the mobile editor and run a watch or a production build from the sidebar.\n"
+					+ "Once the build finished, you can try to deploy it again.");
+				SwtUtils.applyStyle(label, "{ color: red }");
+			}
+		}
+		
 		composite.pack(true);
 		return composite;
 	}
 
 	@Override
 	protected Control createButtonBar(Composite parent) {
-		Control buttonBar =  super.createButtonBar(parent);
+		Control buttonBar = super.createButtonBar(parent);
 		getButton(IDialogConstants.OK_ID).setText("Continue");
 		return buttonBar;
 	}
-	
+
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
