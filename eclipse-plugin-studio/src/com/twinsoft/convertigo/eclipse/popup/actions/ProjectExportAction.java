@@ -48,48 +48,48 @@ public class ProjectExportAction extends MyAbstractAction {
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			ProjectTreeObject projectTreeObject = (ProjectTreeObject) explorerView.getFirstSelectedTreeObject();
-    			Project project = (Project) projectTreeObject.getObject();
-            	String projectName = project.getName();
 
-            	if (projectTreeObject.hasChanged() && !projectTreeObject.save(true)) {
-            		return;
-            	}
-            	
-            	ArchiveExportOptionDialog dlg = new ArchiveExportOptionDialog(shell, project);
-            	if (dlg.open() != Window.OK) {
-            		return;
-            	}
-            	
-            	if (!dlg.getVersion().equals(project.getVersion())) {
-	        		project.setVersion(dlg.getVersion());
-	        		project.hasChanged = true;
-	        		projectTreeObject.save(false);
-            	}
-        		
-            	explorerView.refreshTreeObject(projectTreeObject);
-    			
-    			String projectArchive = projectName + ".car";
-    			
-            	FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
-            	fileDialog.setText("Export a project");
-            	fileDialog.setFilterExtensions(new String[]{"*.car","*.zip"});
-            	fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo archives as zip"});
-            	fileDialog.setFilterPath(Engine.PROJECTS_PATH);
-            	fileDialog.setFileName(projectArchive);
-            	
-            	String filePath = fileDialog.open();
-            	if (filePath != null) {					
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				ProjectTreeObject projectTreeObject = (ProjectTreeObject) explorerView.getFirstSelectedTreeObject();
+				Project project = (Project) projectTreeObject.getObject();
+				String projectName = project.getName();
+
+				if (projectTreeObject.hasChanged() && !projectTreeObject.save(true)) {
+					return;
+				}
+
+				ArchiveExportOptionDialog dlg = new ArchiveExportOptionDialog(shell, project, false);
+				if (dlg.open() != Window.OK) {
+					return;
+				}
+
+				if (!dlg.getVersion().equals(project.getVersion())) {
+					project.setVersion(dlg.getVersion());
+					project.hasChanged = true;
+					projectTreeObject.save(false);
+				}
+
+				explorerView.refreshTreeObject(projectTreeObject);
+
+				String projectArchive = projectName + ".car";
+
+				FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
+				fileDialog.setText("Export a project");
+				fileDialog.setFilterExtensions(new String[]{"*.car","*.zip"});
+				fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo archives as zip"});
+				fileDialog.setFilterPath(Engine.PROJECTS_PATH);
+				fileDialog.setFileName(projectArchive);
+
+				String filePath = fileDialog.open();
+				if (filePath != null) {
 					File file = new File(filePath);
-					
+
 					if (file.exists()) {
 						if (ConvertigoPlugin.questionMessageBox(shell, "File already exists. Do you want to overwrite?") == SWT.YES) {
 							if (!file.delete()) {
@@ -100,28 +100,28 @@ public class ProjectExportAction extends MyAbstractAction {
 							return;
 						}
 					}
-					
-            		if (Pattern.matches(".+(\\.zip|\\.car)", file.getName())) {
-    					CarUtils.makeArchive(file, project, dlg.getArchiveExportOptions());
-    				}
-    				else {
-    					Toolkit.getDefaultToolkit().beep();
-    					ConvertigoPlugin.logWarning("Wrong file extension!");
-    				}
-            	}
-            	
-            	projectTreeObject.getIProject().refreshLocal(IResource.DEPTH_ONE, null);
+
+					if (Pattern.matches(".+(\\.zip|\\.car)", file.getName())) {
+						CarUtils.makeArchive(file, project, dlg.getArchiveExportOptions());
+					}
+					else {
+						Toolkit.getDefaultToolkit().beep();
+						ConvertigoPlugin.logWarning("Wrong file extension!");
+					}
+				}
+
+				projectTreeObject.getIProject().refreshLocal(IResource.DEPTH_ONE, null);
 				explorerView.setFocus();
 				explorerView.setSelectedTreeObject(projectTreeObject);
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to export the project!");
-        }
-        finally {
+			}
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to export the project!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }        
+		}
 	}
 
 }

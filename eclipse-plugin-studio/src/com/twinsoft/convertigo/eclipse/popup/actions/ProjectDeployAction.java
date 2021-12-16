@@ -40,7 +40,7 @@ public class ProjectDeployAction extends MyAbstractAction {
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
@@ -55,7 +55,7 @@ public class ProjectDeployAction extends MyAbstractAction {
 					return;
 				}
 
-				ArchiveExportOptionDialog dlg = new ArchiveExportOptionDialog(shell, project);
+				ArchiveExportOptionDialog dlg = new ArchiveExportOptionDialog(shell, project, true);
 				if (dlg.open() != Window.OK) {
 					return;
 				}

@@ -24,8 +24,12 @@ import java.io.File;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
@@ -33,6 +37,7 @@ import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.BuildLocallyEndingDialog;
+import com.twinsoft.convertigo.eclipse.property_editors.MobileApplicationEndpointEditorComposite;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -130,15 +135,59 @@ public class BuildLocallyAction extends MyAbstractAction {
 			parentShell.setCursor(waitCursor);
 		}
 		
-		try {			
+		try {
 			if (mobilePlatform != null) {
 				//Check endpoint url is empty or not
 				MobileApplication mobileApplication = mobilePlatform.getParent();
-
-				if (mobileApplication.getEndpoint().equals("")) {
+				String exEndpoint[] = {mobileApplication.getEndpoint()};
+				String curEndpoint[] = {exEndpoint[0]};
+				
+				try {
+					MobileApplicationEndpointEditorComposite[] mob = new MobileApplicationEndpointEditorComposite[1];
+					Dialog dialog = new Dialog(parentShell) {
+						
+						@Override
+						protected void createButtonsForButtonBar(Composite parent) {
+							createButton(parent, IDialogConstants.OK_ID, "Build", true);
+							createButton(parent, IDialogConstants.FINISH_ID, "Save and Build", false);
+							createButton(parent, IDialogConstants.CANCEL_ID, "Cancel Build", false);
+						}
+						
+						@Override
+						protected void buttonPressed(int buttonId) {
+							super.buttonPressed(buttonId);
+							if (IDialogConstants.FINISH_ID == buttonId) {
+								setReturnCode(buttonId);
+								close();
+							}
+						}
+						
+						@Override
+						protected Control createDialogArea(Composite parent) {
+							Composite composite = (Composite) super.createDialogArea(parent);
+							mob[0] = new MobileApplicationEndpointEditorComposite(composite, SWT.NONE, mobileApplication);
+							return composite;
+						}
+						
+					};
+					int code = dialog.open();
+					if (code == Dialog.OK || code == IDialogConstants.FINISH_ID) {
+						curEndpoint[0] = mob[0].getValue();
+					} else {
+						return;
+					}
+					if (code == IDialogConstants.FINISH_ID) {
+						mobileApplication.setEndpoint(curEndpoint[0]);
+						mobileApplication.hasChanged = true;
+						exEndpoint[0] = null;
+					}
+				} catch (Exception e) {
+				}
+				
+				if (curEndpoint[0].equals("")) {
 					if (parentShell != null) {
 						MessageBox informDialog = new MessageBox(parentShell, SWT.ICON_INFORMATION | SWT.OK);
-						informDialog.setText("Endpoint URL are empty");
+						informDialog.setText("Endpoint URL is empty");
 						informDialog.setMessage(
 							"You need to have an endpoint URL to continue the local build.\n" +
 							"Please enter a valid endpoint URL in the property \"Convertigo server endpoint\" present on \"" + 
@@ -155,17 +204,24 @@ public class BuildLocallyAction extends MyAbstractAction {
 					
 					@Override
 					protected IStatus run(IProgressMonitor progressMonitor) {
-						
+
 						BuildLocally.Status status = buildLocally.installCordova();
 						if (status == BuildLocally.Status.CANCEL) {
 							return org.eclipse.core.runtime.Status.CANCEL_STATUS;
 						}
-						
-						status = buildLocally.runBuild(option, run, target);
-						if (status == BuildLocally.Status.OK) {
-							return org.eclipse.core.runtime.Status.OK_STATUS;
+
+						try {
+							mobileApplication.setEndpoint(curEndpoint[0]);
+							status = buildLocally.runBuild(option, run, target);
+							if (status == BuildLocally.Status.OK) {
+								return org.eclipse.core.runtime.Status.OK_STATUS;
+							}
+							return org.eclipse.core.runtime.Status.CANCEL_STATUS;
+						} finally {
+							if (exEndpoint[0] != null) {
+								mobileApplication.setEndpoint(exEndpoint[0]);
+							}
 						}
-						return org.eclipse.core.runtime.Status.CANCEL_STATUS;
 					}
 
 					@Override
