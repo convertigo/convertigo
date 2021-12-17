@@ -101,7 +101,7 @@ public class ArchiveExportOptionDialog extends Dialog {
 			}
 		}
 		
-		if (!bDeploy) {
+		if (bDeploy) {
 			isMobileUnbuilt = false;
 			IApplicationComponent app = null;
 			if (project.getMobileApplication() != null && (app = project.getMobileApplication().getApplicationComponent()) != null) {
@@ -120,9 +120,9 @@ public class ArchiveExportOptionDialog extends Dialog {
 			
 			if (isMobileUnbuilt) {
 				label = new Label(composite, SWT.NONE);
-				label.setText("The Mobile Application isn't build yet. You should build it before continuing.\n"
+				label.setText("The Mobile Application isn't build yet. You must built it before continuing:\n"
 					+ "Open the mobile editor and run a watch or a production build from the sidebar.\n"
-					+ "Once the build finished, you can try to deploy it again.");
+					+ "Once the build finished, you can deploy again.");
 				SwtUtils.applyStyle(label, "{ color: red }");
 			}
 		}
