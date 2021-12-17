@@ -41,6 +41,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
@@ -67,13 +68,21 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 	private void initialize() {
 		GridLayout gl = new GridLayout(1, false);
 		setLayout(gl);
+		Label label = new Label(this, SWT.WRAP);
+		label.setText("Choose a valid mobile end point.\n\n"
+				+ "The mobile end point will be the URL the mobile application will\n"
+				+ "use to interact with the Convertigo Server.\n\n"
+				+ "If you want to test your mobile application using sequences running in your studio,\n"
+				+ "use one of the localhost or local IP port 18080 end points.\n\n"
+				+ "If you build for production and want to run your apps interacting\n"
+				+ "with cloud or on premises servers, use one of the deployment end points.");
 		Group group = new Group(this, SWT.NONE);
 		group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		FillLayout fillLayout = new FillLayout(SWT.VERTICAL);
 		fillLayout.marginHeight = 5;
 		fillLayout.marginWidth = 5;
 		group.setLayout(fillLayout);
-		group.setText("Please check this is the valid mobile endpoint. The mobile have to connect this Convertigo server: ");
+		group.setText("End point: ");
 		Text tEndpoint = new Text(group, SWT.NONE);
 		tEndpoint.setText(value);
 		tEndpoint.addVerifyListener((VerifyEvent e) -> {
@@ -82,12 +91,8 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 		
 		group = new Group(this, SWT.NONE);
 		group.setLayoutData(new GridData(GridData.FILL_BOTH));
-		fillLayout = new FillLayout(SWT.VERTICAL);
-		fillLayout.spacing = 10;
-		fillLayout.marginHeight = 10;
-		fillLayout.marginWidth = 10;
-		group.setLayout(fillLayout);
-		group.setText("You can choose one of the folling possible Endpoint: ");
+		group.setLayout(new GridLayout(2, false));
+		group.setText("You can choose one of the following possible end point: ");
 		
 		LinkedHashSet<Pair<String, String>> endpoints = new LinkedHashSet<>();
 		try {
@@ -107,8 +112,8 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 		HttpGet http = new HttpGet("https://ifconfig.io");
 		HeaderName.UserAgent.addHeader(http, "curl");
 		try (InputStream is = Engine.theApp.httpClient4.execute(http).getEntity().getContent()) {
-			String ip = IOUtils.toString(is, StandardCharsets.US_ASCII);
-			endpoints.add(Pair.of("http://" + ip + "/convertigo", "from public IP (please check your port forwarding)"));
+			String ip = IOUtils.toString(is, StandardCharsets.US_ASCII).trim();
+			endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from public IP (please check your port forwarding)"));
 		} catch (Exception e) {
 		}
 		
@@ -117,7 +122,7 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 				for (InetAddress addr: Collections.list(netint.getInetAddresses())) {
 					String ip = addr.getHostAddress();
 					if (!ip.contains(":")) {
-						endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "Net Interface: " + netint.getDisplayName()));
+						endpoints.add(Pair.of("http://" + ip + ":18080/convertigo", "from " + netint.getDisplayName()));
 					}
 				}
 			}
@@ -128,7 +133,7 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				tEndpoint.setText(((Button) e.widget).getText());
+				tEndpoint.setText((String) e.widget.getData());
 			}
 			
 			@Override
@@ -137,10 +142,16 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 		};
 		
 		for (Pair<String, String> endpoint: endpoints) {
+			label = new Label(group, SWT.NONE);
+			label.setText(endpoint.getKey());
+			label.setToolTipText(endpoint.getValue());
+			label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL));
 			Button button = new Button(group, SWT.PUSH);
-			button.setText(endpoint.getKey());
+			button.setText("Choose and edit ✎");
 			button.setToolTipText(endpoint.getValue());
 			button.addSelectionListener(sl);
+			button.setData(endpoint.getKey());
+			button.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		}
 	}
 

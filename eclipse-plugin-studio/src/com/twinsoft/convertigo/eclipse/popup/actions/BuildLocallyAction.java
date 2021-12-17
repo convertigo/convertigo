@@ -148,8 +148,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 						
 						@Override
 						protected void createButtonsForButtonBar(Composite parent) {
-							createButton(parent, IDialogConstants.OK_ID, "Build", true);
-							createButton(parent, IDialogConstants.FINISH_ID, "Save and Build", false);
+							createButton(parent, IDialogConstants.OK_ID, "Build and Restore", true);
+							createButton(parent, IDialogConstants.FINISH_ID, "Build and Keep", false);
 							createButton(parent, IDialogConstants.CANCEL_ID, "Cancel Build", false);
 						}
 						
