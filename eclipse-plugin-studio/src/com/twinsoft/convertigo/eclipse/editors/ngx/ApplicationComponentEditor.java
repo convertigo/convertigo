@@ -1679,6 +1679,16 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					if (id == -1 || output.indexOf('\n', id) == -1) {
 						retry = 0;
 					}
+					
+					process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
+							("Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'" + prod).replace("\\", "\\\\"),
+							"CALL", "TERMINATE").start();
+					output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
+					process.waitFor();
+					id = output.indexOf('\n');
+					if (id == -1 || output.indexOf('\n', id) == -1) {
+						retry = 0;
+					}
 				} else {
 					//ps -e | sed -n -E "s/ ([0-9]+).*Fli.*/\1/p" | xargs kill
 					String prod = prodOnly ? " | grep \"--watch\"" : "";
