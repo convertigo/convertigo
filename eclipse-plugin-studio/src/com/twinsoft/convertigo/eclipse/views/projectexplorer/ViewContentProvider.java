@@ -21,6 +21,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IFolder;
@@ -59,6 +60,16 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	public Object[] getElements(Object parent) {
 		if (parent.equals(projectExplorerView.getViewSite())) {
 			getUnloadedProjects();
+			if (invisibleRoot != null && "true".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_HIDE_LIB_PROJECTS))) {
+				Collection<? extends TreeObject> c = invisibleRoot.getChildren();
+				Iterator<? extends TreeObject> i = c.iterator();
+				while (i.hasNext()) {
+					if (i.next().getName().startsWith("lib_")) {
+						i.remove();
+					}
+				}
+				return c.toArray(new TreeObject[c.size()]);
+			}
 			return getChildren(invisibleRoot);
 		}
 		return getChildren(parent);

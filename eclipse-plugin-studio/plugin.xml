@@ -4088,6 +4088,16 @@
                tooltip="Save all">
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerToggleLibsAction"
+               icon="icons/studio/project_explorer.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.toggleLibs"
+               label="ToggleLibs"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Toggle libs Projects visibility">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
                disabledIcon="icons/studio/dbo_increase_priority.d.gif"
                enablesFor="+"

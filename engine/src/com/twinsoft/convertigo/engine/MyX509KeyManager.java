@@ -109,7 +109,7 @@ public class MyX509KeyManager implements X509KeyManager {
 				Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): added certificate: " + certificate.toString());
 				
 				previousIssuer = issuer;
-				issuer = (Principal) certificate.getIssuerDN();
+				issuer = (Principal) certificate.getIssuerX500Principal();
 				certificate = null;
 				Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): issuer=" + issuer.toString());				
 				
@@ -143,15 +143,15 @@ public class MyX509KeyManager implements X509KeyManager {
 		for (Enumeration<String> alias = store.aliases(); alias.hasMoreElements(); ) {
 			X509Certificate certificate = (X509Certificate) store.getCertificate(alias.nextElement());
 			Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateFromSubjectDN(): certificate=" + certificate.toString());
-			if (certificate.getSubjectDN().equals(issuer)) {
+			if (certificate.getSubjectX500Principal().equals(issuer)) {
 				Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): issuer found; break");
 				return certificate;
 			}
 		}
-		return null;		
+		return null;
 	}
 
 	public java.security.PrivateKey getPrivateKey(String alias) {
 		return impl.getPrivateKey(alias);
 	}
-}    
+}

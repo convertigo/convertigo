@@ -264,7 +264,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 	protected boolean bDebug = false;
 	protected boolean bShowBlocks = false;
-	protected Boolean bDebugStepByStep = Boolean.valueOf(false);
+	protected boolean bDebugStepByStep = false;
 	protected DatabaseObject debugDatabaseObject = new Project();
 
 	/**
@@ -326,16 +326,16 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemRun.setToolTipText("Continuous debug mode");
 		toolItemRun.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
-				if (ConvertigoPlugin.projectManager.currentProject == null) return;
-				synchronized(bDebugStepByStep) {
-					try {
-						ConvertigoPlugin.getDefault().debugConsoleStream.write("Changing debug state to continuous\n");
-					} catch (IOException ex) {}
-					bDebugStepByStep = Boolean.valueOf(false);
-					toolItemRun.setEnabled(false);
-					toolItemStep.setEnabled(false);
-					toolItemPause.setEnabled(true);
+				if (ConvertigoPlugin.projectManager.currentProject == null) {
+					return;
 				}
+				try {
+					ConvertigoPlugin.getDefault().debugConsoleStream.write("Changing debug state to continuous\n");
+				} catch (IOException ex) {}
+				bDebugStepByStep = Boolean.valueOf(false);
+				toolItemRun.setEnabled(false);
+				toolItemStep.setEnabled(false);
+				toolItemPause.setEnabled(true);
 				synchronized(debugDatabaseObject) {
 					debugDatabaseObject.notify();
 				}
@@ -353,17 +353,16 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		toolItemPause.setToolTipText("Pause the debug process");
 		toolItemPause.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
-				if (ConvertigoPlugin.projectManager.currentProject == null) return;
-				synchronized(bDebugStepByStep) {
-					try {
-						ConvertigoPlugin.getDefault().debugConsoleStream.write("Changing debug state to step by step\n");
-					} catch (IOException ex) {}
-					bDebugStepByStep = Boolean.valueOf(true);
-					toolItemRun.setEnabled(true);
-					toolItemStep.setEnabled(true);
-					toolItemPause.setEnabled(false);
+				if (ConvertigoPlugin.projectManager.currentProject == null) {
+					return;
 				}
-
+				try {
+					ConvertigoPlugin.getDefault().debugConsoleStream.write("Changing debug state to step by step\n");
+				} catch (IOException ex) {}
+				bDebugStepByStep = Boolean.valueOf(true);
+				toolItemRun.setEnabled(true);
+				toolItemStep.setEnabled(true);
+				toolItemPause.setEnabled(false);
 			}
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
@@ -785,20 +784,18 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			ConvertigoPlugin.getDefault().debugConsoleStream.write("Step reached before executing database object: "+ debugDatabaseObject.getName() +"\n");
 		} catch (IOException e1) {}
 
-		if (bDebugStepByStep.booleanValue()) {
+		try {
+			synchronized(debugDatabaseObject) {
+				debugDatabaseObject.wait();
+			}
+			getDisplay().syncExec(() -> {
+				toolItemStep.setEnabled(true);
+			});
+		}
+		catch(InterruptedException e) {
 			try {
-				synchronized(debugDatabaseObject) {
-					debugDatabaseObject.wait();
-				}
-				getDisplay().syncExec(() -> {
-					toolItemStep.setEnabled(true);
-				});
-			}
-			catch(InterruptedException e) {
-				try {
-					ConvertigoPlugin.getDefault().debugConsoleStream.write("Next step required\n");
-				} catch (IOException ex) {}
-			}
+				ConvertigoPlugin.getDefault().debugConsoleStream.write("Next step required\n");
+			} catch (IOException ex) {}
 		}
 	}
 

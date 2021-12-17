@@ -2253,7 +2253,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void closeAllProjects() {
 		ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
 		if (provider != null) {
-			Object[] objects = provider.getElements(getViewSite());
+			Object[] objects = provider.getChildren(provider.getTreeRoot());
 			for (int i=0; i<objects.length; i++) {
 				TreeObject treeObject = (TreeObject)objects[i];
 				if (treeObject instanceof ProjectTreeObject) {
@@ -2268,7 +2268,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private boolean loadedProjectsHaveReferences() {
 		ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
 		if (provider != null) {
-			Object[] objects = provider.getElements(getViewSite());
+			Object[] objects = provider.getChildren(provider.getTreeRoot());
 			for (int i=0; i<objects.length; i++) {
 				TreeObject treeObject = (TreeObject)objects[i];
 				if (treeObject instanceof ProjectTreeObject) {
@@ -2569,7 +2569,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 			ViewContentProvider provider = (ViewContentProvider) viewer.getContentProvider();
 			if (provider != null) {
-				Object[] objects = provider.getElements(getViewSite());
+				Object[] objects = provider.getChildren(provider.getTreeRoot());
 				for (int i = 0; i < objects.length; i++) {
 					TreeObject treeObject = (TreeObject) objects[i];
 					if (treeObject instanceof ProjectTreeObject) {
@@ -2582,12 +2582,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					else if (treeObject instanceof UnloadedProjectTreeObject) {
 						UnloadedProjectTreeObject unloadedProjectTreeObject = (UnloadedProjectTreeObject) treeObject;
 
-						if (unloadedProjectTreeObject.getName().equals(databaseProject.getName())) {						
+						if (unloadedProjectTreeObject.getName().equals(databaseProject.getName())) {
 							TreeParent parent = unloadedProjectTreeObject.getParent();
 							String path = unloadedProjectTreeObject.getPath();
 
-							return findTreeObjectByPath(parent, path);											
-						}					
+							return findTreeObjectByPath(parent, path);
+						}
 					}
 				}
 			}

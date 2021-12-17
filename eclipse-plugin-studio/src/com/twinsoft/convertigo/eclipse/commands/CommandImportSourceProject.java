@@ -69,9 +69,7 @@ public class CommandImportSourceProject extends AbstractHandler {
 					for (Entry<String, File> project: projects.entrySet()) {
 						elements[i++] = project.getKey() + "  → " + project.getValue().getAbsolutePath().substring(len);
 					}
-					ListSelectionDialog dialog = 
-					   new ListSelectionDialog(ConvertigoPlugin.getMainShell(), elements, ArrayContentProvider.getInstance(),
-					            new LabelProvider(), "Select Convertigo project to import");
+					ListSelectionDialog dialog = ListSelectionDialog.of(elements).contentProvider(ArrayContentProvider.getInstance()).labelProvider(new LabelProvider()).message("Select Convertigo project to import").create(ConvertigoPlugin.getMainShell());
 					dialog.setTitle("Import Convertigo projects");
 					dialog.setInitialSelections(elements);
 					dialog.open();
