@@ -246,7 +246,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, mc);
 				if (input != null) {
-					String editorId = "org.eclipse.wst.html.core.htmlsource.source";
+					String editorId = "org.eclipse.ui.genericeditor.GenericEditor";
 					
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
