@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.zip.GZIPInputStream;
 
 import javax.mail.MessagingException;
@@ -476,7 +477,7 @@ public class HttpConnector extends Connector {
 				
 				Engine.logBeans.trace("(HttpConnector) Path variable: " + varName + " => (" + method + ") " + httpVariable);
 				
-				sUrl = sUrl.replaceAll("\\{" + varName + "\\}", ParameterUtils.toString(httpObjectVariableValue));
+				sUrl = sUrl.replaceAll("\\{" + varName + "\\}", Matcher.quoteReplacement(ParameterUtils.toString(httpObjectVariableValue)));
 			}
 		}
 		
