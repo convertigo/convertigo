@@ -199,7 +199,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	public boolean rename(String newName, boolean bDialog) {
 		closeAllEditors();
 		MobileBuilder.releaseBuilder(getObject());
-		return super.rename(newName, bDialog);
+		boolean renamed = super.rename(newName, bDialog);
+		if (!renamed) {MobileBuilder.initBuilder(getObject());}
+		return renamed;
 	}
 
 	/**
