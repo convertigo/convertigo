@@ -86,6 +86,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
@@ -197,6 +198,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	@Override
 	public boolean rename(String newName, boolean bDialog) {
 		closeAllEditors();
+		MobileBuilder.releaseBuilder(getObject());
 		return super.rename(newName, bDialog);
 	}
 

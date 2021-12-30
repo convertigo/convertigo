@@ -329,6 +329,9 @@ public class DirectoryWatcherService implements Runnable {
 	        if (moribund != null) {
 	            moribund.interrupt();
 	        }
+    		if (this.watcher != null) {
+    			this.watcher.close();
+    		}
     	} catch (Exception e) {
     		Engine.logEngine.error(e.getMessage());
     	} finally {
