@@ -20,8 +20,8 @@ import groovy.xml.XmlUtil
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '7.9.7'
-ext.convertigoTag = ''
+ext.convertigoVersion = '7.9.8'
+ext.convertigoTag = 'beta'
 ext.convertigoCodename = 'gold'
 ext.convertigoCode = 'Au'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
