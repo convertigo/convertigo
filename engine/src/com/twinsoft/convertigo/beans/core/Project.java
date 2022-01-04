@@ -767,6 +767,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			getNeededProjects(neededProjects, sequence);
 		}
 		
+		//needed projects for the mobile application
 		try {
 			IApplicationComponent app = mobileApplication.getApplicationComponent();
 			
@@ -828,7 +829,47 @@ public class Project extends DatabaseObject implements IInfoProperty {
 						}
 					}
 				}
-			} catch (Exception e)	{}
+		        if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement) {
+		        	com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = 
+		        			((com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement)dbo).getIonBean();
+		        	if (ionBean != null) {
+			    		for (com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty property : ionBean.getProperties().values()) {
+			    			String editor = property.getEditor();
+			    			if (editor.equals("NamedSourceSelectorEditor")) {
+			    				String qname = (String) property.getValue();
+								if (!qname.isEmpty() && !qname.startsWith(dbo.getProject().getName() + ".")) {
+									int index = qname.indexOf(".");
+									if (index != -1) {
+										String targetProjectName = qname.substring(0, index);
+										neededProjects.put(targetProjectName, true);
+									}
+								}
+			    			}
+			    		}
+		        	}
+		        }
+		        if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
+		        	com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = 
+		        			((com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement)dbo).getIonBean();
+		        	if (ionBean != null) {
+			    		for (com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty property : ionBean.getProperties().values()) {
+			    			String editor = property.getEditor();
+			    			if (editor.equals("NamedSourceSelectorEditor")) {
+			    				String qname = (String) property.getValue();
+								if (!qname.isEmpty() && !qname.startsWith(dbo.getProject().getName() + ".")) {
+									int index = qname.indexOf(".");
+									if (index != -1) {
+										String targetProjectName = qname.substring(0, index);
+										neededProjects.put(targetProjectName, true);
+									}
+								}
+			    			}
+			    		}
+		        	}
+		        }
+			} catch (Exception e)	{
+				e.printStackTrace();
+			}
 			
 			for (DatabaseObject child: dbo.getAllChildren()) {
 				getNeededProjects(neededProjects, child);
@@ -859,6 +900,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		
 		try {
+			missingProjects.remove(getName());
 			missingProjects.remove(mobileApplication.getApplicationComponent().getTplProjectName());
 		} catch (Exception e) {
 		}
@@ -876,6 +918,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			} catch (Exception e) {
 			}
 		}
+		missingProjects.remove(getName());
 		return missingProjects;
 	}
 
