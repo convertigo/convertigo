@@ -685,11 +685,13 @@ public class NgxBuilder extends MobileBuilder {
 		
 		ApplicationComponent application = (ApplicationComponent) project.getMobileApplication().getApplicationComponent();
 		String tplName = application.getTplProjectName();
-		try {
-			Engine.theApp.referencedProjectManager.getReferenceFromProject(project, tplName);
-			Engine.theApp.referencedProjectManager.importProjectFrom(project, tplName);
-		} catch (Exception e) {
-			throw new EngineException("Failed to import referenced template: " + tplName + " :" + e.getMessage(), e);
+		if (!project.getName().equals(tplName)) {
+			try {
+				Engine.theApp.referencedProjectManager.getReferenceFromProject(project, tplName);
+				Engine.theApp.referencedProjectManager.importProjectFrom(project, tplName);
+			} catch (Exception e) {
+				throw new EngineException("Failed to import referenced template: " + tplName + " :" + e.getMessage(), e);
+			}
 		}
 		
 		ionicTplDir = application.getIonicTplDir();
@@ -982,8 +984,10 @@ public class NgxBuilder extends MobileBuilder {
 	private List<PageComponent> getEnabledPages(final ApplicationComponent application) {
 		List<PageComponent> pages = new ArrayList<PageComponent>();
 		for (PageComponent page : application.getPageComponentList()) {
-			if (page.isEnabled()) {
-				pages.add(page);
+			synchronized (page) {
+				if (page.isEnabled()) {
+					pages.add(page);
+				}
 			}
 		}
 		return pages;
@@ -2201,9 +2205,11 @@ public class NgxBuilder extends MobileBuilder {
 												app.getPageComponentList() :
 														getEnabledPages(app);
 				for (PageComponent page : pages) {
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						cfg_plugins.putAll(contributor.getConfigPlugins());
+					synchronized (page) {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							cfg_plugins.putAll(contributor.getConfigPlugins());
+						}
 					}
 				}
 				
@@ -2256,9 +2262,11 @@ public class NgxBuilder extends MobileBuilder {
 												app.getPageComponentList() :
 														getEnabledPages(app);
 				for (PageComponent page : pages) {
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						pkg_dependencies.putAll(contributor.getPackageDependencies());
+					synchronized (page) {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							pkg_dependencies.putAll(contributor.getPackageDependencies());
+						}
 					}
 				}
 				
@@ -2342,10 +2350,12 @@ public class NgxBuilder extends MobileBuilder {
 												app.getPageComponentList() :
 														getEnabledPages(app);
 				for (PageComponent page : pages) {
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						action_ts_imports.putAll(contributor.getActionTsImports());
-						action_ts_functions.putAll(contributor.getActionTsFunctions());
+					synchronized (page) {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							action_ts_imports.putAll(contributor.getActionTsImports());
+							action_ts_functions.putAll(contributor.getActionTsFunctions());
+						}
 					}
 				}
 				
@@ -2389,16 +2399,18 @@ public class NgxBuilder extends MobileBuilder {
 				//Pages contributors
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
-					String pageDirName = pageDir(page).getName();
-					String pageModuleName =  page.getName() + "Module";
-					String pageModulePath = "./pages/" + pageDirName + "/" + page.getName().toLowerCase() + ".module";
-					String pageSegment = page.getSegment();
-					boolean isLastPage = i == pages.size();
-					if (page.isRoot) {
-						c8o_AppRoutes += "{ path: '', redirectTo: '"+ pageSegment +"', pathMatch: 'full' }," + System.lineSeparator();
+					synchronized (page) {
+						String pageDirName = pageDir(page).getName();
+						String pageModuleName =  page.getName() + "Module";
+						String pageModulePath = "./pages/" + pageDirName + "/" + page.getName().toLowerCase() + ".module";
+						String pageSegment = page.getSegment();
+						boolean isLastPage = i == pages.size();
+						if (page.isRoot) {
+							c8o_AppRoutes += "{ path: '', redirectTo: '"+ pageSegment +"', pathMatch: 'full' }," + System.lineSeparator();
+						}
+						c8o_AppRoutes += " { path: '"+pageSegment+"', loadChildren: () => import('"+pageModulePath+"').then( m => m."+ pageModuleName +")}" + 
+											(isLastPage ? "":",") + System.lineSeparator();
 					}
-					c8o_AppRoutes += " { path: '"+pageSegment+"', loadChildren: () => import('"+pageModulePath+"').then( m => m."+ pageModuleName +")}" + 
-										(isLastPage ? "":",") + System.lineSeparator();
 				}
 				
 				File appRoutingTpl = new File(ionicTplDir, "src/app-routing.module.tpl");
@@ -2450,46 +2462,48 @@ public class NgxBuilder extends MobileBuilder {
 				//Pages contributors
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
-					String pageName = page.getName();
-					String pageSegment = page.getSegment();
-					boolean isLastPage = i == pages.size();
-					
-					if (app.compareToTplVersion("7.7.0.2") < 0) {
-						c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
-						c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
-						c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
+					synchronized (page) {
+						String pageName = page.getName();
+						String pageSegment = page.getSegment();
+						boolean isLastPage = i == pages.size();
 						
-						List<Contributor> contributors = page.getContributors();
-						for (Contributor contributor : contributors) {
-							contributor.forContainer(page, () -> {
-								comp_beans_dirs.putAll(contributor.getCompBeanDir());
-								module_ts_imports.putAll(contributor.getModuleTsImports());
-								module_ng_imports.addAll(contributor.getModuleNgImports());
-								module_ng_providers.addAll(contributor.getModuleNgProviders());
-								module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-								module_ng_components.addAll(contributor.getModuleNgComponents());
-							});
-						}
-					} else {
-						List<Contributor> contributors = page.getContributors();
-						for (Contributor contributor : contributors) {
-							contributor.forContainer(page, () -> {
-								if (contributor.isNgModuleForApp()) {
+						if (app.compareToTplVersion("7.7.0.2") < 0) {
+							c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
+							c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
+							c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
+							
+							List<Contributor> contributors = page.getContributors();
+							for (Contributor contributor : contributors) {
+								contributor.forContainer(page, () -> {
 									comp_beans_dirs.putAll(contributor.getCompBeanDir());
 									module_ts_imports.putAll(contributor.getModuleTsImports());
 									module_ng_imports.addAll(contributor.getModuleNgImports());
 									module_ng_providers.addAll(contributor.getModuleNgProviders());
 									module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
 									module_ng_components.addAll(contributor.getModuleNgComponents());
-								}
-							});
+								});
+							}
+						} else {
+							List<Contributor> contributors = page.getContributors();
+							for (Contributor contributor : contributors) {
+								contributor.forContainer(page, () -> {
+									if (contributor.isNgModuleForApp()) {
+										comp_beans_dirs.putAll(contributor.getCompBeanDir());
+										module_ts_imports.putAll(contributor.getModuleTsImports());
+										module_ng_imports.addAll(contributor.getModuleNgImports());
+										module_ng_providers.addAll(contributor.getModuleNgProviders());
+										module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+										module_ng_components.addAll(contributor.getModuleNgComponents());
+									}
+								});
+							}
+							
+							writePageModuleTs(page);
+							writePageRoutingTs(page);
 						}
 						
-						writePageModuleTs(page);
-						writePageRoutingTs(page);
+						i++;
 					}
-					
-					i++;
 				}
 				
 				String c8o_ModuleTsImports = "";
@@ -2619,30 +2633,32 @@ public class NgxBuilder extends MobileBuilder {
 		
 		List<PageComponent> pages = getEnabledPages(app);
 		for (PageComponent page : pages) {
-			String pageName = page.getName();
-			String pageIcon = page.getIcon();
-			String pageIconPos = page.getIconPosition();
-			String pageTitle = page.getTitle();
-			String pageSegment = page.getSegment();
-			String pageTitleKey = TranslateUtils.getComputedKey(project, page.getTitle());
-			boolean isRootPage = page.isRoot;
-			boolean isMenuPage = page.isInAutoMenu();
-			boolean isLastPage = i == pages.size();
-			
-			if (isRootPage) {
-				c8o_RootPage = pageName;
-			}
-			
-			if (app.compareToTplVersion("7.9.0.2") >= 0) {
-				if (isRootPage) {
-					c8o_RootPage = "'"+ c8o_RootPage + "'";
-				}
-				c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", url: \""+ pageSegment +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", name: \""+ pageName +"\", includedInAutoMenu: "+ isMenuPage +"}" + (isLastPage ? "":",");
+			synchronized (page) {
+				String pageName = page.getName();
+				String pageIcon = page.getIcon();
+				String pageIconPos = page.getIconPosition();
+				String pageTitle = page.getTitle();
+				String pageSegment = page.getSegment();
+				String pageTitleKey = TranslateUtils.getComputedKey(project, page.getTitle());
+				boolean isRootPage = page.isRoot;
+				boolean isMenuPage = page.isInAutoMenu();
+				boolean isLastPage = i == pages.size();
 				
-				c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
+				if (isRootPage) {
+					c8o_RootPage = pageName;
+				}
+				
+				if (app.compareToTplVersion("7.9.0.2") >= 0) {
+					if (isRootPage) {
+						c8o_RootPage = "'"+ c8o_RootPage + "'";
+					}
+					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", url: \""+ pageSegment +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", name: \""+ pageName +"\", includedInAutoMenu: "+ isMenuPage +"}" + (isLastPage ? "":",");
+					
+					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
+				}
+				
+				i++;
 			}
-			
-			i++;
 		}
 		
 		String computedRoute = app.getComputedRoute();
