@@ -725,8 +725,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				};
 			}
 		}
-		
-		treeObjectEvent.clear();
 	}
 
 	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
@@ -746,7 +744,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				};
 			}
 		}
-		treeObjectEvent.clear();
 		
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
@@ -823,7 +820,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				};
 			}
 		}
-		treeObjectEvent.clear();
 	}
 
 	public IEditorPart getConnectorEditor(Connector connector) {

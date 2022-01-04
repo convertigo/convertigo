@@ -726,8 +726,10 @@ public class Ionic3Builder extends MobileBuilder {
 	private List<PageComponent> getEnabledPages(final ApplicationComponent application) {
 		List<PageComponent> pages = new ArrayList<PageComponent>();
 		for (PageComponent page : application.getPageComponentList()) {
-			if (page.isEnabled()) {
-				pages.add(page);
+			synchronized (page) {
+				if (page.isEnabled()) {
+					pages.add(page);
+				}
 			}
 		}
 		return pages;
@@ -1433,9 +1435,11 @@ public class Ionic3Builder extends MobileBuilder {
 												app.getPageComponentList() :
 														getEnabledPages(app);
 				for (PageComponent page : pages) {
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						cfg_plugins.putAll(contributor.getConfigPlugins());
+					synchronized (page) {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							cfg_plugins.putAll(contributor.getConfigPlugins());
+						}
 					}
 				}
 				
@@ -1488,9 +1492,11 @@ public class Ionic3Builder extends MobileBuilder {
 												app.getPageComponentList() :
 														getEnabledPages(app);
 				for (PageComponent page : pages) {
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						pkg_dependencies.putAll(contributor.getPackageDependencies());
+					synchronized (page) {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							pkg_dependencies.putAll(contributor.getPackageDependencies());
+						}
 					}
 				}
 				
@@ -1549,10 +1555,12 @@ public class Ionic3Builder extends MobileBuilder {
 												app.getPageComponentList() :
 														getEnabledPages(app);
 				for (PageComponent page : pages) {
-					List<Contributor> contributors = page.getContributors();
-					for (Contributor contributor : contributors) {
-						action_ts_imports.putAll(contributor.getActionTsImports());
-						action_ts_functions.putAll(contributor.getActionTsFunctions());
+					synchronized (page) {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							action_ts_imports.putAll(contributor.getActionTsImports());
+							action_ts_functions.putAll(contributor.getActionTsFunctions());
+						}
 					}
 				}
 				
@@ -1616,30 +1624,18 @@ public class Ionic3Builder extends MobileBuilder {
 				//Pages contributors
 				List<PageComponent> pages = getEnabledPages(app);
 				for (PageComponent page : pages) {
-					String pageName = page.getName();
-					String pageSegment = page.getSegment();
-					boolean isLastPage = i == pages.size();
-					
-					if (app.compareToTplVersion("7.7.0.2") < 0) {
-						c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
-						c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
-						c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
+					synchronized (page) {
+						String pageName = page.getName();
+						String pageSegment = page.getSegment();
+						boolean isLastPage = i == pages.size();
 						
-						List<Contributor> contributors = page.getContributors();
-						for (Contributor contributor : contributors) {
-							comp_beans_dirs.putAll(contributor.getCompBeanDir());
+						if (app.compareToTplVersion("7.7.0.2") < 0) {
+							c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";"+ System.lineSeparator();
+							c8o_PagesLinks += " { component: "+pageName+", name: \""+pageName+"\", segment: \""+pageSegment+"\" }" + (isLastPage ? "":",");
+							c8o_PagesDeclarations += " " + pageName + (isLastPage ? "":",");
 							
-							module_ts_imports.putAll(contributor.getModuleTsImports());
-							module_ng_imports.addAll(contributor.getModuleNgImports());
-							module_ng_providers.addAll(contributor.getModuleNgProviders());
-							module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
-							module_ng_components.addAll(contributor.getModuleNgComponents());
-						}
-					} else {
-
-						List<Contributor> contributors = page.getContributors();
-						for (Contributor contributor : contributors) {
-							if (contributor.isNgModuleForApp()) {
+							List<Contributor> contributors = page.getContributors();
+							for (Contributor contributor : contributors) {
 								comp_beans_dirs.putAll(contributor.getCompBeanDir());
 								
 								module_ts_imports.putAll(contributor.getModuleTsImports());
@@ -1648,12 +1644,26 @@ public class Ionic3Builder extends MobileBuilder {
 								module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
 								module_ng_components.addAll(contributor.getModuleNgComponents());
 							}
+						} else {
+
+							List<Contributor> contributors = page.getContributors();
+							for (Contributor contributor : contributors) {
+								if (contributor.isNgModuleForApp()) {
+									comp_beans_dirs.putAll(contributor.getCompBeanDir());
+									
+									module_ts_imports.putAll(contributor.getModuleTsImports());
+									module_ng_imports.addAll(contributor.getModuleNgImports());
+									module_ng_providers.addAll(contributor.getModuleNgProviders());
+									module_ng_declarations.addAll(contributor.getModuleNgDeclarations());
+									module_ng_components.addAll(contributor.getModuleNgComponents());
+								}
+							}
+							
+							writePageModuleTs(page);
 						}
 						
-						writePageModuleTs(page);
+						i++;
 					}
-					
-					i++;
 				}
 				
 				String c8o_ModuleTsImports = "";
@@ -1785,51 +1795,52 @@ public class Ionic3Builder extends MobileBuilder {
 		
 		List<PageComponent> pages = getEnabledPages(app);
 		for (PageComponent page : pages) {
-			String pageName = page.getName();
-			String pageIcon = page.getIcon();
-			String pageIconPos = page.getIconPosition();
-			String pageTitle = page.getTitle();
-			String pageTitleKey = TranslateUtils.getComputedKey(project, page.getTitle());
-			boolean isRootPage = page.isRoot;
-			boolean isMenuPage = page.isInAutoMenu();
-			boolean isLastPage = i == pages.size();
-			
-			if (isRootPage) {
-				c8o_RootPage = pageName;
-			}
-			
-			if (app.compareToTplVersion("7.7.0.2") < 0) {
-				c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
-				if (app.compareToTplVersion("7.5.2.1") < 0) {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-				} else {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-				}
-				c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
-			} else if (app.compareToTplVersion("7.7.0.6") < 0) {
+			synchronized (page) {
+				String pageName = page.getName();
+				String pageIcon = page.getIcon();
+				String pageIconPos = page.getIconPosition();
+				String pageTitle = page.getTitle();
+				String pageTitleKey = TranslateUtils.getComputedKey(project, page.getTitle());
+				boolean isRootPage = page.isRoot;
+				boolean isMenuPage = page.isInAutoMenu();
+				boolean isLastPage = i == pages.size();
+				
 				if (isRootPage) {
-					c8o_RootPage = "'"+ c8o_RootPage + "'";
-					
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
-				} else {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
+					c8o_RootPage = pageName;
 				}
-			} else {
-				if (isRootPage) {
-					c8o_RootPage = "'"+ c8o_RootPage + "'";
-					
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
+				
+				if (app.compareToTplVersion("7.7.0.2") < 0) {
+					c8o_PagesImport += "import { "+pageName+" } from \"../pages/"+pageName+"/"+pageName.toLowerCase()+"\";" + System.lineSeparator();
+					if (app.compareToTplVersion("7.5.2.1") < 0) {
+						c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					} else {
+						c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+pageName+", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+					}
+					c8o_PagesVariablesKeyValue += pageName+":"+ pageName+ (isLastPage ? "":",");
+				} else if (app.compareToTplVersion("7.7.0.6") < 0) {
+					if (isRootPage) {
+						c8o_RootPage = "'"+ c8o_RootPage + "'";
+						
+						c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+						c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
+					} else {
+						c8o_PagesVariables += " { title: \""+pageTitle+"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+						c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
+					}
 				} else {
-					c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
-					c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
+					if (isRootPage) {
+						c8o_RootPage = "'"+ c8o_RootPage + "'";
+						
+						c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: "+ "this.rootPage" +", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+						c8o_PagesVariablesKeyValue += pageName+":"+ "this.rootPage" + (isLastPage ? "":",");
+					} else {
+						c8o_PagesVariables += " { title: \""+pageTitle+"\", titleKey: \""+ pageTitleKey +"\", icon: \""+ pageIcon +"\", iconPos: \""+ pageIconPos +"\", component: \""+pageName+"\", name: \""+pageName+"\", includedInAutoMenu: "+ isMenuPage+"}" + (isLastPage ? "":",");
+						c8o_PagesVariablesKeyValue += pageName+":"+ "null" + (isLastPage ? "":",");
+					}
 				}
+				
+				i++;
 			}
-			
-			
-			i++;
 		}
 		
 		String computedRoute = app.getComputedRoute();
