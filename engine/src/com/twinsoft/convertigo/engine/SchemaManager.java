@@ -1601,11 +1601,18 @@ public class SchemaManager implements AbstractManager {
 									for (int i=0; i <attributes.getLength(); i++) {
 										Node attr = attributes.item(i);
 										String prefix = attr.getPrefix();
-										if (prefix != null && (
+										String attrname = attr.getNodeName();
+										if ((prefix != null && (
 												prefix.toLowerCase().equals("xsi") || 
 												prefix.toLowerCase().equals("xmlns") ||
 												prefix.toLowerCase().startsWith("soap-")
-										)) {
+											)) ||
+											(attrname != null && (
+												attrname.toLowerCase().startsWith("xsi") || 
+												attrname.toLowerCase().startsWith("xmlns") ||
+												attrname.toLowerCase().startsWith("soap-")
+											)))
+										{
 											removeList.add(attr);
 										}
 									}
