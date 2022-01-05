@@ -1759,7 +1759,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			return;
 		}
 		NgxBuilderBuildMode buildMode = this.buildMode;
-		
+		boolean[] terminated = { false };
 		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
 		prodJob = Job.create("Build in " + buildMode.label() + " mode for " + appName, monitor -> {
 			try {
@@ -1804,8 +1804,19 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				
 				Matcher matcher = Pattern.compile("(\\d+)% (.*)").matcher("");
 				int lastProgress = 0;
-				
-				while ((line = br.readLine()) != null) {
+				Engine.execute(() -> {
+					while (!monitor.isCanceled() && !terminated[0]) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+					if (!terminated[0]) {
+						terminateNode(true);
+					}
+				});
+				while (!monitor.isCanceled() && (line = br.readLine()) != null) {
 					line = pRemoveEchap.matcher(line).replaceAll("");
 					if (StringUtils.isNotBlank(line)) {
 						matcher.reset(line);
@@ -1837,13 +1848,14 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				buildItem.getDisplay().asyncExec(() -> {
 					if (!buildItem.isDisposed()) {
 						buildItem.setSelection(false);
-					}					
+					}
 				});
 				monitor.done();
 				terminateNode(true);
 			} catch (Exception e) {
 				Engine.logStudio.error("Failed to process the build: " + e.getMessage(), e);
 			}
+			terminated[0] = true;
 		});
 		prodJob.schedule();
 	}
