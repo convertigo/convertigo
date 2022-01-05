@@ -22,13 +22,16 @@ package com.twinsoft.convertigo.beans.transactions;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.httpclient.Header;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.engine.AttachmentManager.Status;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 
 public class HttpTransaction extends AbstractHttpTransaction {
@@ -75,6 +78,41 @@ public class HttpTransaction extends AbstractHttpTransaction {
         String t = context.statistics.start(EngineStatistics.GENERATE_DOM);
 
         try {
+        	/***********************************************************************
+        	 * For projects with no DownloadHttpTransaction - CEMS version < 8.0.0
+        	 * [SP47] Download file and add attachment
+        	 ***********************************************************************/
+         	if (getAllowDownloadAttachment() && Boolean.TRUE.equals(context.get("doAddAttachment"))) {
+         		try {
+	            	String contentDisposition = null;
+	        		Header[] responseHeaders = context.getResponseHeaders();
+	        		for (int i = 0; i < responseHeaders.length; i++) {
+	        			Header head = responseHeaders[i];
+	        			if (HeaderName.ContentDisposition.is(head)) {
+	        				contentDisposition = head.getValue();
+	        				break;
+	        			}
+	        		}
+					if (contentDisposition != null && context.contentType != null) {
+						int i = contentDisposition.indexOf("filename=");
+						if (i != -1) {
+							int j = contentDisposition.indexOf(';', i + "filename=".length());
+							if (j != -1) {
+								String referer = ((HttpConnector) parent).getReferer();
+								String downloadDir = getParameterStringValue("downloadDir");
+								String filename = contentDisposition.substring(i + "filename=".length(), j);
+								String filepath = downloadDir != null ? downloadDir + (downloadDir.endsWith("/") ? "":"/") + filename : filename;
+								getAttachmentManager().addAttachment(httpData, filename, context.contentType, referer, null, null, filepath, Status.direct);
+								httpData = new byte[] {};
+							}
+						}
+					}
+         		} catch (Exception e) {
+         			Engine.logBeans.error("(HttpTransaction) Unable to handle attachment", e);
+         		}
+        	}
+         	/***********************************************************************/
+         	
         	String stringData = "";
         	
         	if (httpData == null || httpData.length == 0) {
