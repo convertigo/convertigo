@@ -180,6 +180,11 @@ public class C8oBrowser extends Composite {
 		lastUrl = url;
 		getBrowser().navigation().loadUrl(url);
 	}
+	
+	public void reset() {
+		lastUrl = null;
+		getBrowser().navigation().loadUrlAndWait("about:blank");
+	}
 		
 	@Override
 	public boolean setFocus() {

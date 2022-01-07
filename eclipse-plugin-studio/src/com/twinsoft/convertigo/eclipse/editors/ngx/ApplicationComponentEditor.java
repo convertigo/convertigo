@@ -823,7 +823,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} catch (Exception ex) {
 					// TODO: handle exception
 				}
-				launchBuilder(false);
+				if (headlessBuild) {
+					initLoader();
+				}
+				doLoad();
 			}
 		});
 		item.setSelection(headlessBuild);
@@ -1203,13 +1206,26 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 	}
 	
+	private void initLoader() {
+		try {
+			boolean isDark = SwtUtils.isDark();
+			c8oBrowser.reset();
+			String loader = IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8");
+			if (isDark) {
+				loader = loader.replace("lightblue", "rgb(47,47,47); color: white");
+			}
+			c8oBrowser.setText(loader);
+		} catch (Exception e1) {
+			throw new RuntimeException(e1);
+		}
+	}
+	
 	public void launchBuilder(boolean forceInstall) {
 		launchBuilder(forceInstall, false);
 	}
 	
 	public void launchBuilder(boolean forceInstall, boolean forceClean) {
 		final int buildCount = ++this.buildCount;
-		final boolean isDark = SwtUtils.isDark();
 
 		// Close editors (*.temp.ts) to avoid npm error at build launch
 		ConvertigoPlugin.getDisplay().syncExec(
@@ -1240,15 +1256,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		// Launch build
 		Engine.execute(() -> {
-			try {
-				String loader = IOUtils.toString(getClass().getResourceAsStream("loader.html"), "UTF-8");
-				if (isDark) {
-					loader = loader.replace("lightblue", "rgb(47,47,47); color: white");
-				}
-				c8oBrowser.setText(loader);
-			} catch (Exception e1) {
-				throw new RuntimeException(e1);
-			}
+			initLoader();
 			
 			project = applicationEditorInput.application.getProject();
 			ionicDir = new File(project.getDirPath(), "_private/ionic");
@@ -1440,6 +1448,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						appendOutput(line);
 					}
 					if (line.matches(".*Compiled .*successfully.*")) {
+						progress(100);
 						synchronized (mutex) {
 							mutex.notify();
 						}
