@@ -90,7 +90,7 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 		composite.setLayout(gl);
 		
 		Label title = new Label(composite, SWT.NONE);
-		title.setText("Add or remove dynamic variables for this '" + httpTransaction.getName() + "'HTTP Transaction.");
+		title.setText("Add or remove dynamic variables for this '" + httpTransaction.getName() + "' HTTP Transaction.");
 		title.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
 		
 		for (DynamicHttpVariable v: DynamicHttpVariable.values()) {
@@ -114,7 +114,7 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 			browserDescription.setLayoutData(gd);
 			browserDescription.setUseExternalBrowser(true);
 			if (SwtUtils.isDark()) {
-				browserDescription.setBackground(composite.getBackground());
+				browserDescription.setBackground(parent.getBackground());
 			}
 			browserDescription.setText("<html>" +
 					"<head>" +
@@ -156,7 +156,7 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 			browserDescription.setLayoutData(gd);
 			browserDescription.setUseExternalBrowser(true);
 			if (SwtUtils.isDark()) {
-				browserDescription.setBackground(composite.getBackground());
+				browserDescription.setBackground(parent.getBackground());
 			}
 			browserDescription.setText("<html>" +
 					"<head>" +
