@@ -41,15 +41,12 @@ import com.teamdev.jxbrowser.navigation.event.NavigationStarted;
 import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class C8oBrowser extends Composite {
 	
 	private static Thread threadSwt = null;
 	private static Map<String, Engine> browserContexts = new HashMap<>();
-	private static final String jxKey = "xd66cf60f0cb4087351b4e6d0a1ce57f9acb628575fa2a1ed2faa333c80b40f7a4b031a2e5ecf4613bf8e117d22c33e246bd4d4ac0fd1643d2ba187537d936f2e18da8bd02d263bc7653bf921035b474a";
 	private static boolean render_offscreen = "offscreen".equals(System.getProperty("jxbrowser.render"));
 	
 	private String debugUrl;
@@ -105,10 +102,9 @@ public class C8oBrowser extends Composite {
 				} catch (Exception e) {
 					debugPort = 18081 + browserContexts.size();
 				}
-				String key = Crypto2.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), jxKey);
 				browserContext = Engine.newInstance(EngineOptions.newBuilder(render_offscreen ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
 						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
-						.licenseKey(key)
+						.licenseKey(JBL.get())
 						.addSwitch("--illegal-access=warn")
 						.remoteDebuggingPort(debugPort).build());
 				browserContexts.put(browserId, browserContext);
@@ -245,15 +241,5 @@ public class C8oBrowser extends Composite {
 	
 	public void setUseExternalBrowser(boolean useExternalBrowser) {
 		this.useExternalBrowser = useExternalBrowser;
-	}
-	
-	public static void main(String[] args) {
-		String newKey = "";
-		System.out.println("newKey " + newKey);
-		String jxKey = Crypto2.encodeToHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), newKey);
-		System.out.println("jxKey " + jxKey);
-		String key = Crypto2.decodeFromHexString(EnginePropertiesManager.PropertyName.CRYPTO_PASSPHRASE.getDefaultValue(), jxKey);
-		System.out.println("key " + key);
-		System.out.println();
 	}
 }
