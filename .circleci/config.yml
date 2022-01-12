@@ -513,6 +513,8 @@ jobs:
           dir_lin=eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64
           dir_mac=eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64
           
+          mv eclipse-repository/target/repository/ $CONVERTIGO_DIST/
+          
           if [ -d ${dir_w64} ]; then
              (mv /tmp/c8o_jre/win ${dir_w64}/jre
               mv ${dir_w64}/ConvertigoStudio.exe /tmp/ConvertigoStudio_x86_64.exe
