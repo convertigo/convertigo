@@ -275,11 +275,13 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 			String newPath = path + "/" + (String)newValue;
 			
 			IFolder folder = getProjectTreeObject().getFolder(oldPath);
-			if (folder.exists()) {
-				try {
+
+			try {
+				folder.getParent().refreshLocal(IResource.DEPTH_ONE, null);
+				if (folder.exists()) {
 					// rename folder (xsd/internal/connector)
 					folder.move(new Path((String)newValue), true, null);
-					
+
 					// make replacements in schema file
 					List<Replacement> replacements = new ArrayList<Replacement>();
 					replacements.add(new Replacement((String)oldValue+"__", (String)newValue+"__"));
@@ -295,19 +297,19 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 							}
 						}
 					}
-					
+
 					// refresh folder
 					folder.refreshLocal(IResource.DEPTH_ONE, null);
-					
+
 					Engine.theApp.schemaManager.clearCache(getProjectTreeObject().getName());
-				} catch (Exception e) {
-					ConvertigoPlugin.logWarning(e, "Could not rename folder from \""+oldPath+"\" to \""+newPath+"\" !");
 				}
+			} catch (Exception e) {
+				ConvertigoPlugin.logWarning(e, "Could not rename folder from \""+oldPath+"\" to \""+newPath+"\" !");
 			}
 			
 			if (connector instanceof CouchDbConnector) {
 				CouchDbManager.syncDocument(connector);
-		    	try {
+				try {
 					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
 				} catch (Exception e) {
 					ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");

@@ -341,18 +341,19 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 		// Case of this transaction rename : update transaction's schema
 		if (treeObject.equals(this)) {
 			String path = Project.XSD_FOLDER_NAME +"/"
-						+ Project.XSD_INTERNAL_FOLDER_NAME + "/"
-						+ getConnectorTreeObject().getName();
-			
+					+ Project.XSD_INTERNAL_FOLDER_NAME + "/"
+					+ getConnectorTreeObject().getName();
+
 			String oldPath = path + "/" + (String)oldValue + ".xsd";
 			String newPath = path + "/" + (String)newValue + ".xsd";
-			
+
 			IFile file = getProjectTreeObject().getFile(oldPath);
-			if (file.exists()) {
-				try {
+			try {
+				file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
+				if (file.exists()) {
 					// rename file (xsd/internal/connector/transaction.xsd)
 					file.move(new Path((String)newValue+".xsd"), true, null);
-					
+
 					// make replacements in schema files
 					List<Replacement> replacements = new ArrayList<Replacement>();
 					replacements.add(new Replacement("__"+(String)oldValue, "__"+(String)newValue));
@@ -363,15 +364,15 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 					} catch (Exception e) {
 						ConvertigoPlugin.logWarning(e, "Could not rename \""+oldValue+"\" to \""+newValue+"\" in schema file \""+newPath+"\" !");
 					}
-					
+
 					// refresh file
 					file.refreshLocal(IResource.DEPTH_ZERO, null);
-					
+
 					Engine.theApp.schemaManager.clearCache(getProjectTreeObject().getName());
-					
-				} catch (Exception e) {
-					ConvertigoPlugin.logWarning(e, "Could not rename schema file from \""+oldPath+"\" to \""+newPath+"\" !");
 				}
+
+			} catch (Exception e) {
+				ConvertigoPlugin.logWarning(e, "Could not rename schema file from \""+oldPath+"\" to \""+newPath+"\" !");
 			}
 		}
 	}
