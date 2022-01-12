@@ -58,12 +58,6 @@ public class TreeObjectEvent extends EventObject {
 		this.done = done;
 	}
 
-	public void clear() {
-		if (this.done != null) {
-			this.done.clear();
-		}
-	}
-	
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + 

@@ -176,7 +176,8 @@ public class XMLUtils {
 	}
 
 	public static String prettyPrintDOMWithEncoding(Document doc) {
-		return prettyPrintDOMWithEncoding(doc, "ISO-8859-1");
+		String xmlEncoding = doc.getXmlEncoding();
+		return prettyPrintDOMWithEncoding(doc, xmlEncoding == null ? "ISO-8859-1" : xmlEncoding);
 	}
 
 	public static String prettyPrintDOMWithEncoding(Document doc, String defaultEncoding) {

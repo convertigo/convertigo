@@ -292,8 +292,11 @@ public class CLI {
 		do {
 			for (Reference ref: projects.get(i).getReferenceList()) {
 				if (ref instanceof ProjectSchemaReference) {
-					Project p = Engine.theApp.referencedProjectManager.importProject(((ProjectSchemaReference) ref).getParser());
-					if (!projects.contains(p)) {
+					ProjectSchemaReference pref = (ProjectSchemaReference) ref;
+					Project p = Engine.theApp.referencedProjectManager.importProject(pref.getParser());
+					if (p == null) {
+						Engine.logConvertigo.warn("Failed to import project reference: " + pref.getProjectName() + " (ignored)");
+					} else if (!projects.contains(p)) {
 						projects.add(p);
 					}
 				}

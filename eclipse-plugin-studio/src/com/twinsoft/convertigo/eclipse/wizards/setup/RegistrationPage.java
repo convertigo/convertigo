@@ -54,7 +54,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class RegistrationPage extends WizardPage implements CheckConnectedCallback {
 	private static final Pattern pCheckEmail = Pattern.compile("[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}\\@[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+");
-	public static final String registrationLink = "<a href=\"http://register.convertigo.com\">register.convertigo.com</a>";
+	public static final String registrationLink = "<a href=\"https://www.convertigo.com/register\">www.convertigo.com/register</a>";
 	private Text firstname;
 	private Text lastname;
 	private Text email;

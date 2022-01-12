@@ -109,7 +109,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		
 		Link registerLink = new Link(registerComposite, SWT.WRAP);
 		registerLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		registerLink.setText("or go to <a href=\"https://signup.convertigo.com\">https://signup.convertigo.com</a>");
+		registerLink.setText("or go to <a href=\"https://www.convertigo.com/signup\">https://www.convertigo.com/signup</a>");
 		
 		Label label = new Label (container, SWT.NONE);
 		FontData fontDefaultData = label.getFont().getFontData()[0];
@@ -148,7 +148,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 		goToRegisterWebsite.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				org.eclipse.swt.program.Program.launch("https://signup.convertigo.com");
+				org.eclipse.swt.program.Program.launch("https://www.convertigo.com/signup");
 			}
 			
 			@Override

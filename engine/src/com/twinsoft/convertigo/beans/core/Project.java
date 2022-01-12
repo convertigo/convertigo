@@ -89,27 +89,27 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public static final String WSDL_FOLDER_NAME = "wsdl";
 	
 	public static final String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
-	
-	private final Object mutexClassLoader = new Object();
-	
-    /**
-     * The Context timeout in seconds.
-     */
-    private int contextTimeout = 300;
-    
-    /**
-     * The HTTP session timeout in seconds.
-     */
-    private int httpSessionTimeout = 1800;
 
-    /** Holds value of property browserTypes. */
-    private XMLVector<XMLVector<String>> browserDefinitions = new XMLVector<XMLVector<String>>();
-    
-    /**
-     * The WSDL style (Doc/Literal, RPC or Both).
-     */
+	private final Object mutexClassLoader = new Object();
+
+	/**
+	 * The Context timeout in seconds.
+	 */
+	private int contextTimeout = 300;
+
+	/**
+	 * The HTTP session timeout in seconds.
+	 */
+	private int httpSessionTimeout = 1800;
+
+	/** Holds value of property browserTypes. */
+	private XMLVector<XMLVector<String>> browserDefinitions = new XMLVector<XMLVector<String>>();
+
+	/**
+	 * The WSDL style (Doc/Literal, RPC or Both).
+	 */
 	private WsdlStyle wsdlStyle = WsdlStyle.docLiteral;
-	
+
 	/**
 	 * WSDL with inline schema or not
 	 */
@@ -207,29 +207,29 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			Engine.logEngine.error("Failed to execute auto start sequences for project \"" + projectName + "\"", e);
 		}
 	}
-	
-    /**
-     * Construct a new Project object.
-     */
-    public Project() {
-        super();
-        databaseType = "Project";
-    }
 
-    /**
-     * Retrieves the parent Object object.
-     */
-    @Override
-    public DatabaseObject getParent() {
-        return null;
-    }
-    
+	/**
+	 * Construct a new Project object.
+	 */
+	public Project() {
+		super();
+		databaseType = "Project";
+	}
+
+	/**
+	 * Retrieves the parent Object object.
+	 */
+	@Override
+	public DatabaseObject getParent() {
+		return null;
+	}
+
 	/**
 	 * Sets the object name.
 	 *
 	 * @param name the object name.
 	 */
-    @Override
+	@Override
 	public void setName(String name) throws EngineException {
 		name = name.trim();
 		Project.checkName(name);
@@ -249,38 +249,38 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public String getQName() {
 		return getName();
 	}
-	
-    public int getContextTimeout() {
-        return contextTimeout;
-    }
-    
-    public void setContextTimeout(int contextTimeout) {
-        this.contextTimeout = contextTimeout;
-    }
-    
-    public int getHttpSessionTimeout() {
-        return httpSessionTimeout;
-    }
-    
-    public void setHttpSessionTimeout(int httpSessionTimeout) {
-        this.httpSessionTimeout = httpSessionTimeout;
-    }
 
-    /** Getter for property browserDefinitions.
-     * @return Value of property browserDefinitions.
-     */
-    public XMLVector<XMLVector<String>> getBrowserDefinitions() {
-        return this.browserDefinitions;
-    }
-    
-    /** Setter for property browserDefinitions.
-     * @param browserTypes New value of property browserDefinitions.
-     */
-    public void setBrowserDefinitions(XMLVector<XMLVector<String>> browserDefinitions) {
-        this.browserDefinitions = browserDefinitions;
-    }
-    
-    public WsdlStyle getWsdlStyle() {
+	public int getContextTimeout() {
+		return contextTimeout;
+	}
+
+	public void setContextTimeout(int contextTimeout) {
+		this.contextTimeout = contextTimeout;
+	}
+
+	public int getHttpSessionTimeout() {
+		return httpSessionTimeout;
+	}
+
+	public void setHttpSessionTimeout(int httpSessionTimeout) {
+		this.httpSessionTimeout = httpSessionTimeout;
+	}
+
+	/** Getter for property browserDefinitions.
+	 * @return Value of property browserDefinitions.
+	 */
+	public XMLVector<XMLVector<String>> getBrowserDefinitions() {
+		return this.browserDefinitions;
+	}
+
+	/** Setter for property browserDefinitions.
+	 * @param browserTypes New value of property browserDefinitions.
+	 */
+	public void setBrowserDefinitions(XMLVector<XMLVector<String>> browserDefinitions) {
+		this.browserDefinitions = browserDefinitions;
+	}
+
+	public WsdlStyle getWsdlStyle() {
 		return wsdlStyle;
 	}
 
@@ -357,7 +357,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	}
 
 	@Override
-    public void add(DatabaseObject databaseObject) throws EngineException {
+	public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof Connector) {
 			addConnector((Connector) databaseObject);
 		} else if (databaseObject instanceof Sequence) {
@@ -371,10 +371,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		} else {
 			throw new EngineException("You cannot add to a project a database object of type " + databaseObject.getClass().getName());
 		}
-    }
+	}
 
-    @Override
-    public void remove(DatabaseObject databaseObject) throws EngineException {
+	@Override
+	public void remove(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof Connector) {
 			removeConnector((Connector) databaseObject);
 		} else if (databaseObject instanceof Sequence) {
@@ -389,8 +389,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			throw new EngineException("You cannot remove from a project a database object of type " + databaseObject.getClass().getName());
 		}
 		super.remove(databaseObject);
-    }
-	
+	}
+
 	/**
 	 * Adds a connector.
 	 */
@@ -483,7 +483,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 					break;
 				}
 		}
-        
+
 		// Report from 4.5: fix #401
 		if (defaultConnector == null) {
 			// Fire exception in Engine mode only!
@@ -597,10 +597,10 @@ public class Project extends DatabaseObject implements IInfoProperty {
 				}
 			}
 		}
-    }
-    
+	}
+
 	private transient MobileBuilder mobileBuilder = null;
-	
+
 	public MobileBuilder getMobileBuilder() {
 		if ((Engine.isStudioMode() || Engine.isCliMode()) && mobileBuilder == null) {
 			try {
@@ -613,56 +613,56 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		return mobileBuilder;
 	}
-	
-    private transient MobileApplication mobileApplication = null;
-    
-    public MobileApplication getMobileApplication() {
-    	return mobileApplication;
-    }
-    
-    public void addMobileApplication(MobileApplication mobileApplication) throws EngineException {
-    	if (this.mobileApplication != null) {
-    		throw new EngineException("The project \"" + getName() + "\" already contains a mobile application! Please delete it first.");
-    	}
-    	this.mobileApplication = mobileApplication;
+
+	private transient MobileApplication mobileApplication = null;
+
+	public MobileApplication getMobileApplication() {
+		return mobileApplication;
+	}
+
+	public void addMobileApplication(MobileApplication mobileApplication) throws EngineException {
+		if (this.mobileApplication != null) {
+			throw new EngineException("The project \"" + getName() + "\" already contains a mobile application! Please delete it first.");
+		}
+		this.mobileApplication = mobileApplication;
 		super.add(mobileApplication);
-    }
-    
-    public void removeMobileApplication(MobileApplication mobileApplication) {
-    	if (mobileApplication != null && mobileApplication.equals(this.mobileApplication)) {
-    		this.mobileApplication = null;
-    	}
-    }
+	}
+
+	public void removeMobileApplication(MobileApplication mobileApplication) {
+		if (mobileApplication != null && mobileApplication.equals(this.mobileApplication)) {
+			this.mobileApplication = null;
+		}
+	}
 
 	private transient UrlMapper urlMapper = null;
-	
-    public UrlMapper getUrlMapper() {
+
+	public UrlMapper getUrlMapper() {
 		return ((Project) getOriginal()).urlMapper;
 	}
 
-    public void addUrlMapper(UrlMapper urlMapper) throws EngineException {
-    	if (!isOriginal()) {
-    		return;
-    	};
-    	if (this.urlMapper != null) {
-    		throw new EngineException("The project \"" + getName() + "\" already contains an URL mapper! Please delete it first.");
-    	}
-    	this.urlMapper = urlMapper;
+	public void addUrlMapper(UrlMapper urlMapper) throws EngineException {
+		if (!isOriginal()) {
+			return;
+		};
+		if (this.urlMapper != null) {
+			throw new EngineException("The project \"" + getName() + "\" already contains an URL mapper! Please delete it first.");
+		}
+		this.urlMapper = urlMapper;
 		super.add(urlMapper);
 		RestApiManager.getInstance().putUrlMapper(this);
-    }
-    
-    public void removeUrlMapper(UrlMapper urlMapper) {
-    	if (!isOriginal()) {
-    		return;
-    	};
-    	if (urlMapper != null && urlMapper.equals(this.urlMapper)) {
-    		this.urlMapper = null;
-    		RestApiManager.getInstance().removeUrlMapper(getName());
-    	}
-    }
-    
-    
+	}
+
+	public void removeUrlMapper(UrlMapper urlMapper) {
+		if (!isOriginal()) {
+			return;
+		};
+		if (urlMapper != null && urlMapper.equals(this.urlMapper)) {
+			this.urlMapper = null;
+			RestApiManager.getInstance().removeUrlMapper(getName());
+		}
+	}
+
+
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
@@ -767,6 +767,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			getNeededProjects(neededProjects, sequence);
 		}
 		
+		//needed projects for the mobile application
 		try {
 			IApplicationComponent app = mobileApplication.getApplicationComponent();
 			
@@ -828,8 +829,48 @@ public class Project extends DatabaseObject implements IInfoProperty {
 						}
 					}
 				}
-			} catch (Exception e)	{}
-			
+				if (dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement) {
+					com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean ionBean = 
+							((com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement)dbo).getIonBean();
+					if (ionBean != null) {
+						for (com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty property : ionBean.getProperties().values()) {
+							String editor = property.getEditor();
+							if (editor.equals("NamedSourceSelectorEditor")) {
+								String qname = (String) property.getValue();
+								if (!qname.isEmpty() && !qname.startsWith(dbo.getProject().getName() + ".")) {
+									int index = qname.indexOf(".");
+									if (index != -1) {
+										String targetProjectName = qname.substring(0, index);
+										neededProjects.put(targetProjectName, true);
+									}
+								}
+							}
+						}
+					}
+				}
+				if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement) {
+					com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean ionBean = 
+							((com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement)dbo).getIonBean();
+					if (ionBean != null) {
+						for (com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty property : ionBean.getProperties().values()) {
+							String editor = property.getEditor();
+							if (editor.equals("NamedSourceSelectorEditor")) {
+								String qname = (String) property.getValue();
+								if (!qname.isEmpty() && !qname.startsWith(dbo.getProject().getName() + ".")) {
+									int index = qname.indexOf(".");
+									if (index != -1) {
+										String targetProjectName = qname.substring(0, index);
+										neededProjects.put(targetProjectName, true);
+									}
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e)	{
+				e.printStackTrace();
+			}
+
 			for (DatabaseObject child: dbo.getAllChildren()) {
 				getNeededProjects(neededProjects, child);
 			}
@@ -859,6 +900,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		}
 		
 		try {
+			missingProjects.remove(getName());
 			missingProjects.remove(mobileApplication.getApplicationComponent().getTplProjectName());
 		} catch (Exception e) {
 		}
@@ -876,6 +918,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 			} catch (Exception e) {
 			}
 		}
+		missingProjects.remove(getName());
 		return missingProjects;
 	}
 

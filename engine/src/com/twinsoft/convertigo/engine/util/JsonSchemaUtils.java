@@ -1180,12 +1180,18 @@ public class JsonSchemaUtils {
 						case "ID":
 							oasType = "string";
 							break;
-							
+						
+						case "dateTime":
+							oasType = "string";
+							break;
+						
 						case "decimal":
 							oasType = "number";
 							break;
 							
+						case "byte":
 						case "int":
+						case "short":
 						case "nonNegativeInteger":
 						case "positiveInteger":
 							oasType = "integer";

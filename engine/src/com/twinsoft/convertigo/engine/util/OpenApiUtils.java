@@ -474,23 +474,54 @@ public class OpenApiUtils {
 	public static OpenAPI parse(String requestUrl, UrlMapper urlMapper) {
 		return parse(requestUrl, urlMapper, false);
 	}
-	
+
 	public static OpenAPI parse(String requestUrl, UrlMapper urlMapper, boolean useExternalRef) {
 		Project project = urlMapper.getProject();
 		String projectName = project.getName();
 		
-		String oasDirUrl = requestUrl.substring(0,requestUrl.indexOf("/"+servletMappingPath)) + 
-										"/projects/"+ projectName + "/"+ jsonSchemaDirectory +"/";
-		
-
-		OpenAPI openAPI = null;
-		
 		File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + jsonSchemaDirectory);
 		File yamlFile = new File(targetDir, projectName+".yaml" );
-		boolean doIt = Engine.isStudioMode() || !yamlFile.exists();
 		
-		if (doIt) {
-			openAPI = parseCommon(requestUrl, project);
+		// generate yaml file if needed
+		if (Engine.isStudioMode() || !yamlFile.exists()) {
+			try {
+				writeOpenApiToFile(requestUrl, urlMapper, yamlFile, useExternalRef);
+			} catch (Exception e) {
+				e.printStackTrace();
+				Engine.logEngine.error("Unexpected exception while generating project YAML file", e);
+			}
+		}
+		
+		OpenAPI openAPI = null;
+		
+		// read generated yaml file
+		try {
+			openAPI = readOpenApiFromFile(yamlFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Engine.logEngine.error("Unexpected exception while reading project YAML file", e);
+		}
+		
+		return openAPI;
+	}
+
+	private static Object lockObject = new Object();
+
+	private static void writeOpenApiToFile(final String requestUrl, final UrlMapper urlMapper, final File yamlFile, boolean useExternalRef) throws Exception {
+		synchronized (lockObject) {
+			
+			if (yamlFile.exists() && Engine.isEngineMode())
+				return;
+			
+			Long t0 = System.currentTimeMillis();
+			
+			Project project = urlMapper.getProject();
+			String projectName = project.getName();
+			
+			String oasDirUrl = requestUrl.substring(0,requestUrl.indexOf("/"+servletMappingPath)) + 
+										"/projects/"+ projectName + "/"+ jsonSchemaDirectory +"/";
+			
+			OpenAPI openAPI = parseCommon(requestUrl, project);
 			
 			List<Tag> tags = new ArrayList<>();
 			Tag tag = new Tag();
@@ -705,6 +736,7 @@ public class OpenApiUtils {
 				
 			} catch (Throwable t) {
 				t.printStackTrace();
+				Engine.logEngine.error("Unexpected exception while parsing UrlMapper to generate models", t);
 			}
 			
 			// write yaml
@@ -712,26 +744,30 @@ public class OpenApiUtils {
 				FileUtils.write(yamlFile, prettyPrintYaml(openAPI), "UTF-8");
 			} catch (Exception e) {
 				e.printStackTrace();
-			}
-		} else {
-			
-			// read yaml
-			try {
-				String content = FileUtils.readFileToString(yamlFile, "UTF-8");
-				JsonNode rootNode = Yaml.mapper().readTree(content);
-				OpenAPIDeserializer ds = new OpenAPIDeserializer();
-				SwaggerParseResult result = ds.deserialize(rootNode);
-				
-				openAPI = result.getOpenAPI();
-			} catch (Exception e) {
-				e.printStackTrace();
+				Engine.logEngine.error("Unexpected exception while writing project YAML file", e);
+			} finally {
+				Long t1 = System.currentTimeMillis();
+				Engine.logEngine.info("YAML file for "+ projectName +" project written in "+ (t1-t0) + " ms");
 			}
 		}
-		
-		return openAPI;
 	}
 	
-	public static void addModelsFromMap(Set<String> done, Map<String, JSONObject> modelMap, String keyRef, JSONObject jsonModels) {
+	private static OpenAPI readOpenApiFromFile(final File yamlFile) throws Exception {
+		Long t0 = System.currentTimeMillis();
+		try {
+			String content = FileUtils.readFileToString(yamlFile, "UTF-8");
+			JsonNode rootNode = Yaml.mapper().readTree(content);
+			OpenAPIDeserializer ds = new OpenAPIDeserializer();
+			SwaggerParseResult result = ds.deserialize(rootNode);
+			return result.getOpenAPI();
+		} finally {
+			Long t1 = System.currentTimeMillis();
+			String projectName = yamlFile.getName().replaceFirst("\\.yaml", "");
+			Engine.logEngine.info("YAML for "+ projectName +" project retrieved in "+ (t1-t0) + " ms");
+		}
+	}
+	
+	private static void addModelsFromMap(Set<String> done, Map<String, JSONObject> modelMap, String keyRef, JSONObject jsonModels) {
 		try {
 			if (!done.add(keyRef)) {
 				return;
