@@ -233,7 +233,7 @@ dependencies {
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.10.0.202012080955-r'
 	compileFlat    'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
 	compileFlat    'org.hibernate:hibernate-core:5.2.10.Final'
-	compileFlat    'org.mozilla:rhino:1.7.13'
+	compileFlat    'org.mozilla:rhino:1.7.14'
 	compileFlat    'org.quartz-scheduler:quartz:1.7.3'
 	compileFlat    'regexp:regexp:1.3'
 	compileFlat    'wsdl4j:wsdl4j:1.6.2'
