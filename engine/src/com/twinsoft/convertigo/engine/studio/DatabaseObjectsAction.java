@@ -189,6 +189,14 @@ public class DatabaseObjectsAction {
 			}
 			break;
 			
+			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateIndexAction": {
+				actionModel.isEnabled = true;
+				if (dbo instanceof Connector) {
+					actionModel.isEnabled = dbo instanceof CouchDbConnector;
+				}
+			}
+			break;
+			
 			case "com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileUIComponentAction": {
 				actionModel.isEnabled = !(dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIText ||
 					    dbo instanceof com.twinsoft.convertigo.beans.mobile.components.UIAttribute || 
