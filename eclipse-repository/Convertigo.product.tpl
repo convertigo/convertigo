@@ -97,6 +97,7 @@
    </configurations>
 
    <repositories>
+      <repository location="https://convertigo-update-site.s3.eu-west-3.amazonaws.com/7.9" enabled="true" />
       <repository location="http://download.eclipse.org/releases/2020-12" enabled="true" />
    </repositories>
 

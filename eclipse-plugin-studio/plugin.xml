@@ -782,11 +782,15 @@
          <hiddenMenuItem id="group.main.ext"></hiddenMenuItem>
          <hiddenMenuItem id="group.tutorials"></hiddenMenuItem>
          <hiddenMenuItem id="org.eclipse.ui.cheatsheets.actions.CheatSheetHelpMenuAction"></hiddenMenuItem>
-         <hiddenMenuItem id="group.tools"></hiddenMenuItem>
-         <hiddenMenuItem id="group.updates"></hiddenMenuItem>
+         <!--hiddenMenuItem id="group.tools"></hiddenMenuItem-->
+         <!--hiddenMenuItem id="group.updates"></hiddenMenuItem-->
          <hiddenMenuItem id="additions"></hiddenMenuItem>
-         <hiddenMenuItem id="org.eclipse.equinox.p2.ui.sdk.update"></hiddenMenuItem>
-         <hiddenMenuItem id="org.eclipse.equinox.p2.ui.sdk.install"></hiddenMenuItem>
+         <!--hiddenMenuItem id="org.eclipse.equinox.p2.ui.sdk.update"></hiddenMenuItem-->
+         <!--hiddenMenuItem id="org.eclipse.equinox.p2.ui.sdk.install"></hiddenMenuItem-->
+         <hiddenMenuItem id="org.eclipse.epp.package.common.contribute"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.userstorage.accounts"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.cheatsheets.actionSet"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.oomph.setup.editor.perform"></hiddenMenuItem>
          <hiddenToolBarItem id="org.eclipse.ui.externaltools.ExternalToolMenuDelegateToolbar"></hiddenToolBarItem>
       </perspectiveExtension>
    </extension>

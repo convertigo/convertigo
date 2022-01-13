@@ -46,6 +46,7 @@ jobs:
         name: Prepare build.env
         command: |
           export CONVERTIGO_VERSION_NUMBER=$(sed -n "s/ext.convertigoVersion = '\(.*\)'/\\1/p" build.gradle)
+          export CONVERTIGO_VERSION_MAJOR=$(echo $CONVERTIGO_VERSION_NUMBER | sed -e "s,\([0-9]\+\\.[0-9]\+\)\\..*,\\1,")
           export CONVERTIGO_VERSION_TAG=$(sed -n "s/ext.convertigoTag = '\(.*\)'/\\1/p" build.gradle)
           if [ "$CONVERTIGO_VERSION_TAG" = "" ] ; then
             export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER
@@ -452,7 +453,7 @@ jobs:
         name: Sync results to S3
         command: |
           source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/$CONVERTIGO_VERSION_MAJOR
           
   build_studio:
     <<: *defaults
@@ -513,8 +514,6 @@ jobs:
           dir_lin=eclipse-repository/target/products/com.convertigo.studio/linux/gtk/x86_64
           dir_mac=eclipse-repository/target/products/com.convertigo.studio/macosx/cocoa/x86_64
           
-          mv eclipse-repository/target/repository/ $CONVERTIGO_DIST/
-          
           if [ -d ${dir_w64} ]; then
              (mv /tmp/c8o_jre/win ${dir_w64}/jre
               mv ${dir_w64}/ConvertigoStudio.exe /tmp/ConvertigoStudio_x86_64.exe
@@ -566,7 +565,10 @@ jobs:
           
     - run:
         name: Sync builds to S3
-        command: aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
+        command: |
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
+          mv eclipse-repository/target/repository s3://convertigo-update-site/
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-update-site/
     - run:
         name: Remove old Docker images
         command: |
