@@ -507,7 +507,6 @@ jobs:
     - run:
         name: Sign exe and make archives
         command: |
-          source /tmp/build.env
           openssl enc -aes-256-cbc -d -md md5 -in installers/nsis/convertigo.pfx.aes -out /tmp/convertigo.pfx -k $PFX_AES
           
           dir_w64=eclipse-repository/target/products/com.convertigo.studio/win32/win32/x86_64
@@ -557,7 +556,6 @@ jobs:
     - run:
         name: Sign Studios with GPG
         command: |
-          source /tmp/build.env
           openssl enc -aes-256-cbc -d -md md5 -in installers/convertigo.gpg.aes -out installers/convertigo.gpg -k $PFX_AES
           mkdir -p ~/.gnupg
           tar -xvf installers/convertigo.gpg -C ~/.gnupg
@@ -567,8 +565,7 @@ jobs:
         name: Sync builds to S3
         command: |
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
-          mv eclipse-repository/target/repository s3://convertigo-update-site/
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-update-site/
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/beta/$CONVERTIGO_VERSION_MAJOR
     - run:
         name: Remove old Docker images
         command: |
