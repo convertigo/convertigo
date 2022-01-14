@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.ContextFactory.Listener;
 import org.mozilla.javascript.NativeJSON;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
