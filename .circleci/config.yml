@@ -46,7 +46,7 @@ jobs:
         name: Prepare build.env
         command: |
           export CONVERTIGO_VERSION_NUMBER=$(sed -n "s/ext.convertigoVersion = '\(.*\)'/\\1/p" build.gradle)
-          export CONVERTIGO_VERSION_MAJOR=$(echo $CONVERTIGO_VERSION_NUMBER | sed -e "s,\([0-9]\+\\.[0-9]\+\)\\..*,\\1,")
+          export CONVERTIGO_MAJOR=$(echo $CONVERTIGO_VERSION_NUMBER | sed -e "s,\([0-9]\+\\.[0-9]\+\)\\..*,\\1,")
           export CONVERTIGO_VERSION_TAG=$(sed -n "s/ext.convertigoTag = '\(.*\)'/\\1/p" build.gradle)
           if [ "$CONVERTIGO_VERSION_TAG" = "" ] ; then
             export CONVERTIGO_VERSION=$CONVERTIGO_VERSION_NUMBER
@@ -453,7 +453,7 @@ jobs:
         name: Sync results to S3
         command: |
           source /tmp/build.env
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/$CONVERTIGO_VERSION_MAJOR
+          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read $CONVERTIGO_DIST/.. s3://convertigo-ci/
           
   build_studio:
     <<: *defaults
@@ -569,9 +569,9 @@ jobs:
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
           if [ "$CONVERTIGO_VERSION_TAG" = "" ] && [ "$CIRCLE_BRANCH" = "" ] ; then
-            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/release/$CONVERTIGO_VERSION_MAJOR
+            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/release/$CONVERTIGO_MAJOR
           else
-            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/beta/$CONVERTIGO_VERSION_MAJOR
+            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/beta/$CONVERTIGO_MAJOR
           fi
     - run:
         name: Remove old Docker images
