@@ -30,8 +30,10 @@ ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 ext.jxBrowserVersion = '7.21'
 ext.swaggerUiVersion = '3.19.3'
 ext.tomcatVersion = '9.0.56'
+ext.eclipseVersion = '2020-12'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
+ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
 ext.convertigoEngineAPI = "${convertigoVersion}-SNAPSHOT"
 
 ext.convertigoVersionFull = "${convertigoVersion}${convertigoTag.isEmpty() ? '' : '-' + convertigoTag}"
@@ -293,7 +295,14 @@ task updateEclipseProduct(type: Copy, dependsOn: ['updateEclipseCategory']) {
 	}
 	
 	from 'eclipse-repository/Convertigo.product.tpl'
-	filter { it.replace('@aboutText@', aboutText).replace('@licenseText@', licenseText).replace('@convertigoVersion@', convertigoVersion) }
+	filter {
+		it.replace('@aboutText@', aboutText)
+			.replace('@licenseText@', licenseText)
+			.replace('@convertigoVersion@', convertigoVersion)
+			.replace('@convertigoMajor@', convertigoMajor)
+			.replace('@convertigoMode@', convertigoTag.isEmpty() ? 'release' : 'beta')
+			.replace('@eclipseVersion@', eclipseVersion)
+	}
 	into 'eclipse-repository'
 	rename '.*', 'Convertigo.product'
 }
@@ -317,6 +326,8 @@ task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-
 		fileTree(dir: '.', include: '*/pom.xml').files.plus(file('pom.xml')).each {
 			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
 		}
+		def base = file('eclipse-base/base.target')
+		base.text = base.text.replaceFirst('/releases/.+?/', "/releases/${eclipseVersion}/")
 	}
 }
 

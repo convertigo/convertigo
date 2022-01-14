@@ -6,20 +6,19 @@
       provider-name="Convertigo"
       plugin="com.twinsoft.convertigo.studio.product">
 
-   <description url="http://www.convertigo.com">
-      Convertigo adds to the eclipse platform a complete Mobile Application Development Platform
-to create mobile enterprise applications
+   <description url="https://www.convertigo.com">
+      Convertigo is the first open source Enterprise Grade Low Code / No Code platform to accelerate your Enterprise digitalization for reasonable costs.
    </description>
 
    <copyright>
       Copyright (c) 2001-@CURRENT_YEAR@ Convertigo.  All rights reserved.
    </copyright>
 
-   <license url="http://www.convertigo.com/en/license.txt">@licenseText@</license>
+   <license url="https://c8ocloud.convertigo.net/convertigo/licenses/index.html">@licenseText@</license>
 
    <url>
-      <update label="Convertigo Update Site" url="http://update.convertigo.com"/>
-      <discovery label="Convertigo  discovery site" url="http://discovery.convertigo.com"/>
+      <update label="Convertigo Update Site" url="https://convertigo-update-site.s3.eu-west-3.amazonaws.com/release/@convertigoVersionMajor@"/>
+      <discovery label="Convertigo  discovery site" url="https://www.convertigo.com/"/>
    </url>
 
    <requires>

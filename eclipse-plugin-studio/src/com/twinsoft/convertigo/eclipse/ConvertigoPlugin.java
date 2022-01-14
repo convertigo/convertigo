@@ -691,8 +691,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 							Engine.isStartFailed = false;
 							new Thread(afterPscOk, "Start embedded Tomcat").start();
 						} else {
-							IWorkbench workbench = PlatformUI.getWorkbench();
-							workbench.close();
+							studioLog.message("PSC not validated, please restart the Studio to get the Convertigo Setup wizard again.");
 						}
 					} catch (Throwable t) {
 						studioLog.exception(t, "Failure during the Convertigo setup wizard");

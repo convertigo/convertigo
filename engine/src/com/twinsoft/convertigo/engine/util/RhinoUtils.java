@@ -69,4 +69,18 @@ public class RhinoUtils {
 	static public String jsonStringify(Object object) {
 		return ScriptableObject.callMethod(json, "stringify", new Object[]{object}).toString();
 	}
+	
+	static public void init() {
+		ContextFactory.getGlobal().addListener(new Listener() {
+			
+			@Override
+			public void contextReleased(Context cx) {
+			}
+			
+			@Override
+			public void contextCreated(Context cx) {
+				cx.setLanguageVersion(Context.VERSION_ES6);
+			}
+		});
+	}
 }
