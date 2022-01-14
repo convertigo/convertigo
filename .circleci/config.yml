@@ -568,7 +568,11 @@ jobs:
         command: |
           source /tmp/build.env
           aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read ~/s3 s3://convertigo-ci/
-          aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/beta/$CONVERTIGO_VERSION_MAJOR
+          if [ "$CONVERTIGO_VERSION_TAG" = "" ] && [ "$CIRCLE_BRANCH" = "" ] ; then
+            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/release/$CONVERTIGO_VERSION_MAJOR
+          else
+            aws s3 sync --storage-class REDUCED_REDUNDANCY --acl public-read eclipse-repository/target/repository s3://convertigo-update-site/beta/$CONVERTIGO_VERSION_MAJOR
+          fi
     - run:
         name: Remove old Docker images
         command: |
