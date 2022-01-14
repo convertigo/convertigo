@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils.HttpClientInterface;
 import com.twinsoft.convertigo.engine.util.LogCleaner;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
+import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.SimpleMap;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.tas.ApplicationException;
@@ -114,11 +115,13 @@ public class Engine {
 		} catch (IOException e) {
 		}
 		
-    	// fix log4j 1.x init with new java version without dot
+		// fix log4j 1.x init with new java version without dot
 		String javaVersion = System.getProperty("java.version", null);
 		if (javaVersion != null && javaVersion.indexOf('.') == -1) {
 			System.setProperty("java.version", javaVersion + ".0");
 		}
+		
+		RhinoUtils.init();
 	}
 	/**
 	 * This is the application reference.

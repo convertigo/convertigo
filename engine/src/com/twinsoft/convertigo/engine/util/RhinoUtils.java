@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.ContextFactory.Listener;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
@@ -52,5 +54,19 @@ public class RhinoUtils {
 		cx.setOptimizationLevel(-1);
 		Object result = cx.evaluateString(scope, source, sourceName, lineno, securityDomain);
 		return result;
+	}
+	
+	static public void init() {
+		ContextFactory.getGlobal().addListener(new Listener() {
+			
+			@Override
+			public void contextReleased(Context cx) {
+			}
+			
+			@Override
+			public void contextCreated(Context cx) {
+				cx.setLanguageVersion(Context.VERSION_ES6);
+			}
+		});
 	}
 }
