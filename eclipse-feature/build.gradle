@@ -14,13 +14,13 @@ task updateFeature(type: Copy) {
 	def licenseText = ''
 	
 	doFirst {
-		def xml = new XmlSlurper().parseText('<elt/>')			
+		def xml = new XmlSlurper().parseText('<elt/>')
 		xml.replaceBody licenseTextFile.text
 		licenseText = XmlUtil.serialize(xml).replaceFirst('[\\d\\D]*<elt>([\\d\\D]*)</elt>[\\d\\D]*','$1')
 	}
 	
 	from 'feature.xml.tpl'
-	filter { it.replace('@CURRENT_YEAR@', currentYear).replace('@licenseText@', licenseText).replace('@convertigoVersion@', convertigoVersion) }
+	filter { it.replace('@CURRENT_YEAR@', currentYear).replace('@licenseText@', licenseText).replace('@convertigoVersion@', convertigoVersion).replace('@convertigoMajor@', convertigoMajor) }
 	into '.'
 	rename '.*', 'feature.xml'
 }

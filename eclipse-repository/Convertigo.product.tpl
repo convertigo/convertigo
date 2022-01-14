@@ -48,7 +48,7 @@
    </vm>
 
    <license>
-        <url>http://www.convertigo.com/en/license.txt</url>
+        <url>https://c8ocloud.convertigo.net/convertigo/licenses/index.html</url>
         <text>@licenseText@</text>
    </license>
 
@@ -97,8 +97,8 @@
    </configurations>
 
    <repositories>
-      <repository location="https://convertigo-update-site.s3.eu-west-3.amazonaws.com/beta/7.9" enabled="true" />
-      <repository location="http://download.eclipse.org/releases/2020-12" enabled="true" />
+      <repository location="https://convertigo-update-site.s3.eu-west-3.amazonaws.com/@convertigoMode@/@convertigoMajor@" enabled="true" />
+      <repository location="http://download.eclipse.org/releases/@eclipseVersion@" enabled="true" />
    </repositories>
 
    <preferencesInfo>
