@@ -1,5 +1,30 @@
 # Changelog
 
+## 7.9.8
+
+#### New Features:
+
+- [#552](https://github.com/convertigo/convertigo/issues/552) [MobileBuilder] Create a 'Convert to shared Component' Wizard on MobileComponent right Click.
+- [#557](https://github.com/convertigo/convertigo/issues/557) [Studio] Add the Eclipse UpdateSite support for Studio update
+
+#### Improvements:
+
+- [#551](https://github.com/convertigo/convertigo/issues/551) Update RhinoJS to 1.7.14
+
+#### Bug Fixes:
+
+- [#543](https://github.com/convertigo/convertigo/issues/543) Fixed, NodeJS process are now properly killed when user closes the mobile builder page on Windows 11
+- [#545](https://github.com/convertigo/convertigo/issues/545) Fixed, no more error on dynamic variable in HTTP transaction sub path property
+- [#546](https://github.com/convertigo/convertigo/issues/546) [MobileBuilder] Fixed, can now edit a fragment object
+- [#547](https://github.com/convertigo/convertigo/issues/547) [Studio] Fixed, no more freeze at cross-referenced SharedAction modification
+- [#548](https://github.com/convertigo/convertigo/issues/548) [MobileBuilder] Fixed, a project with its own mobile template doesn’t create a ProjectReference on itself anymore
+- [#549](https://github.com/convertigo/convertigo/issues/549) Fixed, external projects targeted by the mobile components of a project are now taken into account in its dependencies
+- [#555](https://github.com/convertigo/convertigo/issues/555) Fixed, renaming a transaction now renames the xsd file associated
+- [#556](https://github.com/convertigo/convertigo/issues/556) [CLI] Fixed, no more build failed with NPE if a project dependency doesn't load
+- [#558](https://github.com/convertigo/convertigo/issues/558) [Studio] Fixed, disabled 'Index' sub menu in other connectors than CouchDB and FullSync
+
+---
+
 ## 7.9.7
 
 #### Improvements:
