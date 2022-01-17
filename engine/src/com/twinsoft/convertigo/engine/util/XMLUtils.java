@@ -1391,12 +1391,10 @@ public class XMLUtils {
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType, JsonRoot jsonRoot) throws JSONException {
 		JSONObject json = null;
 		Object value = null;
-		if (useType && elt.hasAttribute("type")) {
+		if (useType && elt.hasAttribute("type") && jsonRoot == null) {
 			value = getValue(elt, ignoreStepIds, useType);
 			if (value instanceof JSONObject) {
 				json = (JSONObject) value;
-			} else if (value != null) {
-				jsonRoot = null;
 			}
 		}
 		
