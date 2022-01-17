@@ -1385,7 +1385,7 @@ public class XMLUtils {
 	}
 
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType) throws JSONException {
-		return (XmlToJson(elt, ignoreStepIds, useType, null));
+		return (XmlToJson(elt, ignoreStepIds, useType, JsonRoot.docNode));
 	}
 	
 	public static String XmlToJson(Element elt, boolean ignoreStepIds, boolean useType, JsonRoot jsonRoot) throws JSONException {
