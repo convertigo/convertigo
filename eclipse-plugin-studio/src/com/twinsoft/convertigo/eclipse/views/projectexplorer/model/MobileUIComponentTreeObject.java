@@ -1089,6 +1089,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		
+		if (getProjectTreeObject() == null) {
+			//System.out.println("dbo ignored because it has been deleted: "+ getObject().priority);
+			return;
+		}
+		
 		// Case of DatabaseObjectTreeObject
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
@@ -1151,8 +1156,16 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									try {
 										String oldName = (String)oldValue;
 										String newName = (String)newValue;
+										// SC mode
 										if (getObject().updateSmartSource("\\?\\."+oldName, "?."+newName)) {
 											sourcesUpdated = true;
+										}
+										// TS mode
+										if (getObject().getSharedComponent() != null) {
+											long priority = getObject().getSharedComponent().priority;
+											if (getObject().updateSmartSource("params"+ priority + "\\."+oldName, "params"+ priority + "."+newName)) {
+												sourcesUpdated = true;
+											}
 										}
 									} catch (Exception e) {}
 								}
