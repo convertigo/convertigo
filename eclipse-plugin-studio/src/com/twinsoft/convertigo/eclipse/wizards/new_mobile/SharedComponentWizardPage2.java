@@ -56,7 +56,7 @@ public class SharedComponentWizardPage2 extends WizardPage {
 	
 	protected Map<String, String> initTableMap() {
 		try {
-			return wizard.getInfoMap();
+			return wizard.getItemMap();
 		} catch (Exception e) {
 			updateStatus("An error occured"+ e.getMessage(), false);
 			return new HashMap<String, String>();

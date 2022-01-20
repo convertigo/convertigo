@@ -25,9 +25,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,8 +51,6 @@ import com.twinsoft.convertigo.beans.mobile.components.UICompVariable;
 import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlVariable;
-import com.twinsoft.convertigo.beans.mobile.components.UICustomAction;
-import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.mobile.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceD
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.SourceModel;
 import com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.mobile.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.mobile.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.mobile.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -70,6 +71,8 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 public class SharedComponentWizard extends Wizard {
 	
 	private static Pattern p_var = Pattern.compile("((this|page)(\\.params\\d+)?\\.(\\w+))");
+	
+	private static Pattern d_var = Pattern.compile("(((\\w+)\\s(\\w+)([^\\=]+))(\\=([^\\=]+))?)");
 	private static Pattern d_var_let = Pattern.compile("((let\\s)(\\w+)(\\s*\\=))");
 	private static Pattern d_var_as = Pattern.compile("((\\w+)(\\s*as\\s*)(\\w+))");
 	
@@ -81,9 +84,11 @@ public class SharedComponentWizard extends Wizard {
 	
 	private Map<String, Map<String, String>> ovarMap = new LinkedHashMap<String, Map<String,String>>();
 	private Map<String, String> infoMap = new LinkedHashMap<String,String>();
-	private Map<String, String> var_map = new HashMap<String, String>();
+	private Map<String, String> main_map = new LinkedHashMap<String, String>();
+	private Map<String, String> dlg_map = new HashMap<String, String>();
 	private String shared_comp_name = null;
 	private boolean keep_original = true;
+	private boolean ignore_callbacks = true;
 	
     public DatabaseObject newBean = null;
 
@@ -161,7 +166,7 @@ public class SharedComponentWizard extends Wizard {
 	}
 	
 	protected boolean canCustomizeVariables() {
-		return infoMap.size() > 0;
+		return getItemMap().size() > 0;
 	}
 	
 	protected String getSharedComponentName() {
@@ -199,6 +204,14 @@ public class SharedComponentWizard extends Wizard {
 		return !isInPage(uic) && !isInSharedComponent(uic);
 	}
 	
+	private boolean isInControlEvent(UIComponent uic) {
+		DatabaseObject databaseObject = uic;
+		while (databaseObject != null && !(databaseObject instanceof UIControlEvent)) { 
+			databaseObject = databaseObject.getParent();
+		}
+		return databaseObject != null;
+	}
+	
 	private UICompVariable createCompVariable(String varName, String varValue) throws Exception {
 		UICompVariable compVariable = new UICompVariable();
 		compVariable.setName(varName);
@@ -221,14 +234,117 @@ public class SharedComponentWizard extends Wizard {
 		return controlVariable;
 	}
 	
-	protected Map<String, String> getInfoMap() throws Exception {
+	protected Map<String, String> getItemMap() {
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		if (ignore_callbacks) {
+			for (String name: infoMap.keySet()) {
+				// add declared variables and directive variables only
+				if (main_map.containsKey(name)) {
+					map.put(name, infoMap.get(name));
+				}
+			}
+			return Collections.unmodifiableMap(map);
+		}
 		return Collections.unmodifiableMap(infoMap);
 	}
 	
+	private boolean forTemplate(UIComponent uic) {
+		boolean forTemplate = true;
+		if (uic instanceof IAction || uic.getParent() instanceof IAction) {
+			if (uic.getUIComponentList().size() > 0) {
+				forTemplate = false;
+			} else {
+				forTemplate = ! (uic.getParent() instanceof IAction);
+			}
+		}
+		return forTemplate;
+	}
+	
+	private static String escapeString(String s) {
+		if (s != null && !s.isEmpty()) {
+			StringBuilder b = new StringBuilder();
+			boolean doIt = false;
+			int len = s.length();
+			char c;
+			for (int i = 0; i < len; i++) {
+				c = s.charAt(i);
+				if (c == '\"') {
+					b.append("#D#");
+					doIt = !doIt;
+				} else if (c == '\'' && doIt && (s.charAt(i-1) != '\\')) {
+					b.append("\\\\").append(c);
+				} else {
+					b.append(c);
+				}
+			}
+			return b.toString().replace("#D#", "'");
+		}
+		return s;
+	}
+	
 	private void scanForVariables(final UIComponent origin) throws Exception {
+		final Set<String> identifierSet = new HashSet<String>();
+		
 		try {
 			
 			new WalkHelper() {
+				private void addDeclaration(String var_name, String var_value) {
+					if (var_name != null && !var_name.isEmpty() && !main_map.containsKey(var_name)) {
+						main_map.put(var_name, var_value == null ? "undefined" : var_value);
+					}
+				}
+				
+				private void getMainDeclarations() {
+					try {
+						List<String> declarations = new ArrayList<String>();
+						String c8o_Declarations = "", markerId = "";
+						
+						if (isInPage(origin)) {
+							markerId = "PageDeclaration";
+							String c8o_UserCustoms = origin.getPage().getScriptContent().getString();
+							c8o_Declarations = Ionic3Builder.getMarker(c8o_UserCustoms, markerId);
+						} else if (isInSharedComponent(origin)) {
+							markerId = "SharedCompDeclaration";
+							UISharedComponent uisc = origin.getSharedComponent();
+							for (UICompVariable var: uisc.getVariables()) {
+								c8o_Declarations += "let " + var.getVariableName() + " = " + var.getVariableValue() + ";"+ System.lineSeparator();
+							}
+						} else if (isInApplication(origin)) {
+							markerId = "AppDeclaration";
+							String c8o_UserCustoms = origin.getApplication().getComponentScriptContent().getString();
+							c8o_Declarations = Ionic3Builder.getMarker(c8o_UserCustoms, markerId);
+						}
+						
+						if (!c8o_Declarations.isEmpty()) {
+							for (String line: Arrays.asList(c8o_Declarations.split(System.lineSeparator()))) {
+								line = line.trim();
+								if (!line.isEmpty() && line.indexOf(markerId) == -1) {
+									declarations.add(line);
+								}
+							}
+						}
+						
+						for (String line: declarations) {
+							Matcher matcher = d_var.matcher(line);//"(((\\w+)\\s(\\w+)([^\\=]+))(\\=([^\\=]+))?)"
+							while (matcher.find()) {
+								String var_name = matcher.group(4);
+								
+								String var_value = matcher.group(7);
+								if (var_value != null) {
+									var_value = var_value.trim();
+									if (var_value.charAt(var_value.length() - 1) == ';') {
+										var_value = var_value.substring(0, var_value.length() - 1);
+									}
+									var_value = escapeString(var_value);
+								}
+								
+								addDeclaration(var_name, var_value);
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 				
 				private boolean isInForDirective(UIComponent uic) {
 					return getForDirective(uic) != null;
@@ -254,14 +370,17 @@ public class SharedComponentWizard extends Wizard {
 						UIControlDirective uicd = getForDirective(uicomponent);
 						if (!uic.equals(uicd)) {
 							String item = "item"+ uicd.priority;
+							addDeclaration(item, "[]");
 							addMapVariable(item, item, "this._params_."+item);
 							addMapVariable(item, uicd.toString() + " : founded variable which stands for the iterator's item");
 							
 							String itemName = uicd.getDirectiveItemName();
+							addDeclaration(itemName, "{}");
 							addMapVariable(itemName, itemName, "this._params_."+itemName);
 							addMapVariable(itemName, uicd.toString() + " : founded variable which stands for the customized iterator's item");
 							
 							String indexName = uicd.getDirectiveIndexName();
+							addDeclaration(indexName, "0");
 							addMapVariable(indexName, indexName, "this._params_."+indexName);
 							addMapVariable(indexName, uicd.toString() + " : founded variable which stands for the customized iterator's index");
 							
@@ -273,12 +392,14 @@ public class SharedComponentWizard extends Wizard {
 									matcher = d_var_let.matcher(s);
 									while (matcher.find()) {
 										String expvar = matcher.group(3);
+										addDeclaration(expvar, "''");
 										addMapVariable(expvar, expvar, "this._params_."+expvar);
 										addMapVariable(expvar, uicd.toString() + " : founded variable used by the customized iterator's expression");
 									}
 									matcher = d_var_as.matcher(s);
 									while (matcher.find()) {
 										String expvar = matcher.group(4);
+										addDeclaration(expvar, "''");
 										addMapVariable(expvar, expvar, "this._params_."+expvar);
 										addMapVariable(expvar, uicd.toString() + " : founded variable used by the customized iterator's expression");
 									}
@@ -291,8 +412,24 @@ public class SharedComponentWizard extends Wizard {
 					}
 				}
 				
+				private boolean checkVariable(String name) {
+					if (name == null || name.isEmpty())
+						return false;
+					
+					if (identifierSet.contains(name)) {
+						return false;
+					}
+					
+					if ("global".equals(name))
+						return false;
+					if ("router".equals(name))
+						return false;
+					
+					return true;
+				}
+				
 				private void addMapVariable(String name, String target, String replacement) {
-					if (!name.isEmpty()) {
+					if (checkVariable(name)) {
 						String normalized_name = StringUtils.normalize(name);
 						String var_name = normalized_name;
 						if (ovarMap.containsKey(var_name)) {
@@ -306,7 +443,7 @@ public class SharedComponentWizard extends Wizard {
 				}
 				
 				private void addMapVariable(String name, String infos) {
-					if (!name.isEmpty()) {
+					if (checkVariable(name)) {
 						String normalized_name = StringUtils.normalize(name);
 						String var_name = normalized_name;
 						if (infoMap.containsKey(var_name)) {
@@ -317,17 +454,9 @@ public class SharedComponentWizard extends Wizard {
 					}
 				}
 				
-				private boolean isValueExtended(UIComponent uic) {
-					boolean forTemplate = true;
-					if (uic instanceof UICustomAction || uic instanceof UIDynamicAction) {
-						if (uic.getUIComponentList().size() > 0) {
-							forTemplate = false;
-						}
-					}
-					return !forTemplate;
-				}
-				
-				private void scanSmartSource(UIComponent uic, String p_name, MobileSmartSourceType msst, boolean extended) throws Exception {
+				private void scanSmartSource(UIComponent uic, String p_name, MobileSmartSourceType msst) throws Exception {
+					boolean extended = !forTemplate(uic);
+					
 					String s = null;
 					if (Mode.SCRIPT.equals(msst.getMode())) {
 						s = msst.getValue(extended);
@@ -349,8 +478,13 @@ public class SharedComponentWizard extends Wizard {
 							String name = group4;
 							String target = group1;
 							String replacement = group2 +"._params_." + name;
-							if (uic instanceof UIControlVariable && uic.getParent() instanceof IAction) {
-								replacement = "_params_." + name;
+							
+							if (isInControlEvent(uic)) {
+								if (forTemplate(uic)) {
+									replacement = "_params_." + name;
+								} else {
+									replacement = "scope._params_." + name;
+								}
 							}
 							
 							addMapVariable(name, target, replacement);
@@ -362,6 +496,7 @@ public class SharedComponentWizard extends Wizard {
 				
 				@Override
 				public void init(DatabaseObject databaseObject) throws Exception {
+					getMainDeclarations();
 					
 					if (isInForDirective(origin)) {
 						getForDirectiveVariables(origin);
@@ -374,8 +509,14 @@ public class SharedComponentWizard extends Wizard {
 				protected void walk(DatabaseObject databaseObject) throws Exception {
 					if (databaseObject instanceof UIComponent) {
 						UIComponent uic = (UIComponent) databaseObject;
-						if (uic.isEnabled()) {
-							boolean extented = isValueExtended((UIComponent)databaseObject);
+						
+						if (uic.isEnabled() && !isInControlEvent(uic)) {
+							if (databaseObject instanceof UIDynamicElement) {
+								String identifier = ((UIDynamicElement)databaseObject).getIdentifier();
+								if (!identifier.isEmpty()) {
+									identifierSet.add(identifier);
+								}
+							}
 							
 							for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(databaseObject).getPropertyDescriptors()) {
 								if (pd.getPropertyEditorClass() != null) {
@@ -385,7 +526,7 @@ public class SharedComponentWizard extends Wizard {
 										if (value != null && value instanceof MobileSmartSourceType) {
 											MobileSmartSourceType msst = (MobileSmartSourceType)value;
 											if (Mode.SCRIPT.equals(msst.getMode()) || Mode.SOURCE.equals(msst.getMode())) {
-												scanSmartSource(uic, pd.getName(), msst, extented);
+												scanSmartSource(uic, pd.getName(), msst);
 											}
 										}
 									}
@@ -401,7 +542,7 @@ public class SharedComponentWizard extends Wizard {
 										if (!p_value.equals(false)) {
 											MobileSmartSourceType msst = property.getSmartType();
 											if (Mode.SCRIPT.equals(msst.getMode()) || Mode.SOURCE.equals(msst.getMode())) {
-												scanSmartSource(uide, property.getName(), msst, extented);
+												scanSmartSource(uide, property.getName(), msst);
 											}
 										}
 									}
@@ -423,25 +564,25 @@ public class SharedComponentWizard extends Wizard {
 		
 		try {
 			new WalkHelper() {
-				private boolean isValueExtended(UIComponent uic) {
-					boolean forTemplate = true;
-					if (uic instanceof UICustomAction || uic instanceof UIDynamicAction) {
-						if (uic.getUIComponentList().size() > 0) {
-							forTemplate = false;
-						}
-					}
-					return !forTemplate;
+				private boolean checkVariable(String name) {
+					if (name == null || name.isEmpty())
+						return false;
+					return dlg_map.get(name) != null;
 				}
 				
-				private MobileSmartSourceType updateMobileSmartSourceType(MobileSmartSourceType msst, boolean extended) throws Exception {
+				private MobileSmartSourceType updateMobileSmartSourceType(boolean forTemplate, MobileSmartSourceType msst) throws Exception {
+					boolean extended = !forTemplate;
+					
 					if (Mode.SCRIPT.equals(msst.getMode())) {
 						String smart_value = msst.getValue(extended);
 						for (String name: ovarMap.keySet()) {
-							Map<String, String> m = ovarMap.get(name);
-							for (String target: m.keySet()) {
-								String replacement = m.get(target).replace("_params_."+ name, "_params_."+ var_map.get(name));
-								replacement = replacement.replace("_params_", "params"+priority);
-								smart_value = smart_value.replace(target, replacement);
+							if (checkVariable(name)) {
+								Map<String, String> m = ovarMap.get(name);
+								for (String target: m.keySet()) {
+									String replacement = m.get(target).replace("_params_."+ name, "_params_."+ dlg_map.get(name));
+									replacement = replacement.replace("_params_", "params"+priority);
+									smart_value = smart_value.replace(target, replacement);
+								}
 							}
 						}
 						
@@ -467,21 +608,28 @@ public class SharedComponentWizard extends Wizard {
 							mew_model.setUseCustom(model.getUseCustom());
 							
 							List<SourceData> dataList = model.getSourceData();
-							if (dataList.size() == 1) {
-								SourceData data = dataList.get(0);
-								//for (SourceData data : dataList) {
+							if (dataList.size() > 0) {
+								boolean found = false;
+								for (SourceData data : dataList) {
 									for (String name: ovarMap.keySet()) {
-										Map<String, String> m = ovarMap.get(name);
-										for (String target: m.keySet()) {
-											if (target.equals(data.getValue())) {
-												SourceData shared = Filter.Shared.toSourceData(mss.getProjectName(), "params"+priority);
-												mew_model.addSourceData(shared);
-												mew_model.setPath("?." + target + mew_model.getPath().replace("?.", "."));
+										if (checkVariable(name)) {
+											Map<String, String> m = ovarMap.get(name);
+											for (String target: m.keySet()) {
+												if (target.equals(data.getValue())) {
+													if (!found) {
+														found = true;
+														SourceData shared = Filter.Shared.toSourceData(mss.getProjectName(), "params"+priority);
+														mew_model.addSourceData(shared);
+														mew_model.setPath("?." + dlg_map.get(name));
+														mew_model.setSuffix(model.getPath() + (model.getSuffix().isEmpty() ? "":" ") + model.getSuffix());
+													}
+												}
 											}
 										}
 									}
-								//}
+								}
 							}
+							
 							if (mew_model.getSourceData().size() > 0) {
 								new_mss = new MobileSmartSource(Filter.Shared, mss.getProjectName(), mss.getInput(), mew_model.toJson());
 							}
@@ -493,13 +641,15 @@ public class SharedComponentWizard extends Wizard {
 						
 						mew_model = new_mss.getModel();
 						for (String name: ovarMap.keySet()) {
-							Map<String, String> m = ovarMap.get(name);
-							for (String target: m.keySet()) {
-								String replacement = m.get(target).replace("_params_."+ name, "_params_."+ var_map.get(name));
-								replacement = replacement.replace("_params_", "params"+priority);
-								mew_model.setPrefix(model.getPrefix().replace(target, replacement));
-								mew_model.setSuffix(model.getSuffix().replace(target, replacement));
-								mew_model.setCustom(model.getCustom().replace(target, replacement));
+							if (checkVariable(name)) {
+								Map<String, String> m = ovarMap.get(name);
+								for (String target: m.keySet()) {
+									String replacement = m.get(target).replace("_params_."+ name, "_params_."+ dlg_map.get(name));
+									replacement = replacement.replace("_params_", "params"+priority);
+									mew_model.setPrefix(model.getPrefix().replace(target, replacement));
+									mew_model.setSuffix(model.getSuffix().replace(target, replacement));
+									mew_model.setCustom(model.getCustom().replace(target, replacement));
+								}
 							}
 						}
 
@@ -516,8 +666,10 @@ public class SharedComponentWizard extends Wizard {
 				@Override
 				protected void walk(DatabaseObject databaseObject) throws Exception {
 					if (databaseObject instanceof UIComponent) {
-						if (((UIComponent) databaseObject).isEnabled()) {
-							boolean extented = isValueExtended((UIComponent)databaseObject);
+						UIComponent uic = (UIComponent) databaseObject;
+						
+						if (uic.isEnabled() && !isInControlEvent(uic)) {
+							boolean forTemplate = forTemplate(uic);
 							
 							for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(databaseObject).getPropertyDescriptors()) {
 								if (pd.getPropertyEditorClass() != null) {
@@ -528,7 +680,7 @@ public class SharedComponentWizard extends Wizard {
 										if (value != null && value instanceof MobileSmartSourceType) {
 											MobileSmartSourceType msst = (MobileSmartSourceType)value;
 											if (Mode.SCRIPT.equals(msst.getMode()) || Mode.SOURCE.equals(msst.getMode())) {
-												setter.invoke(databaseObject, new Object[] {updateMobileSmartSourceType(msst, extented)});
+												setter.invoke(databaseObject, new Object[] {updateMobileSmartSourceType(forTemplate, msst)});
 											}
 										}
 									}
@@ -545,7 +697,7 @@ public class SharedComponentWizard extends Wizard {
 										if (!p_value.equals(false)) {
 											MobileSmartSourceType msst = property.getSmartType();
 											if (Mode.SCRIPT.equals(msst.getMode()) || Mode.SOURCE.equals(msst.getMode())) {
-												ionBean.setPropertyValue(p_name, updateMobileSmartSourceType(msst, extented));
+												ionBean.setPropertyValue(p_name, updateMobileSmartSourceType(forTemplate, msst));
 											}
 										}
 									}
@@ -562,62 +714,12 @@ public class SharedComponentWizard extends Wizard {
 		}
 	}
 	
-	private List<String> getDeclarations(UIComponent uic) {
-		List<String> declarations = new ArrayList<String>();
-		String c8o_Declarations = "", markerId = "";
-		
-		if (isInPage(uic)) {
-			markerId = "PageDeclaration";
-			String c8o_UserCustoms = uic.getPage().getScriptContent().getString();
-			c8o_Declarations = Ionic3Builder.getMarker(c8o_UserCustoms, markerId);
-		} else if (isInSharedComponent(uic)) {
-			markerId = "SharedCompDeclaration";
-			UISharedComponent uisc = uic.getSharedComponent();
-			for (UICompVariable var: uisc.getVariables()) {
-				c8o_Declarations += var.getVariableName() + " = " + var.getVariableValue() + ";"+ System.lineSeparator();
-			}
-		} else if (isInApplication(uic)) {
-			markerId = "AppDeclaration";
-			String c8o_UserCustoms = uic.getApplication().getComponentScriptContent().getString();
-			c8o_Declarations = Ionic3Builder.getMarker(c8o_UserCustoms, markerId);
+	private String getVariablesDefaultValue(String var_name) {
+		String var_value = null;
+		if (var_name != null) {
+			var_value = main_map.get(var_name);
 		}
-		
-		if (!c8o_Declarations.isEmpty()) {
-			for (String line: Arrays.asList(c8o_Declarations.split(System.lineSeparator()))) {
-				line = line.trim();
-				if (!line.isEmpty() && line.indexOf(markerId) == -1) {
-					declarations.add(line);
-				}
-			}
-		}
-		
-		//System.out.println("declarations: "+ declarations);
-		return declarations;
-	}
-	
-	private String getVariablesDefaultValue(List<String> declarations, String var_name) {
-		String value = "''";
-		try {
-			for (String line: declarations) {
-				if (line.indexOf(var_name+" ") != -1) {
-					String[] array = line.split("=");
-					int alen = array.length;
-					if (alen > 0) {
-						value = array[alen - 1].trim();
-						if (value.charAt(value.length() - 1) == ';') {
-							value = value.substring(0, value.length() - 1);
-						}
-						if (value.charAt(0) == value.charAt(value.length() - 1)) {
-							value = "'" + value.substring(1, value.length() - 1) + "'";
-						}
-						break;
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return value;
+		return var_value == null ? "undefined" : var_value;
 	}
 	
 	private UISharedComponent createSharedComponent() throws Exception {
@@ -636,10 +738,9 @@ public class SharedComponentWizard extends Wizard {
 		
 		updateMobileSmartSources(uisc);
 		
-		List<String> declarations = getDeclarations(uic);
-		for (String name: var_map.keySet()) {
-			String value = getVariablesDefaultValue(declarations, name);
-			uisc.add(createCompVariable(var_map.get(name), value));
+		for (String name: dlg_map.keySet()) {
+			String value = getVariablesDefaultValue(name);
+			uisc.add(createCompVariable(dlg_map.get(name), value));
 		}
 		return uisc;
 	}
@@ -652,9 +753,9 @@ public class SharedComponentWizard extends Wizard {
 		uius.hasChanged = true;
 		uius.bNew = true;
 		
-		for (String name: var_map.keySet()) {
+		for (String name: dlg_map.keySet()) {
 			String value = ovarMap.get(name).keySet().iterator().next();
-			uius.add(createControlVariable(var_map.get(name), value));
+			uius.add(createControlVariable(dlg_map.get(name), value));
 		}
 		
 		MobileComponent mc = (MobileComponent) uic.getParent();
@@ -684,7 +785,7 @@ public class SharedComponentWizard extends Wizard {
 			}
 			
 			if (page2 != null) {
-				var_map = page2.getVariableMap();
+				dlg_map = page2.getVariableMap();
 			}
 			
 			// Create shared component
