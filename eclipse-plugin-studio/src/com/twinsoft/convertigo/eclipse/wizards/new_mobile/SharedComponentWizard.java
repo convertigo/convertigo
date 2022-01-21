@@ -77,7 +77,7 @@ public class SharedComponentWizard extends Wizard {
 	private static Pattern d_var_as = Pattern.compile("((\\w+)(\\s*as\\s*)(\\w+))");
 	
 	private String className = "com.twinsoft.convertigo.beans.mobile.components.UISharedComponent";
-	private DatabaseObject selectedDatabaseObject = null; 
+	private List<DatabaseObject> objectList = null; 
 	
 	private SharedComponentWizardPage1 page1;
 	private SharedComponentWizardPage2 page2;
@@ -92,15 +92,17 @@ public class SharedComponentWizard extends Wizard {
 	
     public DatabaseObject newBean = null;
 
-    public SharedComponentWizard(DatabaseObject selectedDatabaseObject) throws Exception {
+    public SharedComponentWizard(List<DatabaseObject> objectList) throws Exception {
 		super();
-		this.selectedDatabaseObject = selectedDatabaseObject;
+		this.objectList = objectList;
 		setWindowTitle("Create a new shared component");
 		setNeedsProgressMonitor(true);
 		setHelpAvailable(true);
 		
 		computeSharedComponentName();
-		scanForVariables((UIComponent)selectedDatabaseObject);
+		for (DatabaseObject dbo: objectList) {
+			scanForVariables((UIComponent)dbo);
+		}
 	}
 
 	@Override
@@ -173,15 +175,28 @@ public class SharedComponentWizard extends Wizard {
 		return this.shared_comp_name;
 	}
 	
+	private DatabaseObject getFirstInList() {
+		return objectList.get(0);
+	}
+	
+	private DatabaseObject getLastInList() {
+		return objectList.get(sizeOfList() - 1);
+	}
+	
+	private int sizeOfList() {
+		return objectList.size();
+	}
+	
 	private void computeSharedComponentName() {
-		String var_qname = selectedDatabaseObject.getQName();
-		String app_qname = ((UIComponent)selectedDatabaseObject).getApplication().getQName();
-		var_qname = var_qname.replace(app_qname+".", "");
-		shared_comp_name = StringUtils.normalize(var_qname);
+		DatabaseObject firstDbo = getFirstInList();
+		String dbo_qname = sizeOfList() > 1 ? firstDbo.getParent().getQName() + "_Group" : firstDbo.getQName();
+		String app_qname = ((UIComponent)firstDbo).getApplication().getQName();
+		dbo_qname = dbo_qname.replace(app_qname+".", "");
+		shared_comp_name = StringUtils.normalize(dbo_qname);
 	}
 	
 	protected boolean sharedComponentAlreadyExists(String sharedComponentName) {
-		UIComponent uic = (UIComponent)selectedDatabaseObject;
+		UIComponent uic = (UIComponent) getFirstInList();
 		MobileApplication ma = uic.getProject().getMobileApplication();
 		ApplicationComponent app = (ApplicationComponent)ma.getApplicationComponent();
 		for (UISharedComponent uisc: app.getSharedComponentList()) {
@@ -723,7 +738,7 @@ public class SharedComponentWizard extends Wizard {
 	}
 	
 	private UISharedComponent createSharedComponent() throws Exception {
-		UIComponent uic = (UIComponent)selectedDatabaseObject;
+		UIComponent uic = (UIComponent) getFirstInList();
 		
 		UISharedComponent uisc = new UISharedComponent();
 		uisc.setName(shared_comp_name);
@@ -731,10 +746,12 @@ public class SharedComponentWizard extends Wizard {
 		uisc.bNew = true;
 		uic.getApplication().add(uisc); // must be added before copy/paste !
 		
-		ConvertigoPlugin.clipboardManagerSystem.reset();
-		ConvertigoPlugin.clipboardManagerSystem.isCopy = true;
-		String sXml = ConvertigoPlugin.clipboardManagerSystem.copy(selectedDatabaseObject);
-		ConvertigoPlugin.clipboardManagerSystem.paste(sXml, uisc, false);
+		for (DatabaseObject dbo: objectList) {
+			ConvertigoPlugin.clipboardManagerSystem.reset();
+			ConvertigoPlugin.clipboardManagerSystem.isCopy = true;
+			String sXml = ConvertigoPlugin.clipboardManagerSystem.copy(dbo);
+			ConvertigoPlugin.clipboardManagerSystem.paste(sXml, uisc, false);
+		}
 		
 		updateMobileSmartSources(uisc);
 		
@@ -746,8 +763,6 @@ public class SharedComponentWizard extends Wizard {
 	}
 	
 	private UIUseShared createUseShared(String qname) throws Exception {
-		UIComponent uic = (UIComponent)selectedDatabaseObject;
-		
 		UIUseShared uius = new UIUseShared();
 		uius.setSharedComponentQName(qname);
 		uius.hasChanged = true;
@@ -758,6 +773,7 @@ public class SharedComponentWizard extends Wizard {
 			uius.add(createControlVariable(dlg_map.get(name), value));
 		}
 		
+		UIComponent uic = (UIComponent) getLastInList();
 		MobileComponent mc = (MobileComponent) uic.getParent();
 		if (mc instanceof ApplicationComponent) {
 			ApplicationComponent parent = (ApplicationComponent)mc;
@@ -777,8 +793,6 @@ public class SharedComponentWizard extends Wizard {
 		UIUseShared uius = null;
 
 		try {
-			UIComponent uic = (UIComponent)selectedDatabaseObject;
-			
 			if (page1 != null) {
 				shared_comp_name = page1.getSharedComponentName();
 				keep_original = page1.keepComponent();
@@ -798,24 +812,27 @@ public class SharedComponentWizard extends Wizard {
 			monitor.setTaskName("UseShared component created");
 			monitor.worked(1);
 			
-			// Disable or Remove selectedDatabaseObject
-			if (keep_original) {
-				uic.setEnabled(false);
-				uic.hasChanged = true;
-			} else {
-				MobileComponent mc = (MobileComponent) uic.getParent();
-				if (mc instanceof ApplicationComponent) {
-					ApplicationComponent parent = (ApplicationComponent)mc;
-					parent.remove(uic);
-					parent.hasChanged = true;
-				} else if (mc instanceof PageComponent) {
-					PageComponent parent = (PageComponent)mc;
-					parent.remove(uic);
-					parent.hasChanged = true;
-				} else if (mc instanceof UIComponent) {
-					UIComponent parent = (UIComponent)mc;
-					parent.remove(uic);
-					parent.hasChanged = true;
+			// Disable or Remove selected databaseObject(s)
+			for (DatabaseObject dbo: objectList) {
+				UIComponent uic = (UIComponent)dbo;
+				if (keep_original) {
+					uic.setEnabled(false);
+					uic.hasChanged = true;
+				} else {
+					MobileComponent mc = (MobileComponent) uic.getParent();
+					if (mc instanceof ApplicationComponent) {
+						ApplicationComponent parent = (ApplicationComponent)mc;
+						parent.remove(uic);
+						parent.hasChanged = true;
+					} else if (mc instanceof PageComponent) {
+						PageComponent parent = (PageComponent)mc;
+						parent.remove(uic);
+						parent.hasChanged = true;
+					} else if (mc instanceof UIComponent) {
+						UIComponent parent = (UIComponent)mc;
+						parent.remove(uic);
+						parent.hasChanged = true;
+					}
 				}
 			}
 			

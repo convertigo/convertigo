@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -31,16 +34,15 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
-import com.twinsoft.convertigo.beans.mobile.components.UIComponent;
 import com.twinsoft.convertigo.beans.mobile.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.mobile.components.UIElement;
-import com.twinsoft.convertigo.beans.mobile.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_mobile.SharedComponentWizard;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class MobileSharedComponentExtractAction extends MyAbstractAction {
 	public MobileSharedComponentExtractAction() {
@@ -48,32 +50,56 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 	}
 	
 	public void selectionChanged(IAction action, ISelection selection) {
+		boolean enable = false;
 		try {
-			boolean enable = false;
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-			if (structuredSelection.size() == 1) {
-				TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
-				if (treeObject instanceof DatabaseObjectTreeObject) {
-					DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject) treeObject;
-					if (doto.isEnabled() && !doto.hasAncestorDisabled()) {
-						DatabaseObject dbo = doto.getObject();
-						if (dbo instanceof UIElement) {
-							UIElement uie = (UIElement)dbo;
-							boolean isUIUseShared = uie instanceof UIUseShared;
-							boolean isUIDynamicAction = uie instanceof UIDynamicAction;
-							boolean isInForm = uie.getUIForm() != null && !uie.equals(uie.getUIForm());
-							
-							if (!isUIUseShared && !isUIDynamicAction && !isInForm) {
-								enable = true;
-							}
+			if (structuredSelection.size() > 0) {
+				boolean doIt = true;
+				TreeObject previous = null;
+				@SuppressWarnings("unchecked")
+				List<TreeObject> list = structuredSelection.toList();
+				for (TreeObject to: list) {
+					if (!isAllowed(to)) {
+						doIt = false;
+						break;
+					}
+					
+					if (previous != null) {
+						if (!to.getPreviousSibling().equals(previous)) {
+							doIt = false;
+							break;
 						}
+					}
+					previous = to;
+				}
+				
+				if (doIt) {
+					enable = true;
+				}
+			}
+		}
+		catch (Exception e) {}
+		action.setEnabled(enable);
+	}
+	
+	private boolean isAllowed(TreeObject treeObject) {
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject) treeObject;
+			if (doto.isEnabled() && !doto.hasAncestorDisabled()) {
+				DatabaseObject dbo = doto.getObject();
+				if (dbo instanceof UIElement) {
+					UIElement uie = (UIElement)dbo;
+					boolean isUIDynamicAction = uie instanceof UIDynamicAction;
+					boolean isInForm = uie.getUIForm() != null && !uie.equals(uie.getUIForm());
+					
+					if (!isUIDynamicAction && !isInForm) {
+						return true;
 					}
 				}
 			}
-			action.setEnabled(enable);
 		}
-		catch (Exception e) {}
+		return false;
 	}
 	
 	public void run() {
@@ -84,35 +110,30 @@ public class MobileSharedComponentExtractAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	TreeObject appTreeObject = null;
-     		TreeObject selectedTreeObject = null;
-     		DatabaseObjectTreeObject parentTreeObject = null;
-    		DatabaseObject databaseObject = null;
-    		
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-    			selectedTreeObject = explorerView.getFirstSelectedTreeObject();
-   				databaseObject = (DatabaseObject) selectedTreeObject.getObject();
-   				if (!(databaseObject instanceof UIComponent))
-   					throw new Exception("Invalid selection");
+    			DatabaseObjectTreeObject firstSelectedDoTo = GenericUtils.cast(explorerView.getFirstSelectedTreeObject());
+    			DatabaseObjectTreeObject parentTreeObject = firstSelectedDoTo.getParentDatabaseObjectTreeObject();
    				
-    			appTreeObject = getAppTreeObject(selectedTreeObject);
-    			if (appTreeObject == null) {
+    			TreeObject appTo = getAppTreeObject(firstSelectedDoTo);
+    			if (appTo == null) {
     				throw new Exception("Unable to retrieve target application");
     			}
     			
-   				parentTreeObject = ((DatabaseObjectTreeObject)selectedTreeObject).getParentDatabaseObjectTreeObject();
-   				
-    			SharedComponentWizard newObjectWizard = new SharedComponentWizard(databaseObject);
+    			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+    			List<DatabaseObject> objectList = GenericUtils.cast(Arrays.asList(explorerView.getSelectedDatabaseObjects()));
+    			SharedComponentWizard newObjectWizard = new SharedComponentWizard(objectList);
         		WizardDialog wzdlg = new WizardDialog(shell, newObjectWizard);
         		wzdlg.setPageSize(850, 650);
         		wzdlg.open();
         		int result = wzdlg.getReturnCode();
         		if ((result != Window.CANCEL) && (newObjectWizard.newBean != null)) {
-        			if (databaseObject.getParent() == null) {
-        				parentTreeObject.removeChild(selectedTreeObject);
+        			for (TreeObject to: treeObjects) {
+        				if (((DatabaseObject)to.getObject()).getParent() == null) {
+        					parentTreeObject.removeChild(firstSelectedDoTo);
+        				}
         			}
-        			explorerView.reloadTreeObject(appTreeObject);
+        			explorerView.reloadTreeObject(appTo);
         			explorerView.objectSelected(new CompositeEvent(newObjectWizard.newBean));
         		}
     		}
