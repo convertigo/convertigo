@@ -1326,6 +1326,13 @@
                label="Import variables from the targeted object"
                menubarPath="import">
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.MobileSharedComponentExtractAction"
+               enablesFor="1"
+               id="convertigo.action.sharedComponentExtract"
+               label="Create a shared component from the selected object"
+               menubarPath="refactor">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.ngxUIComponentContribution"

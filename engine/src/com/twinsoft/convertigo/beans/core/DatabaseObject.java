@@ -981,11 +981,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 				try {
 					propertyObjectValue = propertyType.getConstructor(String.class).newInstance(propertyObjectValue.toString());
 				} catch (Exception e) {
-					Engine.logBeans.warn("(DatabaseObject) Failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName() + ". Set 0 instead.");
+					Engine.logBeans.warn("(DatabaseObject) For property '"+ propertyName +"', failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName() + ". Set 0 instead.");
 					propertyObjectValue = propertyType.getConstructor(String.class).newInstance("0");
 				}
 			} catch (Exception e) {
-				Engine.logBeans.error("(DatabaseObject) Failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName());
+				Engine.logBeans.error("(DatabaseObject) For property '"+ propertyName +"', failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName());
 			}
 		} else if (Boolean.class.isAssignableFrom(propertyType)) {
 			if (propertyObjectValue instanceof Integer) {
