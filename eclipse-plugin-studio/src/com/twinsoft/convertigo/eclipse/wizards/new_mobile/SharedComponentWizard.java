@@ -305,7 +305,7 @@ public class SharedComponentWizard extends Wizard {
 			new WalkHelper() {
 				private void addDeclaration(String var_name, String var_value) {
 					if (var_name != null && !var_name.isEmpty() && !main_map.containsKey(var_name)) {
-						main_map.put(var_name, var_value == null ? "undefined" : var_value);
+						main_map.put(var_name, var_value == null ? "''" : var_value);
 					}
 				}
 				
@@ -734,7 +734,7 @@ public class SharedComponentWizard extends Wizard {
 		if (var_name != null) {
 			var_value = main_map.get(var_name);
 		}
-		return var_value == null ? "undefined" : var_value;
+		return var_value == null ? "''" : var_value;
 	}
 	
 	private UISharedComponent createSharedComponent() throws Exception {
