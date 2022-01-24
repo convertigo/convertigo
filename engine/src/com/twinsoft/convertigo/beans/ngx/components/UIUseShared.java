@@ -400,16 +400,22 @@ public class UIUseShared extends UIElement {
 						Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 					}
 					if (p != null) {
-						try {
-							ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
-							for (UISharedComponent uisc: app.getSharedComponentList()) {
-								if (uisc.getQName().equals(qname)) {
-									target = uisc;
-									break;
+						if (p.getMobileApplication() != null) {
+							try {
+								ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+								if (app != null) {
+									for (UISharedComponent uisc: app.getSharedComponentList()) {
+										if (uisc.getQName().equals(qname)) {
+											target = uisc;
+											break;
+										}
+									}
 								}
+							} catch (ClassCastException e) {
+								Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is not compatible !");
 							}
-						} catch (ClassCastException e) {
-							Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is not compatible !");
+						} else {
+							Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" does not contain any mobile application !");
 						}
 						
 						if (target == null) {
