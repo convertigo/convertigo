@@ -185,6 +185,7 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 	/**
 	 * @deprecated since 5.0.3 beans version, does nothing anymore
 	 */
+	@Deprecated
 	public void setValue(Object value) {
 		//this.value = value;
 	}

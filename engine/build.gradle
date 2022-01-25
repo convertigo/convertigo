@@ -217,7 +217,7 @@ dependencies {
 	compileFlat    'javax.mail:mail:1.4.7'
 	compileFlat    'log4j:log4j:[1.2,1.3['
 	compileFlat    'org.slf4j:slf4j-simple:[1.7,)'
-	compileFlat    'oauth.signpost:signpost-core:[1.2.1,1.2.2['
+	compileFlat    'oauth.signpost:signpost-core:[2.0,)'
 	compileFlat    'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
 	compileFlat    'org.apache.commons:commons-lang3:[3.7,)'
 	compileFlat    'org.apache.httpcomponents:httpclient:[4.5.10,)'
@@ -226,7 +226,7 @@ dependencies {
 	compileFlat    'org.apache.ws.commons.axiom:axiom-dom:1.2.13'
 	compileFlat    'org.apache.ws.commons.axiom:axiom-impl:1.2.13'
 	compileFlat    'org.apache.ws.commons.schema:XmlSchema:[1.4,1.5['
-	compileFlat    'org.apache.xmlbeans:xmlbeans:[2.6,2.7['
+	compileFlat    'com.convertigo.lib:xmlbeans:2.6.0'
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
 	compileFlat    'org.codehaus.jettison:jettison:[1.4,)'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:[5.4,)'
@@ -457,7 +457,7 @@ task copyFlashUpdateDependencies(type: Copy) {
 task engineDependenciesClasspathJar(type: Jar, dependsOn: dependenciesJar) {
 	group 'convertigo'
 	
-	appendix = 'updateBeansDefaultValues'
+	archiveAppendix = 'updateBeansDefaultValues'
 	manifest {
 		attributes 'Class-Path': files(sourceSets.main.compileClasspath, sourceSets.main.runtimeClasspath)
 			.filter { it.name.endsWith '.jar' }
@@ -477,7 +477,7 @@ task updateBeansDefaultValues(type: JavaExec, dependsOn: engineDependenciesClass
 	classpath sourceSets.main.output
 	classpath engineDependenciesClasspathJar.archivePath
 	
-	main = 'com.twinsoft.convertigo.beans.BeansDefaultValues'
+	mainClass = 'com.twinsoft.convertigo.beans.BeansDefaultValues'
 	
 	args 'src', sourceSets.main.output.resourcesDir
 }
@@ -504,5 +504,6 @@ task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClassp
 	}
 }
 
+processResources.dependsOn('copyFlashUpdateDependencies')
 compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
 jar.dependsOn('updateBeansDefaultValues')

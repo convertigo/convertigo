@@ -1,6 +1,6 @@
 buildscript {
 	repositories {
-		jcenter()
+		mavenCentral()
 	}
 	
 	dependencies {
@@ -70,7 +70,7 @@ allprojects {
 		maven {
 			url "https://europe-maven.pkg.dev/jxbrowser/releases"
 		}
-		jcenter()
+		mavenCentral()
 	}
 	
 	if (project.name.startsWith('eclipse')) {
@@ -231,6 +231,13 @@ publishing {
 			version '12.1.0.2'
 			artifact 'resources/ojdbc7.jar'
 		}
+		
+		xmlbeans (MavenPublication) {
+			groupId 'com.convertigo.lib'
+			artifactId 'xmlbeans'
+			version '2.6.0'
+			artifact 'resources/xmlbeans-2.6.0.jar'
+		}
 	}
 }
 
@@ -268,7 +275,7 @@ task buildStudio(type: Exec, dependsOn: ['writeManifest', 'downloadSystemLibrari
 	args 'install'
 }
 
-task updateEclipseProduct(type: Copy, dependsOn: ['updateEclipseCategory']) {
+task updateEclipseProduct(type: Copy, dependsOn: ['updateEclipseCategory', ':eclipse-plugin-product:writePluginXml', ':eclipse-plugin-product:writeAboutIni']) {
 	group 'convertigo'
 	
 	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')

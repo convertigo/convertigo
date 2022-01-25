@@ -54,7 +54,7 @@ task writePluginXml(type: Copy) {
 	rename '.*', 'plugin.xml'
 }
 
-task writeAboutIni(type: Copy) {
+task writeAboutIni(type: Copy, dependsOn: writePluginXml) {
 	group 'convertigo'
 	
 	inputs.properties(

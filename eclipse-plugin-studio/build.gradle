@@ -58,7 +58,7 @@ dependencies {
 	runtimeOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
 	runtimeOnly 'org.apache.axis2:axis2-adb:1.6.2@jar'
 	runtimeOnly project.property('sapjco3Version')
-	compile 'com.convertigo.lib:jxbrowser-license:2022.01.06'
+	implementation 'com.convertigo.lib:jxbrowser-license:2022.01.06'
 }
 
 task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {
