@@ -91,7 +91,7 @@ public class SharedComponentWizardPage1Composite extends Composite {
 			}
 		});
 		rbtnKeep.setSelection(true);
-		rbtnKeep.setText("keep the original component and disable it (recommanded)");
+		rbtnKeep.setText("keep the original component and disable it (recommended)");
 		
 		rbtnRemove = new Button(this, SWT.RADIO);
 		rbtnRemove.addSelectionListener(new SelectionAdapter() {
@@ -108,7 +108,7 @@ public class SharedComponentWizardPage1Composite extends Composite {
 		new Label(this, SWT.NONE);
 		
 		Label label3  = new Label(this, SWT.NONE);
-		label3.setText("Notes:\n- inner actions remains the same\n- inner disabled components are ignored");
+		label3.setText("Notes:\n- inner actions remains the same\n- inner disabled components are ignored and remains the same");
 		new Label(this, SWT.NONE);
 		
 		Label labelInfos = new Label(this, SWT.NONE);

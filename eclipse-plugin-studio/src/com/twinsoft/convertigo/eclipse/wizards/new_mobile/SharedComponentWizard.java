@@ -305,7 +305,7 @@ public class SharedComponentWizard extends Wizard {
 			new WalkHelper() {
 				private void addDeclaration(String var_name, String var_value) {
 					if (var_name != null && !var_name.isEmpty() && !main_map.containsKey(var_name)) {
-						main_map.put(var_name, var_value == null ? "undefined" : var_value);
+						main_map.put(var_name, var_value == null ? "''" : var_value);
 					}
 				}
 				
@@ -387,17 +387,17 @@ public class SharedComponentWizard extends Wizard {
 							String item = "item"+ uicd.priority;
 							addDeclaration(item, "[]");
 							addMapVariable(item, item, "this._params_."+item);
-							addMapVariable(item, uicd.toString() + " : founded variable which stands for the iterator's item");
+							addMapVariable(item, uicd.toString() + " : found  variable which stands for the iterator's item");
 							
 							String itemName = uicd.getDirectiveItemName();
 							addDeclaration(itemName, "{}");
 							addMapVariable(itemName, itemName, "this._params_."+itemName);
-							addMapVariable(itemName, uicd.toString() + " : founded variable which stands for the customized iterator's item");
+							addMapVariable(itemName, uicd.toString() + " : found variable which stands for the customized iterator's item");
 							
 							String indexName = uicd.getDirectiveIndexName();
 							addDeclaration(indexName, "0");
 							addMapVariable(indexName, indexName, "this._params_."+indexName);
-							addMapVariable(indexName, uicd.toString() + " : founded variable which stands for the customized iterator's index");
+							addMapVariable(indexName, uicd.toString() + " : found variable which stands for the customized iterator's index");
 							
 							String expression = uicd.getDirectiveExpression();
 							if (!expression.isEmpty()) {
@@ -409,14 +409,14 @@ public class SharedComponentWizard extends Wizard {
 										String expvar = matcher.group(3);
 										addDeclaration(expvar, "''");
 										addMapVariable(expvar, expvar, "this._params_."+expvar);
-										addMapVariable(expvar, uicd.toString() + " : founded variable used by the customized iterator's expression");
+										addMapVariable(expvar, uicd.toString() + " : found variable used by the customized iterator's expression");
 									}
 									matcher = d_var_as.matcher(s);
 									while (matcher.find()) {
 										String expvar = matcher.group(4);
 										addDeclaration(expvar, "''");
 										addMapVariable(expvar, expvar, "this._params_."+expvar);
-										addMapVariable(expvar, uicd.toString() + " : founded variable used by the customized iterator's expression");
+										addMapVariable(expvar, uicd.toString() + " : found variable used by the customized iterator's expression");
 									}
 								}
 							}
@@ -481,7 +481,7 @@ public class SharedComponentWizard extends Wizard {
 					}
 					
 					if (s != null) {
-						String infos = uic.toString() + " : founded variable used by '"+ p_name +"' property";
+						String infos = uic.toString() + " : found variable used by '"+ p_name +"' property";
 						
 						Matcher matcher = p_var.matcher(s);
 						while (matcher.find()) {
@@ -734,7 +734,7 @@ public class SharedComponentWizard extends Wizard {
 		if (var_name != null) {
 			var_value = main_map.get(var_name);
 		}
-		return var_value == null ? "undefined" : var_value;
+		return var_value == null ? "''" : var_value;
 	}
 	
 	private UISharedComponent createSharedComponent() throws Exception {
