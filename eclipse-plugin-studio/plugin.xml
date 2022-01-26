@@ -1398,6 +1398,13 @@
                      </objectState>
                   </enablement>
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.NgxSharedComponentExtractAction"
+               enablesFor="1"
+               id="convertigo.action.ngxSharedComponentExtract"
+               label="Create a shared component from the selected object"
+               menubarPath="refactor">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.screenclassContribution"
