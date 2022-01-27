@@ -38,7 +38,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.Wizard;
-
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
@@ -65,7 +64,7 @@ import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
-import com.twinsoft.convertigo.engine.mobile.Ionic3Builder;
+import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -73,9 +72,11 @@ public class SharedComponentWizard extends Wizard {
 	
 	private static Pattern p_var = Pattern.compile("((this|page)(\\.params\\d+)?\\.(\\w+))");
 	
-	private static Pattern d_var = Pattern.compile("(((\\w+)\\s(\\w+)([^\\=]+))(\\=([^\\=]+))?)");
+	private static Pattern d_var = Pattern.compile("(((\\w+)\\s(\\w+)([^\\=]+))(\\=(.+))?)");
 	private static Pattern d_var_let = Pattern.compile("((let\\s)(\\w+)(\\s*\\=))");
 	private static Pattern d_var_as = Pattern.compile("((\\w+)(\\s*as\\s*)(\\w+))");
+	
+	private static Pattern d_func = Pattern.compile("((\\w+)\\s*(\\([^\\(]*\\))\\s*\\{)");
 	
 	private String className = "com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent";
 	private List<DatabaseObject> objectList = null; 
@@ -89,7 +90,6 @@ public class SharedComponentWizard extends Wizard {
 	private Map<String, String> dlg_map = new HashMap<String, String>();
 	private String shared_comp_name = null;
 	private boolean keep_original = true;
-	private boolean ignore_callbacks = false;
 	
     public DatabaseObject newBean = null;
 
@@ -252,16 +252,13 @@ public class SharedComponentWizard extends Wizard {
 	
 	protected Map<String, String> getItemMap() {
 		Map<String, String> map = new LinkedHashMap<String, String>();
-		if (ignore_callbacks) {
-			for (String name: infoMap.keySet()) {
-				// add declared variables and directive variables only
-				if (main_map.containsKey(name)) {
-					map.put(name, infoMap.get(name));
-				}
+		for (String name: infoMap.keySet()) {
+			// add class properties/functions & directive variables only
+			if (main_map.containsKey(name)) {
+				map.put(name, infoMap.get(name));
 			}
-			return Collections.unmodifiableMap(map);
 		}
-		return Collections.unmodifiableMap(infoMap);
+		return Collections.unmodifiableMap(map);
 	}
 	
 	private boolean forTemplate(UIComponent uic) {
@@ -298,65 +295,118 @@ public class SharedComponentWizard extends Wizard {
 		return s;
 	}
 	
+	private static String simplify(String s) {
+		if (s != null && !s.isEmpty()) {
+			StringBuilder b = new StringBuilder();
+			int count = 0;
+			char c;
+			for (int i = 0; i < s.length(); i++) {
+				c = s.charAt(i);
+				if (c == '{') {
+					if (count == 0) b.append(c);
+					count++;
+				} else if (c == '}') {
+					if (count == 1) b.append(c);
+					count--;
+				} else if (count == 0){
+					b.append(c);
+				}
+			}
+			return b.toString();
+		}
+		return s;
+	}
+	
 	private void scanForVariables(final UIComponent origin) throws Exception {
 		final Set<String> identifierSet = new HashSet<String>();
 		
 		try {
 			
 			new WalkHelper() {
-				private void addDeclaration(String var_name, String var_value) {
+				private void addMainVariable(String var_name, String var_value) {
 					if (var_name != null && !var_name.isEmpty() && !main_map.containsKey(var_name)) {
 						main_map.put(var_name, var_value == null ? "''" : var_value);
 					}
 				}
 				
-				private void getMainDeclarations() {
+				private void getMainVariables() {
 					try {
 						List<String> declarations = new ArrayList<String>();
-						String c8o_Declarations = "", markerId = "";
+						List<String> functions = new ArrayList<String>();
+						String c8o_Declarations = "", c8o_Functions = "", prefix = "";
 						
 						if (isInPage(origin)) {
-							markerId = "PageDeclaration";
+							prefix = "Page";
+							c8o_Declarations += origin.getPage().getComputedDeclarations() + System.lineSeparator();
 							String c8o_UserCustoms = origin.getPage().getScriptContent().getString();
-							c8o_Declarations = Ionic3Builder.getMarker(c8o_UserCustoms, markerId);
+							c8o_Declarations += NgxBuilder.getMarker(c8o_UserCustoms, prefix + "Declaration");
+							c8o_Functions += NgxBuilder.getMarker(c8o_UserCustoms, prefix + "Function");
 						} else if (isInSharedComponent(origin)) {
-							markerId = "SharedCompDeclaration";
-							UISharedComponent uisc = origin.getSharedComponent();
-							for (UICompVariable var: uisc.getVariables()) {
+							prefix = "Comp";
+							for (UICompVariable var: origin.getSharedComponent().getVariables()) {
 								c8o_Declarations += "let " + var.getVariableName() + " = " + var.getVariableValue() + ";"+ System.lineSeparator();
 							}
+							c8o_Declarations += origin.getSharedComponent().getComputedDeclarations() + System.lineSeparator();
+							String c8o_UserCustoms = origin.getSharedComponent().getScriptContent().getString();
+							c8o_Declarations += NgxBuilder.getMarker(c8o_UserCustoms, prefix + "Declaration");
+							c8o_Functions += NgxBuilder.getMarker(c8o_UserCustoms, prefix + "Function");
 						} else if (isInApplication(origin)) {
-							markerId = "AppDeclaration";
+							prefix = "App";
+							c8o_Declarations += origin.getApplication().getComputedDeclarations() + System.lineSeparator();
 							String c8o_UserCustoms = origin.getApplication().getComponentScriptContent().getString();
-							c8o_Declarations = Ionic3Builder.getMarker(c8o_UserCustoms, markerId);
+							c8o_Declarations += NgxBuilder.getMarker(c8o_UserCustoms, prefix + "Declaration");
+							c8o_Functions += NgxBuilder.getMarker(c8o_UserCustoms, prefix + "Function");
 						}
 						
+						// class variables
 						if (!c8o_Declarations.isEmpty()) {
 							for (String line: Arrays.asList(c8o_Declarations.split(System.lineSeparator()))) {
 								line = line.trim();
-								if (!line.isEmpty() && line.indexOf(markerId) == -1) {
+								if (!line.isEmpty() && line.indexOf(prefix + "Declaration") == -1) {
+									if (line.indexOf(prefix + "@ViewChild") != -1 || line.indexOf(prefix + "@ViewChildren") != -1) {
+										line = line.substring(line.indexOf(')'));
+									}
 									declarations.add(line);
+								}
+							}
+							
+							for (String line: declarations) {
+								Matcher matcher = d_var.matcher(line);//"(((\\w+)\\s(\\w+)([^\\=]+))(\\=([^\\=]+))?)"
+								while (matcher.find()) {
+									String var_name = matcher.group(4);
+									
+									String var_value = matcher.group(7);
+									if (var_value != null) {
+										var_value = var_value.trim();
+										if (var_value.charAt(var_value.length() - 1) == ';') {
+											var_value = var_value.substring(0, var_value.length() - 1);
+										}
+										var_value = escapeString(var_value);
+									}
+									
+									addMainVariable(var_name, var_value);
 								}
 							}
 						}
 						
-						for (String line: declarations) {
-							Matcher matcher = d_var.matcher(line);//"(((\\w+)\\s(\\w+)([^\\=]+))(\\=([^\\=]+))?)"
-							while (matcher.find()) {
-								String var_name = matcher.group(4);
-								
-								String var_value = matcher.group(7);
-								if (var_value != null) {
-									var_value = var_value.trim();
-									if (var_value.charAt(var_value.length() - 1) == ';') {
-										var_value = var_value.substring(0, var_value.length() - 1);
+						// class functions
+						if (!c8o_Functions.isEmpty()) {
+							c8o_Functions = simplify(c8o_Functions);
+							for (String line: Arrays.asList(c8o_Functions.split(System.lineSeparator()))) {
+								line = line.trim();
+								if (!line.isEmpty() && line.indexOf(prefix + "Function") == -1) {
+									Matcher matcher = d_func.matcher(line);//"((\\w+)\\s*(\\([^\\(]*\\))\\s*\\{)"
+									while (matcher.find()) {
+										functions.add(matcher.group(2));										
 									}
-									var_value = escapeString(var_value);
 								}
-								
-								addDeclaration(var_name, var_value);
+							}
+							
+							for (String func_name: functions) {
+								addMainVariable(func_name, "() => {}");
 							}
 						}
+						
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -386,17 +436,17 @@ public class SharedComponentWizard extends Wizard {
 						UIControlDirective uicd = getForDirective(uicomponent);
 						if (!uic.equals(uicd)) {
 							String item = "item"+ uicd.priority;
-							addDeclaration(item, "[]");
+							addMainVariable(item, "[]");
 							addMapVariable(item, item, "this._params_."+item);
 							addMapVariable(item, uicd.toString() + " : found variable which stands for the iterator's item");
 							
 							String itemName = uicd.getDirectiveItemName();
-							addDeclaration(itemName, "{}");
+							addMainVariable(itemName, "{}");
 							addMapVariable(itemName, itemName, "this._params_."+itemName);
 							addMapVariable(itemName, uicd.toString() + " : found variable which stands for the customized iterator's item");
 							
 							String indexName = uicd.getDirectiveIndexName();
-							addDeclaration(indexName, "0");
+							addMainVariable(indexName, "0");
 							addMapVariable(indexName, indexName, "this._params_."+indexName);
 							addMapVariable(indexName, uicd.toString() + " : found variable which stands for the customized iterator's index");
 							
@@ -408,14 +458,14 @@ public class SharedComponentWizard extends Wizard {
 									matcher = d_var_let.matcher(s);
 									while (matcher.find()) {
 										String expvar = matcher.group(3);
-										addDeclaration(expvar, "''");
+										addMainVariable(expvar, "''");
 										addMapVariable(expvar, expvar, "this._params_."+expvar);
 										addMapVariable(expvar, uicd.toString() + " : found variable used by the customized iterator's expression");
 									}
 									matcher = d_var_as.matcher(s);
 									while (matcher.find()) {
 										String expvar = matcher.group(4);
-										addDeclaration(expvar, "''");
+										addMainVariable(expvar, "''");
 										addMapVariable(expvar, expvar, "this._params_."+expvar);
 										addMapVariable(expvar, uicd.toString() + " : found variable used by the customized iterator's expression");
 									}
@@ -435,12 +485,7 @@ public class SharedComponentWizard extends Wizard {
 					if (identifierSet.contains(name)) {
 						return false;
 					}
-					
-					if ("global".equals(name))
-						return false;
-					if ("router".equals(name))
-						return false;
-					
+
 					return true;
 				}
 				
@@ -512,7 +557,7 @@ public class SharedComponentWizard extends Wizard {
 				
 				@Override
 				public void init(DatabaseObject databaseObject) throws Exception {
-					getMainDeclarations();
+					getMainVariables();
 					
 					if (isInForDirective(origin)) {
 						getForDirectiveVariables(origin);
@@ -595,8 +640,7 @@ public class SharedComponentWizard extends Wizard {
 							if (checkVariable(name)) {
 								Map<String, String> m = ovarMap.get(name);
 								for (String target: m.keySet()) {
-									String replacement = m.get(target).replace("_params_."+ name, "_params_."+ dlg_map.get(name));
-									replacement = replacement.replace("_params_", "params"+priority);
+									String replacement = m.get(target).replace("_params_."+ name, dlg_map.get(name));
 									smart_value = smart_value.replace(target, replacement);
 								}
 							}
@@ -637,7 +681,7 @@ public class SharedComponentWizard extends Wizard {
 														SourceData shared = Filter.Shared.toSourceData(mss.getProjectName(), "params"+priority);
 														mew_model.addSourceData(shared);
 														mew_model.setPath("?." + dlg_map.get(name));
-														mew_model.setSuffix(model.getPath() + (model.getSuffix().isEmpty() ? "":" ") + model.getSuffix());
+														mew_model.setSuffix(model.getPath() + model.getSuffix());
 													}
 												}
 											}
@@ -689,7 +733,7 @@ public class SharedComponentWizard extends Wizard {
 							
 							for (java.beans.PropertyDescriptor pd: CachedIntrospector.getBeanInfo(databaseObject).getPropertyDescriptors()) {
 								if (pd.getPropertyEditorClass() != null) {
-									if (pd.getPropertyEditorClass().getSimpleName().equals("MobileSmartSourcePropertyDescriptor")) {
+									if (pd.getPropertyEditorClass().getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
 										Method getter = pd.getReadMethod();
 										Method setter = pd.getWriteMethod();
 										Object value = getter.invoke(databaseObject, new Object[] {});
