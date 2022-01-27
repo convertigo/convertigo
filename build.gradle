@@ -275,7 +275,7 @@ task buildStudio(type: Exec, dependsOn: ['writeManifest', 'downloadSystemLibrari
 	args 'install'
 }
 
-task updateEclipseProduct(type: Copy, dependsOn: ['updateEclipseCategory', ':eclipse-plugin-product:writePluginXml', ':eclipse-plugin-product:writeAboutIni']) {
+task updateEclipseProduct(type: Copy, dependsOn: [':checkLicenseDate', 'updateEclipseCategory', ':eclipse-plugin-product:writePluginXml', ':eclipse-plugin-product:writeAboutIni']) {
 	group 'convertigo'
 	
 	def aboutTextFile = file('eclipse-plugin-product/aboutText.txt')
@@ -400,4 +400,20 @@ task downloadSystemLibFlowViewer(type: Sync) {
 
 task downloadSystemLibraries(/*dependsOn: downloadSystemLibFlowViewer*/) {
 	group 'convertigo'
+}
+
+task checkLicenseDate {
+	group 'convertigo'
+	
+	def licenseTextFile = file('license.txt')
+	
+	inputs.properties(
+		'currentYear': currentYear
+	)
+	inputs.files licenseTextFile
+	outputs.files licenseTextFile
+	
+	doFirst {
+		licenseTextFile.text = licenseTextFile.text.replaceAll('-20\\d\\d-', "-${currentYear}-")
+	}
 }

@@ -111,7 +111,7 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 	}
 }
 
-task copyLicense(type: Copy) {
+task copyLicense(type: Copy, dependsOn: [':checkLicenseDate']) {
 	group 'convertigo'
 	
 	from '../license.txt'
