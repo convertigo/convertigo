@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2021 Convertigo SA.
+ * Copyright (c) 2001-2022 Convertigo SA.
  * 
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
@@ -108,7 +108,7 @@ public class SharedComponentWizardPage1Composite extends Composite {
 		new Label(this, SWT.NONE);
 		
 		Label label3  = new Label(this, SWT.NONE);
-		label3.setText("Notes:\n- inner actions remains the same\n- inner disabled components are ignored and remains the same");
+		label3.setText("Notes:\n- inner actions remain the same\n- inner disabled components are ignored and remain the same");
 		new Label(this, SWT.NONE);
 		
 		Label labelInfos = new Label(this, SWT.NONE);

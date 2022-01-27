@@ -3,7 +3,7 @@
 Convertigo is an open source fullstack Low Code & No Code platform.. The platform is used to build Enterprise Web & Mobile apps in a few days. Convertigo platform is composed of several components:
 
 1.	**Convertigo Server**: The back-end server part. Handles back-end connectors, micro-services execution, offline data device synchronization and serves Web & Mobile Web apps. Runs as a Docker container with the `convertigo` image
-2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program Back-end  micro-services workflows and use the "Mobile Builder" edition to build Mobile & Web apps UIs in a MXDP (Multi eXperience Development Platform) Low code mode. Can be directly downloaded from [Sourceforge.net](https://sourceforge.net/projects/convertigo/files/latest/download)
+2.	**Convertigo Studio**: Runs on a Windows or a MacOS workstation, Eclipse based IDE, used to program Back-end micro-services workflows and use the "Mobile Builder" edition to build Mobile & Web apps UIs in a MXDP (Multi eXperience Development Platform) Low code mode. Can be directly downloaded from [Sourceforge.net](https://sourceforge.net/projects/convertigo/files/latest/download)
 3.	**Convertigo SDKs**: Can be used with third party Client Web & Mobile development tools such as Xcode (iOS) Android Studio (Android) Angualr, Vue.js or plain js . SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and Nuget for .NET)
 4.	**Convertigo Forms**: The No Code App Builder to build form based apps as PWAs or Web applications with a Web Based NoCode studio intented for non technical developpers (Citizen Developpers)
 
@@ -23,7 +23,7 @@ You can access the Server admin console on http://[dockerhost]:28080/convertigo 
 
 ## Link Convertigo to a CouchDB database for FullSync (Convertigo EE only)
 
-Convertigo  FullSync module uses Apache CouchDB 2.3.1 as NoSQL repository. You can use the **[couchdb](https://hub.docker.com/_/couchdb/)** docker image and link to it convertigo this way
+Convertigo FullSync module uses Apache CouchDB 2.3.1 as NoSQL repository. You can use the **[couchdb](https://hub.docker.com/_/couchdb/)** docker image and link to it convertigo this way
 
 Launch CouchDB container and name it 'fullsync'
 
@@ -37,9 +37,9 @@ Then launch Convertigo and link it to the running 'fullsync' container. Converti
 
 ### MySQL
 
-MySQL is the recommended database for holding Convertigo Low Code  server analytics. You can use this command to run convertigo and link it to a running MySQL container. Change `[mysql-container]` to the container name, and `[username for the c8oAnalytics db]`, `[password for specified db user]` with the values for your MySQL configuration.
+MySQL is the recommended database for holding Convertigo Low Code server analytics. You can use this command to run convertigo and link it to a running MySQL container. Change `[mysql-container]` to the container name, and `[username for the c8oAnalytics db]`, `[password for specified db user]` with the values for your MySQL configuration.
 
-    docker run -d --name C8O --link [mysql-container]:mysql -p 28080:28080                                         \
+    docker run -d --name C8O --link [mysql-container]:mysql -p 28080:28080                               \
         -e JAVA_OPTS="-Dconvertigo.engine.billing.enabled=true                                           \ 
                 -Dconvertigo.engine.billing.persistence.jdbc.username=[username for the c8oAnalytics db] \
                 -Dconvertigo.engine.billing.persistence.jdbc.password=[password for specified db user]   \
@@ -139,7 +139,7 @@ The default `COOKIE_SAMESITE` value is *empty* and can be defined this way:
 
 ## `SESSION_TIMEOUT` Environment variable
 
-Allow to configure the default Tomcat *session-timeout* in minutes.  This value is used for non-project calls (Administration console, Fullsync...). This value is overridden by each projects' calls (Sequence, Transaction ...).
+Allow to configure the default Tomcat *session-timeout* in minutes. This value is used for non-project calls (Administration console, Fullsync...). This value is overridden by each projects' calls (Sequence, Transaction ...).
 
 The default `SESSION_TIMEOUT` value is *30* and can be defined this way:
 
@@ -156,7 +156,7 @@ The default `DISABLE_SUDO` value is *empty* and can be defined this way:
 
 ## Pre configurated Docker compose stack
 
-You can use this [stack](https://github.com/convertigo/docker/blob/master/compose/mbaas/docker-compose.yml) to run a complete Convertigo Low Code  server with FullSync repository and MySQL analytics in a few command lines.
+You can use this [stack](https://github.com/convertigo/docker/blob/master/compose/mbaas/docker-compose.yml) to run a complete Convertigo Low Code server with FullSync repository and MySQL analytics in a few command lines.
 
 	mkdir c8oMBaaS
 	cd c8oMBaaS
