@@ -571,7 +571,7 @@
              project="true">
           <description>This is the Google Sheets connector for Convertigo platform. Install this library to enable writing and reading from Google Sheets for your Convertigo applications.</description>
              {
-               "url": "lib_GoogleSheet_ui=https://github.com/convertigo/c8oprj-lib-googlesheets-ui.git:branch=8.0.0",
+               "url": "lib_GoogleSheet_ui_ngx=https://github.com/convertigo/c8oprj-lib-googlesheets-ui-ngx.git:branch=8.0.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -585,7 +585,7 @@
              project="true">
           <description>Uses the geocoding library for Convertigo platform when network is reachable. Install this library to geocode coordinates for your Convertigo applications. It is based on Bing Maps location API. The shared component used in this library geocodes automatically browser's coordinates when network is reachable.</description>
              {
-               "url": "lib_Geocoding_ngx=https://github.com/convertigo/c8oprj-lib-geocoding-ui-ngx.git:branch=8.0.0",
+               "url": "lib_Geocoding_ui_ngx=https://github.com/convertigo/c8oprj-lib-geocoding-ui-ngx.git:branch=8.0.0",
                "doPageSummarySampleProject": true
              }
        </wizard>
