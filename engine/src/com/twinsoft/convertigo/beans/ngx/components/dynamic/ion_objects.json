@@ -13890,19 +13890,19 @@
           "description": "event fired for month change"
         },
         "onChange": {
-          "attr":"(onChange)",
+          "attr":"(change)",
           "description": "event fired for model change"
         },
         "onSelect": {
-          "attr":"(onSelect)",
+          "attr":"(select)",
           "description": "event fired for click day-button"
         },
         "onSelectStart": {
-          "attr":"(onSelectStart)",
+          "attr":"(selectStart)",
           "description": "event fired for click day-button"
         },
         "onSelectEnd": {
-          "attr":"(onSelectEnd)",
+          "attr":"(selectEnd)",
           "description": "event fired for click day-button"
         }
       }
