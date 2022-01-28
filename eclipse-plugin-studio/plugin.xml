@@ -940,6 +940,14 @@
             id="convertigo.mobileApplicationComponentContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationComponentTreeObject">
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ConvertMobileUIApplicationToNgxAction"
+               enablesFor="1"
+               icon="icons/studio/menu/extractionrule_color_16x16.png"
+               id="convertigo.action.ConvertMobileUIApplicationToNgx"
+               label="Convert Mobile Application Ngx"
+               menubarPath="convert">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileUIComponentAction"
                enablesFor="1"
                icon="icons/studio/menu/uicomponent_color_16x16.png"
@@ -1688,6 +1696,24 @@
                id="convertigo.action.importCopybook"
                label="Import copybook"
                menubarPath="transaction"/>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.projectContributionForMobileApplication"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+         <visibility>
+            <objectState
+                  name="isMobileApplicationProject"
+                  value="true">
+            </objectState>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ConvertMobileUIApplicationToNgxAction"
+               enablesFor="1"
+               icon="icons/studio/menu/extractionrule_color_16x16.png"
+               id="convertigo.action.ConvertMobileUIApplicationToNgx"
+               label="Convert Mobile Application Ngx"
+               menubarPath="convert">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.projectContribution"

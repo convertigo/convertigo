@@ -71,7 +71,7 @@ public class NgxConverter {
 		
 	}
 
-	private NgxConverter(File outputDir) {
+	public NgxConverter(File outputDir) {
 		this.outputDir = outputDir;
 		this.tplScss = getThemeTplScss();
 	}

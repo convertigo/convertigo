@@ -989,4 +989,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	public void setMinVersion(String minVersion) {
 		this.minVersion = minVersion;
 	}
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if ("isMobileApplicationProject".equals(name)) {
+			IApplicationComponent app = mobileApplication != null ? mobileApplication.getApplicationComponent() : null; 
+			return app != null && app instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent; 
+		}
+		return super.testAttribute(name, value);
+	}
 }
