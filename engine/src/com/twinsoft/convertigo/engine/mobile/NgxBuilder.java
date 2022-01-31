@@ -2516,6 +2516,7 @@ public class NgxBuilder extends MobileBuilder {
 								c8o_ModuleTsImports += "import "+comp+" from '"+ from +"';"+ System.lineSeparator();
 							} else {
 								from = from.startsWith("../components/") ? "."+ from.substring(2) : from;
+								from = (from.startsWith("components/") ? "./" : "") + from;
 								c8o_ModuleTsImports += "import { "+comp+" } from '"+ from +"';"+ System.lineSeparator();
 							}
 						}

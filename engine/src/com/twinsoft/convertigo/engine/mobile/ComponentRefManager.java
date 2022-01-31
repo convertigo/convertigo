@@ -62,7 +62,7 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	}
 	
 	public void addConsumer(String compQName, String useQName) {
-		if (compQName.startsWith(MobileBuilder.projectName(useQName)))
+		if (compQName.startsWith(MobileBuilder.projectName(useQName) + "."))
 			return;
 		synchronized (consumers) {
 			if (consumers.get(compQName) == null) {
