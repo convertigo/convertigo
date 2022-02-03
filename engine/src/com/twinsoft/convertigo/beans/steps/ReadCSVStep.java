@@ -129,6 +129,15 @@ public class ReadCSVStep extends ReadFileStep {
 		return "ReadCSV :" + label;
 	}
 	
+	@Override
+	public String getStepNodeName() {
+		if (replaceStepElement) {
+			return "document";
+		} else {
+			return super.getStepNodeName();
+		}
+	}
+	
 	protected void processTitleLine(String[] row) {
 		if (titleLine && row != null) {
 			for (int i = 0; i < row.length; i++) {
@@ -225,16 +234,20 @@ public class ReadCSVStep extends ReadFileStep {
 	
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-
-		XmlSchemaComplexType cType0 = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-		element.setType(cType0);
-
-		XmlSchemaSequence sequence0 = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
-		cType0.setParticle(sequence0);
-
 		XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
-		sequence0.getItems().add(elt);
+		XmlSchemaElement base = elt;
+		if (!replaceStepElement) {
+			XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+			base = element;
+	
+			XmlSchemaComplexType cType0 = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+			element.setType(cType0);
+	
+			XmlSchemaSequence sequence0 = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			cType0.setParticle(sequence0);
+	
+			sequence0.getItems().add(elt);
+		}
 		elt.setName("document");
 		
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
@@ -314,7 +327,7 @@ public class ReadCSVStep extends ReadFileStep {
 			sequence.getItems().add(subElt);
 		}
 
-		return element;
+		return base;
 	}
 	
 	@Override

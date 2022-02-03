@@ -32,13 +32,18 @@ public class ReadFileStepBeanInfo extends MySimpleBeanInfo{
 
 			resourceBundle = getResourceBundle("res/ReadFileStep");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("dataFile", beanClass, "getDataFile", "setDataFile");
-			properties[0].setExpert(true);
+			properties[0].setExpert(false);
 			properties[0].setDisplayName(getExternalizedString("property.dataFile.display_name"));
-	        properties[0].setShortDescription(getExternalizedString("property.dataFile.short_description"));
-	        properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setShortDescription(getExternalizedString("property.dataFile.short_description"));
+			properties[0].setValue("scriptable", Boolean.TRUE);
+			
+			properties[1] = new PropertyDescriptor("replaceStepElement", beanClass, "isReplaceStepElement", "setReplaceStepElement");
+			properties[1].setExpert(true);
+			properties[1].setDisplayName(getExternalizedString("property.replaceStepElement.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.replaceStepElement.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

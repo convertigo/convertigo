@@ -1713,13 +1713,27 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 	
 	public synchronized void flushStepDocument(String executeTimeID , Document doc) {
+		flushStepDocument(executeTimeID, doc, false);
+	}
+	
+	public synchronized void flushStepDocument(String executeTimeID , Document doc, boolean replaceStepElement) {
 		Element stepElement = findStepElement(executeTimeID);
 		if (stepElement == null) {
 			stepElement = context.outputDocument.getDocumentElement();
 		}
 		
-		stepElement.appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
-		if ("false".equals(stepElement.getUserData(Step.NODE_USERDATA_OUTPUT))) {
+		boolean outputFalse = "false".equals(stepElement.getUserData(Step.NODE_USERDATA_OUTPUT));
+		
+		Element imported = (Element) context.outputDocument.importNode(doc.getDocumentElement(), true);
+		if (replaceStepElement) {
+			stepElement.getParentNode().replaceChild(imported, stepElement);
+			stepElement = imported;
+			workerElementMap.put(executeTimeID, stepElement);
+		} else {
+			stepElement.appendChild(imported);
+		}
+		
+		if (outputFalse) {
 			stepElement.setUserData(Step.NODE_USERDATA_OUTPUT, "none", null);
 		}
 	}

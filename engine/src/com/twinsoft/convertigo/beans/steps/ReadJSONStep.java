@@ -107,10 +107,15 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 		return false;
 	}
 	
-	private String getTagName() {
-		String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
-		name = name.isBlank() ? "file" : StringUtils.normalize(name);
-		return name;
+	@Override
+	public String getStepNodeName() {
+		if (replaceStepElement) {
+			String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
+			name = name.isBlank() ? "file" : StringUtils.normalize(name);
+			return name;
+		} else {
+			return super.getStepNodeName();
+		}
 	}
 	
 	protected Document read(String filePath, boolean schema) {
@@ -144,7 +149,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 					String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
 					name = name.isBlank() ? "file" : StringUtils.normalize(name);
 					
-					XMLUtils.jsonToXml(o, getTagName(), elt, true, false, "item");
+					XMLUtils.jsonToXml(o, getStepNodeName(), elt, true, false, "item");
 					elt = (Element) elt.getFirstChild();
 					elt.setAttribute("originalKeyName", key.getSingleString(this));
 					xmlDoc.appendChild(elt);
@@ -181,15 +186,18 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement base = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-		base.setType(cType);
-		XmlSchemaSequence seq = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
-		cType.setParticle(seq);
 		XmlSchemaElement element = (XmlSchemaElement) XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
-		seq.getItems().add(element);
-		
-		element.setName(getTagName());
+		XmlSchemaElement base = element;
+		if (!replaceStepElement) {
+			base = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+			XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+			base.setType(cType);
+			XmlSchemaSequence seq = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			cType.setParticle(seq);
+			seq.getItems().add(element);
+		}
+
+		element.setName(getStepNodeName());
 		try {
 			String s = getJsonSample().trim();
 			if (!s.startsWith("{") && !s.startsWith("[")) {
@@ -202,7 +210,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 			XMLUtils.jsonToXml(json, root);
 			XmlSchemaUtils.handleXsdElement(this, element, root, schema);
 			
-			cType = (XmlSchemaComplexType) element.getSchemaType();
+			XmlSchemaComplexType cType = (XmlSchemaComplexType) element.getSchemaType();
 			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 			attribute.setName("originalKeyName");
 			attribute.setSchemaTypeName(Constants.XSD_STRING);

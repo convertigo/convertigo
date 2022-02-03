@@ -29,6 +29,9 @@ import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -36,7 +39,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ReadXMLStep extends ReadFileStep {
-	
+
 	private static final long serialVersionUID = 9145682088577678134L;
 
 	public ReadXMLStep() {
@@ -44,17 +47,43 @@ public class ReadXMLStep extends ReadFileStep {
 	}
 
 	@Override
-    public ReadXMLStep clone() throws CloneNotSupportedException {
-    	ReadXMLStep clonedObject = (ReadXMLStep) super.clone();
-        return clonedObject;
-    }
-	
+	public ReadXMLStep clone() throws CloneNotSupportedException {
+		ReadXMLStep clonedObject = (ReadXMLStep) super.clone();
+		return clonedObject;
+	}
+
 	@Override
-    public ReadXMLStep copy() throws CloneNotSupportedException {
-    	ReadXMLStep copiedObject = (ReadXMLStep) super.copy();
-        return copiedObject;
-    }			
-	
+	public ReadXMLStep copy() throws CloneNotSupportedException {
+		ReadXMLStep copiedObject = (ReadXMLStep) super.copy();
+		return copiedObject;
+	}
+
+	@Override
+	public String getStepNodeName() {
+		if (replaceStepElement) {
+			File file = getFile();
+			if (file != null && file.exists() && file.length() <= 10000000) {
+				String[] nodeName = {null};
+				try {
+					XMLUtils.saxParse(file, new DefaultHandler() {
+
+						@Override
+						public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+							nodeName[0] = qName;
+							throw new SAXException("stop");
+						}
+
+					});
+				} catch (Exception e) {
+					if (nodeName[0] != null) {
+						return nodeName[0];
+					}
+				}
+			}
+		}
+		return super.getStepNodeName();
+	}	
+
 	@Override
 	public String toString() {
 		String label = "";
@@ -62,14 +91,14 @@ public class ReadXMLStep extends ReadFileStep {
 			label += getLabel();
 		} catch (EngineException e) {
 		}
-		
+
 		return "ReadXML: " + label;
 	}
-    
+
 	protected Document read(String filePath, boolean schema) {
 		return readMyXML(filePath);
 	}
-	
+
 	static private boolean hasXmlRoot(Document xmlDoc) {
 		if (xmlDoc != null) {
 			Element xmlRoot = xmlDoc.getDocumentElement();
@@ -77,27 +106,27 @@ public class ReadXMLStep extends ReadFileStep {
 				return false;
 			}
 			Node first = xmlRoot.getFirstChild();
-		    if (first == null) {
-		    	return false;
-		    }
-		    for (Node node = first; node != null; node = node.getNextSibling()) {
-		    	if (node.getNodeType() == Node.ELEMENT_NODE) {
-		    		return true;
-		    	}
-		    }
+			if (first == null) {
+				return false;
+			}
+			for (Node node = first; node != null; node = node.getNextSibling()) {
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					return true;
+				}
+			}
 
 		}
 		return false;
 	}
-	
+
 	protected Document readMyXML(String filePath) {
 		Document xmlDoc = null;
-		
+
 		try {
 			File xmlFile = new File(getAbsoluteFilePath(filePath));
 			if (!xmlFile.exists()) {
 				Engine.logBeans.warn("(ReadXML) XML File '" + filePath + "' does not exist.");
-				
+
 				xmlDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 				xmlDoc.appendChild(xmlDoc.createElement("readxml_error"));
 				Element myEl = xmlDoc.createElement("message");
@@ -134,14 +163,14 @@ public class ReadXMLStep extends ReadFileStep {
 				Engine.logBeans.warn("(ReadXML) An error occured while building error xml document: " + e1.toString());
 			}
 		}
-		
+
 		return xmlDoc;
 	}
 
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		
+
 		File file = getFile();
 		if (file != null && file.exists() && file.length() <= 10000000) {
 			try {
@@ -152,16 +181,16 @@ public class ReadXMLStep extends ReadFileStep {
 					doc.replaceChild(newRoot, xmlRoot);
 					newRoot.appendChild(xmlRoot);
 				}
-				
+
 				XmlSchemaElement elt = XmlSchemaUtils.extractXmlSchemaElement(doc, schema, this);
-				
-				if (element != null) {
+
+				if (element != null && !replaceStepElement) {
 					XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 					element.setType(cType);
-	
+
 					XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 					cType.setParticle(sequence);
-					
+
 					sequence.getItems().add(elt);
 				} else {
 					element = elt;
@@ -174,10 +203,10 @@ public class ReadXMLStep extends ReadFileStep {
 		if (element == null) {
 			element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		}
-		
+
 		return element;
 	}
-	
+
 	@Override
 	protected String migrateSourceXpathFor620(String filePath, String xpath) throws Exception {
 		File xmlFile = new File(getAbsoluteFilePath(filePath));
@@ -191,6 +220,5 @@ public class ReadXMLStep extends ReadFileStep {
 		}
 		return xpath;
 	}
-	
+
 }
-	

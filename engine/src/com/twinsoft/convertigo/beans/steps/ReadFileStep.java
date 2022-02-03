@@ -36,58 +36,59 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class ReadFileStep extends Step {
 	private static final long serialVersionUID = 6887234233606563336L;
-	
+
 	private static final Pattern removeQuote = Pattern.compile("^('|\")(.*)\\1$");
-	
-	private String dataFile = "";			
-	
+
+	private String dataFile = "";
+	protected boolean replaceStepElement = true;
+
 	public ReadFileStep() {
 		super();
 		xml = true;
 	}
 
 	@Override
-    public ReadFileStep clone() throws CloneNotSupportedException {
-    	ReadFileStep clonedObject = (ReadFileStep) super.clone();
-        return clonedObject;
-    }
-	
+	public ReadFileStep clone() throws CloneNotSupportedException {
+		ReadFileStep clonedObject = (ReadFileStep) super.clone();
+		return clonedObject;
+	}
+
 	@Override
-    public ReadFileStep copy() throws CloneNotSupportedException {
-    	ReadFileStep copiedObject = (ReadFileStep) super.copy();	    	
-        return copiedObject;
-    }
-	
+	public ReadFileStep copy() throws CloneNotSupportedException {
+		ReadFileStep copiedObject = (ReadFileStep) super.copy();
+		return copiedObject;
+	}
+
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
-		
-        String version = element.getAttribute("version");
-        
-        if (version == null) {
-            String s = XMLUtils.prettyPrintDOM(element);
-            EngineException ee = new EngineException(
-                "Unable to find version number for the database object \"" + getName() + "\".\n" +
-                "XML data: " + s
-            );
-            throw ee;
-        }
-        
-        if (VersionUtils.compareMigrationVersion(version, ".m003") < 0) {
-        	if (!dataFile.equals("")) dataFile = "'" + dataFile + "'";
+
+		String version = element.getAttribute("version");
+
+		if (version == null) {
+			String s = XMLUtils.prettyPrintDOM(element);
+			EngineException ee = new EngineException(
+					"Unable to find version number for the database object \"" + getName() + "\".\n" +
+							"XML data: " + s
+					);
+			throw ee;
+		}
+
+		if (VersionUtils.compareMigrationVersion(version, ".m003") < 0) {
+			if (!dataFile.equals("")) dataFile = "'" + dataFile + "'";
 			hasChanged = true;
 			Engine.logBeans.warn("[ReadFileStep] The object \"" + getName()+ "\" has been updated to .m003 version");
-        }
+		}
 	}
 
-	public String getDataFile() {						
-		return dataFile;			
+	public String getDataFile() {
+		return dataFile;
 	}
 
 	public void setDataFile(String dataFile) {
 		this.dataFile = dataFile;
 	}
-	
+
 	@Override
 	public String toString() {
 		String label = "";
@@ -95,10 +96,10 @@ public abstract class ReadFileStep extends Step {
 			label += getLabel();
 		} catch (EngineException e) {
 		}
-		
+
 		return "ReadFile:" + label;
 	}
-	
+
 	@Override
 	protected String getSpecificLabel() throws EngineException {
 		String label = getDataFileName();
@@ -117,17 +118,17 @@ public abstract class ReadFileStep extends Step {
 					String filePath = evaluateDataFileName(javascriptContext, scope);
 					Document xmlDoc = read(filePath, false);
 					flushDocument(xmlDoc);
-					
-		        } catch (Exception e) {
-		        	setErrorStatus(true);
-		            Engine.logBeans.error("An error occured while reading from file", e);
-		        }
-		        return true;
+
+				} catch (Exception e) {
+					setErrorStatus(true);
+					Engine.logBeans.error("An error occured while reading from file", e);
+				}
+				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	public String migrateSourceXpathFor620(String xpath) {
 		Context javascriptContext = null;
 		Scriptable scope = null;
@@ -148,23 +149,23 @@ public abstract class ReadFileStep extends Step {
 		}
 		return xpath;
 	}
-	
+
 	protected String migrateSourceXpathFor620(String filePath, String xpath) throws Exception {
 		return xpath;
 	}
-	
+
 	private void flushDocument(Document xmlDoc) {
 		if (sequence.runningThread.bContinue) {
-			sequence.flushStepDocument(executeTimeID, xmlDoc);
+			sequence.flushStepDocument(executeTimeID, xmlDoc, replaceStepElement);
 		}
 	}
-	
+
 	protected abstract Document read(String filePath, boolean schema) throws EngineException;
-	
+
 	private String evaluateDataFileName(Context javascriptContext, Scriptable scope) throws EngineException {
 		return evaluateToString(javascriptContext, scope, dataFile, "dataFile", true);
 	}
-	
+
 	protected String getDataFileName() {
 		String fileName = dataFile;
 		int index = dataFile.lastIndexOf("/");
@@ -173,15 +174,15 @@ public abstract class ReadFileStep extends Step {
 		}
 		return fileName;
 	}
-	
+
 	protected String getAbsoluteFilePath(String entry) throws EngineException {
 		if (entry.equals("")) {
 			throw new EngineException("The file name is empty");
 		}
-				
+
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
 	}
-	
+
 	protected File getFile() {
 		Matcher matcher = removeQuote.matcher(dataFile);
 		if (matcher.matches()) {
@@ -190,6 +191,14 @@ public abstract class ReadFileStep extends Step {
 			return new File(filePath);
 		}
 		return null;
+	}
+
+	public boolean isReplaceStepElement() {
+		return replaceStepElement;
+	}
+
+	public void setReplaceStepElement(boolean replaceStepElement) {
+		this.replaceStepElement = replaceStepElement;
 	}
 
 }
