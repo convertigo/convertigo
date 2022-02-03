@@ -1268,7 +1268,7 @@ public class XMLUtils {
 					value = Integer.parseInt(elt.getTextContent());
 				} else if (type.equals("long")) {
 					value = Long.parseLong(elt.getTextContent());
-				} else if (type.equals("double")) {
+				} else if (type.equals("double") || type.equals("number")) {
 					value = Double.parseDouble(elt.getTextContent());
 				} else if (type.equals("float")) {
 					value = Float.parseFloat(elt.getTextContent());
