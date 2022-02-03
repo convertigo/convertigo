@@ -281,6 +281,9 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 					contentType = MimeType.OctetStream.value();
 				}
 			}
+			if (file.exists()) {
+				context.set("__downloadedFileLength", file.length());
+			}
 		}
 		
 		return empty;

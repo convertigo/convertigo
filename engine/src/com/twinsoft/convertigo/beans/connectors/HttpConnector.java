@@ -96,6 +96,7 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.DownloadHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -653,8 +654,12 @@ public class HttpConnector extends Connector {
 			httpVariable = trVariable.getHttpName();
 			isLogHidden = Visibility.Logs.isMasked(trVariable.getVisibility());
 			
-			// do not add variable to query if empty name
-			if (httpVariable.equals("") || variable.startsWith(DynamicHttpVariable.__header_.name())) {
+			
+			if (httpVariable.isBlank()) {
+				httpVariable = variable;
+			}
+			
+			if (variable.startsWith(DynamicHttpVariable.__header_.name())) {
 				bIgnoreVariable = true;
 			}
 
@@ -1145,16 +1150,24 @@ public class HttpConnector extends Connector {
 			// Getting the result
 			Engine.logBeans.debug("(HttpConnector) HttpClient: getting response body");
 			byte[] result = executeMethod(method, context);
-			Engine.logBeans.debug("(HttpConnector) Total read bytes: "
-					+ ((result != null) ? result.length : 0));
+			
+			long length = result != null ? result.length : 0;
+			
+			if (context.transaction instanceof DownloadHttpTransaction) {
+				try {
+					length = (long) context.get("__downloadedFileLength");
+				} catch (Exception e) {
+				}
+			}
+			
 
-
+			Engine.logBeans.debug("(HttpConnector) Total read bytes: " + length);
+			
 			// Fire event for plugins
 			long t1 = System.currentTimeMillis();
 			Engine.theApp.pluginsManager.fireHttpConnectorGetDataEnd(context, t0, t1);
-			
 			StringBuilder sb = new StringBuilder();
-			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + (result != null ? result.length : 0) + "}\n\n");
+			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + length + "}\n\n");
 			
 			if (result != null && context.contentType != null
 					&& ( context.contentType.startsWith("text/")

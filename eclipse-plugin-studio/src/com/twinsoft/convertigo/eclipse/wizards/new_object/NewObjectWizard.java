@@ -542,7 +542,7 @@ public class NewObjectWizard extends Wizard {
 					
 					if (newBean instanceof TestCase) {
 						TestCase testCase = (TestCase)newBean;
-	    				testCase.importRequestableVariables((RequestableObject)testCase.getParent());
+					testCase.importRequestableVariables((RequestableObject)testCase.getParent());
 					}
 					
 					if (newBean instanceof RequestableHttpVariable) {
@@ -551,9 +551,6 @@ public class NewObjectWizard extends Wizard {
 						HttpMethodType httpMethodType = httpTransaction.getHttpVerb();
 						boolean isVarPost = httpMethodType.equals(HttpMethodType.PUT) || httpMethodType.equals(HttpMethodType.POST);
 						variable.setHttpMethod(isVarPost ? HttpMethodType.POST.name() : HttpMethodType.GET.name());
-						if (!(httpTransaction instanceof HtmlTransaction)) {
-							variable.setHttpName(variable.getName());
-						}
 					}
 					
 					if (newBean instanceof WebServiceReference) {
