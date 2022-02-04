@@ -42,6 +42,12 @@ public abstract class Contributor {
 		return container;
 	}
 	
+	public boolean isContainer(MobileComponent mc) {
+		if (mc != null) {
+			return mc.equals(container);
+		}
+		return false;
+	}
 	public boolean isNgModuleForApp() {
 		return false;
 	}

@@ -2325,8 +2325,10 @@ public class NgxBuilder extends MobileBuilder {
 				
 				//App contributors
 				for (Contributor contributor : app.getContributors()) {
-					action_ts_imports.putAll(contributor.getActionTsImports());
-					action_ts_functions.putAll(contributor.getActionTsFunctions());
+					contributor.forContainer(app, () -> {
+						action_ts_imports.putAll(contributor.getActionTsImports());
+						action_ts_functions.putAll(contributor.getActionTsFunctions());
+					});
 				}
 				
 				//Shared components
@@ -2334,13 +2336,15 @@ public class NgxBuilder extends MobileBuilder {
 					if (comp.isRegular()) {
 						List<Contributor> contributors = comp.getContributors();
 						for (Contributor contributor : contributors) {
-							action_ts_imports.putAll(contributor.getActionTsImports());
-							Map<String, String> mapf = contributor.getActionTsFunctions();
-							for (String funcname: mapf.keySet()) {
-								if (!funcname.startsWith("CTS")) {
-									action_ts_functions.put(funcname, mapf.get(funcname));
+							contributor.forContainer(app, () -> {
+								action_ts_imports.putAll(contributor.getActionTsImports());
+								Map<String, String> mapf = contributor.getActionTsFunctions();
+								for (String funcname: mapf.keySet()) {
+									if (!funcname.startsWith("CTS")) {
+										action_ts_functions.put(funcname, mapf.get(funcname));
+									}
 								}
-							}
+							});
 						}
 					}
 				}
@@ -2353,8 +2357,10 @@ public class NgxBuilder extends MobileBuilder {
 					synchronized (page) {
 						List<Contributor> contributors = page.getContributors();
 						for (Contributor contributor : contributors) {
-							action_ts_imports.putAll(contributor.getActionTsImports());
-							action_ts_functions.putAll(contributor.getActionTsFunctions());
+							contributor.forContainer(app, () -> {
+								action_ts_imports.putAll(contributor.getActionTsImports());
+								action_ts_functions.putAll(contributor.getActionTsFunctions());
+							});
 						}
 					}
 				}
@@ -2362,10 +2368,12 @@ public class NgxBuilder extends MobileBuilder {
 				String c8o_ActionTsImports = "";
 				for (String comp : action_ts_imports.keySet()) {
 					if (!getTplServiceActionTsImports().containsKey(comp)) {
-						if (comp.indexOf(" as ") == -1)
-							c8o_ActionTsImports += "import { "+comp+" } from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
-						else
+						if (comp.indexOf(" as ") == -1) {
+							String comPath = action_ts_imports.get(comp).replace("./pages", "../pages");
+							c8o_ActionTsImports += "import { "+comp+" } from '"+ comPath +"';"+ System.lineSeparator();
+						} else {
 							c8o_ActionTsImports += "import "+comp+" from '"+ action_ts_imports.get(comp) +"';"+ System.lineSeparator();
+						}
 					}
 				}
 				

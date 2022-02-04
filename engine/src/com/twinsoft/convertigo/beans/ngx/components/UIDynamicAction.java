@@ -285,7 +285,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		
 		IonBean ionBean = getIonBean();
 		if (ionBean != null) {
-			if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
+			if (isPageAction()) {
 				try {
 					String pageQName = ionBean.getProperty("page").getSmartValue();
 					if (!pageQName.isBlank()) {
@@ -460,13 +460,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			
 			IonBean ionBean = getIonBean();
 			if (ionBean != null) {
-				if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
+				if (isPageAction()) {
 					try {
 						String pageQName = ionBean.getProperty("page").getSmartValue();
 						if (!pageQName.isBlank()) {
 							String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-							String pageLower = pageName.toLowerCase();
-							String pagePath = "../" + pageLower + "/" + pageLower;
+							String pagePath = getRelativePagePath((MobileComponent)main, pageName);
 							if (main.addImport(pageName, pagePath)) {
 								imports += "import {"+ pageName +"} from '"+ pagePath +"';" + System.lineSeparator();
 							}
@@ -667,6 +666,35 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		}
 		return null;
 	}
+
+	public boolean isPageAction() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			String beanName = ionBean.getName();
+			if (beanName.equals("ModalAction"))
+				return true;
+			if (beanName.equals("PopoverAction"))
+				return true;
+		}
+		return false;
+	}
+	
+	private String getRelativePagePath(MobileComponent mc, String pageName) {
+		String pageLower = pageName.toLowerCase();
+		String pagePath = null;
+		try {
+			if (mc instanceof UISharedRegularComponent) {
+				pagePath = "../../pages/" + pageLower + "/" + pageLower;
+			} else if (mc instanceof ApplicationComponent) {
+				pagePath = "./pages/" + pageLower + "/" + pageLower;
+			} else if (mc instanceof PageComponent) {
+				pagePath = "../" + pageLower + "/" + pageLower;
+			}
+		} catch (Exception e) {
+			pagePath = "../pages/" + pageLower + "/" + pageLower;
+		}
+		return pagePath;
+	}
 	
 	@Override
 	protected Contributor getContributor() {
@@ -676,6 +704,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			@Override
 			public boolean isNgModuleForApp() {
 				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
+					if (isPageAction()) {
+						return getMainScriptComponent() instanceof ApplicationComponent;
+					}
 					return true;
 				}
 				return false;
@@ -706,13 +737,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 							}
 						}
 					}
-					if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
+					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageLower = pageName.toLowerCase();
-								String pagePath = "../pages/" + pageLower + "/" + pageLower;
+								String pagePath = getRelativePagePath(getContainer(), pageName);
 								imports.put(pageName, pagePath);
 							}
 						} catch (Exception e) {
@@ -733,14 +763,13 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				Map<String, String> map = contributor.getModuleTsImports();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
+					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
 								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageLower = pageName.toLowerCase();
 								String pageModuleName = pageName + "Module";
-								String pageModulepath = "../" + pageLower + "/" + pageLower + ".module";
+								String pageModulepath = getRelativePagePath(getContainer(), pageName)+ ".module";
 								map.put(pageModuleName, pageModulepath);
 							}
 						} catch (Exception e) {
@@ -756,7 +785,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 				Set<String> imports = contributor.getModuleNgImports();
 				IonBean ionBean = getIonBean();
 				if (ionBean != null) {
-					if (ionBean.getName().equals("ModalAction") || ionBean.getName().equals("PopoverAction")) {
+					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
 						try {
 							String pageQName = ionBean.getProperty("page").getSmartValue();
 							if (!pageQName.isBlank()) {
