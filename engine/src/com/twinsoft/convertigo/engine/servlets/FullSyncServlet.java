@@ -235,8 +235,9 @@ public class FullSyncServlet extends HttpServlet {
 			boolean isChanges = "_changes".equals(special);
 			
 			String version = fsClient.getServerVersion();
+			boolean isCouchDB = "CouchDB".equals(fsClient.getServerName());
 			
-			if (isChanges && version.compareTo("2.") >= 0) {
+			if (isChanges && version.compareTo("2.") >= 0 && isCouchDB) {
 				method = HttpMethodType.POST;
 			}
 			
@@ -557,7 +558,7 @@ public class FullSyncServlet extends HttpServlet {
 			}
 			response.setStatus(code);
 			
-			boolean isCblBulkGet = isCBL && version.compareTo("2.3.") < 0 &&"_bulk_get".equals(special);
+			boolean isCblBulkGet = isCBL && version.compareTo("2.3.") < 0 && isCouchDB && "_bulk_get".equals(special);
 			
 			if (!isCblBulkGet) {
 				for (Header header: newResponse.getAllHeaders()) {
@@ -597,7 +598,7 @@ public class FullSyncServlet extends HttpServlet {
 							contentType.mimeType().in(MimeType.Plain, MimeType.Json) &&
 							!"_design".equals(special) &&
 							!requestParser.hasAttachment() && (
-								(isChanges && version.compareTo("2.") < 0) ||
+								(isChanges && ((version.compareTo("2.") < 0 && isCouchDB) || !isCouchDB)) ||
 								"_bulk_get".equals(special) ||
 								"_all_docs".equals(special) ||
 								"_all_dbs".equals(special) ||
