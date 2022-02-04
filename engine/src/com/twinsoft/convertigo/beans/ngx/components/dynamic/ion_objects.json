@@ -7264,7 +7264,7 @@
       		"label": "Default URL",
       		"description": "The URL to navigate back to by default when there is no history.",
       		"category": "@Properties",
-      		"value": "/",
+      		"value": false,
       		"values": [
         		false,
         		true

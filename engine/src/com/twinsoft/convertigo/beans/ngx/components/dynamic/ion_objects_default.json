@@ -970,6 +970,46 @@
      "value": "\/"
     }
    }
+  },
+  "   8   0   0": {
+   "name": "BackButton",
+   "properties": {
+    "ButtonFormType": {
+     "name": "ButtonFormType",
+     "mode": "plain",
+     "value": "button"
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonIcon": {
+     "name": "IonIcon",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "ButtonText": {
+     "name": "ButtonText",
+     "mode": "plain",
+     "value": false
+    },
+    "DefaultHref": {
+     "name": "DefaultHref",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "Searchbar": {
