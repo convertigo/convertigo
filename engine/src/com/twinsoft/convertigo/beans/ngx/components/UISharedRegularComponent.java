@@ -373,7 +373,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		}
 		try {
 			String declarations = jsonScripts.getString("declarations");
-			declarations += "@Input() owner : C8oPageBase = undefined"+ System.lineSeparator();
 			declarations += params;
 			declarations += events;
 			jsonScripts.put("declarations", declarations);
