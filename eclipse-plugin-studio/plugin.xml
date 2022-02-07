@@ -4137,7 +4137,7 @@
                id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.toggleLibs"
                label="ToggleLibs"
                menubarPath="additions"
-               style="push"
+               style="toggle"
                toolbarPath="additions"
                tooltip="Toggle libs Projects visibility">
          </action>

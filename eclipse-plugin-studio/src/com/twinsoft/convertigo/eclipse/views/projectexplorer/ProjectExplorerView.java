@@ -50,6 +50,7 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
@@ -507,6 +508,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				Engine.theApp.addEngineListener(this);
 				Engine.theApp.addMigrationListener(this);
 			}
+		}
+		try {
+			boolean bHide = "true".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_HIDE_LIB_PROJECTS));
+			ActionContributionItem item = (ActionContributionItem) getViewSite().getActionBars().getToolBarManager().find("com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.toggleLibs");
+			item.getAction().setChecked(bHide);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
