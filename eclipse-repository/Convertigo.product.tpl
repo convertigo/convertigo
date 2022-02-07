@@ -98,7 +98,7 @@
 
    <repositories>
       <repository location="https://convertigo-update-site.s3.eu-west-3.amazonaws.com/@convertigoMode@/@convertigoMajor@" enabled="true" />
-      <repository location="http://download.eclipse.org/releases/@eclipseVersion@" enabled="true" />
+      <repository location="https://download.eclipse.org/releases/@eclipseVersion@" enabled="true" />
    </repositories>
 
    <preferencesInfo>
