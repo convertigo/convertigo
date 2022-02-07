@@ -110,12 +110,16 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 	@Override
 	public String getStepNodeName() {
 		if (replaceStepElement) {
-			String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
-			name = name.isBlank() ? "file" : StringUtils.normalize(name);
-			return name;
+			return getFileNodeName();
 		} else {
 			return super.getStepNodeName();
 		}
+	}
+	
+	protected String getFileNodeName() {
+		String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
+		name = name.isBlank() ? "file" : StringUtils.normalize(name);
+		return name;
 	}
 	
 	protected Document read(String filePath, boolean schema) {
@@ -149,7 +153,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 					String name = key.getMode().equals(SmartType.Mode.PLAIN) ? key.getExpression() : "file";
 					name = name.isBlank() ? "file" : StringUtils.normalize(name);
 					
-					XMLUtils.jsonToXml(o, getStepNodeName(), elt, true, false, "item");
+					XMLUtils.jsonToXml(o, getFileNodeName(), elt, true, false, "item");
 					elt = (Element) elt.getFirstChild();
 					elt.setAttribute("originalKeyName", key.getSingleString(this));
 					xmlDoc.appendChild(elt);
@@ -197,7 +201,7 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 			seq.getItems().add(element);
 		}
 
-		element.setName(getStepNodeName());
+		element.setName(getFileNodeName());
 		try {
 			String s = getJsonSample().trim();
 			if (!s.startsWith("{") && !s.startsWith("[")) {
