@@ -164,8 +164,13 @@ document.addEventListener("DOMContentLoaded", function () {
 			+ "background-color: rgba(0,0,0,0.3);"
 			+ "border-radius: 4px;"
 		+ "}";
-	
 	document.head.appendChild(scrollStyle);
+	
+	var handler = e => {
+		_c8o_remove_all_overlay();
+	};
+	const observer = new MutationObserver(handler);
+	observer.observe(document.getElementsByTagName('ion-router-outlet')[0], {attributes: true, childList: true, subtree: false});
 }, false);
 
 window.addEventListener("dragover", function (e) {

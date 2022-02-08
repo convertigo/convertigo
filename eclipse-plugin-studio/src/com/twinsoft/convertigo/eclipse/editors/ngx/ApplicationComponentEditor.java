@@ -200,6 +200,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	private ToolBar toolbar;
 	private ToolItem deviceOsToolItem;
+	private ToolItem showGrids;
 	private Text deviceName;
 	private Text deviceWidth;
 	private Text deviceHeight;
@@ -1088,7 +1089,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 		
 		
-		item = new ToolItem(toolbar, SWT.CHECK);
+		showGrids = item = new ToolItem(toolbar, SWT.CHECK);
 		item.setToolTipText("Show Grids");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/grid_color_16x16.png")));
 		item.addSelectionListener(new SelectionAdapter() {
@@ -1676,6 +1677,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	}
 	
 	private void doReload() {
+		showGrids.setSelection(false);
 		C8oBrowser.run(() -> {
 			if (!c8oBrowser.getURL().equals("about:blank")) {
 				c8oBrowser.reload();
