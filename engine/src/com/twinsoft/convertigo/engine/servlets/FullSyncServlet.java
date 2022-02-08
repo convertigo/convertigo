@@ -508,7 +508,7 @@ public class FullSyncServlet extends HttpServlet {
 				} catch (JSONException e) {
 					debug.append("failed to parse [ " + e.getMessage() + "]: " + requestStringEntity);
 				}
-			} else if (isChanges) {
+			} else if (isChanges && newRequest instanceof HttpEntityEnclosingRequest) {
 				requestStringEntity = Engine.theApp.couchDbManager.handleChangesUri(dbName, newRequest, requestStringEntity, fsAuth);
 				if (requestStringEntity != null) {
 					debug.append("request new Entity:\n" + requestStringEntity + "\n");
