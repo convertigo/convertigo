@@ -32,6 +32,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
+import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class IonBean {
@@ -53,7 +54,8 @@ public class IonBean {
 		events,
 		scss,
 		config,
-		displayFormat
+		displayFormat,
+		needNgTemplate
 		;
 	}
 	
@@ -81,6 +83,7 @@ public class IonBean {
 				.put(Key.scss.name(), new JSONArray())
 				.put(Key.config.name(), new JSONObject())
 				.put(Key.displayFormat.name(), "")
+				.put(Key.needNgTemplate.name(), false)
 				;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -247,6 +250,14 @@ public class IonBean {
 	public boolean isSelfClose() {
 		try {
 			return jsonBean.getBoolean(Key.autoClose.name());
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public boolean needNgTemplate() {
+		try {
+			return jsonBean.getBoolean(Key.needNgTemplate.name());
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return false;
@@ -441,6 +452,14 @@ public class IonBean {
 			dbo.bNew = true;
 			dbo.hasChanged = true;
 			
+			if (needNgTemplate()) {
+				UIElement uidt = new UIElement();
+				uidt.setTagName("ng-template");
+				uidt.bNew = true;
+				uidt.hasChanged = true;
+				
+				dbo.add(uidt);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			dbo = null;
