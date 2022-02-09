@@ -287,11 +287,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 		
 		terminateNode();
-		synchronized (usedPort) {
-			usedPort.remove(portNode);
-			usedPort.remove(portReload);
-			usedPort.remove(portLogger);
-		}
 		super.dispose();
 	}
 	
@@ -1594,6 +1589,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						retry = 0;
 					}
 				}
+			}
+			synchronized (usedPort) {
+				usedPort.remove(portNode);
+				usedPort.remove(portReload);
+				usedPort.remove(portLogger);
 			}
 		} catch (Exception e) {
 			Engine.logStudio.warn("Failed to terminate the node server", e);

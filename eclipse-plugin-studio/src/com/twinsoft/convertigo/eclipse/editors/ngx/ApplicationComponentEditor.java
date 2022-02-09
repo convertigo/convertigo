@@ -233,8 +233,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	
 	private static final Set<Integer> usedPort = new HashSet<>();
 	private int portNode;
-	private int portReload;
-	private int portLogger;
 	
 	public ApplicationComponentBrowserImpl browserInterface;
 	
@@ -296,11 +294,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 		
 		terminateNode(false);
-		synchronized (usedPort) {
-			usedPort.remove(portNode);
-			usedPort.remove(portReload);
-			usedPort.remove(portLogger);
-		}
 		super.dispose();
 	}
 	
@@ -1420,8 +1413,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			
 			List<String> cmd = pb.command();
 			synchronized (usedPort) {
+				int port = (Math.abs(ionicDir.getAbsolutePath().hashCode()) % 10000) + 40000;
 				cmd.add("--");
-				cmd.add("--port="+ NetworkUtils.nextAvailable(8100, usedPort));
+				usedPort.clear();
+				portNode = NetworkUtils.nextAvailable(port, usedPort);
+				cmd.add("--port="+ portNode);
 			}
 			
 			// #183 add useless option to help terminateNode method to find the current path 
@@ -1737,6 +1733,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						retry = 0;
 					}
 				}
+			}
+			synchronized (usedPort) {
+				usedPort.remove(portNode);
 			}
 		} catch (Exception e) {
 			Engine.logStudio.warn("Failed to terminate the node server", e);
