@@ -8069,7 +8069,7 @@
           "description": "If true, show a separator between this breadcrumb and the next. Defaults to true for all breadcrumbs except the last.",
           "category": "@Properties",
           "type": "boolean",
-          "value": "false",
+          "value": "true",
           "values": [
             "false",
             "true"
