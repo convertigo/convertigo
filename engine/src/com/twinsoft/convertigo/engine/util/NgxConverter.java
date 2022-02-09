@@ -66,10 +66,6 @@ public class NgxConverter {
 	File outputDir;
 	String tplScss;
 	String indent = "";
-	
-	private NgxConverter() {
-		
-	}
 
 	public NgxConverter(File outputDir) {
 		this.outputDir = outputDir;
@@ -1581,6 +1577,8 @@ public class NgxConverter {
 		YamlConverter.writeYaml(shrink, new File(outputDir, "c8oProject.yaml"), new File(outputDir, "_c8oProject"));
 		
 		sharedMap.clear();
+		
+		com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(new File(outputDir, "_private/ionic"));
 	}
 
 	private static String time() {

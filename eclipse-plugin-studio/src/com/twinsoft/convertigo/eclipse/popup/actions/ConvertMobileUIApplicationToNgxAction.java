@@ -105,10 +105,10 @@ public class ConvertMobileUIApplicationToNgxAction extends MyAbstractAction {
 					PlainMessageDialog msg = PlainMessageDialog.getBuilder(shell, "Confirmation")
 							.buttonLabels(Arrays.asList("Yes", "No"))
 							.image(IconAndMessageDialog.getImage(IconAndMessageDialog.DLG_IMG_MESSAGE_WARNING))
-							.message("You will modifying your current project.\n"
-							+ "The operation cannot be reversed.\n"
+							.message("You are about to modify the current project.\n"
+							+ "The operation cannot be undone.\n"
 							+ "Please make a backup of your current version before continuing.\n"
-							+ "Are you sure to convert now ?")
+							+ "Are you sure you want to convert now?")
 							.build();
 					int response = msg.open();
 					if (response == 0) {
