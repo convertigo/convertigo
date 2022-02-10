@@ -64,8 +64,8 @@ import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally.Status;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
-import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
+import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -319,7 +319,7 @@ public class CLI {
 			return;
 		}
 		boolean b_ngx = project.getMobileApplication().getApplicationComponent() instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
-		boolean ngx = false;
+		boolean ngx = b_ngx;
 		
 		String nodeVersion = ProcessUtils.getNodeVersion(project);
 		Engine.logConvertigo.info("Requested nodeVersion: " + nodeVersion);
@@ -329,52 +329,69 @@ public class CLI {
 		String nodePath = nodeDir.getAbsolutePath();
 		
 		ProcessBuilder pb;
+		String line;
 		
 		if (ngx) {
-			File yarnFile = new File(ionicDir, "node_modules/.bin/yarn");
-			if (!yarnFile.exists()) {
-				Engine.logConvertigo.info("Installing Yarn...");
-				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "yarn");
+			File pnpmDir = new File(nodeDir, "pnpm");
+			if (!pnpmDir.exists()) {
+				Engine.logStudio.info("Installing Pnpm...");
+				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "pnpm", "-g");
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
-				pb.start().waitFor();
+				Process p = pb.start();
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+					
+					while ((line = br.readLine()) != null) {
+						line = pRemoveEchap.matcher(line).replaceAll("");
+						if (StringUtils.isNotBlank(line)) {
+							Engine.logConvertigo.info(line);
+						}
+					}
+				};
+				p.waitFor();
 			}
-			pb = ProcessUtils.getNpmProcessBuilder(yarnFile.getParent(), "yarn");
+			
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "pnpm", "install", "--shamefully-hoist");
 		} else {
 			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");	
 		}
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
 		Process p = pb.start();
-		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		String line;
-		while ((line = br.readLine()) != null) {
-			line = pRemoveEchap.matcher(line).replaceAll("");
-			if (StringUtils.isNotBlank(line)) {
-				Engine.logConvertigo.info(line);
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+			while ((line = br.readLine()) != null) {
+				line = pRemoveEchap.matcher(line).replaceAll("");
+				if (StringUtils.isNotBlank(line)) {
+					Engine.logConvertigo.info(line);
+				}
 			}
 		}
 		int code = p.waitFor();
-		Engine.logConvertigo.info((ngx ? "yarn" : "npm install") + " finished with exit: " + code);
+		Engine.logConvertigo.info((ngx ? "pnpm" : "npm install") + " finished with exit: " + code);
 		
 		ngx = b_ngx;
 		
 		if (ngx) {
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
+			File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
+			displayObjectsMobile.mkdirs();
 			
-			String SERVER_C8O_URL = project.getMobileApplication().getComputedEndpoint();
-			if (SERVER_C8O_URL.isEmpty()) {
-				SERVER_C8O_URL = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+			for (File f: displayObjectsMobile.listFiles()) {
+				if (!f.getName().equals("assets")) {
+					com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(f);
+				}
 			}
-			String baseHref = SERVER_C8O_URL.replaceFirst("(.*?//.*?/)", "/") + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
-			String deployUrl = SERVER_C8O_URL + "/projects/" + project.getName() + "/DisplayObjects/mobile/";
+			
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
 			
 			List<String> cmd = pb.command();
 			cmd.add("--");
+			cmd.add("--progress=true");
 			cmd.add("--outputPath=./../../DisplayObjects/mobile/");
-			cmd.add("--baseHref=" + baseHref);
-			cmd.add("--deployUrl=" + deployUrl);
+			cmd.add("--baseHref=./");
+			cmd.add("--deployUrl=./");
 			Engine.logConvertigo.info("running command: " + cmd.toString());
+			
+			pb.environment().put("NODE_OPTIONS", "max-old-space-size=8192");
 		} else {
 			if ("debug".equals(mode)) {
 				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "build", "--nobrowser");
@@ -386,11 +403,12 @@ public class CLI {
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
 		p = pb.start();
-		br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		while ((line = br.readLine()) != null) {
-			line = pRemoveEchap.matcher(line).replaceAll("");
-			if (StringUtils.isNotBlank(line)) {
-				Engine.logConvertigo.info(line);
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+			while ((line = br.readLine()) != null) {
+				line = pRemoveEchap.matcher(line).replaceAll("");
+				if (StringUtils.isNotBlank(line)) {
+					Engine.logConvertigo.info(line);
+				}
 			}
 		}
 		code = p.waitFor();
