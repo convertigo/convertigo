@@ -96,12 +96,15 @@ import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDe
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
@@ -559,15 +562,41 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 	        			}
 		        		Object oldValue = ionBean.getPropertyValue((String)id);	        			
 	        			if (!value.equals(oldValue)) {
-			        		ionBean.setPropertyValue((String)id, value);
-			        		
-			        		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
-			        		hasBeenModified(true);
-			        		viewer.update(this, null);
-			        		
-			    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, (String)id, oldValue, value);
-			    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
-			        		return;
+	        				MobileBuilder mb = null;
+	        				
+	        				IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
+	        				if (editorPart != null) {
+	        					IEditorInput input = editorPart.getEditorInput();
+	        					if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+	        						com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+	        						mb = editorInput.getApplication().getProject().getMobileBuilder();
+	        					}
+	        				}
+	        				try {
+				        		ionBean.setPropertyValue((String)id, value);
+				        		
+				        		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
+				        		hasBeenModified(true);
+				        		viewer.update(this, null);
+				        		
+				    			Engine.logStudio.info("---------------------- SetPropertyValue started: "+ (String)id + "----------------------");
+				    			if (mb != null) {
+				    				mb.prepareBatchBuild();
+				    			}
+				    			BatchOperationHelper.start();
+				    			
+				    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, (String)id, oldValue, value);
+				    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+				        		
+				    	        BatchOperationHelper.stop();
+	        				} catch (Exception e) {
+	        					
+	        				} finally {
+	        					BatchOperationHelper.cancel();
+	        					Engine.logStudio.info("---------------------- SetPropertyValue ended:   "+ (String)id + "----------------------");
+	        				}
+	        				
+			    	        return;
 	        			}
 	        		}
 	        	}
