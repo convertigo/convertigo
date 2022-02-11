@@ -62,8 +62,8 @@ public class ComponentRefManager implements DatabaseObjectListener {
 	}
 	
 	public void addConsumer(String compQName, String useQName) {
-		if (compQName.startsWith(MobileBuilder.projectName(useQName) + "."))
-			return;
+//		if (compQName.startsWith(MobileBuilder.projectName(useQName) + "."))
+//			return;
 		synchronized (consumers) {
 			if (consumers.get(compQName) == null) {
 				consumers.put(compQName, new HashSet<String>());
@@ -107,7 +107,10 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		    		for (String useQName: getConsumers(compQName)) {
 		    			if (useQName.startsWith(keyQName)) {
 		    				if (!set.contains(useQName)) {
-		    					set.addAll(getAllConsumers(keyQName));
+		    					//set.addAll(getAllConsumers(keyQName));
+		    					for (String s: getAllConsumers(keyQName)) {
+		    						set.add(s);
+		    					}
 		    				}
 		    			}
 		    		}

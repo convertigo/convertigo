@@ -202,6 +202,7 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 					}
 				} else if (propertyName.equals("isEnabled")) {
 					if (!newValue.equals(oldValue)) {
+						markPageAsDirty(done);
 						markPageEnabledAsDirty();
 					}
 				} else if (propertyName.equals("segment")) {

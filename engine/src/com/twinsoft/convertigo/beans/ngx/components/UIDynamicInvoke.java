@@ -103,6 +103,14 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	}
 	
 	@Override
+	protected String computeActionContent() {
+		if (!isBroken() && getTargetSharedAction().isEnabled()) {
+			return super.computeActionContent();
+		}
+		return "";
+	}
+	
+	@Override
 	protected Contributor getContributor() {
 		// ErrorAction contributor or null
 		return isBroken() ? super.getContributor() : null;

@@ -31,6 +31,26 @@ public abstract class MobileComponent extends MobileObject {
 		databaseType = "MobileComponent";
 	}
 	
+    static public boolean isFullyEnabled(MobileComponent mo) {
+    	MobileComponent mc = mo;
+    	while (mc != null && mc != mo.getApplication()) {
+    		boolean isEnabled = true;
+    		if (mc instanceof UIComponent) {
+    			isEnabled = ((UIComponent)mc).isEnabled();
+    		}
+    		else if (mc instanceof PageComponent) {
+    			isEnabled = ((PageComponent)mc).isEnabled();
+    		}
+    		
+    		if (isEnabled) {
+    			mc = (MobileComponent) mc.getParent();
+    		} else {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+    
 	@Override
 	public MobileComponent clone() throws CloneNotSupportedException {
 		MobileComponent cloned = (MobileComponent) super.clone();

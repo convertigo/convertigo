@@ -212,11 +212,12 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	protected synchronized void doGetContributors() {
 		contributors = new ArrayList<>();
-		Set<UIComponent> done = new HashSet<>();
-		for (UIComponent uiComponent : getUIComponentList()) {
-			uiComponent.addContributors(done, contributors);
-		}
-			
+		if (isEnabled()) {
+			Set<UIComponent> done = new HashSet<>();
+			for (UIComponent uiComponent : getUIComponentList()) {
+				uiComponent.addContributors(done, contributors);
+			}
+		}	
 		contributorsShot = contributors.toString();
 	}
 	
@@ -382,7 +383,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		
 		// Comp subscribers
 		List<UIEventSubscriber> subscriberList = getUIEventSubscriberList();
-		if (!subscriberList.isEmpty()) {
+		if (isEnabled() && !subscriberList.isEmpty()) {
 			try {
 				String initializations = jsonScripts.getString("initializations");
 				String ccode = computeEventConstructors(subscriberList);
@@ -421,11 +422,13 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			}
 		}
 		
-		it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			component.computeScripts(jsonScripts);
-		}			
+		if (isEnabled()) {
+			it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				component.computeScripts(jsonScripts);
+			}
+		}
 	}
 
 	public List<UIEventSubscriber> getUIEventSubscriberList() {
@@ -494,6 +497,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		if (!done.add(this)) {
 			return;
 		}
+		
+		if (!isEnabled()) {
+			return;
+		}
+		
 		List<UIPageEvent> list = new ArrayList<UIPageEvent>();
 		for (UIComponent uic : getUIComponentList()) {
 			try {
@@ -529,6 +537,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		if (!done.add(this)) {
 			return;
 		}
+		
+		if (!isEnabled()) {
+			return;
+		}
+		
 		for (UIComponent uic : getUIComponentList()) {
 			try {
 				if (uic instanceof UIEventSubscriber && uic.isEnabled()) {
@@ -553,17 +566,18 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	@Override
 	public String computeTemplate() {
 		StringBuilder sb = new StringBuilder();
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (!(component instanceof UIStyle)) {
-				String tpl = component.computeTemplate();
-				if (!tpl.isEmpty()) {
-					sb.append(tpl).append(System.getProperty("line.separator"));
+		if (isEnabled()) {
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (!(component instanceof UIStyle)) {
+					String tpl = component.computeTemplate();
+					if (!tpl.isEmpty()) {
+						sb.append(tpl).append(System.getProperty("line.separator"));
+					}
 				}
 			}
 		}
-		
 		return sb.toString();
 	}
 
@@ -580,19 +594,21 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	@Override
 	public String computeStyle() {
 		StringBuilder sb = new StringBuilder();
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIStyle) {
-				String tpl = component.computeTemplate();
-				if (!tpl.isEmpty()) {
-					sb.append(tpl).append(System.getProperty("line.separator"));
+		if (isEnabled()) {
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (component instanceof UIStyle) {
+					String tpl = component.computeTemplate();
+					if (!tpl.isEmpty()) {
+						sb.append(tpl).append(System.getProperty("line.separator"));
+					}
 				}
-			}
-			else if (component instanceof UIElement) {
-				String tpl = ((UIElement)component).computeStyle();
-				if (!tpl.isEmpty()) {
-					sb.append(tpl).append(System.getProperty("line.separator"));
+				else if (component instanceof UIElement) {
+					String tpl = ((UIElement)component).computeStyle();
+					if (!tpl.isEmpty()) {
+						sb.append(tpl).append(System.getProperty("line.separator"));
+					}
 				}
 			}
 		}
@@ -601,18 +617,21 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	protected String computeStyle(UIUseShared uiUse) {
-		String c8o_CompName = getName();
-		String c8o_CompScssPath;
-		MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
-		try {
-			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
-									+ "/" +c8o_CompName.toLowerCase() + ".scss").getCanonicalPath());
-			c8o_CompScssPath = getContributor().getContainerPath(container).relativize(scssPath).toString().replace('\\', '/');
-		} catch (Exception e) {
-			c8o_CompScssPath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".scss";
+		if (isEnabled()) {
+			String c8o_CompName = getName();
+			String c8o_CompScssPath;
+			MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
+			try {
+				Path scssPath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
+										+ "/" +c8o_CompName.toLowerCase() + ".scss").getCanonicalPath());
+				c8o_CompScssPath = getContributor().getContainerPath(container).relativize(scssPath).toString().replace('\\', '/');
+			} catch (Exception e) {
+				c8o_CompScssPath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".scss";
+			}
+			
+			return "@import \""+ c8o_CompScssPath + "\";" + System.lineSeparator();
 		}
-		
-		return "@import \""+ c8o_CompScssPath + "\";" + System.lineSeparator();
+		return "";
 	}
 
 	@Override
@@ -620,6 +639,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		if (!done.add(this)) {
 			return;
 		}
+		
+//		if (!isEnabled()) {
+//			return;
+//		}
+		
 		Contributor contributor = getContributor();
 		if (contributor != null) {
 			if (!contributors.contains(contributor)) {
@@ -634,6 +658,10 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	@Override
 	protected void addContributors(UIUseShared uiUse, Set<UIComponent> done, List<Contributor> contributors) {
 		if (!done.add(this)) {
+			return;
+		}
+		
+		if (!isEnabled()) {
 			return;
 		}
 		
@@ -662,10 +690,14 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		return new Contributor() {
 			
 			private boolean accept() {
-				if (getContainer() == null) {
-					return true;
-				} else if (use != null) {
-					return ((MobileComponent)use.getMainScriptComponent()).equals(getContainer());
+				try {
+					if (getContainer() == null) {
+						return true;
+					} else if (use != null) {
+						return ((MobileComponent)use.getMainScriptComponent()).equals(getContainer());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				return false;
 			}
@@ -688,7 +720,6 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				
 				if (accept()) {
 					MobileComponent container = getContainer();
 					String c8o_CompModulePath;

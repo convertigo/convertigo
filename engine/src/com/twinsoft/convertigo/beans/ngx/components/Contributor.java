@@ -42,12 +42,26 @@ public abstract class Contributor {
 		return container;
 	}
 	
+	public boolean isNullContainer() {
+		return container == null ? true : false;
+	}
+	public boolean isAppContainer() {
+		return container == null ? false : container instanceof ApplicationComponent;
+	}
+	public boolean isPageContainer() {
+		return container == null ? false : container instanceof PageComponent;
+	}
+	public boolean isCompContainer() {
+		return container == null ? false : container instanceof UISharedComponent;
+	}
+	
 	public boolean isContainer(MobileComponent mc) {
 		if (mc != null) {
 			return mc.equals(container);
 		}
 		return false;
 	}
+	
 	public boolean isNgModuleForApp() {
 		return false;
 	}

@@ -145,7 +145,7 @@ public class UIUseShared extends UIElement {
 	@Override
 	public String computeTemplate() {
 		String computed = "";
-		if (isEnabled()) {
+		if (isFullyEnabled(this)) {
 			UISharedComponent uisc = getTargetSharedComponent();
 			if (uisc != null && uisc.isEnabled()) {
 				if (uisc.isRegular()) {
@@ -257,11 +257,15 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		if (!isFullyEnabled(this)) {
+			return;
+		}
+		
 		UISharedComponent uisc = getTargetSharedComponent();
 		if (uisc != null) {
 			if (!isRecursive()) {
 				IScriptComponent main = getMainScriptComponent();
-				if (main != null && uisc.isRegular()) {
+				if (main != null && uisc.isRegular() && uisc.isEnabled()) {
 					try {
 						String imports = jsonScripts.getString("imports");
 						if (main.addImport("ViewChild", "@angular/core")) {
@@ -313,10 +317,12 @@ public class UIUseShared extends UIElement {
 
 	@Override
 	public String computeStyle() {
-		UISharedComponent uisc = getTargetSharedComponent();
-		if (uisc != null) {
-			if (!isRecursive()) {
-				return uisc.computeStyle(this);
+		if (isFullyEnabled(this)) {
+			UISharedComponent uisc = getTargetSharedComponent();
+			if (uisc != null) {
+				if (!isRecursive()) {
+					return uisc.computeStyle(this);
+				}
 			}
 		}
 		return "";
@@ -325,11 +331,16 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void addPageEvent(Set<UIComponent> done, List<UIPageEvent> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
+		
+		if (!isFullyEnabled(this)) {
+			return;
+		}
+		
 		UISharedComponent uisc = getTargetSharedComponent();
 		if (uisc != null) {
-			if (!done.add(this)) {
-				return;
-			}
 			if (!isRecursive()) {
 				uisc.addPageEvent(this, done, eventList);
 			}
@@ -339,11 +350,16 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	public void addEventSubscriber(Set<UIComponent> done, List<UIEventSubscriber> eventList) {
+		if (!done.add(this)) {
+			return;
+		}
+		
+		if (!isFullyEnabled(this)) {
+			return;
+		}
+		
 		UISharedComponent uisc = getTargetSharedComponent();
 		if (uisc != null) {
-			if (!done.add(this)) {
-				return;
-			}
 			if (!isRecursive()) {
 				uisc.addEventSubscriber(this, done, eventList);
 			}
@@ -355,6 +371,11 @@ public class UIUseShared extends UIElement {
 		if(!done.add(this)) {
 			return;
 		}
+		
+		if (!isFullyEnabled(this)) {
+			return;
+		}
+		
 		for (UIComponent uic : getUIComponentList()) {
 			uic.addContributors(done, contributors);
 		}
@@ -369,11 +390,12 @@ public class UIUseShared extends UIElement {
 	
 	@Override
 	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {
+		if (!done.add(this)) {
+			return;
+		}
+		
 		UISharedComponent uisc = getTargetSharedComponent();
 		if (uisc != null) {
-			if (!done.add(this)) {
-				return;
-			}
 			if (!isRecursive()) {
 				uisc.addInfos(this, done, infoMap);
 			}

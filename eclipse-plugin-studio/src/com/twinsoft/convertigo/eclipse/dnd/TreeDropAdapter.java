@@ -987,7 +987,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						mc.add(use);
 						mc.hasChanged = true;
 						ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
-						((NgxBuilder)mc.getProject().getMobileBuilder()).updateConsumer();
+						//((NgxBuilder)mc.getProject().getMobileBuilder()).updateConsumer();
 					}
 					return true;
 				}

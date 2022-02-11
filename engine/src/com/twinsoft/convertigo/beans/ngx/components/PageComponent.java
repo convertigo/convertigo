@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -84,7 +85,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		cloned.pageDeclarations = new HashMap<String, String>();
 		cloned.pageConstructors = new HashMap<String, String>();
 		cloned.pageFunctions = new HashMap<String, String>();
-		cloned.pageTemplates = new HashMap<String, String>();
 		cloned.computedContents = null;
 		cloned.contributors = null;
 		cloned.contributorsShot = null;
@@ -594,22 +594,8 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		return false;
 	}
 	
-	private transient Map<String, String> pageTemplates = new HashMap<String, String>();
-	
-	private boolean hasTemplate(String name) {
-		return pageTemplates.containsKey(name);
-	}
-	
 	@Override
 	public boolean addTemplate(String name, String code) {
-		if (name != null && code != null && !name.isEmpty() && !code.isEmpty()) {
-			synchronized (pageTemplates) {
-				if (!hasTemplate(name)) {
-					pageTemplates.put(name, code);
-					return true;
-				}
-			}
-		}
 		return false;
 	}
 	
@@ -635,13 +621,12 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	protected synchronized void doGetContributors() {
 		contributors = new ArrayList<>();
-		Set<UIComponent> done = new HashSet<>();
-		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder 
+		if (isEnabled()) {
+			Set<UIComponent> done = new HashSet<>();
 			for (UIComponent uiComponent : getUIComponentList()) {
 				uiComponent.addContributors(done, contributors);
 			}
-		//}	
-			
+		}	
 		contributorsShot = contributors.toString();
 	}
 	
@@ -677,7 +662,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			pageDeclarations.clear();
 			pageConstructors.clear();
 			pageFunctions.clear();
-			pageTemplates.clear();
 			JSONObject newComputedContent = initJsonComputed();
 			
 			JSONObject jsonScripts = newComputedContent.getJSONObject("scripts");
@@ -736,7 +720,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 							getProject().getMobileBuilder().appContributorsChanged(this.getApplication());
 						}
 					}
-					
 					
 				} catch (JSONException e) {
 					e.printStackTrace();
@@ -853,6 +836,10 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	@Override
 	public void computeScripts(JSONObject jsonScripts) {
+		if (!isEnabled()) {
+			return;
+		}
+		
 		// Page menus
 		String startMenuId = getStartMenuId();
 		if (!startMenuId.isEmpty()) {
@@ -978,31 +965,20 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	@Override
 	public String computeTemplate() {
-		// compute page template
 		StringBuilder sb = new StringBuilder();
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (!(component instanceof UIStyle)) {
-				String tpl = component.computeTemplate();
-				if (!tpl.isEmpty()) {
-					sb.append(tpl).append(System.getProperty("line.separator"));
+		if (isEnabled()) {
+			Iterator<UIComponent> it = getUIComponentList().iterator();
+			while (it.hasNext()) {
+				UIComponent component = (UIComponent)it.next();
+				if (!(component instanceof UIStyle)) {
+					String tpl = component.computeTemplate();
+					if (!tpl.isEmpty()) {
+						sb.append(tpl).append(System.getProperty("line.separator"));
+					}
 				}
 			}
 		}
-		
-		// then add all necessary shared component templates
-		String sharedTemplates = "";
-		if (!pageTemplates.isEmpty()) {
-			sharedTemplates += "<!-- ====== SHARED TEMPLATES ====== -->"+ System.lineSeparator();
-			for (String sharedTemplate: pageTemplates.values()) {
-				sharedTemplates += sharedTemplate;
-			}
-			sharedTemplates += "<!-- ============================== -->"+ System.lineSeparator();
-			sharedTemplates += System.lineSeparator();
-		}
-		
-		return sharedTemplates + sb.toString();
+		return sb.toString();
 	}
 
 	public String getComputedStyle() {
@@ -1019,24 +995,25 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		StringBuilder sb = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
-		for (UIComponent component: getUIComponentList()) {
-			if (component instanceof UIStyle) {
-				String tpl = component.computeTemplate();
-				if (!tpl.isEmpty()) {
-					sb.append(tpl).append(System.getProperty("line.separator"));
-				}
-			}
-			else if (component instanceof UIElement) {
-				String tpl = ((UIElement)component).computeStyle();
-				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@import") && others.indexOf(tpl) != -1) {
-						continue;
+		if (isEnabled()) {
+			for (UIComponent component: getUIComponentList()) {
+				if (component instanceof UIStyle) {
+					String tpl = component.computeTemplate();
+					if (!tpl.isEmpty()) {
+						sb.append(tpl).append(System.getProperty("line.separator"));
 					}
-					others.append(tpl).append(System.getProperty("line.separator"));
+				}
+				else if (component instanceof UIElement) {
+					String tpl = ((UIElement)component).computeStyle();
+					if (!tpl.isEmpty()) {
+						if (tpl.startsWith("@import") && others.indexOf(tpl) != -1) {
+							continue;
+						}
+						others.append(tpl).append(System.getProperty("line.separator"));
+					}
 				}
 			}
 		}
-		
 		sb.append(others).append(System.getProperty("line.separator"));
 		
 		return sb.toString();

@@ -413,6 +413,30 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	@Override
 	protected Contributor getContributor() {
 		return new Contributor() {
+			
+			private boolean accept() {
+				try {
+					if (isNullContainer()) {
+						return true;
+					} else if (isAppContainer()) {
+						return true;
+					} else {
+						return getContainer().equals((MobileComponent) getMainScriptComponent());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+
+			@Override
+			public boolean isNgModuleForApp() {
+				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
+					return true;
+				}
+				return false;
+			}
+			
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				return new HashMap<String, String>();
@@ -431,13 +455,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					Map<String, List<String>> map = ionBean.getConfig().getModuleTsImports();
-					if (map.size() > 0) {
-						for (String from : map.keySet()) {
-							for (String component: map.get(from)) {
-								imports.put(component.trim(), from);
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						Map<String, List<String>> map = ionBean.getConfig().getModuleTsImports();
+						if (map.size() > 0) {
+							for (String from : map.keySet()) {
+								for (String component: map.get(from)) {
+									imports.put(component.trim(), from);
+								}
 							}
 						}
 					}
@@ -447,92 +473,104 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 
 			@Override
 			public Set<String> getModuleNgImports() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getModuleNgImports();
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						return ionBean.getConfig().getModuleNgImports();
+					}
 				}
 				return new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getModuleNgProviders() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getModuleNgProviders();
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						return ionBean.getConfig().getModuleNgProviders();
+					}
 				}
 				return new HashSet<String>();
 			}
 
 			@Override
 			public Set<String> getModuleNgDeclarations() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getModuleNgDeclarations();
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						return ionBean.getConfig().getModuleNgDeclarations();
+					}
 				}
 				return new HashSet<String>();
 			}
 			
 			@Override
 			public Set<String> getModuleNgComponents() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getModuleNgComponents();
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						return ionBean.getConfig().getModuleNgComponents();
+					}
 				}
 				return new HashSet<String>();
 			}
 
 			@Override
 			public Map<String, String> getPackageDependencies() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					return ionBean.getConfig().getPackageDependencies();
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						return ionBean.getConfig().getPackageDependencies();
+					}
 				}
 				return new HashMap<String, String>();
 			}
 
 			@Override
 			public Map<String, String> getConfigPlugins() {
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					Map<String, String> map = ionBean.getConfig().getConfigPlugins();
-					for (String plugin: map.keySet()) {
-						try {
-							JSONObject json = new JSONObject(map.get(plugin));
-							if (json.has("variables")) {
-								boolean hasChanged = false;
-								JSONObject jsonVars = json.getJSONObject("variables");
-								@SuppressWarnings("unchecked")
-								Iterator<String> it = jsonVars.keys();
-								while (it.hasNext()) {
-									String varkey = it.next();
-									String varval = jsonVars.getString(varkey);
-									if (varval.startsWith("@")) {// value = @propertyName
-										String propertyName = varval.substring(1);
-										if (ionBean.hasProperty(propertyName)) {
-											IonProperty ionProperty = ionBean.getProperty(propertyName);
-											Object p_value = ionProperty.getValue();
-											String value = "";
-											if (!p_value.equals(false)) {
-												MobileSmartSourceType msst = ionProperty.getSmartType();
-												String smartValue = msst.getValue();
-												if (Mode.PLAIN.equals(msst.getMode())) {
-													value = smartValue;
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						Map<String, String> map = ionBean.getConfig().getConfigPlugins();
+						for (String plugin: map.keySet()) {
+							try {
+								JSONObject json = new JSONObject(map.get(plugin));
+								if (json.has("variables")) {
+									boolean hasChanged = false;
+									JSONObject jsonVars = json.getJSONObject("variables");
+									@SuppressWarnings("unchecked")
+									Iterator<String> it = jsonVars.keys();
+									while (it.hasNext()) {
+										String varkey = it.next();
+										String varval = jsonVars.getString(varkey);
+										if (varval.startsWith("@")) {// value = @propertyName
+											String propertyName = varval.substring(1);
+											if (ionBean.hasProperty(propertyName)) {
+												IonProperty ionProperty = ionBean.getProperty(propertyName);
+												Object p_value = ionProperty.getValue();
+												String value = "";
+												if (!p_value.equals(false)) {
+													MobileSmartSourceType msst = ionProperty.getSmartType();
+													String smartValue = msst.getValue();
+													if (Mode.PLAIN.equals(msst.getMode())) {
+														value = smartValue;
+													}
 												}
+												
+												jsonVars.put(varkey, value);
+												hasChanged = true;
 											}
-											
-											jsonVars.put(varkey, value);
-											hasChanged = true;
 										}
 									}
+									if (hasChanged) {
+										json.put("variables", jsonVars);
+										map.put(plugin, json.toString());
+									}
 								}
-								if (hasChanged) {
-									json.put("variables", jsonVars);
-									map.put(plugin, json.toString());
-								}
-							}
-						} catch (Exception e) {}
+							} catch (Exception e) {}
+						}
+						return map;
 					}
-					return map;
 				}
 				return new HashMap<String, String>();
 			}

@@ -687,10 +687,11 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 	}
 	
 	protected void addContributors(Set<UIComponent> done, List<Contributor> contributors) {
-		//if (isEnabled()) { // Commented until we can delete page folder again... : see forceEnable in MobileBuilder
-			if (!done.add(this)) {
-				return;
-			}
+		if (!done.add(this)) {
+			return;
+		}
+		
+		if (isEnabled()) {
 			Contributor contributor = getContributor();
 			if (contributor != null) {
 				if (!contributors.contains(contributor)) {
@@ -700,7 +701,7 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
 			for (UIComponent uiComponent : getUIComponentList()) {
 				uiComponent.addContributors(done, contributors);
 			}
-		//}
+		}
 	}
 	
 	protected void addInfos(Set<UIComponent> done, Map<String, Set<String>> infoMap) {

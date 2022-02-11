@@ -57,32 +57,44 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 		String computeEvent(MobileComponent mc, List<UIPageEvent> eventList) {
 			StringBuffer children = new StringBuffer();
 			Set<String> done = new HashSet<String>();
-			for (UIPageEvent pageEvent : eventList) {
-				if (pageEvent.getViewEvent().equals(this)) {
-					String functionCall = "";
-					if (mc instanceof UISharedComponent) {
+			
+			boolean forPage = mc instanceof PageComponent;
+			boolean forComp = mc instanceof UISharedComponent;
+			boolean isEnabled = forPage ? ((PageComponent)mc).isEnabled() : (forComp ? ((UISharedComponent)mc).isEnabled() : true);
+			
+			if (isEnabled) {
+				for (UIPageEvent pageEvent : eventList) {
+					if (pageEvent.getViewEvent().equals(this)) {
 						IScriptComponent main = pageEvent.getMainScriptComponent();
-						if (mc.equals(((UISharedComponent)main))) {
-							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
-						} else {
-							String identifier = ((UISharedComponent)main).getIdentifier();
-							if (done.add(identifier)) {
-								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
+						boolean mainIsPage = main instanceof PageComponent;
+						boolean mainIsComp = main instanceof UISharedComponent;
+						boolean isMainEnabled = mainIsPage ? ((PageComponent)main).isEnabled() : (mainIsComp ? ((UISharedComponent)main).isEnabled() : true);
+						
+						String functionCall = "";
+						if (isMainEnabled) {
+							if (forComp) {
+								if (mc.equals((UISharedComponent)main)) {
+									functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+								} else {
+									String identifier = ((UISharedComponent)main).getIdentifier();
+									if (done.add(identifier)) {
+										functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
+									}
+								}
+							} else if (forPage) {
+								if (main instanceof UISharedComponent) {
+									String identifier = ((UISharedComponent)main).getIdentifier();
+									if (done.add(identifier)) {
+										functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
+									}
+								} else {
+									functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+								}
 							}
 						}
-					} else {
-						IScriptComponent main = pageEvent.getMainScriptComponent();
-						if (main instanceof UISharedComponent) {
-							String identifier = ((UISharedComponent)main).getIdentifier();
-							if (done.add(identifier)) {
-								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
-							}
-						} else {
-							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+						if (!functionCall.isBlank()) {
+							children.append("\t\t\t\t" + functionCall).append(System.lineSeparator());
 						}
-					}
-					if (!functionCall.isBlank()) {
-						children.append("\t\t\t\t" + functionCall).append(System.lineSeparator());
 					}
 				}
 			}

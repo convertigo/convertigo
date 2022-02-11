@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -181,7 +182,7 @@ public class DirectoryWatcherService implements Runnable {
         }, DELAY);
     }
 
-    private static String pname(String qname) {
+    private static String getProjectName(String qname) {
     	if (qname != null && !qname.isBlank()) {
     		try {
     			return qname.substring(0, qname.indexOf('.'));
@@ -213,26 +214,38 @@ public class DirectoryWatcherService implements Runnable {
             	
 	            String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
 	            if (compName != null) {
-	            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(getCompQName(compName))) {
-		    			if (pname(useQName).equals(project.getName()))
-		    				continue;
-		        		try {
-		                    File dest = new File(filename.replace(project.getName(), pname(useQName)));
-		    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
-		        			if (src.isDirectory()) {
-		        				FileUtils.copyDirectory(src, dest, true);
-		        			} else {
-		        				FileUtils.copyFile(src, dest, true);
-		        			}
-		        		} catch (Exception e) {
-		        			Engine.logEngine.warn(e.getMessage());
-		        		}
-		    		}
+		            if (compName != null) {
+		            	String compQName = getCompQName(compName);
+		            	
+		            	Set<String> done = new HashSet<String>();
+		            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(compQName)) {
+		            		String pname = getProjectName(useQName);
+			    			if (pname.equals(project.getName()))
+			    				continue;
+			    			
+			        		try {
+			                    File dest = new File(filename.replace(project.getName(), pname));
+			                    if (done.add(dest.toString())) {
+			                    	/*if (NgxBuilder.isRequiredComp(compQName, pname)) {
+					    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
+					        			if (src.isDirectory()) {
+					        				FileUtils.copyDirectory(src, dest, true);
+					        			} else {
+					        				FileUtils.copyFile(src, dest, true);
+					        			}
+			                    	}*/
+			                    	//NgxBuilder.getBuilder(pname).updateConsumer();
+			                    }
+			        		} catch (Exception e) {
+			        			Engine.logEngine.warn("(DirectoryWatcherService) " + e.getMessage());
+			        		}
+			    		}
+		            }
 	            }
             }
             // delete
             else {
-   				Engine.logEngine.debug("(DirectoryWatcherService) Deleted " + filename);
+   				//Engine.logEngine.debug("(DirectoryWatcherService) Deleted " + filename);
             }
             
             /*

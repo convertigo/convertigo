@@ -678,7 +678,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		}
 		return false;
 	}
-	
+		
 	private String getRelativePagePath(MobileComponent mc, String pageName) {
 		String pageLower = pageName.toLowerCase();
 		String pagePath = null;
@@ -701,6 +701,22 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		Contributor contributor = super.getContributor();
 		return new Contributor() {
 			
+			private boolean accept() {
+				try {
+					if (isNullContainer() || isAppContainer()) {
+						if (isPageAction()) {
+							return getMainScriptComponent() instanceof ApplicationComponent;
+						}
+						return true;
+					}
+//					return isNullContainer() || 
+//							isContainer((MobileComponent)getMainScriptComponent());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+			
 			@Override
 			public boolean isNgModuleForApp() {
 				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
@@ -709,17 +725,20 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 					}
 					return true;
 				}
+				
 				return false;
 			}
 			
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					String actionName = getActionName();
-					String actionCode = ComponentManager.getActionTsCode(actionName);
-					functions.put(actionName, actionCode);
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						String actionName = getActionName();
+						String actionCode = ComponentManager.getActionTsCode(actionName);
+						functions.put(actionName, actionCode);
+					}
 				}
 				return functions;
 			}
@@ -727,26 +746,29 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			@Override
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					Map<String, List<String>> map = ionBean.getConfig().getActionTsImports();
-					if (map.size() > 0) {
-						for (String from : map.keySet()) {
-							for (String component: map.get(from)) {
-								imports.put(component.trim(), from);
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						MobileComponent container = getContainer();
+						Map<String, List<String>> map = ionBean.getConfig().getActionTsImports();
+						if (map.size() > 0) {
+							for (String from : map.keySet()) {
+								for (String component: map.get(from)) {
+									imports.put(component.trim(), from);
+								}
 							}
 						}
-					}
-					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
-						try {
-							String pageQName = ionBean.getProperty("page").getSmartValue();
-							if (!pageQName.isBlank()) {
-								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pagePath = getRelativePagePath(getContainer(), pageName);
-								imports.put(pageName, pagePath);
+						if (isPageAction()) {
+							try {
+								String pageQName = ionBean.getProperty("page").getSmartValue();
+								if (!pageQName.isBlank()) {
+									String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
+									String pagePath = getRelativePagePath(container, pageName);
+									imports.put(pageName, pagePath);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
 						}
 					}
 				}
@@ -761,19 +783,22 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			@Override
 			public Map<String, String> getModuleTsImports() {
 				Map<String, String> map = contributor.getModuleTsImports();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
-						try {
-							String pageQName = ionBean.getProperty("page").getSmartValue();
-							if (!pageQName.isBlank()) {
-								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageModuleName = pageName + "Module";
-								String pageModulepath = getRelativePagePath(getContainer(), pageName)+ ".module";
-								map.put(pageModuleName, pageModulepath);
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						MobileComponent container = getContainer();
+						if (isPageAction()) {
+							try {
+								String pageQName = ionBean.getProperty("page").getSmartValue();
+								if (!pageQName.isBlank()) {
+									String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
+									String pageModuleName = pageName + "Module";
+									String pageModulepath = getRelativePagePath(container, pageName)+ ".module";
+									map.put(pageModuleName, pageModulepath);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
 						}
 					}
 				}
@@ -783,18 +808,20 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			@Override
 			public Set<String> getModuleNgImports() {
 				Set<String> imports = contributor.getModuleNgImports();
-				IonBean ionBean = getIonBean();
-				if (ionBean != null) {
-					if (isPageAction() && isContainer((MobileComponent)getMainScriptComponent())) {
-						try {
-							String pageQName = ionBean.getProperty("page").getSmartValue();
-							if (!pageQName.isBlank()) {
-								String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
-								String pageModuleName = pageName + "Module";
-								imports.add(pageModuleName);
+				if (accept()) {
+					IonBean ionBean = getIonBean();
+					if (ionBean != null) {
+						if (isPageAction()) {
+							try {
+								String pageQName = ionBean.getProperty("page").getSmartValue();
+								if (!pageQName.isBlank()) {
+									String pageName = pageQName.substring(pageQName.lastIndexOf(".")+1);
+									String pageModuleName = pageName + "Module";
+									imports.add(pageModuleName);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
 						}
 					}
 				}

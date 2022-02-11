@@ -101,7 +101,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
-import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -1082,23 +1081,50 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject deletedObject = deletedTreeObject.getObject();
 			try {
-				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
-					UIComponent parentDbo = getObject();
+				if (deletedTreeObject != null) {
+					DatabaseObjectTreeObject parentOfdeletedTreeObject = deletedTreeObject.getParentDatabaseObjectTreeObject();
+					DatabaseObject parentOfdeleted = parentOfdeletedTreeObject.getObject();
 					
-					if (deletedObject instanceof UIUseShared) {
-						UIUseShared use = (UIUseShared)deletedObject;
-						String compQName = use.getSharedComponentQName();
-						String useQNname = parentDbo.getQName() + "." + deletedObject.getName();
-						ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQNname);
-					}
-										
-					UIActionStack uisa = parentDbo.getSharedAction();
-					UISharedComponent uisc = parentDbo.getSharedComponent();
-					if (uisa != null) {
-						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
-					}
-					else if (uisc != null) {
-						notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
+					if (this.equals(parentOfdeletedTreeObject)) {
+						if (deletedObject instanceof UIUseShared) {
+							UIUseShared use = (UIUseShared)deletedObject;
+							String compQName = use.getSharedComponentQName();
+							String useQNname = parentOfdeleted.getQName() + "." + deletedObject.getName();
+							ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQNname);
+						}
+						
+						if (parentOfdeleted instanceof UIComponent) {
+							UIActionStack uisa = ((UIComponent)parentOfdeleted).getSharedAction();
+							UISharedComponent uisc = ((UIComponent)parentOfdeleted).getSharedComponent();
+							if (uisa != null) {
+								notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
+							}
+							else if (uisc != null) {
+								notifyDataseObjectPropertyChanged(uisc, "", null, null, done);
+							}
+						}
+						
+					} else if (!this.equals(deletedTreeObject) && (!getParents().contains(deletedTreeObject))) {
+						if (deletedObject instanceof UISharedComponent) {
+							if (getObject() instanceof UIUseShared) {
+								UIUseShared use = (UIUseShared)getObject();
+								String compQName = use.getSharedComponentQName();
+								String deletedQNname = parentOfdeleted.getQName() + "." + deletedObject.getName();
+								if (compQName.equals(deletedQNname)) {
+									notifyDataseObjectPropertyChanged(use, "", null, null, done);
+								}
+							}
+						}
+						if (deletedObject instanceof UIActionStack) {
+							if (getObject() instanceof UIDynamicInvoke) {
+								UIDynamicInvoke udi = (UIDynamicInvoke)getObject();
+								String actionQName = udi.getSharedActionQName();
+								String deletedQNname = parentOfdeleted.getQName() + "." + deletedObject.getName();
+								if (actionQName.equals(deletedQNname)) {
+									notifyDataseObjectPropertyChanged(udi, "", null, null, done);
+								}
+							}
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -1167,7 +1193,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							String useQName = uiUse.getQName();
 							String compQName = dbo.getQName();
 							if (ComponentRefManager.get(Mode.use).getAllConsumers(compQName).contains(useQName)) {
-								((NgxBuilder)uiUse.getProject().getMobileBuilder()).updateConsumer();
+								//((NgxBuilder)uiUse.getProject().getMobileBuilder()).updateConsumer();
+								String pname = uiUse.getProject().getName();
+								pname += "";
 							}
 						}
 						
