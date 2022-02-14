@@ -375,6 +375,14 @@ public class CLI {
 			File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
 			displayObjectsMobile.mkdirs();
 			
+			File assets = new File(displayObjectsMobile, "assets");
+			if (assets.exists() && assets.isDirectory()) {
+				Engine.logStudio.info("Handle application assets");
+				File privAssets = new File(ionicDir, "src/assets");
+				FileUtils.deleteDirectory(privAssets);
+				FileUtils.copyDirectory(assets, privAssets);
+			}
+			
 			for (File f: displayObjectsMobile.listFiles()) {
 				if (!f.getName().equals("assets")) {
 					com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(f);
