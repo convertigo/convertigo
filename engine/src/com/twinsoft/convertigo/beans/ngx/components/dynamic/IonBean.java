@@ -32,7 +32,6 @@ import org.codehaus.jettison.json.JSONObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
-import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class IonBean {
@@ -451,15 +450,6 @@ public class IonBean {
 			dbo.setBeanData(getJSONObject().toString());			
 			dbo.bNew = true;
 			dbo.hasChanged = true;
-			
-			if (needNgTemplate()) {
-				UIElement uidt = new UIElement();
-				uidt.setTagName("ng-template");
-				uidt.bNew = true;
-				uidt.hasChanged = true;
-				
-				dbo.add(uidt);
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			dbo = null;

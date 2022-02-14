@@ -85,6 +85,10 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		this.identifier = identifier;
 	}
 
+	protected boolean needNgTemplate() {
+		return false;
+	}
+	
 	@Override
 	public void addUIComponent(UIComponent uiComponent) throws EngineException {
 	    addUIComponent(uiComponent, null);
@@ -296,10 +300,12 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			}
 			else {
 				sb.append(">").append(System.getProperty("line.separator"))
-					.append(children.length()>0 ? children:"")
-					.append(StringUtils.endsWith(children, System.getProperty("line.separator")) ? "":System.getProperty("line.separator"))
-					.append("</").append(getTagName())
-				  	.append(">").append(System.getProperty("line.separator"));
+					.append(needNgTemplate() ? "<ng-template>"+ System.getProperty("line.separator"):"")
+						.append(children.length()>0 ? children:"")
+						.append(StringUtils.endsWith(children, System.getProperty("line.separator")) ? "":System.getProperty("line.separator"))
+					.append(needNgTemplate() ? "</ng-template>"+ System.getProperty("line.separator"):"")
+				.append("</").append(getTagName())
+				.append(">").append(System.getProperty("line.separator"));
 			}
 			
 			return sb.toString();

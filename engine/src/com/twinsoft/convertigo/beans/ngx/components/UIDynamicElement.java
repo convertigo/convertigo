@@ -120,6 +120,15 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 	}
 
 	@Override
+	protected boolean needNgTemplate() {
+		IonBean ionBean = getIonBean();
+		if (ionBean != null) {
+			return ionBean.needNgTemplate();
+		}
+		return false;
+	}
+	
+	@Override
 	public String getDynamicIconName(int iconType) {
     	if (ionBean != null) {
 			if (iconType == BeanInfo.ICON_COLOR_16x16) {
