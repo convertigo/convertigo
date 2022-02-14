@@ -59,56 +59,56 @@ public class ProjectCar extends ConvertigoTask {
 	}
 	
 	@Input @Optional
-	public boolean isIncludeTestCases() {
+	public Boolean isIncludeTestCases() {
 		return includeTestCases;
 	}
 
-	public void setIncludeTestCases(boolean includeTestCases) {
+	public void setIncludeTestCases(Boolean includeTestCases) {
 		this.includeTestCases = includeTestCases;
 	}
 	
 	@Input @Optional
-	public boolean isIncludeStubs() {
+	public Boolean isIncludeStubs() {
 		return includeStubs;
 	}
 
-	public void setIncludeStubs(boolean includeStubs) {
+	public void setIncludeStubs(Boolean includeStubs) {
 		this.includeStubs = includeStubs;
 	}
 
 	@Input @Optional
-	public boolean isIncludeMobileApp() {
+	public Boolean isIncludeMobileApp() {
 		return includeMobileApp;
 	}
 
-	public void setIncludeMobileApp(boolean includeMobileApp) {
+	public void setIncludeMobileApp(Boolean includeMobileApp) {
 		this.includeMobileApp = includeMobileApp;
 	}
 
 	@Input @Optional
-	public boolean isIncludeMobileAppAssets() {
+	public Boolean isIncludeMobileAppAssets() {
 		return includeMobileAppAssets;
 	}
 
-	public void setIncludeMobileAppAssets(boolean includeMobileAppAssets) {
+	public void setIncludeMobileAppAssets(Boolean includeMobileAppAssets) {
 		this.includeMobileAppAssets = includeMobileAppAssets;
 	}
 
 	@Input @Optional
-	public boolean isIncludeMobileDataset() {
+	public Boolean isIncludeMobileDataset() {
 		return includeMobileDataset;
 	}
 
-	public void setIncludeMobileDataset(boolean includeMobileDataset) {
+	public void setIncludeMobileDataset(Boolean includeMobileDataset) {
 		this.includeMobileDataset = includeMobileDataset;
 	}
 
 	@Input @Optional
-	public boolean isIncludeMobilePlatformsAssets() {
+	public Boolean isIncludeMobilePlatformsAssets() {
 		return includeMobilePlatformsAssets;
 	}
 
-	public void setIncludeMobilePlatformsAssets(boolean includeMobilePlatformsAssets) {
+	public void setIncludeMobilePlatformsAssets(Boolean includeMobilePlatformsAssets) {
 		this.includeMobilePlatformsAssets = includeMobilePlatformsAssets;
 	}
 

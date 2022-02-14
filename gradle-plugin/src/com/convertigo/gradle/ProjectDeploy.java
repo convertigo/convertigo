@@ -61,29 +61,29 @@ public class ProjectDeploy extends ConvertigoTask {
 	}
 
 	@Input @Optional
-	public boolean isTrustAllCertificates() {
+	public Boolean isTrustAllCertificates() {
 		return trustAllCertificates;
 	}
 
-	public void setTrustAllCertificates(boolean trustAllCertificates) {
+	public void setTrustAllCertificates(Boolean trustAllCertificates) {
 		this.trustAllCertificates = trustAllCertificates;
 	}
 
 	@Input @Optional
-	public boolean isAssembleXsl() {
+	public Boolean isAssembleXsl() {
 		return assembleXsl;
 	}
 
-	public void setAssembleXsl(boolean assembleXsl) {
+	public void setAssembleXsl(Boolean assembleXsl) {
 		this.assembleXsl = assembleXsl;
 	}
 
 	@Input @Optional
-	public int getRetry() {
+	public Integer getRetry() {
 		return retry;
 	}
 
-	public void setRetry(int retry) {
+	public void setRetry(Integer retry) {
 		this.retry = retry;
 	}
 
