@@ -45,216 +45,231 @@ import com.twinsoft.convertigo.engine.util.PropertiesUtils;
 		roles = { Role.WEB_ADMIN, Role.CERTIFICATE_CONFIG, Role.CERTIFICATE_VIEW },
 		parameters = {},
 		returnValue = ""
-	)
+		)
 public class List extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element rootElement = document.getDocumentElement();
 
 		Element certificates = document.createElement("certificates");
-        rootElement.appendChild(certificates);
-        
-        File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
-        Properties storesProperties = new Properties();
-        
-        synchronized (Engine.CERTIFICATES_PATH) {
-        	try {
-        		PropertiesUtils.load(storesProperties, file);
-        	} catch (Exception e) {
-        		String message = "Unexpected exception";
-        		Engine.logAdmin.error(message, e);
-        		throw new ServiceException(message,e);
-        	}
-        }
-        
-        
-        java.util.List<String> certifVector = new ArrayList<String>();
-        java.util.List<String> linksVector = new ArrayList<String>();
-        String tmp = "";
-        Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
-        while(storesKeysEnum.hasMoreElements()) {
-        	tmp = (String)storesKeysEnum.nextElement();
-        	if ( tmp.indexOf("projects.")!=0 && tmp.indexOf("tas.")!=0 ) {
-        		if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") ) {
-        			certifVector.add(tmp);
-        		}
-        	} else {
-        		linksVector.add(tmp);
-        	}
-        }
-        Collections.sort(linksVector);
-		
-        storesKeysEnum = Collections.enumeration(certifVector);
-    	
+		rootElement.appendChild(certificates);
+
+		File file = new File(Engine.CERTIFICATES_PATH + CertificateManager.STORES_PROPERTIES_FILE_NAME);
+		Properties storesProperties = new Properties();
+
+		synchronized (Engine.CERTIFICATES_PATH) {
+			try {
+				PropertiesUtils.load(storesProperties, file);
+			} catch (Exception e) {
+				String message = "Unexpected exception";
+				Engine.logAdmin.error(message, e);
+				throw new ServiceException(message,e);
+			}
+		}
+
+
+		java.util.List<String> certifVector = new ArrayList<String>();
+		java.util.List<String> linksVector = new ArrayList<String>();
+		String tmp = "";
+		Enumeration<?> storesKeysEnum = storesProperties.propertyNames();
+		while(storesKeysEnum.hasMoreElements()) {
+			tmp = (String)storesKeysEnum.nextElement();
+			if ( tmp.indexOf("projects.")!=0 && tmp.indexOf("tas.")!=0 ) {
+				if ( !tmp.endsWith(".type") && !tmp.endsWith(".group") ) {
+					certifVector.add(tmp);
+				}
+			} else {
+				linksVector.add(tmp);
+			}
+		}
+		Collections.sort(linksVector);
+
+		storesKeysEnum = Collections.enumeration(certifVector);
+
 		Engine.logAdmin.debug("Analyzing certificates...");
 
 		String certificateName, certificateType, certificatePwd, certificateGroup;
-    	ArrayList<String> installedCertificates=new ArrayList<String>() ;
-    	while (storesKeysEnum.hasMoreElements()) {
-    		certificateName  = (String) storesKeysEnum.nextElement();
-    		certificateType  = (String) storesProperties.getProperty(certificateName + ".type");
-    		certificatePwd   = (String) storesProperties.getProperty(certificateName);
-    		certificateGroup = (String) storesProperties.getProperty(certificateName + ".group");
+		java.util.List<String> installedCertificates = new ArrayList<>();
+		java.util.List<Element> elts = new ArrayList<>();
+		while (storesKeysEnum.hasMoreElements()) {
+			certificateName  = (String) storesKeysEnum.nextElement();
+			certificateType  = (String) storesProperties.getProperty(certificateName + ".type");
+			certificatePwd   = (String) storesProperties.getProperty(certificateName);
+			certificateGroup = (String) storesProperties.getProperty(certificateName + ".group");
 
-    		Engine.logAdmin.debug("Found certificate:");
-    		Engine.logAdmin.debug("   name=" + certificateName);
-    		Engine.logAdmin.debug("   type=" + certificateType);
-    		Engine.logAdmin.debug("   password (ciphered)=" + certificatePwd);
-    		Engine.logAdmin.debug("   group=" + certificateGroup);
+			Engine.logAdmin.debug("Found certificate:");
+			Engine.logAdmin.debug("   name=" + certificateName);
+			Engine.logAdmin.debug("   type=" + certificateType);
+			Engine.logAdmin.debug("   password (ciphered)=" + certificatePwd);
+			Engine.logAdmin.debug("   group=" + certificateGroup);
 
-    		if (certificateType == null) {
-    			Engine.logAdmin.error("Corrupted certificate '"+certificateName+"' : missing type");
-    		}
-    		
-    		if (certificatePwd.length() > 0) {
-    			try {
+			if (certificateType == null) {
+				Engine.logAdmin.error("Corrupted certificate '"+certificateName+"' : missing type");
+			}
+
+			if (certificatePwd.length() > 0) {
+				try {
 					certificatePwd   = Crypto2.decodeFromHexString((String) storesProperties.getProperty(certificateName));
 				} catch (Exception e) {
-		    		Engine.logAdmin.error("Unable to decipher the password", e);
+					Engine.logAdmin.error("Unable to decipher the password", e);
 				}
-    		}
+			}
 
-    		Element certificateElement = document.createElement("certificate");
-    		certificateElement.setAttribute("name", certificateName);
-    		certificateElement.setAttribute("type", certificateType);
-    		certificateElement.setAttribute("password", certificatePwd);
-    		certificateElement.setAttribute("validPass", Boolean.toString(CertificateManager.checkCertificatePassword(certificateType, Engine.CERTIFICATES_PATH + "/" + certificateName, certificatePwd)));
-    		certificateElement.setAttribute("group", certificateGroup);
-    		certificates.appendChild(certificateElement);
-    		installedCertificates.add(certificateName);
-    		
-    	}
-    	
-    
-    	Element candidates = document.createElement("candidates");
-    	rootElement.appendChild(candidates);    	
-    	File certifDirectory = new File(Engine.CERTIFICATES_PATH);
-    	File certifList[] = certifDirectory.listFiles();
-    	for (int k=0 ; k<certifList.length ; k++) {
-    		String certifName=certifList[k].getName();
-    		String certificateExtensionName = certifName.replaceFirst(".*\\.", ".");
-    		if(CertificateManager.isCertificateExtension(certificateExtensionName)) {
-    			if(!installedCertificates.contains(certifName)){
-    				Element candidateElement = document.createElement("candidate");
-	    			candidateElement.setAttribute("name", certifName);
-	    			candidates.appendChild(candidateElement);
-    			}
-    		}
-    	}
-    											
-    											
-    	
-    	Element bindings = document.createElement("bindings");
-    	rootElement.appendChild(bindings);
-    	
-    	Element anonymous = document.createElement("anonymous");
-    	bindings.appendChild(anonymous);
-    	
-    	boolean cariocaLinksExist = false;
-    	String link = "";
-    	storesKeysEnum = Collections.enumeration(linksVector);
-    	while (storesKeysEnum.hasMoreElements()) {
-    		// Entire link
-    		link = (String) storesKeysEnum.nextElement();
+			Element certificateElement = document.createElement("certificate");
+			certificateElement.setAttribute("name", certificateName);
+			certificateElement.setAttribute("type", certificateType);
+			certificateElement.setAttribute("password", certificatePwd);
+			certificateElement.setAttribute("validPass", Boolean.toString(CertificateManager.checkCertificatePassword(certificateType, Engine.CERTIFICATES_PATH + "/" + certificateName, certificatePwd)));
+			certificateElement.setAttribute("group", certificateGroup);
+			installedCertificates.add(certificateName);
+			elts.add(certificateElement);
+		}
 
-    		// Name of the certificate linked to this Convertigo link
-    		certificateName = (String)storesProperties.getProperty(link);
+		Collections.sort(elts, (a, b) -> {
+			return a.getAttribute("name").compareTo(b.getAttribute("name"));
+		});
 
-    		// CUT OF THE ENTIRE LINK
-    		// Targetted object of this link : 'tas' (carioca/vic) or 'projects' (Convertigo)
-    		StringTokenizer st = new StringTokenizer(link.substring(0, link.length()-13), ".");
-    		String targettedObject = st.nextToken();
-    		if (targettedObject.equals("tas")) {
-    			cariocaLinksExist = true;
-    			// There isn't more Convertigo links
-    			break; 
-    		}
+		for (Element elt: elts) {
+			certificates.appendChild(elt);
+		}
 
-    		// Convertigo project
-    		String convProject = "";
-    		if (st.hasMoreTokens()) 
-    			convProject = st.nextToken();
-    		
-    		Element bindingElement = document.createElement("binding");
-    		bindingElement.setAttribute("projectName", convProject);
-    		bindingElement.setAttribute("certificateName", certificateName);
-    		anonymous.appendChild(bindingElement);
-    		
-    	}
-    	
-    	Element carioca = document.createElement("carioca");
-    	bindings.appendChild(carioca);
-    	
-    	while ( cariocaLinksExist || storesKeysEnum.hasMoreElements() ) {
-    		// Entire link
-    		if (cariocaLinksExist)
-    			// In the first loop, the entire link is already got (in the loop concerning the Convertigo links)
-    			cariocaLinksExist = false;
-    		else
-    			link = (String) storesKeysEnum.nextElement();
+		Element candidates = document.createElement("candidates");
+		rootElement.appendChild(candidates);    	
+		File certifDirectory = new File(Engine.CERTIFICATES_PATH);
+		File certifList[] = certifDirectory.listFiles();
+		
+		elts.clear();
+		for (int k=0 ; k<certifList.length ; k++) {
+			String certifName=certifList[k].getName();
+			String certificateExtensionName = certifName.replaceFirst(".*\\.", ".");
+			if(CertificateManager.isCertificateExtension(certificateExtensionName)) {
+				if(!installedCertificates.contains(certifName)){
+					Element candidateElement = document.createElement("candidate");
+					candidateElement.setAttribute("name", certifName);
+					elts.add(candidateElement);
+				}
+			}
+		}
 
-    		// Name of the certificate linked to this Carioca link
-    		certificateName = (String)storesProperties.getProperty(link);
-    		
-    		// CUT OF THE ENTIRE LINK
-    		// the Targetted object of this link is 'tas' (carioca)
-    		StringTokenizer st = new StringTokenizer(link.substring(0, link.length()-13), ".");
-    		
-    		// Project
-    		String virtualServer = "";
-    		String group ="";
-    		String user ="";
-    		String project ="";
-    		
-    		// tas
-    		if (st.hasMoreTokens())
-    			st.nextToken();
-    		
-    		if (link.indexOf("projects")==-1) {
-    			// Virtual Server
-    			if (st.hasMoreTokens())
-    				virtualServer = st.nextToken();
-    			
-    			// Group of the user
-    			if (st.hasMoreTokens())
-    				group = st.nextToken();
-    	
-    			// User
-    			if (st.hasMoreTokens())
-    				user = st.nextToken();
-    		}
-    		else {
-    			while (st.hasMoreTokens()) {
-    				tmp = st.nextToken();
-    				
-    				if (tmp.equals("projects")) {
-    					tmp = st.nextToken();
-    					project = tmp;
-    				}
-    				else {
-    					if (virtualServer.equals(""))
-    						virtualServer = tmp;
-    					else {
-    						if (group.equals(""))
-    							group = tmp;
-    						else {
-    							if (user.equals(""))
-    								user = tmp;
-    						}
-    					}
-    				}
-    			}
-    		}
-    		
-    		
-    		Element bindingElement = document.createElement("binding");
-		    bindingElement.setAttribute("projectName", project);
-		    bindingElement.setAttribute("virtualServerName", virtualServer);
-		    bindingElement.setAttribute("imputationGroup", group);
-		    bindingElement.setAttribute("userName", user);
-		    bindingElement.setAttribute("certificateName", certificateName);
+		Collections.sort(elts, (a, b) -> {
+			return a.getAttribute("name").compareTo(b.getAttribute("name"));
+		});
+
+		for (Element elt: elts) {
+			candidates.appendChild(elt);
+		}
+
+		Element bindings = document.createElement("bindings");
+		rootElement.appendChild(bindings);
+
+		Element anonymous = document.createElement("anonymous");
+		bindings.appendChild(anonymous);
+
+		boolean cariocaLinksExist = false;
+		String link = "";
+		storesKeysEnum = Collections.enumeration(linksVector);
+		while (storesKeysEnum.hasMoreElements()) {
+			// Entire link
+			link = (String) storesKeysEnum.nextElement();
+
+			// Name of the certificate linked to this Convertigo link
+			certificateName = (String)storesProperties.getProperty(link);
+
+			// CUT OF THE ENTIRE LINK
+			// Targetted object of this link : 'tas' (carioca/vic) or 'projects' (Convertigo)
+			StringTokenizer st = new StringTokenizer(link.substring(0, link.length()-13), ".");
+			String targettedObject = st.nextToken();
+			if (targettedObject.equals("tas")) {
+				cariocaLinksExist = true;
+				// There isn't more Convertigo links
+				break; 
+			}
+
+			// Convertigo project
+			String convProject = "";
+			if (st.hasMoreTokens()) 
+				convProject = st.nextToken();
+
+			Element bindingElement = document.createElement("binding");
+			bindingElement.setAttribute("projectName", convProject);
+			bindingElement.setAttribute("certificateName", certificateName);
+			anonymous.appendChild(bindingElement);
+
+		}
+
+		Element carioca = document.createElement("carioca");
+		bindings.appendChild(carioca);
+
+		while ( cariocaLinksExist || storesKeysEnum.hasMoreElements() ) {
+			// Entire link
+			if (cariocaLinksExist)
+				// In the first loop, the entire link is already got (in the loop concerning the Convertigo links)
+				cariocaLinksExist = false;
+			else
+				link = (String) storesKeysEnum.nextElement();
+
+			// Name of the certificate linked to this Carioca link
+			certificateName = (String)storesProperties.getProperty(link);
+
+			// CUT OF THE ENTIRE LINK
+			// the Targetted object of this link is 'tas' (carioca)
+			StringTokenizer st = new StringTokenizer(link.substring(0, link.length()-13), ".");
+
+			// Project
+			String virtualServer = "";
+			String group ="";
+			String user ="";
+			String project ="";
+
+			// tas
+			if (st.hasMoreTokens())
+				st.nextToken();
+
+			if (link.indexOf("projects")==-1) {
+				// Virtual Server
+				if (st.hasMoreTokens())
+					virtualServer = st.nextToken();
+
+				// Group of the user
+				if (st.hasMoreTokens())
+					group = st.nextToken();
+
+				// User
+				if (st.hasMoreTokens())
+					user = st.nextToken();
+			}
+			else {
+				while (st.hasMoreTokens()) {
+					tmp = st.nextToken();
+
+					if (tmp.equals("projects")) {
+						tmp = st.nextToken();
+						project = tmp;
+					}
+					else {
+						if (virtualServer.equals(""))
+							virtualServer = tmp;
+						else {
+							if (group.equals(""))
+								group = tmp;
+							else {
+								if (user.equals(""))
+									user = tmp;
+							}
+						}
+					}
+				}
+			}
+
+
+			Element bindingElement = document.createElement("binding");
+			bindingElement.setAttribute("projectName", project);
+			bindingElement.setAttribute("virtualServerName", virtualServer);
+			bindingElement.setAttribute("imputationGroup", group);
+			bindingElement.setAttribute("userName", user);
+			bindingElement.setAttribute("certificateName", certificateName);
 			carioca.appendChild(bindingElement);
-    	}
+		}
 	}
 
 }
