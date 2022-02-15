@@ -135,8 +135,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		@JsAccessible
 		public void onDragOver(JsObject o) {
 			try {
-				double x = (Double) o.property("screenX").get();
-				double y = (Double) o.property("screenY").get();
+				double x = (Double) o.property("x").get();
+				double y = (Double) o.property("y").get();
 				highlightPoint((int) x, (int) y);
 			} catch (Exception e) {
 				onDrop(o);
