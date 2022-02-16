@@ -908,8 +908,12 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "SetGlobalAction".equals(getActionName());
 	}
 	
+	public boolean isSetGlobalOrLocalAction() {
+		return "SetGlobalAction".equals(getActionName()) || "SetLocalAction".equals(getActionName()) ;
+	}
+	
 	public String getSetGlobalActionKeyName() {
-		if (isSetGlobalAction()) {
+		if (isSetGlobalOrLocalAction()) {
 			IonProperty property = getIonBean().getProperty("Property");
 			if (property != null) {
 				Object value = property.getValue();
@@ -922,7 +926,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 	
 	public Object getSetGlobalActionKeyValue() {
-		if (isSetGlobalAction()) {
+		if (isSetGlobalOrLocalAction()) {
 			IonProperty property = getIonBean().getProperty("Value");
 			if (property != null) {
 				Object value = property.getValue();
@@ -935,7 +939,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	}
 	
 	public Object getSetGlobalActionValueLabel() {
-		if (isSetGlobalAction()) {
+		if (isSetGlobalOrLocalAction()) {
 			IonProperty property = getIonBean().getProperty("Value");
 			if (property != null) {
 				return property.getSmartType().getLabel();
@@ -946,7 +950,14 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	
 	@Override
 	public String toString() {
-		if (isSetGlobalAction()) {
+		if (isSetGlobalOrLocalAction()) {
+			String key = getSetGlobalActionKeyName();
+			if (key != null && !key.isEmpty()) {
+				Object val = getSetGlobalActionValueLabel();
+				return ""+ key + " = " + (val == null || val.toString().isEmpty() ? "?": val.toString());
+			}
+		}
+		else if (isSetGlobalOrLocalAction()) {
 			String key = getSetGlobalActionKeyName();
 			if (key != null && !key.isEmpty()) {
 				Object val = getSetGlobalActionValueLabel();
