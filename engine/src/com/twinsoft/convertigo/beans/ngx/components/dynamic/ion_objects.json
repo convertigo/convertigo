@@ -17487,6 +17487,38 @@
         }
 	  }
 	},
+	"SetLocalAction" : {
+	  "classname": "com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction",
+	  "displayName": "SetLocal",
+      "label": "SetLocal",
+      "description": [
+"Defines a <i>SetLocal</i> action component. | This component helps storing some data in the current page or component.<br/>",
+"You can use the <i>SetLocal</i> action for that.<br/>",
+"<br/>",
+"If you want to retrieve and use the value of a stored property (for example myProperty) to be displayed on a page, source a <i>Text</i> component in <b>TS</b> mode to :<br/>",
+"<br/>",
+"<code>this.local?.myProperty</code><br/>",
+"<br/>",
+""],
+      "group": "Actions",
+      "properties": {
+        "Property": {
+          "label": "Property",
+          "description": "Name of the property to set.",
+          "category": "@Properties",
+          "type": "string",
+          "value": "myProperty"
+        },
+        "Value": {
+          "label": "value",
+          "description": "Value of the property, can be a simple string or any Object.",
+          "category": "@Properties",
+          "mode": "script",
+          "type": "string",
+          "value": ""
+        }
+	  }
+	},
 
 /*
   "CalendarPickerAction" : {

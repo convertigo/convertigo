@@ -5919,5 +5919,22 @@
     }
    }
   }
+ },
+ "SetLocalAction": {
+  "   8   0   0": {
+   "name": "SetLocalAction",
+   "properties": {
+    "Property": {
+     "name": "Property",
+     "mode": "plain",
+     "value": "myProperty"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "script",
+     "value": ""
+    }
+   }
+  }
  }
 }
