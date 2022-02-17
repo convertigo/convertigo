@@ -166,18 +166,24 @@ document.addEventListener("DOMContentLoaded", function () {
 		+ "}";
 	document.head.appendChild(scrollStyle);
 	
-	var handler = e => {
-		_c8o_remove_all_overlay();
+	console.defaultLog = console.log.bind(console);
+	console.log = function () {
+		console.defaultLog.apply(console, arguments);
+		try {
+			if (arguments[0].indexOf("[HMR] App ") == 0) {
+				_c8o_remove_all_overlay();
+			}
+		} catch(e) {}
 	};
-	const observer = new MutationObserver(handler);
-	observer.observe(document.getElementsByTagName('ion-router-outlet')[0], {attributes: true, childList: true, subtree: false});
 }, false);
 
 window.addEventListener("dragover", function (e) {
 	try {
-		e.preventDefault();
-		e.dataTransfer.dropEffect = "move";
-		window.java.onDragOver(e);
+		if (e.dataTransfer.items.length == 0) {
+			e.preventDefault();
+			e.dataTransfer.dropEffect = "move";
+			window.java.onDragOver(e);
+		}
 	} catch (ex) {
 		console.log("dragover: " + ex);
 	}

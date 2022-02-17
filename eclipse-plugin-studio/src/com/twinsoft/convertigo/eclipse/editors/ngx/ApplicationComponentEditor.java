@@ -136,9 +136,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		@JsAccessible
 		public void onDragOver(JsObject o) {
 			try {
-				double x = (Double) o.property("x").get();
-				double y = (Double) o.property("y").get();
-				highlightPoint((int) x, (int) y);
+				int x = ((Double) o.property("x").get()).intValue();
+				int y = ((Double) o.property("y").get()).intValue();
+				x = zoomFactor.swt(x);
+				y = zoomFactor.swt(y);
+				highlightPoint(x, y);
 			} catch (Exception e) {
 				onDrop(o);
 			}
@@ -1525,6 +1527,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					boolean done = false;
 					if (pagePath != null) {
 						try {
+							c8oBrowser.executeFunctionAndReturnValue("_c8o_remove_all_overlay");
 							done = "done".equals(c8oBrowser.executeFunctionAndReturnValue("_c8o_changePage", pagePath));
 						} catch (Exception e) {
 						}
@@ -1641,7 +1644,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					selectPage(pageComponent.getSegment());
 				}
 			}
-			
+		});
+		C8oBrowser.run(() -> {
 			Document doc = browser.mainFrame().get().document().get();
 			MobileComponent mc = mobileComponent;
 			if (mc instanceof UISharedComponent) {
