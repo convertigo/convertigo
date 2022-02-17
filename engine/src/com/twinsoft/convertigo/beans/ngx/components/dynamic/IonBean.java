@@ -54,7 +54,8 @@ public class IonBean {
 		scss,
 		config,
 		displayFormat,
-		needNgTemplate
+		needNgTemplate,
+		hint
 		;
 	}
 	
@@ -83,6 +84,7 @@ public class IonBean {
 				.put(Key.config.name(), new JSONObject())
 				.put(Key.displayFormat.name(), "")
 				.put(Key.needNgTemplate.name(), false)
+				.put(Key.hint.name(), new JSONObject())
 				;
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -455,6 +457,16 @@ public class IonBean {
 			dbo = null;
 		}
 		return dbo;
+	}
+
+	public JSONObject getHint() {
+		try {
+			JSONObject jsonHint = jsonBean.getJSONObject(Key.hint.name());
+			return new JSONObject(jsonHint.toString()); // copy
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new JSONObject();
 	}
 	 
 }

@@ -7884,6 +7884,56 @@
             true
          ]
         }
+      },
+      "hint": {
+        "Accordion": {
+          "GenericItem": {
+            "properties": {
+              "IonSlot": "header"
+            },
+            "Label": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Header"
+                }
+              }
+            }
+          },
+          "List": {
+            "properties": {
+              "IonSlot": "content"
+            },
+            "ListItem": [
+              {
+                "Label": {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Item1"
+                    }
+                  }
+                }
+              },
+              {
+                "Label": {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Item2"
+                    }
+                  }
+                }
+              },
+              {
+                "Label": {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Item3"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
       }
     },
 
@@ -7960,6 +8010,114 @@
             true
          ]
         }
+      },
+      "hint": {
+        "AccordionGroup": {
+          "Accordion": [
+            {
+              "properties": {
+                "Value": "colors"
+              },
+              "GenericItem": {
+                "properties": {
+                  "IonSlot": "header"
+                },
+                "Label": {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Colors"
+                    }
+                  }
+                }
+              },
+              "List": {
+                "properties": {
+                  "IonSlot": "content"
+                },
+                "ListItem": [
+                  {
+                    "Label": {
+                      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                        "properties": {
+                          "textValue": "Red"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Label": {
+                      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                        "properties": {
+                          "textValue": "Green"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Label": {
+                      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                        "properties": {
+                          "textValue": "Blue"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "properties": {
+                "Value": "shapes"
+              },
+              "GenericItem": {
+                "properties": {
+                  "IonSlot": "header"
+                },
+                "Label": {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Shapes"
+                    }
+                  }
+                }
+              },
+              "List": {
+                "properties": {
+                  "IonSlot": "content"
+                },
+                "ListItem": [
+                  {
+                    "Label": {
+                      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                        "properties": {
+                          "textValue": "Circle"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Label": {
+                      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                        "properties": {
+                          "textValue": "Triangle"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Label": {
+                      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                        "properties": {
+                          "textValue": "Square"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
       }
     },
     
@@ -8014,6 +8172,54 @@
           "values": [
             false,
             true
+          ]
+        }
+      },
+      "hint": {
+        "Breadcrumbs": {
+          "Breadcrumb": [
+            {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Home"
+                }
+              }
+            },
+            {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Electronics"
+                }
+              }
+            },
+            {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Photography"
+                }
+              }
+            },
+            {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Cameras"
+                }
+              }
+            },
+            {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Film"
+                }
+              }
+            },
+            {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "35 mm"
+                }
+              }
+            }
           ]
         }
       },
@@ -8084,6 +8290,15 @@
         "ionFocus": {
           "attr":"(ionFocus)",
           "description": "This event is emitted when the breadcrumb has focus"
+        }
+      },
+      "hint": {
+        "Breadcrumb": {
+          "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+            "properties": {
+              "textValue": "Some text"
+            }
+          }
         }
       },
       "scss": [
@@ -8611,6 +8826,22 @@
         "ionFocus": {
           "attr":"(ionFocus)",
           "description": "This event is emitted when the button has focus"
+        }
+      },
+      "hint": {
+        "Button": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "some button text"
+              }
+            }
+          },
+          "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+            "properties": {
+              "eventName": "onClick"
+            }
+          }
         }
       },
       "scss": [
@@ -9266,6 +9497,65 @@
             "true"
           ]
         }
+      },
+      "hint": {
+        "GenericItem": {
+          "properties": {
+            "Lines": "none"
+          },
+          "ButtonSet": [
+            {
+              "properties": {
+                "SetPosition": "start"
+              },
+              "Button": [
+                {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "First"
+                    }
+                  },
+                  "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                    "properties": {
+                      "eventName": "onClick"
+                    }
+                  }
+                },
+                {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Second"
+                    }
+                  },
+                  "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                    "properties": {
+                      "eventName": "onClick"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "properties": {
+                "SetPosition": "end"
+              },
+              "Button": [
+                {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Last"
+                    }
+                  },
+                  "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                    "properties": {
+                      "eventName": "onClick"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
       }
     },
 	
@@ -9428,6 +9718,52 @@
             "true"
           ]
       	}
+      },
+      "hint": {
+        "Footer": {
+          "ToolBar": {
+            "ButtonSet": [
+              {
+                "properties": {
+                  "SetPosition": "start"
+                },
+                "Button": [
+                  {
+                    "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                      "properties": {
+                        "textValue": "Action1"
+                      }
+                    },
+                    "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                      "properties": {
+                        "eventName": "onClick"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "properties": {
+                  "SetPosition": "end"
+                },
+                "Button": [
+                  {
+                    "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                      "properties": {
+                        "textValue": "Action2"
+                      }
+                    },
+                    "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                      "properties": {
+                        "eventName": "onClick"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
       }
     },
     
@@ -9469,6 +9805,51 @@
             "true"
           ]
       	}
+      },
+      "hint": {
+        "Header": {
+          "ToolBar": {
+            "ButtonSet": [
+              {
+                "properties": {
+                  "SetPosition": "start"
+                },
+                "BackButton": {
+                  
+                },
+                "MenuButton": {
+                  
+                }
+              },
+              {
+                "properties": {
+                  "SetPosition": "end"
+                },
+                "Button": [
+                  {
+                    "Icon": {
+                      "properties": {
+                        "IconName": "ellipsis-vertical"
+                      }
+                    },
+                    "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                      "properties": {
+                        "eventName": "onClick"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "BarTitle": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "ToolBar title"
+                }
+              }
+            }
+          }
+        }
       }
     },
 
@@ -11084,6 +11465,69 @@
         "BarMode": false,
         "BarSlot": false
       },
+      "hint": {
+        "ToolBar": {
+          "ButtonSet": [
+            {
+              "properties": {
+                "SetPosition": "start"
+              },
+              "Button": [
+                {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "First"
+                    }
+                  },
+                  "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                    "properties": {
+                      "eventName": "onClick"
+                    }
+                  }
+                },
+                {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Second"
+                    }
+                  },
+                  "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                    "properties": {
+                      "eventName": "onClick"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "properties": {
+                "SetPosition": "end"
+              },
+              "Button": [
+                {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Last"
+                    }
+                  },
+                  "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+                    "properties": {
+                      "eventName": "onClick"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "BarTitle": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "ToolBar title"
+              }
+            }
+          }
+        }
+      },
       "scss": [
 		"//--background\t//Background of the toolbar",
 		"//--border-color\t//Color of the toolbar border",
@@ -11471,6 +11915,15 @@
       "properties": {
         "IonColor": false,
         "IonSize": false
+      },
+      "hint": {
+        "BarTitle": {
+          "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+            "properties": {
+              "textValue": "Bar title"
+            }
+          }
+        }
       },
       "scss": [
         "//--color\t//Text color of the title"
@@ -11899,6 +12352,38 @@
             "none"
           ]
         }
+      },
+      "hint": {
+        "List": {
+          "Listheader": {
+            "Label": {
+              "Heading": {
+                "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "some list header"
+                  }
+                }
+              }
+            }
+          },
+          "com.twinsoft.convertigo.beans.ngx.components.UIControlDirective": {
+            "properties": {
+              "directiveName": "ForEach",
+              "directiveItemName": "item",
+              "directiveIndexName": "idx",
+              "directiveSource": "TS=[{text: 'first list item'},{text: 'second list item'}]"
+            },
+            "ListItem": {
+              "Label": {
+                "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "TS=item.text"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
 
@@ -12202,6 +12687,15 @@
       "properties": {
         "IonColor": false,
         "IonMode": false
+      },
+      "hint": {
+        "TextItem": {
+          "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+            "properties": {
+              "textValue": "some text"
+            }
+          }
+        }
       }
     },
 
@@ -12542,6 +13036,15 @@
             "floating",
             "stacked"
           ]
+        }
+      },
+      "hint": {
+        "Label": {
+          "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+            "properties": {
+              "textValue": "some label"
+            }
+          }
         }
       },
       "scss": [
@@ -14098,6 +14601,32 @@
          "value": "width: $[Width]; height: $[Height]"
         }
       },
+      "hint": {
+        "Grid": {
+          "GridRow": {
+            "GridCol": [
+              {
+                "Label": {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Column 11"
+                    }
+                  }
+                }
+              },
+              {
+                "Label": {
+                  "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                    "properties": {
+                      "textValue": "Column 12"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
       "scss": [
 		"//--ion-grid-padding\t//Padding for the Grid",
 		"//--ion-grid-padding-lg\t//Padding for the Grid on lg screens",
@@ -14207,6 +14736,30 @@
             "ion-wrap-reverse"
           ]
          }
+      },
+      "hint": {
+        "GridRow": {
+          "GridCol": [
+            {
+              "Label": {
+                "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "Column 1"
+                  }
+                }
+              }
+            },
+            {
+              "Label": {
+                "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "Column 2"
+                  }
+                }
+              }
+            }
+          ]
+        }
       }
     },
 
@@ -14508,6 +15061,17 @@
             true
           ]
          }
+      },
+      "hint": {
+        "GridCol": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "Column"
+              }
+            }
+          }
+        }
       },
       "scss": [
 		"//--ion-grid-column-padding\t//Padding for the Column",
@@ -20642,5 +21206,75 @@
 	      }
       }
     }   
+  },
+  
+  "C8oBeans": {
+    "UIForm": {
+      "classname": "com.twinsoft.convertigo.beans.ngx.components.UIForm",
+      "hint": {
+        "UIForm": {
+          "properties": {
+            "identifier": "formSample"
+          },
+          "FormItem": [
+            {
+              "Label": {
+                "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "name"
+                  }
+                }
+              },
+              "Input": {
+                "properties": {
+                  "ControlName": "name"
+                }
+              }
+            },
+            {
+              "Label": {
+                "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "firstname"
+                  }
+                }
+              },
+              "Input": {
+                "properties": {
+                  "ControlName": "firstname"
+                }
+              }
+            }
+          ],
+          "SubmitButton": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "Submit"
+              }
+            }
+          },
+          "ResetButton": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "Reset"
+              }
+            }
+          },
+          "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+            "properties": {
+              "eventName": "onSubmit"
+            },
+            "AlertAction": {
+              "properties": {
+                "message": "TS='formSample value is\\\\n' + JSON.stringify(this?.formSample.value)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "UIControlEvent": {
+      
+    }
   }
 }

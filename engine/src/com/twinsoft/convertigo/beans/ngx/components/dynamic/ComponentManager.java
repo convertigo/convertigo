@@ -27,10 +27,12 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -47,6 +50,7 @@ import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IAction;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType.Mode;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionCaseDefaultEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent;
@@ -69,6 +73,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UICustom;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate;
@@ -101,6 +106,8 @@ public class ComponentManager {
 	private SortedMap<String, IonBean> bCache = new TreeMap<>();
 	private Map<String, String> aCache = new WeakValueHashMap<>();
 	
+	private Map<String, JSONObject> c8oBeans = new HashMap<String, JSONObject>();
+	
 	private List<String> groups;
 	private List<Component> orderedComponents;
 	private List<Component> components;
@@ -126,7 +133,7 @@ public class ComponentManager {
 			JSONObject root = new JSONObject(json);
 			readPropertyModels(root);
 			readBeanModels(root);
-			readTemplateModels(root);
+			readC8oBeanModels(root);
 			
 			if (Engine.isStarted) {
 				Engine.logEngine.info("(ComponentManager) End loading Ionic objects");
@@ -147,6 +154,7 @@ public class ComponentManager {
 		pCache.clear();
 		bCache.clear();
 		aCache.clear();
+		c8oBeans.clear();
 		
 		groups = null;
 		orderedComponents = null;
@@ -235,11 +243,26 @@ public class ComponentManager {
 		}
 	}
 	
-	private void readTemplateModels(JSONObject root) {
-		// TODO Auto-generated method stub
-		
+	private void readC8oBeanModels(JSONObject root) {
+		try {
+			JSONObject beans = root.getJSONObject("C8oBeans");
+			@SuppressWarnings("unchecked")
+			Iterator<String> it = beans.keys();
+			while (it.hasNext()) {
+				String key = it.next();
+				if (!key.isEmpty()) {
+					c8oBeans.put(key, beans.getJSONObject(key));
+				}
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 
+	public static Map<String, JSONObject> getC8oBeans() {
+		return Collections.unmodifiableMap(instance.c8oBeans);
+	}
+	
 	public static IonBean loadBean(String jsonString) throws Exception {
 		JSONObject jsonBean = new JSONObject(jsonString);
 		String modelName = "Unknown";
@@ -288,6 +311,112 @@ public class ComponentManager {
 	
 	public static DatabaseObject createBean(Component c) {
 		return c != null ? c.createBean():null;
+	}
+	
+	public static DatabaseObject createBeanFromHint(Component c) {
+		DatabaseObject dbo = null;
+		try {
+			dbo = createBeanFromHint(c.getHint());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dbo == null ? c.createBean() : dbo;
+	}
+	
+	private static DatabaseObject createBeanFromHint(JSONObject jsonHint) {
+		try {
+			@SuppressWarnings("unchecked")
+			Iterator<String> it = jsonHint.keys();
+			if (it.hasNext()) {
+				String key = it.next();
+				Component c = getComponentByName(key);
+				if (c != null && jsonHint.has(key)) {
+					return createBeanFromJson(c, jsonHint.getJSONObject(key));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private static DatabaseObject createBeanFromJson(Component c, JSONObject jsonObject) {
+		DatabaseObject dbo = c.createBean();
+		
+		try {
+			JSONObject jsonProperties = (JSONObject) jsonObject.remove("properties");
+			if (jsonProperties != null) {
+				@SuppressWarnings("unchecked")
+				Iterator<String> it = jsonProperties.keys();
+				while (it.hasNext()) {
+					String pname = it.next();
+					
+					try {
+						String value = jsonProperties.getString(pname);
+						
+						MobileSmartSourceType msst = new MobileSmartSourceType(value);
+						if (value.startsWith("TS=")) {
+							msst = new MobileSmartSourceType();
+							msst.setMode(Mode.SCRIPT);
+							msst.setSmartValue(value.replace("TS=", ""));
+						}
+						
+						BeanInfo beanInfo = Introspector.getBeanInfo(dbo.getClass());
+						PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+						for (PropertyDescriptor pd: propertyDescriptors) {
+							Method setter = pd.getWriteMethod();
+							if (pd.getName().equals(pname)) {
+								Class<?> pdc = pd.getPropertyEditorClass();
+								if (pdc != null && pdc.getSimpleName().equals("NgxSmartSourcePropertyDescriptor")) {
+									setter.invoke(dbo, new Object[] { msst });
+								} else {
+									setter.invoke(dbo, new Object[] { value });
+								}
+							}
+						}
+						
+						if (dbo instanceof UIDynamicElement) {
+							IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+							if (ionBean != null) {
+								ionBean.setPropertyValue(pname, msst);
+							}
+						}
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+			@SuppressWarnings("unchecked")
+			Iterator<String> it = jsonObject.keys();
+			while (it.hasNext()) {
+				String key = it.next();
+				Object ob = jsonObject.get(key);
+				Component child = getComponentByName(key);
+				if (child != null) {
+					if (ob instanceof JSONArray) {
+						JSONArray jsonArray = (JSONArray)ob;
+						for (int i = 0; i < jsonArray.length(); i++) {
+							Object aOb = jsonArray.get(i);
+							if (aOb instanceof JSONObject) {
+								dbo.add(createBeanFromJson(child, (JSONObject)aOb));
+							} else {
+								dbo.add(createBeanFromJson(child, new JSONObject()));
+							}
+						}
+					} else if (ob instanceof JSONObject) {
+						dbo.add(createBeanFromJson(child, (JSONObject)ob));
+					} else {
+						dbo.add(createBeanFromJson(child, new JSONObject()));
+					}
+				}
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return dbo;
 	}
 	
 	public static void refresh() {
@@ -539,6 +668,11 @@ public class ComponentManager {
 				protected DatabaseObject createBean() {
 					DatabaseObject dbo = bean.createBean();
 					return dbo;
+				}
+
+				@Override
+				protected JSONObject getHint() {
+					return bean.getHint();
 				}
 
 			});
@@ -832,11 +966,29 @@ public class ComponentManager {
 				}
 				return null;
 			}
+
+			@Override
+			protected JSONObject getHint() {
+				try {
+					JSONObject jsonOb = getC8oBeans().get(dboClass.getSimpleName());
+					if (jsonOb != null && jsonOb.has("hint")) {
+						JSONObject jsonHint =  jsonOb.getJSONObject("hint");
+						return new JSONObject(jsonHint.toString()); // copy
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return super.getHint();
+			}
+			
 		};
 	}
 
 	public static Component getComponentByName(String name) {
 		for (Component component : getComponents()) {
+			if (name.startsWith("com.twinsoft.convertigo.beans.ngx.components.")) {
+				name = name.replace("com.twinsoft.convertigo.beans.ngx.components.", "");
+			}
 			if (component.getName().equals(name)) {
 				return component;
 			}

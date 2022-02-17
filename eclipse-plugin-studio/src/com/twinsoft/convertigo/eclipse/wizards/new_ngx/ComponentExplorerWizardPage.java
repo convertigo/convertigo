@@ -135,7 +135,7 @@ public class ComponentExplorerWizardPage extends WizardPage {
     	Component c = getCurrentSelectedComponent();
 		if (c != null) {
 			try {
-				newBean = ComponentManager.createBean(c);
+				newBean = ComponentManager.createBeanFromHint(c);
 			} catch (Exception e) {
 				newBean = null;
 			}

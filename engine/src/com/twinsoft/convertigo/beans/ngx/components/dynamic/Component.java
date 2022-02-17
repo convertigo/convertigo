@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.ngx.components.dynamic;
 
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 	
 public abstract class Component {
@@ -31,4 +33,8 @@ public abstract class Component {
 	public abstract String getPropertiesDescription();
 	public abstract boolean isAllowedIn(DatabaseObject parent);
 	protected abstract DatabaseObject createBean();
+	
+	protected JSONObject getHint() {
+		return new JSONObject();
+	}
 }

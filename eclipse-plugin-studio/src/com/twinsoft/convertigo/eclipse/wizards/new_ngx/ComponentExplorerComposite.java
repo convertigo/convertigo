@@ -260,7 +260,7 @@ public class ComponentExplorerComposite extends Composite {
 						currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
 
 						Component c = (Component) objectsMap.get(label);
-						DatabaseObject dbo = ComponentManager.createBean(c);
+						DatabaseObject dbo = ComponentManager.createBeanFromHint(c);
 						if (dbo != null) {
 							String sXml = ClipboardAction.dnd.copy(dbo);
 							if (sXml != null) {

@@ -101,7 +101,9 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
         } else {
         	if (uiComponent instanceof UIForm && uiComponent.bNew) {
             	// Auto set formXXXXXX as identifier
-        		((UIForm)uiComponent).setIdentifier("form"+uiComponent.priority);
+        		if (((UIForm)uiComponent).getIdentifier().isEmpty()) {
+        			((UIForm)uiComponent).setIdentifier("form"+uiComponent.priority);
+        		}
         	}
         	
         	if (uiComponent instanceof UIDynamicElement && uiComponent.bNew) {
@@ -109,7 +111,9 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 				if (ionBean != null) {
 		        	// Auto set nameXXXXXX as control name
 					if (ionBean.hasProperty("ControlName")) {
-						ionBean.setPropertyValue("ControlName", new MobileSmartSourceType("name"+uiComponent.priority));
+						if (ionBean.getProperty("ControlName").getSmartType().getSmartValue().isEmpty()) {
+							ionBean.setPropertyValue("ControlName", new MobileSmartSourceType("name"+uiComponent.priority));
+						}
 					}
 				}
         	}
