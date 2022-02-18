@@ -12133,6 +12133,17 @@
           ]
         }
       },
+      "hint": {
+        "Chip": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "chip text"
+              }
+            }
+          }
+        }
+      },
       "scss": [
         "//--background\t//Background of the chip",
         "//--color\t//Color of the chip"
@@ -12387,6 +12398,121 @@
       }
     },
 
+    "AvatarList": {
+      "tag": "ion-list",
+	  "displayName": "AvatarList",
+      "label": "Avatar List",
+      "description": [
+"ion-list| Defines a <i>Avatar List</i> component.<br/>",
+"Lists are used to display rows of information.<br/>",
+"You can insert items or buttons in lists to make list items clickable. You can also add to list items many other components such as icons, avatars or thumbnails.<br/>",
+" For more information: <a href='https://ionicframework.com/docs/api/list'>List</a>."],
+      "group": "Lists",
+      "icon16": "avatarlist_16x16.png",
+      "icon32": "avatarlist_32x32.png",
+      "properties": {
+        "IonMode": false,
+        "IonSlot": false,
+        "Inset": {
+          "attr": "inset",
+          "label": "Inset",
+          "description": "Specifies whether the list will have margin around it and rounded corners.",
+          "category": "@Properties",
+          "type": "boolean",
+          "value": "false",
+          "values": [
+            "false",
+            "true"
+          ]
+        },
+        "Lines": {
+          "attr": "lines",
+          "label": "Lines",
+          "description": "Specifies how the bottom border should be displayed on all items.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "full",
+            "inset",
+            "none"
+          ]
+        }
+      },
+      "hint": {
+        "AvatarList": {
+          "Listheader": {
+            "Label": {
+              "Heading": {
+                "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "Star Wars"
+                  }
+                }
+              }
+            }
+          },
+          "ListItem": {
+	      	"Avatar": {
+	      	  "properties": {
+	      	    "IonSlot":"start"
+	      	  },
+	      	  "Image": {
+	      	    "properties": {
+	      	      "url":"https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-luke.png?raw=true"
+	      	    }
+	      	  }
+	      	},
+            "Label": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Luke"
+                }
+              }
+            }
+          },
+          "ListItem": {
+	      	"Avatar": {
+	      	  "properties": {
+	      	    "IonSlot":"start"
+	      	  },
+	      	  "Image": {
+	      	    "properties": {
+	      	      "url":"https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-leia.png?raw=true"
+	      	    }
+	      	  }
+	      	},
+            "Label": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "leia"
+                }
+              }
+            }
+          },
+          "ListItem": {
+	      	"Avatar": {
+	      	  "properties": {
+	      	    "IonSlot":"start"
+	      	  },
+	      	  "Image": {
+	      	    "properties": {
+	      	      "url":"https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-yoda.png?raw=true"
+	      	    }
+	      	  }
+	      	},
+            "Label": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "Yoda"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
     "Listheader": {
       "tag": "ion-list-header",
 	  "displayName": "ListHeader",
@@ -12415,6 +12541,19 @@
           ]
         }
       },
+      "hint": {
+        "Listheader": {
+          "Label": {
+            "Heading": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "some list header"
+                }
+              }
+            }
+          }
+        }
+      },
       "scss": [
 		"//--background\t//Background of the list header",
 		"//--border-color\t//Color of the list header border",
@@ -12439,6 +12578,49 @@
       "icon16": "listgroup_16x16.png",
       "icon32": "listgroup_32x32.png",
       "properties": {
+      },
+      "hint": {
+        "Listgroup": {
+          "Listdivider": {
+            "properties": {
+              "IonColor": "medium"
+            },
+        	"Label": {
+		      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		        "properties": {
+		          "textValue": "some divider"
+		        }
+		      }
+            }
+          },
+          "ListItem": {
+        	"Label": {
+		      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		        "properties": {
+		          "textValue": "some item1"
+		        }
+		      }
+            }
+          },
+          "ListItem": {
+        	"Label": {
+		      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		        "properties": {
+		          "textValue": "some item2"
+		        }
+		      }
+            }
+          },
+          "ListItem": {
+        	"Label": {
+		      "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		        "properties": {
+		          "textValue": "some item3"
+		        }
+		      }
+            }
+          }
+        }
       }
     },
 
@@ -12469,6 +12651,20 @@
             "false",
             "true"
           ]
+        }
+      },
+      "hint": {
+        "Listdivider": {
+          "properties": {
+            "IonColor": "medium"
+          },
+          "Label": {
+		    "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		      "properties": {
+		        "textValue": "some divider"
+		      }
+		    }
+          }
         }
       },
       "scss": [
@@ -12596,6 +12792,15 @@
       "icon32": "listavatar_32x32.png",
       "properties": {
         "IonSlot": false
+      },
+      "hint": {
+      	"Avatar": {
+      	  "Image": {
+      	    "properties": {
+      	      "url":"https://github.com/ionic-team/ionic-docs/blob/main/static/demos/api/list/avatar-yoda.png?raw=true"
+      	    }
+      	  }
+      	}
       },
       "scss": [
 		"//--border-radius\t//Border radius of the avatar and inner image"
@@ -12763,6 +12968,17 @@
         "LinkRouterData": false,
         "LinkRouterDirection": false
       },
+      "hint": {
+        "GenericItem": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "some item"
+              }
+            }
+          }
+        }
+      },
       "scss": [
 		"//--background\t//Background of the item",
 		"//--background-activated\t//Background of the item when pressed. Note: setting this will interfere with the Material Design ripple",
@@ -12866,6 +13082,17 @@
         "LinkRouterData": false,
         "LinkRouterDirection": false
       },
+      "hint": {
+        "ListItem": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "some list item"
+              }
+            }
+          }
+        }
+      },
       "scss": [
 		"//--background\t//Background of the item",
 		"//--background-activated\t//Background of the item when pressed. Note: setting this will interfere with the Material Design ripple",
@@ -12968,6 +13195,22 @@
         "LinkRouterPath": false,
         "LinkRouterData": false,
         "LinkRouterDirection": false
+      },
+      "hint": {
+        "FormItem": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "some form item"
+              }
+            }
+          },
+          "Input": {
+            "properties": {
+              "ControlName": "controlName"
+            }
+          }
+        }
       },
       "scss": [
 		"//--background\t//Background of the item",
@@ -16711,7 +16954,7 @@
 "To do so:<br/>",
 " \u2022 first add a trigger component (button, item,...) for opening the popover and add to it an <b>id</b> <i>Attr</i><br/>",
 " \u2022 then add a <i>Popover</i> component and set its <b>trigger</b> property with the previous <b>id</b><br/>",
-" \u2022 finally add any component you'd like to show, under the Popover's <i>ng-template</i> component'<br/>",
+" \u2022 finally add any component you'd like to show, under the <i>Popover</i> component<br/>",
 "You can use the <i>Close Popover</i> action to dismiss a Popover.",
 " For more information: <a href='https://ionicframework.com/docs/api/popover'>Popover</a>."],
       "group": "Containers",
@@ -16928,6 +17171,33 @@
           "description": "Emitted before the popover has presented."
         }
       },
+      "hint": {
+        "InlinePopover": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "some text"
+              }
+            }
+          },
+          "Button": {
+            "Label": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "close popover"
+                }
+              }
+            },
+            "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+              "properties": {
+                "eventName": "onClick"
+              },
+              "ClosePopoverAction": {
+              }
+            }
+          }
+        }
+      },
       "scss": [
 		"//--backdrop-opacity\t//Opacity of the backdrop",
 		"//--background\t//Background of the popover",
@@ -16954,7 +17224,7 @@
 "To do so:<br/>",
 " \u2022 first add a trigger component (button, item,...) for opening the modal and add to it an <b>id</b> <i>Attr</i><br/>",
 " \u2022 then add a <i>Modal</i> component and set its <b>trigger</b> property with the previous <b>id</b><br/>",
-" \u2022 finally add any component you'd like to show, under the Modal's <i>ng-template</i> component'<br/>",
+" \u2022 finally add any component you'd like to show, under the <i>Modal</i> component.<br/>",
 "You can use the <i>Close Modal</i> action to dismiss a Modal.",
 " For more information: <a href='https://ionicframework.com/docs/api/modal'>Modal</a>."],
       "group": "Containers",
@@ -17136,6 +17406,33 @@
         "willPresent": {
           "attr":"(willPresent)",
           "description": "Emitted before the modal has presented."
+        }
+      },
+      "hint": {
+        "InlineModal": {
+          "Label": {
+            "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+              "properties": {
+                "textValue": "some text"
+              }
+            }
+          },
+          "Button": {
+            "Label": {
+              "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                "properties": {
+                  "textValue": "close modal"
+                }
+              }
+            },
+            "com.twinsoft.convertigo.beans.ngx.components.UIControlEvent": {
+              "properties": {
+                "eventName": "onClick"
+              },
+              "CloseModalAction": {
+              }
+            }
+          }
         }
       },
       "scss": [
