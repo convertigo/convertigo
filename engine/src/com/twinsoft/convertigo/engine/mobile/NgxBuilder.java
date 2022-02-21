@@ -2540,7 +2540,7 @@ public class NgxBuilder extends MobileBuilder {
 						}
 					}
 					if (!c8o_ModuleNgImports.isEmpty()) {
-						c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports;
+						c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports + System.lineSeparator();;
 					}
 				}
 				
@@ -2589,8 +2589,8 @@ public class NgxBuilder extends MobileBuilder {
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
-				mContent = mContent.replaceAll("/\\*Begin_c8o_NgModules\\*/",c8o_ModuleNgImports);
-				mContent = mContent.replaceAll("/\\*End_c8o_NgModules\\*/","");
+				mContent = mContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
+				mContent = mContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
 				mContent = mContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
 				mContent = mContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
 				mContent = mContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
