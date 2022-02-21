@@ -15368,7 +15368,46 @@
       "scss": [
         "//--background\t//Background of the card",
         "//--color\t//Color of the card"
-      ]
+      ],
+	  "hint": {
+        "Card": {
+          "LazyImage": {
+      		"properties": {
+      			"Src":"assets/shapes.svg"
+      		}
+          },
+          "CardHeader": {
+          	"CardTitle": {
+	          	"TextItem": {
+	           	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+	                  "properties": {
+	                    "textValue": "Card Title"
+	                	}
+					}
+	          	}
+          	},
+          	"CardSubTitle": {
+	          	"TextItem": {
+	           	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+	                  "properties": {
+	                    "textValue": "Card SubTitle"
+					  }
+	                }
+	          	}
+          	}
+          },
+          
+          "CardContent": {
+          	"TextItem": {
+           	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+                  "properties": {
+                    "textValue": "Card Content"
+				  }
+                }
+          	}
+          }
+        }
+      }      
     },
 
     "CardHeader": {
