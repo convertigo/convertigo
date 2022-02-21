@@ -2671,7 +2671,7 @@ public class NgxBuilder extends MobileBuilder {
 						}
 					}
 					if (!c8o_ModuleNgImports.isEmpty()) {
-						c8o_ModuleNgImports = System.lineSeparator() + c8o_ModuleNgImports + System.lineSeparator();
+						c8o_ModuleNgImports = "," + System.lineSeparator() + c8o_ModuleNgImports + System.lineSeparator();
 					}
 				}
 				
