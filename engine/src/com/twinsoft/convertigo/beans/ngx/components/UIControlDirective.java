@@ -149,7 +149,7 @@ public class UIControlDirective extends UIElement implements IControl, ITagsProp
 				// add item
 				String itemName = getDirectiveItemName();
 				if (!itemName.isEmpty()) {
-					sbListen.append("let "+ itemName).append(" of ");
+					sbListen.append("let "+ itemName).append(" of ").append(sbSource).append(";");
 				}
 				// add source
 				sbListen.append("let "+ item).append(" of ").append(sbSource);
