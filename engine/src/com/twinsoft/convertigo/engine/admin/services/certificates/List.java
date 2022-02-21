@@ -126,7 +126,7 @@ public class List extends XmlService {
 		}
 
 		Collections.sort(elts, (a, b) -> {
-			return a.getAttribute("name").compareTo(b.getAttribute("name"));
+			return a.getAttribute("name").compareToIgnoreCase(b.getAttribute("name"));
 		});
 
 		for (Element elt: elts) {
@@ -152,7 +152,7 @@ public class List extends XmlService {
 		}
 
 		Collections.sort(elts, (a, b) -> {
-			return a.getAttribute("name").compareTo(b.getAttribute("name"));
+			return a.getAttribute("name").compareToIgnoreCase(b.getAttribute("name"));
 		});
 
 		for (Element elt: elts) {
