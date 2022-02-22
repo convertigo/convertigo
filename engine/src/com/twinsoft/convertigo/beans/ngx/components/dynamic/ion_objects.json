@@ -17272,7 +17272,7 @@
       "properties": {
       	"IonMode": false,
         "Animated": {
-          "attr": "animated",
+          "attr": "[animated]",
           "label": "Animated",
           "description": "If true, the modal will animate.",
           "category": "@Properties",
@@ -17284,23 +17284,23 @@
           ]
         },
         "enterAnimation": {
-          "attr": "enterAnimation",
+          "attr": "[enterAnimation]",
           "label": "Animation (enter)",
-          "description": "Animation to use when the modal is presented. ((baseEl: any, opts?: any) => Animation).",
+          "description": "(TS mode) Animation to use when the modal is presented. ((baseEl: any, opts?: any) => Animation).",
           "category": "@Expert",
           "type": "string",
           "value": false
         },
         "leaveAnimation": {
-          "attr": "leaveAnimation",
+          "attr": "[leaveAnimation]",
           "label": "Animation (leave)",
-          "description": "Animation to use when the modal is dismissed. ((baseEl: any, opts?: any) => Animation).",
+          "description": "(TS mode) Animation to use when the modal is dismissed. ((baseEl: any, opts?: any) => Animation).",
           "category": "@Expert",
           "type": "string",
           "value": false
         },
         "BackdropDismiss": {
-          "attr": "backdrop-dismiss",
+          "attr": "[backdropDismiss]",
           "label": "Backdrop dismiss",
           "description": "If true, the modal will be dismissed when the backdrop is clicked.",
           "category": "@Properties",
@@ -17312,10 +17312,11 @@
           ]
         },
         "SheetBreakpoints": {
-          "attr": "breakpoints",
+          "attr": "[breakpoints]",
           "label": "Sheet breakpoints",
-          "description": "The breakpoints to use when creating a sheet modal. Each value in the array must be a decimal between 0 and 1 where 0 indicates the modal is fully closed and 1 indicates the modal is fully open. Values are relative to the height of the modal, not the height of the screen. One of the values in this array must be the value of the initialBreakpoint property. For example: [0, .25, .5, 1]",
+          "description": "(TS mode) The breakpoints to use when creating a sheet modal. Each value in the array must be a decimal between 0 and 1 where 0 indicates the modal is fully closed and 1 indicates the modal is fully open. Values are relative to the height of the modal, not the height of the screen. One of the values in this array must be the value of the initialBreakpoint property. For example: [0, .25, .5, 1]",
           "category": "@Properties",
+          "type": "array",
           "value": false,
           "values": [
             false,
@@ -17323,7 +17324,7 @@
           ]
         },
         "SheetBackdropBreakpoint": {
-          "attr": "backdrop-breakpoint",
+          "attr": "[backdropBreakpoint]",
           "label": "Sheet backdrop breakpoint",
           "description": "A decimal value between 0 and 1 that indicates the point after which the backdrop will begin to fade in when using a sheet modal. Prior to this point, the backdrop will be hidden and the content underneath the sheet can be interacted with. This value is exclusive meaning the backdrop will become active after the value specified.",
           "category": "@Properties",
@@ -17335,7 +17336,7 @@
           ]
         },
         "SheetHandle": {
-          "attr": "handle",
+          "attr": "[handle]",
           "label": "Sheet handle",
           "description": "The horizontal line that displays at the top of a sheet modal. It is true by default when setting the breakpoints and initialBreakpoint properties.",
           "category": "@Properties",
@@ -17347,7 +17348,7 @@
           ]
         },
         "SheetInitialBreakpoint": {
-          "attr": "initial-breakpoint",
+          "attr": "[initialBreakpoint]",
           "label": "Sheet initial breakpoint",
           "description": "A decimal value between 0 and 1 that indicates the initial point the modal will open at when creating a sheet modal. This value must also be listed in the breakpoints array.",
           "category": "@Properties",
@@ -17359,7 +17360,7 @@
           ]
         },
         "IsOpen": {
-          "attr": "is-open",
+          "attr": "[isOpen]",
           "label": "Is open",
           "description": "If true, the modal will open. If false, the modal will close. Use this if you need finer grained control over presentation, otherwise just use the modalController or the trigger property. Note: isOpen will not automatically be set back to false when the modal dismisses. You will need to do that in your code.",
           "category": "@Properties",
@@ -17371,7 +17372,7 @@
           ]
         },
         "KeyboardClose": {
-          "attr": "keyboard-close",
+          "attr": "[keyboardClose]",
           "label": "Keyboard close",
           "description": "If true, the keyboard will be automatically dismissed when the overlay is presented.",
           "category": "@Properties",
@@ -17383,9 +17384,9 @@
           ]
         },
         "PresentingCardElement": {
-          "attr": "presentingElement",
+          "attr": "[presentingElement]",
           "label": "Presenting card element",
-          "description": "The HTML element that presented the modal. This is used for card presentation effects and for stacking multiple modals on top of each other. Only applies in iOS mode.",
+          "description": "(TS mode) The HTML element that presented the modal. This is used for card presentation effects and for stacking multiple modals on top of each other. Only applies in iOS mode.",
           "category": "@Properties",
           "value": false,
           "values": [
@@ -17394,7 +17395,7 @@
           ]
         },
         "ShowBackdrop": {
-          "attr": "show-backdrop",
+          "attr": "[showBackdrop]",
           "label": "Show backdrop",
           "description": "If true, a backdrop will be displayed behind the modal.",
           "category": "@Properties",
@@ -17406,7 +17407,7 @@
           ]
         },
         "SwipeToClose": {
-          "attr": "swipe-to-close",
+          "attr": "[swipeToClose]",
           "label": "Swipe to close",
           "description": "If true, the modal can be swiped to dismiss. Only applies in iOS mode.",
           "category": "@Properties",
@@ -18401,6 +18402,8 @@
 "<br/>",
 ""],
       "group": "Actions",
+      "icon16": "setlocalaction_color_16x16.png",
+      "icon32": "setlocalaction_color_32x32.png",
       "properties": {
         "Property": {
           "label": "Property",
