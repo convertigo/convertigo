@@ -703,14 +703,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			
 			private boolean accept() {
 				try {
-					if (isNullContainer() || isAppContainer()) {
-						if (isPageAction()) {
-							return getMainScriptComponent() instanceof ApplicationComponent;
-						}
-						return true;
-					}
-//					return isNullContainer() || 
-//							isContainer((MobileComponent)getMainScriptComponent());
+					return isNullContainer() || 
+							isContainer((MobileComponent)getMainScriptComponent());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -732,7 +726,8 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();
-				if (accept()) {
+				//if (accept()) {
+				if (isAppContainer() && MobileComponent.isFullyEnabled(UIDynamicAction.this)) {
 					IonBean ionBean = getIonBean();
 					if (ionBean != null) {
 						String actionName = getActionName();
@@ -746,7 +741,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 			@Override
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				if (accept()) {
+				if (accept() || (isAppContainer() && MobileComponent.isFullyEnabled(UIDynamicAction.this))) {
 					IonBean ionBean = getIonBean();
 					if (ionBean != null) {
 						MobileComponent container = getContainer();

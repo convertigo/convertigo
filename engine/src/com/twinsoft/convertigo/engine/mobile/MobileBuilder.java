@@ -86,7 +86,7 @@ public abstract class MobileBuilder {
 				if (Engine.isCliMode()) {
 					throw new RuntimeException("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message, e);
 				}
-				if (message.startsWith("Missing template project") || message.contains("is required for this")) {
+				if (message != null && (message.startsWith("Missing template project") || message.contains("is required for this"))) {
 					Engine.logEngine.error("Failed to initialize mobile builder for project '" + project.getName() + "'\n" + message);
 				} else {
 					Engine.logEngine.error("Failed to initialize mobile builder for project '" +project.getName() + "'", e);

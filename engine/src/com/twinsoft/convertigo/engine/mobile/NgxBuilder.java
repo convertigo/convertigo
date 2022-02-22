@@ -792,20 +792,23 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	public void updateConsumer() {
+		Set<String> set = new HashSet<String>();
 		ComponentRefManager crf = ComponentRefManager.get(Mode.use);
     	for (String compQName: crf.getKeys()) {
     		for (String useQName: crf.getAllConsumers(compQName)) {
     			if (projectName(useQName).equals(project.getName())) {
     				String pname = projectName(compQName);
-        			try {
-						Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
-						if (p != null) {
-							((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
+    				if (set.add(pname)) {
+	        			try {
+							Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
+							if (p != null) {
+								((NgxBuilder)p.getMobileBuilder()).updateConsumers(project);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							Engine.logEngine.warn("Unable to update consummer for project "+ pname + ": "+ e.getMessage());
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						Engine.logEngine.warn("Unable to update consummer for project "+ pname + ": "+ e.getMessage());
-					}
+    				}
         		}
     		}
     	}
@@ -816,25 +819,21 @@ public class NgxBuilder extends MobileBuilder {
     }
     
     private void updateConsumers(Project to) {
-    	Set<String> set = new HashSet<String>();
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
     	MobileApplication mobileApplication = project.getMobileApplication();
     	ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
     	for (UISharedComponent uisc: app.getSharedComponentList()) {
-    		set.add(uisc.getQName());
-    		updateConsumers(uisc, to);
+    		updateConsumers(map, uisc, to);
     	}
-    }
-    
-    static private Set<String> getAllRequired(String compQName) {
-    	Set<String> set = new HashSet<String>();
-    	getAllRequired(compQName, set);
-    	//System.out.println("For "+ compQName + " required="+set);
-    	return set;
     }
     
     static private void getAllRequired(String compQName, Set<String> set) {
     	try {
-        	Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(compQName), false);
+    		if (set.contains(compQName)) {
+    			return;
+    		}
+    		
+    		final Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(compQName), false);
         	if (p != null) {
 	    		new WalkHelper() {
 					@Override
@@ -855,7 +854,12 @@ public class NgxBuilder extends MobileBuilder {
 									String qname = use.getSharedComponentQName();
 									if (!qname.isBlank() && !qname.equals(compQName)) {
 										if (!set.contains(qname)) {
-											getAllRequired(qname, set);
+											UISharedComponent uisc = use.getSharedComponent();
+											if (uisc == null || (uisc != null && !qname.equals(uisc.getQName()))) {
+												if (MobileComponent.isFullyEnabled(use.getTargetSharedComponent())) {
+													getAllRequired(qname, set);
+												}
+											}
 										}
 									}
 								}
@@ -883,7 +887,12 @@ public class NgxBuilder extends MobileBuilder {
 						if (MobileComponent.isFullyEnabled(use)) {
 							String qname = use.getSharedComponentQName();
 							if (!qname.isBlank()) {
-								required.add(qname);
+								UISharedComponent uisc = use.getSharedComponent();
+								if (uisc == null || (uisc != null && !qname.equals(uisc.getQName()))) {
+									if (MobileComponent.isFullyEnabled(use.getTargetSharedComponent())) {
+										required.add(qname);
+									}
+								}
 							}
 						}
 					}
@@ -893,27 +902,25 @@ public class NgxBuilder extends MobileBuilder {
     		}.init(p);
     		
     		for (String qname: required) {
-    			for (String s: getAllRequired(qname)) {
-    				set.add(s);
+    			if (!set.contains(qname)) {
+    				getAllRequired(qname, set);
     			}
     		}
-    		
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
     	return set;
     }
     
-    static public boolean isRequiredComp(String compQName, Project p) {
-    	return getAllRequired(p).contains(compQName);
-    }
-    
-    static protected boolean isRequiredComp(String compQName, String pname) {
+    static protected boolean isRequiredComp(Map<String, Set<String>> map, String compQName, String pname) {
     	try {
-    		Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
-    		if (p != null) {
-    			return isRequiredComp(compQName, p);
+    		Set<String> set = map.get(pname);
+    		if (set == null) {
+        		Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname, false);
+      			set = p != null ? getAllRequired(p) : new HashSet<String>();
+       			map.put(pname, set);
     		}
+   			return set.contains(compQName);
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
@@ -933,7 +940,7 @@ public class NgxBuilder extends MobileBuilder {
     }
     
     // for created or modified files
-    private void updateConsumers(UISharedComponent uisc, Project to) {
+    private void updateConsumers(Map<String, Set<String>> map, UISharedComponent uisc, Project to) {
 		String compName = uisc.getName();
 		String compQName = uisc.getQName();
 		
@@ -950,7 +957,7 @@ public class NgxBuilder extends MobileBuilder {
     			File src = new File(project.getDirPath(),"_private/ionic/src/app/components/"+ compName.toLowerCase());
     			
     			if (done.add(dest.toString())) {
-    				if (isRequiredComp(compQName, pname)) {
+    				if (isRequiredComp(map, compQName, pname)) {
         				if (src.exists() && shouldUpdate(src, dest)) {
     	    				Engine.logEngine.debug("(MobileBuilder) Copying " + src + " to " + dest);
     	    				FileUtils.copyDirectory(src, dest, true);
@@ -2162,8 +2169,8 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageRoutingModuleName\\*/",c8o_PageRoutingModuleName);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_PageImport\\*/",c8o_PageImport);
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
-		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/",c8o_ModuleNgImports);
-		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/","");
+		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
+		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
