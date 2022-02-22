@@ -274,8 +274,10 @@ public class IonProperty implements Cloneable {
 		String value = msst.getValue();
 		if (isAttrPropertyBind()) {
 			if (Mode.PLAIN.equals(msst.getMode())) {
-				if (!value.startsWith("'") && !value.endsWith("'")) {
-					value = "'" + MobileSmartSourceType.escapeStringForTpl(value) + "'";
+				if (getType().equalsIgnoreCase("string")) {
+					if (!value.startsWith("'") && !value.endsWith("'")) {
+						value = "'" + MobileSmartSourceType.escapeStringForTpl(value) + "'";
+					}
 				}
 			}
 		} else if (isAttrEventBind()) {
