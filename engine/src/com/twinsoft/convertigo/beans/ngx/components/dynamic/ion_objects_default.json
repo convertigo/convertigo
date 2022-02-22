@@ -5936,5 +5936,32 @@
     }
    }
   }
+ },
+ "AvatarList": {
+  "   8   0   0": {
+   "name": "AvatarList",
+   "properties": {
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "IonSlot": {
+     "name": "IonSlot",
+     "mode": "plain",
+     "value": false
+    },
+    "Inset": {
+     "name": "Inset",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Lines": {
+     "name": "Lines",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  }
  }
 }
