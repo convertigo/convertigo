@@ -166,15 +166,52 @@ document.addEventListener("DOMContentLoaded", function () {
 		+ "}";
 	document.head.appendChild(scrollStyle);
 	
-	console.defaultLog = console.log.bind(console);
-	console.log = function () {
-		console.defaultLog.apply(console, arguments);
-		try {
-			if (arguments[0].indexOf("[HMR] App ") == 0) {
-				_c8o_remove_all_overlay();
-			}
-		} catch(e) {}
-	};
+	var back = document.createElement("div");
+	document.body.appendChild(back);
+	back.setAttribute("style", "background-color: #25252575; position: absolute; width: 100%; height: 100%");
+	back.style.display = "none";
+	
+	var prg = document.createElement("div");
+	prg.setAttribute("style", "position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);");
+	var canvas = document.createElement("canvas");
+	prg.appendChild(canvas);
+	canvas.setAttribute("width", "100");
+	canvas.setAttribute("height", "100");
+	var msg = document.createElement("div");
+	prg.appendChild(msg);
+	msg.setAttribute("style", "position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"
+		+ "font-weight: bolder; font-family: monospace; font-size: xx-large;");
+	document.body.appendChild(prg);
+	
+	var _init_doProgress = false;
+	window.doProgress = (progress) => {
+		_c8o_remove_all_overlay();
+		back.style["display"] = "block";
+		var context = canvas.getContext("2d");
+		if (!_init_doProgress) {
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.lineWidth = 15;
+			context.strokeStyle = "#333333";
+			
+			context.beginPath();
+			context.arc(50, 50, 40, 0, 2 * Math.PI, false);
+			context.stroke();
+			
+			context.strokeStyle = "#33b5e5";
+			_init_doProgress = true;
+		}
+		context.beginPath();
+		context.arc(50, 50, 40, 1.5 * Math.PI, (2 * progress / 100 + 1.5) * Math.PI, false);
+		context.stroke();
+		if (progress == 100) {
+			back.style["display"] = prg.style["display"] = "none";
+			msg.textContent = "";
+			_init_doProgress = false;
+		} else {
+			msg.textContent = progress + "%";
+			prg.style["display"] = "block";
+		}
+	}
 }, false);
 
 window.addEventListener("dragover", function (e) {

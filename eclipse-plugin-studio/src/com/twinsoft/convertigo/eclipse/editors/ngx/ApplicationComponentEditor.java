@@ -1185,12 +1185,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	
 	private void progress(int progress) {
 		C8oBrowser.run(() -> {
-			if (c8oBrowser.getURL().equals("about:blank")) {
-				try {
-					c8oBrowser.executeFunctionAndReturnValue("doProgress", progress);
-				} catch (Exception e) {
-					// silently ignore
-				}
+			try {
+				c8oBrowser.executeFunctionAndReturnValue("doProgress", progress);
+			} catch (Exception e) {
+				// silently ignore
 			}
 		});
 	}

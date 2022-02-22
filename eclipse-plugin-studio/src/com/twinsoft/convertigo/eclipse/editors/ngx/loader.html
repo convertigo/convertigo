@@ -131,7 +131,8 @@ function doProgress(progress) {
 			prg.style["display"] = "none";	
 			document.getElementById("load").style["display"] = "block";
 			context.strokeStyle = "#333333";
-			
+
+			context.clearRect(0, 0, canvas.width, canvas.height);
 			context.beginPath();
 			context.arc(50, 50, 40, 0, 2 * Math.PI, false);
 			context.stroke();
