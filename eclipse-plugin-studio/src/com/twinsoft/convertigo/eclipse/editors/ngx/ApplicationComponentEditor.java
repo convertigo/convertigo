@@ -1800,6 +1800,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				cmd.add("--progress=true");
 				cmd.add("--watch=" + (buildMode == NgxBuilderBuildMode.watch));
 				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
+				cmd.add("--delete-output-path=false");
 				cmd.add("--baseHref=./");
 				cmd.add("--deployUrl=./");
 				
