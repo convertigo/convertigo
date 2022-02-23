@@ -9901,7 +9901,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Heading": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "heading"
+		           }
+		        }
+	        }
+	  }
     },
     
     "Heading1": {
@@ -9918,7 +9927,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Heading1": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "Heading 1"
+		           }
+		        }
+	        }
+	  }
     },
     
     "Heading2": {
@@ -9935,7 +9953,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Heading2": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "Heading 2"
+		           }
+		        }
+		   }
+	  }
     },
     
     "Heading3": {
@@ -9952,7 +9979,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Heading3": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "Heading 3"
+		           }
+		        }
+		   }
+	  }
     },
     
     "Heading4": {
@@ -9969,7 +10005,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Heading4": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "Heading 4"
+		           }
+		        }
+		   }
+	  }
     },
     
     "Heading5": {
@@ -9986,7 +10031,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Heading5": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "Heading 5"
+		           }
+		        }
+		   }
+	  }
     },
     
     "Heading6": {
@@ -10003,7 +10057,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Heading6": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "Heading 6"
+		           }
+		        }
+		   }
+	  }
     },
     
     "Paragraph": {
@@ -10019,7 +10082,16 @@
       "icon16": "HTML_color_16x16.png",
       "icon32": "HTML_color_32x32.png",
       "properties": {
-      }
+      },
+	  "hint": {
+	  	   "Paragraph": {
+		   	   "com.twinsoft.convertigo.beans.ngx.components.UIText": {
+		          "properties": {
+		            "textValue": "Some text"
+		           }
+		        }
+		   }
+	  }
     },
     
     "Break": {
