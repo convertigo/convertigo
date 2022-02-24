@@ -526,24 +526,23 @@ public class ClipboardManager {
 			}
 			
 			boolean bContinue = true;
-			int index = 0;
+			boolean bIncName = false;
 			long oldPriority = databaseObject.priority;
 			
-	        // Verify if a child object with same name exist and change name
+			// Verify if a child object with same name exist and change name
 			while (bContinue) {
-				if (bChangeName) {
-					if (index == 0) name = dboName;
-					else name = dboName + index;
-					databaseObject.setName(name);
+				if (bIncName) {
+					dboName = DatabaseObject.incrementName(dboName);
+					databaseObject.setName(dboName);
 				}
 				
 				databaseObject.hasChanged = true;
 				databaseObject.bNew = true;
 				
-		        try {
-		        	new WalkHelper() {
-		        		boolean root = true;
-		        		boolean find = false;
+				try {
+					new WalkHelper() {
+						boolean root = true;
+						boolean find = false;
 						
 						@Override
 						protected boolean before(DatabaseObject dbo, Class<? extends DatabaseObject> dboClass) {
@@ -567,17 +566,17 @@ public class ClipboardManager {
 							}
 						}
 
-		        	}.init(parentDatabaseObject);
-		        	bContinue = false;
-		        } catch (ObjectWithSameNameException owsne) {
+					}.init(parentDatabaseObject);
+					bContinue = false;
+				} catch (ObjectWithSameNameException owsne) {
 					if ((parentDatabaseObject instanceof HtmlTransaction) && (databaseObject instanceof Statement)) {
 						throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
 					}
-		        	
-					// Silently ignore
-					index++;
-		        } catch (EngineException ee) {
-		        	throw ee;
+					if (bChangeName) {
+						bIncName = true;
+					}
+				} catch (EngineException ee) {
+					throw ee;
 				} catch (Exception e) {
 					throw new EngineException("Exception in paste", e);
 				}
@@ -1063,14 +1062,14 @@ public class ClipboardManager {
 			}
 		}
 		
-        if (object instanceof Statement) {
-        	if (object instanceof ThenStatement)
-        		throw new EngineException("You cannot cut the \"Then\" statement");
-        	if (object instanceof ElseStatement)
-        		throw new EngineException("You cannot cut the \"Else\" statement");
-        }
+		if (object instanceof Statement) {
+			if (object instanceof ThenStatement)
+				throw new EngineException("You cannot cut the \"Then\" statement");
+			if (object instanceof ElseStatement)
+				throw new EngineException("You cannot cut the \"Else\" statement");
+		}
 		
-        // Verify object is accepted for paste
+		// Verify object is accepted for paste
 		if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
 			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
 		}
@@ -1092,73 +1091,87 @@ public class ClipboardManager {
 			}
 		}
 		
-        // Verify if a child object with same name exist
-        try {
-        	new WalkHelper() {
-        		boolean root = true;
-        		boolean find = false;
-				
-				@Override
-				protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
-					boolean isInstance = dboClass.isInstance(object);
-					find |= isInstance;
-					return isInstance;
+		// Verify if a child object with same name exist
+		boolean bContinue = true;
+		boolean bIncName = false;
+		String dboName = object.getName();
+		while (bContinue) {
+			try {
+				if (bIncName) {
+					dboName = DatabaseObject.incrementName(dboName);
+					object.setName(dboName);
 				}
 				
-				@Override
-				protected void walk(DatabaseObject databaseObject) throws Exception {
-					if (root) {
-						root = false;
-						
-						if (databaseObject instanceof Project) {
-							if (object instanceof Connector && ((Connector) object).isDefault) {
-								throw new EngineException("You cannot cut the default connector to another project");
-							}
-						} else if (databaseObject instanceof Connector) {
-							if (object instanceof ScreenClass) {
-								throw new EngineException("You cannot cut the default screen class to another connector");
-							} else if (object instanceof Transaction && ((Transaction) object).isDefault) {
-								throw new EngineException("You cannot cut the default transaction to another connector");
-							}
-						} else if (databaseObject instanceof ScreenClass) {
-							if (object instanceof Criteria && databaseObject.getParent() instanceof Connector) {
-								throw new EngineException("You cannot cut the criterion of default screen class");
-							}
-						} else if (databaseObject instanceof MobileObject) {
-							if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
-								if (object instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
-									com.twinsoft.convertigo.beans.mobile.components.PageComponent pc = GenericUtils.cast(object);
-									if (pc.isRoot) {
-										throw new EngineException("You cannot cut the root page to another application");
+				new WalkHelper() {
+					boolean root = true;
+					boolean find = false;
+
+					@Override
+					protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+						boolean isInstance = dboClass.isInstance(object);
+						find |= isInstance;
+						return isInstance;
+					}
+
+					@Override
+					protected void walk(DatabaseObject databaseObject) throws Exception {
+						if (root) {
+							root = false;
+
+							if (databaseObject instanceof Project) {
+								if (object instanceof Connector && ((Connector) object).isDefault) {
+									throw new EngineException("You cannot cut the default connector to another project");
+								}
+							} else if (databaseObject instanceof Connector) {
+								if (object instanceof ScreenClass) {
+									throw new EngineException("You cannot cut the default screen class to another connector");
+								} else if (object instanceof Transaction && ((Transaction) object).isDefault) {
+									throw new EngineException("You cannot cut the default transaction to another connector");
+								}
+							} else if (databaseObject instanceof ScreenClass) {
+								if (object instanceof Criteria && databaseObject.getParent() instanceof Connector) {
+									throw new EngineException("You cannot cut the criterion of default screen class");
+								}
+							} else if (databaseObject instanceof MobileObject) {
+								if (databaseObject instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
+									if (object instanceof com.twinsoft.convertigo.beans.mobile.components.PageComponent) {
+										com.twinsoft.convertigo.beans.mobile.components.PageComponent pc = GenericUtils.cast(object);
+										if (pc.isRoot) {
+											throw new EngineException("You cannot cut the root page to another application");
+										}
+									}
+								} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+									if (object instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
+										com.twinsoft.convertigo.beans.ngx.components.PageComponent pc = GenericUtils.cast(object);
+										if (pc.isRoot) {
+											throw new EngineException("You cannot cut the root page to another application");
+										}
 									}
 								}
-							} else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
-								if (object instanceof com.twinsoft.convertigo.beans.ngx.components.PageComponent) {
-									com.twinsoft.convertigo.beans.ngx.components.PageComponent pc = GenericUtils.cast(object);
-									if (pc.isRoot) {
-										throw new EngineException("You cannot cut the root page to another application");
-									}
-								}
 							}
-						}
-						
-						super.walk(databaseObject);
-						if (!find) {
-							throw new EngineException("You cannot cut and paste to a " + databaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
-						}
-					} else {
-						if (object.getName().equalsIgnoreCase(databaseObject.getName())) {
-							throw new ObjectWithSameNameException("Unable to cut the object because an object with the same name already exists in target.");
+
+							super.walk(databaseObject);
+							if (!find) {
+								throw new EngineException("You cannot cut and paste to a " + databaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
+							}
+						} else {
+
+							if (object.getName().equalsIgnoreCase(databaseObject.getName())) {
+								throw new ObjectWithSameNameException("Unable to cut the object because an object with the same name already exists in target.");
+							}
 						}
 					}
-				}
-
-        	}.init(parentDatabaseObject);
-        } catch (EngineException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new EngineException("Exception in cutAndPaste", e);
+				}.init(parentDatabaseObject);
+				bContinue = false;
+			} catch (ObjectWithSameNameException e) {
+				bIncName = true;
+			} catch (EngineException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new EngineException("Exception in cutAndPaste", e);
+			}
 		}
+		
 		move(object, parentDatabaseObject);
 	}
 	

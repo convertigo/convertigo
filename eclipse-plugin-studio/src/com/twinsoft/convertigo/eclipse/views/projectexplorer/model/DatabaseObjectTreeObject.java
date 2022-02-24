@@ -1406,4 +1406,19 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		catch (Throwable t) {};
 		return false;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (super.equals(obj)) {
+			return true;
+		}
+		if (obj instanceof DatabaseObjectTreeObject) {
+			DatabaseObject o1 = getObject();
+			DatabaseObject o2 = ((DatabaseObjectTreeObject) obj).getObject();
+			return o1 != null && o1.equals(o2);
+		}
+		return false;
+	}
+	
+	
 }

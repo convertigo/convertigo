@@ -28,6 +28,17 @@ function _c8o_toast(msg) {
 }
 
 function _c8o_remove_all_overlay() {
+	var i;
+	if (_c8o_highlight_class_previous != null) {
+		var nl = document.getElementsByClassName(_c8o_highlight_class_previous);
+		for (i = 0; i < nl.length; i++) {
+			nl[i].removeAttribute("draggable");
+			if (nl[i].hasAttribute("data-save-draggable")) {
+				nl[i].setAttribute("draggable", nl[i].getAttribute("data-save-draggable"));
+				nl[i].removeAttribute("data-save-draggable");
+			}
+		}
+	}
 	var ol = [...document.getElementsByClassName("_c8o_overlay")];
 	for (i in ol) {
 		_c8o_remove_overlay(ol[i]);
@@ -88,7 +99,7 @@ function _c8o_showGrids(bShow) {
 	}
 }
 
-_c8o_highlight_class_previous = null;
+var _c8o_highlight_class_previous = null;
 function _c8o_highlight_class(classname) {
 	var i, nl;
 	var ol = [...document.getElementsByClassName("_c8o_overlay")];
@@ -103,6 +114,10 @@ function _c8o_highlight_class(classname) {
 		var overlay = ol[i];
 		var rect = nl[i].getBoundingClientRect();
 		var container = nl[i].parentNode;
+		if (nl[i].hasAttribute("draggable")) {
+			nl[i].setAttribute("data-save-draggable", nl[i].getAttribute("draggable"));
+		}
+		nl[i].setAttribute("draggable", "true");
 		while (!container.classList.contains("scroll-content") && container != document.body) {
 			container = container.parentNode;
 		}
@@ -211,27 +226,75 @@ document.addEventListener("DOMContentLoaded", function () {
 			msg.textContent = progress + "%";
 			prg.style["display"] = "block";
 		}
-	}
+	};
+	
+	var dropRoot = document.createElement("div");
+	document.body.appendChild(dropRoot);
+	dropRoot.setAttribute("style", "position: absolute; display: none; z-index: 1000000; width: 100%; height: 100%");
+	dropRoot.onclick = (e) => {
+		dropRoot.style["display"] = "none";
+		window.java.onDrag({msg: "cancel"});
+	};
+	
+	var dropOptions = document.createElement("div");
+	dropRoot.appendChild(dropOptions);
+	dropOptions.setAttribute("style", "position: absolute; z-index: 1000001; box-shadow: rgb(50 50 50) 4px 4px 4px 2px;");
+	
+	var dropEvent, i;
+	var dropClip = (e) => {
+		dropEvent["dropOption"] = e.target.textContent;
+		dropRoot.style["display"] = "none";
+		window.java.onDrop(dropEvent);
+	};
+	
+	["before", "inside", "after"].forEach((opt) => {
+		var dropOption = document.createElement("button");
+		dropOptions.appendChild(dropOption);
+		dropOption.textContent = opt;
+		dropOption.style["display"] = "block";
+		dropOption.style["width"] = "100%";
+		dropOption.style["padding"] = "10px";
+		dropOption.style["border"] = "solid 1px black";
+		dropOption.onclick = dropClip;
+	})
+	
+	window.addEventListener("drop", function (e) {
+		try {
+			// bug from jxbrowser 7.0, onDrag
+			//window.java.onDragOver(e);
+			dropRoot.style["display"] = "block";
+			dropOptions.style["left"] = (e.x - dropOptions.offsetWidth / 2) + "px";
+			dropOptions.style["top"] = (e.y - dropOptions.offsetHeight / 2) + "px";
+			dropEvent = e;
+//			window.java.onDrop(e);
+		} catch (ex) {
+			console.log("drop: " + ex);
+		}
+	});
+	
+	console.log("inject.js initialized!");
 }, false);
 
-window.addEventListener("dragover", function (e) {
+var _c8o_drag_start_dataTransfer = null;
+window.addEventListener("drag", function (e) {
 	try {
-		if (e.dataTransfer.items.length == 0) {
-			e.preventDefault();
-			e.dataTransfer.dropEffect = "move";
-			window.java.onDragOver(e);
+		if (e.dataTransfer != _c8o_drag_start_dataTransfer) {
+			_c8o_drag_start_dataTransfer = e.dataTransfer;
+			window.java.onDrag(e);
 		}
 	} catch (ex) {
-		console.log("dragover: " + ex);
+		console.log("drag: " + ex);
 	}
 });
 
-window.addEventListener("drop", function (e) {
+window.addEventListener("dragover", function (e) {
 	try {
-		// bug from jxbrowser 7.0, onDrag
-		//window.java.onDragOver(e);
-		window.java.onDrop(e);
+//		if (e.dataTransfer.items.length == 0) {
+			e.preventDefault();
+			e.dataTransfer.dropEffect = "move";
+			window.java.onDragOver(e);
+//		}
 	} catch (ex) {
-		console.log("drop: " + ex);
+		console.log("dragover: " + ex);
 	}
 });

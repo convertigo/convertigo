@@ -2373,7 +2373,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public void reloadTreeObject(TreeObject object) throws EngineException, IOException {
 		if (object != null) {
-			reload((TreeParent) object, (DatabaseObject) object.getObject());
+			if (object instanceof DatabaseObjectTreeObject) {
+				reload((TreeParent) object, (DatabaseObject) object.getObject());
+			} else {
+				reloadTreeObject(object.getParent());
+			}
 		}
 	}
 
@@ -3201,6 +3205,25 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		};
 		return comparator;
+	}
+	
+	public void moveLastTo(TreeParent parent, TreeObject object, boolean insertBefore) {
+		List<? extends TreeObject> children = parent.getChildren();
+		int destPosition = children.indexOf(object);
+		int srcPosition = children.size() - 1;
+		if (destPosition != -1 && srcPosition != -1) {
+			int delta = destPosition - srcPosition;
+			int count = (delta < 0) ? (insertBefore ? delta : delta + 1)
+					: (insertBefore ? delta - 1 : delta);
+			if (count != 0) {
+				setSelectedTreeObject(children.get(srcPosition));
+				if (count < 0) {
+					new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
+				} else {
+					new DatabaseObjectDecreasePriorityAction(Math.abs(count)).run();
+				}
+			}
+		}
 	}
 
 	public static boolean folderAcceptMobileComponent(int folderType, DatabaseObject databaseObject) {

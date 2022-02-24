@@ -107,6 +107,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dnd.PaletteSource;
 import com.twinsoft.convertigo.eclipse.dnd.PaletteSourceTransfer;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
@@ -114,6 +115,7 @@ import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
@@ -134,61 +136,103 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	public class ApplicationComponentBrowserImpl {
 
 		@JsAccessible
+		public void onDrag(JsObject o) {
+			if (o != null && "cancel".equals(o.property("msg").orElse(""))) {
+				dragStartMobileComponent = null;
+			} else {
+				dragStartMobileComponent = exHighlightMobileComponent;
+			}
+		}
+
+		@JsAccessible
 		public void onDragOver(JsObject o) {
 			try {
 				int x = ((Double) o.property("x").get()).intValue();
 				int y = ((Double) o.property("y").get()).intValue();
-				x = zoomFactor.swt(x);
-				y = zoomFactor.swt(y);
-				highlightPoint(x, y);
+				int xx = zoomFactor.swt(x);
+				int yy = zoomFactor.swt(y);
+				highlightPoint(xx, yy);
 			} catch (Exception e) {
-				onDrop(o);
 			}
 		}
 
 		@JsAccessible
 		public void onDrop(JsObject o) {
 			try {
-				String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
-				DatabaseObject target = exHighlightMobileComponent;
-				DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
-				if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
-					for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
-						if (uic instanceof UIControlEvent) {
-							target = uic;
-							break;
+				String dropOption = o.property("dropOption").get().toString();
+				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
+				DatabaseObject target = "inside".equals(dropOption) ? exHighlightMobileComponent : exHighlightMobileComponent.getParent();
+				if (paletteSource == null && exHighlightMobileComponent != null && dragStartMobileComponent != null) {
+					DatabaseObject fTarget = target;
+					c8oBrowser.getDisplay().asyncExec(() -> {
+						try {
+							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
+							TreeObject src = view.findTreeObjectByUserObject(dragStartMobileComponent);
+							
+							TreeParent trg = (TreeParent) view.findTreeObjectByUserObject(fTarget);
+							BatchOperationHelper.start();
+							if (src.getParent() != trg) {
+								ConvertigoPlugin.clipboardManagerDND.cutAndPaste(src, trg);
+								view.reloadTreeObject(trg);
+								view.reloadTreeObject(src.getParent());
+							}
+							if (fTarget != exHighlightMobileComponent) {
+								view.moveLastTo(trg, view.findTreeObjectByUserObject(exHighlightMobileComponent), "before".equals(dropOption));
+							}
+							BatchOperationHelper.stop();
+						} catch (Exception e) {
+							e.printStackTrace();
+						} finally {
+							BatchOperationHelper.cancel();
+							dragStartMobileComponent = null;
+						}
+					});
+				} else {
+					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
+					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
+					if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
+						for (UIComponent uic: ((UIDynamicElement) exHighlightMobileComponent).getUIComponentList()) {
+							if (uic instanceof UIControlEvent) {
+								target = uic;
+								break;
+							}
 						}
 					}
+					DatabaseObject fTarget = target;
+					c8oBrowser.getDisplay().asyncExec(() -> {
+						MobileBuilder mb = null;
+
+						Engine.logStudio.info("---------------------- Drop started ----------------------");
+						try {
+							IEditorPart editorPart = ApplicationComponentEditor.this;
+							if (editorPart != null) {
+								IEditorInput input = editorPart.getEditorInput();
+								mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
+							}
+							if (mb != null) {
+								mb.prepareBatchBuild();
+							}
+
+							ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
+							TreeParent treeObject = (TreeParent) view.findTreeObjectByUserObject(fTarget);
+							BatchOperationHelper.start();
+							ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
+							if (fTarget != exHighlightMobileComponent) {
+								view.moveLastTo(treeObject, view.findTreeObjectByUserObject(exHighlightMobileComponent), "before".equals(dropOption));
+							}
+							BatchOperationHelper.stop();
+						} catch (Exception e) {
+							Engine.logStudio.debug("Failed to drop: " + e.getMessage());
+						} finally {
+							PaletteSourceTransfer.getInstance().setPaletteSource(null);
+							BatchOperationHelper.cancel();
+							dragStartMobileComponent = null;
+							Engine.logStudio.info("---------------------- Drop ended   ----------------------");
+						}
+					});
 				}
-				DatabaseObject fTarget = target;
-				c8oBrowser.getDisplay().asyncExec(() -> {
-					MobileBuilder mb = null;
-
-					Engine.logStudio.info("---------------------- Drop started ----------------------");
-					try {
-						IEditorPart editorPart = ApplicationComponentEditor.this;
-						if (editorPart != null) {
-							IEditorInput input = editorPart.getEditorInput();
-							mb = ((ApplicationComponentEditorInput)input).getApplication().getProject().getMobileBuilder();
-						}
-						if (mb != null) {
-							mb.prepareBatchBuild();
-						}
-
-						ProjectExplorerView view = ConvertigoPlugin.getDefault().getProjectExplorerView();
-						TreeObject treeObject = view.findTreeObjectByUserObject(fTarget);
-						BatchOperationHelper.start();
-						ClipboardAction.dnd.paste(xmlData, ConvertigoPlugin.getMainShell(), view, treeObject, true);
-						BatchOperationHelper.stop();
-					} catch (Exception e) {
-						Engine.logStudio.debug("Failed to drop: " + e.getMessage());
-					} finally {
-						PaletteSourceTransfer.getInstance().setPaletteSource(null);
-						BatchOperationHelper.cancel();
-						Engine.logStudio.info("---------------------- Drop ended   ----------------------");
-					}
-				});
 			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	};
@@ -1559,6 +1603,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	
 	private Element exHighlightElement = null;
 	private MobileComponent exHighlightMobileComponent = null;
+	private MobileComponent dragStartMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
 		Node node = browser.mainFrame().get().inspect(x, y).node().get();
@@ -1616,10 +1661,18 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}.init(applicationEditorInput.application);
 				} catch (DatabaseObjectFoundException e) {
 					DatabaseObject databaseObject = e.getDatabaseObject();
-
-					c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
 					
 					if (databaseObject instanceof MobileComponent && !databaseObject.equals(exHighlightMobileComponent)) {
+						if (dragStartMobileComponent != null) {
+							DatabaseObject ancestor = databaseObject;
+							while (dragStartMobileComponent != ancestor && ancestor != null) {
+								ancestor = ancestor.getParent();
+							}
+							if (dragStartMobileComponent == ancestor) {
+								return;
+							}
+						}
+						c8oBrowser.getDisplay().asyncExec(() -> ConvertigoPlugin.getDefault().getProjectExplorerView().objectSelected(new CompositeEvent(databaseObject)));
 						highlightComponent(exHighlightMobileComponent = (MobileComponent) databaseObject, false);
 					}
 				} catch (Exception e) {

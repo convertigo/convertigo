@@ -89,8 +89,6 @@ import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -104,6 +102,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileUICompo
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
@@ -191,6 +190,18 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		
 		boolean shouldFeedBack = true;
 		if (PaletteSourceTransfer.getInstance().isSupportedType(event.currentDataType)) {
+			int currentLocation = getCurrentLocation();
+			switch (currentLocation) {
+				case LOCATION_BEFORE:
+					feedback = DND.FEEDBACK_INSERT_BEFORE;
+					break;
+				case LOCATION_AFTER:
+					feedback = DND.FEEDBACK_INSERT_AFTER;
+					break;
+				case LOCATION_ON:
+				default:
+					break;
+			}
 			shouldFeedBack = false;
 		}
 		
@@ -205,25 +216,22 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						// Source and target objects can be ordered
 						if ((sourceObject instanceof IOrderableTreeObject) && (targetObject instanceof IOrderableTreeObject)) {
 							// Source and target objects must have the same parent
-							if (((TreeObject)sourceObject).getParent().equals(((TreeObject)targetObject).getParent())) {
-								boolean srcInherited = false;
-								if (sourceObject instanceof DatabaseObjectTreeObject) srcInherited = ((DatabaseObjectTreeObject)sourceObject).isInherited;
-								else if (sourceObject instanceof IPropertyTreeObject) srcInherited = ((IPropertyTreeObject)sourceObject).isInherited();
-								// Source object musn't be inherited
-								if (!srcInherited) {
-									int currentLocation = getCurrentLocation();
-									switch (currentLocation) {
-										case LOCATION_BEFORE:
-											feedback = DND.FEEDBACK_INSERT_BEFORE;
-											break;
-										case LOCATION_AFTER:
-											feedback = DND.FEEDBACK_INSERT_AFTER;
-											break;
-										case LOCATION_ON:
-										default:
-											feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
-											break;
-									}									
+							boolean srcInherited = false;
+							if (sourceObject instanceof DatabaseObjectTreeObject) srcInherited = ((DatabaseObjectTreeObject)sourceObject).isInherited;
+							else if (sourceObject instanceof IPropertyTreeObject) srcInherited = ((IPropertyTreeObject)sourceObject).isInherited();
+							// Source object musn't be inherited
+							if (!srcInherited) {
+								int currentLocation = getCurrentLocation();
+								switch (currentLocation) {
+									case LOCATION_BEFORE:
+										feedback = DND.FEEDBACK_INSERT_BEFORE;
+										break;
+									case LOCATION_AFTER:
+										feedback = DND.FEEDBACK_INSERT_AFTER;
+										break;
+									case LOCATION_ON:
+									default:
+										break;
 								}
 							}
 						}
@@ -261,34 +269,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 			
-			// Handle tree objects reordering with Drag and Drop
-			if (data instanceof String) {
-				boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
-				boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
-				if (insertBefore || insertAfter) {
-					Object sourceObject = getSelectedObject();
-					TreeParent targetTreeParent = ((TreeObject)targetObject).getParent();
-					List<? extends TreeObject> children = targetTreeParent.getChildren();
-					int destPosition = children.indexOf(targetObject);
-					int srcPosition = children.indexOf(sourceObject);
-					int delta = destPosition - srcPosition;
-					int count = (delta < 0) ? (insertBefore ? delta:delta+1):(insertBefore ? delta-1:delta);
-					if (count != 0) {
-						if (mb != null) {
-							mb.prepareBatchBuild();
-						}
-						BatchOperationHelper.start();
-						if (count < 0) {
-							new DatabaseObjectIncreasePriorityAction(Math.abs(count)).run();
-						} else {
-							new DatabaseObjectDecreasePriorityAction(Math.abs(count)).run();
-						}
-						BatchOperationHelper.stop();
-					}
-					return true;
-				}
-			}
-			
 			// Handle objects copy or move with Drag and drop
 			if (targetObject instanceof TreeObject) {
 				TreeObject targetTreeObject = (TreeObject)targetObject;
@@ -306,7 +286,23 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								mb.prepareBatchBuild();
 							}
 							BatchOperationHelper.start();
-							ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
+							
+							boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
+							boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
+							TreeObject sourceObject = (TreeObject) getSelectedObject();
+							if (insertBefore || insertAfter) {
+								TreeParent targetTreeParent = ((TreeObject)targetObject).getParent();
+								if (sourceObject.getParent() != targetTreeParent) {
+									ProjectTreeObject prjTree = targetTreeParent.getProjectTreeObject();
+									String path = targetTreeParent.getPath();
+									ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeParent, true);
+									targetTreeParent = (TreeParent) explorerView.findTreeObjectByPath(prjTree, path);
+								}
+								explorerView.moveLastTo(targetTreeParent, targetTreeObject, insertBefore);
+							} else {
+								ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
+							}
+							
 							BatchOperationHelper.stop();
 							return true;
 						} catch (SAXException sax) {
@@ -1441,7 +1437,14 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				}
 				
 				if (targetTreeObject instanceof DatabaseObjectTreeObject) {
+					boolean insertBefore = (feedback & DND.FEEDBACK_INSERT_BEFORE) != 0;
+					boolean insertAfter = (feedback & DND.FEEDBACK_INSERT_AFTER) != 0;
+					DatabaseObjectTreeObject dbotree = (DatabaseObjectTreeObject) targetTreeObject;
+					if (insertBefore || insertAfter) {
+						targetTreeObject = dbotree.getParent();
+					}
 					DatabaseObject parent = (DatabaseObject)targetTreeObject.getObject();
+					
 					String xmlData = ((PaletteSource)data).getXmlData();
 					Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
 					Element rootElement = document.getDocumentElement();
@@ -1459,6 +1462,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 						}
 						reloadTreeObject(explorerView, targetTreeObject);
+						if (dbotree != targetTreeObject) {
+							explorerView.moveLastTo((TreeParent) targetTreeObject, dbotree, insertBefore);
+						}
 					}
 				}
 				else {
