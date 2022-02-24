@@ -15664,6 +15664,15 @@
         "package_dependencies": [
             {"package":"@agm/core", "version":"1.1.0"}
         ]
+      },
+      
+      "hint": {
+      	"GoogleMap": {
+      		"MapCircle": {
+      		},
+      		"MapMarker": {
+      		}
+      	}
       }
     },
    
@@ -16134,14 +16143,14 @@
       },
       "config": {
         "module_ts_imports": [
-          {"from":"ng2-charts", "components":["ChartsModule"]}
+          {"from":"ng2-charts", "components":["NgChartsModule"]}
         ],
         "module_ng_imports": [
-          "ChartsModule"
+          "NgChartsModule"
         ],
         "package_dependencies": [
-            {"package":"ng2-charts", "version":"2.4.2"},
-            {"package":"chart.js", "version":"2.9.4"}
+            {"package":"ng2-charts", "version":"3.0.8"},
+            {"package":"chart.js", "version":"3.7.1"}
         ]
       }
     },    
