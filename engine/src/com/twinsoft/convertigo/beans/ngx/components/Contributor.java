@@ -107,7 +107,10 @@ public abstract class Contributor {
                 			.collect(Collectors.joining(", "))
                     	+ getModuleNgRoutes("")
                 			.stream()
-                			.collect(Collectors.joining(", "));
+                			.collect(Collectors.joining(", "))
+				    	+ getBuildAssets()
+							.stream()
+							.collect(Collectors.joining(", "));
 		
 		return result;
 	}
@@ -118,6 +121,7 @@ public abstract class Contributor {
 	abstract public Map<String, String> getModuleTsImports();
 	abstract public Map<String, String> getPackageDependencies();
 	abstract public Map<String, String> getConfigPlugins();
+	abstract public Set<String> getBuildAssets();
 	abstract public Set<String> getModuleNgImports();
 	abstract public Set<String> getModuleNgProviders();
 	abstract public Set<String> getModuleNgDeclarations();

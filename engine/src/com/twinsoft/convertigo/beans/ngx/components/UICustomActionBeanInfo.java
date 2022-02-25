@@ -38,7 +38,7 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("actionValue", beanClass, "getActionValue", "setActionValue");
 			properties[0].setDisplayName(getExternalizedString("property.actionValue.display_name"));
@@ -80,6 +80,12 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			properties[6].setShortDescription(getExternalizedString("property.cordova_plugins.short_description"));
 			properties[6].setPropertyEditorClass(getEditorClass("MobileConfigPluginsEditor"));
 			properties[6].setExpert(true);
+			
+			properties[7] = new PropertyDescriptor("build_assets", beanClass, "getBuildAssets", "setBuildAssets");
+			properties[7].setDisplayName(getExternalizedString("property.build_assets.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.build_assets.short_description"));
+			properties[7].setPropertyEditorClass(getEditorClass("MobileBuildAssetsEditor"));
+			properties[7].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

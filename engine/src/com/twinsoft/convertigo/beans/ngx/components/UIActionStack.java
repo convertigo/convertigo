@@ -409,6 +409,11 @@ public class UIActionStack extends UIComponent implements IShared {
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return new HashSet<String>();
 			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				return new HashSet<String>();
+			}
 		};
 	}
 

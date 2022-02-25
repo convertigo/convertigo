@@ -225,6 +225,11 @@ public class UIDynamicInfiniteScroll extends UIDynamicComponent {
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return contributor.getModuleNgRoutes(pageSegment);
 			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				return contributor.getBuildAssets();
+			}
 		};
 	}
 }

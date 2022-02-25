@@ -550,6 +550,11 @@ public class UIDynamicElement extends UIElement implements IDynamicBean {
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return new HashSet<String>();
 			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				return new HashSet<String>();
+			}
 		};
 	}
 	
