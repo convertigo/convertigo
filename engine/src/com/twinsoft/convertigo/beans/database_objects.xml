@@ -632,6 +632,23 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAsyncAction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionLoopEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionCaseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionElseEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
+				</bean>
 				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>

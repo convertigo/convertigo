@@ -68,6 +68,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UICustom;
 import com.twinsoft.convertigo.beans.ngx.components.UICustomAction;
+import com.twinsoft.convertigo.beans.ngx.components.UICustomAsyncAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf;
@@ -409,6 +410,7 @@ public class ComponentManager {
 			group = GROUP_ACTIONS;
 			components.add(getDboComponent(UIControlVariable.class,group));
 			components.add(getDboComponent(UICustomAction.class,group));
+			components.add(getDboComponent(UICustomAsyncAction.class,group));
 			
 			components.add(getDboComponent(UIForm.class,"Forms"));
 //			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));

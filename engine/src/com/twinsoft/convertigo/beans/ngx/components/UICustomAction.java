@@ -112,8 +112,8 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "CTS"+ this.priority;
 	}
 
-	public String getActionCode() {
-		return computeActionMain(true);
+	public String getActionCode(String cafPageType) {
+		return computeActionMain(cafPageType, true);
 	}
 	
 	/*
@@ -194,10 +194,20 @@ public class UICustomAction extends UIComponent implements IAction {
 		this.cordova_plugins = cordova_plugins;
 	}
 
+	protected boolean isAsync = false;
+	
+	public boolean isAsync() {
+		return isAsync;
+	}
+
 	/*
 	 * The action value
 	 */
-	private FormatedContent actionValue = new FormatedContent("\t\tpage.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);\n\t\tresolve();\n");
+	protected String getDefaultActionValue() {
+		return "\t\tpage.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);\n\t\tresolve();\n";
+	}
+	
+	protected FormatedContent actionValue = new FormatedContent(getDefaultActionValue());
 	
 	public FormatedContent getActionValue() {
 		return actionValue;
@@ -626,10 +636,10 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	protected String computeActionMain() {
-		return computeActionMain(false);
+		return computeActionMain("C8oPageBase", false);
 	}
 	
-	protected String computeActionMain(boolean bForce) {
+	protected String computeActionMain(String cafPageType, boolean bForce) {
 		String computed = "";
 		if (isEnabled() || bForce) {
 			StringBuilder cartridge = new StringBuilder();
@@ -639,8 +649,6 @@ public class UICustomAction extends UIComponent implements IAction {
 				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
-			
-			String cafPageType = "C8oPageBase";
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("page: "+ cafPageType +", props, vars, event: any");
@@ -652,15 +660,25 @@ public class UICustomAction extends UIComponent implements IAction {
 			
 			String actionName = getActionName();
 			
-			computed += System.lineSeparator();
-			computed += cartridge;
-			computed += "\t"+ actionName + "("+ parameters +") : Promise<any> {" + System.lineSeparator();
-			computed += "\t\treturn new Promise((resolve, reject) => {"+ System.lineSeparator();
-			computed += "\t\t/*Begin_c8o_function:"+ actionName +"*/" + System.lineSeparator();
-			computed += actionValue.getString();
-			computed += "\t\t/*End_c8o_function:"+ actionName +"*/" + System.lineSeparator();
-			computed += "\t\t});"+ System.lineSeparator();
-			computed += "\t}" + System.lineSeparator();
+			if (isAsync()) {
+				computed += System.lineSeparator();
+				computed += cartridge;
+				computed += "\tasync "+ actionName + "("+ parameters +") : Promise<any> {" + System.lineSeparator();
+				computed += "\t\t/*Begin_c8o_function:"+ actionName +"*/" + System.lineSeparator();
+				computed += actionValue.getString();
+				computed += "\t\t/*End_c8o_function:"+ actionName +"*/" + System.lineSeparator();
+				computed += "\t}" + System.lineSeparator();
+			} else {
+				computed += System.lineSeparator();
+				computed += cartridge;
+				computed += "\t"+ actionName + "("+ parameters +") : Promise<any> {" + System.lineSeparator();
+				computed += "\t\treturn new Promise((resolve, reject) => {"+ System.lineSeparator();
+				computed += "\t\t/*Begin_c8o_function:"+ actionName +"*/" + System.lineSeparator();
+				computed += actionValue.getString();
+				computed += "\t\t/*End_c8o_function:"+ actionName +"*/" + System.lineSeparator();
+				computed += "\t\t});"+ System.lineSeparator();
+				computed += "\t}" + System.lineSeparator();
+			}
 		}
 		return computed;
 	}
