@@ -1283,8 +1283,8 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	}
 	
 	private String computeNgDestroy() {
-		String computed = "";
-		computed += "ngOnDestroy() {"+ System.lineSeparator();
+		String computed = ""+ System.lineSeparator();
+		computed += "\tngOnDestroy() {"+ System.lineSeparator();
 		for (UIEventSubscriber subscriber: getUIEventSubscriberList()) {
 			if (subscriber.isEnabled()) {
 				computed += subscriber.computeDestructor();
