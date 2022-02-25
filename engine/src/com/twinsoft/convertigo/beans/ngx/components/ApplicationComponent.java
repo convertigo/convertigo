@@ -1207,6 +1207,10 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		getProject().getMobileBuilder().appPwaChanged(this);
 	}
 	
+	public void markContributorsAsDirty() throws EngineException {
+		getProject().getMobileBuilder().appContributorsChanged(this);
+	}
+	
     /*
      * The computed template (see app.html)
      */

@@ -211,6 +211,7 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 						} else {
 							markPageTsAsDirty();
 							markPageAsDirty(done);
+							markAppContributorsAsDirty();
 						}
 					}
 				} else if (propertyName.equals("preloadPriority")) {
@@ -278,7 +279,16 @@ public class NgxPageComponentTreeObject extends NgxComponentTreeObject implement
 			ConvertigoPlugin.logException(e,
 					"Error while writing the app.module.ts for application '" + ac.getName() + "'");	}
 	}
-	
+
+	protected void markAppContributorsAsDirty() {
+		ApplicationComponent ac = (ApplicationComponent) getObject().getParent();
+		try {
+			ac.markContributorsAsDirty();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e,
+					"Error while writing the app.module.ts for application '" + ac.getName() + "'");	}
+	}
+
 	protected void markPageEnabledAsDirty() {
 		PageComponent page = getObject();
 		try {
