@@ -112,8 +112,8 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "CTS"+ this.priority;
 	}
 
-	public String getActionCode(String cafPageType) {
-		return computeActionMain(cafPageType, true);
+	public String getActionCode() {
+		return computeActionMain(true);
 	}
 	
 	/*
@@ -635,11 +635,28 @@ public class UICustomAction extends UIComponent implements IAction {
 		return "";
 	}
 	
-	protected String computeActionMain() {
-		return computeActionMain("C8oPageBase", false);
+	public String getMainClassType() {
+		String classType = "C8oPageBase";
+		IScriptComponent main = getMainScriptComponent();
+		if (main != null) {
+			if (main instanceof ApplicationComponent) {
+				if (getSharedAction() == null) {
+					classType = "AppComponent";
+				}
+			} else if (main instanceof PageComponent) {
+				classType = ((PageComponent)main).getName();
+			} else if (main instanceof UISharedComponent) {
+				classType = ((UISharedComponent)main).getName();
+			}
+		}
+		return classType;
 	}
 	
-	protected String computeActionMain(String cafPageType, boolean bForce) {
+	protected String computeActionMain() {
+		return computeActionMain(false);
+	}
+	
+	protected String computeActionMain(boolean bForce) {
 		String computed = "";
 		if (isEnabled() || bForce) {
 			StringBuilder cartridge = new StringBuilder();
@@ -649,6 +666,8 @@ public class UICustomAction extends UIComponent implements IAction {
 				cartridge.append("\t *   ").append(commentLine).append(System.lineSeparator());
 			}
 			cartridge.append("\t * ").append(System.lineSeparator());
+			
+			String cafPageType = getMainClassType();
 			
 			StringBuilder parameters = new StringBuilder();
 			parameters.append("page: "+ cafPageType +", props, vars, event: any");
