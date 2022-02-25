@@ -631,7 +631,7 @@ workflows:
         filters:
           branches:
             ignore:
-            - 7.5.x
+            - /.*/
           tags:
             only: /^\d+\..*$/
     - build_engine_war:
