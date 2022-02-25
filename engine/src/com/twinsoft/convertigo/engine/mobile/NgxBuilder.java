@@ -1277,24 +1277,21 @@ public class NgxBuilder extends MobileBuilder {
 						tempTsFileName = "CTS" + uica.priority + ".temp.ts";
 						int index = tsContent.indexOf("export class ");
 						if (index != -1) {
-							String classType = "C8oPageBase";
+							String classType = uica.getMainClassType();
 							String sImport = "";
 							if (main instanceof ApplicationComponent) {
 								if (uic.getSharedAction() == null) {
-									classType = "AppComponent";
 									sImport = "import { "+ classType +" } from './app.component';";
 								}
 							} else if (main instanceof PageComponent) {
-								classType = ((PageComponent)main).getName();
 								sImport = "import { "+ classType +" } from './"+ classType.toLowerCase() +"';";
 							} else if (main instanceof UISharedComponent) {
-								classType = ((UISharedComponent)main).getName();
 								sImport = "import { "+ classType +" } from './"+ classType.toLowerCase() +"';";
 							}
 							
 							int i = tsContent.indexOf("{", index);
 							tsContent = tsContent.substring(0, i+1) + System.lineSeparator() +
-										uica.getActionCode(classType) + System.lineSeparator() +
+										uica.getActionCode() + System.lineSeparator() +
 										"}" + System.lineSeparator();
 							
 							tsContent = tsContent.replace("@Component", sImport + System.lineSeparator() + "@Component");
