@@ -502,11 +502,7 @@ public class NgxBuilder extends MobileBuilder {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
 		if (app != null && initDone) {
 			synchronized (app) {
-				writeAppPackageJson(app);
-				writeAppPluginsConfig(app);
-				writeAppServiceTs(app);
-				writeAppRoutingTs(app);
-				writeAppModuleTs(app);
+				writeAppSourceFiles(app);
 				moveFiles();
 				Engine.logEngine.trace("(MobileBuilder) Handled 'appContributorsChanged'");
 			}
