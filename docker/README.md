@@ -33,6 +33,14 @@ Then launch Convertigo and link it to the running 'fullsync' container. Converti
 
     docker run -d --name C8O --link fullsync:couchdb -p 28080:28080 convertigo
 
+## Use embedded PouchDB as FullSync engine (not for production)
+
+Convertigo FullSync is designed to use CouchDB server or cluster. Convertigo FullSync is also compatible with PouchDB but only for little projects or tests. Internet access is required to enable this feature.
+
+It can be enabled directly at startup:
+
+   docker run -d --name C8O -e JAVA_OPTS="-Dconvertigo.engine.fullsync.pouchdb=true" -p 28080:28080 convertigo
+
 ## Link Convertigo Low Code Server to a Billing & Analytics database
 
 ### MySQL
@@ -46,9 +54,9 @@ MySQL is the recommended database for holding Convertigo Low Code server analyti
                 -Dconvertigo.engine.billing.persistence.jdbc.url=jdbc:mysql://mysql:3306/c8oAnalytics"   \
     convertigo
 
-## Where is Convertigo Low Code  server storing deployed projects
+## Where is Convertigo Low Code server storing deployed projects
 
-Projects are deployed in the Convertigo workspace, a simple file system directory. You can map the docker container **/workspace** to your physical system by using :
+Projects are deployed in the Convertigo workspace, a simple file system directory. You can map the docker container **/workspace** to your physical system by using:
 
     docker run --name C8O -v $(pwd):/workspace -d -p 28080:28080 convertigo
 
