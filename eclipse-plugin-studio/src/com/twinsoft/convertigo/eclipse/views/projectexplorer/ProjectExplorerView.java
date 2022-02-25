@@ -3207,10 +3207,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return comparator;
 	}
 	
-	public void moveLastTo(TreeParent parent, TreeObject object, boolean insertBefore) {
+	public void moveChildTo(TreeParent parent, TreeObject src, TreeObject target, boolean insertBefore) {
 		List<? extends TreeObject> children = parent.getChildren();
-		int destPosition = children.indexOf(object);
-		int srcPosition = children.size() - 1;
+		int destPosition = children.indexOf(target);
+		int srcPosition = src != null ? children.indexOf(src) : (children.size() - 1);
 		if (destPosition != -1 && srcPosition != -1) {
 			int delta = destPosition - srcPosition;
 			int count = (delta < 0) ? (insertBefore ? delta : delta + 1)
@@ -3224,6 +3224,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}
 			}
 		}
+	}
+	
+	public void moveLastTo(TreeParent parent, TreeObject target, boolean insertBefore) {
+		moveChildTo(parent, target, null, insertBefore);
 	}
 
 	public static boolean folderAcceptMobileComponent(int folderType, DatabaseObject databaseObject) {

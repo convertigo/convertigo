@@ -298,7 +298,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 									ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeParent, true);
 									targetTreeParent = (TreeParent) explorerView.findTreeObjectByPath(prjTree, path);
 								}
-								explorerView.moveLastTo(targetTreeParent, targetTreeObject, insertBefore);
+								explorerView.moveChildTo(targetTreeParent, sourceObject, targetTreeObject, insertBefore);
 							} else {
 								ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
 							}

@@ -1156,7 +1156,7 @@ public class ClipboardManager {
 							}
 						} else {
 
-							if (object.getName().equalsIgnoreCase(databaseObject.getName())) {
+							if (object != databaseObject && object.getName().equalsIgnoreCase(databaseObject.getName())) {
 								throw new ObjectWithSameNameException("Unable to cut the object because an object with the same name already exists in target.");
 							}
 						}
@@ -1179,10 +1179,12 @@ public class ClipboardManager {
 	 * Moves the object to a target destination.
 	 */
 	public synchronized void move(DatabaseObject object, DatabaseObject target) throws ConvertigoException {
-		// First, delete the object from its parent
-		object.delete();
-
-		// Second, add the source to the target
-		target.add(object);
+		if (object.getParent() != target) {
+			// First, delete the object from its parent
+			object.delete();
+	
+			// Second, add the source to the target
+			target.add(object);
+		}
 	}
 }

@@ -263,8 +263,12 @@ document.addEventListener("DOMContentLoaded", function () {
 			// bug from jxbrowser 7.0, onDrag
 			//window.java.onDragOver(e);
 			dropRoot.style["display"] = "block";
-			dropOptions.style["left"] = (e.x - dropOptions.offsetWidth / 2) + "px";
-			dropOptions.style["top"] = (e.y - dropOptions.offsetHeight / 2) + "px";
+			var pix = Math.max(0, e.x - dropOptions.offsetWidth / 2);
+			pix = Math.min(window.innerWidth - dropOptions.offsetWidth, pix);
+			dropOptions.style["left"] = pix + "px";
+			pix = Math.max(0, e.y - dropOptions.offsetHeight / 2);
+			pix = Math.min(window.innerHeight - dropOptions.offsetHeight, pix);
+			dropOptions.style["top"] = pix + "px";
 			dropEvent = e;
 //			window.java.onDrop(e);
 		} catch (ex) {

@@ -177,7 +177,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 								view.reloadTreeObject(src.getParent());
 							}
 							if (fTarget != exHighlightMobileComponent) {
-								view.moveLastTo(trg, view.findTreeObjectByUserObject(exHighlightMobileComponent), "before".equals(dropOption));
+								view.moveChildTo(trg, src, view.findTreeObjectByUserObject(exHighlightMobileComponent), "before".equals(dropOption));
 							}
 							BatchOperationHelper.stop();
 						} catch (Exception e) {
