@@ -38,7 +38,7 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[8];
+			properties = new PropertyDescriptor[10];
 			
 			properties[0] = new PropertyDescriptor("actionValue", beanClass, "getActionValue", "setActionValue");
 			properties[0].setDisplayName(getExternalizedString("property.actionValue.display_name"));
@@ -86,6 +86,18 @@ public class UICustomActionBeanInfo extends MySimpleBeanInfo {
 			properties[7].setShortDescription(getExternalizedString("property.build_assets.short_description"));
 			properties[7].setPropertyEditorClass(getEditorClass("MobileBuildAssetsEditor"));
 			properties[7].setExpert(true);
+			
+			properties[8] = new PropertyDescriptor("build_scripts", beanClass, "getBuildScripts", "setBuildScripts");
+			properties[8].setDisplayName(getExternalizedString("property.build_scripts.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.build_scripts.short_description"));
+			properties[8].setPropertyEditorClass(getEditorClass("MobileBuildScriptsEditor"));
+			properties[8].setExpert(true);
+			
+			properties[9] = new PropertyDescriptor("build_styles", beanClass, "getBuildStyles", "setBuildStyles");
+			properties[9].setDisplayName(getExternalizedString("property.build_styles.display_name"));
+			properties[9].setShortDescription(getExternalizedString("property.build_styles.short_description"));
+			properties[9].setPropertyEditorClass(getEditorClass("MobileBuildStylesEditor"));
+			properties[9].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

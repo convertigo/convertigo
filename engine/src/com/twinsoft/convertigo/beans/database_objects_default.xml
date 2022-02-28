@@ -17,6 +17,16 @@
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
             </xmlizable>
         </property>
+        <property name="build_scripts">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="build_styles">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -70,6 +80,16 @@
                 <com.twinsoft.convertigo.beans.common.XMLVector/>
             </xmlizable>
         </property>
+        <property name="build_scripts">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="build_styles">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -110,6 +130,8 @@
             </xmlizable>
         </property>
     </mobilecomponent>
+    
+    
     
     <step classname="com.twinsoft.convertigo.beans.steps.ReadXMLStep" priority="0" version="   8   0   0">
         <property name="comment">
