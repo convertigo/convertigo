@@ -720,6 +720,21 @@ public class UICustomAction extends UIComponent implements IAction {
 	protected Contributor getContributor() {
 		return new Contributor() {
 			
+			private boolean accept() {
+				try {
+					if (isNullContainer()) {
+						return true;
+					} else if (isAppContainer()) {
+						return getSharedAction() != null;
+					} else {
+						isContainer((MobileComponent)getMainScriptComponent());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
+			}
+			
 			@Override
 			public boolean isNgModuleForApp() {
 				if (!getModuleNgImports().isEmpty() || !getModuleNgProviders().isEmpty()) {
@@ -731,7 +746,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Map<String, String> getActionTsFunctions() {
 				Map<String, String> functions = new HashMap<String, String>();
-				if (getSharedAction() != null || getSharedComponent() != null) {
+				if (accept()) {
 					String actionName = getActionName();
 					String actionCode = computeActionMain();
 					functions.put(actionName, actionCode);
@@ -742,7 +757,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Map<String, String> getActionTsImports() {
 				Map<String, String> imports = new HashMap<String, String>();
-				if (getSharedAction() != null  || getSharedComponent() != null) {
+				if (accept()) {
 					for (XMLVector<String> v : page_ts_imports) {
 						imports.put(v.get(0).trim(), v.get(1).trim());
 					}

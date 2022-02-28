@@ -2425,12 +2425,7 @@ public class NgxBuilder extends MobileBuilder {
 						for (Contributor contributor : contributors) {
 							contributor.forContainer(app, () -> {
 								action_ts_imports.putAll(contributor.getActionTsImports());
-								Map<String, String> mapf = contributor.getActionTsFunctions();
-								for (String funcname: mapf.keySet()) {
-									if (!funcname.startsWith("CTS")) {
-										action_ts_functions.put(funcname, mapf.get(funcname));
-									}
-								}
+								action_ts_functions.putAll(contributor.getActionTsFunctions());
 							});
 						}
 					}
