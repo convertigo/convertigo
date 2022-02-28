@@ -651,11 +651,9 @@ public class UICustomAction extends UIComponent implements IAction {
 	public String getMainClassType() {
 		String classType = "C8oPageBase";
 		IScriptComponent main = getMainScriptComponent();
-		if (main != null) {
+		if (main != null && getSharedAction() == null) {
 			if (main instanceof ApplicationComponent) {
-				if (getSharedAction() == null) {
-					classType = "AppComponent";
-				}
+				classType = "AppComponent";
 			} else if (main instanceof PageComponent) {
 				classType = ((PageComponent)main).getName();
 			} else if (main instanceof UISharedComponent) {
