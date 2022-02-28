@@ -37,6 +37,7 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -2365,6 +2366,82 @@ public class NgxBuilder extends MobileBuilder {
 		return true;
 	}
 	
+	private void writeAppBuildAssets(ApplicationComponent app) throws EngineException {
+		try {
+			if (app != null) {
+				Set<String> build_assets = new HashSet<String>();
+				
+				//Menus contributors
+				for (Contributor contributor : app.getContributors()) {
+					build_assets.addAll(contributor.getBuildAssets());
+				}
+				
+				//Pages contributors
+				List<PageComponent> pages = forceEnable ? 
+												app.getPageComponentList() :
+														getEnabledPages(app);
+				for (PageComponent page : pages) {
+					synchronized (page) {
+						List<Contributor> contributors = page.getContributors();
+						for (Contributor contributor : contributors) {
+							build_assets.addAll(contributor.getBuildAssets());
+						}
+					}
+				}
+				
+				if (!build_assets.isEmpty()) {
+					File tplAngularJson = new File(ionicTplDir, "angular.json");
+					if (tplAngularJson.exists()) {
+						String content = FileUtils.readFileToString(tplAngularJson, "UTF-8");
+						JSONObject jsonObject = new JSONObject(content);
+						JSONArray jsonArray = jsonObject
+												.getJSONObject("projects")
+												.getJSONObject("app")
+												.getJSONObject("architect")
+												.getJSONObject("build")
+												.getJSONObject("options")
+												.getJSONArray("assets");
+						
+						for (String asset: build_assets) {
+							if (jsonArrayContains(jsonArray, asset)) {
+								continue;
+							}
+							
+							try {
+								JSONObject jsonAsset = new JSONObject(asset);
+								jsonArray.put(jsonAsset);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						
+						File angularJson = new File(ionicWorkDir, "angular.json");
+						String aContent = jsonObject.toString(1);
+						writeFile(angularJson, aContent, "UTF-8");
+					}
+				}
+				
+				if (initDone) {
+					Engine.logEngine.trace("(MobileBuilder) App angular json file generated");
+				}
+			}
+		} catch (Exception e) {
+			throw new EngineException("Unable to write angular json file",e);
+		}
+	}
+	
+	static private boolean jsonArrayContains(JSONArray jsonArray, String jsonObToString) {
+		try {
+			for (int i = 0; i <jsonArray.length(); i++) {
+				Object object = jsonArray.get(i);
+				if (object.toString().equals(jsonObToString)) {
+					return true;
+				}
+			}
+		} catch (Exception e) {}
+		return false;
+	}
+	
 	private void writeAppPluginsConfig(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
@@ -3021,6 +3098,7 @@ public class NgxBuilder extends MobileBuilder {
 				FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
 				
 				writeAppPackageJson(application);
+				writeAppBuildAssets(application);
 				writeAppPluginsConfig(application);
 				writeAppServiceTs(application);
 				writeAppRoutingTs(application);

@@ -129,6 +129,11 @@ public class UIDynamicComponent extends UIDynamicElement {
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return contributor.getModuleNgRoutes(pageSegment);
 			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				return contributor.getBuildAssets();
+			}
 		};
 	}
 	

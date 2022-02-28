@@ -773,6 +773,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return new HashSet<String>();
 			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				return new HashSet<String>();
+			}
 		};
 	}
 	

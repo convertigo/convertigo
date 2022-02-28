@@ -12,6 +12,11 @@
 ]]></com.twinsoft.convertigo.beans.common.FormatedContent>
             </xmlizable>
         </property>
+        <property name="build_assets">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
         <property name="comment">
             <java.lang.String value=""/>
         </property>
@@ -52,6 +57,60 @@
             </xmlizable>
         </property>
     </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction" priority="0" version="   8   0   0">
+        <property name="actionValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[		page.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);
+		resolve();
+]]></com.twinsoft.convertigo.beans.common.FormatedContent>
+            </xmlizable>
+        </property>
+        <property name="build_assets">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="cordova_plugins">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="module_ng_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="module_ng_providers">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="module_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="name">
+            <java.lang.String value="CustomAction"/>
+        </property>
+        <property name="package_dependencies">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+        <property name="page_ts_imports">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
+                <com.twinsoft.convertigo.beans.common.XMLVector/>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    
     <step classname="com.twinsoft.convertigo.beans.steps.ReadXMLStep" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -4616,54 +4675,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICustomAction" priority="0" version="   8   0   0">
-        <property name="actionValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent><![CDATA[		page.c8o.log.debug('[MB] '+ props.actionFunction +': '+ props.actionName);
-		resolve();
-]]></com.twinsoft.convertigo.beans.common.FormatedContent>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="cordova_plugins">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
-                <com.twinsoft.convertigo.beans.common.XMLVector/>
-            </xmlizable>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="module_ng_imports">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
-                <com.twinsoft.convertigo.beans.common.XMLVector/>
-            </xmlizable>
-        </property>
-        <property name="module_ng_providers">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
-                <com.twinsoft.convertigo.beans.common.XMLVector/>
-            </xmlizable>
-        </property>
-        <property name="module_ts_imports">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
-                <com.twinsoft.convertigo.beans.common.XMLVector/>
-            </xmlizable>
-        </property>
-        <property name="name">
-            <java.lang.String value="CustomAction"/>
-        </property>
-        <property name="package_dependencies">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
-                <com.twinsoft.convertigo.beans.common.XMLVector/>
-            </xmlizable>
-        </property>
-        <property name="page_ts_imports">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XMLVector">
-                <com.twinsoft.convertigo.beans.common.XMLVector/>
-            </xmlizable>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICustom" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>

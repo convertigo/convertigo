@@ -182,6 +182,19 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 
 	/*
+	 * The needed app build assets (angular.json)
+	 */
+	private XMLVector<XMLVector<String>> build_assets = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getBuildAssets() {
+		return build_assets;
+	}
+	
+	public void setBuildAssets(XMLVector<XMLVector<String>> build_assets) {
+		this.build_assets = build_assets;
+	}
+	
+	/*
 	 * The needed cordova plugins
 	 */
 	private XMLVector<XMLVector<String>> cordova_plugins = new XMLVector<XMLVector<String>>();
@@ -851,6 +864,20 @@ public class UICustomAction extends UIComponent implements IAction {
 			@Override
 			public Set<String> getModuleNgRoutes(String pageSegment) {
 				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getBuildAssets() {
+				Set<String> assets = new HashSet<String>();
+				for (XMLVector<String> v : build_assets) {
+					String asset = v.get(0).trim();
+					if (!asset.isEmpty()) {
+						if (!assets.contains(asset)) {
+							assets.add(asset);
+						}
+					}
+				}
+				return assets;
 			}
 		};
 	}	
