@@ -195,6 +195,32 @@ public class UICustomAction extends UIComponent implements IAction {
 	}
 	
 	/*
+	 * The needed app build scripts (angular.json)
+	 */
+	private XMLVector<XMLVector<String>> build_scripts = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getBuildScripts() {
+		return build_scripts;
+	}
+	
+	public void setBuildScripts(XMLVector<XMLVector<String>> build_scripts) {
+		this.build_scripts = build_scripts;
+	}
+	
+	/*
+	 * The needed app build styles (angular.json)
+	 */
+	private XMLVector<XMLVector<String>> build_styles = new XMLVector<XMLVector<String>>();
+	
+	public XMLVector<XMLVector<String>> getBuildStyles() {
+		return build_styles;
+	}
+	
+	public void setBuildStyles(XMLVector<XMLVector<String>> build_styles) {
+		this.build_styles = build_styles;
+	}
+	
+	/*
 	 * The needed cordova plugins
 	 */
 	private XMLVector<XMLVector<String>> cordova_plugins = new XMLVector<XMLVector<String>>();
@@ -878,6 +904,34 @@ public class UICustomAction extends UIComponent implements IAction {
 					}
 				}
 				return assets;
+			}
+
+			@Override
+			public Set<String> getBuildScripts() {
+				Set<String> scripts = new HashSet<String>();
+				for (XMLVector<String> v : build_scripts) {
+					String script = v.get(0).trim();
+					if (!script.isEmpty()) {
+						if (!scripts.contains(script)) {
+							scripts.add(script);
+						}
+					}
+				}
+				return scripts;
+			}
+
+			@Override
+			public Set<String> getBuildStyles() {
+				Set<String> styles = new HashSet<String>();
+				for (XMLVector<String> v : build_styles) {
+					String style = v.get(0).trim();
+					if (!style.isEmpty()) {
+						if (!styles.contains(style)) {
+							styles.add(style);
+						}
+					}
+				}
+				return styles;
 			}
 		};
 	}	

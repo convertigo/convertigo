@@ -778,6 +778,16 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			public Set<String> getBuildAssets() {
 				return new HashSet<String>();
 			}
+
+			@Override
+			public Set<String> getBuildScripts() {
+				return new HashSet<String>();
+			}
+
+			@Override
+			public Set<String> getBuildStyles() {
+				return new HashSet<String>();
+			}
 		};
 	}
 	

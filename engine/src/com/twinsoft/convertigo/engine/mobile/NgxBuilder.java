@@ -2366,14 +2366,18 @@ public class NgxBuilder extends MobileBuilder {
 		return true;
 	}
 	
-	private void writeAppBuildAssets(ApplicationComponent app) throws EngineException {
+	private void writeAppBuildSettings(ApplicationComponent app) throws EngineException {
 		try {
 			if (app != null) {
 				Set<String> build_assets = new HashSet<String>();
+				Set<String> build_scripts = new HashSet<String>();
+				Set<String> build_styles = new HashSet<String>();
 				
 				//Menus contributors
 				for (Contributor contributor : app.getContributors()) {
 					build_assets.addAll(contributor.getBuildAssets());
+					build_scripts.addAll(contributor.getBuildScripts());
+					build_styles.addAll(contributor.getBuildStyles());
 				}
 				
 				//Pages contributors
@@ -2385,34 +2389,67 @@ public class NgxBuilder extends MobileBuilder {
 						List<Contributor> contributors = page.getContributors();
 						for (Contributor contributor : contributors) {
 							build_assets.addAll(contributor.getBuildAssets());
+							build_scripts.addAll(contributor.getBuildScripts());
+							build_styles.addAll(contributor.getBuildStyles());
 						}
 					}
 				}
 				
-				if (!build_assets.isEmpty()) {
+				boolean hasSettings = !build_assets.isEmpty() || !build_scripts.isEmpty() || !build_styles.isEmpty();
+				if (hasSettings) {
 					File tplAngularJson = new File(ionicTplDir, "angular.json");
 					if (tplAngularJson.exists()) {
 						String content = FileUtils.readFileToString(tplAngularJson, "UTF-8");
 						JSONObject jsonObject = new JSONObject(content);
-						JSONArray jsonArray = jsonObject
+						
+						JSONObject jsonOptions = jsonObject
 												.getJSONObject("projects")
 												.getJSONObject("app")
 												.getJSONObject("architect")
 												.getJSONObject("build")
-												.getJSONObject("options")
-												.getJSONArray("assets");
+												.getJSONObject("options");
 						
-						for (String asset: build_assets) {
-							if (jsonArrayContains(jsonArray, asset)) {
-								continue;
+						JSONArray jsonArray = null;
+						try {
+							// Assets
+							jsonArray = jsonOptions.getJSONArray("assets");
+							for (String asset: build_assets) {
+								if (jsonArrayContains(jsonArray, asset)) {
+									continue;
+								}
+								try {
+									JSONObject jsonAsset = new JSONObject(asset);
+									jsonArray.put(jsonAsset);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
-							
-							try {
-								JSONObject jsonAsset = new JSONObject(asset);
-								jsonArray.put(jsonAsset);
-							} catch (Exception e) {
-								e.printStackTrace();
+							// Scripts
+							jsonArray = jsonOptions.getJSONArray("scripts");
+							for (String script: build_scripts) {
+								if (jsonArrayContains(jsonArray, script)) {
+									continue;
+								}
+								try {
+									jsonArray.put(script);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
+							// Styles
+							jsonArray = jsonOptions.getJSONArray("styles");
+							for (String style: build_styles) {
+								if (jsonArrayContains(jsonArray, style)) {
+									continue;
+								}
+								try {
+									jsonArray.put(style);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 						
 						File angularJson = new File(ionicWorkDir, "angular.json");
@@ -3098,7 +3135,7 @@ public class NgxBuilder extends MobileBuilder {
 				FileUtils.deleteQuietly(new File(appDir, "app.component.temp.ts"));
 				
 				writeAppPackageJson(application);
-				writeAppBuildAssets(application);
+				writeAppBuildSettings(application);
 				writeAppPluginsConfig(application);
 				writeAppServiceTs(application);
 				writeAppRoutingTs(application);

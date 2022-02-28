@@ -148,6 +148,16 @@ public class UIDynamicTabButton extends UIDynamicElement {
 			public Set<String> getBuildAssets() {
 				return contributor.getBuildAssets();
 			}
+
+			@Override
+			public Set<String> getBuildScripts() {
+				return contributor.getBuildScripts();
+			}
+
+			@Override
+			public Set<String> getBuildStyles() {
+				return contributor.getBuildStyles();
+			}
 		};
 	}
 	
