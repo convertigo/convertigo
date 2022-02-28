@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 
 public class ObjectExplorerWizardPage extends WizardPage {
 	private Class<DatabaseObject> beanClass = null;
@@ -169,7 +170,16 @@ public class ObjectExplorerWizardPage extends WizardPage {
 				}
 				
 				if (newBean instanceof FullSyncConnector && parentObject instanceof Project) {
-					newBean.setName(((Project) parentObject).getName().toLowerCase() + "_fullsync");
+					boolean bContinue = true;
+					String name = ((Project) parentObject).getName().toLowerCase() + "_fullsync";
+					while (bContinue) {
+						try {
+							newBean.setName(name);
+							bContinue = false;
+						} catch (ObjectWithSameNameException e) {
+							name = DatabaseObject.incrementName(name);
+						}
+					}
 				}
 			} catch (Exception e) {
 				newBean = null;
