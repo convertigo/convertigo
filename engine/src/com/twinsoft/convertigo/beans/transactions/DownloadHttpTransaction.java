@@ -45,12 +45,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.AutoRemoveFilePolicy;
+import com.twinsoft.convertigo.engine.enums.DynamicHttpVariable;
 import com.twinsoft.convertigo.engine.enums.FileExistPolicy;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -98,6 +101,22 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		
 		currentFolder = folder;
 		currentFilename = filename;
+		
+		for (RequestableVariable v: getAllVariables()) {
+			if (v.getName().equals(DynamicHttpVariable.__download_folder.name())) {
+				RequestableHttpVariable var = (RequestableHttpVariable) v;
+				Object o = var.getDefaultValue();
+				if (o != null && o instanceof String) {
+					currentFolder = (String) o;
+				}
+			} else if (v.getName().equals(DynamicHttpVariable.__download_filename.name())) {
+				RequestableHttpVariable var = (RequestableHttpVariable) v;
+				Object o = var.getDefaultValue();
+				if (o != null && o instanceof String) {
+					currentFilename = (String) o;
+				}
+			} 
+		}
 		
 		NodeList nl = context.inputDocument.getElementsByTagName("download-folder");
 		if (nl.getLength() == 1) {
@@ -245,7 +264,9 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 		
 		Engine.logBeans.debug("(DownloadHttpTransaction) Prepare to download to: " + file);
 		if (file.exists()) {
-			if (fileExistPolicy == FileExistPolicy.overrideNewer) {
+			if (fileExistPolicy == FileExistPolicy.override) {
+				skip = false;
+			} else if (fileExistPolicy == FileExistPolicy.overrideNewer) {
 				skip = lastModified >= file.lastModified();
 			} else if (fileExistPolicy == FileExistPolicy.overrideSize) {
 				String sLen = HeaderName.ContentLength.getResponseHeader(method);

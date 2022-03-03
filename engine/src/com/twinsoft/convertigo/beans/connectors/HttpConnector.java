@@ -1239,7 +1239,7 @@ public class HttpConnector extends Connector {
 			
 			statuscode = doExecuteMethod(method, context);
 
-			Engine.logBeans.debug("(HttpConnector) Status: " + method.getStatusLine().toString());
+			Engine.logBeans.debug("(HttpConnector) Status: " + statuscode + " " + method.getStatusLine());
 
 			responseHeaders = method.getResponseHeaders();
 			context.setResponseHeaders(responseHeaders);

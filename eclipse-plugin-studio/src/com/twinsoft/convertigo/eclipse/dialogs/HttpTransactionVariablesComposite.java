@@ -67,6 +67,8 @@ public class HttpTransactionVariablesComposite extends ScrolledComposite {
 	
 	public void build(AbstractHttpTransaction httpTransaction) {
 		this.httpTransaction = httpTransaction;
+		checkboxes.clear();
+		customs.clear();
 		Composite parent = getParent();
 		ScrolledComposite scrolledComposite = this;
 		

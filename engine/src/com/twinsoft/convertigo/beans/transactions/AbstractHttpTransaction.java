@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.xpath.XPathAPI;
@@ -347,18 +348,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 	public void parseInputDocument(Context context) throws EngineException {
 		super.parseInputDocument(context);
 
-		// Overrides uri using given __uri request parameter
-		NodeList uriNodes = context.inputDocument.getElementsByTagName("uri");
-		if (uriNodes.getLength() == 1) {
-			Element uriNode = (Element) uriNodes.item(0);
-			String uri  = uriNode.getAttribute("value");
-			if (!uri.equals("")) {
-				setCurrentSubDir(uri);
-				//needRestoreVariablesDefinition = true;
-				needRestoreVariables = true;
-			}
-		}
-
+		String uri = null;
 		Map<String, NameValuePair> map = new HashMap<>();
 		for (RequestableVariable v: getAllVariables()) {
 			if (v.getName().startsWith(DynamicHttpVariable.__header_.name())) {
@@ -370,7 +360,25 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				}
 				NameValuePair nvp = new BasicNameValuePair(headerName, (String) var.getValueOrNull());
 				map.put(varName, nvp);
+			} else if (v.getName().equals(DynamicHttpVariable.__uri.name())) {
+				Object o = v.getDefaultValue();
+				if (o != null && o instanceof String) {
+					uri = (String) o;
+				}
 			}
+		}
+
+		// Overrides uri using given __uri request parameter
+		NodeList uriNodes = context.inputDocument.getElementsByTagName("uri");
+		if (uriNodes.getLength() == 1) {
+			Element uriNode = (Element) uriNodes.item(0);
+			uri  = uriNode.getAttribute("value");
+		}
+		
+		if (StringUtils.isNotBlank(uri)) {
+			setCurrentSubDir(uri);
+			//needRestoreVariablesDefinition = true;
+			needRestoreVariables = true;
 		}
 		
 		// Overrides static HTTP headers using __header_ request parameters 
