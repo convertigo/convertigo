@@ -32,9 +32,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpGet;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -85,8 +85,8 @@ public class MobileApplicationEndpointEditorComposite extends AbstractDialogComp
 		group.setText("End point: ");
 		Text tEndpoint = new Text(group, SWT.NONE);
 		tEndpoint.setText(value);
-		tEndpoint.addVerifyListener((VerifyEvent e) -> {
-			value = e.text;
+		tEndpoint.addModifyListener((ModifyEvent e) -> {
+			value = tEndpoint.getText();
 		});
 		
 		group = new Group(this, SWT.NONE);
