@@ -75,6 +75,7 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 		switch (key.getMode()) {
 		case JS: name = key.getExpression(); break;
 		case PLAIN: name = "\"" + key.getExpression() + "\""; break;
+		case SOURCE: name = key.toString(this); break;
 		default: name = "(" + getName() + ")" ; break;
 		}
 		switch (value.getMode()) {
@@ -84,6 +85,7 @@ public class JsonFieldStep extends Step implements IStepSmartTypeContainer {
 					("\"" + value.getExpression() + "\"") :
 					value.getExpression();
 			break;
+		case SOURCE: val = value.toString(this); break;
 		default: val = "?" ; break;
 		}
 		return name + " : " + val;

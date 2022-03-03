@@ -70,6 +70,7 @@ public class JsonObjectStep extends StepWithExpressions implements IStepSmartTyp
 		switch (key.getMode()) {
 		case JS: name = key.getExpression(); break;
 		case PLAIN: name = "\"" + key.getExpression() + "\""; break;
+		case SOURCE: name = key.toString(this); break;
 		default: name = "(" + getName() + ")" ; break;
 		}
 		return name + " : { ... }";
