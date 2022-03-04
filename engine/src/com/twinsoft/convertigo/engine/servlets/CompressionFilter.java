@@ -49,7 +49,7 @@ public class CompressionFilter implements Filter {
 		+ "^/admin/services/(?:.*GetIcon|logs.Download|mobiles.GetPackage|"
 		+ "mobiles.GetSourcePackage|projects.Export|store.DownloadStoreFolder)");
 	Pattern pOK = Pattern.compile(
-		"^/fullsync/|^/admin/services/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
+		"^/fullsync/|^/api/|^/admin/services/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
 		+ "\\.json$|\\.jsonp$|\\.txt$|\\.csv$|\\.htm$|\\.map$");
 	
 	@Override
@@ -69,7 +69,9 @@ public class CompressionFilter implements Filter {
 				if (acceptEncoding != null && acceptEncoding.contains("gzip")) {
 					String uri = request.getRequestURI();
 					uri = uri.substring(request.getContextPath().length());
-					doGZip = !pKO.matcher(uri).find() && pOK.matcher(uri).find();
+					boolean isKO = pKO.matcher(uri).find();
+					boolean isOK = pOK.matcher(uri).find();
+					doGZip = !isKO && isOK;
 				} else {
 					doGZip = false;
 				}
