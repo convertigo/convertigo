@@ -267,7 +267,7 @@ public class DownloadHttpTransaction extends AbstractHttpTransaction {
 			if (fileExistPolicy == FileExistPolicy.override) {
 				skip = false;
 			} else if (fileExistPolicy == FileExistPolicy.overrideNewer) {
-				skip = lastModified >= file.lastModified();
+				skip = lastModified <= file.lastModified();
 			} else if (fileExistPolicy == FileExistPolicy.overrideSize) {
 				String sLen = HeaderName.ContentLength.getResponseHeader(method);
 				if (sLen != null && Long.parseLong(sLen) == file.length()) {
