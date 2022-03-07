@@ -2264,6 +2264,8 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		
+		String c8o_ModuleNgExports = c8o_ModuleNgImports.isEmpty() ? "" : c8o_ModuleNgImports;
+		
 		String c8o_ModuleNgProviders = "";
 		String tpl_ng_providers = getTplCompModuleNgProviders();
 		if (!module_ng_providers.isEmpty()) {
@@ -2318,7 +2320,7 @@ public class NgxBuilder extends MobileBuilder {
 		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleTsImports\\*/",c8o_ModuleTsImports);
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
-		tsContent = tsContent.replaceAll("exports\\: \\[RouterModule,", "exports: [RouterModule,"+c8o_ModuleNgImports);
+		tsContent = tsContent.replaceAll("/\\*\\=c8o_ModuleNgExports\\*/", c8o_ModuleNgExports);
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
 		tsContent = tsContent.replaceAll("/\\*End_c8o_NgProviders\\*/","");
 		tsContent = tsContent.replaceAll("/\\*Begin_c8o_NgDeclarations\\*/",c8o_ModuleNgDeclarations);
