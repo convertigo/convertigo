@@ -14880,12 +14880,11 @@
           ]
         },
         "Height": {
-         "attr": "height",
-         "composite": true,
+         "attr": "[style.height]",
          "label": "Height",
          "description": "Specifies the height of the grid, pixel (px) or percentage (%). Use 100% to set a grid full screen, usefull for vertical centering.",
          "category": "@Properties",
-         "type": "style",
+         "type": "string",
          "value": "100%",
          "values": [
             false,
@@ -14894,26 +14893,17 @@
          ]
         },
         "Width": {
-         "attr": "width",
-         "composite": true,
+         "attr": "[style.width]",
          "label": "Width",
          "description": "Specifies the width of the grid, pixel (px) or percentage (%).",
          "category": "@Properties",
-         "type": "style",
+         "type": "string",
          "value": false,
          "values": [
             false,
             "100%",
             true
          ]
-        },
-        "Style": {
-         "attr": "style",
-         "hidden": true,
-         "label": "Style",
-         "description": "Specifies the style of the grid.",
-         "category": "@Properties",
-         "value": "width: $[Width]; height: $[Height]"
         }
       },
       "hint": {
@@ -14972,12 +14962,11 @@
       "icon32": "grid_row_color_32x32.png",
       "properties": {
         "Width": {
-         "attr": "width",
-         "composite": true,
+         "attr": "[style.width]",
          "label": "Width",
          "description": "Specifies the witdh of the row, pixel (px) or percentage (%).",
          "category": "@Properties",
-         "type": "style",
+         "type": "string",
          "value": false,
          "values": [
             false,
@@ -14986,26 +14975,17 @@
          ]
         },
         "Height": {
-         "attr": "height",
-         "composite": true,
+         "attr": "[style.height]",
          "label": "Height",
          "description": "Specifies the height of the row, pixel (px) or percentage (%). Use 100% to set a row taking the full grid height, usefull for vertical centering.",
          "category": "@Properties",
-         "type": "style",
+         "type": "string",
          "value": "100%",
          "values": [
             false,
             "100%",
             true
          ]
-        },
-        "Style": {
-         "attr": "style",
-         "hidden": true,
-         "label": "Style",
-         "description": "Specifies the style of the row.",
-         "category": "@Properties",
-         "value": "width: $[Width]; height: $[Height]"
         },
         "FlexJustifyContent": {
           "attr": "class",
