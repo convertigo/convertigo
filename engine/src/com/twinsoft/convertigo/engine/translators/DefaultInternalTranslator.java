@@ -76,6 +76,10 @@ public class DefaultInternalTranslator implements Translator {
 				String parameterName = var.getName();
 				Object parameterObject = var.getValueOrNull();
 
+				if (parameterObject == null) {
+					continue; // ignore variables set to <null>
+				}
+				
 				if (!request.containsKey(parameterName) && !inputDocumentBuilder.handleSpecialParameter(parameterName, parameterObject)) {
 					if (parameterObject instanceof XMLVector) {
 						String[] strings = ((XMLVector<?>) parameterObject).toArray(new String[0]);
