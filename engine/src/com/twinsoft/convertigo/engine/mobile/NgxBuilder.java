@@ -2254,7 +2254,7 @@ public class NgxBuilder extends MobileBuilder {
 			for (String module: module_ng_imports) {
 				if (!tpl_ng_imports.contains(module)) {
 					try {
-						module = module.substring(0, module.indexOf(".forRoot("));
+						module = module.substring(0, module.indexOf("."));
 					} catch (Exception e) {}
 					c8o_ModuleNgImports += "\t" + module + "," + System.lineSeparator();
 				}
