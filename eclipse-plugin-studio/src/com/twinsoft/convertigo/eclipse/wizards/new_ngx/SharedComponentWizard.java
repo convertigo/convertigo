@@ -656,69 +656,71 @@ public class SharedComponentWizard extends Wizard {
 					
 					if (Mode.SOURCE.equals(msst.getMode())) {
 						MobileSmartSource mss = msst.getSmartSource();
-						SourceModel model = mss.getModel();
-						
-						MobileSmartSource new_mss = null;
-						SourceModel mew_model = null;
-						
-						if (mss.getFilter().equals(Filter.Iteration)) {
-							mew_model = MobileSmartSource.emptyModel(Filter.Shared);
-							mew_model.setPath(model.getPath());
-							mew_model.setPrefix(model.getPrefix());
-							mew_model.setSuffix(model.getSuffix());
-							mew_model.setCustom(model.getCustom());
-							mew_model.setUseCustom(model.getUseCustom());
+						if (mss != null) {
+							SourceModel model = mss.getModel();
 							
-							List<SourceData> dataList = model.getSourceData();
-							if (dataList.size() > 0) {
-								boolean found = false;
-								for (SourceData data : dataList) {
-									for (String name: ovarMap.keySet()) {
-										if (checkVariable(name)) {
-											Map<String, String> m = ovarMap.get(name);
-											for (String target: m.keySet()) {
-												if (target.equals(data.getValue())) {
-													if (!found) {
-														found = true;
-														SourceData shared = Filter.Shared.toSourceData(mss.getProjectName(), "params"+priority);
-														mew_model.addSourceData(shared);
-														mew_model.setPath("?." + dlg_map.get(name));
-														mew_model.setSuffix(model.getPath() + model.getSuffix());
+							MobileSmartSource new_mss = null;
+							SourceModel mew_model = null;
+							
+							if (mss.getFilter().equals(Filter.Iteration)) {
+								mew_model = MobileSmartSource.emptyModel(Filter.Shared);
+								mew_model.setPath(model.getPath());
+								mew_model.setPrefix(model.getPrefix());
+								mew_model.setSuffix(model.getSuffix());
+								mew_model.setCustom(model.getCustom());
+								mew_model.setUseCustom(model.getUseCustom());
+								
+								List<SourceData> dataList = model.getSourceData();
+								if (dataList.size() > 0) {
+									boolean found = false;
+									for (SourceData data : dataList) {
+										for (String name: ovarMap.keySet()) {
+											if (checkVariable(name)) {
+												Map<String, String> m = ovarMap.get(name);
+												for (String target: m.keySet()) {
+													if (target.equals(data.getValue())) {
+														if (!found) {
+															found = true;
+															SourceData shared = Filter.Shared.toSourceData(mss.getProjectName(), "params"+priority);
+															mew_model.addSourceData(shared);
+															mew_model.setPath("?." + dlg_map.get(name));
+															mew_model.setSuffix(model.getPath() + model.getSuffix());
+														}
 													}
 												}
 											}
 										}
 									}
 								}
-							}
-							
-							if (mew_model.getSourceData().size() > 0) {
-								new_mss = new MobileSmartSource(Filter.Shared, mss.getProjectName(), mss.getInput(), mew_model.toJson());
-							}
-						}
-						
-						if (new_mss == null) {
-							new_mss = MobileSmartSource.valueOf(mss.toJsonString());
-						}
-						
-						mew_model = new_mss.getModel();
-						for (String name: ovarMap.keySet()) {
-							if (checkVariable(name)) {
-								Map<String, String> m = ovarMap.get(name);
-								for (String target: m.keySet()) {
-									String replacement = m.get(target).replace("_params_."+ name, "_params_."+ dlg_map.get(name));
-									replacement = replacement.replace("_params_", "params"+priority);
-									mew_model.setPrefix(model.getPrefix().replace(target, replacement));
-									mew_model.setSuffix(model.getSuffix().replace(target, replacement));
-									mew_model.setCustom(model.getCustom().replace(target, replacement));
+								
+								if (mew_model.getSourceData().size() > 0) {
+									new_mss = new MobileSmartSource(Filter.Shared, mss.getProjectName(), mss.getInput(), mew_model.toJson());
 								}
 							}
+							
+							if (new_mss == null) {
+								new_mss = MobileSmartSource.valueOf(mss.toJsonString());
+							}
+							
+							mew_model = new_mss.getModel();
+							for (String name: ovarMap.keySet()) {
+								if (checkVariable(name)) {
+									Map<String, String> m = ovarMap.get(name);
+									for (String target: m.keySet()) {
+										String replacement = m.get(target).replace("_params_."+ name, "_params_."+ dlg_map.get(name));
+										replacement = replacement.replace("_params_", "params"+priority);
+										mew_model.setPrefix(model.getPrefix().replace(target, replacement));
+										mew_model.setSuffix(model.getSuffix().replace(target, replacement));
+										mew_model.setCustom(model.getCustom().replace(target, replacement));
+									}
+								}
+							}
+	
+							MobileSmartSourceType new_msst = new MobileSmartSourceType();
+							new_msst.setMode(Mode.SOURCE);
+							new_msst.setSmartValue(new_mss.toJsonString());
+							return new_msst;
 						}
-
-						MobileSmartSourceType new_msst = new MobileSmartSourceType();
-						new_msst.setMode(Mode.SOURCE);
-						new_msst.setSmartValue(new_mss.toJsonString());
-						return new_msst;
 					}
 					
 					return msst;
