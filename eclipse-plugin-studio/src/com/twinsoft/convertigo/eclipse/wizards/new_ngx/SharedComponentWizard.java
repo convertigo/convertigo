@@ -519,12 +519,14 @@ public class SharedComponentWizard extends Wizard {
 					boolean extended = !forTemplate(uic);
 					
 					String s = null;
-					if (Mode.SCRIPT.equals(msst.getMode())) {
-						s = msst.getValue(extended);
-					}
-					if (Mode.SOURCE.equals(msst.getMode())) {
-						s = msst.getSmartSource().toJsonString();
-					}
+					try {
+						if (Mode.SCRIPT.equals(msst.getMode())) {
+							s = msst.getValue(extended);
+						}
+						if (Mode.SOURCE.equals(msst.getMode())) {
+							s = msst.getSmartSource().toJsonString();
+						}
+					} catch (Exception e) {}
 					
 					if (s != null) {
 						String infos = uic.toString() + " : found variable used by '"+ p_name +"' property";
