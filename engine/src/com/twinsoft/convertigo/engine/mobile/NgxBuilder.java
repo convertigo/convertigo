@@ -130,7 +130,7 @@ public class NgxBuilder extends MobileBuilder {
 							if (isPageFile(path)) {
 								hasMovedPageFiles = true;
 							}
-							if (path.endsWith("package.json")) {
+							if (path.endsWith("package.json") || path.endsWith("angular.json")) {
 								hasMovedCfgFiles = true;
 							}
 						} catch (IOException e) {
@@ -2287,6 +2287,8 @@ public class NgxBuilder extends MobileBuilder {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+						
+						setNeedPkgUpdate(true);
 						
 						File angularJson = new File(ionicWorkDir, "angular.json");
 						String aContent = jsonObject.toString(1);
