@@ -358,7 +358,20 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 				if (uicv.isEnabled()) {
 					String varName = uicv.getVariableName();
 					String varValue = uicv.getVariableValue();
-					params += "\t@Input() "+ varName + ": any = " + (varValue.isEmpty() ? "undefined":varValue) + System.lineSeparator();
+					if (uicv.isAutoEmit()) {
+						params += "\tpublic _"+ varName + ": any = " + (varValue.isEmpty() ? "undefined":varValue) + System.lineSeparator();
+						params += "\t@Input() public get "+ varName + "() {"+ System.lineSeparator();
+						params += "\t\treturn this._"+ varName + ";" + System.lineSeparator();
+						params += "\t}"+ System.lineSeparator();
+						params += "\tpublic set "+ varName + "(val: any) {"+ System.lineSeparator();
+						params += "\t\tif (val !== undefined && this._"+ varName +" !== val) {" + System.lineSeparator();
+						params += "\t\t\tthis._"+ varName + " = val;" + System.lineSeparator();
+						params += "\t\t\tthis."+ varName + "Change.emit(val);" + System.lineSeparator();
+						params += "\t\t}" + System.lineSeparator();
+						params += "\t}"+ System.lineSeparator();
+					} else {
+						params += "\t@Input() "+ varName + ": any = " + (varValue.isEmpty() ? "undefined":varValue) + System.lineSeparator();
+					}
 					events += "\t@Output() "+ varName +"Change = new EventEmitter<any>();"+ System.lineSeparator();
 				}
 			}
