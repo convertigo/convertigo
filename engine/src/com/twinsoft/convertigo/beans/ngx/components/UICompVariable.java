@@ -55,6 +55,16 @@ public class UICompVariable extends UIComponent {
 		this.value = paramValue;
 	}
 
+	private boolean autoEmit = false;
+		
+	public boolean isAutoEmit() {
+		return autoEmit;
+	}
+
+	public void setAutoEmit(boolean autoEmit) {
+		this.autoEmit = autoEmit;
+	}
+
 	@Override
 	public String computeTemplate() {
 		return "";
