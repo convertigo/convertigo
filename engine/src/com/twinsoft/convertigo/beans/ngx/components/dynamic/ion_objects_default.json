@@ -2091,6 +2091,26 @@
      "value": "width: $[Width]; height: $[Height]"
     }
    }
+  },
+  "   8   0   0": {
+   "name": "Grid",
+   "properties": {
+    "Fixed": {
+     "name": "Fixed",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "100%"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "GridCol": {
@@ -2243,6 +2263,36 @@
      "name": "Style",
      "mode": "plain",
      "value": "width: $[Width]; height: $[Height]"
+    },
+    "FlexJustifyContent": {
+     "name": "FlexJustifyContent",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexAlignement": {
+     "name": "FlexAlignement",
+     "mode": "plain",
+     "value": false
+    },
+    "FlexWrap": {
+     "name": "FlexWrap",
+     "mode": "plain",
+     "value": false
+    }
+   }
+  },
+  "   8   0   0": {
+   "name": "GridRow",
+   "properties": {
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": "100%"
     },
     "FlexJustifyContent": {
      "name": "FlexJustifyContent",
