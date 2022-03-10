@@ -3227,7 +3227,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	public void moveLastTo(TreeParent parent, TreeObject target, boolean insertBefore) {
-		moveChildTo(parent, target, null, insertBefore);
+		moveChildTo(parent, null, target, insertBefore);
 	}
 
 	public static boolean folderAcceptMobileComponent(int folderType, DatabaseObject databaseObject) {
