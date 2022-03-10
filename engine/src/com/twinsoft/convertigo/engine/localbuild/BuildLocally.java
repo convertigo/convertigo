@@ -40,6 +40,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
 
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
@@ -258,6 +259,14 @@ public abstract class BuildLocally {
 			
 			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 			
+			IApplicationComponent appComp = getMobilePlatform().getParent().getApplicationComponent();
+			if (appComp != null && appComp instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
+				Element elt = (Element) xpathApi.selectNode(doc, "/widget/content[@src=\"index-fu.html\"]");
+				if (elt != null) {
+					elt.setAttribute("src", "index.html");
+				}
+			}
+			
 			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
 			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
 			Element singleElement = (Element) nodeIterator.nextNode();
@@ -289,7 +298,7 @@ public abstract class BuildLocally {
 //			}
 			
 			//WINPHONE
-			if (mobilePlatform instanceof WindowsPhone8) {				
+			if (mobilePlatform instanceof WindowsPhone8) {
 
 				// Without these width and height the local build doesn't work but with these the remote build doesn't work
 				singleElement = (Element) xpathApi.selectSingleNode(doc, "/widget/platform[@name='wp8']/icon[not(@role)]");
@@ -318,10 +327,6 @@ public abstract class BuildLocally {
 					singleElement.getParentNode().removeChild(singleElement);
 				}
 			}
-
-//			if (mobilePlatform instanceof Windows) {
-				// TODO : Add platform Windows 8
-//			}
 
 			// XMLUtils.saveXml(doc, configFile.getAbsolutePath());
 			
@@ -512,21 +517,21 @@ public abstract class BuildLocally {
 	 */
 	public void removeCordovaDirectory() {
 		String mobilePlatformName = mobilePlatform.getName();
-		
+
 		//Step 1: Recover the "cordova" directory	
-        final File cordovaDirectory = getCordovaDir();
-		
+		final File cordovaDirectory = getCordovaDir();
+
 		//Step 2: Remove the "cordova" directory
-        if (cordovaDirectory.exists()) {
-        	if (FileUtils.deleteQuietly(cordovaDirectory)){
+		if (cordovaDirectory.exists()) {
+			if (FileUtils.deleteQuietly(cordovaDirectory)){
 				Engine.logEngine.info("The Cordova environment of \"" + mobilePlatformName + "\" has been successfull removed.");
 				return;
-			}      		        	
-        	Engine.logEngine.warn("The Cordova environment of \"" + mobilePlatformName + "\" has been partially removed.");			
-        } else {
+			}
+			Engine.logEngine.warn("The Cordova environment of \"" + mobilePlatformName + "\" has been partially removed.");			
+		} else {
 			Engine.logEngine.error("The Cordova environment of \"" + mobilePlatformName + "\" not removed because doesn't exist.");
 			return;
-        }
+		}
 	}
 	
 	/***
@@ -880,7 +885,7 @@ public abstract class BuildLocally {
 			Engine.logEngine.error("Error when removing the required mobile platform!", thr);
 			return Status.CANCEL;
 		}
-    } 
+    }
     
     
     public void cancelRemoveCordovaPlatform(){
