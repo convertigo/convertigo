@@ -61,6 +61,10 @@ class InputDocumentBuilder {
 	}
 	
 	void addVariable(String parameterName, String parameterValue, boolean isHandleComplex) {
+		if (parameterName == null || parameterValue == null) {
+			return;
+		}
+		
 		Element item = context.inputDocument.createElement("variable");
 		item.setAttribute("name", parameterName);
 		
