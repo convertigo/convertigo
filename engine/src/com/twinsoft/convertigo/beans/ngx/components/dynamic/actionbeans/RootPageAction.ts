@@ -57,7 +57,7 @@
 				let segval = segment
 				if (segment.startsWith(":")) {
 					let key = segment.substring(1)
-					if (props.data[key]) {
+					if (props.data != undefined && props.data[key]) {
 						segval = props.data[key]
 						delete queryParams[key]
 					}

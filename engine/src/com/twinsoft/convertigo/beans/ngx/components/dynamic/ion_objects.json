@@ -14460,7 +14460,7 @@
 		"IonColor": false,
         "IonMode": false,
         "CancelText": {
-          "attr": "cancel-text",
+          "attr": "cancelText",
           "label": "Cancel text",
           "description": "The text to display on the picker's cancel button.",
           "category": "@Properties",
@@ -14737,7 +14737,7 @@
           "value": "0"
         },
         "DualKnobs": {
-          "attr": "dual-knobs",
+          "attr": "dualKnobs",
           "label": "Dual Knobs",
           "description": "Setting the dualKnobs property to true on the range component will enable two knobs on the range. If the range has two knobs, the value will be an object containing two properties: lower and upper.",
           "category": "@Properties",
