@@ -13593,6 +13593,20 @@
             false,
             true
           ]
+        },
+        "SetPosition": {
+          "attr": "slot",
+          "label": "position",
+          "description": "Specifies the position.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "start",
+            "end",
+            "secondary",
+            "primary"
+          ]
         }
       },
       "events": {
@@ -13696,6 +13710,20 @@
             false,
             "on",
             true
+          ]
+        },
+        "SetPosition": {
+          "attr": "slot",
+          "label": "position",
+          "description": "Specifies the position.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "start",
+            "end",
+            "secondary",
+            "primary"
           ]
         }
       },
@@ -14406,6 +14434,20 @@
             false,
             "on",
             true
+          ]
+        },
+        "SetPosition": {
+          "attr": "slot",
+          "label": "position",
+          "description": "Specifies the position.",
+          "category": "@Properties",
+          "value": false,
+          "values": [
+            false,
+            "start",
+            "end",
+            "secondary",
+            "primary"
           ]
         }
       },
