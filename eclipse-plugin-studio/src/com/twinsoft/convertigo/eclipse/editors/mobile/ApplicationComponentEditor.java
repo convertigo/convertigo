@@ -1439,7 +1439,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private MobileComponent exHighlightMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		Node node = browser.mainFrame().get().inspect(x, y).node().get();
+		x = c8oBrowser.fixDPI(x);
+		y = c8oBrowser.fixDPI(y);
+		Node node = browser.mainFrame().get().inspect(x, y).node().orElse(null);
 		while (!(node == null || node instanceof Element)) {
 			node = node.parent().orElse(null);
 		}

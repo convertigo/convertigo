@@ -151,6 +151,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				int y = ((Double) o.property("y").get()).intValue();
 				int xx = zoomFactor.swt(x);
 				int yy = zoomFactor.swt(y);
+				
 				highlightPoint(xx, yy);
 			} catch (Exception e) {
 			}
@@ -1606,16 +1607,21 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	private MobileComponent dragStartMobileComponent = null;
 	
 	private void highlightPoint(int x, int y) {
-		Node node = browser.mainFrame().get().inspect(x, y).node().get();
+		x = c8oBrowser.fixDPI(x);
+		y = c8oBrowser.fixDPI(y);
+		Node node = browser.mainFrame().get().inspect(x, y).node().orElse(null);
 		while (!(node == null || node instanceof Element)) {
 			node = node.parent().orElse(null);
+		}
+		
+		if (node == null) {
+			return;
 		}
 		
 		Object shadowHost = c8oBrowser.executeFunctionAndReturnValue("_c8o_getShadowHost", node);
 		if (shadowHost != null && shadowHost instanceof Element) {
 			node = (Element) shadowHost;
 		}
-		
 		while (node != null) {
 			Element element = (Element) node;
 			if (element.equals(exHighlightElement)) {
