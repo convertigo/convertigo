@@ -1331,6 +1331,56 @@
      "value": false
     }
    }
+  },
+  "   8   0   0": {
+   "name": "CheckBox",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Indeterminate": {
+     "name": "Indeterminate",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    },
+    "SetPosition": {
+     "name": "SetPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "Select": {
@@ -1462,6 +1512,51 @@
      "value": false
     }
    }
+  },
+  "   8   0   0": {
+   "name": "Toggle",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "Disabled": {
+     "name": "Disabled",
+     "mode": "plain",
+     "value": "false"
+    },
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Checked": {
+     "name": "Checked",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": false
+    },
+    "SetPosition": {
+     "name": "SetPosition",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "RadioButton": {
@@ -1519,6 +1614,36 @@
      "name": "Value",
      "mode": "plain",
      "value": ""
+    }
+   }
+  },
+  "   8   0   0": {
+   "name": "RadioGroup",
+   "properties": {
+    "ControlName": {
+     "name": "ControlName",
+     "mode": "plain",
+     "value": ""
+    },
+    "DoubleBinding": {
+     "name": "DoubleBinding",
+     "mode": "script",
+     "value": false
+    },
+    "AllowEmptySelection": {
+     "name": "AllowEmptySelection",
+     "mode": "plain",
+     "value": "false"
+    },
+    "Value": {
+     "name": "Value",
+     "mode": "plain",
+     "value": ""
+    },
+    "SetPosition": {
+     "name": "SetPosition",
+     "mode": "plain",
+     "value": false
     }
    }
   }
