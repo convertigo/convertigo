@@ -16630,7 +16630,7 @@
         "CanvasWidth": {
           "composite": true,
           "label": "Canvas width",
-          "description": "Width of the signature area (px). If not set the component resize to the container witdh by default.",
+          "description": "Width of the signature area (number of pixels). If not set the component resize to the container witdh by default.",
           "category": "@Properties",
           "type": "number",
           "value": false,
@@ -16642,7 +16642,7 @@
         "CanvasHeight": {
           "composite": true,
           "label": "Canvas height",
-          "description": "Height of the signature area (px). If not set the component resize to the container height by default.",
+          "description": "Height of the signature area (number of pixels). If not set the component resize to the container height by default.",
           "category": "@Properties",
           "type": "number",
           "value": false,
