@@ -365,9 +365,10 @@ public class ProcessUtils {
 			if (Engine.isWindows()) {
 				Level l = Engine.logEngine.getLevel();
 				try {
-					Engine.logEngine.setLevel(Level.OFF);
 					Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+					Engine.logEngine.setLevel(Level.OFF);
 					ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), dir.getName());
+					Engine.logEngine.setLevel(l);
 					Engine.logEngine.info("unzip terminated!");
 				} finally {
 					Engine.logEngine.setLevel(l);
@@ -397,7 +398,7 @@ public class ProcessUtils {
 		if (dir.exists()) {
 			return dir;
 		}
-		HttpGet get = new HttpGet("https://api.adoptopenjdk.net/v3/assets/latest/8/hotspot?release=latest&jvm_impl=hotspot&vendor=adoptopenjdk&");
+		HttpGet get = new HttpGet("https://api.adoptium.net/v3/assets/latest/8/hotspot?vendor=eclipse");
 		String content;
 		try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
 			content = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
@@ -406,11 +407,11 @@ public class ProcessUtils {
 		String url = null;
 		String release = null;
 		for (int i = 0; url == null && i < array.length(); i++) {
+			release = array.getJSONObject(i).getString("release_name");
 			JSONObject obj = array.getJSONObject(i).getJSONObject("binary");
 			if ("x64".equals(obj.getString("architecture")) &&
 					os.equals(obj.getString("os")) &&
 					"jdk".equals(obj.getString("image_type"))) {
-				release = obj.getString("scm_ref");
 				obj = obj.getJSONObject("package");
 				url = obj.getString("link");
 			}
@@ -451,9 +452,10 @@ public class ProcessUtils {
 		if (Engine.isWindows()) {
 			Level l = Engine.logEngine.getLevel();
 			try {
-				Engine.logEngine.setLevel(Level.OFF);
 				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				Engine.logEngine.setLevel(Level.OFF);
 				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), release);
+				Engine.logEngine.setLevel(l);
 				Engine.logEngine.info("unzip terminated!");
 			} finally {
 				Engine.logEngine.setLevel(l);
@@ -530,9 +532,10 @@ public class ProcessUtils {
 			}
 			Level l = Engine.logEngine.getLevel();
 			try {
-				Engine.logEngine.setLevel(Level.OFF);
 				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				Engine.logEngine.setLevel(Level.OFF);
 				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), null);
+				Engine.logEngine.setLevel(l);
 				Engine.logEngine.info("unzip terminated!");
 			} finally {
 				Engine.logEngine.setLevel(l);
@@ -683,9 +686,10 @@ public class ProcessUtils {
 			}
 			Level l = Engine.logEngine.getLevel();
 			try {
-				Engine.logEngine.setLevel(Level.OFF);
 				Engine.logEngine.info("prepare to unzip " + archive.getAbsolutePath() + " to " + dir.getAbsolutePath());
+				Engine.logEngine.setLevel(Level.OFF);
 				ZipUtils.expandZip(archive.getAbsolutePath(), dir.getAbsolutePath(), m.group(1));
+				Engine.logEngine.setLevel(l);
 				Engine.logEngine.info("unzip terminated!");
 			} finally {
 				Engine.logEngine.setLevel(l);
