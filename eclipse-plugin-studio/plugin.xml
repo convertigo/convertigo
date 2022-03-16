@@ -164,7 +164,7 @@
             project="true">
             <description>Creates a Mobile Builder application project based on ionic3 and Convertigo Angular frameworks.</description>
             {
-              "url": "template_mobileBuilderIonic=https://github.com/convertigo/c8oprj-template-mobile-builder/archive/7.9.0.zip",
+              "url": "template_mobileBuilderIonic=https://github.com/convertigo/c8oprj-template-mobile-builder/archive/8.0.0.zip",
               "doPage1": true
             } 
             </wizard>
