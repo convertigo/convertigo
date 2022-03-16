@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.BuildLocallyEndingDialog;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileApplicationEndpointEditorComposite;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
@@ -48,7 +49,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	private BuildLocally buildLocally = null;
 	private Shell parentShell = null;
-	private MobilePlatform mobilePlatform = null;
+	private MobilePlatformTreeObject mobilePlatform = null;
 	
 	public BuildLocallyAction() {
 		super();
@@ -62,7 +63,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		mobilePlatform = getMobilePlatform();
 		final String buildDir = ConvertigoPlugin.getLocalBuildFolder();
 		
-		buildLocally = new BuildLocally(getMobilePlatform()) {
+		buildLocally = new BuildLocally(getMobilePlatform().getObject()) {
 			
 			@Override
 			protected void logException(Throwable e, String message) {
@@ -89,7 +90,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 						
 						buildSuccessDialog.open();
 					}
-		        });
+				});
 			}
 			
 			@Override
@@ -138,7 +139,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		try {
 			if (mobilePlatform != null) {
 				//Check endpoint url is empty or not
-				MobileApplication mobileApplication = mobilePlatform.getParent();
+				MobileApplication mobileApplication = mobilePlatform.getObject().getParent();
 				String exEndpoint[] = {mobileApplication.getEndpoint()};
 				String curEndpoint[] = {exEndpoint[0]};
 				
@@ -178,7 +179,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 					}
 					if (code == IDialogConstants.FINISH_ID) {
 						mobileApplication.setEndpoint(curEndpoint[0]);
-						mobileApplication.hasChanged = true;
+						mobilePlatform.getParentDatabaseObjectTreeObject().hasBeenModified(true);
+						ProjectExplorerView explorerView = getProjectExplorerView();
+						if (explorerView != null) {
+							ConvertigoPlugin.getDisplay().asyncExec(()->{
+								explorerView.viewer.refresh(mobilePlatform.getProjectTreeObject(), true);
+							});
+						}
 						exEndpoint[0] = null;
 					}
 				} catch (Exception e) {
@@ -235,18 +242,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 				buildJob.schedule();
 
 			}
-//		} catch (IOException ee) {
-//			MessageBox customDialog = new MessageBox(
-//					parentShell,
-//					SWT.ICON_INFORMATION | SWT.OK);
-//			customDialog.setText("Cordova installation not found");
-//			customDialog.setMessage("In order to use local build you must install on your workstation a valid" +
-//					"Cordova build system.\n You can download and install Cordova from: \n" +
-//					"http://cordova.apache.org \nBe sure to follow all instruction on Cordova\n" +
-//					"Website to setup your local Cordova build system. \n\n" +
-//					"This message can also appear if cordova is not in your PATH."
-//					);
-//			customDialog.open();
 		} catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to build locally with Cordova"/*, !buildLocally.isProcessCanceled()*/);
 		}
@@ -256,15 +251,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 		}
 	}
 
-	private MobilePlatform getMobilePlatform() {
+	private MobilePlatformTreeObject getMobilePlatform() {
 		ProjectExplorerView explorerView = getProjectExplorerView();
 		
 		if (explorerView != null) {
 			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-			Object databaseObject = treeObject.getObject();
 
-			if ((databaseObject != null) && (databaseObject instanceof MobilePlatform)) {
-				 return (MobilePlatform) treeObject.getObject();
+			if ((treeObject != null) && (treeObject instanceof MobilePlatformTreeObject)) {
+				 return (MobilePlatformTreeObject) treeObject;
 			} 
 		}
 		return null;
@@ -279,10 +273,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 		String mobilePlatformName = mobilePlatform.getName();
 		if (parentShell != null) {
 			MessageBox customDialog = new MessageBox(parentShell, SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
-	    	
+			
 			customDialog.setText("Remove cordova directory");
-	    	customDialog.setMessage("Do you want to remove the Cordova directory located in \"_private\\localbuild\\" + 
-	    			mobilePlatformName + "\" directory?\n\n" +
+			customDialog.setMessage("Do you want to remove the Cordova directory located in \"_private\\localbuild\\" + 
+				mobilePlatformName + "\" directory?\n\n" +
 					"It will also remove this project's Cordova environment!\n\n" +
 					"To recreate the project's Cordova environment, you just need to run a new local build."
 			);
