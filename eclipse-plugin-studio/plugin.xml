@@ -780,12 +780,6 @@
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
          </view>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
-               minimized="false"
-               relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
-         </view>
-         <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
                minimized="false"
                relationship="stack"
@@ -798,13 +792,103 @@
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
          </view>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerView"
+               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
+         <hiddenMenuItem id="org.eclipse.ui.edit.text.openLocalFile"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.e4.ui.importer.openDirectory.menu"></hiddenMenuItem>
+         <hiddenMenuItem id="sourceMenuId"></hiddenMenuItem>
+         <hiddenMenuItem id="refactorMenuId"></hiddenMenuItem>
+         <hiddenMenuItem id="project"></hiddenMenuItem>
+         <hiddenMenuItem id="navigate"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.run"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.help.helpContents"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.help.helpSearch"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.help.dynamicHelp"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.window.showKeyAssist"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.help.tipsAndTricksAction"></hiddenMenuItem>
+         <hiddenMenuItem id="group.main.ext"></hiddenMenuItem>
+         <hiddenMenuItem id="group.tutorials"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.cheatsheets.actions.CheatSheetHelpMenuAction"></hiddenMenuItem>
+         <!--hiddenMenuItem id="group.tools"></hiddenMenuItem-->
+         <!--hiddenMenuItem id="group.updates"></hiddenMenuItem-->
+         <hiddenMenuItem id="additions"></hiddenMenuItem>
+         <!--hiddenMenuItem id="org.eclipse.equinox.p2.ui.sdk.update"></hiddenMenuItem-->
+         <!--hiddenMenuItem id="org.eclipse.equinox.p2.ui.sdk.install"></hiddenMenuItem-->
+         <hiddenMenuItem id="org.eclipse.epp.package.common.contribute"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.userstorage.accounts"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.ui.cheatsheets.actionSet"></hiddenMenuItem>
+         <hiddenMenuItem id="org.eclipse.oomph.setup.editor.perform"></hiddenMenuItem>
+         <hiddenToolBarItem id="org.eclipse.ui.externaltools.ExternalToolMenuDelegateToolbar"></hiddenToolBarItem>
+      </perspectiveExtension>
+      <perspectiveExtension
+            targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspectiveIonic3">
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+               ratio="0.20"
+               relationship="left"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               id="org.eclipse.ui.navigator.ProjectExplorer"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
+         </view>
+         <view
+               ratio="0.65"
+               relationship="bottom"
+               relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+               id="org.eclipse.ui.views.PropertySheet"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+               ratio="0.70"
+               relationship="bottom"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               id="org.eclipse.ui.console.ConsoleView"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
+               relationship="stack"
+               minimized="false"
+               relative="org.eclipse.ui.console.ConsoleView"/>
+         <view
+               id="org.eclipse.egit.ui.RepositoriesView"
+               relationship="stack"
+               minimized="false"
+               relative="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"/>
+         <view
+               id="org.eclipse.egit.ui.StagingView"
+               relationship="stack"
+               minimized="false"
+               relative="org.eclipse.egit.ui.RepositoriesView"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
+               ratio="0.35"
+               relationship="left"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
                minimized="false"
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
          </view>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
+               id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerView"
                minimized="false"
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
@@ -1642,7 +1726,7 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesFromXMLAction"
                enablesFor="1"
                id="convertigo.action.updateXSDFromXML"
-               label="Update schema from current generated XML"
+               label="Update schema from current connector data"
                menubarPath="xsd"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesAction"
@@ -1664,12 +1748,6 @@
             </enablement>
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateFormFromTransactionAction"
-               enablesFor="1"
-               id="convertigo.action.generateForm"
-               label="Generate Request Form Transaction"
-               menubarPath="transaction"/>
-         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
                enablesFor="1"
                id="convertigo.action.createEmptyStub"
@@ -1679,7 +1757,7 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
                enablesFor="1"
                id="convertigo.action.createStubFromXML"
-               label="Create stub from current generated XML"
+               label="Create stub from current response data"
                menubarPath="stub"/>
       </objectContribution>
       <objectContribution
@@ -3268,7 +3346,7 @@
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
                      id="convertigo.action.seq.createStubFromXML"
-                     label="Create stub from current generated XML"
+                     label="Create stub from current response data"
                      menubarPath="stub">
                </action>
                <!--
@@ -4055,8 +4133,16 @@
       <perspective
             icon="icons/convertigo_16x16.gif"
             class="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"
-            name="Convertigo"
+            name="Convertigo NGX"
             id="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            icon="icons/convertigo_16x16.gif"
+            class="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"
+            name="Convertigo Ionic3"
+            id="com.twinsoft.convertigo.eclipse.ConvertigoPerspectiveIonic3"/>
    </extension>
    <extension
          point="org.eclipse.ui.decorators">
