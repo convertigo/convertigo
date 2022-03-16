@@ -1606,7 +1606,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	@Override
 	public void onPackageUpdated() {
-		launchBuilder(true);
+		launchBuilder(true, true);
 		ConvertigoPlugin.getDisplay().syncExec(
 			new Runnable() {
 				public void run() {
