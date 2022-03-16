@@ -161,11 +161,16 @@ a:hover {
 	width: 36px;
 }
 
-.header_center {
-	height:117px;
-	width:100%;
-	background: transparent url(../images/new/header-center.png) top repeat-x;
+.tpHeader {
+	background-color: #00c0f2;
+	border-radius: 10px;
+	margin: 20px;
+	padding: 20px 0px;
+	color: #fff;
+	text-align: right;
+	font-family: Verdana, Geneva, sans-serif;
 }
+
 #container {
 	width:100%;
 	margin-top:10px;
