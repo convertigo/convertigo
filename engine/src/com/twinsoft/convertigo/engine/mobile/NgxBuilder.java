@@ -35,8 +35,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FalseFileFilter;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -2566,6 +2564,7 @@ public class NgxBuilder extends MobileBuilder {
 				String c8o_PagesImport = "";
 				String c8o_PagesLinks = "";
 				String c8o_PagesDeclarations = "";
+				String c8o_ServiceWorkerEnabled = app.isPWA() ? "environment.production":"false";
 				int i=1;
 				
 				Map<String, File> comp_beans_dirs = new HashMap<>();
@@ -2709,6 +2708,7 @@ public class NgxBuilder extends MobileBuilder {
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesImport\\*/",c8o_PagesImport);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesLinks\\*/",c8o_PagesLinks);
 				mContent = mContent.replaceAll("/\\*\\=c8o_PagesDeclarations\\*/",c8o_PagesDeclarations);
+				mContent = mContent.replaceAll("/\\*\\=c8o_ServiceWorkerEnabled\\*/",c8o_ServiceWorkerEnabled);
 				mContent = mContent.replaceAll("/\\*Begin_c8o_NgModules\\*/","");
 				mContent = mContent.replaceAll("/\\*End_c8o_NgModules\\*/",c8o_ModuleNgImports);
 				mContent = mContent.replaceAll("/\\*Begin_c8o_NgProviders\\*/",c8o_ModuleNgProviders);
