@@ -124,7 +124,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 					
 				} catch (Exception e1) {
 					MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_ERROR | SWT.OK);
-					mb.setMessage("Failed to Connect to MySQL!");
+					mb.setMessage("Failed to connect to " + getJdbcURL() + "\n\n" + e1.getMessage());
 					mb.open();
 				}	
 			}
