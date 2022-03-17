@@ -256,8 +256,7 @@ public class NgxBuilder extends MobileBuilder {
 		
 		if (project != null) {
 			try {
-				ApplicationComponent app = (ApplicationComponent) project.getMobileApplication().getApplicationComponent();
-				app.markComponentTsAsDirty();
+				project.getMobileApplication().getApplicationComponent().markPwaAsDirty();
 			} catch (Exception e) {
 				Engine.logEngine.warn("(MobileBuilder) enabled to change build mode");
 			}
@@ -633,7 +632,9 @@ public class NgxBuilder extends MobileBuilder {
 		ApplicationComponent app = (ApplicationComponent)appComponent;
 		if (app != null && initDone) {
 			synchronized (app) {
-				configurePwaApp(app);
+				configurePwaApp(app);		// for worker
+				writeAppComponentTs(app);	// for prod mode
+				writeAppModuleTs(app); 		// for worker
 				moveFiles();
 				Engine.logEngine.trace("(MobileBuilder) Handled 'appPwaChanged'");
 			}
@@ -2414,7 +2415,8 @@ public class NgxBuilder extends MobileBuilder {
 				
 				File appPkgJsonTpl = new File(ionicTplDir, "package.json");
 				String mContent = FileUtils.readFileToString(appPkgJsonTpl, "UTF-8");
-				mContent = mContent.replaceAll("../DisplayObjects","../../DisplayObjects");
+				mContent = mContent.replaceAll("\\.\\./DisplayObjects","../../DisplayObjects");
+				mContent = mContent.replaceAll("\\{\\{c8o_project\\}\\}", app.getProject().getName());
 				
 				JSONObject jsonPackage = new JSONObject(mContent);
 				JSONObject jsonDependencies = jsonPackage.getJSONObject("dependencies");
@@ -3103,33 +3105,30 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 	
+	public boolean isBuildProdMode() {
+		return MobileBuilderBuildMode.production.equals(this.buildMode);
+	}
+	
 	private void configurePwaApp(ApplicationComponent app) {
 		this.isPWA = app.isPWA();
 		
 		try {
-			File tpl_index = new File(ionicTplDir, "src/index.html");
-			String tpl_content = FileUtils.readFileToString(tpl_index, "UTF-8");
-			String content = tpl_content;
-			
-			// Register service worker
-			if (isPWA) {
-				String replacement = "";
-				replacement += "<script>\n"
-								+"\tif ('serviceWorker' in navigator) {\n"
-									+"\t\tnavigator.serviceWorker.register('service-worker.js')\n"
-										+"\t\t\t.then(() => console.log('service worker installed'))\n"
-										+"\t\t\t.catch(err => console.log('Error', err));\n"
-								+"\t}\n"
-								+"</script>\n";
-				content = tpl_content.replace("<!--c8o_PWA-->", replacement);
+			File workerConfig = new File(ionicWorkDir, "ngsw-config.json");
+			if (workerConfig.exists()) {
+				// nothing to do
 			}
 			
-			// Set application name
-			String pwaAppName = app.getParent().getApplicationName();
-			content = content.replace("<!--c8o_App_Name-->", pwaAppName);
+			// Set application name (index.html)
+			File tpl_index = new File(ionicTplDir, "src/index.html");
+			String tpl_index_content = FileUtils.readFileToString(tpl_index, "UTF-8");
+			String index_content = tpl_index_content;
 			
-			File index = new File(srcDir, "index.html");
-			writeFile(index, content, "UTF-8");
+			String pwaAppName = app.getParent().getApplicationName();
+			pwaAppName = pwaAppName.isEmpty() ? app.getName() : pwaAppName;
+			index_content = index_content.replace("<!--c8o_App_Name-->", pwaAppName);
+			
+			File index = new File(ionicWorkDir, "src/index.html");
+			writeFile(index, index_content, "UTF-8");
 			if (!initDone || !isPWA) {
 				writeWorker(index, true);
 			}

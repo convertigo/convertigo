@@ -21,8 +21,8 @@ package com.twinsoft.convertigo.engine.enums;
 
 public enum NgxBuilderBuildMode {
 	prod("p", "ionic:build:prod", "production", "long build time > 5 mins but automatically removes debug data, unusued code, shrinks and use code scrambler. The application will be smaller and start faster."),
-	fast("f", "ionic:build", "fast", "fast build time."),
-	watch("w", "ionic:build", "watch", "fast build time and rebuild at each changes.");
+	fast("f", "ionic:build:fast", "fast", "fast build time."),
+	watch("w", "ionic:build:watch", "watch", "fast build time and rebuild at each changes.");
 	
 	String label;
 	String description;

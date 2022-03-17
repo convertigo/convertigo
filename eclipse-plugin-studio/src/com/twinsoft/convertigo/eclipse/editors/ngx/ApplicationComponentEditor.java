@@ -121,6 +121,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -1831,6 +1832,13 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		}
 		NgxBuilderBuildMode buildMode = this.buildMode;
 		boolean[] terminated = { false };
+		MobileBuilder mb = project.getMobileBuilder();
+		if (buildMode.equals(NgxBuilderBuildMode.prod)) {
+			mb.setAppBuildMode(MobileBuilderBuildMode.production);
+		} else {
+			mb.setAppBuildMode(MobileBuilderBuildMode.fast);
+		}
+		
 		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
 		prodJob = Job.create("Build in " + buildMode.label() + " mode for " + appName, monitor -> {
 			try {
@@ -1854,21 +1862,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
 				
-				List<String> cmd = pb.command();
-				cmd.add("--");
-				cmd.add("--progress=true");
-				cmd.add("--watch=" + (buildMode == NgxBuilderBuildMode.watch));
-				cmd.add("--outputPath=./../../DisplayObjects/mobile/");
-				cmd.add("--delete-output-path=false");
-				cmd.add("--baseHref=./");
-				cmd.add("--deployUrl=./");
-				
-				// #183 add useless option to help terminateNode method to find the current path
-				cmd.add("--ngsw-config-path=" + ionicDir);
-				
+//				List<String> cmd = pb.command();
+//				// #183 add useless option to help terminateNode method to find the current path
+//				cmd.add("--ngsw-config-path=" + ionicDir);
+
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
-				pb.environment().put("NODE_OPTIONS", "max-old-space-size=8192");
 				Process p = pb.start();
 				processes.add(p);
 				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -1908,7 +1907,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						} else {
 							monitor.worked(1);
 						}
-						Engine.logStudio.trace(line);
+						Engine.logStudio.debug(line);
 						if (line.contains("- Hash:")) {
 							Engine.logStudio.debug("Build " + buildMode.label() + " finished for " + appName);
 							if (buildMode == NgxBuilderBuildMode.watch) {
