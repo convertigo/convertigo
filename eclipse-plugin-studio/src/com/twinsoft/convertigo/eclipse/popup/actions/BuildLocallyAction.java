@@ -178,13 +178,16 @@ public class BuildLocallyAction extends MyAbstractAction {
 						return;
 					}
 					if (code == IDialogConstants.FINISH_ID) {
-						mobileApplication.setEndpoint(curEndpoint[0]);
-						mobilePlatform.getParentDatabaseObjectTreeObject().hasBeenModified(true);
-						ProjectExplorerView explorerView = getProjectExplorerView();
-						if (explorerView != null) {
-							ConvertigoPlugin.getDisplay().asyncExec(()->{
-								explorerView.viewer.refresh(mobilePlatform.getProjectTreeObject(), true);
-							});
+						String s = mobileApplication.getEndpoint();
+						if (!s.equals(curEndpoint[0])) {
+							mobileApplication.setEndpoint(curEndpoint[0]);
+							mobilePlatform.getParentDatabaseObjectTreeObject().hasBeenModified(true);
+							ProjectExplorerView explorerView = getProjectExplorerView();
+							if (explorerView != null) {
+								ConvertigoPlugin.getDisplay().asyncExec(()->{
+									explorerView.viewer.refresh(mobilePlatform.getProjectTreeObject(), true);
+								});
+							}
 						}
 						exEndpoint[0] = null;
 					}
