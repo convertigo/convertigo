@@ -86,7 +86,7 @@ public class MobileApplication extends DatabaseObject {
 	private SplashRemoveMode splashRemoveMode = SplashRemoveMode.afterUpdate;
 	
 	private boolean requireUserConfirmation = false;
-	private long flashUpdateTimeout = 5000;
+	private long flashUpdateTimeout = 30000;
 	
 	private String applicationId = "";
 	private String applicationName = "";

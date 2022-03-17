@@ -603,7 +603,7 @@ var F = {
 				nbTransfert++;
 				totalSize += file.size;
 				F.mkParentDirs(file.uri, function (parentDir, fileName) {
-					var source = (fromApp ? F.env.appBase : F.env.remoteBase) + "/" + file.uri + "?" + F.startTime;
+					var source = (fromApp ? cordova.file.applicationDirectory + "www" : F.env.remoteBase) + "/" + file.uri + "?" + F.startTime;
 					var destination = F.env.localBase + "/" + file.uri;
 					new FileTransfer().download(
 						encodeURI(source),

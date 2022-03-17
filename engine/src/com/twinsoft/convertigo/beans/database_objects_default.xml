@@ -17816,7 +17816,7 @@
             <java.lang.String value=""/>
         </property>
         <property name="flashUpdateTimeout">
-            <java.lang.Long value="5000"/>
+            <java.lang.Long value="30000"/>
         </property>
         <property name="fsConnector">
             <java.lang.String value=""/>

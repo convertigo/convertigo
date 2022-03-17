@@ -259,14 +259,6 @@ public abstract class BuildLocally {
 			
 			TwsCachedXPathAPI xpathApi = new TwsCachedXPathAPI();
 			
-			IApplicationComponent appComp = getMobilePlatform().getParent().getApplicationComponent();
-			if (appComp != null && appComp instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
-				Element elt = (Element) xpathApi.selectNode(doc, "/widget/content[@src=\"index-fu.html\"]");
-				if (elt != null) {
-					elt.setAttribute("src", "index.html");
-				}
-			}
-			
 			// Changes icons and splashs src in config.xml file because it was moved to the parent folder
 			NodeIterator nodeIterator = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' or local-name()='icon']");
 			Element singleElement = (Element) nodeIterator.nextNode();
