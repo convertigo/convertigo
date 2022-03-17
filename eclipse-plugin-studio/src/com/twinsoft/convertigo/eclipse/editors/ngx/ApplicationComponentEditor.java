@@ -1467,7 +1467,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			}
 			
 			// #183 add useless option to help terminateNode method to find the current path 
-			cmd.add("--ssl-key=" + ionicDir);
+			cmd.add("--ssl-key=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 			
 			pb.redirectErrorStream(true);
 			pb.directory(ionicDir);
@@ -1766,7 +1766,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				if (Engine.isWindows()) {
 					String prod = prodOnly ? " AND CommandLine Like '%--watch%'" : "";
 					Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
-						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'" + prod,
+						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\DisplayObjects\\\\%'" + prod,
 						"CALL", "TERMINATE").start();
 					String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
@@ -1776,7 +1776,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 					
 					process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
-							("Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'" + prod).replace("\\", "\\\\"),
+							("Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\DisplayObjects\\\\%'" + prod).replace("\\", "\\\\"),
 							"CALL", "TERMINATE").start();
 					output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
@@ -1788,7 +1788,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					//ps -e | sed -n -E "s/ ([0-9]+).*Fli.*/\1/p" | xargs kill
 					String prod = prodOnly ? " | grep \"--watch\"" : "";
 					Process process = new ProcessBuilder("/bin/bash", "-c",
-						"ps -e | grep -v \"sed -n\"" + prod + " | sed -n -E \"s, ([0-9]+).*node.*/"+ projectName + "/_private/.*,\\1,p\" | xargs kill"
+						"ps -e | grep -v \"sed -n\"" + prod + " | sed -n -E \"s, ([0-9]+).*node.*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
 					).start();
 					int code = process.waitFor();
 					if (code == 0) {
@@ -1862,9 +1862,10 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
 				
-//				List<String> cmd = pb.command();
-//				// #183 add useless option to help terminateNode method to find the current path
-//				cmd.add("--ngsw-config-path=" + ionicDir);
+				List<String> cmd = pb.command();
+				// #183 add useless option to help terminateNode method to find the current path
+				cmd.add("--");
+				cmd.add("--output-path=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
