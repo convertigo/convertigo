@@ -135,6 +135,9 @@ public class NgxBuilder extends MobileBuilder {
 							Engine.logEngine.warn("(MobileBuilder) Failed to copy the new content of " + path, e);
 						}
 					}
+					if (hasMovedFiles) {
+						NgxBuilder.this.updateEnvFile();
+					}
 					Engine.logEngine.debug("(MobileBuilder) End to move " + map.size() + " files.");
 					
 					// Need package installation
@@ -714,11 +717,11 @@ public class NgxBuilder extends MobileBuilder {
 			// Modify configuration files
 			updateConfigurationFiles();
 			
-			// Modify env.json
-			updateEnvFile();
-			
 			// Tpl version
 			updateTplVersion();
+			
+			// Modify env.json
+			updateEnvFile();
 			
 			// PWA
 			configurePwaApp(application);
@@ -860,8 +863,11 @@ public class NgxBuilder extends MobileBuilder {
 	private void updateEnvFile() {
 		JSONObject envJSON = new JSONObject();
 		try {
+			envJSON.put("appTemplateVersion", getTplVersion() != null ? this.tplVersion : "");
+			envJSON.put("appGenerationTime", System.currentTimeMillis());
 			envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
 			FileUtils.write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4), "UTF-8");
+			Engine.logEngine.trace("(MobileBuilder) Updated env.json for ionic project "+ project.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -3113,9 +3119,6 @@ public class NgxBuilder extends MobileBuilder {
 			
 			File index = new File(ionicWorkDir, "src/index.html");
 			writeFile(index, index_content, "UTF-8");
-			if (!initDone || !isPWA) {
-				writeWorker(index, true);
-			}
 		} catch (Exception e) {
 			;
 		}
@@ -3123,18 +3126,8 @@ public class NgxBuilder extends MobileBuilder {
 	
 	@Override
 	protected void writeWorker(File file, boolean bForce) throws IOException {
-		File jsworker = new File(srcDir, "service-worker.js");
-		if ((isAppPwaAble() || bForce) && jsworker.exists()) {
-			long time = System.currentTimeMillis();
-			String content = FileUtils.readFileToString(jsworker, "UTF-8");
-			content = CacheVersion.matcher(content).replaceFirst("const CACHE_VERSION = "+ time);
-			if (initDone && Engine.isStudioMode()) {
-				if (!file.getPath().equals(jsworker.getPath())) {
-					writeFile(jsworker, content, "UTF-8");
-				}
-			} else {
-				FileUtils.write(jsworker, content, "UTF-8");
-			}
+		if (initDone && buildMutex == null && Engine.isStudioMode()) {
+			updateEnvFile();
 		}
 	}
 }
