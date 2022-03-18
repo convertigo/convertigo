@@ -28,6 +28,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.ITestCaseContainer;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
@@ -134,6 +135,11 @@ public class GetTestPlatform extends XmlService {
 				Engine.logAdmin.error("Failed to retrieve the application mobile name", e);
 			}
 			
+			IApplicationComponent app = mobileApplication.getApplicationComponent();
+			String msg = app != null ? app.getUnbuiltMessage() : null;
+			if (msg != null) {
+				e_mobileApplication.setAttribute("unbuiltMessage", msg);
+			}
 		}
 		
 		root.appendChild(e_project);

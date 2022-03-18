@@ -1659,4 +1659,49 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		return tplVersion;
 	}
 	
+	public long getGenerationTime() {
+		try {
+			String str = FileUtils.readFileToString(new File(getProject().getDirFile(), "_private/ionic/src/env.json"), "UTF-8");
+			long time = new JSONObject(str).getLong("appGenerationTime");
+			return time;
+		} catch (Exception e) {
+		}
+		return -1;
+	}
+	
+	public long getBuiltGenerationTime() {
+		try {
+			String str = FileUtils.readFileToString(new File(getProject().getDirFile(), "DisplayObjects/mobile/env.json"), "UTF-8");
+			long time = new JSONObject(str).getLong("appGenerationTime");
+			return time;
+		} catch (Exception e) {
+		}
+		return -1;
+	}
+	
+	public boolean isBuiltUpToDate() {
+		long gen = getGenerationTime();
+		long built = getBuiltGenerationTime();
+		return gen != -1 && gen == built;
+	}
+
+	@Override
+	public String getUnbuiltMessage() {
+		boolean isMobileUnbuilt = false;
+		boolean isMobileUpToDate = true;
+		long gen = getGenerationTime();
+		long built = getBuiltGenerationTime();
+		String msg = null;
+		isMobileUnbuilt = built == -1;
+		if (!isMobileUnbuilt) {
+			isMobileUpToDate = gen == -1 || gen == built;
+		}
+		if (isMobileUnbuilt || !isMobileUpToDate) {
+			msg = "The NGX Application isn't " + (isMobileUnbuilt ? "build yet" : "up-to-date") + ".\n"
+				+ "You should built it before continuing:\n"
+				+ "Open the mobile editor and run a watch or a production build from the sidebar.";
+		}
+		return msg;
+	}
+	
 }

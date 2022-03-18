@@ -43,6 +43,7 @@ function addMobilePlatform($platform, $parent) {
 	
 	$platform_div.find(".btn_get_source").attr("href", vars.base_url + "admin/services/mobiles.GetSourcePackage?" + params);
 	$platform_div.find(".btn_build").attr("href", vars.base_url + "admin/services/mobiles.LaunchBuild?" + params);
+	
 	$parent.append($platform_div);
 }
 
@@ -607,6 +608,13 @@ $(document).ready(function() {
 				
 				var applicationVersion = $mobileApplication.attr("applicationVersion");
 				$("#build_application_version").text(applicationVersion);
+				
+				var unbuiltMessage = $mobileApplication.attr("unbuiltMessage");
+				if (typeof unbuiltMessage != "undefined") {
+					$(".mobile_unbuilt").text(unbuiltMessage);
+				} else {
+					$(".mobile_unbuilt").remove();
+				}
 				
 				showQRCode($("#main .webapp.qrcode_content"), false);
 				

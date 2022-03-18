@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -208,7 +209,21 @@ public class BuildLocallyAction extends MyAbstractAction {
 					}
 					return;
 				}
-
+				
+				IApplicationComponent app = mobileApplication.getApplicationComponent();
+				String msg = app != null ? app.getUnbuiltMessage() : null;
+				
+				if (msg != null && parentShell != null) {
+					MessageBox informDialog = new MessageBox(parentShell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+					informDialog.setText("Application not ready");
+					informDialog.setMessage(msg + "\nThen launch the Local Build again.\n"
+							+ "Do you want to build now anyway?");
+					int result = informDialog.open();
+					if (result == SWT.NO) {
+						return;
+					}
+				}
+				
 				// OK we are sure we have a Cordova environment.. Start the build
 				Job buildJob = new Job("Local Cordova Build " + (run ? "and Run " : "") + "in progress...") {
 					

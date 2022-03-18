@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.io.File;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -48,7 +47,6 @@ public class ArchiveExportOptionDialog extends Dialog {
 	private Project project;
 	private String version;
 	private Set<ArchiveExportOption> archiveExportOptions;
-	private boolean isMobileUnbuilt = false;
 	
 	private Text versionSWT;
 	private Button[] archiveExportOptionsSWT;
@@ -101,30 +99,13 @@ public class ArchiveExportOptionDialog extends Dialog {
 			}
 		}
 		
-		if (bDeploy) {
-			isMobileUnbuilt = false;
-			IApplicationComponent app = null;
-			if (project.getMobileApplication() != null && (app = project.getMobileApplication().getApplicationComponent()) != null) {
-				if (app instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent) {
-					isMobileUnbuilt = !new File(projectDir, "DisplayObjects/mobile/build/main.js").exists();
-				} else if (app instanceof com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent) {
-					isMobileUnbuilt = true;
-					for (File f: new File(projectDir, "DisplayObjects/mobile/").listFiles()) {
-						if (Pattern.matches("main.*\\.js", f.getName())) {
-							isMobileUnbuilt = false;
-							break;
-						}
-					};
-				}
-			}
-			
-			if (isMobileUnbuilt) {
-				label = new Label(composite, SWT.NONE);
-				label.setText("The Mobile Application isn't build yet. You must built it before continuing:\n"
-					+ "Open the mobile editor and run a watch or a production build from the sidebar.\n"
-					+ "Once the build finished, you can deploy again.");
-				SwtUtils.applyStyle(label, "{ color: red }");
-			}
+		IApplicationComponent app = project.getMobileApplication() != null ? project.getMobileApplication().getApplicationComponent() : null;
+		String msg = app != null ? app.getUnbuiltMessage() : null;
+		
+		if (msg != null) {
+			label = new Label(composite, SWT.NONE);
+			label.setText(msg + "\nOnce the build finished, you can " + (bDeploy ? "deploy" : "export") + " again.");
+			SwtUtils.applyStyle(label, "{ color: red }");
 		}
 		
 		composite.pack(true);

@@ -28,5 +28,6 @@ public interface IApplicationComponent extends IMobileObject {
 	public String getTplProjectName();
 	public List<DatabaseObject> getAllChildren();
 	public void markPwaAsDirty() throws EngineException;
+	public String getUnbuiltMessage();
 
 }

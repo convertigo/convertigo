@@ -43,8 +43,8 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.DboCategoryInfo;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
@@ -1707,6 +1707,17 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			}
 		}
 		return tplVersion;
+	}
+
+	@Override
+	public String getUnbuiltMessage() {
+		String msg = null;
+		if (!new File(getProject().getDirFile(), "DisplayObjects/mobile/build/main.js").exists()) {
+			msg = "The Application isn't build yet.\n"
+				+ "You must built it before continuing:\n"
+				+ "Open the mobile editor and run a watch or a production build from the sidebar.";
+		}
+		return msg;
 	}
 	
 }
