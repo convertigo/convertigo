@@ -721,7 +721,7 @@ public class NgxBuilder extends MobileBuilder {
 			updateTplVersion();
 			
 			// Modify env.json
-			updateEnvFile();
+			initEnvFile();
 			
 			// PWA
 			configurePwaApp(application);
@@ -860,6 +860,54 @@ public class NgxBuilder extends MobileBuilder {
         return false;
     }
     
+    @Override
+	protected void updateTplVersion() {
+		/*if (tplVersion == null && Engine.isStudioMode()) {
+    		File nodeModules = new File(ionicWorkDir, "node_modules");
+    		if (nodeModules.exists()) {
+    			String templateVersion = null;
+    			File versionJson = new File(ionicWorkDir, "version.json");
+    			if (versionJson.exists()) {
+    				try {
+						String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
+						JSONObject jsonOb = new JSONObject(tsContent);
+						templateVersion = jsonOb.getString("version");
+    				} catch (Exception e) {}
+    			}
+    			
+				String storedTemplateVersion = (String) getStoredEnvKey("appTemplateVersion");
+    	    	if (templateVersion != null && storedTemplateVersion != null && !storedTemplateVersion.equals(templateVersion)) {
+        			try {
+        				Engine.logEngine.info("(MobileBuilder) Template version has changed. Removing existing node_modules...");
+    	    			FileUtils.deleteQuietly(nodeModules);
+        			} catch (Exception e) {
+        				setNeedPkgUpdate(true);
+        			}
+    	    	}
+    		}
+		}*/
+		super.updateTplVersion();
+	}
+	
+    private void initEnvFile() {
+    	try {
+	    	String appTemplateVersion = getTplVersion() != null ? this.tplVersion : "";
+	    	
+	    	Long storedGenerationTime = (Long) getStoredEnvKey("appGenerationTime");
+	    	Long appGenerationTime = storedGenerationTime == null ? System.currentTimeMillis() : storedGenerationTime;
+	    	
+	    	JSONObject envJSON = new JSONObject();
+			envJSON.put("appTemplateVersion", appTemplateVersion);
+			envJSON.put("appGenerationTime", appGenerationTime);
+			envJSON.put("remoteBase", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" + project.getName() + "/_private");
+			FileUtils.write(new File(ionicWorkDir, "src/env.json"), envJSON.toString(4), "UTF-8");
+			Engine.logEngine.trace("(MobileBuilder) Initialized env.json for ionic project "+ project.getName());
+	    	
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
 	private void updateEnvFile() {
 		JSONObject envJSON = new JSONObject();
 		try {
@@ -873,6 +921,34 @@ public class NgxBuilder extends MobileBuilder {
 		}
 	}
 
+	private Object getStoredEnvKey(String key) {
+		try {
+			File storedEnvFile = new File(projectDir, "_private/env.json");
+			if (storedEnvFile.exists()) {
+				String jsonContent = FileUtils.readFileToString(storedEnvFile, "UTF-8");
+				JSONObject jsonOb = new JSONObject(jsonContent);
+				if (jsonOb.has(key)) {
+					return jsonOb.get(key);
+				}
+			}
+ 		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private void storeEnvFile() {
+		try {
+			File src = new File(ionicWorkDir, "src/env.json");
+			if (src.exists()) {
+				File dest = new File(projectDir, "_private/env.json");
+				FileUtils.copyFile(src, dest, true);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	protected synchronized void release() throws EngineException {
 		if (!initDone) {
@@ -942,6 +1018,8 @@ public class NgxBuilder extends MobileBuilder {
 				eventHelper = null;
 			}
 			setNeedPkgUpdate(false);
+			
+			storeEnvFile();
 			
 			initDone = false;
 			Engine.logEngine.debug("(MobileBuilder) Released builder for ionic project '"+ project.getName() +"'");
