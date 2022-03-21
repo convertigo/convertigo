@@ -928,6 +928,7 @@ public class OpenApiUtils {
 			
 			Paths paths = openApi.getPaths();
 			if (paths != null) {
+				AbstractHttpTransaction defTransaction = null;
 				for (Entry<String, PathItem> entry : paths.entrySet()) {
 					HttpMethodType httpMethodType = null;
 					Operation operation = null;
@@ -1168,6 +1169,10 @@ public class OpenApiUtils {
 							transaction.setHttpInfo(true);
 							
 							httpConnector.add(transaction);
+							if (defTransaction == null) {
+								defTransaction = transaction;
+								httpConnector.setDefaultTransaction(defTransaction);
+							}
 						}
 					}
 				}

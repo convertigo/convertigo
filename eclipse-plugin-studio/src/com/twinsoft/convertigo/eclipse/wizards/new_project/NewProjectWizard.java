@@ -221,7 +221,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			if (page10 != null) {
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
-				Project project = createFromBlankProject(monitor);
+				Project project = createFromBlankProject(monitor, false);
 
 				boolean needAuth = page10.useAuthentication();
 				String wsURL = page10.getWsdlURL().toString();
@@ -252,7 +252,10 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 					Connector defaultConnector = project.getDefaultConnector();
 					project.setDefaultConnector(httpConnector);
 					defaultConnector.delete();
+					project.hasChanged = true;
 				}
+				
+				updateProjectTreeView();
 			}
 			
 			else if (page1 != null) {
@@ -278,6 +281,10 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 	}
 	
 	private Project createFromBlankProject(IProgressMonitor monitor) throws Exception {
+		return createFromBlankProject(monitor, true);
+	}
+	
+	private Project createFromBlankProject(IProgressMonitor monitor, boolean updateTreeView) throws Exception {
 		String newProjectName = projectName;
 		String oldProjectName = projectUrlParser.getProjectName();
 		
@@ -513,7 +520,9 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				monitor.setTaskName("Schemas updated");
 				monitor.worked(1);
 				
-				updateProjectTreeView();
+				if (updateTreeView) {
+					updateProjectTreeView();
+				}
 			} catch (Exception e) {
 				Engine.logDatabaseObjectManager.error("An error occured while updating transaction schemas", e);
 			}
