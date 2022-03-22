@@ -119,6 +119,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectFoundException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
 import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
@@ -1834,6 +1836,22 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			mb.setAppBuildMode(MobileBuilderBuildMode.fast);
 		}
 		
+		String endPointUrl = applicationEditorInput.application.getParent().getEndpoint();
+		if (endPointUrl.isBlank()) {
+			endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
+			if (endPointUrl.isBlank()) {
+				endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+			}
+		}
+		
+		String baseHref = "/convertigo/projects/"+ project.getName() +"/DisplayObjects/mobile/";
+		try {
+			baseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.substring(endPointUrl.lastIndexOf('/'))) + 
+								"/projects/"+ project.getName() +"/DisplayObjects/mobile/";
+		} catch (Exception e) {}
+		
+		final String appBaseHref = baseHref;
+		
 		String appName = applicationEditorInput.application.getParent().getComputedApplicationName();
 		prodJob = Job.create("Build in " + buildMode.label() + " mode for " + appName, monitor -> {
 			try {
@@ -1858,10 +1876,12 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "run", buildMode.command());
 				
 				List<String> cmd = pb.command();
-				// #183 add useless option to help terminateNode method to find the current path
 				cmd.add("--");
+				// #183 add useless option to help terminateNode method to find the current path
 				cmd.add("--output-path=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
-
+				// #393 add base href for project's web app
+				cmd.add("--base-href="+ appBaseHref);
+				
 				pb.redirectErrorStream(true);
 				pb.directory(ionicDir);
 				Process p = pb.start();
