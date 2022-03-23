@@ -49,8 +49,8 @@ public class WsReferenceComposite extends Composite {
 	
 	private static final List<String> soapUrls = Arrays.asList(
 					"http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL", 
-					"http://demo.convertigo.net/cems/projects/globalCompany_HR_WS/.wsl?wsdl", 
-					"http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
+					"https://demo.convertigo.net/convertigo/projects/globalCompany_HR_WS/.wsl?wsdl", 
+					"https://demo.convertigo.net/convertigo/projects/globalCompany_accounting_WS/.wsl?wsdl");
 	
 	private static final List<String> restUrls = Arrays.asList(
 			"https://petstore3.swagger.io/api/v3/openapi.yaml",
