@@ -1131,7 +1131,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		
 		showGrids = item = new ToolItem(toolbar, SWT.CHECK);
-		item.setToolTipText("Show Grids");
+		item.setToolTipText("Show all grids or current selected");
 		item.setImage(new Image(parent.getDisplay(), getClass().getResourceAsStream("/studio/grid_color_16x16.png")));
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override

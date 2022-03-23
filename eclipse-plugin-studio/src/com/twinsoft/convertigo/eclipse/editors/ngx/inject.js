@@ -86,16 +86,36 @@ class StyleUtils  {
 	}
 }
 
+var _c8o_showGrids_state = false;
+var _c8o_showGrids_previous = null;
 function _c8o_showGrids(bShow) {
+	_c8o_showGrids_state = bShow;
+	_c8o_showGridsApply();
+}
+
+function _c8o_showGridsApply() {
 	var su = new StyleUtils();
 	
-	if (bShow) {
-		su.addNewStyle("ion-grid", "border: solid 1px red",  "_c8o_style_");
-		su.addNewStyle("ion-row",  "border: solid 1px blue", "_c8o_style_");
-		su.addNewStyle("ion-col",  "border: solid 1px green","_c8o_style_");
+	su.removeStyle("_c8o_style_");
+	if (_c8o_showGrids_state) {
+		var nl = document.getElementsByClassName(_c8o_highlight_class_previous);
+		if (nl.length && nl.item(0).tagName.toLowerCase() == "ion-grid") {
+			var c = "." + _c8o_highlight_class_previous;
+			su.addNewStyle("ion-grid" + c, "border: solid 1px red",  "_c8o_style_");
+			su.addNewStyle("ion-grid" + c + ">ion-row",  "border: dotted 1px blue", "_c8o_style_");
+			su.addNewStyle("ion-grid" + c + ">ion-row>ion-col",  "border: solid 1px green","_c8o_style_");
+		} else {
+			su.addNewStyle("ion-grid", "border: solid 1px red",  "_c8o_style_");
+			su.addNewStyle("ion-row",  "border: dotted 1px blue", "_c8o_style_");
+			su.addNewStyle("ion-col",  "border: solid 1px green","_c8o_style_");
+		}
 		su.submitNewStyle();
-	} else {
-		su.removeStyle("_c8o_style_");
+		_c8o_showGrids_previous = _c8o_highlight_class_previous;
+		_c8o_remove_all_overlay();
+	} else if (_c8o_showGrids_previous != null) {
+		var cls = _c8o_showGrids_previous;
+		_c8o_showGrids_previous = null;
+		_c8o_highlight_class(cls);
 	}
 }
 
@@ -109,6 +129,10 @@ function _c8o_highlight_class(classname) {
 	} else {
 		_c8o_highlight_class_previous = null;
 		nl = [];
+	}
+	if (_c8o_showGrids_state) {
+		_c8o_showGridsApply();
+		return;
 	}
 	for (i = 0; i < nl.length; i++) {
 		var overlay = ol[i];
