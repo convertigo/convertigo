@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.engine.admin.services.mobiles.LaunchBuild;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
 import com.twinsoft.convertigo.engine.enums.ArchiveExportOption;
 import com.twinsoft.convertigo.engine.enums.MobileBuilderBuildMode;
+import com.twinsoft.convertigo.engine.enums.NgxBuilderBuildMode;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally;
 import com.twinsoft.convertigo.engine.localbuild.BuildLocally.Status;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
@@ -375,28 +376,33 @@ public class CLI {
 			File displayObjectsMobile = new File(project.getDirPath(), "DisplayObjects/mobile");
 			displayObjectsMobile.mkdirs();
 			
-			File assets = new File(displayObjectsMobile, "assets");
-			if (assets.exists() && assets.isDirectory()) {
-				Engine.logStudio.info("Handle application assets");
-				File privAssets = new File(ionicDir, "src/assets");
-				FileUtils.deleteDirectory(privAssets);
-				FileUtils.copyDirectory(assets, privAssets);
-			}
-			
 			for (File f: displayObjectsMobile.listFiles()) {
 				if (!f.getName().equals("assets")) {
 					com.twinsoft.convertigo.engine.util.FileUtils.deleteQuietly(f);
 				}
 			}
 			
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", "ionic:build:prod", "--nobrowser");
+			String endPointUrl = project.getMobileApplication().getEndpoint();
+			if (endPointUrl.isBlank()) {
+				endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_ENDPOINT);
+				if (endPointUrl.isBlank()) {
+					endPointUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+				}
+			}
+			
+			String appBaseHref = "/convertigo/projects/"+ project.getName() +"/DisplayObjects/mobile/";
+			try {
+				appBaseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.substring(endPointUrl.lastIndexOf('/'))) + 
+									"/projects/"+ project.getName() +"/DisplayObjects/mobile/";
+			} catch (Exception e) {}
+			
+			NgxBuilderBuildMode buildMode = "production".equals(mode) ? NgxBuilderBuildMode.prod : NgxBuilderBuildMode.fast;
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "run", buildMode.command(), "--nobrowser");
 			
 			List<String> cmd = pb.command();
 			cmd.add("--");
-			cmd.add("--progress=true");
-			cmd.add("--outputPath=./../../DisplayObjects/mobile/");
-			cmd.add("--baseHref=./");
-			cmd.add("--deployUrl=./");
+			// #393 add base href for project's web app
+			cmd.add("--base-href="+ appBaseHref);
 			Engine.logConvertigo.info("running command: " + cmd.toString());
 			
 			pb.environment().put("NODE_OPTIONS", "max-old-space-size=8192");
