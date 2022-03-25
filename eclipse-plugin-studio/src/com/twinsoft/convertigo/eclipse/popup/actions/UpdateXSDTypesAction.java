@@ -118,7 +118,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
 
 								document = connectorEditor.getLastGeneratedDocument();
 								if (document == null) {
-									ConvertigoPlugin.infoMessageBox("You should first generate de document data before trying to extract the XSD types.");
+									ConvertigoPlugin.infoMessageBox("You should first generate the document data before trying to extract the XSD types.");
 									return;
 								}
 
@@ -155,7 +155,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
 
 								document = connectorEditor.getLastGeneratedDocument();
 								if (document == null) {
-									ConvertigoPlugin.infoMessageBox("You should first generate de document data before trying to extract the XSD types.");
+									ConvertigoPlugin.infoMessageBox("You should first generate the document data before trying to extract the XSD types.");
 									return;
 								}
 
