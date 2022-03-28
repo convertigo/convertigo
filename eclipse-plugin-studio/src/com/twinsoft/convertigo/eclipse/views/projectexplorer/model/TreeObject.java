@@ -20,13 +20,16 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.engine.Engine;
 
 
 public abstract class TreeObject implements IAdaptable {
@@ -58,6 +61,16 @@ public abstract class TreeObject implements IAdaptable {
 	}
 
 	public TreeParent getParent() {
+		if (parent == null && !(this instanceof ProjectTreeObject)) {
+			String msg = "(TreeObject) parent == null\n"
+				+ "object: " + object + "\n";
+			try {
+				msg += "priority: " + ((DatabaseObject) object).priority + "\n";
+				msg += "qname: " + ((DatabaseObject) object).getQName() + "\n";
+			} catch (Exception e) {}
+			msg	+= "stack: " + Arrays.toString(Thread.currentThread().getStackTrace());
+			Engine.logEngine.warn(msg);
+		}
 		return parent;
 	}
 
