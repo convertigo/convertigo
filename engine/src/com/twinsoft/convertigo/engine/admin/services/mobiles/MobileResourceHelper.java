@@ -407,8 +407,13 @@ public class MobileResourceHelper {
 		write("files.json", json.toString());
 		
 		String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
-				
-		json = new JSONObject();
+		
+		String env = read("env.json");
+		try {
+			json = new JSONObject(env);
+		} catch (Exception e) {
+			json = new JSONObject();
+		}
 		json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
 		json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
 		json.put("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
@@ -427,7 +432,7 @@ public class MobileResourceHelper {
 		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
 		json.put("splashRemoveMode", mobileApplication.getSplashRemoveMode().name());
 		
-		write("env.json", json.toString());
+		write("env.json", json.toString(4));
 		
 		destDir.setLastModified(revision);
 		
@@ -529,6 +534,14 @@ public class MobileResourceHelper {
 		}
 		
 		return mobileApplication.getMobilePlatformByName(platform);
+	}
+	
+	private String read(String filename) {
+		try {
+			return FileUtils.readFileToString(new File(destDir, filename), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			return null;
+		}
 	}
 	
 	private void write(String filename, String content) throws IOException {
