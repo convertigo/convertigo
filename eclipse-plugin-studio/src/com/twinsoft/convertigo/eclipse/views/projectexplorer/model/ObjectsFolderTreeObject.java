@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IActionFilter;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+
 public class ObjectsFolderTreeObject extends FolderTreeObject implements IActionFilter {
 	
 	public static final int FOLDER_TYPE_INVISIBLE_ROOT = -1; 
@@ -185,6 +187,7 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 		setObject(folderName);
 	}
 
+	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		if (name.equals("folderType")) {
 			int iTest = Integer.parseInt(value);
@@ -196,5 +199,10 @@ public class ObjectsFolderTreeObject extends FolderTreeObject implements IAction
 			}
 		}
 		return super.testAttribute(target, name, value);
+	}
+	
+	@Override
+	public TreeParent getParent() {
+		return (folderType == FOLDER_TYPE_INVISIBLE_ROOT) ? parent : super.getParent();
 	}
 }

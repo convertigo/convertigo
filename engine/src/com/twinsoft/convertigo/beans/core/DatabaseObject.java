@@ -288,7 +288,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 	 * Retrieves the parent Object object.
 	 */
 	public DatabaseObject getParent() {
-		if (parent == null && !(this instanceof Project)) {
+		if (parent == null && !isImporting) {
 			String msg = "(DatabaseObject) parent == null\n"
 				+ "name: " + name + "\n"
 				+ "priority: " + priority + "\n"

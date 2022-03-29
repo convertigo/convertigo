@@ -24,6 +24,7 @@ import java.io.File;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IActionFilter;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class UnloadedProjectTreeObject extends TreeObject implements IActionFilter {
@@ -46,5 +47,10 @@ public class UnloadedProjectTreeObject extends TreeObject implements IActionFilt
 			return bTest;
 		}
 		return super.testAttribute(target, name, value);
+	}
+	
+	@Override
+	public TreeParent getParent() {
+		return parent;
 	}
 }
