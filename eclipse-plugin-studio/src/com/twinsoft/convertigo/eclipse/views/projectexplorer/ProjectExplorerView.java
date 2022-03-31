@@ -429,7 +429,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		};
-		viewer.setContentProvider(viewContentProvider);		
+		viewer.setContentProvider(viewContentProvider);
+		viewer.addSelectionChangedListener((event) -> {
+			packColumns();
+		});
 
 		// DND support
 		int ops = DND.DROP_COPY | DND.DROP_MOVE ;
