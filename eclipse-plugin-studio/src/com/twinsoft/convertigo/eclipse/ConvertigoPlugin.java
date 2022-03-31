@@ -482,7 +482,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				IEditorReference[] editorRefs = activePage.getEditorReferences();
 				for (int i = 0; i < editorRefs.length; i++) {
 					IEditorReference editorRef = (IEditorReference) editorRefs[i];
-					if ("org.eclipse.ui.internal.emptyEditorTab".equals(editorRef.getId())) {
+					String id = editorRef.getId();
+					if (id.startsWith("com.twinsoft.convertigo.eclipse.editors") || id.equals("org.eclipse.ui.internal.emptyEditorTab")) {
 						activePage.closeEditors(new IEditorReference[] {editorRef}, false);
 					}
 				}
