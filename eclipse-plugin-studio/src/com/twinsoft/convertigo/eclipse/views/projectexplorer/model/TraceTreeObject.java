@@ -124,7 +124,7 @@ public class TraceTreeObject extends TreeObject {
 	}
 	
 	public void play(boolean bReplace) {
-		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();		
+		ProjectExplorerView explorerView = getProjectExplorerView();
 		if (explorerView == null)
 			return;
 		

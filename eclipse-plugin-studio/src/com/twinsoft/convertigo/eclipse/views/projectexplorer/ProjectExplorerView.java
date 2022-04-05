@@ -429,6 +429,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		};
+		viewer.setData(ProjectExplorerView.class.getCanonicalName(), this);
 		viewer.setContentProvider(viewContentProvider);
 		viewer.addSelectionChangedListener((event) -> {
 			packColumns();
@@ -938,7 +939,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 						items = reduceWithCommonParents(items);
 						for (TreeObject item: items) {
-							viewer.refresh(item, true);							
+							viewer.refresh(item, true);
 						}
 					}
 
@@ -2485,8 +2486,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			Object[] treeArray = structuredSelection.toArray();
 			treeObjects = new TreeObject[structuredSelection.size()];
-			for (int i=0; i<treeObjects.length; i++)
-				treeObjects[i] = (TreeObject)treeArray[i];
+			for (int i = 0; i < treeObjects.length; i++) {
+				treeObjects[i] = ((TreeObject) treeArray[i]).check();
+			}
 		}
 		return treeObjects;
 	}

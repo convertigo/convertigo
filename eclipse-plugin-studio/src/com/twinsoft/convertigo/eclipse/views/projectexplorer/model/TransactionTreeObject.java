@@ -109,7 +109,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
     						httpTransaction.hasChanged = true;
 							
 		    		    	try {
-		    					ConvertigoPlugin.getDefault().getProjectExplorerView().updateTreeObject(this);
+		    					getProjectExplorerView().updateTreeObject(this);
 		    				} catch (Exception e) {
 		    					ConvertigoPlugin.logWarning(e, "Could not update in tree Transaction \""+databaseObject.getName()+"\" !");
 		    				}
@@ -147,7 +147,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
     		    		detectVariables( sqlTransaction.getSqlQuery(), oldValue,
     		    				sqlTransaction.getVariablesList());
     		    		
-    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+    					getProjectExplorerView().reloadTreeObject(this);
     				} catch (Exception e) {
     					ConvertigoPlugin.logWarning(e, "Could not reload in tree Transaction \""+databaseObject.getName()+"\" !");
     				}
@@ -205,7 +205,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 												httpVariable.setName(newVariableName);
 												httpVariable.hasChanged = true;
 												TreeObjectEvent toEvent = new TreeObjectEvent(vto, "name", oldVariableName, newVariableName, update);
-												ConvertigoPlugin.getDefault().getProjectExplorerView().fireTreeObjectPropertyChanged(toEvent);
+												getProjectExplorerView().fireTreeObjectPropertyChanged(toEvent);
 											}
 					    				} catch (Exception e) {
 					    					ConvertigoPlugin.logWarning(e, "Could not rename variable for Transaction \""+databaseObject.getName()+"\" !");
@@ -250,7 +250,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 						}
 						
 						if (httpTransaction.hasChanged) {
-							ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+							getProjectExplorerView().reloadTreeObject(this);
 						}
 						
     				} catch (Exception e) {
@@ -302,7 +302,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 						}
 	    				
 	    		    	try {
-	    					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+	    		    		getProjectExplorerView().reloadTreeObject(this);
 	    				} catch (Exception e) {
 	    					ConvertigoPlugin.logWarning(e, "Could not reload in tree Transaction \""+databaseObject.getName()+"\" !");
 	    				}
@@ -330,7 +330,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
     						httpTransaction.hasChanged = true;
     					}
     					
-    					ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+    					getProjectExplorerView().refreshTreeObject(this);
     				} catch (Exception e) {
     					ConvertigoPlugin.logWarning(e, "Could not reload in tree Transaction \""+databaseObject.getName()+"\" !");
     				}

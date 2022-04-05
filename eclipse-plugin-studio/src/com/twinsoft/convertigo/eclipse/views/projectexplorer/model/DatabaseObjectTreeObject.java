@@ -127,58 +127,58 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public String objectClassName = null;
 	public boolean canPaste = false;
 	
-    /**
-     * Indicates the inheritance status of the object.
-     */
-    public boolean isInherited = false;
-    
-    /**
-     * Indicates the detection status of the object.
-     */
-    public boolean isDetectedObject = false;
+	/**
+	 * Indicates the inheritance status of the object.
+	 */
+	public boolean isInherited = false;
+	
+	/**
+	 * Indicates the detection status of the object.
+	 */
+	public boolean isDetectedObject = false;
 
-    /**
-     * Indicates if the object is under version control.
-     */
-    public boolean isUnderCvs = false;
+	/**
+	 * Indicates if the object is under version control.
+	 */
+	public boolean isUnderCvs = false;
    
-    /**
-     * Indicates if the object is currently checked out.
-     */
-    public boolean isCheckedOut = false;
-    
-    /**
-     * Indicates if the object is currently enabled.
-     */
+	/**
+	 * Indicates if the object is currently checked out.
+	 */
+	public boolean isCheckedOut = false;
+	
+	/**
+	 * Indicates if the object is currently enabled.
+	 */
 	protected boolean isEnabled = true;
 
 	/**
 	 * Indicates if the object is currently the default one.
 	 */
 	public boolean isDefault = false;
-    
+	
 	private boolean isValueInProcess = false;
 	
 	public boolean isEditingComment = false;
 	
-    public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
-    	this(viewer,object,false);
+	public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
+		this(viewer,object,false);
 	}
 
-    public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
+	public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object);
 		isInherited = inherited;
-        hasBeenModified((object.bNew) || (object.hasChanged && !object.bNew));
+		hasBeenModified((object.bNew) || (object.hasChanged && !object.bNew));
 		getDescriptors();
 	}
 
-    @Override
-    public DatabaseObject getObject(){
-    	return (DatabaseObject) super.getObject();
-    }
-    
-    @Override
-    public void setParent(TreeParent parent) {
+	@Override
+	public DatabaseObject getObject(){
+		return (DatabaseObject) super.getObject();
+	}
+	
+	@Override
+	public void setParent(TreeParent parent) {
 		super.setParent(parent);
 		if (parent == null) {
 			ConvertigoPlugin.projectManager.getProjectExplorerView().removeTreeObjectListener(this);
@@ -204,8 +204,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public boolean acceptSymbols() {
 		return true;
 	}
-    
-    @Override
+	
+	@Override
 	public void update() {
 		if (isInherited) {
 			return;
@@ -214,22 +214,22 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		hasBeenModified(hasChanged());
 	}
 
-    @Override
+	@Override
 	protected void remove() {
 		if (isInherited) {
 			return;
 		}
 	}
 	
-    public boolean isEnabled() {
-    	return isEnabled;
-    }
-    
-    public void setEnabled(boolean isEnabled) {
-    	this.isEnabled = isEnabled;
-    }
-    
-    public void hasBeenModified(boolean bModified) {
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+	
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+	
+	public void hasBeenModified(boolean bModified) {
 		if (bModified && !isInherited) {
 			markAsChanged(true);
 			ProjectTreeObject projectTree = getProjectTreeObject();
@@ -238,7 +238,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 		}
 	}
-    
+	
 	public DatabaseObjectTreeObject getOwnerDatabaseObjectTreeObject() {
 		TreeObject owner = getParent();
 		while (owner!=null && !(owner instanceof DatabaseObjectTreeObject)) {
@@ -249,153 +249,153 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	
 	public BeanInfo databaseObjectBeanInfo = null;
 
-    private IPropertyDescriptor[] propertyDescriptors = null;
-    private BeanDescriptor databaseObjectBeanDescriptor = null;
-    private java.beans.PropertyDescriptor[] databaseObjectPropertyDescriptors;
+	private IPropertyDescriptor[] propertyDescriptors = null;
+	private BeanDescriptor databaseObjectBeanDescriptor = null;
+	private java.beans.PropertyDescriptor[] databaseObjectPropertyDescriptors;
 
-    protected void reloadDescriptors() {
-    	propertyDescriptors = null;
-    	getDescriptors();
-    }
-    
-    protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
-    	return new ArrayList<PropertyDescriptor>();
-    }
-    
-    
-    protected void getDescriptors() {
-    	if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
-    			databaseObjectPropertyDescriptors != null) {
-    		return;
-    	}
-    	
-    	DatabaseObject databaseObject = getObject();
+	protected void reloadDescriptors() {
+		propertyDescriptors = null;
+		getDescriptors();
+	}
+	
+	protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
+		return new ArrayList<PropertyDescriptor>();
+	}
+	
+	
+	protected void getDescriptors() {
+		if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
+				databaseObjectPropertyDescriptors != null) {
+			return;
+		}
+		
+		DatabaseObject databaseObject = getObject();
 		if ((!(databaseObject instanceof Project)) && (databaseObject.getParent() == null))
 			return; // No needs for removed object
 		
-        int len;
-        
-        java.beans.PropertyDescriptor databaseObjectPropertyDescriptor;
-        
-        try {
-        	BeanInfo bi = databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
-            databaseObjectBeanDescriptor = bi.getBeanDescriptor();
-            databaseObjectPropertyDescriptors = bi.getPropertyDescriptors();
-            len = databaseObjectPropertyDescriptors.length;
-        }
-        catch (Exception e) {
-            String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")"; 
-            ConvertigoPlugin.logException(e, message);
-	        return;
-        }
-        
-        List<PropertyDescriptor> vPropertyDescriptors = new ArrayList<PropertyDescriptor>(32);
-        
-        PropertyDescriptor propertyDescriptor;
-        
-        propertyDescriptor = new PropertyDescriptor(P_TYPE, "Type");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        propertyDescriptor = new PropertyDescriptor(P_JAVA_CLASS, "Java class");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        
-        propertyDescriptor = new PropertyDescriptor(P_NAME, "Name");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        
-        propertyDescriptor = new PropertyDescriptor(P_QNAME, "QName");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        propertyDescriptor = new PropertyDescriptor(P_PRIORITY, "Priority");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        propertyDescriptor = new PropertyDescriptor(P_DEPTH, "Depth");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        
-        propertyDescriptor = new PropertyDescriptor(P_EXPORTED, "Exported");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        
-        propertyDescriptor = new PropertyDescriptor(P_MIN_VERSION, "Min version");
-        propertyDescriptor.setCategory("Information");
-        vPropertyDescriptors.add(propertyDescriptor);
-        
-        // Get Dynamic properties
-        List<PropertyDescriptor> dynamicPropertyDescriptors = getDynamicPropertyDescriptors();
-        for (PropertyDescriptor dynamicPropertyDescriptor : dynamicPropertyDescriptors) {
-        	vPropertyDescriptors.add(dynamicPropertyDescriptor);
-        }
-        
-        // Get properties
-        boolean isExtractionRule = ( databaseObject instanceof com.twinsoft.convertigo.beans.core.ExtractionRule) ;
-        boolean isMaskedProperty = false;
-        
-        for (int i = 0 ; i < len ; i++) {
-            databaseObjectPropertyDescriptor = databaseObjectPropertyDescriptors[i];
-            
-            // Don't display hidden or expert propertyDescriptors.
-            if (databaseObjectPropertyDescriptor.isHidden()) {
-                continue;
-            }
-            
-            if (databaseObject.checkBlackListParentClass(databaseObjectPropertyDescriptor)) {
-            	continue;
-            }
-            
-            String name = databaseObjectPropertyDescriptor.getName();
-            String displayName = databaseObjectPropertyDescriptor.getDisplayName();
-            Method getter = databaseObjectPropertyDescriptor.getReadMethod();
-            Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
-            
-            // Only display read/write propertyDescriptors.
-            if (getter == null || setter == null) {
-                continue;
-            }
-            
-            Class<?> pec = null;
-            
-            try {
-                Object args[] = { };
-                Object value = getter.invoke(databaseObject, args);
-                
-                pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
+		int len;
+		
+		java.beans.PropertyDescriptor databaseObjectPropertyDescriptor;
+		
+		try {
+			BeanInfo bi = databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
+			databaseObjectBeanDescriptor = bi.getBeanDescriptor();
+			databaseObjectPropertyDescriptors = bi.getPropertyDescriptors();
+			len = databaseObjectPropertyDescriptors.length;
+		}
+		catch (Exception e) {
+			String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")"; 
+			ConvertigoPlugin.logException(e, message);
+			return;
+		}
+		
+		List<PropertyDescriptor> vPropertyDescriptors = new ArrayList<PropertyDescriptor>(32);
+		
+		PropertyDescriptor propertyDescriptor;
+		
+		propertyDescriptor = new PropertyDescriptor(P_TYPE, "Type");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		propertyDescriptor = new PropertyDescriptor(P_JAVA_CLASS, "Java class");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		
+		propertyDescriptor = new PropertyDescriptor(P_NAME, "Name");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		
+		propertyDescriptor = new PropertyDescriptor(P_QNAME, "QName");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		propertyDescriptor = new PropertyDescriptor(P_PRIORITY, "Priority");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		propertyDescriptor = new PropertyDescriptor(P_DEPTH, "Depth");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		
+		propertyDescriptor = new PropertyDescriptor(P_EXPORTED, "Exported");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		
+		propertyDescriptor = new PropertyDescriptor(P_MIN_VERSION, "Min version");
+		propertyDescriptor.setCategory("Information");
+		vPropertyDescriptors.add(propertyDescriptor);
+		
+		// Get Dynamic properties
+		List<PropertyDescriptor> dynamicPropertyDescriptors = getDynamicPropertyDescriptors();
+		for (PropertyDescriptor dynamicPropertyDescriptor : dynamicPropertyDescriptors) {
+			vPropertyDescriptors.add(dynamicPropertyDescriptor);
+		}
+		
+		// Get properties
+		boolean isExtractionRule = ( databaseObject instanceof com.twinsoft.convertigo.beans.core.ExtractionRule) ;
+		boolean isMaskedProperty = false;
+		
+		for (int i = 0 ; i < len ; i++) {
+			databaseObjectPropertyDescriptor = databaseObjectPropertyDescriptors[i];
+			
+			// Don't display hidden or expert propertyDescriptors.
+			if (databaseObjectPropertyDescriptor.isHidden()) {
+				continue;
+			}
+			
+			if (databaseObject.checkBlackListParentClass(databaseObjectPropertyDescriptor)) {
+				continue;
+			}
+			
+			String name = databaseObjectPropertyDescriptor.getName();
+			String displayName = databaseObjectPropertyDescriptor.getDisplayName();
+			Method getter = databaseObjectPropertyDescriptor.getReadMethod();
+			Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
+			
+			// Only display read/write propertyDescriptors.
+			if (getter == null || setter == null) {
+				continue;
+			}
+			
+			Class<?> pec = null;
+			
+			try {
+				Object args[] = { };
+				Object value = getter.invoke(databaseObject, args);
+				
+				pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 
-                // Now figure out how to display it...
-                isMaskedProperty = databaseObject.isMaskedProperty(Visibility.Studio, name);
-                propertyDescriptor = findPropertyDescriptor(name, displayName, databaseObjectPropertyDescriptor, value, pec, isExtractionRule, isMaskedProperty);
-                if (isMaskedProperty) {
-                	propertyDescriptor.setLabelProvider(new LabelProvider() {
-            			@Override
-            			public String getText(Object element) {
-            				String regexp = element instanceof String ? ".":"[^\\[\\]\\,]";
-            				String text = super.getText(element);
-            				return text.replaceAll(regexp, "*");
-            			}
-                    	
-                    });
-                }
-                vPropertyDescriptors.add(propertyDescriptor);
-            }
-            catch (Exception e) {
-                String message = "Error while introspecting parameter \"" + name + "\"";
-                ConvertigoPlugin.logException(e, message);
-                continue;
-            }
-        }
+				// Now figure out how to display it...
+				isMaskedProperty = databaseObject.isMaskedProperty(Visibility.Studio, name);
+				propertyDescriptor = findPropertyDescriptor(name, displayName, databaseObjectPropertyDescriptor, value, pec, isExtractionRule, isMaskedProperty);
+				if (isMaskedProperty) {
+					propertyDescriptor.setLabelProvider(new LabelProvider() {
+						@Override
+						public String getText(Object element) {
+							String regexp = element instanceof String ? ".":"[^\\[\\]\\,]";
+							String text = super.getText(element);
+							return text.replaceAll(regexp, "*");
+						}
+						
+					});
+				}
+				vPropertyDescriptors.add(propertyDescriptor);
+			}
+			catch (Exception e) {
+				String message = "Error while introspecting parameter \"" + name + "\"";
+				ConvertigoPlugin.logException(e, message);
+				continue;
+			}
+		}
 
-        propertyDescriptors = (IPropertyDescriptor[]) vPropertyDescriptors.toArray(new IPropertyDescriptor[] {});
+		propertyDescriptors = (IPropertyDescriptor[]) vPropertyDescriptors.toArray(new IPropertyDescriptor[] {});
 	}
-    
-    // A default validator which accept any value
-    /*protected ICellEditorValidator getValidator(String propertyName) {
-    	return new ICellEditorValidator() {
-        	public String isValid(Object value) {
-        		return null;
-        	}
-        };
-    }*/
+	
+	// A default validator which accept any value
+	/*protected ICellEditorValidator getValidator(String propertyName) {
+		return new ICellEditorValidator() {
+			public String isValid(Object value) {
+				return null;
+			}
+		};
+	}*/
 	protected ICellEditorValidator getValidator(String propertyName) {
 		return new ICellEditorValidator() {
 			@Override
@@ -426,144 +426,144 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return false;
 	}
-    
-    private PropertyDescriptor findPropertyDescriptor(final String name, 
-    													String displayName, 
-    													java.beans.PropertyDescriptor databaseObjectPropertyDescriptor, 
-    													Object value, 
-    													final Class<?> pec,
-    													boolean isExtractionRule,
-    													boolean isMasked) 
-    												throws IllegalAccessException, 
-    													NoSuchMethodException, 
-    													InvocationTargetException {
-    	PropertyDescriptor propertyDescriptor = null;
-    	
-    	// Primitive types
-        if (pec == null) {
+	
+	private PropertyDescriptor findPropertyDescriptor(final String name, 
+														String displayName, 
+														java.beans.PropertyDescriptor databaseObjectPropertyDescriptor, 
+														Object value, 
+														final Class<?> pec,
+														boolean isExtractionRule,
+														boolean isMasked) 
+													throws IllegalAccessException, 
+														NoSuchMethodException, 
+														InvocationTargetException {
+		PropertyDescriptor propertyDescriptor = null;
+		
+		// Primitive types
+		if (pec == null) {
 			if (value instanceof Boolean) {
-		    	String[] values = new String[] { "true", "false" };
+				String[] values = new String[] { "true", "false" };
 				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, values, this, name);
-		    }
+			}
 			else if (value instanceof Number) {
 				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
 //				propertyDescriptor.setValidator(new CompilableValueValidator(new NumberValidator(value.getClass())));
 			}
-        }
-    	// Complex types
-        else {
-        	if (PropertyWithValidatorEditor.class.isAssignableFrom(pec)) {
-        		propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-        		propertyDescriptor.setValidator(getValidator(name));
-        	}
-        	else if (PropertyWithTagsEditor.class.isAssignableFrom(pec)) {	    		
-    			String[] tags;
-    			if (PropertyWithDynamicTagsEditor.class.isAssignableFrom(pec)){
-    				Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-    				tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, getTags, this, name);
-    			} else if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)){
-    				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-    				tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
-    			} else {
-    				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class});
-    				tags = (String[]) getTags.invoke(null, new Object[] { this } );
-    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
-    			}
-   	        }
-        	else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
+		}
+		// Complex types
+		else {
+			if (PropertyWithValidatorEditor.class.isAssignableFrom(pec)) {
+				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
+				propertyDescriptor.setValidator(getValidator(name));
+			}
+			else if (PropertyWithTagsEditor.class.isAssignableFrom(pec)) {
+				String[] tags;
+				if (PropertyWithDynamicTagsEditor.class.isAssignableFrom(pec)){
+					Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+					tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
+					propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, getTags, this, name);
+				} else if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)){
+					Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+					tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
+					propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
+				} else {
+					Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class});
+					tags = (String[]) getTags.invoke(null, new Object[] { this } );
+					propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
+				}
+   			}
+			else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
 				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, tags, false);
-        	}
-        	else if (com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
+			}
+			else if (com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
 				propertyDescriptor = new com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor(name, displayName, tags, false);
 				((com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
-        	}
-        	else if (com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
+			}
+			else if (com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
 				propertyDescriptor = new com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor(name, displayName, tags, false);
 				((com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
-        	}
-        	else if (PropertyWithDynamicInfoEditor.class.isAssignableFrom(pec)) {
-        		Method getInfo = pec.getMethod("getInfo", new Class[] { DatabaseObjectTreeObject.class, String.class });
-        		propertyDescriptor = new DynamicInfoPropertyDescriptor(name, displayName, getInfo, this, name);
-        	}
-	        else if (AbstractDialogCellEditor.class.isAssignableFrom(pec)) {
+			}
+			else if (PropertyWithDynamicInfoEditor.class.isAssignableFrom(pec)) {
+				Method getInfo = pec.getMethod("getInfo", new Class[] { DatabaseObjectTreeObject.class, String.class });
+				propertyDescriptor = new DynamicInfoPropertyDescriptor(name, displayName, getInfo, this, name);
+			}
+			else if (AbstractDialogCellEditor.class.isAssignableFrom(pec)) {
 				propertyDescriptor = new PropertyDescriptor(name, displayName) {
 					@Override
-				    public CellEditor createPropertyEditor(Composite parent) {
-				    	try {
-					    	Constructor<?> constructor = pec.getConstructor(new Class[] { Composite.class });
-					    	AbstractDialogCellEditor editor = (AbstractDialogCellEditor) constructor.newInstance(new Object[] { parent });
-					    	editor.propertyDescriptor = this;
-					    	editor.databaseObjectTreeObject = DatabaseObjectTreeObject.this;
-					        if (getValidator() != null) {
-					            editor.setValidator(getValidator());
-					        }
+					public CellEditor createPropertyEditor(Composite parent) {
+						try {
+							Constructor<?> constructor = pec.getConstructor(new Class[] { Composite.class });
+							AbstractDialogCellEditor editor = (AbstractDialogCellEditor) constructor.newInstance(new Object[] { parent });
+							editor.propertyDescriptor = this;
+							editor.databaseObjectTreeObject = DatabaseObjectTreeObject.this;
+							if (getValidator() != null) {
+								editor.setValidator(getValidator());
+							}
 	
-					        return editor;
-				    	}
-				    	catch(Exception e) {
+							return editor;
+						}
+						catch(Exception e) {
 							ConvertigoPlugin.logException(e, "Unexpected exception");
-				    		return null;
-				    	}
-				    }
+							return null;
+						}
+					}
 				};
-	        }
-	        else if (Enum.class.isAssignableFrom(pec)) {
-	        	String[] tags = EnumUtils.toStrings(pec);
-	        	
-	        	propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
-	        }
-        }
+			}
+			else if (Enum.class.isAssignableFrom(pec)) {
+				String[] tags = EnumUtils.toStrings(pec);
+				
+				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
+			}
+		}
 
-        // Special cases
-        if (propertyDescriptor == null) {
-        	// editor for scriptable properties
-        	Object scriptable = databaseObjectPropertyDescriptor.getValue("scriptable");
-        	if ((scriptable != null) && (scriptable.equals(Boolean.TRUE)))
-        		propertyDescriptor = new ScriptablePropertyDescriptor(name, displayName);
-        	
-        	// editor for nillable properties
-        	if (propertyDescriptor == null) {
-        		Object nillable = databaseObjectPropertyDescriptor.getValue("nillable");
-            	if ((nillable != null) && (nillable.equals(Boolean.TRUE))) {
-            		int style = isMasked ? SWT.PASSWORD:SWT.NONE;
-            		if (value instanceof String) {
-            			propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, StringOrNullEditor.class, style);
-            		}
-            		else if (value instanceof XMLVector) {
-            			propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, ArrayOrNullEditor.class, style);
-            		}
-            	}
-        	}
-        	
-        	// editor for disabled properties
-        	Object disable = databaseObjectPropertyDescriptor.getValue("disable");
-        	if ((disable != null) && (disable.equals(Boolean.TRUE)))
-        		propertyDescriptor = new InfoPropertyDescriptor(name, displayName);
-        	
-        }
+		// Special cases
+		if (propertyDescriptor == null) {
+			// editor for scriptable properties
+			Object scriptable = databaseObjectPropertyDescriptor.getValue("scriptable");
+			if ((scriptable != null) && (scriptable.equals(Boolean.TRUE)))
+				propertyDescriptor = new ScriptablePropertyDescriptor(name, displayName);
+			
+			// editor for nillable properties
+			if (propertyDescriptor == null) {
+				Object nillable = databaseObjectPropertyDescriptor.getValue("nillable");
+				if ((nillable != null) && (nillable.equals(Boolean.TRUE))) {
+					int style = isMasked ? SWT.PASSWORD:SWT.NONE;
+					if (value instanceof String) {
+						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, StringOrNullEditor.class, style);
+					}
+					else if (value instanceof XMLVector) {
+						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, ArrayOrNullEditor.class, style);
+					}
+				}
+			}
+			
+			// editor for disabled properties
+			Object disable = databaseObjectPropertyDescriptor.getValue("disable");
+			if ((disable != null) && (disable.equals(Boolean.TRUE)))
+				propertyDescriptor = new InfoPropertyDescriptor(name, displayName);
+			
+		}
 
-    	// Default case
-    	if (propertyDescriptor == null) {
-    		propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-//    		propertyDescriptor.setValidator(new CompilableValueValidator(getValidator(name)));
-    	}
-        
-    	if (propertyDescriptor != null) {
-    		ICellEditorValidator validator = getValidator(name);
-    		if (validator != null) {
-        		propertyDescriptor.setValidator(validator);
-    		}
-    		
-    		final ILabelProvider labelProvider = propertyDescriptor.getLabelProvider();
-    		propertyDescriptor.setLabelProvider(new ILabelProvider() {
+		// Default case
+		if (propertyDescriptor == null) {
+			propertyDescriptor = new TextPropertyDescriptor(name, displayName);
+//			propertyDescriptor.setValidator(new CompilableValueValidator(getValidator(name)));
+		}
+		
+		if (propertyDescriptor != null) {
+			ICellEditorValidator validator = getValidator(name);
+			if (validator != null) {
+				propertyDescriptor.setValidator(validator);
+			}
+			
+			final ILabelProvider labelProvider = propertyDescriptor.getLabelProvider();
+			propertyDescriptor.setLabelProvider(new ILabelProvider() {
 				
 				@Override
 				public void removeListener(ILabelProviderListener listener) {
@@ -654,7 +654,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		return null;
 	}
 	
-    @SuppressWarnings("rawtypes")
+	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
 //		if (adapter.equals(IContentOutlinePage.class)) {
 //			if (userContentOutline == null) {
@@ -673,23 +673,23 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public boolean hasChanged() {
-        return getObject().hasChanged;
-    }
-    
+		return getObject().hasChanged;
+	}
+	
 	@Override
 	public String getName() {
 		return getObject().getName();
 	}
 	
-    public void markAsChanged(boolean hasChanged) {
-    	if (hasChanged) {
-    		getObject().changed();
-    	} else {
-    		getObject().hasChanged = false;
-    	}
-    }
-    
-    public Object getEditableValue() {
+	public void markAsChanged(boolean hasChanged) {
+		if (hasChanged) {
+			getObject().changed();
+		} else {
+			getObject().hasChanged = false;
+		}
+	}
+	
+	public Object getEditableValue() {
 		return getObject();
 	}
 
@@ -726,128 +726,128 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		else {
 			try {
 				java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
-	            if (databaseObjectPropertyDescriptor == null) {
-	            	return null;
-	            }
-	            
-	            Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
+				if (databaseObjectPropertyDescriptor == null) {
+					return null;
+				}
 				
-	            Method getter = databaseObjectPropertyDescriptor.getReadMethod();
+				Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 				
-	            Object compilablePropertySourceValue = databaseObject.getCompilablePropertySourceValue(propertyName);
-	            Object value;
-	            if (compilablePropertySourceValue == null) {
-		            Object args[] = { };
-		            value = getter.invoke(databaseObject, args);
-	            }
-	            else {
-	            	value = compilablePropertySourceValue;
-	            }
-	            
-	            boolean done = false;
-	            
-	            if (value instanceof String) {
-		            PropertyDescriptor propertyDescriptor = findPropertyDescriptor(id);
-		            if (propertyDescriptor instanceof DynamicComboBoxPropertyDescriptor) {
-		            	DynamicComboBoxPropertyDescriptor pd = (DynamicComboBoxPropertyDescriptor) propertyDescriptor;
-		            	value = pd.setValue((String) value);
-		            	done = true;
-		            }
-	            }
-	            
-	            if (done) {
-	            	// do nothing
-	            } else if (value instanceof Boolean) {
-	            	value = ((Boolean) value).booleanValue() ? Integer.valueOf(0) : Integer.valueOf(1); 
-	            }
-	            else if ((pec != null) && (PropertyWithTagsEditor.class.isAssignableFrom(pec) || Enum.class.isAssignableFrom(pec))) {
-	            	if (!(value instanceof Integer)) {
-		        		if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
-		        			Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-		        			String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
+				Method getter = databaseObjectPropertyDescriptor.getReadMethod();
+				
+				Object compilablePropertySourceValue = databaseObject.getCompilablePropertySourceValue(propertyName);
+				Object value;
+				if (compilablePropertySourceValue == null) {
+					Object args[] = { };
+					value = getter.invoke(databaseObject, args);
+				}
+				else {
+					value = compilablePropertySourceValue;
+				}
+				
+				boolean done = false;
+				
+				if (value instanceof String) {
+					PropertyDescriptor propertyDescriptor = findPropertyDescriptor(id);
+					if (propertyDescriptor instanceof DynamicComboBoxPropertyDescriptor) {
+						DynamicComboBoxPropertyDescriptor pd = (DynamicComboBoxPropertyDescriptor) propertyDescriptor;
+						value = pd.setValue((String) value);
+						done = true;
+					}
+				}
+				
+				if (done) {
+					// do nothing
+				} else if (value instanceof Boolean) {
+					value = ((Boolean) value).booleanValue() ? Integer.valueOf(0) : Integer.valueOf(1); 
+				}
+				else if ((pec != null) && (PropertyWithTagsEditor.class.isAssignableFrom(pec) || Enum.class.isAssignableFrom(pec))) {
+					if (!(value instanceof Integer)) {
+						if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
+							Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+							String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
 	
-	        				int i;
-	        				for (i = 0 ; i < tags.length ; i++) {
-	        					if (tags[i].equals(value)) {
-	        						value = Integer.valueOf(i);
-	        						break;
-	        					}
-	        				}
+							int i;
+							for (i = 0 ; i < tags.length ; i++) {
+								if (tags[i].equals(value)) {
+									value = Integer.valueOf(i);
+									break;
+								}
+							}
 	
-	        				// if we did not find our string in the tag list set value to index 0
-	        				if (i == tags.length) {
-	        					value = Integer.valueOf(0);
-	        					String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
-	        					ConvertigoPlugin.logWarning(message);
-	        				}
-		        		} else if (Enum.class.isAssignableFrom(pec)) {
-		        			value = Integer.valueOf(((Enum<?>) value).ordinal());
-		        		} else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
-		        			// nothing to do: value is a string
-		        		}
-	            	}
-	        		if ((EmulatorTechnologyEditor.class.equals(pec))) {
-	            		Method getEmulatorClassNames = pec.getDeclaredMethod("getEmulatorClassNames", new Class[] { DatabaseObjectTreeObject.class });
-	            		String[] emulatorClassNames = (String[]) getEmulatorClassNames.invoke(null, new Object[] { this } );
-	        			
-		        		for (int i = 0 ; i < emulatorClassNames.length ; i++) {
-	        				if (emulatorClassNames[i].equals(value)) {
-	        					value = Integer.valueOf(i);
-	        					break;
-	        				}
-	        			}
-	        		}
-	        		// else simply return the combo index
-	            }
-	            else if (value instanceof Number) {
-	            	value = ((Number) value).toString(); 
-	            }
-	            
-	            // Get property's nillable value
-	            if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("nillable"))) {
-	            	try {
-		            	Boolean isNull = ((INillableProperty)databaseObject).isNullProperty(propertyName);
-		            	PropertyDescriptor pd = findPropertyDescriptor(propertyName);
-		            	if ((pd != null) && (pd instanceof DataOrNullPropertyDescriptor)) {
-		            		((DataOrNullPropertyDescriptor)pd).setNullProperty(isNull);
-			            	if (isNull) {
-			            		// Overrides value by fake one used by property editor
-			            		if (value instanceof String)
-			            			value = "<value is null>";
-			            		if (value instanceof XMLVector) {
-			            			XMLVector<Object> xmlv = new XMLVector<Object>();
-			            			xmlv.add("null");
-			            			value = xmlv;
-			            		}
-			            	}
-		            	}
-	            	}
-	            	catch (Exception e) {
-	                    String message = "Error while trying to retrieve 'isNull' attribute of property \"" + propertyName + "\" for the object \"" + databaseObject.getName() + "\".";
-	                    ConvertigoPlugin.logException(e, message);
-	            	}
-	            }
-	            
+							// if we did not find our string in the tag list set value to index 0
+							if (i == tags.length) {
+								value = Integer.valueOf(0);
+								String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
+								ConvertigoPlugin.logWarning(message);
+							}
+						} else if (Enum.class.isAssignableFrom(pec)) {
+							value = Integer.valueOf(((Enum<?>) value).ordinal());
+						} else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
+							// nothing to do: value is a string
+						}
+					}
+					if ((EmulatorTechnologyEditor.class.equals(pec))) {
+						Method getEmulatorClassNames = pec.getDeclaredMethod("getEmulatorClassNames", new Class[] { DatabaseObjectTreeObject.class });
+						String[] emulatorClassNames = (String[]) getEmulatorClassNames.invoke(null, new Object[] { this } );
+						
+						for (int i = 0 ; i < emulatorClassNames.length ; i++) {
+							if (emulatorClassNames[i].equals(value)) {
+								value = Integer.valueOf(i);
+								break;
+							}
+						}
+					}
+					// else simply return the combo index
+				}
+				else if (value instanceof Number) {
+					value = ((Number) value).toString(); 
+				}
+				
+				// Get property's nillable value
+				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("nillable"))) {
+					try {
+						Boolean isNull = ((INillableProperty)databaseObject).isNullProperty(propertyName);
+						PropertyDescriptor pd = findPropertyDescriptor(propertyName);
+						if ((pd != null) && (pd instanceof DataOrNullPropertyDescriptor)) {
+							((DataOrNullPropertyDescriptor)pd).setNullProperty(isNull);
+							if (isNull) {
+								// Overrides value by fake one used by property editor
+								if (value instanceof String)
+									value = "<value is null>";
+								if (value instanceof XMLVector) {
+									XMLVector<Object> xmlv = new XMLVector<Object>();
+									xmlv.add("null");
+									value = xmlv;
+								}
+							}
+						}
+					}
+					catch (Exception e) {
+						String message = "Error while trying to retrieve 'isNull' attribute of property \"" + propertyName + "\" for the object \"" + databaseObject.getName() + "\".";
+						ConvertigoPlugin.logException(e, message);
+					}
+				}
+				
 				// Check for property normalized value if needed
 				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(DatabaseObject.PROPERTY_XMLNAME))) {
 					// Ignore compilable property source value
 					if (compilablePropertySourceValue == null) {
-		        		if (value instanceof String) {
-		        			if (!XMLUtils.checkName(value.toString())) {
-			                    String message = "Property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" isn't XML compliant.";
-			                    ConvertigoPlugin.logError(message, Boolean.TRUE);
-		        			}
-		        		}
+						if (value instanceof String) {
+							if (!XMLUtils.checkName(value.toString())) {
+								String message = "Property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" isn't XML compliant.";
+								ConvertigoPlugin.logError(message, Boolean.TRUE);
+							}
+						}
 					}
 				}
-	            
-	            return value;
-            }
-            catch (Exception e) {
-                String message = "Error while trying to retrieve property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
-                ConvertigoPlugin.logException(e, message);
-                return null;
-            }
+				
+				return value;
+			}
+			catch (Exception e) {
+				String message = "Error while trying to retrieve property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
+				ConvertigoPlugin.logException(e, message);
+				return null;
+			}
 		}
 	}
 
@@ -889,7 +889,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		try {
 			isValueInProcess = true;
 			java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
-	        TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
+			TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
 
 			if (databaseObjectPropertyDescriptor == null) return;
 
@@ -918,9 +918,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				});
 				shell.open();
 				while (!shell.isDisposed()) {
-				    if (!display.readAndDispatch()) {
-				        display.sleep();
-				    }
+					if (!display.readAndDispatch()) {
+						display.sleep();
+					}
 				}
 				
 				if (newValue[0] != null) {
@@ -974,34 +974,34 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				
 			}
 			
-    		if (pec != null && propertyClass != int.class && propertyClass != Integer.class && value instanceof Integer) {
-    			Object[] values = null;
+			if (pec != null && propertyClass != int.class && propertyClass != Integer.class && value instanceof Integer) {
+				Object[] values = null;
 
-    			try {
+				try {
 					int index = (Integer) value;
-    				if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
-    					Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-    					values = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
-    					value = values[index];
-    				} else if (Enum.class.isAssignableFrom(pec)) {
-    					values = (Enum[]) pec.getMethod("values").invoke(null);
-    					value = index < values.length ? values[index] : values[0];
-    					if (propertyClass == String.class) {
-    						value = value.toString();
-    					}
-    				}
-    			} catch (ArrayIndexOutOfBoundsException e) {
-    				value = values.length > 0 ? values[0] : "";
-    				String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
-    				ConvertigoPlugin.logWarning(message);
-    			}
-            }
-    		if ((EmulatorTechnologyEditor.class.equals(pec))) {
-        		Method getEmulatorClassNames = pec.getDeclaredMethod("getEmulatorClassNames", new Class[] { DatabaseObjectTreeObject.class });
-        		String[] emulatorClassNames = (String[]) getEmulatorClassNames.invoke(null, new Object[] { this } );
+					if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
+						Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+						values = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
+						value = values[index];
+					} else if (Enum.class.isAssignableFrom(pec)) {
+						values = (Enum[]) pec.getMethod("values").invoke(null);
+						value = index < values.length ? values[index] : values[0];
+						if (propertyClass == String.class) {
+							value = value.toString();
+						}
+					}
+				} catch (ArrayIndexOutOfBoundsException e) {
+					value = values.length > 0 ? values[0] : "";
+					String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
+					ConvertigoPlugin.logWarning(message);
+				}
+			}
+			if ((EmulatorTechnologyEditor.class.equals(pec))) {
+				Method getEmulatorClassNames = pec.getDeclaredMethod("getEmulatorClassNames", new Class[] { DatabaseObjectTreeObject.class });
+				String[] emulatorClassNames = (String[]) getEmulatorClassNames.invoke(null, new Object[] { this } );
 
-        		value = emulatorClassNames[((Integer) value).intValue()];
-            }
+				value = emulatorClassNames[((Integer) value).intValue()];
+			}
 			
 			// Must rename bean when normalizedScreenClassName changed
 			if (databaseObject instanceof ScHandlerStatement) {
@@ -1020,91 +1020,91 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				}
 			}
 			
-            // Set property's nillable value
+			// Set property's nillable value
 			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("nillable"))) {
-            	try {
-            		PropertyDescriptor pd = findPropertyDescriptor(propertyName);
-            		if ((pd != null) && (pd instanceof DataOrNullPropertyDescriptor)) {
-            			Boolean isNull = ((DataOrNullPropertyDescriptor)pd).isNullProperty();
-		            	((INillableProperty)databaseObject).setNullProperty(propertyName, isNull);
-		            	if (isNull) {
-		            		// Overrides fake editor value to real bean's one
-		            		if (value instanceof String)
-		            			value = "";
-		            		if (value instanceof XMLVector)
-		            			value = new XMLVector<Object>();
-		            	}
-            		}
-            	}
-            	catch (Exception e) {
-                    String message = "Error while trying to set 'isNull' attribute of property \"" + propertyName + "\" for the object \"" + databaseObject.getName() + "\".";
-                    ConvertigoPlugin.logException(e, message);
-            	}
-            }
+				try {
+					PropertyDescriptor pd = findPropertyDescriptor(propertyName);
+					if ((pd != null) && (pd instanceof DataOrNullPropertyDescriptor)) {
+						Boolean isNull = ((DataOrNullPropertyDescriptor)pd).isNullProperty();
+						((INillableProperty)databaseObject).setNullProperty(propertyName, isNull);
+						if (isNull) {
+							// Overrides fake editor value to real bean's one
+							if (value instanceof String)
+								value = "";
+							if (value instanceof XMLVector)
+								value = new XMLVector<Object>();
+						}
+					}
+				}
+				catch (Exception e) {
+					String message = "Error while trying to set 'isNull' attribute of property \"" + propertyName + "\" for the object \"" + databaseObject.getName() + "\".";
+					ConvertigoPlugin.logException(e, message);
+				}
+			}
 			
 			// Check XML name property value if needed
 			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(DatabaseObject.PROPERTY_XMLNAME))) {
-        		if (value instanceof String) {
-        			String sValue = value.toString();
-        			if (!XMLUtils.checkName(sValue)) {
-        				String message = "The property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" is not a valid XML name: " + sValue;
-	                    ConvertigoPlugin.logWarning(message);
-	                    return;
-        			}
-        		}
+				if (value instanceof String) {
+					String sValue = value.toString();
+					if (!XMLUtils.checkName(sValue)) {
+						String message = "The property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" is not a valid XML name: " + sValue;
+						ConvertigoPlugin.logWarning(message);
+						return;
+					}
+				}
 			}
 			
-	        Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
+			Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
 			
-            Object args[] = { value };
-	        setter.invoke(databaseObject, args);
-	        
-	        hasBeenModified(true);
-	      
+			Object args[] = { value };
+			setter.invoke(databaseObject, args);
+			
+			hasBeenModified(true);
+		  
 			// Set treeObject isEnabled attribute value (Fix #1129)
 			if (propertyName.equals("isEnabled") || propertyName.equals("isEnable")) {
 				setEnabled(value.equals(true));
 			}
 			
-        	viewer.update(this, null);
-        	// Fix #2528 #2533 : commented next line because of stack overflow on multiselection
-	        //viewer.setSelection(viewer.getSelection(),true);
-	      
-	       //update property view and display the new value for zone editor
-	        if (pec !=null)
-	        {
-		        PropertySheet propertySheet = ConvertigoPlugin.getDefault().getPropertiesView();
-		        if (propertySheet != null && pec.getName().contains("ZoneEditor")) {
-		        	Tree tree = (Tree) propertySheet.getCurrentPage().getControl();
-		        	TreeItem[] treeItems = tree.getSelection();
-		        	for (int i = 0; i < treeItems.length; i++) {
-		        		TreeItem treeItem = treeItems[i];
-		        		if (treeItem.getText().equals(databaseObjectPropertyDescriptor.getDisplayName())) {
-		        			PropertySheetEntry propEntry=(PropertySheetEntry)treeItem.getData();
-		        			propEntry.getEditor(tree).setValue(value);
-		        			propEntry.setValues(args);
-		        		}
-		        	}
-		        	
-		        	tree.update();
-		        }
-	        }
-	        
+			viewer.update(this, null);
+			// Fix #2528 #2533 : commented next line because of stack overflow on multiselection
+			//viewer.setSelection(viewer.getSelection(),true);
+		  
+		   //update property view and display the new value for zone editor
+			if (pec !=null)
+			{
+				PropertySheet propertySheet = ConvertigoPlugin.getDefault().getPropertiesView();
+				if (propertySheet != null && pec.getName().contains("ZoneEditor")) {
+					Tree tree = (Tree) propertySheet.getCurrentPage().getControl();
+					TreeItem[] treeItems = tree.getSelection();
+					for (int i = 0; i < treeItems.length; i++) {
+						TreeItem treeItem = treeItems[i];
+						if (treeItem.getText().equals(databaseObjectPropertyDescriptor.getDisplayName())) {
+							PropertySheetEntry propEntry=(PropertySheetEntry)treeItem.getData();
+							propEntry.getEditor(tree).setValue(value);
+							propEntry.setValues(args);
+						}
+					}
+					
+					tree.update();
+				}
+			}
+			
 			Engine.logStudio.info("---------------------- SetPropertyValue started: "+ propertyName + "----------------------");
 			if (mb != null) {
 				mb.prepareBatchBuild();
 			}
 			BatchOperationHelper.start();
 			
-	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, propertyName, oldValue, value);
-	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
-	        
-	        BatchOperationHelper.stop();
-        }
-        catch (Exception e) {
-            String message = "Error while trying to set property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
-            ConvertigoPlugin.logException(e, message);
-        }
+			TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, propertyName, oldValue, value);
+			ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+			
+			BatchOperationHelper.stop();
+		}
+		catch (Exception e) {
+			String message = "Error while trying to set property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
+			ConvertigoPlugin.logException(e, message);
+		}
 		finally {
 			BatchOperationHelper.cancel();
 			Engine.logStudio.info("---------------------- SetPropertyValue ended:   "+ propertyName + "----------------------");
@@ -1197,7 +1197,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			return (ProjectTreeObject) this;
 		}
 		
-		TreeParent treeParent = parent;
+		TreeParent treeParent = getParent();
 		while (treeParent != null) {
 			if (treeParent instanceof ProjectTreeObject) {
 				return (ProjectTreeObject) treeParent;
@@ -1211,7 +1211,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public DatabaseObjectTreeObject getParentDatabaseObjectTreeObject() {
 		DatabaseObjectTreeObject databaseObjectTreeObject = null;
 		
-		TreeParent treeParent = parent;
+		TreeParent treeParent = getParent();
 		while ((treeParent != null) && (!(treeParent instanceof DatabaseObjectTreeObject)))
 			treeParent = treeParent.getParent();
 		
@@ -1294,7 +1294,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						if (pool.getStartTransaction().equals(treeObject.getName())) {
 							pool.setStartTransaction("");
 							hasBeenModified(true);
-							viewer.refresh();							
+							viewer.refresh();
 						}
 					}
 				}
@@ -1304,7 +1304,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						if (pool.getInitialScreenClass().equals(treeObject.getName())) {
 							pool.setInitialScreenClass("");
 							hasBeenModified(true);
-							viewer.refresh();							
+							viewer.refresh();
 						}
 					}
 				}
@@ -1341,7 +1341,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						if (pool.getStartTransaction().equals(oldValue)) {
 							pool.setStartTransaction(newValue.toString());
 							hasBeenModified(true);
-							viewer.refresh();							
+							viewer.refresh();
 						}
 					}
 				}
@@ -1352,7 +1352,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						if (pool.getInitialScreenClass().equals(oldValue)) {
 							pool.setInitialScreenClass(newValue.toString());
 							hasBeenModified(true);
-							viewer.refresh();							
+							viewer.refresh();
 						}
 					}
 				}
@@ -1377,7 +1377,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		return null;
 	}
 	
-	private DatabaseObjectTreeObject findDatabaseObjectTreeObjectChild(TreeObject tree, DatabaseObject databaseObject) {
+	private static DatabaseObjectTreeObject findDatabaseObjectTreeObjectChild(TreeObject tree, DatabaseObject databaseObject) {
 		if (tree instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) tree;
 			if (databaseObjectTreeObject.getObject().equals(databaseObject)) {
@@ -1420,5 +1420,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		return false;
 	}
 	
+	@Override
+	public DatabaseObjectTreeObject check() {
+		if (parent != null) {
+			return this;
+		}
+		DatabaseObjectTreeObject dboTree = (DatabaseObjectTreeObject) getProjectExplorerView().findTreeObjectByUserObject(getObject());
+		return dboTree != null ? dboTree : this;
+	}
 	
+	@Override
+	public TreeParent getParent() {
+		return parent == null ? check().parent : parent;
+	}
 }

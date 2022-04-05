@@ -273,7 +273,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (targetObject instanceof TreeObject) {
 				TreeObject targetTreeObject = (TreeObject)targetObject;
 				if (targetTreeObject != null) {
-					ProjectExplorerView	explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+					ProjectExplorerView	explorerView = targetTreeObject.getProjectExplorerView();
 					
 					Document document = null;
 					try {

@@ -133,7 +133,7 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 			
 			if (change) try {
 				hasBeenModified(true);
-				ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+				getProjectExplorerView().refreshTreeObject(this);
 			} catch (Exception e) {
 				ConvertigoPlugin.logWarning(e, "Could not refresh in tree ScHandlerStatement \""+statement.getName()+"\" !");
 			}
@@ -224,7 +224,7 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 		
 		if(change) try {
 				hasBeenModified(true);
-				ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+				getProjectExplorerView().refreshTreeObject(this);
 		} catch (Exception e) {
 			ConvertigoPlugin.logWarning(e, "Could not refresh in tree ScHandlerStatement \""+statement.getName()+"\" !");
 		}

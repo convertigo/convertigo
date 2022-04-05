@@ -173,19 +173,19 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 	@Override
 	protected void rename_(String newName, boolean bDialog) throws ConvertigoException, CoreException {
-    	Project project = getObject();
+		Project project = getObject();
 		String oldName = project.getName();
-    	
-        // First verify if an object with the same name exists
-    	if (Engine.theApp.databaseObjectsManager.existsProject(newName)) {
+		
+		// First verify if an object with the same name exists
+		if (Engine.theApp.databaseObjectsManager.existsProject(newName)) {
 			throw new ConvertigoException("The project \"" + newName + "\" already exist!");
-    	}
-    	
-    	// save only objects which have changed
-   		save(bDialog);
-    	
-    	Engine.theApp.databaseObjectsManager.renameProject(project, newName, true);
-        
+		}
+		
+		// save only objects which have changed
+		save(bDialog);
+		
+		Engine.theApp.databaseObjectsManager.renameProject(project, newName, true);
+		
 		// delete old resources plugin
 		ConvertigoPlugin.getDefault().deleteProjectPluginResource(oldName);
 		// create new resources plugin
@@ -213,7 +213,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		boolean ret = false;
 		
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		
 		Shell shell = display.getActiveShell();
 		if (shell != null) {
@@ -859,7 +859,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						if (allProjects.contains(targetProjectName)) {
 							Display.getDefault().syncExec(() -> {
 								try {
-									ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+									ProjectExplorerView pev = getProjectExplorerView();
 									TreeObject obj = pev.getProjectRootObject(targetProjectName);
 									if (obj != null && obj instanceof UnloadedProjectTreeObject) {
 										pev.loadProject(((UnloadedProjectTreeObject) obj));
@@ -944,7 +944,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								
 								try {
 									if (doReload || autoCreate.isEmpty()) {
-										ProjectExplorerView pev = ConvertigoPlugin.getDefault().getProjectExplorerView();
+										ProjectExplorerView pev = getProjectExplorerView();
 										pev.reloadTreeObject(ProjectTreeObject.this);
 									}
 								} catch (Exception e) {

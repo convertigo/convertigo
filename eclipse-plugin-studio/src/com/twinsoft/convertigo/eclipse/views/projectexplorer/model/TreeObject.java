@@ -20,16 +20,14 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.engine.Engine;
 
 
 public abstract class TreeObject implements IAdaptable {
@@ -61,16 +59,6 @@ public abstract class TreeObject implements IAdaptable {
 	}
 
 	public TreeParent getParent() {
-		if (parent == null && !(this instanceof ProjectTreeObject)) {
-			String msg = "(TreeObject) parent == null\n"
-				+ "object: " + object + "\n";
-			try {
-				msg += "priority: " + ((DatabaseObject) object).priority + "\n";
-				msg += "qname: " + ((DatabaseObject) object).getQName() + "\n";
-			} catch (Exception e) {}
-			msg	+= "stack: " + Arrays.toString(Thread.currentThread().getStackTrace());
-			Engine.logEngine.warn(msg);
-		}
 		return parent;
 	}
 
@@ -106,8 +94,8 @@ public abstract class TreeObject implements IAdaptable {
 			size = v.size();
 			j = size-1;
 			parents = new TreeParent[size];
-			for (i=0;i<size;i++) {
-				parents[i] = (TreeParent)v.get(j--);				
+			for (i = 0; i < size; i++) {
+				parents[i] = (TreeParent) v.get(j--);
 			}
 		}
 		catch (Exception e) {}
@@ -136,12 +124,12 @@ public abstract class TreeObject implements IAdaptable {
 		ProjectTreeObject projectTreeObject = null;
 		
 		if (this instanceof ProjectTreeObject)
-			projectTreeObject = (ProjectTreeObject)this;
+			projectTreeObject = (ProjectTreeObject) this;
 		else {
 			TreeParent treeParent = parent;
 			while (treeParent != null) {
 				if (treeParent instanceof ProjectTreeObject) {
-					projectTreeObject = (ProjectTreeObject)treeParent;
+					projectTreeObject = (ProjectTreeObject) treeParent;
 					break;
 				}
 				treeParent = treeParent.getParent();
@@ -158,12 +146,12 @@ public abstract class TreeObject implements IAdaptable {
 			return null;
 			
 		if (this instanceof ConnectorTreeObject)
-			connectorTreeObject = (ConnectorTreeObject)this;
+			connectorTreeObject = (ConnectorTreeObject) this;
 		else {
 			TreeParent treeParent = parent;
 			while (treeParent != null) {
 				if (treeParent instanceof ConnectorTreeObject) {
-					connectorTreeObject = (ConnectorTreeObject)treeParent;
+					connectorTreeObject = (ConnectorTreeObject) treeParent;
 					break;
 				}
 				treeParent = treeParent.getParent();
@@ -173,7 +161,7 @@ public abstract class TreeObject implements IAdaptable {
 		return connectorTreeObject;
 	}
 	
-	
+	@Override
 	public String toString() {
 		return object.toString();
 	}
@@ -205,5 +193,13 @@ public abstract class TreeObject implements IAdaptable {
 			} catch (Exception e) {}
 		}
 		return false;
+	}
+	
+	public TreeObject check() {
+		return this;
+	}
+	
+	public ProjectExplorerView getProjectExplorerView() {
+		return (ProjectExplorerView) viewer.getData(ProjectExplorerView.class.getCanonicalName());
 	}
 }

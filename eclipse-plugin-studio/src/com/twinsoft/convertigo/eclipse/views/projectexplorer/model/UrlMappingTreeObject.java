@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.UrlMapping;
 import com.twinsoft.convertigo.beans.core.UrlMappingOperation;
@@ -85,7 +86,7 @@ public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 							}
 						}
 						if (needReload) {
-							ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+							getProjectExplorerView().reloadTreeObject(this);
 						}
 					}
 				}
@@ -194,7 +195,7 @@ public class UrlMappingTreeObject extends DatabaseObjectTreeObject {
 	    		    				}
 	    		    			}
     		    			
-	    		    			ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+	    		    			getProjectExplorerView().reloadTreeObject(this);
 							}
     		    		}
     		    		

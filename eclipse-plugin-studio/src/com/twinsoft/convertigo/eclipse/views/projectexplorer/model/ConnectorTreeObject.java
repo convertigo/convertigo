@@ -171,7 +171,7 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 						connector.setEndTransactionName("");
 
 						try {
-							ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+							getProjectExplorerView().refreshTreeObject(this);
 						} catch (Exception e) {
 							ConvertigoPlugin.logWarning(e, "Could not refresh in tree Connector \""+databaseObject.getName()+"\" !");
 						}
@@ -216,14 +216,14 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 						((CouchDbConnector)connector).release();
 						CouchDbManager.syncDocument(connector);
 						try {
-							ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+							getProjectExplorerView().reloadTreeObject(this);
 						} catch (Exception e) {
 							ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
 						}
 					} else if (propertyName.equals("databaseName")) {
 						CouchDbManager.syncDocument(connector);
 						try {
-							ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+							getProjectExplorerView().reloadTreeObject(this);
 						} catch (Exception e) {
 							ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
 						}
@@ -255,7 +255,7 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 					connector.setEndTransactionName((String)newValue);
 
 					try {
-						ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+						getProjectExplorerView().refreshTreeObject(this);
 					} catch (Exception e) {
 						ConvertigoPlugin.logWarning(e, "Could not refresh in tree Connector \""+databaseObject.getName()+"\" !");
 					}
@@ -310,7 +310,7 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject implements ICl
 			if (connector instanceof CouchDbConnector) {
 				CouchDbManager.syncDocument(connector);
 				try {
-					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
+					getProjectExplorerView().reloadTreeObject(this);
 				} catch (Exception e) {
 					ConvertigoPlugin.logWarning(e, "Could not reload connector \""+connector.getName()+"\" in tree !");
 				}

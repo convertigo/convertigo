@@ -180,7 +180,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 			
 		    	// Refresh label in case of broken properties
 		    	try {
-		    		ConvertigoPlugin.getDefault().getProjectExplorerView().updateTreeObject(this);
+		    		getProjectExplorerView().updateTreeObject(this);
 		    		
 				} catch (Exception e) {
 					ConvertigoPlugin.logWarning(e, "Could not update Transaction step\""+ getName()+"\" !");
@@ -196,7 +196,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements INamedSo
 			
 		    	// Refresh label in case of broken properties
 		    	try {
-		    		ConvertigoPlugin.getDefault().getProjectExplorerView().updateTreeObject(this);
+		    		getProjectExplorerView().updateTreeObject(this);
 		    		
 				} catch (Exception e) {
 					ConvertigoPlugin.logWarning(e, "Could not update Sequence step \""+ getName()+"\" !");
