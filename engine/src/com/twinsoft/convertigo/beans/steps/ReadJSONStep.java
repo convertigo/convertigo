@@ -136,7 +136,9 @@ public class ReadJSONStep extends ReadFileStep implements IStepSmartTypeContaine
 				myEl.appendChild(xmlDoc.createTextNode("File '" + filePath + "' not found." ));
 				xmlDoc.getDocumentElement().appendChild(myEl);
 			} else {
-				String jsonSource = FileUtils.readFileToString(jsonFile, StandardCharsets.UTF_8).trim();
+				String jsonSource = FileUtils.readFileToString(jsonFile, StandardCharsets.UTF_8);
+				jsonSource = FileUtils.removeBOM(jsonSource);
+				jsonSource = jsonSource.trim();
 				xmlDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 				Element elt = xmlDoc.createElement("root");
 

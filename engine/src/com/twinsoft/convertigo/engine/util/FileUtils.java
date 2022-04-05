@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.engine.Engine;
 @SuppressWarnings("deprecation")
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
+	public static final String UTF8_BOM = "\uFEFF";
 
 	public static void mergeDirectories(File srcDir, File destDir) throws IOException {
 		mergeDirectories(srcDir, destDir, true);
@@ -226,5 +227,12 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			file = new File(file.getParentFile(), filename);
 		}
 		return file;
+	}
+	
+	public static String removeBOM(String str) {
+		if (str != null && str.startsWith(UTF8_BOM)) {
+			str = str.substring(1);
+		}
+		return str;
 	}
 }
