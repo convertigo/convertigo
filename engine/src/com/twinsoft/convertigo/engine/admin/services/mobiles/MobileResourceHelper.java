@@ -159,7 +159,9 @@ public class MobileResourceHelper {
 				String includeBuf = null;
 				for (String line = br.readLine(); line != null; line = br.readLine()) {
 					if (!line.contains("<!--")) {
-						if (includeChar == null && line.contains("\"../../../../")) {
+						if (includeChar == null && line.contains("<base ")) {
+							line = "  <base href=\"./\">";
+						} else if (includeChar == null && line.contains("\"../../../../")) {
 							String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
 
 							if (file.endsWith("c8o.cordova.js")) {
@@ -269,7 +271,7 @@ public class MobileResourceHelper {
 											if (file.getPath().indexOf(projectDir.getPath()) == 0) {
 												filesToDelete.add(file);
 											}
-										}											
+										}
 									}
 								}
 							}
@@ -337,7 +339,7 @@ public class MobileResourceHelper {
 	
 	public File preparePackage() throws Exception {
 		
-		FlashUpdateBuildMode buildMode = mobileApplication.getBuildMode();		
+		FlashUpdateBuildMode buildMode = mobileApplication.getBuildMode();
 		
 		String finalApplicationName = mobileApplication.getComputedApplicationName();
 		

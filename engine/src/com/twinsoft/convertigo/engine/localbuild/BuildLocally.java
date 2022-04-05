@@ -40,7 +40,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
 
-import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
@@ -193,7 +192,7 @@ public abstract class BuildLocally {
 				} catch (IOException e) {
 					Engine.logEngine.error("Error while executing command", e);
 				}
-			}).start();			
+			}).start();
 		}
 		
 		int exitCode = process.waitFor();
