@@ -16072,7 +16072,7 @@
           "label": "Data sets",
           "description": "(Array<number[]>| number[]) - set of points of the chart, it should be Array<number[]> only for line, bar and radar, otherwise number[].",
           "category": "@Properties",
-          "value": "[{'label': 'My first dataset','data': [0, 10, 5, 2, 20, 30, 45]},{'label': 'My second dataset','data': [15, 45, 10, 20, 65, 38, 88]}]",
+          "value": "[{'label': 'My first dataset','data': [0, 10, 5, 2, 20, 30, 45], 'backgroundColor': 'rgb(0, 127, 255)','borderColor': 'rgb(0, 0, 255)'},{'label': 'My second dataset','data': [15, 45, 10, 20, 65, 38, 88], 'backgroundColor': 'rgb(136, 77, 167)','borderColor': 'rgb(102,0, 153)'}]",
 		  "values": [
 		    false,
 		    true
@@ -16119,18 +16119,6 @@
           "description": "chart options (as from Chart.js documentation).",
           "category": "@Properties",
           "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }",
-		  "values": [
-		    false,
-		    true
-		  ]
-        },
-        "Colors": {
-          "mode": "script",
-          "attr":"[colors]",
-          "label": "Data colors",
-          "description": "data colors, will use default colors if not specified.",
-          "category": "@Properties",
-          "value": "[{'backgroundColor': 'rgb(0, 127, 255)','borderColor': 'rgb(0, 0, 255)'},{'backgroundColor': 'rgb(136, 77, 167)','borderColor': 'rgb(102,0, 153)'}]",
 		  "values": [
 		    false,
 		    true

@@ -3903,6 +3903,51 @@
      "value": "bar"
     }
    }
+  },
+  "   8   0   0": {
+   "name": "Charts",
+   "properties": {
+    "BaseChart": {
+     "name": "BaseChart",
+     "mode": "plain",
+     "value": "baseChart"
+    },
+    "data": {
+     "name": "data",
+     "mode": "script",
+     "value": false
+    },
+    "datasets": {
+     "name": "datasets",
+     "mode": "script",
+     "value": "[{'label': 'My first dataset','data': [0, 10, 5, 2, 20, 30, 45], 'backgroundColor': 'rgb(0, 127, 255)','borderColor': 'rgb(0, 0, 255)'},{'label': 'My second dataset','data': [15, 45, 10, 20, 65, 38, 88], 'backgroundColor': 'rgb(136, 77, 167)','borderColor': 'rgb(102,0, 153)'}]"
+    },
+    "labels": {
+     "name": "labels",
+     "mode": "script",
+     "value": "['January', 'February', 'March', 'April', 'May', 'June', 'July']"
+    },
+    "Width": {
+     "name": "Width",
+     "mode": "plain",
+     "value": false
+    },
+    "Height": {
+     "name": "Height",
+     "mode": "plain",
+     "value": false
+    },
+    "Options": {
+     "name": "Options",
+     "mode": "script",
+     "value": "{'title':{'display': true,'text': 'My Chart Title'}, 'responsive': true, 'maintainAspectRatio': false }"
+    },
+    "ChartType": {
+     "name": "ChartType",
+     "mode": "plain",
+     "value": "bar"
+    }
+   }
   }
  },
  "Calendar": {
