@@ -1421,11 +1421,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 	
 	@Override
-	public DatabaseObjectTreeObject check() {
+	public TreeObject check() {
 		if (parent != null) {
 			return this;
 		}
-		DatabaseObjectTreeObject dboTree = (DatabaseObjectTreeObject) getProjectExplorerView().findTreeObjectByUserObject(getObject());
+		TreeObject dboTree = getProjectExplorerView().findTreeObjectByUserObject(getObject());
 		return dboTree != null ? dboTree : this;
 	}
 	
