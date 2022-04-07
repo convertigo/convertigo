@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -410,17 +411,17 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("viewEvent")) {
-			/*final UISharedComponent uisc = this.getSharedComponent();
+			final UISharedComponent uisc = this.getSharedComponent();
 			if (uisc != null) {
 				List<String> list = new ArrayList<String>();
 				for (ViewEvent viewEvent: ViewEvent.values()) {
-					if (!viewEvent.equals(ViewEvent.onWillLoad) && !viewEvent.equals(ViewEvent.onWillUnload)) {
+					if (!viewEvent.equals(ViewEvent.onWillLoad) /*&& !viewEvent.equals(ViewEvent.onWillUnload)*/) {
 						list.add(viewEvent.label);
 					}
 				}
 				String[] array = new String[list.size()];
 				return list.toArray(array);
-			}*/
+			}
 			return EnumUtils.toStrings(ViewEvent.class);
 		}
 		return new String[0];
