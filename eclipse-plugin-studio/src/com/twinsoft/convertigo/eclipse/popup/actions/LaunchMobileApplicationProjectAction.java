@@ -30,6 +30,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class LaunchMobileApplicationProjectAction extends MyAbstractAction {
 
@@ -40,34 +41,34 @@ public class LaunchMobileApplicationProjectAction extends MyAbstractAction {
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
 		
 		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			Object databaseObject = treeObject.getObject();
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				Object databaseObject = treeObject.getObject();
 
-    			if ((databaseObject != null) && (databaseObject instanceof MobileApplication)) {
-    				MobileApplication mobileApplication = (MobileApplication) databaseObject;
-    				
-    				// Test plateform
-    				Program.launch(
-    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/project.html#" 
-    								+ mobileApplication.getProject() + "?launch=webapp");
-    			}
-    		}
-        	
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to launch the mobile device selected project!");
-        }
-        finally {
+				if ((databaseObject != null) && (databaseObject instanceof MobileApplication)) {
+					MobileApplication mobileApplication = (MobileApplication) databaseObject;
+
+					// Test plateform
+					Program.launch(
+							EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/project.html#" 
+									+ mobileApplication.getProject() + "?launch=webapp");
+				}
+			}
+
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to launch the mobile device selected project!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
 }

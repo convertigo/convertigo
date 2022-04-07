@@ -21,15 +21,16 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.program.Program;
 
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class OpenProjectTestPlatformAction extends MyAbstractAction {
 
@@ -39,32 +40,32 @@ public class OpenProjectTestPlatformAction extends MyAbstractAction {
 
 	public void run() {
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			Object databaseObject = treeObject.getObject();
 
-    			if ((databaseObject != null) && (databaseObject instanceof Project)) {
-    				Project project = (Project)treeObject.getObject();
-    				Program.launch(
-    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/project.html#" + project.getName());
-    			}
-    		}
-        	
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to open the selected project!");
-        }
-        finally {
+		try {
+			ProjectExplorerView explorerView = getProjectExplorerView();
+			if (explorerView != null) {
+				TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+				Object databaseObject = treeObject.getObject();
+
+				if ((databaseObject != null) && (databaseObject instanceof Project)) {
+					Project project = (Project)treeObject.getObject();
+					Program.launch(
+							EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/project.html#" + project.getName());
+				}
+			}
+
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to open the selected project!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
 }

@@ -31,6 +31,7 @@ import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.NetworkUtils;
 import com.twinsoft.util.Log;
 
 public class EmbeddedTomcat implements Runnable {
@@ -74,19 +75,32 @@ public class EmbeddedTomcat implements Runnable {
 			// Assemble and install a default HTTP connector
 			int httpConnectorPort = 8080;
 
+			
+			//TODO: test port
 			// We must load the engine properties first 
 			EnginePropertiesManager.loadProperties();
 
-			String convertigoServer = com.twinsoft.convertigo.engine.EnginePropertiesManager.getProperty(
-					com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+			String convertigoServer = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 			System.out.println("(EmbeddedTomcat) Convertigo server property: " + convertigoServer);
 			
 			int i = convertigoServer.indexOf(':', 6);
 			if (i != -1) {
 				int j = convertigoServer.indexOf("/convertigo");
-				httpConnectorPort = Integer.parseInt(convertigoServer.substring(i+1, j));
+				httpConnectorPort = Integer.parseInt(convertigoServer.substring(i + 1, j));
 			}
-
+			
+			int tryPort = httpConnectorPort;
+			while (!NetworkUtils.available(tryPort)) {
+				tryPort++;
+			}
+			if (tryPort != httpConnectorPort) {
+				System.out.println("(EmbeddedTomcat) Convertigo server port changed: already used port " + httpConnectorPort + " changing for " + tryPort);
+				convertigoServer = convertigoServer.replace(Integer.toString(httpConnectorPort), Integer.toString(tryPort));
+				httpConnectorPort = tryPort;
+			}
+			EnginePropertiesManager.setStudioApplicationServerConvertigoUrl(convertigoServer);
+			
+			
 			embedded.setPort(httpPort = httpConnectorPort);
 			
 			Connector connector = new Connector();

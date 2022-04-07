@@ -59,27 +59,29 @@ public class EnginePropertiesManager {
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface CategoryOptions {
-    	Visibility visibility() default Visibility.VISIBLE;
-    	Role[] viewRoles() default {};
-    	Role[] configRoles() default {};
+		Visibility visibility() default Visibility.VISIBLE;
+		Role[] viewRoles() default {};
+		Role[] configRoles() default {};
 	}
-    
+
 	@Retention(RetentionPolicy.RUNTIME)
 	@interface PropertyOptions {
-    	Visibility visibility() default Visibility.VISIBLE;
+		Visibility visibility() default Visibility.VISIBLE;
 		boolean advance() default false;
 		Class<? extends ComboEnum> combo() default EmptyCombo.class;
 		PropertyType propertyType() default PropertyType.Text;
 		boolean ciphered() default false;
 	}
-    
-    /**
-     * The propertEnginePropertiesManagerr the Convertigo engine.
-     */
-    public static final String PROPERTIES_FILE_NAME = "/engine.properties";
-    
-    public static final String SYSTEM_PROP_PREFIX = "convertigo.engine.";
-    
+
+	/**
+	 * The propertEnginePropertiesManagerr the Convertigo engine.
+	 */
+	public static final String PROPERTIES_FILE_NAME = "/engine.properties";
+
+	public static final String SYSTEM_PROP_PREFIX = "convertigo.engine.";
+
+	private static String STUDIO_APPLICATION_SERVER_CONVERTIGO_URL = null;
+	
 	public interface ComboEnum {
 		String getDisplay();
 		String getValue();
@@ -738,38 +740,43 @@ public class EnginePropertiesManager {
     public static String getOriginalProperty(PropertyName property) {
     	return getProperty(property, false);
     }
-    
-    public static String getProperty(PropertyName property, boolean bSubstitute) {
-        if (property == null) {
-        	throw new IllegalArgumentException("Null property key");
-        }
+	
+	public static String getProperty(PropertyName property, boolean bSubstitute) {
+		if (property == null) {
+			throw new IllegalArgumentException("Null property key");
+		}
 
 		if (properties == null) {
 			throw new IllegalStateException("Not initialized EnginePropertiesManager");
 		}
 
-    	String result = system_properties.getProperty(SYSTEM_PROP_PREFIX + property);
-    	if (result == null) {
-    		result = properties.getProperty(property.key);
-    	}
-    	
-        if (result == null) {
-        	result = property.getDefaultValue();
-        }
-        
-        if (result == null) {
-        	throw new IllegalArgumentException("Unknown property key: " + property);
-        }
+		if (property == PropertyName.APPLICATION_SERVER_CONVERTIGO_URL && STUDIO_APPLICATION_SERVER_CONVERTIGO_URL != null) {
+			Engine.logStudio.warn("Studio is listening on another port: " + STUDIO_APPLICATION_SERVER_CONVERTIGO_URL);
+			return STUDIO_APPLICATION_SERVER_CONVERTIGO_URL;
+		}
+		
+		String result = system_properties.getProperty(SYSTEM_PROP_PREFIX + property);
+		if (result == null) {
+			result = properties.getProperty(property.key);
+		}
 
-        // Substitute parameter value if needed
-	    if (bSubstitute) result = OptionConverter.substVars(result, properties);
+		if (result == null) {
+			result = property.getDefaultValue();
+		}
 
-        // Migration -> 3.1
-        if (property.equals(PropertyName.DOCUMENT_XSLT_ENGINE) && (result != null) && result.equals("xalan")) result = "xalan/xsltc";
+		if (result == null) {
+			throw new IllegalArgumentException("Unknown property key: " + property);
+		}
 
-        return result;
-    }
-    
+		// Substitute parameter value if needed
+		if (bSubstitute) result = OptionConverter.substVars(result, properties);
+
+		// Migration -> 3.1
+		if (property.equals(PropertyName.DOCUMENT_XSLT_ENGINE) && (result != null) && result.equals("xalan")) result = "xalan/xsltc";
+
+		return result;
+	}
+	
     public static String[] getOriginalPropertyAsStringArray(PropertyName property) {
     	return getPropertyAsStringArray(property, false);
     }
@@ -1098,5 +1105,12 @@ public class EnginePropertiesManager {
 			break;
 		}
 		return value;
+	}
+	
+	public static void setStudioApplicationServerConvertigoUrl(String studioApplicationServerConvertigoUrl) {
+		String cls = Thread.currentThread().getStackTrace()[2].getClassName();
+		if ("com.twinsoft.convertigo.eclipse.EmbeddedTomcat".equals(cls) && STUDIO_APPLICATION_SERVER_CONVERTIGO_URL == null) {
+			STUDIO_APPLICATION_SERVER_CONVERTIGO_URL = studioApplicationServerConvertigoUrl;
+		}
 	}
 }

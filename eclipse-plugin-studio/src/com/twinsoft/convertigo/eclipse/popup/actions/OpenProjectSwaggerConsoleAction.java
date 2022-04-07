@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 
 public class OpenProjectSwaggerConsoleAction extends MyAbstractAction {
@@ -55,8 +56,8 @@ public class OpenProjectSwaggerConsoleAction extends MyAbstractAction {
     			if ((databaseObject != null) && (databaseObject instanceof Project)) {
     				Project project = (Project)treeObject.getObject();
     				Program.launch(
-    						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/swagger/dist/index.html?"
-    						+ URLUtils.encodePart("url", EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/openapi?YAML&__project=" + project.getName())
+    						EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/swagger/dist/index.html?"
+    						+ URLUtils.encodePart("url", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/openapi?YAML&__project=" + project.getName())
     						+ (Engine.isStudioMode() ? "&showErrors" : ""));
     			}
     		}

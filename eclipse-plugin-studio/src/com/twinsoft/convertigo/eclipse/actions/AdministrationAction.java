@@ -30,6 +30,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class AdministrationAction implements IWorkbenchWindowActionDelegate {
 	
@@ -56,7 +57,7 @@ public class AdministrationAction implements IWorkbenchWindowActionDelegate {
 			lastAuthToken = UUID.randomUUID().toString();
 			lastAuthTokenExpiration = System.currentTimeMillis() + 30000;
 			
-			Program.launch(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/admin/login.html#authToken=" + lastAuthToken);
+			Program.launch(EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/admin/login.html#authToken=" + lastAuthToken);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while opening the Convertigo administration page");
 		}
