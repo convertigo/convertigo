@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.engine.Engine;
 @SuppressWarnings("deprecation")
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
-	public static final String UTF8_BOM = "\uFEFF";
+	public static final String UTF8_BOM = new String(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF}, StandardCharsets.UTF_8);
 
 	public static void mergeDirectories(File srcDir, File destDir) throws IOException {
 		mergeDirectories(srcDir, destDir, true);
@@ -234,5 +234,19 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			str = str.substring(1);
 		}
 		return str;
+	}
+
+	public static FileInputStream newFileInputStreamSkipBOM(File file) throws IOException {
+		FileInputStream fis = new FileInputStream(file);
+		try {
+			byte[] buf = new byte[3];
+			if (fis.read(buf) == buf.length && new String(buf, StandardCharsets.UTF_8).equals(UTF8_BOM)) {
+				return fis;
+			}
+		} catch (Exception e) {
+		}
+		 
+		fis = new FileInputStream(file);
+		return fis;
 	}
 }

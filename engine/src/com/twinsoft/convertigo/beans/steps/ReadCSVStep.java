@@ -40,6 +40,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -47,28 +48,28 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class ReadCSVStep extends ReadFileStep {
 	private static final long serialVersionUID = -6548050468297488381L;
 
-	private String separator = ";";		
+	private String separator = ",";		
 	private String tagLineName = "line";
 	private String tagColName = "col";
 	private boolean titleLine = false;
 	private boolean verticalDirection = false;
-	private String encoding="iso-8859-1";
+	private String encoding="utf-8";
 	
 	public ReadCSVStep() {
 		super();
 	}
 
 	@Override
-    public ReadCSVStep clone() throws CloneNotSupportedException {
-    	ReadCSVStep clonedObject = (ReadCSVStep) super.clone();
-        return clonedObject;
-    }
-	
+	public ReadCSVStep clone() throws CloneNotSupportedException {
+		ReadCSVStep clonedObject = (ReadCSVStep) super.clone();
+		return clonedObject;
+	}
+
 	@Override
-    public ReadCSVStep copy() throws CloneNotSupportedException {
-    	ReadCSVStep copiedObject = (ReadCSVStep) super.copy();
-        return copiedObject;
-    }
+	public ReadCSVStep copy() throws CloneNotSupportedException {
+		ReadCSVStep copiedObject = (ReadCSVStep) super.copy();
+		return copiedObject;
+	}
 
 	public String getSeparator() {
 		return separator;
@@ -166,9 +167,9 @@ public class ReadCSVStep extends ReadFileStep {
 			throw new EngineException("The CSV file \""+ filePath +"\" does not exist.");
 		}
 		
-		try (Reader reader = new InputStreamReader(new FileInputStream(csvFile), encoding.isEmpty() ? "iso-8859-1" : encoding)) {
+		try (Reader reader = new InputStreamReader(FileUtils.newFileInputStreamSkipBOM(csvFile), encoding.isEmpty() ? "utf-8" : encoding)) {
 			//construction of the DOM's root
-			csvDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();				
+			csvDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			
