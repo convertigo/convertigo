@@ -35,7 +35,6 @@ import java.io.Writer;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1470,8 +1469,6 @@ public class XMLUtils {
 			for (Iterator<String> i = GenericUtils.cast(json.keys()); i.hasNext();) {
 				keys[index++] = i.next();
 			}
-			
-			Arrays.sort(keys);
 			
 			for (String key: keys) {
 				jsonToXml(json.get(key), key, element, false, includeDataType, compactArray, arrayChildrenTag);
