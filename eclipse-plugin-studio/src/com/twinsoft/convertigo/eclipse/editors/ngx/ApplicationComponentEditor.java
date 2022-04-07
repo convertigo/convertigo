@@ -1785,7 +1785,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					//ps -e | sed -n -E "s/ ([0-9]+).*Fli.*/\1/p" | xargs kill
 					String prod = prodOnly ? " | grep \"--watch\"" : "";
 					Process process = new ProcessBuilder("/bin/bash", "-c",
-						"ps -e | grep -v \"sed -n\"" + prod + " | sed -n -E \"s, ([0-9]+).*node.*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
+						"ps -e | grep -v \"sed -n\"" + prod + " | sed -n -E \"s, ([0-9]+).*(node|npm).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
 					).start();
 					int code = process.waitFor();
 					if (code == 0) {
