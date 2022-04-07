@@ -2582,7 +2582,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			} else {
 				databaseProject = databaseObject.getProject();
 			}
-
+			
+			if (databaseProject == null) {
+				return null;
+			}
+			
 			ViewContentProvider provider = (ViewContentProvider) viewer.getContentProvider();
 			if (provider != null) {
 				Object[] objects = provider.getChildren(provider.getTreeRoot());
