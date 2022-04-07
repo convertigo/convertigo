@@ -34,6 +34,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.ISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent.ViewEvent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent.ComponentEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
@@ -415,10 +416,29 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			}
 		}
 		
-		// Comp Page events
-		List<UIPageEvent> eventList = getUIPageEventList();
+		// Component events
+		List<UISharedComponentEvent> compEventList = getUISharedComponentEventList();
+		for (ComponentEvent componentEvent: ComponentEvent.values()) {
+			String computedEvent = componentEvent.computeEvent(this, compEventList);
+			if (!computedEvent.isEmpty()) {
+				try {
+					String functions = jsonScripts.getString("functions");
+					String fname = componentEvent.name();
+					String fcode = computedEvent;
+					if (addFunction(fname, fcode)) {
+						functions += fcode + System.lineSeparator();
+					}
+					jsonScripts.put("functions", functions);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		// Page events
+		List<UIPageEvent> pageEventList = getUIPageEventList();
 		for (ViewEvent viewEvent: ViewEvent.values()) {
-			String computedEvent = viewEvent.computeEvent(this, eventList);
+			String computedEvent = viewEvent.computeEvent(this, pageEventList);
 			if (!computedEvent.isEmpty()) {
 				try {
 					String functions = jsonScripts.getString("functions");
@@ -486,6 +506,18 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 					eventList.add((UIPageEvent) uiComponent);
 				} else {
 					uiComponent.addPageEvent(done, eventList);
+				}
+			}
+		}
+		return eventList;
+	}
+	
+	public List<UISharedComponentEvent> getUISharedComponentEventList() {
+		List<UISharedComponentEvent> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent.isEnabled()) {
+				if (uiComponent instanceof UISharedComponentEvent) {
+					eventList.add((UISharedComponentEvent) uiComponent);
 				}
 			}
 		}

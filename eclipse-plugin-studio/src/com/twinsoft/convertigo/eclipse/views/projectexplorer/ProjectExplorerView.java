@@ -1751,6 +1751,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent) {
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
 								}
+								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent) {
+									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
+								}
 								else if (databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber) {
 									folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS;
 								}
@@ -3289,6 +3292,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				case ObjectsFolderTreeObject.FOLDER_TYPE_EVENTS:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent ||
 							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent ||
+							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent ||
 							databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 				case ObjectsFolderTreeObject.FOLDER_TYPE_MENUS:
 					return databaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;

@@ -823,6 +823,17 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	private String computeNgInit() {
 		String computed = "";
 		computed += "\tngOnInit() {"+ System.lineSeparator();
+		if (hasEvent(ViewEvent.onWillLoad)) {
+			computed += "\t\tthis."+ ViewEvent.onWillLoad.event + "()" + System.lineSeparator();
+		}
+		computed += "\t}"+ System.lineSeparator();
+		computed += "\t";
+		return computed;
+	}
+	
+	private String computeNgAfterViewInit() {
+		String computed = "";
+		computed += "ngAfterViewInit() {"+ System.lineSeparator();
 		if (hasEvent(ViewEvent.onDidLoad)) {
 			computed += "\t\tthis."+ ViewEvent.onDidLoad.event + "()" + System.lineSeparator();
 		}
@@ -935,11 +946,22 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			}
 		//}
 		
-		// ngOnInit, ngOnDestroy
+		// ngOnInit, ngAfterViewInit, ngOnDestroy
 		try {
 			String functions = jsonScripts.getString("functions");
 			String fname = "ngOnInit";
 			String fcode = computeNgInit();
+			if (addFunction(fname, fcode)) {
+				functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
+			}
+			jsonScripts.put("functions", functions);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		try {
+			String functions = jsonScripts.getString("functions");
+			String fname = "ngAfterViewInit";
+			String fcode = computeNgAfterViewInit();
 			if (addFunction(fname, fcode)) {
 				functions += fcode + (fcode.isEmpty() ? "" : System.lineSeparator() + "\t");
 			}

@@ -88,6 +88,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
@@ -524,6 +525,7 @@ public class ComponentManager {
 			components.add(getDboComponent(UIControlEvent.class,group));
 			components.add(getDboComponent(UIAppEvent.class,group));
 			components.add(getDboComponent(UIPageEvent.class,group));
+			components.add(getDboComponent(UISharedComponentEvent.class,group));
 			components.add(getDboComponent(UIAppGuard.class,group));
 			components.add(getDboComponent(UIEventSubscriber.class,group));
 			components.add(getDboComponent(UIActionErrorEvent.class,group));
@@ -782,6 +784,7 @@ public class ComponentManager {
 						UICustom.class.isAssignableFrom(dboClass) ||
 						UIElement.class.isAssignableFrom(dboClass) ||
 						UIPageEvent.class.isAssignableFrom(dboClass) ||
+						UISharedComponentEvent.class.isAssignableFrom(dboClass) ||
 						UIEventSubscriber.class.isAssignableFrom(dboClass) ||
 						UICompEvent.class.isAssignableFrom(dboClass) ||
 						UICompVariable.class.isAssignableFrom(dboClass) || 
@@ -794,6 +797,7 @@ public class ComponentManager {
 				}
 				else if (dboParent instanceof UIAppEvent ||
 						dboParent instanceof UIPageEvent || 
+						dboParent instanceof UISharedComponentEvent || 
 						dboParent instanceof UIControlEvent ||
 						dboParent instanceof UIEventSubscriber) {
 					if (UIActionErrorEvent.class.isAssignableFrom(dboClass) ||
@@ -850,6 +854,7 @@ public class ComponentManager {
 						!UICompVariable.class.isAssignableFrom(dboClass) &&
 						!UIAppEvent.class.isAssignableFrom(dboClass) &&
 						!UIPageEvent.class.isAssignableFrom(dboClass) &&
+						!UISharedComponentEvent.class.isAssignableFrom(dboClass) &&
 						!UIEventSubscriber.class.isAssignableFrom(dboClass) &&
 						!UIActionEvent.class.isAssignableFrom(dboClass) &&
 						!UITheme.class.isAssignableFrom(dboClass) &&

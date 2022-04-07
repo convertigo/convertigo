@@ -19,104 +19,125 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.ngx.components.UIControlDirective.AttrDirective;
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.FolderType;
 import com.twinsoft.convertigo.engine.util.EnumUtils;
 
-public class UIControlEvent extends UIControlAttr implements IControl, IEventGenerator {
+public class UISharedComponentEvent extends UIComponent implements IEventGenerator, ITagsProperty {
 
-	private static final long serialVersionUID = 4756891044178409988L;
-
-	private transient UIActionErrorEvent errorEvent = null;
-	private transient UIActionFinallyEvent finallyEvent = null;
+	private static final long serialVersionUID = 4054671808848891791L;
 	
-	public enum AttrEvent {
-		onClick("(click)"),
-		onInput("(input)"),
-		onTap("(tap)"),
-		onPress("(press)"),
-		onChange("(change)"),
-		onPan("(pan)"),
-		onSubmit("(ngSubmit)"),
-		onSwipe("(swipe)"),
-		onRotate("(rotate)"),
-		onPinch("(pinch)"),
-		ionSlideAutoplay("(ionSlideAutoplay)"),
-		ionSlideAutoplayStart("(ionSlideAutoplayStart)"),
-		ionSlideAutoplayStop("(ionSlideAutoplayStop)"),
-		ionSlideDidChange("(ionSlideDidChange)"),
-		ionSlideDoubleTap("(ionSlideDoubleTap)"),
-		ionSlideDrag("(ionSlideDrag)"),
-		ionSlideNextEnd("(ionSlideNextEnd)"),
-		ionSlideNextStart("(ionSlideNextStart)"),
-		ionSlidePrevEnd("(ionSlidePrevEnd)"),
-		ionSlidePrevStart("(ionSlidePrevStart)"),
-		ionSlideReachEnd("(ionSlideReachEnd)"),
-		ionSlideReachStart("(ionSlideReachStart)"),
-		ionSlideTap("(ionSlideTap)"),
-		ionSlideWillChange("(ionSlideWillChange)"),
-		ionInput("(ionInput)"),
-		ionChange("(ionChange)"),
-		ionCancel("(ionCancel)"),
-		ionClear("(ionClear)"),
-		ionPull("(ionPull)"),
-		ionRefresh("(ionRefresh)"),
-		ionStart("(ionStart)"),
-		ionClose("(ionClose)"),
-		ionOpen("(ionOpen)"),
+	protected transient UIActionErrorEvent errorEvent = null;
+	protected transient UIActionFinallyEvent finallyEvent = null;
+	
+	public enum ComponentEvent {
+		onChanges("onChanges","compChanges"),
+		onInit("onInit","compInit"),
+		onDoCheck("onDoCheck","compDoCheck"),
+		onAfterContentInit("onAfterContentInit","compAfterContentInit"),
+		onAfterContentChecked("onAfterContentChecked","compAfterContentChecked"),
+		onAfterViewInit("onAfterViewInit","compAfterViewInit"),
+		onAfterViewChecked("onAfterViewChecked","compAfterViewChecked"),
+		onDestroy("onDestroy","compDestroy")
 		;
 		
+		String label;
 		String event;
-		AttrEvent(String event) {
+		ComponentEvent(String event, String label) {
 			this.event = event;
+			this.label = label;
 		}
 		
-		String event() {
-			return event;
+		@Override
+		public String toString() {
+			return label;
 		}
 		
-		public static String getEvent(String eventName) {
-			AttrEvent bindEvent = null;
-			try {
-				bindEvent = AttrEvent.valueOf(eventName);
-			} catch (Exception e) {};
-			return bindEvent != null ? bindEvent.event():eventName;
+		String computeEvent(MobileComponent mc, List<UISharedComponentEvent> eventList) {
+			StringBuffer children = new StringBuffer();
+			Set<String> done = new HashSet<String>();
+			for (UISharedComponentEvent pageEvent : eventList) {
+				if (pageEvent.getComponentEvent().equals(this)) {
+					String functionCall = "";
+					if (mc instanceof UISharedComponent) {
+						IScriptComponent main = pageEvent.getMainScriptComponent();
+						if (mc.equals(((UISharedComponent)main))) {
+							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+						} else {
+							String identifier = ((UISharedComponent)main).getIdentifier();
+							if (done.add(identifier)) {
+								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
+							}
+						}
+					} else {
+						IScriptComponent main = pageEvent.getMainScriptComponent();
+						if (main instanceof UISharedComponent) {
+							String identifier = ((UISharedComponent)main).getIdentifier();
+							if (done.add(identifier)) {
+								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
+							}
+						} else {
+							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
+						}
+					}
+					if (!functionCall.isBlank()) {
+						children.append("\t\t\t" + functionCall).append(System.lineSeparator());
+					}
+				}
+			}
+			
+			String params = ComponentEvent.onChanges.equals(this) ? "changes: SimpleChanges":"";
+			StringBuffer sb = new StringBuffer();
+			//if (children.length() > 0) {
+				sb.append(System.lineSeparator());
+				sb.append("\t"+event).append("("+params+") {").append(System.lineSeparator());
+				sb.append("\t\ttry {").append(System.lineSeparator());
+				sb.append(children);	
+				sb.append("\t\t} catch(e) {").append(System.lineSeparator());
+				sb.append("\t\t\tconsole.log(e)").append(System.lineSeparator());
+				sb.append("\t\t}").append(System.lineSeparator());
+				sb.append("\t}").append(System.lineSeparator());
+			//}
+			return sb.toString();
 		}
 	}
 	
-	public UIControlEvent() {
+	public UISharedComponentEvent() {
 		super();
 	}
 
 	@Override
-	public UIControlEvent clone() throws CloneNotSupportedException {
-		UIControlEvent cloned = (UIControlEvent) super.clone();
+	public UISharedComponentEvent clone() throws CloneNotSupportedException {
+		UISharedComponentEvent cloned = (UISharedComponentEvent) super.clone();
 		cloned.errorEvent = null;
 		cloned.finallyEvent = null;
 		return cloned;
 	}
 
-	/*
-	 * The event to bind
-	 */
-	private String eventName = AttrEvent.onClick.name();
+	private ComponentEvent componentEvent = ComponentEvent.onAfterViewInit;
 
-	public String getEventName() {
-		return eventName;
+	public ComponentEvent getComponentEvent() {
+		return componentEvent;
 	}
 
-	public void setEventName(String eventName) {
-		this.eventName = eventName;
+	public void setComponentEvent(ComponentEvent componentEvent) {
+		this.componentEvent = componentEvent;
 	}
-
+	
+	protected void setChildOf(DatabaseObject dbo) {
+		this.parent = dbo;
+	}
+	
 	protected UIActionErrorEvent getErrorEvent() {
 		checkSubLoaded();
 		return this.errorEvent;
@@ -190,28 +211,36 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	}
 	
 	@Override
-	public String getAttrName() {
-		if (parent != null && parent instanceof UIDynamicElement) {
-			String eventAttr = ((UIDynamicElement)parent).getEventAttr(eventName);
-			if (!eventAttr.isEmpty()) {
-				return eventAttr;
-			}
-		}
-		if (parent != null && parent instanceof UIUseShared) {
-			String eventAttr = ((UIUseShared)parent).getEventAttr(eventName);
-			if (!eventAttr.isEmpty()) {
-				return eventAttr;
-			}
-		}
-		
-		ApplicationComponent app = getApplication();
-		String attrName = AttrEvent.getEvent(eventName);
-		if (AttrEvent.onTap.name().equals(eventName) && app != null && app.getUseClickForTap()) {
-			attrName = "(click)";
-		}
-		return attrName;
+	public String computeTemplate() {
+		return "";
 	}
 
+	protected boolean handleError() {
+		boolean handleError = false;
+		UIActionErrorEvent errorEvent = getErrorEvent();
+		if (errorEvent != null && errorEvent.isEnabled()) {
+			if (errorEvent.numberOfActions() > 0) {
+				handleError = true;
+			}
+		}
+		return handleError;
+	}
+	
+	protected boolean handleFinally() {
+		boolean handleFinally = false;
+		UIActionFinallyEvent finallyEvent = getFinallyEvent();
+		if (finallyEvent != null && finallyEvent.isEnabled()) {
+			if (finallyEvent.numberOfActions() > 0) {
+				handleFinally = true;
+			}
+		}
+		return handleFinally;
+	}
+	
+	private String getEventFunctionName() {
+		return "ETS" + priority;
+	}
+	
 	protected String computeEventFunction() {
 		String computed = "";
 		if (isEnabled()) {
@@ -285,7 +314,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		}
 		return computed;
 	}
-	
+
 	protected int numberOfActions() {
 		int num = 0;
 		Iterator<UIComponent> it = getUIComponentList().iterator();
@@ -302,6 +331,28 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 	
 	@Override
 	public String computeEvent() {
+//		if (isEnabled()) {
+//			List<String> list = new ArrayList<String>();
+//			Iterator<UIComponent> it = getUIComponentList().iterator();
+//			while (it.hasNext()) {
+//				UIComponent component = (UIComponent)it.next();
+//				if (component instanceof IAction) {
+//					String action = component.computeTemplate();
+//					if (!action.isEmpty()) {
+//						list.add("this."+action);
+//					}
+//				}
+//			}
+//			
+//			StringBuilder sb = new StringBuilder();
+//			if (!list.isEmpty()) {
+//				for (String s: list) {
+//					sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
+//				}
+//			}
+//			return sb.toString();
+//		}
+//		return "";
 		if (isEnabled()) {
 			int num = numberOfActions();
 			StringBuilder sb = new StringBuilder();
@@ -345,29 +396,7 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 			//tsCode = tsCode.replaceAll("page\\.actionBeans\\.", "this.");
 			return tsCode;
 		}
-		return "";
-	}
-
-	protected boolean handleError() {
-		boolean handleError = false;
-		UIActionErrorEvent errorEvent = getErrorEvent();
-		if (errorEvent != null && errorEvent.isEnabled()) {
-			if (errorEvent.numberOfActions() > 0) {
-				handleError = true;
-			}
-		}
-		return handleError;
-	}
-	
-	protected boolean handleFinally() {
-		boolean handleFinally = false;
-		UIActionFinallyEvent finallyEvent = getFinallyEvent();
-		if (finallyEvent != null && finallyEvent.isEnabled()) {
-			if (finallyEvent.numberOfActions() > 0) {
-				handleFinally = true;
-			}
-		}
-		return handleFinally;
+		return "";		
 	}
 
 	@Override
@@ -394,134 +423,22 @@ public class UIControlEvent extends UIControlAttr implements IControl, IEventGen
 		}
 	}
 	
-	private String getEventFunctionName() {
-		return "ETS" + priority;
-	}
-
-	protected String getScope() {
-		
-		UIControlEvent original = (UIControlEvent) getOriginal();
-		UISharedComponent sharedComponent = original.getSharedComponent();
-		boolean isInSharedComponent = sharedComponent != null;
-		
-		String scope = "";
-		
-		DatabaseObject parent = getParent();
-		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent) && !(parent instanceof UISharedComponentEvent) && !(parent instanceof UIEventSubscriber)) {
-			if (parent instanceof UISharedComponent) {
-				UISharedComponent uisc = (UISharedComponent)parent;
-				if (uisc.isRegular()) {
-					//scope += !scope.isEmpty() ? ", ":"";
-					//scope += "comp"+uisc.priority + ": "+ "comp"+uisc.priority;
-					break;
-				}
-			}
-			if (parent instanceof UIUseShared) {
-				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
-				if (uisc != null) {
-					if (uisc.isRegular()) {
-						//scope += !scope.isEmpty() ? ", ":"";
-						//scope += "comp"+uisc.priority + ": "+ "comp"+uisc.priority;
-					} else {
-						scope += !scope.isEmpty() ? ", ":"";
-						scope += "params"+uisc.priority + ": "+ "params"+uisc.priority;
-					}
-				}
-				if (isInSharedComponent) {
-					break;
-				}
-			}
-			
-			if (parent instanceof UIControlDirective) {
-				UIControlDirective uicd = (UIControlDirective)parent;
-				if (AttrDirective.ForEach.equals(AttrDirective.getDirective(uicd.getDirectiveName()))) {
-					scope += !scope.isEmpty() ? ", ":"";
-					scope += "item"+uicd.priority + ": "+ "item"+uicd.priority;
-					
-					String item = uicd.getDirectiveItemName();
-					if (!item.isEmpty()) {
-						scope += !scope.isEmpty() ? ", ":"";
-						scope += item + ": "+ item;
-					}
-					String index = uicd.getDirectiveIndexName();
-					if (!index.isEmpty()) {
-						scope += !scope.isEmpty() ? ", ":"";
-						scope += index + ":" + index;
-					}
-				}
-			}
-			if (parent instanceof UIElement) {
-				String identifier = ((UIElement)parent).getIdentifier();
-				if (!identifier.isEmpty()) {
-					scope += !scope.isEmpty() ? ", ":"";
-					scope += identifier+ ": "+ identifier;
-				}			
-			}
-			
-			parent = parent.getParent();
-		}
-		
-		if (!scope.isEmpty()) {
-			if (isInSharedComponent) {
-				//scope = "merge(merge({}, params"+ sharedComponent.priority +".scope), {"+ scope +"})";
-				scope = "merge({}, {"+ scope +"})";
-			} else {
-				scope = "merge({}, {"+ scope +"})";
-			}
-		} else {
-			scope = "{}";
-		}
-		return scope;
-	}
-	
-	private boolean isSubmitEvent() {
-		return getAttrName().equals(AttrEvent.onSubmit.event());
-	}
-	
-	@Override
-	public String getAttrValue() {
-		String formIdentifier = null;
-		if (isSubmitEvent()) {
-			UIForm uiForm = getUIForm();
-			if (uiForm != null) {
-				if (!uiForm.getIdentifier().isBlank()) {
-					formIdentifier = uiForm.getIdentifier();
-				}
-			}
-		}
-		
-		String scope = getScope();
-		String in = formIdentifier == null ? "{}": "merge({},"+formIdentifier +".value)";
-		String attrValue = getEventFunctionName() + "({root: {scope:"+ scope +", in:"+ in +", out:$event}})";;
-		return attrValue;
-	}
-
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("eventName")) {
-			String[] attrEvents = EnumUtils.toNames(AttrEvent.class);
-			if (parent != null) {
-				if (parent instanceof UIDynamicElement) {
-					String[] eventNames = ((UIDynamicElement)parent).getEventNames();
-		    		if (eventNames.length > 0) {
-		    			eventNames = ArrayUtils.add(eventNames, "");
-		    		}
-					return ArrayUtils.addAll(eventNames, attrEvents);
-				}
-				if (parent instanceof UIUseShared) {
-					List<String> list = ((UIUseShared)parent).getEventNames();
-					return list.toArray(new String[list.size()]);
-				}
-			}
-			return attrEvents;
+		if (propertyName.equals("viewEvent")) {
+			return EnumUtils.toStrings(ComponentEvent.class);
 		}
 		return new String[0];
 	}
-
+	
 	@Override
 	public String toString() {
-		String label = getEventName();
+		String label = componentEvent.label;
 		return label.isEmpty() ? "?":label;
 	}
-
+	
+	@Override
+	public FolderType getFolderType() {
+		return FolderType.EVENT;
+	}
 }

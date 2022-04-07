@@ -947,6 +947,7 @@ public class ClipboardManager {
 			}
 			else if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.MobileComponent) {
 				if (parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
+						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent ||
 						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
 						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction || 
 						parentDatabaseObject instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack

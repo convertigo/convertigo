@@ -165,7 +165,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		String scope = "";
 		
 		DatabaseObject parent = getParent();
-		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent) && !(parent instanceof UIEventSubscriber)) {
+		while (parent != null && !(parent instanceof UIAppEvent) && !(parent instanceof UIPageEvent) && !(parent instanceof UISharedComponentEvent) && !(parent instanceof UIEventSubscriber)) {
 			if (parent instanceof UIUseShared) {
 				UISharedComponent uisc = ((UIUseShared) parent).getTargetSharedComponent();
 				if (uisc != null) {

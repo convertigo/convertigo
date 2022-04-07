@@ -547,6 +547,9 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
 				</bean>
@@ -577,6 +580,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
@@ -584,6 +588,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFinallyEvent">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack"/>
@@ -619,6 +624,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -636,6 +642,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -653,6 +660,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -670,6 +678,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -687,6 +696,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -704,6 +714,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -721,6 +732,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -738,6 +750,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>
@@ -755,6 +768,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIAppEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIPageEvent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionFailureEvent"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIActionErrorEvent"/>

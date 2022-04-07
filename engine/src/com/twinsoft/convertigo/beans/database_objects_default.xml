@@ -1,4 +1,165 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent" priority="0" version="   8   0   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="componentEvent">
+            <java.lang.String value="onAfterViewInit"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedComponentEvent"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   8   0   0">
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onClick"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Event"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent" priority="0" version="   8   0   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="componentScriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="isPWA">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="NgxApp"/>
+        </property>
+        <property name="splitPaneLayout">
+            <java.lang.String value="not set"/>
+        </property>
+        <property name="tplProjectName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="useClickForTap">
+            <java.lang.Boolean value="false"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   8   0   0">
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onTap"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Event"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="   8   0   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="componentScriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+        <property name="isPWA">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Ionic3App"/>
+        </property>
+        <property name="splitPaneLayout">
+            <java.lang.String value="not set"/>
+        </property>
+        <property name="tplProjectName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="useClickForTap">
+            <java.lang.Boolean value="false"/>
+        </property>
+    </mobilecomponent>
+    <mobileapplication classname="com.twinsoft.convertigo.beans.core.MobileApplication" priority="0" version="   8   0   0">
+        <property name="accessibility">
+            <java.lang.String value="Public"/>
+        </property>
+        <property name="applicationAuthorEmail">
+            <java.lang.String value="sales@convertigo.com"/>
+        </property>
+        <property name="applicationAuthorName">
+            <java.lang.String value="Convertigo"/>
+        </property>
+        <property name="applicationAuthorSite">
+            <java.lang.String value="https://www.convertigo.com"/>
+        </property>
+        <property name="applicationDescription">
+            <java.lang.String value=""/>
+        </property>
+        <property name="applicationId">
+            <java.lang.String value=""/>
+        </property>
+        <property name="applicationName">
+            <java.lang.String value=""/>
+        </property>
+        <property name="applicationVersion">
+            <java.lang.String value=""/>
+        </property>
+        <property name="authenticationToken">
+            <java.lang.String value=""/>
+        </property>
+        <property name="buildMode">
+            <java.lang.String value="full"/>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="enableFlashUpdate">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="endpoint">
+            <java.lang.String value=""/>
+        </property>
+        <property name="flashUpdateTimeout">
+            <java.lang.Long value="30000"/>
+        </property>
+        <property name="fsConnector">
+            <java.lang.String value=""/>
+        </property>
+        <property name="fsDesignDocument">
+            <java.lang.String value=""/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Application"/>
+        </property>
+        <property name="requireUserConfirmation">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="splashRemoveMode">
+            <java.lang.String value="afterUpdate"/>
+        </property>
+    </mobileapplication>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICompVariable" priority="0" version="   8   0   0">
         <property name="autoEmit">
             <java.lang.Boolean value="false"/>
@@ -4745,28 +4906,7 @@
             </xmlizable>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   8   0   0">
-        <property name="attrName">
-            <java.lang.String value="(click)"/>
-        </property>
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
-                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="eventName">
-            <java.lang.String value="onClick"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Event"/>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlDirective" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -4998,31 +5138,7 @@
             <java.lang.String value=""/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent" priority="0" version="   8   0   0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="componentScriptContent">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
-                <com.twinsoft.convertigo.beans.common.FormatedContent/>
-            </xmlizable>
-        </property>
-        <property name="isPWA">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Application"/>
-        </property>
-        <property name="splitPaneLayout">
-            <java.lang.String value="not set"/>
-        </property>
-        <property name="tplProjectName">
-            <java.lang.String value=""/>
-        </property>
-        <property name="useClickForTap">
-            <java.lang.Boolean value="false"/>
-        </property>
-    </mobilecomponent>
+    
     <transaction classname="com.twinsoft.convertigo.beans.transactions.couchdb.PutDocumentAttachmentTransaction" default="false" priority="0" version="   7   9   0">
         <property name="accessibility">
             <java.lang.String value="Public"/>

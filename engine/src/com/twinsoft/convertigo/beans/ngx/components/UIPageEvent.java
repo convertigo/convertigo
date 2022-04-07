@@ -41,17 +41,33 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	protected transient UIActionFinallyEvent finallyEvent = null;
 	
 	public enum ViewEvent {
-		onDidLoad("ionViewDidLoad"),		// ngOnInit
-		onWillEnter("ionViewWillEnter"),
-		onDidEnter("ionViewDidEnter"),
-		onWillLeave("ionViewWillLeave"),
-		onDidLeave("ionViewDidLeave"),
-		onWillUnload("ionViewWillUnload")	// ngOnDestroy
+		onWillLoad("ionViewWillLoad", "pageWillLoad"),		// ngOnInit
+		onDidLoad("ionViewDidLoad", "pageDidLoad"),			// ngAfterViewInit
+		onWillEnter("ionViewWillEnter", "pageWillEnter"),
+		onDidEnter("ionViewDidEnter", "pageDidEnter"),
+		onWillLeave("ionViewWillLeave", "pageWillLeave"),
+		onDidLeave("ionViewDidLeave", "pageDidLeave"),
+		onWillUnload("ionViewWillUnload", "pageWillUnload")	// ngOnDestroy
 		;
 		
+		String label;
 		String event;
-		ViewEvent(String event) {
+		ViewEvent(String event, String label) {
 			this.event = event;
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+		
+		boolean hasSuper(MobileComponent mc) {
+			return !ViewEvent.this.name().toLowerCase().endsWith("load") && !(mc instanceof UISharedComponent);
+		}
+		
+		boolean isAllowed(MobileComponent mc) {
+			return !ViewEvent.onWillLoad.equals(this) && !ViewEvent.onWillUnload.equals(this) && !(mc instanceof UISharedComponent);
 		}
 		
 		String computeEvent(MobileComponent mc, List<UIPageEvent> eventList) {
@@ -66,7 +82,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
 						} else {
 							String identifier = ((UISharedComponent)main).getIdentifier();
-							if (done.add(identifier)) {
+							if (done.add(identifier) && isAllowed(mc)) {
 								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
 							}
 						}
@@ -74,7 +90,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 						IScriptComponent main = pageEvent.getMainScriptComponent();
 						if (main instanceof UISharedComponent) {
 							String identifier = ((UISharedComponent)main).getIdentifier();
-							if (done.add(identifier)) {
+							if (done.add(identifier) && isAllowed(mc)) {
 								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
 							}
 						} else {
@@ -82,26 +98,22 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 						}
 					}
 					if (!functionCall.isBlank()) {
-						children.append("\t\t\t\t" + functionCall).append(System.lineSeparator());
+						children.append("\t\t\t" + functionCall).append(System.lineSeparator());
 					}
 				}
 			}
 			
-			boolean hasSuper = !ViewEvent.onDidLoad.equals(this) && !ViewEvent.onWillUnload.equals(this) && !(mc instanceof UISharedComponent);
 			StringBuffer sb = new StringBuffer();
 			//if (children.length() > 0) {
 				sb.append(System.lineSeparator());
 				sb.append("\t"+event).append("() {").append(System.lineSeparator());
-				if (hasSuper) {
+				if (this.hasSuper(mc)) {
 					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
 				}
-				sb.append("\t\t//Avoid [HMR] Update failed: Error: Injector has already been destroyed").append(System.lineSeparator());
 				sb.append("\t\ttry {").append(System.lineSeparator());
-				sb.append("\t\t\tthis.getInstance(Platform).ready().then(()=>{").append(System.lineSeparator());				
 				sb.append(children);	
-				sb.append("\t\t\t});").append(System.lineSeparator());
 				sb.append("\t\t} catch(e) {").append(System.lineSeparator());
-				sb.append(children);
+				sb.append("\t\t\tconsole.log(e)").append(System.lineSeparator());
 				sb.append("\t\t}").append(System.lineSeparator());
 				sb.append("\t}").append(System.lineSeparator());
 			//}
@@ -328,28 +340,6 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	
 	@Override
 	public String computeEvent() {
-//		if (isEnabled()) {
-//			List<String> list = new ArrayList<String>();
-//			Iterator<UIComponent> it = getUIComponentList().iterator();
-//			while (it.hasNext()) {
-//				UIComponent component = (UIComponent)it.next();
-//				if (component instanceof IAction) {
-//					String action = component.computeTemplate();
-//					if (!action.isEmpty()) {
-//						list.add("this."+action);
-//					}
-//				}
-//			}
-//			
-//			StringBuilder sb = new StringBuilder();
-//			if (!list.isEmpty()) {
-//				for (String s: list) {
-//					sb.append("\t\t\t").append(s).append(";").append(System.lineSeparator());
-//				}
-//			}
-//			return sb.toString();
-//		}
-//		return "";
 		if (isEnabled()) {
 			int num = numberOfActions();
 			StringBuilder sb = new StringBuilder();
@@ -388,9 +378,6 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			} else {
 				tsCode += "\t\tPromise.resolve(true)"+ System.lineSeparator();
 			}
-			
-			//tsCode = tsCode.replaceAll("this", "page");
-			//tsCode = tsCode.replaceAll("page\\.actionBeans\\.", "this.");
 			return tsCode;
 		}
 		return "";		
@@ -423,14 +410,25 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("viewEvent")) {
-			return EnumUtils.toNames(ViewEvent.class);
+			/*final UISharedComponent uisc = this.getSharedComponent();
+			if (uisc != null) {
+				List<String> list = new ArrayList<String>();
+				for (ViewEvent viewEvent: ViewEvent.values()) {
+					if (!viewEvent.equals(ViewEvent.onWillLoad) && !viewEvent.equals(ViewEvent.onWillUnload)) {
+						list.add(viewEvent.label);
+					}
+				}
+				String[] array = new String[list.size()];
+				return list.toArray(array);
+			}*/
+			return EnumUtils.toStrings(ViewEvent.class);
 		}
 		return new String[0];
 	}
 	
 	@Override
 	public String toString() {
-		String label = viewEvent.name();
+		String label = viewEvent.label;
 		return label.isEmpty() ? "?":label;
 	}
 	

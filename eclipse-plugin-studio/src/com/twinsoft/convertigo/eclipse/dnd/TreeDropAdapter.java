@@ -900,7 +900,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					return true;
 				}
 				// Add a CallSequenceAction
-				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
+				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent ||
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent ||
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||
@@ -932,6 +933,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				
 				// Add an InvokeAction
 				if (parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIPageEvent || 
+						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIAppEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionEvent || 
 						parent instanceof com.twinsoft.convertigo.beans.ngx.components.UIControlEvent ||

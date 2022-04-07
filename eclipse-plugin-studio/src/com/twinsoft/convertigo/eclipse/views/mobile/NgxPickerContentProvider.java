@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.Engine;
@@ -582,7 +583,7 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 					}
 					
 					if (showInPicker) {
-						if (uic instanceof UIAppEvent || uic instanceof UIPageEvent || uic instanceof UIEventSubscriber) {
+						if (uic instanceof UIAppEvent || uic instanceof UIPageEvent || uic instanceof UISharedComponentEvent || uic instanceof UIEventSubscriber) {
 							TVObject tve = tvEvents == null ?
 									tvi.add(new TVObject(uic.toString(), uic, null)) :
 										tvEvents.add(new TVObject(uic.toString(), uic, null));
