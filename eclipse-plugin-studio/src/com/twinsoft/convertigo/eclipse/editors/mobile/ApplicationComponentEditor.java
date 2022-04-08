@@ -1584,9 +1584,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						retry = 0;
 					}
 				} else {
-					//ps -e | sed -n -E "s/ ([0-9]+).*Fli.*/\1/p" | xargs kill
 					Process process = new ProcessBuilder("/bin/bash", "-c",
-						"ps -e | grep -v \"sed -n\" | sed -n -E \"s, ([0-9]+).*(node|npm).*/"+ projectName + "/_private/.*,\\1,p\" | xargs kill"
+							"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\" | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
 					).start();
 					int code = process.waitFor();
 					if (code == 0) {

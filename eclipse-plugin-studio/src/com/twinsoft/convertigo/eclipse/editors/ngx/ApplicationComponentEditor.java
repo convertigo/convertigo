@@ -1782,10 +1782,9 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						retry = 0;
 					}
 				} else {
-					//ps -e | sed -n -E "s/ ([0-9]+).*Fli.*/\1/p" | xargs kill
-					String prod = prodOnly ? " | grep \"--watch\"" : "";
+					String prod = prodOnly ? " | grep -e \"--watch\" -e \":watch\"" : "";
 					Process process = new ProcessBuilder("/bin/bash", "-c",
-						"ps -e | grep -v \"sed -n\"" + prod + " | sed -n -E \"s, ([0-9]+).*(node|npm).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
+						"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\"" + prod + " | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
 					).start();
 					int code = process.waitFor();
 					if (code == 0) {
