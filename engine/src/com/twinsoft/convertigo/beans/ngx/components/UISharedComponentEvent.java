@@ -425,7 +425,7 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 	
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("viewEvent")) {
+		if (propertyName.equals("componentEvent")) {
 			return EnumUtils.toStrings(ComponentEvent.class);
 		}
 		return new String[0];
