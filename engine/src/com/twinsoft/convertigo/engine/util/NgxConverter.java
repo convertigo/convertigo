@@ -1098,7 +1098,8 @@ public class NgxConverter {
 			matcherBeanName.matches();
 			String beanName = matcherBeanName.group(1);
 			if (beanName != null && !beanName.isEmpty()) {
-				String viewEvent = xpath.selectList(beanEl, "viewEvent").get(0).getTextContent();
+				Node viewEventNode = xpath.selectList(beanEl, "viewEvent").get(0);
+				String viewEvent = viewEventNode.getTextContent();
 				if (viewEvent != null && !viewEvent.isEmpty()) {
 					if ("onCanEnter".equals(viewEvent) || "onCanLeave".equals(viewEvent)) {
 						try {
@@ -1120,6 +1121,16 @@ public class NgxConverter {
 									eventSubscriberEl.appendChild(child.cloneNode(true));
 								}
 								parentEl.removeChild(beanEl);
+							}
+						} catch (Exception e) {}
+					} else if ("onWillUnload".equals(viewEvent)) {
+						try {
+							Element parentEl = (Element) beanEl.getParentNode();
+							if (parentEl != null) {
+								String parent_yaml_key = parentEl.getAttribute("yaml_key");;
+								if (parent_yaml_key.indexOf("ngx.components.UISharedRegularComponent") != -1) {
+									viewEventNode.setTextContent("onDidLeave");
+								}
 							}
 						} catch (Exception e) {}
 					}

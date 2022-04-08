@@ -95,6 +95,7 @@ import com.twinsoft.convertigo.engine.migration.Migration5_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_4;
 import com.twinsoft.convertigo.engine.migration.Migration7_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration7_4_0;
+import com.twinsoft.convertigo.engine.migration.Migration8_0_0;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.CarUtils;
@@ -1132,7 +1133,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			String version;
 			boolean isMigrating;
-
+			boolean needExport;
+			
 			Engine.logDatabaseObjectManager.info("[importProject] Waiting synchronized: " + projectName);
 			synchronized (lock) {
 				Engine.logDatabaseObjectManager.info("[importProject] Enter synchronized: " + projectName);
@@ -1173,7 +1175,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 					throw new EngineException("Project name mismatch: " + projectName + " != " + xName);
 				}
 
+				needExport = "true".equals(document.getUserData("needExport"));
 				isMigrating = "true".equals(document.getUserData("isMigrating"));
+				
 				if (isMigrating) {
 					Engine.logDatabaseObjectManager.debug("Project '" + projectName + "' needs to be migrated");
 					// Delete project's data only (will backup project)
@@ -1227,7 +1231,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			performPostMigration(version, projectName);
 
 			// Export the project (Since 4.6.0)
-			if (isMigrating) {
+			if (isMigrating || needExport) {
 
 				// Since 4.6 export project to its xml file
 				// Only export project for versions older than 4.0.1
@@ -1342,6 +1346,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				if (Engine.logDatabaseObjectManager.isTraceEnabled())
 					Engine.logDatabaseObjectManager.trace("XML migrated to v7.0.0:\n"
+							+ (XMLUtils.prettyPrintDOM(document)));
+
+				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
+			}
+			
+			// Migration to version 8.0.0 (ngx shared component's events)
+			if (VersionUtils.compareProductVersion(version, "8.0.0") <= 0) {
+				Engine.logDatabaseObjectManager.info("XML project's file migration to 8.0.0 schema (ngx shared component's events)...");
+
+				projectNode = Migration8_0_0.migrate(document, projectNode);
+
+				if (Engine.logDatabaseObjectManager.isTraceEnabled())
+					Engine.logDatabaseObjectManager.trace("XML migrated to v8.0.0:\n"
 							+ (XMLUtils.prettyPrintDOM(document)));
 
 				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");

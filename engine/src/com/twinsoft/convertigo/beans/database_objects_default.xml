@@ -10,9 +10,29 @@
             <java.lang.Boolean value="true"/>
         </property>
         <property name="name">
-            <java.lang.String value="SharedComponentEvent"/>
+            <java.lang.String value="SharedComponent_Event"/>
         </property>
     </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICompEvent" priority="0" version="   8   0   0">
+        <property name="attrName">
+            <java.lang.String value="SharedComponent_BindingEvent"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedComponent_BindingEvent"/>
+        </property>
+    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   8   0   0">
         <property name="attrValue">
             <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
@@ -4242,25 +4262,7 @@
             <java.lang.String value="tag"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UICompEvent" priority="0" version="   8   0   0">
-        <property name="attrName">
-            <java.lang.String value="SharedComponent_Event"/>
-        </property>
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
-                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="SharedComponent_Event"/>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch" priority="0" version="   8   0   0">
         <property name="beanData">
             <java.lang.String value=""/>

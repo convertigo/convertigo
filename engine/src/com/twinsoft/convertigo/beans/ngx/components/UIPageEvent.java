@@ -415,7 +415,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			if (uisc != null) {
 				List<String> list = new ArrayList<String>();
 				for (ViewEvent viewEvent: ViewEvent.values()) {
-					if (!viewEvent.equals(ViewEvent.onWillLoad) /*&& !viewEvent.equals(ViewEvent.onWillUnload)*/) {
+					if (!viewEvent.equals(ViewEvent.onWillLoad) && !viewEvent.equals(ViewEvent.onWillUnload)) {
 						list.add(viewEvent.label);
 					}
 				}
