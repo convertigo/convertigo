@@ -1414,6 +1414,16 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	public String computeStyle() {
 		StringBuilder sb = new StringBuilder();
 		
+		// Pages scss
+		for (PageComponent pc: getPageComponentList()) {
+			if (pc.isEnabled()) {
+				String pageName = pc.getName();
+				String pageDir = pageName.toLowerCase();
+				sb.append("@use \"./pages/"+pageDir+"/"+pageName.toLowerCase()+".scss\";").append(System.getProperty("line.separator"));
+			}
+		}
+		sb.append(System.lineSeparator());
+		
 		// App theme and style
 		Iterator<UIComponent> it = getUIComponentList().iterator();
 		while (it.hasNext()) {
@@ -1433,15 +1443,6 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			String menuStyle = menu.computeStyle();
 			if (!menuStyle.isEmpty()) {
 				sb.append(menuStyle).append(System.lineSeparator());
-			}
-		}
-		
-		// Pages scss
-		for (PageComponent pc: getPageComponentList()) {
-			if (pc.isEnabled()) {
-				String pageName = pc.getName();
-				String pageDir = pageName.toLowerCase();
-				sb.append("@import \"./pages/"+pageDir+"/"+pageName.toLowerCase()+".scss\";").append(System.getProperty("line.separator"));
 			}
 		}
 		

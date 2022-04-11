@@ -1038,28 +1038,42 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	@Override
 	public String computeStyle() {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder uses = new StringBuilder();
+		StringBuilder styles = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
 		for (UIComponent component: getUIComponentList()) {
 			if (component instanceof UIStyle) {
 				String tpl = component.computeTemplate();
 				if (!tpl.isEmpty()) {
-					sb.append(tpl).append(System.getProperty("line.separator"));
+					styles.append(tpl).append(System.getProperty("line.separator"));
 				}
-			}
-			else if (component instanceof UIElement) {
-				String tpl = ((UIElement)component).computeStyle();
+			} else if (component instanceof UIUseShared) {
+				String tpl = ((UIUseShared)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@import") && others.indexOf(tpl) != -1) {
+					if (tpl.startsWith("@use") && uses.indexOf(tpl) != -1) {
 						continue;
 					}
+					uses.append(tpl);
+				}
+			} else if (component instanceof UIElement) {
+				String tpl = ((UIElement)component).computeStyle();
+				if (!tpl.isEmpty()) {
 					others.append(tpl).append(System.getProperty("line.separator"));
 				}
 			}
 		}
 		
-		sb.append(others).append(System.getProperty("line.separator"));
+		StringBuilder sb = new StringBuilder();
+		if (uses.length() > 0) {
+			sb.append(uses).append(System.getProperty("line.separator"));
+		}
+		if (others.length() > 0) {
+			sb.append(others).append(System.getProperty("line.separator"));
+		}
+		if (styles.length() > 0) {
+			sb.append(styles).append(System.getProperty("line.separator"));
+		}
 		
 		return sb.toString();
 	}

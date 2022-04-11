@@ -319,6 +319,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 
 	@Override
 	public String computeStyle() {
+		StringBuilder uses = new StringBuilder();
 		StringBuilder styles = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
@@ -330,26 +331,33 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 				if (!tpl.isEmpty()) {
 					styles.append(tpl).append(";").append(System.getProperty("line.separator"));
 				}
-			}
-			else if (component instanceof UIElement) {
-				String tpl = ((UIElement)component).computeStyle();
+			} else if (component instanceof UIUseShared) {
+				String tpl = ((UIUseShared)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@import") && others.indexOf(tpl) != -1) {
+					if (tpl.startsWith("@use") && uses.indexOf(tpl) != -1) {
 						continue;
 					}
+					uses.append(tpl);
+				}
+			} else if (component instanceof UIElement) {
+				String tpl = ((UIElement)component).computeStyle();
+				if (!tpl.isEmpty()) {
 					others.append(tpl);
 				}
 			}
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (styles.length()>0) {
+		if (uses.length() > 0) {
+			sb.append(uses).append(System.getProperty("line.separator"));
+		}
+		if (others.length() > 0) {
+			sb.append(others).append(System.getProperty("line.separator"));
+		}
+		if (styles.length() > 0) {
 			sb.append("."+ getTagClass()).append(" {").append(System.getProperty("line.separator"));
 			sb.append(styles);
 			sb.append("}").append(System.getProperty("line.separator"));
-		}
-		if (others.length()>0) {
-			sb.append(others);
 		}
 		return sb.toString();
 	}
