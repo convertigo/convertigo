@@ -217,15 +217,18 @@ public class DirectoryWatcherService implements Runnable {
 		    			if (pname(useQName).equals(project.getName()))
 		    				continue;
 		        		try {
-		                    File dest = new File(filename.replace(project.getName(), pname(useQName)));
-		    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
-		        			if (src.isDirectory()) {
-		        				FileUtils.copyDirectory(src, dest, true);
-		        			} else {
-		        				FileUtils.copyFile(src, dest, true);
-		        			}
+		        			String destSubPath = filename.substring(filename.indexOf("_private\\ionic\\src"));
+		        			File dest = new File(Engine.projectDir(pname(useQName)), destSubPath);
+		                    if (!dest.getCanonicalPath().equals(src.getCanonicalPath())) {
+			    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
+			        			if (src.isDirectory()) {
+			        				FileUtils.copyDirectory(src, dest, true);
+			        			} else {
+			        				FileUtils.copyFile(src, dest, true);
+			        			}
+		                    }
 		        		} catch (Exception e) {
-		        			Engine.logEngine.warn(e.getMessage());
+		        			Engine.logEngine.warn("(DirectoryWatcherService) processFiles error: "+ e.getMessage());
 		        		}
 		    		}
 	            }
