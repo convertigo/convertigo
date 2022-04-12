@@ -1,4 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <step classname="com.twinsoft.convertigo.beans.steps.ReadCSVStep" priority="0" version="   8   0   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="dataFile">
+            <java.lang.String value=""/>
+        </property>
+        <property name="encoding">
+            <java.lang.String value="utf-8"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Read_CSV"/>
+        </property>
+        <property name="output">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="replaceStepElement">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="schemaDataType">
+            <java.lang.String value="xsd:string"/>
+        </property>
+        <property name="separator">
+            <java.lang.String value=","/>
+        </property>
+        <property name="tagColName">
+            <java.lang.String value="col"/>
+        </property>
+        <property name="tagLineName">
+            <java.lang.String value="line"/>
+        </property>
+        <property name="titleLine">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="verticalDirection">
+            <java.lang.Boolean value="false"/>
+        </property>
+        <property name="xmlComplexTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlElementRefAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition/>
+            </xmlizable>
+        </property>
+        <property name="xmlSimpleTypeAffectation">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
+                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
+            </xmlizable>
+        </property>
+    </step>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -415,62 +471,7 @@
             </xmlizable>
         </property>
     </step>
-    <step classname="com.twinsoft.convertigo.beans.steps.ReadCSVStep" priority="0" version="   8   0   0">
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="dataFile">
-            <java.lang.String value=""/>
-        </property>
-        <property name="encoding">
-            <java.lang.String value="iso-8859-1"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Read_CSV"/>
-        </property>
-        <property name="output">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="replaceStepElement">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="schemaDataType">
-            <java.lang.String value="xsd:string"/>
-        </property>
-        <property name="separator">
-            <java.lang.String value=";"/>
-        </property>
-        <property name="tagColName">
-            <java.lang.String value="col"/>
-        </property>
-        <property name="tagLineName">
-            <java.lang.String value="line"/>
-        </property>
-        <property name="titleLine">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="verticalDirection">
-            <java.lang.Boolean value="false"/>
-        </property>
-        <property name="xmlComplexTypeAffectation">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
-                <schemaDefinition/>
-            </xmlizable>
-        </property>
-        <property name="xmlElementRefAffectation">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
-                <schemaDefinition/>
-            </xmlizable>
-        </property>
-        <property name="xmlSimpleTypeAffectation">
-            <xmlizable classname="com.twinsoft.convertigo.beans.common.XmlQName">
-                <schemaDefinition pLocalPart="string" pNamespace="http://www.w3.org/2001/XMLSchema"/>
-            </xmlizable>
-        </property>
-    </step>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIText" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>

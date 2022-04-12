@@ -749,11 +749,6 @@ public class EnginePropertiesManager {
 		if (properties == null) {
 			throw new IllegalStateException("Not initialized EnginePropertiesManager");
 		}
-
-		if (property == PropertyName.APPLICATION_SERVER_CONVERTIGO_URL && STUDIO_APPLICATION_SERVER_CONVERTIGO_URL != null) {
-			Engine.logStudio.warn("Studio is listening on another port: " + STUDIO_APPLICATION_SERVER_CONVERTIGO_URL);
-			return STUDIO_APPLICATION_SERVER_CONVERTIGO_URL;
-		}
 		
 		String result = system_properties.getProperty(SYSTEM_PROP_PREFIX + property);
 		if (result == null) {
@@ -762,6 +757,12 @@ public class EnginePropertiesManager {
 
 		if (result == null) {
 			result = property.getDefaultValue();
+		}
+
+		if (bSubstitute && property == PropertyName.APPLICATION_SERVER_CONVERTIGO_URL && STUDIO_APPLICATION_SERVER_CONVERTIGO_URL != null && !STUDIO_APPLICATION_SERVER_CONVERTIGO_URL.equals(result)) {
+			Engine.logStudio.warn("Studio is currently listening on: " + STUDIO_APPLICATION_SERVER_CONVERTIGO_URL
+			                  + "\n                      instead of: " + result);
+			return STUDIO_APPLICATION_SERVER_CONVERTIGO_URL;
 		}
 
 		if (result == null) {
