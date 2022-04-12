@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.beans.ngx.components;
 
+import java.util.Arrays;
+
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileObject;
 
@@ -53,6 +55,38 @@ public abstract class MobileComponent extends MobileObject {
 		//return "1.0.88";// the 7.5.0 has been released with CAF 1.0.88
 		return "7.9.0.2"; // the 7.9.0 has been released with v7.9.0.2
 	}
+
+	public static String cleanStyle(String style) {
+		try {
+			if (style != null && !style.isEmpty()) {
+				StringBuilder uses = new StringBuilder();
+				StringBuilder others = new StringBuilder();
+				for (String line: Arrays.asList(style.split(System.lineSeparator()))) {
+					line = line.trim();
+					if (!line.isEmpty() && line.startsWith("@use")) {
+						if (!uses.toString().contains(line)) {
+							uses.append(line).append(System.getProperty("line.separator"));
+						}
+					} else {
+						others.append(line).append(System.getProperty("line.separator"));
+					}
+				}
+				
+				StringBuilder sb = new StringBuilder();
+				if (uses.length() > 0) {
+					sb.append(uses).append(System.getProperty("line.separator"));
+				}
+				if (others.length() > 0) {
+					sb.append(others).append(System.getProperty("line.separator"));
+				}
+				return sb.toString();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return style;
+	}
+	
 
 //	public String requiredTplVersion() {
 //		return getRequiredTplVersion();

@@ -662,7 +662,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		if (styles.length() > 0) {
 			sb.append(styles).append(System.getProperty("line.separator"));
 		}
-		return sb.toString();
+		return cleanStyle(sb.toString());
 	}
 	
 	@Override

@@ -1074,8 +1074,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		if (styles.length() > 0) {
 			sb.append(styles).append(System.getProperty("line.separator"));
 		}
-		
-		return sb.toString();
+		return cleanStyle(sb.toString());
 	}
 	
 	@Override

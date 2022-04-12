@@ -359,7 +359,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			sb.append(styles);
 			sb.append("}").append(System.getProperty("line.separator"));
 		}
-		return sb.toString();
+		return cleanStyle(sb.toString());
 	}
 
 	@Override

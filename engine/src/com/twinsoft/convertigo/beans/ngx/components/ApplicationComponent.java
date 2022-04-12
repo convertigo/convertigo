@@ -1446,7 +1446,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 			}
 		}
 		
-		return sb.toString();
+		return cleanStyle(sb.toString());
 	}
 
 	public String getComputedTheme() {
