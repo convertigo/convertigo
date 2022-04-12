@@ -261,6 +261,14 @@ public abstract class MobileBuilder {
 		}
 	}
 
+	protected void updateEnvFile() {
+		
+	}
+	
+	public boolean isInitialized() {
+		return initDone;
+	}
+	
 	protected boolean isAppPwaAble() {
 		return isPWA;
 	}

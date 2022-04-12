@@ -614,6 +614,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return mobileBuilder;
 	}
 
+	public boolean isMobileBuilderInitialized() {
+		if ((Engine.isStudioMode() || Engine.isCliMode()) && mobileBuilder != null) {
+			return mobileBuilder.isInitialized();
+		}
+		return false;
+	}
+	
 	private transient MobileApplication mobileApplication = null;
 
 	public MobileApplication getMobileApplication() {

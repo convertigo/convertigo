@@ -226,6 +226,11 @@ public class DirectoryWatcherService implements Runnable {
 			        			} else {
 			        				FileUtils.copyFile(src, dest, true);
 			        			}
+			        			
+			        			Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname(useQName), false);
+			        			if (dest_project != null && dest_project.isMobileBuilderInitialized()) {
+			        				dest_project.getMobileBuilder().updateEnvFile();
+			        			}
 		                    }
 		        		} catch (Exception e) {
 		        			Engine.logEngine.warn("(DirectoryWatcherService) processFiles error: "+ e.getMessage());

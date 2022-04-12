@@ -817,6 +817,11 @@ public class NgxBuilder extends MobileBuilder {
     			if (src.exists() && shouldUpdate(src, dest)) {
     				Engine.logEngine.debug("(MobileBuilder) Copying " + src + " to " + dest);
     				FileUtils.copyDirectory(src, dest, true);
+    				
+        			Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(useQName), false);
+        			if (dest_project != null && dest_project.isMobileBuilderInitialized()) {
+        				dest_project.getMobileBuilder().updateEnvFile();
+        			}
     			}
     		} catch (Exception e) {
     			Engine.logEngine.warn("Unable to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
@@ -908,7 +913,8 @@ public class NgxBuilder extends MobileBuilder {
 		}
     }
     
-	private void updateEnvFile() {
+    @Override
+	protected void updateEnvFile() {
 		JSONObject envJSON = new JSONObject();
 		try {
 			envJSON.put("appTemplateVersion", getTplVersion() != null ? this.tplVersion : "");
