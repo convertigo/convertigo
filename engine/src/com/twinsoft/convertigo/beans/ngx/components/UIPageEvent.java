@@ -108,6 +108,9 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 			//if (children.length() > 0) {
 				sb.append(System.lineSeparator());
 				sb.append("\t"+event).append("() {").append(System.lineSeparator());
+				if (ViewEvent.onDidLoad.equals(this)) {
+					sb.append("\t\tthis.ref.detectChanges();").append(System.lineSeparator());
+				}
 				if (this.hasSuper(mc)) {
 					sb.append("\t\tsuper.").append(event).append("();").append(System.lineSeparator());
 				}
