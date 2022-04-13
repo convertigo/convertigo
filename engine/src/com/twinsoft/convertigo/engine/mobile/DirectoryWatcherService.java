@@ -137,12 +137,48 @@ public class DirectoryWatcherService implements Runnable {
         }
     }
     
+    static private String getFilePath(String filename) {
+    	if (filename != null && !filename.isEmpty()) {
+	    	return Paths.get(filename).toAbsolutePath().toString().replace("\\", "/");
+    	}
+    	return filename;
+    }
+
+    static private boolean shouldUpdate(File srcFile, File destFile) {
+    	if (!destFile.exists())
+    		return true;
+    	
+    	if (srcFile.isDirectory()) {
+	        for (final File src : srcFile.listFiles()) {
+	            if (src.isFile()) {
+	            	File dest = new File(destFile, src.getName());
+	            	if (dest.exists()) {
+	                	if (src.lastModified() != dest.lastModified()) {
+	                		return true;
+	                	}
+	            	} else {
+	            		return true;
+	            	}
+	            }
+	        }
+    	} else {
+        	if (destFile.exists()) {
+            	if (srcFile.lastModified() != destFile.lastModified()) {
+            		return true;
+            	}
+        	} else {
+        		return true;
+        	}
+    	}
+        return false;
+    }
+    
     private boolean ignore(String filename) {
         Path p = Paths.get(filename);
         
         // ignore non source file except assets
-        if (filename.indexOf("_private\\ionic\\src") == -1) {
-            if (filename.indexOf("DisplayObjects\\mobile\\assets") != -1) {
+        if (getFilePath(filename).indexOf("_private/ionic/src") == -1) {
+            if (getFilePath(filename).indexOf("DisplayObjects/mobile/assets") != -1) {
             	return false;
             }
         	return true;
@@ -209,6 +245,8 @@ public class DirectoryWatcherService implements Runnable {
             Path p = Paths.get(filename);
             File src = new File(filename);
             
+        	String filepath = getFilePath(filename);
+        	
             // copy
             if (src.exists()) {
             	if (src.isDirectory()) {
@@ -220,11 +258,11 @@ public class DirectoryWatcherService implements Runnable {
             	}
             	
             	// assets
-                if (filename.indexOf("DisplayObjects\\mobile\\assets") != -1) {
+                if (filepath.indexOf("DisplayObjects/mobile/assets") != -1) {
 	        		try {
-	        			String destSubPath = filename.substring(filename.indexOf("assets"));
-	        			File dest = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\" + destSubPath);
-	        			File assetsDir = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\assets");
+	        			String destSubPath = filepath.substring(filepath.indexOf("assets"));
+	        			File dest = new File(Engine.projectDir(project.getName()), "_private/ionic/src/" + destSubPath);
+	        			File assetsDir = new File(Engine.projectDir(project.getName()), "_private/ionic/src/assets");
 	                    if (!dest.getCanonicalPath().equals(assetsDir.getCanonicalPath())) {
 		    				if ((src.isDirectory() && !dest.exists()) || src.isFile()) {
 		                    	Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
@@ -251,9 +289,9 @@ public class DirectoryWatcherService implements Runnable {
 			    			if (pname(useQName).equals(project.getName()))
 			    				continue;
 			        		try {
-			        			String destSubPath = filename.substring(filename.indexOf("_private\\ionic\\src"));
+			        			String destSubPath = filepath.substring(filepath.indexOf("_private/ionic/src"));
 			        			File dest = new File(Engine.projectDir(pname(useQName)), destSubPath);
-			                    if (!dest.getCanonicalPath().equals(src.getCanonicalPath())) {
+			                    if (!dest.getCanonicalPath().equals(src.getCanonicalPath()) && shouldUpdate(src, dest)) {
 				    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
 				        			if (src.isDirectory()) {
 				        				FileUtils.copyDirectory(src, dest, true);
@@ -275,11 +313,11 @@ public class DirectoryWatcherService implements Runnable {
             }
             // delete
             else {
-                if (filename.indexOf("DisplayObjects\\mobile\\assets") != -1) {
+                if (filepath.indexOf("DisplayObjects/mobile/assets") != -1) {
 	        		try {
-	        			String destSubPath = filename.substring(filename.indexOf("assets"));
-	        			File dest = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\" + destSubPath);
-	        			File assetsDir = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\assets");
+	        			String destSubPath = filepath.substring(filepath.indexOf("assets"));
+	        			File dest = new File(Engine.projectDir(project.getName()), "_private/ionic/src/" + destSubPath);
+	        			File assetsDir = new File(Engine.projectDir(project.getName()), "_private/ionic/src/assets");
 	                    if (dest.exists() && !dest.getCanonicalPath().equals(assetsDir.getCanonicalPath())) {
 	                    	Engine.logEngine.debug("(DirectoryWatcherService) Deleting " + dest);
 	        				FileUtils.deleteQuietly(dest);
