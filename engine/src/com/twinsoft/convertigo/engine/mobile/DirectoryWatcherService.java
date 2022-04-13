@@ -89,7 +89,7 @@ public class DirectoryWatcherService implements Runnable {
         this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey,Path>();
 
-        Path dir = Paths.get(Engine.projectDir(this.project.getName()),"_private/ionic/src");
+        Path dir = Paths.get(Engine.projectDir(this.project.getName()));
         if (recursive) {
             registerAll(dir);
         } else {
@@ -139,6 +139,14 @@ public class DirectoryWatcherService implements Runnable {
     
     private boolean ignore(String filename) {
         Path p = Paths.get(filename);
+        
+        // ignore non source file except assets
+        if (filename.indexOf("_private\\ionic\\src") == -1) {
+            if (filename.indexOf("DisplayObjects\\mobile\\assets") != -1) {
+            	return false;
+            }
+        	return true;
+        }
         
         // ignore non components directory or files
         if (isDirectory(filename) && !p.getParent().endsWith("components")) {
@@ -211,36 +219,80 @@ public class DirectoryWatcherService implements Runnable {
 					}
             	}
             	
-	            String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
-	            if (compName != null) {
-	            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(getCompQName(compName))) {
-		    			if (pname(useQName).equals(project.getName()))
-		    				continue;
-		        		try {
-		        			String destSubPath = filename.substring(filename.indexOf("_private\\ionic\\src"));
-		        			File dest = new File(Engine.projectDir(pname(useQName)), destSubPath);
-		                    if (!dest.getCanonicalPath().equals(src.getCanonicalPath())) {
-			    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
-			        			if (src.isDirectory()) {
+            	// assets
+                if (filename.indexOf("DisplayObjects\\mobile\\assets") != -1) {
+	        		try {
+	        			String destSubPath = filename.substring(filename.indexOf("assets"));
+	        			File dest = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\" + destSubPath);
+	        			File assetsDir = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\assets");
+	                    if (!dest.getCanonicalPath().equals(assetsDir.getCanonicalPath())) {
+		    				if ((src.isDirectory() && !dest.exists()) || src.isFile()) {
+		                    	Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
+			        			if (src.isDirectory() && !dest.exists()) {
 			        				FileUtils.copyDirectory(src, dest, true);
-			        			} else {
+			        			} else if (src.isFile()) {
 			        				FileUtils.copyFile(src, dest, true);
 			        			}
 			        			
-			        			Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname(useQName), false);
-			        			if (dest_project != null && dest_project.isMobileBuilderInitialized()) {
-			        				dest_project.getMobileBuilder().updateEnvFile();
+			        			if (project.isMobileBuilderInitialized()) {
+			        				project.getMobileBuilder().updateEnvFile();
 			        			}
-		                    }
-		        		} catch (Exception e) {
-		        			Engine.logEngine.warn("(DirectoryWatcherService) processFiles error: "+ e.getMessage());
-		        		}
-		    		}
-	            }
+		    				}
+	                    }
+	        		} catch (Exception e) {
+	        			Engine.logEngine.warn("(DirectoryWatcherService) unabled to process file '"+ filename+"': "+ e.getMessage());
+	        		}
+                }
+                // components
+                else {
+                	String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
+		            if (compName != null) {
+		            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(getCompQName(compName))) {
+			    			if (pname(useQName).equals(project.getName()))
+			    				continue;
+			        		try {
+			        			String destSubPath = filename.substring(filename.indexOf("_private\\ionic\\src"));
+			        			File dest = new File(Engine.projectDir(pname(useQName)), destSubPath);
+			                    if (!dest.getCanonicalPath().equals(src.getCanonicalPath())) {
+				    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
+				        			if (src.isDirectory()) {
+				        				FileUtils.copyDirectory(src, dest, true);
+				        			} else {
+				        				FileUtils.copyFile(src, dest, true);
+				        			}
+				        			
+				        			Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(pname(useQName), false);
+				        			if (dest_project != null && dest_project.isMobileBuilderInitialized()) {
+				        				dest_project.getMobileBuilder().updateEnvFile();
+				        			}
+			                    }
+			        		} catch (Exception e) {
+			        			Engine.logEngine.warn("(DirectoryWatcherService) unabled to process file '"+ filename+"': "+ e.getMessage());
+			        		}
+			    		}
+		            }
+                }
             }
             // delete
             else {
-   				Engine.logEngine.debug("(DirectoryWatcherService) Deleted " + filename);
+                if (filename.indexOf("DisplayObjects\\mobile\\assets") != -1) {
+	        		try {
+	        			String destSubPath = filename.substring(filename.indexOf("assets"));
+	        			File dest = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\" + destSubPath);
+	        			File assetsDir = new File(Engine.projectDir(project.getName()), "_private\\ionic\\src\\assets");
+	                    if (dest.exists() && !dest.getCanonicalPath().equals(assetsDir.getCanonicalPath())) {
+	                    	Engine.logEngine.debug("(DirectoryWatcherService) Deleting " + dest);
+	        				FileUtils.deleteQuietly(dest);
+		        			if (project.isMobileBuilderInitialized()) {
+		        				project.getMobileBuilder().updateEnvFile();
+		        			}
+	                    }
+	        		} catch (Exception e) {
+	        			Engine.logEngine.warn("(DirectoryWatcherService) unabled to process file '"+ filename+"': "+ e.getMessage());
+	        		}
+                } else {
+       				Engine.logEngine.debug("(DirectoryWatcherService) Deleted " + filename);
+                }
             }
             
             /*
