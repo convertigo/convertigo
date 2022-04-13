@@ -369,10 +369,32 @@ public class DirectoryWatcherService implements Runnable {
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
                 throws IOException
             {
-                if (dir.getFileName().toString().startsWith(".")) {
+            	if (dir.getFileName().toString().startsWith(".")) {
                     return FileVisitResult.SKIP_SUBTREE;
                 }
-
+            	
+            	// check for project sub directories : allowed are _private & DisplayObjects
+            	if (dir.getParent().equals(start)) {
+            		if (!dir.getFileName().toString().equals("_private") && 
+            			!dir.getFileName().toString().equals("DisplayObjects")) {
+            			return FileVisitResult.SKIP_SUBTREE;
+            		}
+            	}
+            	
+            	// check for _private sub directories : allowed is _private/ionic/src
+            	if (dir.getParent().getParent().getFileName().toString().equals("_private")) {
+            		if (!dir.getFileName().toString().equals("src")) {
+                		return FileVisitResult.SKIP_SUBTREE;
+                	}
+            	}
+            	
+            	// check for DisplayObjects sub directories : allowed is DisplayObjects/mobile/assets
+            	if (dir.getParent().getParent().getFileName().toString().equals("DisplayObjects")) {
+            		if (!dir.getFileName().toString().equals("assets")) {
+                		return FileVisitResult.SKIP_SUBTREE;
+                	}
+            	}
+            	
                 register(dir);
                 return FileVisitResult.CONTINUE;
             }
