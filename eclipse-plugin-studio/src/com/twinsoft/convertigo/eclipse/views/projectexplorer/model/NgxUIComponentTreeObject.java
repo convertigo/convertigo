@@ -1352,7 +1352,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 									try {
 										String oldName = (String)oldValue;
 										String newName = (String)newValue;
-										if (getObject().updateSmartSource("\\?\\."+oldName, "?."+newName)) {
+										if (getObject().updateSmartSource("\\."+oldName+"\\b", "."+newName)) {
 											sourcesUpdated = true;
 										}
 									} catch (Exception e) {}
@@ -1504,24 +1504,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				UICompVariable variable = (UICompVariable)databaseObject;
 				UISharedComponent comp = variable.getSharedComponent();
 				if (comp != null) {
-					// rename variable for comp
-					if (comp.equals(getObject())) {
-						if (comp.isRegular()) {
-							String oldString = "\\."+oldValue;
-							String newString = "."+newValue;
-							if (comp.updateSmartSources(oldString, newString)) {
-								try {
-									hasBeenModified(true);
-									viewer.refresh();
-									
-									markMainAsDirty(comp);
-								} catch (EngineException e) {
-									ConvertigoPlugin.logException(e, "Unable to refactor the references of '" + newValue + "' variable for SharedComponent !");
-								}
-							}
-						}
-					}
-					
 					// rename variable for UseShared
 					if (getObject() instanceof UIUseShared) {
 						UIUseShared uus = (UIUseShared)getObject();
