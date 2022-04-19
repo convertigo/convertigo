@@ -18,7 +18,11 @@
       <programArgsMac>-vm
 ./../jre/bin/java
       </programArgsMac>
-      <vmArgs>--illegal-access=permit
+      <vmArgs>--add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+--add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED
+--add-opens=java.base/java.lang=ALL-UNNAMED
+--add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+--add-opens=java.base/java.io=ALL-UNNAMED
          <argsX86>-Xms256m -Xmx1024m</argsX86>
          <argsX86_64>-Xms256m -Xmx2048m</argsX86_64>
       </vmArgs>
