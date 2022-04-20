@@ -1038,8 +1038,10 @@ public class NgxBuilder extends MobileBuilder {
 		try {
 			File tAssets = new File(ionicTplDir, "src/assets");
 			File bAssets = new File(ionicWorkDir, "../../DisplayObjects/mobile/assets");
-			FileUtils.mergeDirectories(tAssets, bAssets);
-			Engine.logEngine.trace("(MobileBuilder) Assets files copied for ionic project '"+ project.getName() +"'");
+			if (tAssets.exists() && bAssets.exists()) {
+				FileUtils.mergeDirectories(tAssets, bAssets);
+				Engine.logEngine.trace("(MobileBuilder) Assets files copied for ionic project '"+ project.getName() +"'");
+			}
 		}
 		catch (Exception e) {
 			throw new EngineException("Unable to copy ionic assets files for ionic project '"+ project.getName() +"'",e);
