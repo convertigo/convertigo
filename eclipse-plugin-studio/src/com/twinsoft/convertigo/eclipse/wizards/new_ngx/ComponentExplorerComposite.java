@@ -504,41 +504,45 @@ public class ComponentExplorerComposite extends Composite {
 	}
 
 	private void updateHelpText(Component component) {
-		String beanDisplayName = component.getLabel();
-
-		String beanDescription = component.getDescription();
-		String[] beanDescriptions = beanDescription.split("\\|");
-		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
-		String beanLongDescription = beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a";
-
-		beanShortDescription = cleanDescription(beanShortDescription,true);
-		beanLongDescription = cleanDescription(beanLongDescription,true);
-
-		String propertiesDescription = component.getPropertiesDescription();
-
-		if (helpBrowser != null) {
-			helpBrowser.setText(
-					"<head>" +
-							"<script type=\"text/javascript\">" +
-							"document.oncontextmenu = new Function(\"return false\");" +
-							"</script>" +
-							"<style type=\"text/css\">" +
-							"body {" +
-							"font-family: Courrier new, sans-serif;" +
-							"font-size: 14px;" +
-							"padding-left: 0.3em;" +
-							"color: $foreground$;" +
-							"background-color: $background$; } \n" +
-							"li { margin-top: 10px; } \n" +
-							"a { color: $link$; }" +
-							"</style>" +
-							"</head><body><p>" 
-							+ "<font size=\"4.5\"><u><b>" + beanDisplayName + "</b></u></font>" + "<br><br>" 
-							+ "<i>" + beanShortDescription+"</i>" + "<br><br>" 
-							+ beanLongDescription + "<br><br>"
-							+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
-							+ propertiesDescription
-							+ "</p></body>");
+		try {
+			String beanDisplayName = component.getLabel();
+	
+			String beanDescription = component.getDescription();
+			String[] beanDescriptions = beanDescription.split("\\|");
+			String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
+			String beanLongDescription = beanDescriptions.length >= 2 ? beanDescriptions[1] : "n/a";
+	
+			beanShortDescription = cleanDescription(beanShortDescription,true);
+			beanLongDescription = cleanDescription(beanLongDescription,true);
+	
+			String propertiesDescription = component.getPropertiesDescription();
+	
+			if (helpBrowser != null) {
+				helpBrowser.setText(
+						"<head>" +
+								"<script type=\"text/javascript\">" +
+								"document.oncontextmenu = new Function(\"return false\");" +
+								"</script>" +
+								"<style type=\"text/css\">" +
+								"body {" +
+								"font-family: Courrier new, sans-serif;" +
+								"font-size: 14px;" +
+								"padding-left: 0.3em;" +
+								"color: $foreground$;" +
+								"background-color: $background$; } \n" +
+								"li { margin-top: 10px; } \n" +
+								"a { color: $link$; }" +
+								"</style>" +
+								"</head><body><p>" 
+								+ "<font size=\"4.5\"><u><b>" + beanDisplayName + "</b></u></font>" + "<br><br>" 
+								+ "<i>" + beanShortDescription+"</i>" + "<br><br>" 
+								+ beanLongDescription + "<br><br>"
+								+ (propertiesDescription.isEmpty() ? "" : "<u>Properties</u>:<br>")
+								+ propertiesDescription
+								+ "</p></body>");
+			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unabled to update help text.", false);
 		}
 	}
 }
