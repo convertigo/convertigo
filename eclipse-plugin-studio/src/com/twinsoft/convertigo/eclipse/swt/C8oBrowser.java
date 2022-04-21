@@ -32,12 +32,16 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 
 import com.teamdev.jxbrowser.browser.Browser;
+import com.teamdev.jxbrowser.dom.Element;
+import com.teamdev.jxbrowser.dom.event.Event;
+import com.teamdev.jxbrowser.dom.event.EventType;
 import com.teamdev.jxbrowser.engine.Engine;
 import com.teamdev.jxbrowser.engine.EngineOptions;
 import com.teamdev.jxbrowser.engine.RenderingMode;
+import com.teamdev.jxbrowser.event.Observer;
 import com.teamdev.jxbrowser.js.JsObject;
+import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.teamdev.jxbrowser.navigation.event.LoadFinished;
-import com.teamdev.jxbrowser.navigation.event.NavigationStarted;
 import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -52,7 +56,6 @@ public class C8oBrowser extends Composite {
 	private String debugUrl;
 	private BrowserView browserView;
 	private boolean useExternalBrowser = false;
-	private String lastUrl = null;
 	private double dpiRatio = 1;
 
 	private void init(Engine browserContext) {
@@ -60,13 +63,35 @@ public class C8oBrowser extends Composite {
 		browserView = BrowserView.newInstance(this, browserContext.newBrowser());
 		threadSwt = getDisplay().getThread();
 		
-		getBrowser().navigation().on(NavigationStarted.class, event -> {
-			String url = event.url();
-			if (useExternalBrowser && !url.equals(lastUrl) && url.matches("https?://.*")) {
-				com.twinsoft.convertigo.engine.Engine.logStudio.info("Internal browser open link with the default browser: " + url);
-				Program.launch(url);
-				event.navigation().stop();
+		Observer<Event> observer = ev -> {
+			if (!useExternalBrowser) {
+				return;
 			}
+			try {
+				Element elt = (Element) ev.target().get();
+				if (!elt.nodeName().equalsIgnoreCase("a")) {
+					return;
+				}
+				String href = elt.attributes().get("href");
+				if (!href.startsWith("http")) {
+					String url = elt.document().baseUri();
+					if (href.startsWith("/")) {
+						href = url.replaceFirst("(https?://.*?)/.*", "$1" + href);
+					} else {
+						href = url.replaceFirst("(https?://.*/).*", "$1" + href);
+					}
+				}
+				if (href.matches("https?://.*")) {
+					com.twinsoft.convertigo.engine.Engine.logStudio.info("Internal browser open link with the default browser: " + href);
+					Program.launch(href);
+					ev.preventDefault();
+				}
+			} catch (Exception e) {
+			}
+		};
+		getBrowser().mainFrame().get().document().get().addEventListener(EventType.CLICK, observer, false);
+		getBrowser().navigation().on(FrameLoadFinished.class, event -> {
+			event.frame().document().get().addEventListener(EventType.CLICK, observer, false);
 		});
 	}
 	
@@ -175,12 +200,10 @@ public class C8oBrowser extends Composite {
 	}
 
 	public void setUrl(String url) {
-		lastUrl = url;
 		getBrowser().navigation().loadUrl(url);
 	}
 	
 	public void reset() {
-		lastUrl = null;
 		getBrowser().navigation().loadUrlAndWait("about:blank");
 	}
 		
