@@ -14487,7 +14487,7 @@
       "description": [
 "ion-datetime| Defines a <i>DateTime</i> component.<br/>",
 "The <i>DateTime</i> component is used to present an interface which makes it easy for users to select dates and times.<br/>",
-"The <i>DateTime</i> component is similar to the native <input type='datetime-local'> element, however, Ionic&apos;s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values.<br/>",
+"The <i>DateTime</i> component is similar to the native <code>&lt;input type='datetime-local'&gt;</code> element, however, Ionic&apos;s DateTime component makes it easy to display the date and time in a preferred format, and manage the datetime values.<br/>",
 "Use the <i>Value</i> property to set its value.<br/>",
 "Like any other form's inputs, it has a <i>Control name</i> property you may change for a more friendly name to use in a custom validation function.<br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/datetime'>DateTime</a>.<br/><br/>",
