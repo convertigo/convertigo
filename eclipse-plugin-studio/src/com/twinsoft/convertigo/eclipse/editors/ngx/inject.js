@@ -194,7 +194,24 @@ function _c8o_getShadowHost(element) {
 	}
 }
 
+function _c8o_error(str) {
+	
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+	if (document.title == "Error") {
+		var pre = document.createElement("pre");
+		document.body.appendChild(pre);
+		window._c8o_error = (str) => {
+			if (str == null) {
+				window.location.reload();
+			} else {
+				pre.textContent = str;
+			}
+		};
+		_c8o_error("Compilation failed, please fix this error and reload the page.");
+		return;
+	}
 	var scrollStyle = document.createElement("style");
 	scrollStyle.textContent =
 		".scroll-content { overflow-y: overlay; }\n"

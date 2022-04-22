@@ -1239,10 +1239,27 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		});
 	}
 	
+	private void error(String msg) {
+		C8oBrowser.run(() -> {
+			try {
+				c8oBrowser.executeFunctionAndReturnValue("_c8o_error", msg);
+			} catch (Exception e) {
+				if (msg != null) {
+					try {
+						Thread.sleep(1000);
+						c8oBrowser.executeFunctionAndReturnValue("_c8o_error", msg);
+					} catch (Exception e2) {
+						Engine.logStudio.warn("[Error] " + msg);
+					}
+				}
+			}
+		});
+	}
+	
 	private void toast(String msg) {
 		Engine.logStudio.info("[Toast] " + msg);
 		C8oBrowser.run(() -> {
-			c8oBrowser.executeFunctionAndReturnValue("_c8o_toast");
+			c8oBrowser.executeFunctionAndReturnValue("_c8o_toast", msg);
 		});
 	}
 	
@@ -1470,10 +1487,25 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
 			
+			StringBuilder sb = null;
+			
 			while ((line = br.readLine()) != null) {
 				line = pRemoveEchap.matcher(line).replaceAll("");
 				if (StringUtils.isNotBlank(line)) {
 					Engine.logStudio.info(line);
+					if (line.startsWith("Error: ")) {
+						sb = new StringBuilder();
+					}
+					if (sb != null) {
+						if (line.contains("Failed to compile.")) {
+							sb.append(line);
+							error(sb.toString());
+							sb = null;
+						} else {
+							sb.append(line + "\n");
+						}
+					}
+					
 					matcher.reset(line);
 					if (matcher.find()) {
 						progress(Integer.parseInt(matcher.group(1)));
@@ -1483,6 +1515,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					}
 					if (line.matches(".*Compiled .*successfully.*")) {
 						progress(100);
+						error(null);
 						synchronized (mutex) {
 							mutex.notify();
 						}
