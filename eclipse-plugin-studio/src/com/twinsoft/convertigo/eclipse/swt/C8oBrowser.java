@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.eclipse.swt;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,6 +45,7 @@ import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.teamdev.jxbrowser.zoom.ZoomLevel;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.NetworkUtils;
 
 public class C8oBrowser extends Composite {
 	
@@ -124,11 +124,12 @@ public class C8oBrowser extends Composite {
 			Engine browserContext = browserContexts.get(browserId);
 			if (browserContext == null || browserContext.isClosed()) {
 				int debugPort; 
-				try (ServerSocket sock = new ServerSocket(0)) {
-					debugPort = sock.getLocalPort();
+				try {
+					debugPort = (int) (Long.parseLong(browserId, Character.MAX_RADIX) % 10000) + 30000;
 				} catch (Exception e) {
-					debugPort = 18081 + browserContexts.size();
+					debugPort = 30000;
 				}
+				debugPort = NetworkUtils.nextAvailable(debugPort);
 				browserContext = Engine.newInstance(EngineOptions.newBuilder(render_offscreen ? RenderingMode.OFF_SCREEN : RenderingMode.HARDWARE_ACCELERATED)
 						.userDataDir(Paths.get(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH, "browser-works", browserId))
 						.licenseKey(JBL.get())

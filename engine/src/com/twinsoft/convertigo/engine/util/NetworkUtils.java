@@ -59,4 +59,11 @@ public class NetworkUtils {
 		usedport.add(port);
 		return port;
 	}
+
+	public static int nextAvailable(int port) {
+		while (!available(port)) {
+			port++;
+		};
+		return port;
+	}
 }
