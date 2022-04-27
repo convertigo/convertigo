@@ -32,7 +32,7 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 		node.put(ConvertigoPlugin.PREFERENCE_LOG_LEVEL, "3");
 		node.put(ConvertigoPlugin.PREFERENCE_OPENED_CONSOLES, "");
 		node.put(ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT, "2323");
-		node.put(ConvertigoPlugin.PREFERENCE_TREE_HIGHLIGHT_DETECTED, "true");
+		node.put(ConvertigoPlugin.PREFERENCE_TREE_HIGHLIGHT_DETECTED, "false");
 		node.put(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
 		node.put(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_FOLDER, SWT.getPlatform().startsWith("win") ? "C:\\TMP\\C8O_build" : "/tmp/C8O_build");
 	}
