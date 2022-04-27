@@ -1,5 +1,62 @@
 # Changelog
 
+## 8.0.0
+
+#### New Features:
+
+- [#143](https://github.com/convertigo/convertigo/issues/143) [Mobile Builder + NGX] New Switch Action component in Action Chains
+- [#183](https://github.com/convertigo/convertigo/issues/183) [NGX] News Ionic 6 / Angular 13 based framework for Front end projects
+- [#498](https://github.com/convertigo/convertigo/issues/498) [NGX] Builder now generates Standard Angular components for SharedComponents
+- [#501](https://github.com/convertigo/convertigo/issues/501) [HttpConnector] Added a DownloadHttpTransaction
+- [#520](https://github.com/convertigo/convertigo/issues/520) [Studio] auto configures PouchDB and uses it for FullSync projects
+- [#526](https://github.com/convertigo/convertigo/issues/526) [Sequence] Added JSON Steps : Object, Array, Field
+- [#527](https://github.com/convertigo/convertigo/issues/527) [Studio] Execute Sequence and Transaction with JSON output toggle button
+- [#528](https://github.com/convertigo/convertigo/issues/528) [Sequence] Added a new JsonSourceStep to transform a source to a JS Object
+- [#530](https://github.com/convertigo/convertigo/issues/530) [Sequence] Added a JSON to XML Step
+- [#531](https://github.com/convertigo/convertigo/issues/531) [Studio] Added a 'Upgrade to Ngx Framework' wizard to Migrate old Ionic3 projects to NGX
+- [#537](https://github.com/convertigo/convertigo/issues/537) [Sequence] Added a ReadJSON and a WriteJSON steps
+- [#566](https://github.com/convertigo/convertigo/issues/566) [NGX] Create a 'Create shared Component' from existing components Wizard 
+- [#567](https://github.com/convertigo/convertigo/issues/567) [CI] Update CLI CI/CD Build for NGX
+- [#579](https://github.com/convertigo/convertigo/issues/579) [Studio] Enhanced Drag & Drop in treeview or in app viewer for better previews
+
+#### Improvements:
+
+- [#291](https://github.com/convertigo/convertigo/issues/291) [NGX] Improved event catch/finally feature for actions
+- [#424](https://github.com/convertigo/convertigo/issues/424) [NGX] Use faster PNPM instead of NPM for Front End builder’s Package Manager
+- [#506](https://github.com/convertigo/convertigo/issues/506) [Studio] Use Eclipse 2021-12 as base, JDK 17.0.2 and Tomcat 9.0.62
+- [#510](https://github.com/convertigo/convertigo/issues/510) [Builder + NGX] Added an "Application Init" event
+- [#515](https://github.com/convertigo/convertigo/issues/515) [SMTP Step] Added a property to customize the SSL version
+- [#529](https://github.com/convertigo/convertigo/issues/529) [Studio] Hide lib_ projects from project with a toggle button in project view header.
+- [#533](https://github.com/convertigo/convertigo/issues/533) [NGX] You can now use JSON.stringify()  in TS expressions
+- [#535](https://github.com/convertigo/convertigo/issues/535) [Studio] New transactions are now by default Private
+- [#539](https://github.com/convertigo/convertigo/issues/539) [Studio] Added an End point Wizard when building locally IPA or APK iOS/Android apps
+- [#540](https://github.com/convertigo/convertigo/issues/540) [Studio] Deploying an Ngx Project now checks that a Valid build is present in DisplayObjects
+- [#541](https://github.com/convertigo/convertigo/issues/541) [NGX] Set I18N translate to false by default for Ngx Text beans
+- [#571](https://github.com/convertigo/convertigo/issues/571) [Studio] Enable 'Hint' components when dragging NGX Components from palette
+- [#572](https://github.com/convertigo/convertigo/issues/572) [Sequence] Read file Steps (XML, JSON & CSV) now appends result without the 'step' element
+- [#576](https://github.com/convertigo/convertigo/issues/576) [Admin] In admin console List of certificates are now displayed in alphabetical order
+- [#577](https://github.com/convertigo/convertigo/issues/577) [NGX] Added new setLocal action in NGX palette
+- [#578](https://github.com/convertigo/convertigo/issues/578) [NGX] We Allow now to embed custom Angular settings such as assets or styles when using a CustomAction
+- [#588](https://github.com/convertigo/convertigo/issues/588) [Studio] Added New button to highlight grids for App Viewer
+- [#590](https://github.com/convertigo/convertigo/issues/590) [NGX] Added new ngOnchanges event for shared components
+- [#595](https://github.com/convertigo/convertigo/issues/595) [Studio] Now, warn the user when built application isn't up-to-date on Deploy/Export/Local build
+- [#604](https://github.com/convertigo/convertigo/issues/604) [Studio] Take next available port if tomcat list port is already used
+- [#605](https://github.com/convertigo/convertigo/issues/605) [Studio] DisplayObjects/mobile/assets changes are now reflected at run time in real time
+
+#### Bug Fixes:
+
+- [#415](https://github.com/convertigo/convertigo/issues/415) [Admin] Fixed, we cannot add anymore an expired key in the key manager
+- [#480](https://github.com/convertigo/convertigo/issues/480) [HttpConnector] Fixed, prevents HTTP Transaction to "auto-retry" on failure
+- [#554](https://github.com/convertigo/convertigo/issues/554) [Studio] Fixed, typo issues in New HTTP transaction wizard
+- [#580](https://github.com/convertigo/convertigo/issues/580) [Engine] Fixed, execution of TestCase with default variable's value set to <null>
+- [#593](https://github.com/convertigo/convertigo/issues/593) [Build] Fixed, cordova Android build fails to retrieve the JDK8
+- [#594](https://github.com/convertigo/convertigo/issues/594) [Studio] Fixed, test connection of PostgreSQL connector displays wrong DB Type
+- [#596](https://github.com/convertigo/convertigo/issues/596) [Studio] Fixed, importing REST WS reference does not set a default transaction preventing the option to Update schema from current connector data
+- [#600](https://github.com/convertigo/convertigo/issues/600) [Studio] Fixed, objects name are now  fully displayed in Projects tree view
+- [#609](https://github.com/convertigo/convertigo/issues/609) [Engine] Replicate push attachment failed from Android SDK
+
+---
+
 ## 7.9.8
 
 #### New Features:
@@ -17,7 +74,7 @@
 - [#545](https://github.com/convertigo/convertigo/issues/545) Fixed, no more error on dynamic variable in HTTP transaction sub path property
 - [#546](https://github.com/convertigo/convertigo/issues/546) [MobileBuilder] Fixed, can now edit a fragment object
 - [#547](https://github.com/convertigo/convertigo/issues/547) [Studio] Fixed, no more freeze at cross-referenced SharedAction modification
-- [#548](https://github.com/convertigo/convertigo/issues/548) [MobileBuilder] Fixed, a project with its own mobile template doesn’t create a ProjectReference on itself anymore
+- [#548](https://github.com/convertigo/convertigo/issues/548) [MobileBuilder] Fixed, a project with its own mobile template doesn't create a ProjectReference on itself anymore
 - [#549](https://github.com/convertigo/convertigo/issues/549) Fixed, external projects targeted by the mobile components of a project are now taken into account in its dependencies
 - [#555](https://github.com/convertigo/convertigo/issues/555) Fixed, renaming a transaction now renames the xsd file associated
 - [#556](https://github.com/convertigo/convertigo/issues/556) [CLI] Fixed, no more build failed with NPE if a project dependency doesn't load
