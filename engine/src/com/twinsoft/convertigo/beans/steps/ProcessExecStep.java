@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -203,11 +204,15 @@ public class ProcessExecStep extends Step {
 			// Launch the process :
 			// if envp is null, current environment parameters are used
 			// if dir is null, current execution directory is used
-//			final Process process = Runtime.getRuntime().exec(command, envp, dir);		
+//			final Process process = Runtime.getRuntime().exec(command, envp, dir);	
+			
+			
 			final Process process;
 			if (command != null) {
+				Engine.logBeans.debug("Launching ProcessExec command : " + Arrays.toString(command) + " In directory: " + dir);
 				process = Runtime.getRuntime().exec(command, envp, dir);
 			} else {
+				Engine.logBeans.debug("Launching ProcessExec command : " + cmd + " In directory: " + dir);
 				process = Runtime.getRuntime().exec(cmd, envp, dir);
 			}
 			
