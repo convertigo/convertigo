@@ -3199,12 +3199,22 @@ public class NgxBuilder extends MobileBuilder {
 			String tpl_index_content = FileUtils.readFileToString(tpl_index, "UTF-8");
 			String index_content = tpl_index_content;
 			
-			String pwaAppName = app.getParent().getApplicationName();
+			String pwaAppName = app.getParent().getComputedApplicationName();
 			pwaAppName = pwaAppName.isEmpty() ? app.getName() : pwaAppName;
 			index_content = index_content.replace("<!--c8o_App_Name-->", pwaAppName);
 			
 			File index = new File(ionicWorkDir, "src/index.html");
 			writeFile(index, index_content, "UTF-8");
+			
+			// Set application name (manifest.webmanifest)
+			File manifestFile = new File(ionicWorkDir, "src/manifest.webmanifest");
+			if (manifestFile.exists()) {
+				String jsonContent = FileUtils.readFileToString(manifestFile, "UTF-8");
+				JSONObject jsonOb = new JSONObject(jsonContent);
+				jsonOb.put("name", pwaAppName);
+				jsonOb.put("short_name", pwaAppName);
+				FileUtils.write(manifestFile, jsonOb.toString(4), "UTF-8");
+			}
 		} catch (Exception e) {
 			;
 		}
