@@ -3213,7 +3213,7 @@ public class NgxBuilder extends MobileBuilder {
 				JSONObject jsonOb = new JSONObject(jsonContent);
 				jsonOb.put("name", pwaAppName);
 				jsonOb.put("short_name", pwaAppName);
-				FileUtils.write(manifestFile, jsonOb.toString(4), "UTF-8");
+				writeFile(manifestFile, jsonOb.toString(4), "UTF-8");
 			}
 		} catch (Exception e) {
 			;
