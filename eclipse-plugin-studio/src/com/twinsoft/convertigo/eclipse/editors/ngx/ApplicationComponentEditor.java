@@ -1869,7 +1869,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		
 		String baseHref = "/convertigo/projects/"+ project.getName() +"/DisplayObjects/mobile/";
 		try {
-			baseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.substring(endPointUrl.lastIndexOf('/'))) + 
+			baseHref = (endPointUrl.isEmpty() ? "/convertigo": endPointUrl.replaceFirst("https?://.*?/", "/").replaceFirst("(/.*)/.*?$", "$1")) + 
 								"/projects/"+ project.getName() +"/DisplayObjects/mobile/";
 		} catch (Exception e) {}
 		
