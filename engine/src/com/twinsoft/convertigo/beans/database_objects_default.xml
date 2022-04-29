@@ -1,4 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   8   0   0">
+        <property name="attrName">
+            <java.lang.String value="(click)"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onClick"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Event"/>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   8   0   0">
+        <property name="attrName">
+            <java.lang.String value="(tap)"/>
+        </property>
+        <property name="attrValue">
+            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
+                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
+            </xmlizable>
+        </property>
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="eventName">
+            <java.lang.String value="onTap"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="Event"/>
+        </property>
+    </mobilecomponent>
     <step classname="com.twinsoft.convertigo.beans.steps.ReadCSVStep" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -89,25 +133,7 @@
         </property>
     </mobilecomponent>
     
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIControlEvent" priority="0" version="   8   0   0">
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType">
-                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="eventName">
-            <java.lang.String value="onClick"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Event"/>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>
@@ -133,25 +159,7 @@
             <java.lang.Boolean value="false"/>
         </property>
     </mobilecomponent>
-    <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.UIControlEvent" priority="0" version="   8   0   0">
-        <property name="attrValue">
-            <xmlizable classname="com.twinsoft.convertigo.beans.mobile.components.MobileSmartSourceType">
-                <MobileSmartSourceType>plain:value</MobileSmartSourceType>
-            </xmlizable>
-        </property>
-        <property name="comment">
-            <java.lang.String value=""/>
-        </property>
-        <property name="eventName">
-            <java.lang.String value="onTap"/>
-        </property>
-        <property name="isEnabled">
-            <java.lang.Boolean value="true"/>
-        </property>
-        <property name="name">
-            <java.lang.String value="Event"/>
-        </property>
-    </mobilecomponent>
+    
     <mobilecomponent classname="com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent" priority="0" version="   8   0   0">
         <property name="comment">
             <java.lang.String value=""/>
