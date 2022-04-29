@@ -59,10 +59,13 @@ if [ "$1" = "convertigo" ]; then
     
     export JAVA_OPTS="$JAVA_OPTS \
         --illegal-access=permit \
+        --add-exports=java.base/sun.nio.ch=ALL-UNNAMED \
+        --add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED \
+        --add-opens=java.base/java.lang=ALL-UNNAMED \
+        --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
+        --add-opens=java.base/java.io=ALL-UNNAMED \
         -XX:+UseG1GC \
         -XX:+UseStringDeduplication \
-        -XX:MinHeapFreeRatio=10 \
-        -XX:MaxHeapFreeRatio=15 \
         -Xdebug \
         -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n \
         -Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true \
