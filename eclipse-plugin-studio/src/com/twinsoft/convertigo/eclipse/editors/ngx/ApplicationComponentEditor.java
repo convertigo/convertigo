@@ -1343,9 +1343,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 			if (forceInstall || !nodeModules.exists() || mb.getNeedPkgUpdate()) {
 				boolean[] running = {true};
 				try {
-					new File(ionicDir, "package-lock.json").delete();
-					new File(ionicDir, "pnpm-lock.yaml").delete();
-					
 					if (forceClean) {
 						appendOutput("...", "...", "Removing existing node_modules... This can take several seconds...");
 						Engine.logStudio.info("Removing existing node_modules... This can take several seconds...");
@@ -1357,53 +1354,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					ProcessBuilder pb;
 					Process p;
 					
-					boolean useYarn = false;  // set to true to enable yarn again.
-					if (useYarn) {
-						File yarnFile = new File(ionicDir.toString() + "/node_modules/.bin/yarn");
-						if (!yarnFile.exists()) {
-							Engine.logStudio.info("Installing Yarn...");
-							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "yarn");
-							pb.redirectErrorStream(true);
-							pb.directory(ionicDir);
-							p = pb.start();
-							p.waitFor();
-						}
-						
-						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() + "/node_modules/.bin/", "yarn");
-						pb.redirectErrorStream(true);
-						pb.directory(ionicDir);
-						p = pb.start();
-					} else {
-						File pnpmDir = new File(ionicDir.toString() + "/node_modules/.pnpm");
-						if (!pnpmDir.exists()) {
-							Engine.logStudio.info("Installing Pnpm...");
-							pb = ProcessUtils.getNpmProcessBuilder(path, "npm", "install", "pnpm", "-g");
-							pb.redirectErrorStream(true);
-							pb.directory(ionicDir);
-							p = pb.start();
-							p.waitFor();
-						}
-						
-						pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "pnpm", "install", "--shamefully-hoist");
-						pb.redirectErrorStream(true);
-						pb.directory(ionicDir);
-						p = pb.start();
-					}
-					
-					/*
-					Engine.execute(() -> {
-						try {
-							while (running[0]) {
-								appendOutput("Collecting node_modules: " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)) + " (" + Math.round(System.currentTimeMillis() - start) / 1000 + " sec)");
-								Engine.logStudio.info("Installing, node_module size is now : " + FileUtils.byteCountToDisplaySize(FileUtils.sizeOfAsBigInteger(nodeModules)));
-								Thread.sleep(1000);
-							} 
-						} catch (Exception e) {
-							appendOutput("Something wrong during the install: " + e);
-						}
-					});
-					*/
-					
+					pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "npm", "install", "--legacy-peer-deps", "--loglevel", "info");
+					pb.redirectErrorStream(true);
+					pb.directory(ionicDir);
+					p = pb.start();
+				
 					processes.add(p);
 					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 					String line;
@@ -1826,7 +1781,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 
 	@Override
 	public void onPackageUpdated() {
-		launchBuilder(true, true);
+		launchBuilder(true, false);
 		ConvertigoPlugin.getDisplay().syncExec(
 			new Runnable() {
 				public void run() {

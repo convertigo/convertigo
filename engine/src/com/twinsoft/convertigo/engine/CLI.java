@@ -333,28 +333,9 @@ public class CLI {
 		String line;
 		
 		if (ngx) {
-			File pnpmDir = new File(nodeDir, "pnpm");
-			if (!pnpmDir.exists()) {
-				Engine.logStudio.info("Installing Pnpm...");
-				pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "pnpm", "-g");
-				pb.redirectErrorStream(true);
-				pb.directory(ionicDir);
-				Process p = pb.start();
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-					
-					while ((line = br.readLine()) != null) {
-						line = pRemoveEchap.matcher(line).replaceAll("");
-						if (StringUtils.isNotBlank(line)) {
-							Engine.logConvertigo.info(line);
-						}
-					}
-				};
-				p.waitFor();
-			}
-			
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "pnpm", "install", "--shamefully-hoist");
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "--legacy-peer-deps");
 		} else {
-			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");	
+			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");
 		}
 		pb.redirectErrorStream(true);
 		pb.directory(ionicDir);
@@ -368,7 +349,7 @@ public class CLI {
 			}
 		}
 		int code = p.waitFor();
-		Engine.logConvertigo.info((ngx ? "pnpm" : "npm install") + " finished with exit: " + code);
+		Engine.logConvertigo.info("npm install finished with exit: " + code);
 		
 		ngx = b_ngx;
 		
