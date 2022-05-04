@@ -1351,13 +1351,17 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					appendOutput("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					Engine.logStudio.info("Installing node_modules... This can take several minutes depending on your network connection speed...");
 					
-					ProcessBuilder pb;
-					Process p;
+					if (!nodeModules.exists()) {
+						File packageLockTpl = new File(ionicDir, "package-lock-tpl.json");
+						if (packageLockTpl.exists()) {
+							com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, new File(ionicDir, "package-lock.json"));
+						}
+					}
 					
-					pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "npm", "install", "--legacy-peer-deps", "--loglevel", "info");
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "npm", "install", "--legacy-peer-deps", "--loglevel", "info");
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
-					p = pb.start();
+					Process p = pb.start();
 				
 					processes.add(p);
 					BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -1782,17 +1786,6 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 	@Override
 	public void onPackageUpdated() {
 		launchBuilder(true, false);
-		ConvertigoPlugin.getDisplay().syncExec(
-			new Runnable() {
-				public void run() {
-					try {
-						ConvertigoPlugin.infoMessageBox("Some needed packages will be installed");
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-				}
-			}
-		);
 	}
 	
 	Job prodJob = null;

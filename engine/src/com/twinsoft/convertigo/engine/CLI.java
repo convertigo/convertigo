@@ -333,6 +333,11 @@ public class CLI {
 		String line;
 		
 		if (ngx) {
+			File packageLockTpl = new File(ionicDir, "package-lock-tpl.json");
+			File packageLock = new File(ionicDir, "package-lock.json");
+			if (packageLockTpl.exists() && !packageLock.exists()) {
+				com.twinsoft.convertigo.engine.util.FileUtils.copyFile(packageLockTpl, packageLock);
+			}
 			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", "--legacy-peer-deps");
 		} else {
 			pb = ProcessUtils.getNpmProcessBuilder(nodePath, "npm", "install", ionicDir.toString(), "--no-shrinkwrap", "--no-package-lock");

@@ -867,30 +867,6 @@ public class NgxBuilder extends MobileBuilder {
     
     @Override
 	protected void updateTplVersion() {
-		/*if (tplVersion == null && Engine.isStudioMode()) {
-    		File nodeModules = new File(ionicWorkDir, "node_modules");
-    		if (nodeModules.exists()) {
-    			String templateVersion = null;
-    			File versionJson = new File(ionicWorkDir, "version.json");
-    			if (versionJson.exists()) {
-    				try {
-						String tsContent = FileUtils.readFileToString(versionJson, "UTF-8");
-						JSONObject jsonOb = new JSONObject(tsContent);
-						templateVersion = jsonOb.getString("version");
-    				} catch (Exception e) {}
-    			}
-    			
-				String storedTemplateVersion = (String) getStoredEnvKey("appTemplateVersion");
-    	    	if (templateVersion != null && storedTemplateVersion != null && !storedTemplateVersion.equals(templateVersion)) {
-        			try {
-        				Engine.logEngine.info("(MobileBuilder) Template version has changed. Removing existing node_modules...");
-    	    			FileUtils.deleteQuietly(nodeModules);
-        			} catch (Exception e) {
-        				setNeedPkgUpdate(true);
-        			}
-    	    	}
-    		}
-		}*/
 		super.updateTplVersion();
 	}
 	
