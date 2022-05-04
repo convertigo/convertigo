@@ -296,6 +296,10 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 				TVObject tvi = root.add(new TVObject("globals"));
 				addGlobals(tvi, mobileComponent.getApplication());
 			}
+			if (filter.equals(Filter.Local)) {
+				TVObject tvi = root.add(new TVObject("locals"));
+				addLocals(tvi, mobileComponent.getApplication());
+			}
 			return root.children.toArray();
 		} else if (parentElement instanceof JSONObject) {
 			JSONObject jsonObject = (JSONObject)parentElement;
@@ -696,6 +700,60 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 		}
 	}
 	
+	private void getLocalActions(Object object, Map<String, UIDynamicAction> locals) {
+		List<DatabaseObject> list = new ArrayList<>();
+		if (object instanceof ApplicationComponent) {
+			list.addAll(((ApplicationComponent)object).getAllChildren());
+		} else if (object instanceof PageComponent) {
+			list.addAll(((PageComponent)object).getAllChildren());
+		} else if (object instanceof UIComponent) {
+			list.addAll(((UIComponent)object).getAllChildren());
+		}
+		
+		for (DatabaseObject dbo : list) {
+			if (dbo instanceof UIDynamicAction) {
+				UIDynamicAction uida = (UIDynamicAction)dbo;
+				if (uida.isSetLocalAction()) {
+					String key = uida.getSetActionKeyName();
+					if (key != null && !key.isEmpty() && !locals.containsKey(key)) {
+						locals.put(key, uida);
+					}
+				}
+			}
+			getLocalActions(dbo, locals);
+		}
+	}
+	
+	private void addLocals(TVObject tvi, Object object) {
+		if (object != null) {
+			Map<String, UIDynamicAction> locals = null;
+			if (object instanceof ApplicationComponent) {
+				locals = new HashMap<>();
+				getLocalActions(object, locals);
+			}
+			
+			if (locals != null) {
+				try {
+					JSONObject jsonInfos = new JSONObject();
+					for (String key: locals.keySet()) {
+						jsonInfos.put(key, "");
+					}
+
+					SourceData sd = null;
+					try {
+						sd = Filter.Local.toSourceData(new JSONObject());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+					tvi.add(new TVObject("localObject", object, sd, jsonInfos));
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
 	private void getGlobalActions(Object object, Map<String, UIDynamicAction> globals) {
 		List<DatabaseObject> list = new ArrayList<>();
 		if (object instanceof ApplicationComponent) {
@@ -710,7 +768,7 @@ public class NgxPickerContentProvider implements ITreeContentProvider {
 			if (dbo instanceof UIDynamicAction) {
 				UIDynamicAction uida = (UIDynamicAction)dbo;
 				if (uida.isSetGlobalAction()) {
-					String key = uida.getSetGlobalActionKeyName();
+					String key = uida.getSetActionKeyName();
 					if (key != null && !key.isEmpty() && !globals.containsKey(key)) {
 						globals.put(key, uida);
 					}

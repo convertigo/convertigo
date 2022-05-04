@@ -135,7 +135,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 public class NgxPickerComposite extends Composite {
 
 	Composite content, headerComposite;
-	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal;
+	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal, btnLocal;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Button b_custom;
@@ -364,6 +364,7 @@ public class NgxPickerComposite extends Composite {
 					btnIteration.setSelection(false);
 					btnForm.setSelection(false);
 					btnGlobal.setSelection(false);
+					btnLocal.setSelection(false);
 					
 					ToolItem button = (ToolItem) e.widget;
 					button.setSelection(true);
@@ -382,6 +383,8 @@ public class NgxPickerComposite extends Composite {
 						contentProvider.setFilterBy(Filter.Form);
 					} else if (btnGlobal.getSelection()) {
 						contentProvider.setFilterBy(Filter.Global);
+					} else if (btnLocal.getSelection()) {
+						contentProvider.setFilterBy(Filter.Local);
 					}
 					modelTreeViewer.setInput(null);
 					checkboxTreeViewer.getTree().removeAll();
@@ -510,9 +513,19 @@ public class NgxPickerComposite extends Composite {
 			btnGlobal.setText("GS");
 		}
 		btnGlobal.setImage(image);
-		btnGlobal.setToolTipText("Show Global Shared objects");
+		btnGlobal.setToolTipText("Show Global objects");
 		btnGlobal.addSelectionListener(listener);
 
+		btnLocal = new ToolItem(toolbar, btnStyle);
+		try {
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setlocalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+		} catch (Exception e) {
+			btnLocal.setText("LS");
+		}
+		btnLocal.setImage(image);
+		btnLocal.setToolTipText("Show Local objects");
+		btnLocal.addSelectionListener(listener);
+		
 		message = new Label(headerComposite, SWT.NONE);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -525,7 +538,7 @@ public class NgxPickerComposite extends Composite {
 			public void checkStateChanged(CheckStateChangedEvent event) {
 				Object element = event.getElement();
 				if (element instanceof TVObject) {
-					if (btnIteration.getSelection() || btnForm.getSelection() || btnGlobal.getSelection()) {
+					if (btnIteration.getSelection() || btnForm.getSelection() || btnGlobal.getSelection() || btnLocal.getSelection()) {
 						checkboxTreeViewer.setChecked(element, !event.getChecked());
 						return;
 					}
@@ -668,6 +681,8 @@ public class NgxPickerComposite extends Composite {
 			filter = Filter.Form;
 		else if (btnGlobal.getSelection())
 			filter = Filter.Global;
+		else if (btnLocal.getSelection())
+			filter = Filter.Local;
 		return filter;
 	}
 	
@@ -728,6 +743,7 @@ public class NgxPickerComposite extends Composite {
 			btnIteration.setEnabled(enabled);
 			btnForm.setEnabled(enabled);
 			btnGlobal.setEnabled(enabled);
+			btnLocal.setEnabled(enabled);
 			checkboxTreeViewer.getTree().setEnabled(enabled);
 		} catch (Exception e) {
 			
@@ -743,7 +759,7 @@ public class NgxPickerComposite extends Composite {
 		for (Object ob: checkboxTreeViewer.getGrayedElements()) {
 			checkboxTreeViewer.setChecked(ob, true);
 			if (ob instanceof TVObject && !((TVObject)ob).getSource().isEmpty()) {
-				if (btnIteration.getSelection() || btnForm.getSelection() || btnGlobal.getSelection()) {
+				if (btnIteration.getSelection() || btnForm.getSelection() || btnGlobal.getSelection() || btnLocal.getSelection()) {
 					checkboxTreeViewer.setGrayed(ob, !ob.equals(lastSelected));
 				} else {
 					checkboxTreeViewer.setGrayed(ob, false);
@@ -1597,6 +1613,9 @@ public class NgxPickerComposite extends Composite {
 					}
 					if (Filter.Global.equals(filter)) {
 						buttonToSelect = btnGlobal;
+					}
+					if (Filter.Local.equals(filter)) {
+						buttonToSelect = btnLocal;
 					}
 					buttonToSelect.notifyListeners(SWT.Selection, null);
 				}

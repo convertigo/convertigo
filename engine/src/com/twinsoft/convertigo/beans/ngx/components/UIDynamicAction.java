@@ -923,11 +923,15 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return "SetGlobalAction".equals(getActionName());
 	}
 	
+	public boolean isSetLocalAction() {
+		return "SetLocalAction".equals(getActionName());
+	}
+	
 	public boolean isSetGlobalOrLocalAction() {
 		return "SetGlobalAction".equals(getActionName()) || "SetLocalAction".equals(getActionName()) ;
 	}
 	
-	public String getSetGlobalActionKeyName() {
+	public String getSetActionKeyName() {
 		if (isSetGlobalOrLocalAction()) {
 			IonProperty property = getIonBean().getProperty("Property");
 			if (property != null) {
@@ -940,7 +944,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return null;
 	}
 	
-	public Object getSetGlobalActionKeyValue() {
+	public Object getSetActionKeyValue() {
 		if (isSetGlobalOrLocalAction()) {
 			IonProperty property = getIonBean().getProperty("Value");
 			if (property != null) {
@@ -953,7 +957,7 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 		return null;
 	}
 	
-	public Object getSetGlobalActionValueLabel() {
+	public Object getSetActionValueLabel() {
 		if (isSetGlobalOrLocalAction()) {
 			IonProperty property = getIonBean().getProperty("Value");
 			if (property != null) {
@@ -966,16 +970,9 @@ public class UIDynamicAction extends UIDynamicElement implements IAction {
 	@Override
 	public String toString() {
 		if (isSetGlobalOrLocalAction()) {
-			String key = getSetGlobalActionKeyName();
+			String key = getSetActionKeyName();
 			if (key != null && !key.isEmpty()) {
-				Object val = getSetGlobalActionValueLabel();
-				return ""+ key + " = " + (val == null || val.toString().isEmpty() ? "?": val.toString());
-			}
-		}
-		else if (isSetGlobalOrLocalAction()) {
-			String key = getSetGlobalActionKeyName();
-			if (key != null && !key.isEmpty()) {
-				Object val = getSetGlobalActionValueLabel();
+				Object val = getSetActionValueLabel();
 				return ""+ key + " = " + (val == null || val.toString().isEmpty() ? "?": val.toString());
 			}
 		}

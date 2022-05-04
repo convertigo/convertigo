@@ -97,7 +97,8 @@ public class MobileSmartSource {
 		Database,
 		Iteration,
 		Form,
-		Global;
+		Global,
+		Local;
 		
 		public SourceData toSourceData(String project, String source) {
 			if (project != null && !project.isEmpty()) {
@@ -116,6 +117,8 @@ public class MobileSmartSource {
 						return new MobileSmartSource().new FormData(project, source);
 					} else if (this.equals(Filter.Global)) {
 						return new MobileSmartSource().new GlobalData(project, source);
+					} else if (this.equals(Filter.Local)) {
+						return new MobileSmartSource().new LocalData(project, source);
 					}
 				}
 			}
@@ -138,6 +141,8 @@ public class MobileSmartSource {
 					return new MobileSmartSource().new FormData(jsonObject);
 				} else if (this.equals(Filter.Global)) {
 					return new MobileSmartSource().new GlobalData(jsonObject);
+				} else if (this.equals(Filter.Local)) {
+					return new MobileSmartSource().new LocalData(jsonObject);
 				}
 			}
 			return null;
@@ -291,6 +296,8 @@ public class MobileSmartSource {
 							addSourceData(new MobileSmartSource().new FormData(jsonSourceData));
 						} else if (filter.equals(Filter.Global)) {
 							addSourceData(new MobileSmartSource().new GlobalData(jsonSourceData));
+						} else if (filter.equals(Filter.Local)) {
+							addSourceData(new MobileSmartSource().new LocalData(jsonSourceData));
 						}
 					}
 				}
@@ -1014,6 +1021,54 @@ public class MobileSmartSource {
 		
 	}
 	
+	public class LocalData extends SourceData {
+		private String localObject = "local";
+		
+		public LocalData(JSONObject jsonObject) {
+			super(jsonObject);
+			try {
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		public LocalData(String project, String source) {
+			super();
+			try {
+				;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JSONObject toJson() {
+			JSONObject jsonObject = new JSONObject();
+			try {
+				jsonObject.put("localObject", localObject);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			return jsonObject;
+		}
+
+		@Override
+		public String getValue() {
+			return getSource();
+		}
+
+		@Override
+		public String getValueEx() {
+			return keyThis + "."+ localObject;
+		}
+		
+		@Override
+		public String getSource() {
+			return localObject;
+		}
+		
+	}
+
 	private JSONObject jsonObject = new JSONObject();
 	
 	private MobileSmartSource() {
