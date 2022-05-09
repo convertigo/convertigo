@@ -2596,8 +2596,7 @@ public class NgxBuilder extends MobileBuilder {
 							if (pageSegment.indexOf('/') != -1) {
 								String rootSegment = pageSegment.substring(0, pageSegment.indexOf('/'));
 								c8o_AppRoutes += "{ path: '', redirectTo: '"+ rootSegment +"', pathMatch: 'full' }," + System.lineSeparator();
-								c8o_AppRoutes += " { path: '"+rootSegment+"', loadChildren: () => import('"+pageModulePath+"').then( m => m."+ pageModuleName +")}" + 
-													(isLastPage ? "":",") + System.lineSeparator();
+								c8o_AppRoutes += " { path: '"+rootSegment+"', loadChildren: () => import('"+pageModulePath+"').then( m => m."+ pageModuleName +")}," + System.lineSeparator();
 							} else {
 								c8o_AppRoutes += "{ path: '', redirectTo: '"+ pageSegment +"', pathMatch: 'full' }," + System.lineSeparator();
 							}
