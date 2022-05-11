@@ -76,6 +76,7 @@ public class SetupWizard extends Wizard {
 	protected WorkspaceCreationPage workspaceCreationPage;
 	protected ConfigureProxyPage configureProxyPage;
 //	protected AlreadyPscKeyPage alreadyPscKeyPage;
+	protected EmbeddedRegistrationPage embeddedRegistrationPage;
 	protected PscKeyValidationPage pscKeyValidationPage;
 //	protected RegistrationPage registrationPage;
 //	protected PscKeyPage pscKeyPage;
@@ -149,7 +150,10 @@ public class SetupWizard extends Wizard {
 
 //		alreadyPscKeyPage = new AlreadyPscKeyPage();
 //		addPage(alreadyPscKeyPage);
-
+		
+		embeddedRegistrationPage = new EmbeddedRegistrationPage();
+		addPage(embeddedRegistrationPage);
+		
 		pscKeyValidationPage = new PscKeyValidationPage();
 		addPage(pscKeyValidationPage);
 		
