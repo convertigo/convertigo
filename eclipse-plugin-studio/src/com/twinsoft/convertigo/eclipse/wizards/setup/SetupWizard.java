@@ -37,6 +37,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Composite;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -85,6 +86,8 @@ public class SetupWizard extends Wizard {
 	protected ProxyManager proxyManager;
 
 	private String previousPageName = "";
+	
+	String psc = "";
 
 	public SetupWizard() {
 		super();
@@ -250,9 +253,7 @@ public class SetupWizard extends Wizard {
 
 		File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
 		try {
-			FileUtils.writeStringToFile(pscFile,
-//					pscKeyPage.getCertificateKey(), "utf-8");
-					pscKeyValidationPage.getCertificateKey(), "utf-8");
+			FileUtils.writeStringToFile(pscFile, psc, "utf-8");
 		} catch (IOException e) {
 			ConvertigoPlugin.logError("Failed to write the PSC file: "
 					+ e.getMessage());
@@ -486,4 +487,11 @@ public class SetupWizard extends Wizard {
 	public static String getUniqueID() {
 		return uniqueID;
 	}
+
+	@Override
+	public void createPageControls(Composite pageContainer) {
+		getShell().setMaximized(true);
+		super.createPageControls(pageContainer);
+	}
+	
 }

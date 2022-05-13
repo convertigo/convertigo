@@ -57,7 +57,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 	
 	private Composite container;
 	
-	private Text pscKey;
+	Text pscKey;
 	private Link infoLink;
 	private Properties decodedPSC;
 	
@@ -68,7 +68,7 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 	}
 
 	@Override
-	public IWizard getWizard() {		
+	public IWizard getWizard() {
 		setErrorMessage(null);
 		setMessage(getDescription());
 		
@@ -175,6 +175,8 @@ public class PscKeyValidationPage extends WizardPage implements RegisterCallback
 				if (psc.length() != 0) {
 					try {
 						decodedPSC = ConvertigoPlugin.decodePsc(psc);
+						SetupWizard wizard = (SetupWizard) getWizard();
+						wizard.psc = psc;
 						setErrorMessage(null);
 						setMessage(getDescription());
 						setPageComplete(true);

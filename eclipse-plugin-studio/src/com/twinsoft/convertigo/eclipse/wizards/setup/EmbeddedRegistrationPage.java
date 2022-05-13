@@ -19,11 +19,17 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
@@ -33,14 +39,14 @@ import com.teamdev.jxbrowser.browser.callback.OpenPopupCallback.Response;
 import com.teamdev.jxbrowser.browser.event.BrowserClosed;
 import com.teamdev.jxbrowser.dom.Element;
 import com.teamdev.jxbrowser.dom.event.EventType;
+import com.teamdev.jxbrowser.event.Subscription;
 import com.teamdev.jxbrowser.navigation.event.LoadProgressChanged;
 import com.teamdev.jxbrowser.view.swt.BrowserView;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
-import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.RegisterCallback;
-import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
-import com.twinsoft.convertigo.engine.Engine;
 
-public class EmbeddedRegistrationPage extends WizardPage implements RegisterCallback, SummaryGenerator {
+public class EmbeddedRegistrationPage extends WizardPage {
 	
 	private C8oBrowser browser;
 	
@@ -62,28 +68,41 @@ public class EmbeddedRegistrationPage extends WizardPage implements RegisterCall
 	}
 
 	public void createControl(final Composite parent) {
-		Composite composite = new Composite(parent, SWT.NONE);
+		Composite root = new Composite(parent, SWT.NONE);
+		root.setLayout(new GridLayout(2, false));
+		
+		Composite composite = new Composite(root, SWT.NONE);
+		composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
 		StackLayout stack = new StackLayout();
 		composite.setLayout(stack);
 		browser = new C8oBrowser(composite, SWT.NONE);
 		stack.topControl = browser;
-		browser.getBrowser().navigation().on(LoadProgressChanged.class, (evt) -> {
-			System.out.println("LoadProgressChanged: " + evt);
+		Subscription[] subscription = {null};
+		subscription[0] = browser.getBrowser().navigation().on(LoadProgressChanged.class, (evt) -> {
 			if (evt.progress() >= 1f) {
-				Engine.logStudio.error("evt.progress(): " + evt.progress());
+				System.out.println("evt: " + evt);
+				subscription[0].unsubscribe();
+				String[] psc = {null};
 				browser.getBrowser().mainFrame().get().document().get().addEventListener(EventType.of("DOMSubtreeModified"), event -> {
 					try {
-						Element e_psc = browser.getBrowser().mainFrame().get().document().get().findElementByClassName("class1567174301079").get();
-						String psc = e_psc.textContent();
-						if (StringUtils.isNotBlank(psc)) {
-							browser.getDisplay().asyncExec(() -> {
-								Label label = new Label(composite, SWT.BORDER);
-								label.setText("psc: " + psc);
-								stack.topControl = label;
-								browser.dispose();
-								composite.layout(true);
-								this.setPageComplete(true);
-							});
+						if (psc[0] != null) {
+							return;
+						}
+						Element e_psc = browser.getBrowser().mainFrame().get().document().get().findElementById("psc").get();
+						if ((psc[0] = e_psc.attributeValue("psc")) != null) {
+							System.out.println("psc: " + psc[0]);
+							try {
+								ConvertigoPlugin.decodePsc(psc[0]);
+								SetupWizard wizard = (SetupWizard) getWizard();
+								wizard.psc = psc[0];
+								browser.getDisplay().asyncExec(() -> {
+									wizard.performFinish();
+									wizard.getShell().close();
+								});
+							} catch (PscException exception) {
+								setErrorMessage(exception.getMessage());
+								setPageComplete(false);
+							}
 						}
 					} catch (Exception e) {
 					}
@@ -107,60 +126,46 @@ public class EmbeddedRegistrationPage extends WizardPage implements RegisterCall
 			return Response.proceed();
 		});
 		
-		browser.setUrl("https://www.convertigo.com/signup");
+		browser.setUrl("https://test-convertigo.convertigo.net/convertigo/projects/convertigo_signup/DisplayObjects/mobile/login");
 		
-		setControl(composite);
+		Button havePSC = new Button(root, SWT.CHECK);
+		havePSC.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setPageComplete(havePSC.getSelection());
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		Label label = new Label(root, SWT.NONE);
+		label.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseUp(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseDown(MouseEvent e) {
+				havePSC.setSelection(!havePSC.getSelection());
+				havePSC.notifyListeners(SWT.Selection, null);
+			}
+			
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		label.setText("I want to paste my PSC");
+		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		root.pack();
+		setControl(root);
 		setPageComplete(false);
-	}
-
-	public String getCertificateKey() {
-		return "";
-	}
-	
-	public void clearCertificateKey() {
-	}
-	
-	public void setAnonymousCertificateKey() {
-//		try {
-//			pscKey.setText(ConvertigoPlugin.makeAnonymousPsc());
-//		} catch (IOException e) {
-//			ConvertigoPlugin.logWarning(e, "Unable to make an anonymous PSC");
-//		}
-	}
-	
-	public void onRegister(final boolean success, final String message) {
-//		Display.getDefault().asyncExec(new Runnable() {
-//			
-//			public void run() {
-//				if (success) {
-//					infoLink.setText("Please click on the link you received by mail and paste the generated PSC in the following text area and click the 'Next >' button...");
-//				} else {
-//					infoLink.setText("Some error occure during the online registration: " + message + "\n" +
-//							"Try to fix in the previous screen or register manually on " + RegistrationPage.registrationLink);
-//					setErrorMessage("Error during the only registration!");
-//				}
-//				infoLink.getParent().layout();
-//			}
-//		});
-	}
-
-	public String getSummary() {
-		StringBuffer summary = new StringBuffer("PSC server configuration for:\n");
-		
-//		int i = 0;
-//		while (++i > 0) {
-//			String server = DeploymentKey.server.value(decodedPSC, i);
-//			if (server != null && !server.equals("")) {
-//				summary.append("\t" + server + "\n");
-//			} else {
-//				if (i == 1) {
-//					summary = new StringBuffer();
-//				}
-//				i = -1;
-//			}
-//		}	
-		
-		return summary.toString();
 	}
 
 	@Override
