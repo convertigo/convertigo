@@ -37,7 +37,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -264,7 +264,8 @@ public class SetupWizard extends Wizard {
 		} else {
 			ConvertigoPlugin.configureDeployConfiguration();
 		}
-
+		WizardDialog container = (WizardDialog) getContainer();
+		container.close();
 		return true;
 	}
 
@@ -487,11 +488,4 @@ public class SetupWizard extends Wizard {
 	public static String getUniqueID() {
 		return uniqueID;
 	}
-
-	@Override
-	public void createPageControls(Composite pageContainer) {
-		getShell().setMaximized(true);
-		super.createPageControls(pageContainer);
-	}
-	
 }

@@ -97,7 +97,6 @@ public class EmbeddedRegistrationPage extends WizardPage {
 								wizard.psc = psc[0];
 								browser.getDisplay().asyncExec(() -> {
 									wizard.performFinish();
-									wizard.getShell().close();
 								});
 							} catch (PscException exception) {
 								setErrorMessage(exception.getMessage());

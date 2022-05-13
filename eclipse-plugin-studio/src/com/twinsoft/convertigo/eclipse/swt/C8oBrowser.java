@@ -210,7 +210,7 @@ public class C8oBrowser extends Composite {
 		
 	@Override
 	public boolean setFocus() {
-		C8oBrowser.run(() -> browserView.forceFocus());
+		browserView.forceFocus();
 		return super.setFocus();
 	}
 

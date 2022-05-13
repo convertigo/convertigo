@@ -46,8 +46,7 @@ public class SetupAction implements IWorkbenchWindowActionDelegate {
 			@Override
 			protected void configureShell(Shell shell) {
 				super.configureShell(shell);
-				shell.setSize(730, 700);
-				setReturnCode(WizardDialog.CANCEL);
+				shell.setMaximized(true);
 			}
 			
 		};
