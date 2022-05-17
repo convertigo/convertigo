@@ -75,12 +75,6 @@
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.actions.ProjectPrintAction"
-               icon="icons/studio/project_print.gif"
-               id="com.twinsoft.convertigo.PrintProject"
-               label="&amp;Print project"
-               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
-         <action
                class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
                icon="icons/administration_16x16.gif"
                id="com.twinsoft.convertigo.Administration"
@@ -116,7 +110,7 @@
                class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
                icon="icons/setupwizard_16x16.gif"
                id="com.twinsoft.convertigo.Setup"
-               label="&amp;Configure Studio"
+               label="&amp;Configure Registration Account"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.OpenPreferencesAction"
@@ -141,6 +135,11 @@
             id="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
             name="Convertigo Samples and Demos"/>
       <category
+            id="com.twinsoft.convertigo.eclipse.convertigobackend"
+            name="Low Code Back-End"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
+      </category>
+      <category
             id="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
             name="Legacy publishing (webization)"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
@@ -158,22 +157,8 @@
             category="com.twinsoft.convertigo.eclipse.convertigo"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewMobileBuilderWizard"
-            name="Ionic3 Mobile Builder application project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a Mobile Builder application project based on ionic3 and Convertigo Angular frameworks.</description>
-            {
-              "url": "template_mobileBuilderIonic=https://github.com/convertigo/c8oprj-template-mobile-builder/archive/8.0.0.zip",
-              "doPage1": true
-            } 
-            </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"
-            name="Ngx Mobile Builder application project"
+            name="Low Code Front-End project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Creates a NGX Mobile Builder application project based on ionic6 and Convertigo Angular frameworks.</description>
@@ -322,7 +307,7 @@
             </wizard>
 <!-- Sequencer projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigobackend"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
@@ -337,7 +322,7 @@
              </wizard>
 <!-- SQL projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigobackend"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLProjectWizard"
@@ -354,7 +339,7 @@
              </wizard>
 <!-- SAP projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigobackend"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sapconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSAPProjectWizard"
@@ -371,7 +356,7 @@
              </wizard>
 <!-- Site Clipper connector projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigobackend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/siteclipperconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
@@ -388,7 +373,7 @@
 	   </wizard>
 <!-- Web services projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigobackend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceRestReferenceWizard"
@@ -405,7 +390,7 @@
              }
        </wizard>
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigobackend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard"
@@ -420,7 +405,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigobackend"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard"

@@ -40,6 +40,8 @@ import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -73,12 +75,15 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
@@ -86,6 +91,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -104,8 +110,10 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IProgressService;
+import org.eclipse.ui.services.IEvaluationService;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -407,12 +415,51 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewContentProvider = new ViewContentProvider(this);
+		
+		Composite stack = new Composite(parent, SWT.NONE);
+		StackLayout stackLayout = new StackLayout();
+		stack.setLayout(stackLayout);
+		Label label = new Label(stack, SWT.CENTER);
+		label.setText("\n\n\nClick here to start a new project");
+		label.addMouseListener(new MouseListener() {
 
-		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
+			@Override
+			public void mouseUp(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseDown(MouseEvent e) {
+				ICommandService commandService = (ICommandService) PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow().getService(ICommandService.class);
+
+				IEvaluationService evaluationService = (IEvaluationService) PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow().getService(IEvaluationService.class);
+				try {
+					Command c = commandService.getCommand("org.eclipse.ui.newWizard");
+
+					Map<String, String> params = new HashMap<String, String>();
+					//params.put("newWizardId", "com.twinsoft.convertigo.eclipse.convertigo");
+
+					c.executeWithChecks(new ExecutionEvent(c, params, null, evaluationService.getCurrentState()));
+
+				} catch (Exception ex) {
+					throw new RuntimeException("Open new wizard command not found");
+				}
+			}
+
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		viewer = new TreeViewer(stack,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
 				if (Engine.objectsProvider != null) {
-					viewer.getTree().getDisplay().asyncExec(() -> {
+					getTree().getDisplay().asyncExec(() -> {
 						try {
 							super.refresh(element);
 						} catch (Throwable e) {
@@ -420,6 +467,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						}
 					});
 					packColumns();
+				}
+				
+				if (viewContentProvider.getTreeRoot() != null && viewContentProvider.getTreeRoot().hasChildren()) {
+					if (stackLayout.topControl != getTree()) {
+						stackLayout.topControl = getTree();
+						stack.layout(true);
+					}
+				} else {
+					if (stackLayout.topControl != label) {
+						stackLayout.topControl = label;
+						stack.layout(true);
+					}
 				}
 			}
 
@@ -429,6 +488,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		};
+		stackLayout.topControl = label;//viewer.getTree();
 		viewer.setData(ProjectExplorerView.class.getCanonicalName(), this);
 		viewer.setContentProvider(viewContentProvider);
 		viewer.addSelectionChangedListener((event) -> {
@@ -454,7 +514,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		});
-
 		viewer.setSorter(new TreeObjectSorter());
 		viewer.setInput(getViewSite());
 

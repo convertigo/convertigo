@@ -37,9 +37,9 @@ public class OpenConvertigoDocumentationAction implements IWorkbenchWindowAction
 
 	public void run(IAction action) {
 		try {
-			Program.launch("https://www.convertigo.com/technical-documentation/");
+			Program.launch("https://doc.convertigo.com");
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error while opening the Convertigo administration page");
+			ConvertigoPlugin.logException(e, "Error while opening the Convertigo documentation page");
 		}
 	}
 
