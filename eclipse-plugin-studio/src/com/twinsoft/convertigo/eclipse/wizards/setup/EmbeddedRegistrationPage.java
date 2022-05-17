@@ -45,6 +45,7 @@ import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 
 public class EmbeddedRegistrationPage extends WizardPage {
 	
@@ -125,7 +126,7 @@ public class EmbeddedRegistrationPage extends WizardPage {
 			return Response.proceed();
 		});
 		
-		browser.setUrl("https://test-convertigo.convertigo.net/convertigo/projects/convertigo_signup/DisplayObjects/mobile/login");
+		browser.setUrl("https://test-convertigo.convertigo.net/convertigo/projects/convertigo_signup/DisplayObjects/mobile/login/true/" + SwtUtils.isDark());
 		
 		Button havePSC = new Button(root, SWT.CHECK);
 		havePSC.addSelectionListener(new SelectionListener() {
