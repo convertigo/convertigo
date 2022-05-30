@@ -1872,6 +1872,12 @@
                id="convertigo.action.reloadXmlProject"
                label="Reload your project"
                menubarPath="project"/>
+		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectGenerateReadmeAction"
+               enablesFor="1"
+               id="convertigo.action.generateReadme"
+               label="Generate readme.md"
+               menubarPath="markdown"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportSoapWsReference"
                enablesFor="1"

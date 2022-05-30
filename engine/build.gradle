@@ -223,6 +223,7 @@ dependencies {
 	compileFlat    'org.slf4j:slf4j-simple:[1.7,)'
 	compileFlat    'oauth.signpost:signpost-core:[2.0,)'
 	compileFlat    'org.apache.axis2:axis2-saaj:1.6.2', { exclude module: 'servlet-api'}
+	compileFlat    'org.freemarker:freemarker:2.3.31'
 	compileFlat    'org.apache.commons:commons-lang3:[3.7,)'
 	compileFlat    'org.apache.httpcomponents:httpclient:[4.5.10,)'
 	compileFlat    'org.apache.pdfbox:pdfbox:2.0.11'

@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -86,6 +87,8 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ReadmeBuilder;
+import com.twinsoft.convertigo.engine.ReadmeBuilder.MarkdownType;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -204,6 +207,50 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		return renamed;
 	}
 
+	public void generateReadme() {
+		Display display = Display.getDefault();
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+		
+		Shell shell = display.getActiveShell();
+		if (shell != null) {
+			shell.setCursor(waitCursor);
+			
+			try {
+				Project project = getObject();
+				String projectName = project.getName();
+				
+				if (hasChanged() && !save(true)) {
+					return;
+				}
+				
+				int response = SWT.YES;
+				
+				File mdFile = new File(project.getDirPath(),"readme.md");
+				if (mdFile.exists()) {
+					MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+					messageBox.setMessage("The project already has a \"readme.md\" file.\nDo you want to overwrite it now?");
+					response = messageBox.open();
+				}
+				
+				if (response == SWT.YES) {
+					ConvertigoPlugin.logInfo("Generating readme.md file for project \""+ projectName +"\"");
+					ReadmeBuilder.process(project, MarkdownType.Readme);
+					ConvertigoPlugin.logInfo("Project readme.md file updated");
+					
+					IProject iProject = getIProject();
+					iProject.refreshLocal(IResource.DEPTH_ONE, null);
+				}
+				
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to generate the readme.md file for project!");
+				ConvertigoPlugin.logInfo("Project readme.md NOT generated!");
+			} finally {
+				shell.setCursor(null);
+				waitCursor.dispose();
+			}
+		}
+	}
+	
 	/**
 	 * Saves a project.
 	 *
@@ -242,6 +289,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						IProject iProject = getIProject();
 						iProject.refreshLocal(IResource.DEPTH_ONE, null);
 						iProject.getFolder("_c8oProject").refreshLocal(IResource.DEPTH_INFINITE, null);
+						
+						// generate project.md file if needed
+						ReadmeBuilder.process(project, MarkdownType.Project);
+						ConvertigoPlugin.logInfo("For project '" + projectName + " : project.md file updated");
+						
 						ret = true;
 					}
 				}
