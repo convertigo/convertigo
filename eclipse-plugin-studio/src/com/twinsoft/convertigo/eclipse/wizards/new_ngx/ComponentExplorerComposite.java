@@ -477,7 +477,7 @@ public class ComponentExplorerComposite extends Composite {
 	private String cleanDescription(String description, boolean bHtml) {
 		String cleanDescription = description;
 		// Replace first space
-		if (cleanDescription.charAt(0) == ' ') {
+		if (cleanDescription.length() > 0 && cleanDescription.charAt(0) == ' ') {
 			cleanDescription = cleanDescription.substring(1);
 		}
 

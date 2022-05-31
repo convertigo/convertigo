@@ -36,6 +36,8 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
+import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -214,6 +216,13 @@ public class ComponentObjectWizard extends Wizard {
 					parentObject.add(newBean);
 	    			monitor.setTaskName("Object added");
 	    			monitor.worked(1);
+					
+					if (newBean instanceof com.twinsoft.convertigo.beans.ngx.components.UIUseShared) {
+						com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = GenericUtils.cast(newBean);
+						String compQName = use.getSharedComponentQName();
+						ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
+						((NgxBuilder)parentObject.getProject().getMobileBuilder()).updateConsumer();
+					}
 					
 					ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
 	    			monitor.setTaskName("Object setted up");

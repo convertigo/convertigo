@@ -1458,8 +1458,15 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						for (int i = 0 ; i < len ; i++) {
 							node = (Node) nodeList.item(i);
 							if (node.getNodeType() != Node.TEXT_NODE) {
-								if (paste(node, parent, true) == null) {
+								DatabaseObject child = paste(node, parent, true);
+								if (child == null) {
 									throw new Exception();
+								}
+								if (child instanceof com.twinsoft.convertigo.beans.ngx.components.UIUseShared) {
+									com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = GenericUtils.cast(child);
+									String compQName = use.getSharedComponentQName();
+									ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
+									((NgxBuilder)parent.getProject().getMobileBuilder()).updateConsumer();
 								}
 							}
 						}

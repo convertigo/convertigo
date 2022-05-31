@@ -45,7 +45,9 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IAction;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
@@ -108,6 +110,7 @@ public class ComponentManager {
 	private SortedMap<String, IonBean> bCache = new TreeMap<>();
 	private Map<String, String> aCache = new WeakValueHashMap<>();
 	
+	private Map<String, List<Component>> map = new TreeMap<>();
 	private Map<String, JSONObject> c8oBeans = new HashMap<String, JSONObject>();
 	
 	private List<String> groups;
@@ -156,6 +159,7 @@ public class ComponentManager {
 		pCache.clear();
 		bCache.clear();
 		aCache.clear();
+		map.clear();
 		c8oBeans.clear();
 		
 		groups = null;
@@ -459,6 +463,13 @@ public class ComponentManager {
 		groups.remove(GROUP_ACTIONS);
 		groups.add(GROUP_ACTIONS);
 		
+		makeComponents();
+		for (String group: map.keySet()) {
+			if (!groups.contains(group)) {
+				groups.add(group);
+			}
+		}
+		
 		return groups = Collections.unmodifiableList(groups);
 	}
 	
@@ -682,12 +693,129 @@ public class ComponentManager {
 			});
 		}
 		
+		if (Engine.isStarted) {
+			try {
+				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+				for (String projectName : projectNames) {
+					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+					//TODO : String readmeUrl = getReadmeUrl(project);
+					if (project.getMobileApplication() != null) {
+						IApplicationComponent ac = project.getMobileApplication().getApplicationComponent();
+						if (ac != null && ac instanceof ApplicationComponent) {
+							ApplicationComponent app = (ApplicationComponent)ac;
+							for (UISharedComponent usc: app.getSharedComponentList()) {
+								if (usc.isRegular()) {
+									final UISharedRegularComponent uisrc = (UISharedRegularComponent)usc;
+									components.add(new Component() {
+										
+										@Override
+										public boolean isAllowedIn(DatabaseObject parent) {
+											try {
+												Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIUseShared");
+												if (acceptDatabaseObjects(parent, dboClass)) {
+													return true;
+												}
+											} catch (Exception e) {
+												e.printStackTrace();
+											}
+											return false;
+										}
+										
+										@Override
+										public String getTag() {
+											return uisrc.getSelector();
+										}
+										
+										@Override
+										public String getPropertiesDescription() {
+											String propertiesDescription = "";
+											for (UICompVariable variable: uisrc.getVariables()) {
+												propertiesDescription += "<li><i>"+ variable.getName() +"</i>" ;
+												propertiesDescription += "</br>"+ variable.getComment() +"</li>";
+											}
+											
+											return propertiesDescription;
+										}
+										
+										@Override
+										public String getName() {
+											return uisrc.getName();
+										}
+										
+										@Override
+										public String getLabel() {
+											return uisrc.getName();
+										}
+										
+										@Override
+										public String getImagePath() {
+											return "";
+										}
+										
+										@Override
+										public String getGroup() {
+											String group = uisrc.getProject().getName();
+											if (group.startsWith("lib_")) {
+												group = group.substring("lib_".length());
+											}
+											return group;
+										}
+										
+										@Override
+										public String getDescription() {
+											String description = uisrc.getComment();
+											if (description.isEmpty()) {
+												description = "A "+ uisrc.getName() + " component.";
+											}
+											if (description.indexOf(" | ") == -1) {
+												description += " | ";
+											}
+											// TODO : add readme url
+											return description;
+										}
+										
+										@Override
+										protected DatabaseObject createBean() {
+											com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = new com.twinsoft.convertigo.beans.ngx.components.UIUseShared();
+											if (use != null) {
+												use.setSharedComponentQName(uisrc.getQName());
+												use.bNew = true;
+												use.hasChanged = true;
+											}
+											return use;
+										}
+
+										@Override
+										protected JSONObject getHint() {
+											return null; //super.getHint();
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 		Collections.sort(components, new Comparator<Component>() {
 			@Override
 			public int compare(Component c1, Component c2) {
 				return c1.getLabel().compareTo(c2.getLabel());
 			}				
 		} );
+		
+		for (Component component : components) {
+			String group = component.getGroup();
+			if (!map.containsKey(group)) {
+				map.put(group, new ArrayList<Component>());
+			}
+			if (!map.get(group).contains(component)) {
+				map.get(group).add(component);
+			}
+		}
 		
 		return components = Collections.unmodifiableList(components);
 	}
