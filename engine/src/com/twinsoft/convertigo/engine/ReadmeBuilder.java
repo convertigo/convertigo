@@ -725,10 +725,10 @@ public class ReadmeBuilder {
 	}
 	
 	private static boolean isPublic(DatabaseObject dbo) {
-		try {
+		/*try {
 			Method method = dbo.getClass().getMethod("isPublicAccessibility", new Class[] {});
 			return (boolean) method.invoke(dbo, new Object[] {});
-		} catch (Exception e) {}
+		} catch (Exception e) {}*/
 		return true;
 	}
 	
