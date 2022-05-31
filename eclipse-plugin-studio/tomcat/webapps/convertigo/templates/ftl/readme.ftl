@@ -27,7 +27,7 @@
 <#global show = {
 	"toc"			: true,
 	
-	"connectors"	: !has(project, "urlmapper") && !has(project, "mobileapp") && !has(project, "sequences"),
+	"connectors"	: false,
 	"transactions"	: true,
 	"sequences"		: !has(project, "urlmapper") && !has(project, "mobileapp"),
 	
