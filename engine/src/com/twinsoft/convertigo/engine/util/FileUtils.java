@@ -177,8 +177,11 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 					}
 				}
 
-				if (code != 0) {
+				if (code != 0 || dir.exists()) {
 					org.apache.commons.io.FileUtils.deleteDirectory(dir);
+				}
+				if (dir.exists()) {
+					org.apache.commons.io.FileUtils.forceDelete(dir);
 				}
 			}
 		}
