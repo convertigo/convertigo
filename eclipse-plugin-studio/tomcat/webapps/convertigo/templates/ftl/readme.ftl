@@ -5,6 +5,7 @@
 <#global lineBreak = settings.lineBreak />
 <#global locale = "US" />
 <#global dictionnary = {
+		"installation":	{"US": "Installation"			, "FR": "Installation"},
 		"more.info": 	{"US": "For more technical informations"	, "FR": "Pour plus d'informations techniques"},
 		"connectors": 	{"US": "Connectors"				, "FR": "Connecteurs"},
 		"transactions": {"US": "Transactions"			, "FR": "Transactions"},
@@ -26,6 +27,7 @@
 <#-- please modify the global show values as needed -->
 <#global show = {
 	"toc"			: true,
+	"installation"	: true,
 	
 	"connectors"	: false,
 	"transactions"	: true,
@@ -107,6 +109,23 @@ ${title}${lineBreak}
 </#if>
 </#macro>
 
+<#-- installation : add project installation instructions if any -->
+<#macro installation>
+<#if locale == "US">
+1. In your Convertigo Studio use `File->Import->Convertigo->Convertigo Project` and hit the `Next` button
+2. In the dialog `Project remote URL` field, paste the text below:${lineBreak}
+        ${project.url}
+3. Click the `Finish` button. This will automatically import the __${project.name}__ project
+</#if>
+<#if locale == "FR">
+1. Dans votre Studio Convertigo, utilisez `File->Import->Convertigo->Convertigo Project` et appuyez sur le bouton `Next`
+2. Dans le champ `Project remote URL` de la boîte de dialogue, collez le texte ci-dessous:${lineBreak}
+        ${project.url}
+3. Cliquez sur le bouton `Finish`. Cela importera automatiquement le projet __${project.name}__
+</#if>
+${lineBreak}
+</#macro>
+
 <#-- DEFAULT PROJECT TEMPLATE -->
 
 <#-- anchors variable for TOC : do not modify -->
@@ -130,6 +149,10 @@ ${title}${lineBreak}
 <#-- content variable : add project sub-beans header and comment -->
 <#-- you can add your text or own macro call anywhere -->
 <#assign content>
+<#if on("installation") && (project.url?length > 0)>
+	<@header toc=toc anchors=anchors heading="##" text=help("installation") />
+	<@installation />
+</#if>
 <#if on("references") && has(project,"references")>
   	<@header toc=toc anchors=anchors heading="##" text=help("references") />
   	<#list project.references as reference>

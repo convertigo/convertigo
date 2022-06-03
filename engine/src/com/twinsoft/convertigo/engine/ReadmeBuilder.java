@@ -639,6 +639,10 @@ public class ReadmeBuilder {
 			dboMap.put("c8oIcon", getC8oIcon(dbo));
 			dboMap.put("classname", dbo.getClass().getName());
 			
+			if (dbo instanceof Project) {
+				dboMap.put("url", ProjectUrlParser.getUrl((Project)dbo));
+			}
+			
 			return dboMap;
 			
 		} catch (Exception e) {
