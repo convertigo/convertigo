@@ -91,6 +91,7 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardAction;
 import com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.NgxSmartSourcePropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -115,9 +116,7 @@ import com.twinsoft.convertigo.engine.InvalidOperationException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
-import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
-import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -984,8 +983,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						
 						mc.add(use);
 						mc.hasChanged = true;
-						ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
-						((NgxBuilder)mc.getProject().getMobileBuilder()).updateConsumer();
 					}
 					return true;
 				}
@@ -1451,6 +1448,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
 					Element rootElement = document.getDocumentElement();
 					NodeList nodeList = rootElement.getChildNodes();
+					boolean needNgxPaletteReload = false;
 					int len = nodeList.getLength();
 					Node node;
 					// Special objects move from palette
@@ -1458,21 +1456,25 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						for (int i = 0 ; i < len ; i++) {
 							node = (Node) nodeList.item(i);
 							if (node.getNodeType() != Node.TEXT_NODE) {
-								DatabaseObject child = paste(node, parent, true);
-								if (child == null) {
+								DatabaseObject dbop = paste(node, parent, true);
+								if (dbop == null) {
 									throw new Exception();
 								}
-								if (child instanceof com.twinsoft.convertigo.beans.ngx.components.UIUseShared) {
-									com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = GenericUtils.cast(child);
-									String compQName = use.getSharedComponentQName();
-									ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
-									((NgxBuilder)parent.getProject().getMobileBuilder()).updateConsumer();
+								if (dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+									needNgxPaletteReload = true;
 								}
 							}
 						}
 						reloadTreeObject(explorerView, targetTreeObject);
 						if (dbotree != targetTreeObject) {
 							explorerView.moveLastTo((TreeParent) targetTreeObject, dbotree, insertBefore);
+						}
+						// Refresh ngx palette view
+						if (needNgxPaletteReload) {
+							NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
+							if (ngxPaletteView != null) {
+								ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+							}
 						}
 					}
 				}

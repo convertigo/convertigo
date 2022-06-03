@@ -180,6 +180,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteDefaultAc
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.UndoAction;
 import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
+import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -1314,6 +1315,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								((ProjectTreeObject) theTreeObject).save(false);
 							}
 
+							boolean needNgxPaletteReload = false;
 							if (mbo != null) {
 								if (theTreeObject instanceof MobilePageComponentTreeObject) {
 									try {
@@ -1332,6 +1334,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								if (theTreeObject instanceof NgxUIComponentTreeObject) {
 									try {
 										if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+											needNgxPaletteReload = true;
 											mbo.compRenamed((com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) theTreeObject.getObject(), oldName);
 										}
 									} catch (EngineException e1) {
@@ -1358,6 +1361,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								listener.selectionChanged(
 										(IWorkbenchPart) ProjectExplorerView.this,
 										structuredSelection);
+							
+							// Refresh ngx palette view
+							if (needNgxPaletteReload) {
+								NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
+								if (ngxPaletteView != null) {
+									ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+								}
+							}
 						}
 						if (needProjectReload) {
 							Engine.theApp.databaseObjectsManager.clearCache(newName);
@@ -2331,6 +2342,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				ConvertigoPlugin.logException(e, "Unable to unload the project '" + projectTreeObject.getName() + "'");
 			}
 
+			// Refresh ngx palette view
+			NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
+			if (ngxPaletteView != null) {
+				ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+			}
+			
 			return unloadedProjectTreeObject;
 		}
 		return null;

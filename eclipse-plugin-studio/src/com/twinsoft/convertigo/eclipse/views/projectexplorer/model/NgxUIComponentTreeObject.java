@@ -1048,6 +1048,16 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			
 			try {
 				if (this.equals(treeObject)) {
+					// a use has been added by dnd a library shared component from palette
+					if (dbo.bNew && dbo instanceof UIUseShared) {
+						UIUseShared use = GenericUtils.cast(dbo);
+						String compQName = use.getSharedComponentQName();
+						if (!compQName.isEmpty()) {
+							ComponentRefManager.get(ComponentRefManager.Mode.use).addConsumer(compQName, use.getQName());
+							((NgxBuilder)getObject().getProject().getMobileBuilder()).updateConsumer();
+						}
+					}
+					
 					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
 					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
 					if (uisa != null && !uisa.equals(getObject())) {
@@ -1349,9 +1359,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							}
 							if (dbo instanceof UIComponent) {
 								if (!newValue.equals(oldValue)) {
+									String oldName = (String)oldValue;
+									String newName = (String)newValue;
 									try {
-										String oldName = (String)oldValue;
-										String newName = (String)newValue;
 										if (getObject().updateSmartSource("\\."+oldName+"\\b", "."+newName)) {
 											sourcesUpdated = true;
 										}

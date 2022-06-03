@@ -125,6 +125,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
 import com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView;
+import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
@@ -1240,6 +1241,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				referencesView = (ReferencesView)viewPart;
 		}
 		return referencesView;
+	}
+
+	public NgxPaletteView getNgxPaletteView() {
+		NgxPaletteView ngxPaletteView = null;
+		IWorkbenchPage activePage = getActivePage();
+		if (activePage != null) {
+			IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView");
+			if (viewPart != null)
+				ngxPaletteView = (NgxPaletteView)viewPart;
+		}
+		return ngxPaletteView;
 	}
 
 	/**

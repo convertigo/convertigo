@@ -32,6 +32,7 @@ public abstract class Component {
 	public abstract String getImagePath();
 	public abstract String getPropertiesDescription();
 	public abstract boolean isAllowedIn(DatabaseObject parent);
+	public abstract boolean isBuiltIn();
 	protected abstract DatabaseObject createBean();
 	
 	protected JSONObject getHint() {

@@ -49,6 +49,14 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		super(true);
 	}
 	
+	public String getIconFileName() {
+		return getIconFileName(getName());
+	}
+	
+	public String getIconFileName(String name) {
+		return (name + "_icon_32x32.png").toLowerCase();
+	}
+	
 	@Override
 	public String getIdentifier() {
 		return "comp"+ priority;

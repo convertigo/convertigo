@@ -26,9 +26,15 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_ngx.ComponentExplorerComposite;
 
-public class NgxPaletteView extends ViewPart implements ISelectionListener {
+public class NgxPaletteView extends ViewPart implements ISelectionListener, TreeObjectListener {
 
 	protected ComponentExplorerComposite explorerComposite = null;
 	
@@ -37,27 +43,57 @@ public class NgxPaletteView extends ViewPart implements ISelectionListener {
 	}
 
 	@Override
-	public void dispose() {
-		getSite().getPage().removeSelectionListener(this);
-		super.dispose();
-	}
-
-	@Override
 	public void createPartControl(Composite parent) {
 		explorerComposite = new ComponentExplorerComposite(parent, SWT.NONE);
 		
 		getSite().getPage().addSelectionListener(this);
+		ConvertigoPlugin.projectManager.getProjectExplorerView().addTreeObjectListener(this);
+	}
+
+	@Override
+	public void dispose() {
+		getSite().getPage().removeSelectionListener(this);
+		ConvertigoPlugin.projectManager.getProjectExplorerView().removeTreeObjectListener(this);
+		
+		super.dispose();
 	}
 
 	@Override
 	public void setFocus() {
-		explorerComposite.setFocus();
+		if (explorerComposite != null) {
+			explorerComposite.setFocus();
+		}
 	}
 
+	public synchronized void refresh() {
+		if (explorerComposite != null) {
+			explorerComposite.reloadComponents();
+		}
+	}
+	
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		
+	}
+
+	@Override
+	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+			refresh();
+		}
+	}
+
+	@Override
+	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+			refresh();
+		}
+	}
 }

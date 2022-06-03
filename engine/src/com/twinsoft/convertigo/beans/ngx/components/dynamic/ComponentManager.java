@@ -25,6 +25,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -425,10 +426,19 @@ public class ComponentManager {
 		return dbo;
 	}
 	
-	public static void refresh() {
+	public static void reloadModels() {
 		instance.loadModels();
 	}
-	
+
+	public static void reloadComponents() {
+		instance.groups = null;
+		instance.orderedComponents = null;
+		instance.components = null;
+		
+		instance.makeGroups();
+		instance.makeComponentsByGroup();
+	}
+
 	public static List<String> getGroups() {
 		return instance.makeGroups();
 	}
@@ -506,6 +516,7 @@ public class ComponentManager {
 		components = new ArrayList<Component>(10);
 		
 		try {
+			/*-------------------------- BUILTINS --------------------------*/
 			String group;
 			// Add Customs
 			group = GROUP_CUSTOMS;
@@ -519,7 +530,6 @@ public class ComponentManager {
 			
 			// Add shared components
 			group = GROUP_SHARED_COMPONENTS;
-			//components.add(getDboComponent(UISharedComponent.class,group)); // deprecated
 			components.add(getDboComponent(UISharedRegularComponent.class,group));
 			components.add(getDboComponent(UIUseShared.class,group));
 			components.add(getDboComponent(UICompVariable.class,group));
@@ -555,8 +565,6 @@ public class ComponentManager {
 			components.add(getDboComponent(UICustomAsyncAction.class,group));
 			
 			components.add(getDboComponent(UIForm.class,"Forms"));
-//			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));
-//			components.add(getDboComponent(UIFormCustomValidator.class,"Forms"));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -690,13 +698,22 @@ public class ComponentManager {
 					return bean.getHint();
 				}
 
+				@Override
+				public boolean isBuiltIn() {
+					return true;
+				}
+
 			});
 		}
 		
+		/*-------------------------- ADDITIONALS --------------------------*/
 		if (Engine.isStarted) {
 			try {
 				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
 				for (String projectName : projectNames) {
+					if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+						continue;
+					}
 					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
 					//TODO : String readmeUrl = getReadmeUrl(project);
 					if (project.getMobileApplication() != null) {
@@ -749,16 +766,24 @@ public class ComponentManager {
 										
 										@Override
 										public String getImagePath() {
-											return "";
+											try {
+												return new File(project.getDirPath(), uisrc.getIconFileName()).getCanonicalPath();
+											} catch (IOException e) {
+												return "";
+											}
 										}
 										
 										@Override
 										public String getGroup() {
-											String group = uisrc.getProject().getName();
-											if (group.startsWith("lib_")) {
-												group = group.substring("lib_".length());
+											try {
+												String group = uisrc.getProject().getName();
+												if (group.startsWith("lib_")) {
+													group = group.substring("lib_".length());
+												}
+												return group;
+											} catch (Exception e) {
+												return "";
 											}
-											return group;
 										}
 										
 										@Override
@@ -787,7 +812,12 @@ public class ComponentManager {
 
 										@Override
 										protected JSONObject getHint() {
-											return null; //super.getHint();
+											return super.getHint();
+										}
+
+										@Override
+										public boolean isBuiltIn() {
+											return false;
 										}
 									});
 								}
@@ -1114,6 +1144,11 @@ public class ComponentManager {
 					e.printStackTrace();
 				}
 				return super.getHint();
+			}
+
+			@Override
+			public boolean isBuiltIn() {
+				return true;
 			}
 			
 		};

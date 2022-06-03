@@ -27,8 +27,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
@@ -94,6 +96,14 @@ public class NgxComponentCreateAction extends MyAbstractAction {
 		ProjectExplorerView explorerView = getProjectExplorerView();
 		explorerView.reloadTreeObject(parentTreeObject);
 		explorerView.objectSelected(new CompositeEvent(createdDatabaseObject));
+		
+		// Refresh ngx palette view
+		if (createdDatabaseObject instanceof UISharedRegularComponent) {
+			NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
+			if (ngxPaletteView != null) {
+				ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+			}
+		}
 		
 		/* No more needed since #20 correction : see DatabaseObjectTreeObject:setParent(TreeParent parent)
 		TreeObject selectedTreeObject = explorerView.getFirstSelectedTreeObject();
