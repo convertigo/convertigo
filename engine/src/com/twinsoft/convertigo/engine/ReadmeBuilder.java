@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.codehaus.jettison.json.JSONObject;
+
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IApplicationComponent;
@@ -295,9 +297,9 @@ public class ReadmeBuilder {
 		
 		private String writeDetailContentBlock(DatabaseObject dbo) {
 			int level = getLevel(dbo);
-			String image = getC8oIcon(dbo);
+			String image = getC8oIconMd(dbo);
 			String name = getLabel(dbo);
-			String comment = dbo.getComment();
+			String comment = getComment(dbo);
 			
 			//String projectGitUrl = getProjectGitUrl(new ProjectUrlParser(ProjectUrlParser.getUrl(dbo.getProject())));
 			if (dbo instanceof ProjectSchemaReference) {
@@ -329,16 +331,16 @@ public class ReadmeBuilder {
 		}
 		
 		private String writeSimpleBlock(DatabaseObject dbo) {
-			String image = getC8oIcon(dbo);
+			String image = getC8oIconImg(dbo);
 			String name = dbo.getName();
-			String comment = dbo.getComment().replace(System.lineSeparator(), "<br>");
+			String comment = getComment(dbo);
 			
 			if (dbo instanceof OperationResponse) {
 				name = getLabel(dbo);
 				comment = comment.isEmpty() ? ((OperationResponse)dbo).getStatusText() : comment;
 			}
 			
-			return  writeTableRowBlock(image + " " + name, comment);
+			return  writeTableRowBlock(image + "&nbsp;" + name, comment);
 		}
 		
 		private String writeHeadingBlock(int level, String text) {
@@ -349,17 +351,31 @@ public class ReadmeBuilder {
 			return String.format("%n%s%n%n", text);
 		}
 		
+		private String writeTableStartBlock() {
+			return String.format("%s%n", "<table>");
+		}
+		
+		private String writeTableEndBlock() {
+			return String.format("%s%n", "</table>");
+		}
+		
 		private String writeTableHeaderBlock(String... args) {
-			String line1 = "|";
-			String line2 = "|---".repeat(args.length) + "|";
-			for (int i=0; i< args.length; i++) {line1 += " "+ args[i] + " |";};
-			return String.format("%1$s%n%2$s%n", line1, line2);
+//			String line1 = "|";
+//			String line2 = "|---".repeat(args.length) + "|";
+//			for (int i=0; i< args.length; i++) {line1 += " "+ args[i] + " |";};
+//			return String.format("%1$s%n%2$s%n", line1, line2);
+			String headers = "";
+			for (int i=0; i< args.length; i++) {headers += String.format("%1$s%n%2$s%n%3$s%n", "<th>", args[i], "</th>");};
+			return String.format("%1$s%n%2$s%3$s%n", "<tr>", headers, "</tr>");
 		}
 		
 		private String writeTableRowBlock(String... args) {
-			String line = "";
-			for (int i=0; i< args.length; i++) {line += " "+ args[i] + " |";};
-			return String.format("|%s%n", line);
+//			String line = "";
+//			for (int i=0; i< args.length; i++) {line += " "+ args[i] + " |";};
+//			return String.format("|%s%n", line);
+			String row = "";
+			for (int i=0; i< args.length; i++) {row += String.format("%1$s%n%2$s%n%3$s%n", "<td>", args[i], "</td>");};
+			return String.format("%1$s%n%2$s%3$s%n", "<tr>", row, "</tr>");
 		}
 		
 		private String writeTextBlock(String text) {
@@ -400,11 +416,13 @@ public class ReadmeBuilder {
 			List<? extends DatabaseObject> filteredList = sort(filter(list));
 			if (filteredList.size() > 0) {
 				content += writeTitleBlock("<span style=\"color:"+ FONT_COLOR +"\">"+title+"</span>");
+				content += writeTableStartBlock();
 				content += writeTableHeaderBlock("name", "comment");
 				for (DatabaseObject dbo : filteredList) {
 					content += writeSimpleBlock(dbo);
 					walk(dbo);
 				}
+				content += writeTableEndBlock();
 				content += writeEmtyLineBlock();
 			}
 		}
@@ -613,7 +631,7 @@ public class ReadmeBuilder {
 					Object value = getter.invoke(dbo);
 					
 					if (propertyName.equals("comment")) {
-						String comment = dbo.getComment();
+						String comment = getComment(dbo);
 						
 						if (dbo instanceof ProjectSchemaReference) {
 							String gitUrl = getProjectGitUrl(((ProjectSchemaReference)dbo).getParser());
@@ -628,7 +646,7 @@ public class ReadmeBuilder {
 						
 						dboMap.put("summary", getFirstLine(comment));
 
-						value = comment.replace(System.lineSeparator(), "<br>");
+						value = comment;
 					}
 					
 					dboMap.put(propertyName, value);
@@ -636,7 +654,8 @@ public class ReadmeBuilder {
 			}
 			
 			dboMap.put("label", getLabel(dbo));
-			dboMap.put("c8oIcon", getC8oIcon(dbo));
+			dboMap.put("c8oIconMd", getC8oIconMd(dbo));
+			dboMap.put("c8oIconImg", getC8oIconImg(dbo));
 			dboMap.put("classname", dbo.getClass().getName());
 			
 			if (dbo instanceof Project) {
@@ -675,11 +694,18 @@ public class ReadmeBuilder {
 		}
 	}
 	
-	private static String getC8oIcon(DatabaseObject dbo) {
+	private static String getC8oIconMd(DatabaseObject dbo) {
 		String dboClass = dbo.getClass().getSimpleName();
 		String iconUrl = "https://github.com/convertigo/convertigo/blob/develop/engine/src" + 
 				MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
 		return "![]("+iconUrl+"?raw=true \""+ dboClass +"\")";
+	}
+	
+	private static String getC8oIconImg(DatabaseObject dbo) {
+		String dboClass = dbo.getClass().getSimpleName();
+		String iconUrl = "https://github.com/convertigo/convertigo/blob/develop/engine/src" + 
+				MySimpleBeanInfo.getIconName(dbo, BeanInfo.ICON_COLOR_16x16);
+		return "<img src=\""+ iconUrl+"?raw=true \"  alt=\""+dboClass+"\" >";
 	}
 	
 	private static String getFirstLine(String text) {
@@ -698,9 +724,34 @@ public class ReadmeBuilder {
 		return line;
 	}
 	
+	private static String getComment(DatabaseObject dbo) {
+		String comment = dbo.getComment();
+		
+		// handle objects for a c8oForms based project
+		String name = dbo.getName();
+		if (name.startsWith("forms_") || name.startsWith("formssource_")) {
+			try {
+				String json = comment;
+				JSONObject jsonObject = new JSONObject(json);
+				if (jsonObject.has("en")) {
+					comment = jsonObject.getJSONObject("en").getString("comment");
+				} else {
+					String firstKey = (String) jsonObject.keys().next();
+					comment = jsonObject.getJSONObject(firstKey).getString("comment");
+				}
+			} catch (Exception e) {}
+		}
+		
+		comment = comment.replace("<code>", "<breakLine><breakLine>```<breakLine>");
+		comment = comment.replace("</code>", "<breakLine>```<breakLine><breakLine>");
+		comment = comment.replace("<breakLine>", System.lineSeparator());
+		
+		return comment;
+	}
+	
 	private static String getSummary(DatabaseObject dbo) {
 		String summary = "<b>"+getLabel(dbo)+"</b>";
-		String line = getFirstLine(dbo.getComment());
+		String line = getFirstLine(getComment(dbo));
 		if (!line.isEmpty()) {
 			summary += " : " + line;
 		}

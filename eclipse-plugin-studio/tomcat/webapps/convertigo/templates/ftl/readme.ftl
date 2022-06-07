@@ -101,11 +101,16 @@ ${text}${lineBreak}
 <#macro table title headers rows>
 <#if (rows?size > 0)>
 ${title}${lineBreak}
-|${headers?join(" | ")}|
-|<#list headers as header> --- |</#list>
+<table
+<tr>
+<#list headers as header><th>${header}</th></#list>
+</tr>
 <#list rows as i>
-|<#list headers as header> ${i[header]} |</#list>
-</#list>${lineBreak}
+<tr>
+<#list headers as header><td>${i[header]}</td></#list>
+</tr>
+</#list>
+</table>
 </#if>
 </#macro>
 
@@ -113,14 +118,38 @@ ${title}${lineBreak}
 <#macro installation>
 <#if locale == "US">
 1. In your Convertigo Studio use `File->Import->Convertigo->Convertigo Project` and hit the `Next` button
-2. In the dialog `Project remote URL` field, paste the text below:${lineBreak}
-        ${project.url}
+2. In the dialog `Project remote URL` field, paste the text below:
+   <table>
+     <tr><td>Usage</td><td>Click the copy button</td></tr>
+     <tr><td>To contribute</td><td>${lineBreak}
+     ```
+     ${project.url}
+     ```
+     </td></tr>
+     <tr><td>To simply use</td><td>${lineBreak}
+     ```
+     ${project.url}
+     ```
+     </td></tr>
+    </table>
 3. Click the `Finish` button. This will automatically import the __${project.name}__ project
 </#if>
 <#if locale == "FR">
 1. Dans votre Studio Convertigo, utilisez `File->Import->Convertigo->Convertigo Project` et appuyez sur le bouton `Next`
-2. Dans le champ `Project remote URL` de la boîte de dialogue, collez le texte ci-dessous:${lineBreak}
-        ${project.url}
+2. Dans le champ `Project remote URL` de la boîte de dialogue, collez le texte ci-dessous:
+   <table>
+     <tr><td>Usage</td><td>Cliquez sur le bouton de copie</td></tr>
+     <tr><td>Pour contribuer</td><td>${lineBreak}
+     ```
+     ${lineBreak}${project.url}
+     ```
+     </td></tr>
+     <tr><td>Pour simplement utiliser</td><td>${lineBreak}
+     ```
+     ${lineBreak}${project.url}
+     ```
+     </td></tr>
+    </table>
 3. Cliquez sur le bouton `Finish`. Cela importera automatiquement le projet __${project.name}__
 </#if>
 ${lineBreak}
@@ -149,7 +178,7 @@ ${lineBreak}
 <#-- content variable : add project sub-beans header and comment -->
 <#-- you can add your text or own macro call anywhere -->
 <#assign content>
-<#if on("installation") && (project.url?length > 0)>
+<#if on("installation") && (project.url?length > 0) && (project.url != project.name)>
 	<@header toc=toc anchors=anchors heading="##" text=help("installation") />
 	<@installation />
 </#if>
