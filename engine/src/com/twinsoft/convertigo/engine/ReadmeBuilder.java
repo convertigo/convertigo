@@ -660,6 +660,8 @@ public class ReadmeBuilder {
 			
 			if (dbo instanceof Project) {
 				dboMap.put("url", ProjectUrlParser.getUrl((Project)dbo));
+				dboMap.put("contributeUrl", ProjectUrlParser.getContributeUrl((Project)dbo));
+				dboMap.put("usageUrl", ProjectUrlParser.getUsageUrl((Project)dbo));
 			}
 			
 			return dboMap;

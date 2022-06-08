@@ -185,4 +185,31 @@ public class ProjectUrlParser {
 		}
 		return projectName;
 	}
+	
+	static public String getContributeUrl(Project project) {
+		return getUrl(project);
+	}
+	
+	static public String getUsageUrl(Project project) {
+		String projectName = project.getName();
+		try {
+			File prjDir = project.getDirFile();
+			File wrkDir = GitUtils.getWorkingDir(prjDir);
+			String remote = GitUtils.getRemote(wrkDir);
+			if (remote != null) {
+				String branch = GitUtils.getBranch(wrkDir);
+				if (!StringUtils.isEmpty(branch)) {
+					remote = remote.replace(".git", "") + "/archive/" + branch + ".zip";
+				}
+				String path = prjDir.getCanonicalPath().substring(wrkDir.getCanonicalPath().length());
+				if (!path.isEmpty()) {
+					remote += ":path=" + path.substring(1).replace('\\', '/');
+				}
+				projectName = projectName + "=" + remote;
+			}
+		} catch (Exception e) {
+			// skip
+		}
+		return projectName;
+	}
 }

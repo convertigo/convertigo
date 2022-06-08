@@ -123,12 +123,12 @@ ${title}${lineBreak}
      <tr><td>Usage</td><td>Click the copy button</td></tr>
      <tr><td>To contribute</td><td>${lineBreak}
      ```
-     ${project.url}
+     ${project.contributeUrl}
      ```
      </td></tr>
      <tr><td>To simply use</td><td>${lineBreak}
      ```
-     ${project.url}
+     ${project.usageUrl}
      ```
      </td></tr>
     </table>
@@ -141,12 +141,12 @@ ${title}${lineBreak}
      <tr><td>Usage</td><td>Cliquez sur le bouton de copie</td></tr>
      <tr><td>Pour contribuer</td><td>${lineBreak}
      ```
-     ${lineBreak}${project.url}
+     ${lineBreak}${project.contributeUrl}
      ```
      </td></tr>
      <tr><td>Pour simplement utiliser</td><td>${lineBreak}
      ```
-     ${lineBreak}${project.url}
+     ${lineBreak}${project.usageUrl}
      ```
      </td></tr>
     </table>
