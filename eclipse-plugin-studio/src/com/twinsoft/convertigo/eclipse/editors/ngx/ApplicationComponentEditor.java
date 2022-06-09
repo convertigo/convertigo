@@ -1358,7 +1358,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 						}
 					}
 					
-					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "npm", "install", "--legacy-peer-deps", "--loglevel", "info");
+					ProcessBuilder pb = ProcessUtils.getNpmProcessBuilder(path + File.pathSeparator + ionicDir.toString() , "npm", "install",
+							"--legacy-peer-deps", "--loglevel", "info", "--ssl-key=" + new File(project.getDirFile(), "DisplayObjects/mobile").getAbsolutePath());
 					pb.redirectErrorStream(true);
 					pb.directory(ionicDir);
 					Process p = pb.start();
