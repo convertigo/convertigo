@@ -1333,6 +1333,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								}
 								if (theTreeObject instanceof NgxUIComponentTreeObject) {
 									try {
+										if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack) {
+											needNgxPaletteReload = true;
+										}
 										if (theTreeObject.getObject() instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
 											needNgxPaletteReload = true;
 											mbo.compRenamed((com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) theTreeObject.getObject(), oldName);

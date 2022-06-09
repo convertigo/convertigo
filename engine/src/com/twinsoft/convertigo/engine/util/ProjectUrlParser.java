@@ -212,4 +212,12 @@ public class ProjectUrlParser {
 		}
 		return projectName;
 	}
+	
+	static public String getReadmeUrl(Project project) {
+		ProjectUrlParser pup = new ProjectUrlParser(ProjectUrlParser.getUrl(project));
+		if (pup.getGitRepo() != null) {
+			return pup.getGitUrl() + "#readme";
+		}
+		return "";
+	}
 }

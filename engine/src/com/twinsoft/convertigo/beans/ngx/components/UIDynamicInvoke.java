@@ -43,6 +43,7 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	@Override
 	public UIDynamicInvoke clone() throws CloneNotSupportedException {
 		UIDynamicInvoke cloned = (UIDynamicInvoke) super.clone();
+		cloned.target = null;
 		return cloned;
 	}
 	
@@ -80,26 +81,56 @@ public class UIDynamicInvoke extends UIDynamicAction {
 		return false;
 	}
 	
+	transient private UIActionStack target = null;
+	
 	public UIActionStack getTargetSharedAction() {
-		try {
-			String qname =  getSharedActionQName();
-			if (qname != null && qname.indexOf('.') != -1) {
-				String p_name = qname.substring(0, qname.indexOf('.'));
-				Project project = this.getProject();
-				Project p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
-				if (p != null) {
-					ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
-					for (UIActionStack uias: app.getSharedActionList()) {
-						if (uias.getQName().equals(qname)) {
-							return uias;
+		String qname =  getSharedActionQName();
+		if (target == null || !target.getQName().equals(qname)) {
+			target = null;
+			if (parent != null) { // parent may be null while dnd from palette
+				if (qname.indexOf('.') != -1) {
+					String p_name = qname.substring(0, qname.indexOf('.'));
+					Project project = this.getProject();
+					if (project != null) {
+						Project p = null;
+						try {
+							p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
+							if (p == null) {
+								throw new Exception();
+							}
+						} catch (Exception e) {
+							Engine.logBeans.warn("(UIDynamicInvoke) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
+						}
+						if (p != null) {
+							if (p.getMobileApplication() != null) {
+								try {
+									ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+									if (app != null) {
+										for (UIActionStack uias: app.getSharedActionList()) {
+											if (uias.getQName().equals(qname)) {
+												target = uias;
+												break;
+											}
+										}
+									}
+								} catch (ClassCastException e) {
+									Engine.logBeans.warn("(UIDynamicInvoke) For \""+  this.toString() +"\", targeted action \""+ qname +"\" is not compatible !");
+								}
+							} else {
+								Engine.logBeans.warn("(UIDynamicInvoke) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" does not contain any mobile application !");
+							}
+							
+							if (target == null) {
+								Engine.logBeans.warn("(UIDynamicInvoke) For \""+  this.toString() +"\", targeted action \""+ qname +"\" is missing !");
+							}
 						}
 					}
+				} else {
+					Engine.logBeans.warn("(UIDynamicInvoke) Action \""+ this.toString() +"\" has no target shared action defined !");
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		return null;
+		return target;
 	}
 	
 	@Override
@@ -132,7 +163,7 @@ public class UIDynamicInvoke extends UIDynamicAction {
 	@Override
 	public String toString() {
 		String stackName = this.stack.isEmpty() ? "?" : this.stack.substring(this.stack.lastIndexOf('.') + 1);
-		return super.toString() + " (invoke " + stackName + ")";
+		return getName() + " (invoke " + stackName + ")";
 	}
 	
 }

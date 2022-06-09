@@ -1460,7 +1460,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 								if (dbop == null) {
 									throw new Exception();
 								}
-								if (dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+								if (dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+										dbop instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
 									needNgxPaletteReload = true;
 								}
 							}

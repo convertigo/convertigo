@@ -80,6 +80,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
@@ -101,6 +102,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 
@@ -715,11 +717,111 @@ public class ComponentManager {
 						continue;
 					}
 					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
-					//TODO : String readmeUrl = getReadmeUrl(project);
+					String readmeUrl = ProjectUrlParser.getReadmeUrl(project);
 					if (project.getMobileApplication() != null) {
 						IApplicationComponent ac = project.getMobileApplication().getApplicationComponent();
 						if (ac != null && ac instanceof ApplicationComponent) {
 							ApplicationComponent app = (ApplicationComponent)ac;
+							for (UIActionStack action: app.getSharedActionList()) {
+								components.add(new Component() {
+
+									@Override
+									public String getDescription() {
+										String description = action.getComment();
+										if (description.isEmpty()) {
+											description = "A "+ action.getName() + " action.";
+										}
+										if (description.indexOf(" | ") == -1) {
+											description += " | ";
+										}
+										if (!readmeUrl.isEmpty()) {
+											description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
+										}
+										return description;
+									}
+
+									@Override
+									public String getName() {
+										return action.getName();
+									}
+
+									@Override
+									public String getGroup() {
+										try {
+											String group = action.getProject().getName();
+											if (group.startsWith("lib_")) {
+												group = group.substring("lib_".length());
+											}
+											return group;
+										} catch (Exception e) {
+											return "";
+										}
+									}
+
+									@Override
+									public String getLabel() {
+										return action.getName();
+									}
+
+									@Override
+									public String getTag() {
+										return "";
+									}
+
+									@Override
+									public String getImagePath() {
+										return null;
+									}
+
+									@Override
+									public String getPropertiesDescription() {
+										String propertiesDescription = "";
+										for (UIStackVariable variable: action.getVariables()) {
+											propertiesDescription += "<li><i>"+ variable.getName() +"</i>" ;
+											propertiesDescription += "</br>"+ variable.getComment() +"</li>";
+										}
+										
+										return propertiesDescription;
+									}
+
+									@Override
+									public boolean isAllowedIn(DatabaseObject parent) {
+										try {
+											Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke");
+											if (acceptDatabaseObjects(parent, dboClass)) {
+												return true;
+											}
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+										return false;
+									}
+
+									@Override
+									protected JSONObject getHint() {
+										return super.getHint();
+									}
+									
+									@Override
+									public boolean isBuiltIn() {
+										return false;
+									}
+
+									@Override
+									protected DatabaseObject createBean() {
+										DatabaseObject invokeAction = ComponentManager.createBean(getComponentByName("InvokeAction"));
+										UIDynamicInvoke uidi = GenericUtils.cast(invokeAction);
+										if (uidi != null) {
+											uidi.setSharedActionQName(action.getQName());
+											uidi.bNew = true;
+											uidi.hasChanged = true;
+										}
+										return uidi;
+									}
+									
+								});
+							}
+							
 							for (UISharedComponent usc: app.getSharedComponentList()) {
 								if (usc.isRegular()) {
 									final UISharedRegularComponent uisrc = (UISharedRegularComponent)usc;
@@ -746,11 +848,18 @@ public class ComponentManager {
 										@Override
 										public String getPropertiesDescription() {
 											String propertiesDescription = "";
-											for (UICompVariable variable: uisrc.getVariables()) {
+											List<UICompVariable> list = uisrc.getVariables();
+											propertiesDescription += list.size() > 0 ? "<br><b>variables</b><br>":"";
+											for (UICompVariable variable: list) {
 												propertiesDescription += "<li><i>"+ variable.getName() +"</i>" ;
 												propertiesDescription += "</br>"+ variable.getComment() +"</li>";
 											}
-											
+											List<UICompEvent> liste = uisrc.getUICompEventList();
+											propertiesDescription += liste.size() > 0 ? "<br><b>events</b><br>":"";
+											for (UICompEvent event: liste) {
+												propertiesDescription += "<li><i>"+ event.getName() +"</i>" ;
+												propertiesDescription += "</br>"+ event.getComment() +"</li>";
+											}
 											return propertiesDescription;
 										}
 										
@@ -795,7 +904,9 @@ public class ComponentManager {
 											if (description.indexOf(" | ") == -1) {
 												description += " | ";
 											}
-											// TODO : add readme url
+											if (!readmeUrl.isEmpty()) {
+												description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
+											}
 											return description;
 										}
 										

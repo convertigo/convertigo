@@ -113,7 +113,8 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     						treeObjects.add((DatabaseObjectTreeObject) t);
     						
     						DatabaseObject dbo = ((DatabaseObjectTreeObject) t).getObject();
-    						if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+    						if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+    								dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
     							needNgxPaletteReload = true;
     						}
     					}

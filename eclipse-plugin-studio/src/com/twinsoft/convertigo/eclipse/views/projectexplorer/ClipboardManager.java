@@ -312,6 +312,7 @@ public class ClipboardManager {
 						object = read(node);
 						objectList.add(object);
 					} catch (EngineException e) {
+						e.printStackTrace();
 					}
 				}
 			}

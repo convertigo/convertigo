@@ -316,7 +316,9 @@ public class ClipboardAction extends MyAbstractAction {
         	if (pastedObjects != null) {
 	        	for (int i=0; i<pastedObjects.length; i++) {
 	        		Object object = pastedObjects[i];
-	        		if (object != null && object instanceof  com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+	        		if (object != null && 
+	        			 (object instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+	        				object instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent)) {
 	        			needNgxPaletteReload = true;
 	        			break;
 	        		}
