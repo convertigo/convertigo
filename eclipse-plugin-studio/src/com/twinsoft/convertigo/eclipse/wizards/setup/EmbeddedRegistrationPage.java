@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -33,23 +32,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-import com.teamdev.jxbrowser.browser.Browser;
-import com.teamdev.jxbrowser.browser.callback.OpenPopupCallback;
-import com.teamdev.jxbrowser.browser.callback.OpenPopupCallback.Response;
-import com.teamdev.jxbrowser.browser.event.BrowserClosed;
-import com.teamdev.jxbrowser.dom.Element;
-import com.teamdev.jxbrowser.dom.event.EventType;
-import com.teamdev.jxbrowser.event.Subscription;
-import com.teamdev.jxbrowser.navigation.event.LoadProgressChanged;
-import com.teamdev.jxbrowser.view.swt.BrowserView;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
-import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
-import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
+import com.twinsoft.convertigo.eclipse.swt.RegistrationBrowser;
 
 public class EmbeddedRegistrationPage extends WizardPage {
 	
-	private C8oBrowser browser;
+	private RegistrationBrowser browser;
 	
 	public EmbeddedRegistrationPage () {
 		super("EmbeddedRegistrationPage");
@@ -67,66 +56,28 @@ public class EmbeddedRegistrationPage extends WizardPage {
 
 		return super.getWizard();
 	}
-
+	
 	public void createControl(final Composite parent) {
+		GridData gd;
 		Composite root = new Composite(parent, SWT.NONE);
 		root.setLayout(new GridLayout(2, false));
 		
-		Composite composite = new Composite(root, SWT.NONE);
-		composite.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
-		StackLayout stack = new StackLayout();
-		composite.setLayout(stack);
-		browser = new C8oBrowser(composite, SWT.NONE);
-		stack.topControl = browser;
-		Subscription[] subscription = {null};
-		subscription[0] = browser.getBrowser().navigation().on(LoadProgressChanged.class, (evt) -> {
-			if (evt.progress() >= 1f) {
-				System.out.println("evt: " + evt);
-				subscription[0].unsubscribe();
-				String[] psc = {null};
-				browser.getBrowser().mainFrame().get().document().get().addEventListener(EventType.of("DOMSubtreeModified"), event -> {
-					try {
-						if (psc[0] != null) {
-							return;
-						}
-						Element e_psc = browser.getBrowser().mainFrame().get().document().get().findElementById("psc").get();
-						if ((psc[0] = e_psc.attributeValue("psc")) != null) {
-							System.out.println("psc: " + psc[0]);
-							try {
-								ConvertigoPlugin.decodePsc(psc[0]);
-								SetupWizard wizard = (SetupWizard) getWizard();
-								wizard.psc = psc[0];
-								browser.getDisplay().asyncExec(() -> {
-									wizard.performFinish();
-								});
-							} catch (PscException exception) {
-								setErrorMessage(exception.getMessage());
-								setPageComplete(false);
-							}
-						}
-					} catch (Exception e) {
-					}
-				}, false);
+		browser = new RegistrationBrowser(root, SWT.NONE);
+		browser.setLayoutData(gd = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1));
+		gd.heightHint = 600;
+		browser.onPSC(psc -> {
+			try {
+				ConvertigoPlugin.decodePsc(psc);
+				SetupWizard wizard = (SetupWizard) getWizard();
+				wizard.psc = psc;
+				browser.getDisplay().asyncExec(() -> {
+					wizard.performFinish();
+				});
+			} catch (PscException exception) {
+				setErrorMessage(exception.getMessage());
+				setPageComplete(false);
 			}
-		});
-		
-		browser.getBrowser().set(OpenPopupCallback.class , params -> {
-			browser.getDisplay().asyncExec(() -> {
-				Browser br = params.popupBrowser();
-				BrowserView bv = BrowserView.newInstance(composite, br);
-				stack.topControl = bv;
-				composite.layout(true);
-				br.on(BrowserClosed.class, event ->
-					browser.getDisplay().asyncExec(() -> {
-						stack.topControl = browser;
-						composite.layout(true);
-					})
-				);
-			});
-			return Response.proceed();
-		});
-		
-		browser.setUrl("https://test-convertigo.convertigo.net/convertigo/projects/convertigo_signup/DisplayObjects/mobile/login/true/" + SwtUtils.isDark());
+		}).goRegister();
 		
 		Button havePSC = new Button(root, SWT.CHECK);
 		havePSC.addSelectionListener(new SelectionListener() {

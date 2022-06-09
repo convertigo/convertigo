@@ -1579,7 +1579,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		return embeddedTomcat;
 	}
 
-	static private Properties decodePsc() throws PscException {
+	static public Properties decodePsc() throws PscException {
 		return decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
 	}
 
