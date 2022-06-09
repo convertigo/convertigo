@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -82,20 +83,23 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
@@ -114,6 +118,8 @@ import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.ui.services.IEvaluationService;
+import org.eclipse.ui.wizards.IWizardCategory;
+import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -419,28 +425,43 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		Composite stack = new Composite(parent, SWT.NONE);
 		StackLayout stackLayout = new StackLayout();
 		stack.setLayout(stackLayout);
-		Label label = new Label(stack, SWT.CENTER);
-		label.setText("\n\n\nClick here to start a new project");
-		label.addMouseListener(new MouseListener() {
+		
+		Composite noProject = new Composite(stack, SWT.NONE);
+		noProject.setLayout(new GridLayout(1, false));
+		
+		ToolBar toolbar = new ToolBar(noProject, SWT.VERTICAL | SWT.FLAT);
+		toolbar.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, true));
+		
+		String[][] defs = {
+			{"Start Low Code Front End project", "mobile_HighEnd_color_32x32.png", "NewNgxBuilderWizard"},
+			{"Start Low Code Back End project", "sequence_color_32x32.gif", "NewSequencerWizard"},
+			{"Start Hello World sample project", "mobile_HighEnd_color_32x32.png", "NewSampleHelloWorldWizard"},
+			{"Start another type of project", "convertigo_logo_32x32.png", null}
+		};
+		
+		SelectionListener listener = new SelectionListener() {
 
 			@Override
-			public void mouseUp(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mouseDown(MouseEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				ICommandService commandService = (ICommandService) PlatformUI.getWorkbench()
 						.getActiveWorkbenchWindow().getService(ICommandService.class);
 
 				IEvaluationService evaluationService = (IEvaluationService) PlatformUI.getWorkbench()
 						.getActiveWorkbenchWindow().getService(IEvaluationService.class);
 				try {
+					
+					for (IWizardDescriptor c : PlatformUI.getWorkbench().getNewWizardRegistry().getRootCategory().getWizards()) {
+						System.out.println(c.getId() + ": " + c.getLabel() + " " + c.getCategory().getId());
+					}
+					
+					for (IWizardCategory c: PlatformUI.getWorkbench().getNewWizardRegistry().getRootCategory().getCategories()) {
+						System.out.println(c.getId() + ": " + c.getLabel() + " " + Arrays.toString(c.getWizards()));
+					}
+					
 					Command c = commandService.getCommand("org.eclipse.ui.newWizard");
 
 					Map<String, String> params = new HashMap<String, String>();
-					//params.put("newWizardId", "com.twinsoft.convertigo.eclipse.convertigo");
+					params.put("newWizardId", (String) e.widget.getData("newWizardId"));
 
 					c.executeWithChecks(new ExecutionEvent(c, params, null, evaluationService.getCurrentState()));
 
@@ -450,11 +471,25 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 
 			@Override
-			public void mouseDoubleClick(MouseEvent e) {
+			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				
 			}
-		});
+		};
+		
+		for (int i = 0; i < defs.length; i++) {
+			ToolItem btn = new ToolItem(toolbar, SWT.PUSH);
+			btn.setText("     " + defs[i][0] + "     ");
+			try {
+				btn.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/" + defs[i][1]));
+			} catch (IOException e1) {
+			}
+			if (defs[i][2] != null) {
+				btn.setData("newWizardId", "com.twinsoft.convertigo.eclipse.wizards." + defs[i][2]);
+			}
+			btn.addSelectionListener(listener);
+		}
+		
 		viewer = new TreeViewer(stack,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
@@ -475,8 +510,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						stack.layout(true);
 					}
 				} else {
-					if (stackLayout.topControl != label) {
-						stackLayout.topControl = label;
+					if (stackLayout.topControl != noProject) {
+						stackLayout.topControl = noProject;
 						stack.layout(true);
 					}
 				}
@@ -488,7 +523,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		};
-		stackLayout.topControl = label;//viewer.getTree();
+		stackLayout.topControl = noProject;
 		viewer.setData(ProjectExplorerView.class.getCanonicalName(), this);
 		viewer.setContentProvider(viewContentProvider);
 		viewer.addSelectionChangedListener((event) -> {
