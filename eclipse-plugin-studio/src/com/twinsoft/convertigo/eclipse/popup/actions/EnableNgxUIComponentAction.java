@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -47,6 +48,8 @@ public class EnableNgxUIComponentAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
+        	boolean needNgxPaletteReload = false;
+        	
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
     			DatabaseObjectTreeObject treeObject = null;
@@ -65,11 +68,24 @@ public class EnableNgxUIComponentAction extends MyAbstractAction {
 		                
 		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(componentTreeObject, "isEnabled", false, true);
 		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+
+						if (component instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+								component instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+							needNgxPaletteReload = true;
+						}
 					}
 				}
 				
 				explorerView.refreshSelectedTreeObjects();
     		}
+    		
+			// Refresh ngx palette view
+			if (needNgxPaletteReload) {
+				NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
+				if (ngxPaletteView != null) {
+					ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+				}
+			}
         }
         catch (Throwable e) {
         	ConvertigoPlugin.logException(e, "Unable to enable component!");

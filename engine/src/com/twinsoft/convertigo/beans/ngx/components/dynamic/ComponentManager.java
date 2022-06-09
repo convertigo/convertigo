@@ -723,107 +723,109 @@ public class ComponentManager {
 						if (ac != null && ac instanceof ApplicationComponent) {
 							ApplicationComponent app = (ApplicationComponent)ac;
 							for (UIActionStack action: app.getSharedActionList()) {
-								components.add(new Component() {
-
-									@Override
-									public String getDescription() {
-										String description = action.getComment();
-										if (description.isEmpty()) {
-											description = "A "+ action.getName() + " action.";
-										}
-										if (description.indexOf(" | ") == -1) {
-											description += " | ";
-										}
-										if (!readmeUrl.isEmpty()) {
-											description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
-										}
-										return description;
-									}
-
-									@Override
-									public String getName() {
-										return action.getName();
-									}
-
-									@Override
-									public String getGroup() {
-										try {
-											String group = action.getProject().getName();
-											if (group.startsWith("lib_")) {
-												group = group.substring("lib_".length());
+								if (action.isEnabled()) {
+									components.add(new Component() {
+	
+										@Override
+										public String getDescription() {
+											String description = action.getComment();
+											if (description.isEmpty()) {
+												description = "A "+ action.getName() + " action.";
 											}
-											return group;
-										} catch (Exception e) {
+											if (description.indexOf(" | ") == -1) {
+												description += " | ";
+											}
+											if (!readmeUrl.isEmpty()) {
+												description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
+											}
+											return description;
+										}
+	
+										@Override
+										public String getName() {
+											return action.getName();
+										}
+	
+										@Override
+										public String getGroup() {
+											try {
+												String group = action.getProject().getName();
+												if (group.startsWith("lib_")) {
+													group = group.substring("lib_".length());
+												}
+												return group;
+											} catch (Exception e) {
+												return "";
+											}
+										}
+	
+										@Override
+										public String getLabel() {
+											return action.getName();
+										}
+	
+										@Override
+										public String getTag() {
 											return "";
 										}
-									}
-
-									@Override
-									public String getLabel() {
-										return action.getName();
-									}
-
-									@Override
-									public String getTag() {
-										return "";
-									}
-
-									@Override
-									public String getImagePath() {
-										return null;
-									}
-
-									@Override
-									public String getPropertiesDescription() {
-										String propertiesDescription = "";
-										for (UIStackVariable variable: action.getVariables()) {
-											propertiesDescription += "<li><i>"+ variable.getName() +"</i>" ;
-											propertiesDescription += "</br>"+ variable.getComment() +"</li>";
+	
+										@Override
+										public String getImagePath() {
+											return null;
+										}
+	
+										@Override
+										public String getPropertiesDescription() {
+											String propertiesDescription = "";
+											for (UIStackVariable variable: action.getVariables()) {
+												propertiesDescription += "<li><i>"+ variable.getName() +"</i>" ;
+												propertiesDescription += "</br>"+ variable.getComment() +"</li>";
+											}
+											
+											return propertiesDescription;
+										}
+	
+										@Override
+										public boolean isAllowedIn(DatabaseObject parent) {
+											try {
+												Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke");
+												if (acceptDatabaseObjects(parent, dboClass)) {
+													return true;
+												}
+											} catch (Exception e) {
+												e.printStackTrace();
+											}
+											return false;
+										}
+	
+										@Override
+										protected JSONObject getHint() {
+											return super.getHint();
 										}
 										
-										return propertiesDescription;
-									}
-
-									@Override
-									public boolean isAllowedIn(DatabaseObject parent) {
-										try {
-											Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke");
-											if (acceptDatabaseObjects(parent, dboClass)) {
-												return true;
+										@Override
+										public boolean isBuiltIn() {
+											return false;
+										}
+	
+										@Override
+										protected DatabaseObject createBean() {
+											DatabaseObject invokeAction = ComponentManager.createBean(getComponentByName("InvokeAction"));
+											UIDynamicInvoke uidi = GenericUtils.cast(invokeAction);
+											if (uidi != null) {
+												uidi.setSharedActionQName(action.getQName());
+												uidi.bNew = true;
+												uidi.hasChanged = true;
 											}
-										} catch (Exception e) {
-											e.printStackTrace();
+											return uidi;
 										}
-										return false;
-									}
-
-									@Override
-									protected JSONObject getHint() {
-										return super.getHint();
-									}
-									
-									@Override
-									public boolean isBuiltIn() {
-										return false;
-									}
-
-									@Override
-									protected DatabaseObject createBean() {
-										DatabaseObject invokeAction = ComponentManager.createBean(getComponentByName("InvokeAction"));
-										UIDynamicInvoke uidi = GenericUtils.cast(invokeAction);
-										if (uidi != null) {
-											uidi.setSharedActionQName(action.getQName());
-											uidi.bNew = true;
-											uidi.hasChanged = true;
-										}
-										return uidi;
-									}
-									
-								});
+										
+									});
+								}
 							}
 							
 							for (UISharedComponent usc: app.getSharedComponentList()) {
-								if (usc.isRegular()) {
+								if (usc.isRegular() && usc.isEnabled()) {
 									final UISharedRegularComponent uisrc = (UISharedRegularComponent)usc;
 									components.add(new Component() {
 										

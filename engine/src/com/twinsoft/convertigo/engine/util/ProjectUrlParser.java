@@ -214,10 +214,22 @@ public class ProjectUrlParser {
 	}
 	
 	static public String getReadmeUrl(Project project) {
-		ProjectUrlParser pup = new ProjectUrlParser(ProjectUrlParser.getUrl(project));
-		if (pup.getGitRepo() != null) {
-			return pup.getGitUrl() + "#readme";
+		String readmeUrl = "";
+		try {
+			File prjDir = project.getDirFile();
+			File wrkDir = GitUtils.getWorkingDir(prjDir);
+			String remote = GitUtils.getRemote(wrkDir);
+			if (remote != null) {
+				remote = remote.replace("git@github.com:","https://github.com/").replace(".git", "");
+				readmeUrl = remote + "#readme";
+				String branch = GitUtils.getBranch(wrkDir);
+				if (!StringUtils.isEmpty(branch)) {
+					readmeUrl = remote + "/tree/" + branch + "#readme";
+				}
+			}
+		} catch (Exception e) {
+			// skip
 		}
-		return "";
+		return readmeUrl;
 	}
 }
