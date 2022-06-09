@@ -301,11 +301,10 @@ public class ReadmeBuilder {
 			String name = getLabel(dbo);
 			String comment = getComment(dbo);
 			
-			//String projectGitUrl = getProjectGitUrl(new ProjectUrlParser(ProjectUrlParser.getUrl(dbo.getProject())));
 			if (dbo instanceof ProjectSchemaReference) {
-				String gitUrl = getProjectGitUrl(((ProjectSchemaReference)dbo).getParser());
-				if (gitUrl != null) {
-					comment += String.format("%nsee [documentation](%s)", gitUrl);
+				String readmeUrl = getProjectReadmeUrl(((ProjectSchemaReference)dbo).getParser());
+				if (!readmeUrl.isEmpty()) {
+					comment += String.format("%nsee [readme](%s)", readmeUrl);
 				}
 			} else if (dbo instanceof RemoteFileReference) {
 				String link = ((RemoteFileReference)dbo).getUrlpath();
@@ -634,9 +633,9 @@ public class ReadmeBuilder {
 						String comment = getComment(dbo);
 						
 						if (dbo instanceof ProjectSchemaReference) {
-							String gitUrl = getProjectGitUrl(((ProjectSchemaReference)dbo).getParser());
-							if (gitUrl != null) {
-								comment += String.format("%nsee [documentation](%s)", gitUrl);
+							String readmeUrl = getProjectReadmeUrl(((ProjectSchemaReference)dbo).getParser());
+							if (!readmeUrl.isEmpty()) {
+								comment += String.format("%nsee [readme](%s)", readmeUrl);
 							}
 						} else if (dbo instanceof RemoteFileReference) {
 							String link = ((RemoteFileReference)dbo).getUrlpath();
@@ -808,14 +807,8 @@ public class ReadmeBuilder {
 		return sortedList = Collections.unmodifiableList(sortedList);
 	}
 	
-	private static String getProjectGitUrl(ProjectUrlParser parser) {
-		String gitUrl = parser.getGitUrl();
-		String gitBranch = parser.getGitBranch();
-		if (gitUrl != null && gitBranch != null) {
-			String projectGitUrl = gitUrl + "/tree/" + gitBranch;
-			return projectGitUrl.replace(".git/tree/", gitBranch.isEmpty() ? "":"/tree/");
-		}
-		return null;
+	private static String getProjectReadmeUrl(ProjectUrlParser parser) {
+		return ProjectUrlParser.getReadmeUrl(parser.getProjectName());
 	}
 	
 	private static List<? extends DatabaseObject> filter(List<? extends DatabaseObject> list) {

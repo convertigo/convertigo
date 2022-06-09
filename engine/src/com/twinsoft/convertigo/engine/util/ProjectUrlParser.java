@@ -213,10 +213,9 @@ public class ProjectUrlParser {
 		return projectName;
 	}
 	
-	static public String getReadmeUrl(Project project) {
+	static private String getReadmeUrl(File prjDir) {
 		String readmeUrl = "";
 		try {
-			File prjDir = project.getDirFile();
 			File wrkDir = GitUtils.getWorkingDir(prjDir);
 			String remote = GitUtils.getRemote(wrkDir);
 			if (remote != null) {
@@ -231,5 +230,13 @@ public class ProjectUrlParser {
 			// skip
 		}
 		return readmeUrl;
+	}
+	
+	static public String getReadmeUrl(String projectName) {
+		return getReadmeUrl(Engine.projectFile(projectName).getParentFile());
+	}
+	
+	static public String getReadmeUrl(Project project) {
+		return getReadmeUrl(project.getDirFile());
 	}
 }
