@@ -1718,5 +1718,12 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 		return msg;
 	}
-	
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if ("isApplicationProject".equals(name)) {
+			return true;
+		}
+		return super.testAttribute(name, value);
+	}
 }

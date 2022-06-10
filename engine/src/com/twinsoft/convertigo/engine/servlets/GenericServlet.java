@@ -530,7 +530,9 @@ public abstract class GenericServlet extends HttpServlet {
 				try {
 					Engine.logEngine.debug("(GenericServlet) Removing the temporary file : " + temporaryFile.getAbsolutePath());
 					FileUtils.deleteDirectory(temporaryFile);
-				} catch (IOException e) { }
+				} catch (IOException e) {
+					Engine.logEngine.warn("(GenericServlet) Failed to delete: " + temporaryFile + " [" + e.getMessage() + "]");
+				}
 			}
 		}
 	}

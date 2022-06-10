@@ -443,4 +443,12 @@ public class MobileApplication extends DatabaseObject {
 	public String getFsDefaultDesignDocument() {
 		return getFsDesignDocument().replaceFirst(".*?\\..*?\\.", ""); // remote project.connector.
 	}
+
+	@Override
+	public boolean testAttribute(String name, String value) {
+		if ("isApplicationProject".equals(name)) {
+			return getApplicationComponent() != null;
+		}
+		return super.testAttribute(name, value);
+	}
 }

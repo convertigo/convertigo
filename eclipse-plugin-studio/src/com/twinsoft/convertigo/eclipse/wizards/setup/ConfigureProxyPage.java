@@ -62,7 +62,9 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,C
 	public ConfigureProxyPage(ProxyManager proxyManager) {
 		super("Configuration proxy");
 		setTitle("Proxy settings");
-		setDescription("This page configures the proxy settings. A proxy configuration is needed to let Convertigo Studio access the Internet in order to run demos or to be able to connect to any website or web service available on the Internet.");
+		setDescription(
+				"This page configures the proxy settings.\n"
+				+ "This configuration is needed to let Convertigo Studio access the Internet.");
 		this.proxyManager = proxyManager;
 	}
 	

@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.wizards.import_export;
 import java.io.File;
 import java.io.IOException;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -57,9 +58,9 @@ public class ImportWizard extends Wizard implements IImportWizard {
 		ProjectUrlParser parser = fileChooserPage.getParser();
 		String filePath = fileChooserPage.getFilePath();
 		if (parser.isValid()) {
-			ConvertigoPlugin.infoMessageBox("Loading " + parser.getProjectName() + " in a background job.");
 			Job.create("Import project " + parser.getProjectName(), (mon) -> {
 				try {
+					mon.beginTask("Loading " + parser.getProjectName(), IProgressMonitor.UNKNOWN);
 					Project project = Engine.theApp.referencedProjectManager.importProject(parser, true); 
 					if (project != null) {
 						TreeObject tree = explorerView.getProjectRootObject(project.getName());
@@ -71,6 +72,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
 				} catch (Exception e) {
 					Engine.logStudio.debug("Loading from remote URL failed", e);
 				}
+				mon.done();
 			}).schedule();
 		}
 		

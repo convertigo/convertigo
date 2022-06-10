@@ -20,7 +20,6 @@
 package com.twinsoft.convertigo.eclipse.swt;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 
@@ -105,9 +104,10 @@ public class SwtUtils {
 	public static void applyStyle(Control control, String style) {
 		CSSEngine engine = CompositeElement.getEngine(control);
 		try {
-			engine.parseStyleSheet(new StringReader("#handle" + control.handle + " " + style));
-			control.setData("org.eclipse.e4.ui.css.id", "handle" + control.handle);
-		} catch (IOException e) {
+			String id = "c8o-style-" + control.hashCode();
+			engine.parseStyleSheet(new StringReader("#" + id + " " + style));
+			control.setData("org.eclipse.e4.ui.css.id", id);
+		} catch (Throwable t) {
 		}
 	}
 }
