@@ -13,9 +13,9 @@ This is a legal agreement ("Agreement") between the organization which is repres
 representative ("You") and the Convertigo entity which grants You the present license as specified in the purchase 
 order ("Convertigo") for the software product that this license agreement accompanies.
 
-================
+=================
 1.   Definitions
-================
+=================
 
 << Authorized User >> 
 Any user of the Software that is authorized to access or use a Software that has been licensed to an Organization 
@@ -99,9 +99,9 @@ which can be IOS, Android, Angular and others in the future.
 Software components edited by third party software vendors which are installed or used with the Software 
 and can only be used as described in Section 7 of this license. 
 
-============
+=============
 2.   Purpose
-============
+=============
 
 This Agreement has for purpose to determine the license terms applicable to the use of the Software which may be 
 distributed in different editions : Community Edition, Starter Edition and Enterprise Edition.
@@ -114,9 +114,9 @@ license terms for the Starter Edition and the Enterprise Edition here below.
 You agree to comply with the license terms for the Community Edition, for the Starter Edition 
 and for the Enterprise Edition.
 
-============================================
+=============================================
 3.   License Terms for the Community Edition
-============================================
+=============================================
 
 The Community Edition allows the use of the Software Studio and the Software Server under Affero GPL V3 License and 
 can be used for free.
@@ -142,10 +142,10 @@ upon needs.
 
 Details about the third party software which may be used by Convertigo with Software Studio and Software Server 
 (the "Third Party Software") well as the corresponding license terms are available at 
-https://www.convertigo.com/EEand3rdpartycomponents .
+https://c8ocloud.convertigo.net/EEand3rdpartycomponents/ .
 
 You should read carefully the agreements covering the Third Party Software. Each of these agreements or terms 
-can be accessed via www.convertigo.com/EEand3rdpartycomponents. By installing and using this Third Party 
+can be accessed via https://c8ocloud.convertigo.net/EEand3rdpartycomponents/ . By installing and using this Third Party 
 Software, You accept these Third Party Software license terms and acknowledge that You have read them and 
 understand them. Convertigo does not sell, resell, or license any of this Third Party Software, and Convertigo 
 disclaims to the maximum extent permitted by applicable law, any responsibility for or liability related to the Third 
@@ -162,9 +162,9 @@ Third Party Software, even if Convertigo has been advised of such damages. Your 
 to any problems or dissatisfaction with any Third Party Software is to de-install and cease use of such Third Party 
 Software.
 
-=====================================================================
+======================================================================
 4.   License terms for the Starter Edition and the Enterprise Edition 
-=====================================================================
+======================================================================
 
 The use of the Starter Edition or the Enterprise Edition is submitted to the following license terms as 
 specified below.
@@ -289,9 +289,9 @@ THAT CONVERTIGO WILL CORRECT ALL SOFTWARE ERRORS.
 
 Convertigo's entire liability and the exclusive remedy of the Organization shall be: at Convertigo's option, either (a) return of the price paid or (b) repair or replacement of the Software that does not meet the above Limited Warranty. Any replacement Software will be warranted for the remainder of the original warranty period.
 
-==============
+===============
 5.   Liability
-==============
+===============
 
 The only type of damages that can be recovered against Convertigo arising from or related to this Agreement 
 including without limitation in relation to the provision, use, performance or non-performance of the Software, 
@@ -339,7 +339,7 @@ Software). Use of the Third Party Software will be governed by licenses or other
 vendors and yourself, including without limitation those software components listed below. 
 
 7.2	 You should read carefully the agreements covering the Third Party Software. Each of these agreements can 
-be accessed via www.convertigo.com/EEand3rdpartycomponents or via the urls provided in this Section 7.2. By 
+be accessed via https://c8ocloud.convertigo.net/EEand3rdpartycomponents/ or via the urls provided in this Section 7.2. By 
 installing and using this Third Party Software You accept these Third Party Software licenses or other arrangements 
 and acknowledge that You have read them and understand them. Convertigo does not sell, resell, or license any of 
 this Third Party Software, and Convertigo disclaims to the maximum extent permitted by applicable law, any 
@@ -500,5 +500,5 @@ acknowledge that no statements or representations made by or on behalf of Conver
 You in agreeing to enter into this Agreement. The Agreement may be amended at any time upon mutual 
 agreement by the parties. Convertigo further reserves the right to make changes to this Agreement by providing 
 You with reasonable notice of the change by either e-mail or by posting notice of the change at 
-www.convertigo.com. If You continue to use the Software more than sixty (60) days after notice of the change has 
+https://www.convertigo.com . If You continue to use the Software more than sixty (60) days after notice of the change has 
 been given, You shall be deemed to have accepted this change.
