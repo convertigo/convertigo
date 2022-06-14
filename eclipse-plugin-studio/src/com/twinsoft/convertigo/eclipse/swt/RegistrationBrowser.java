@@ -116,12 +116,10 @@ public class RegistrationBrowser extends Composite {
 	}
 	
 	public void goRegister() {
-		browser.setUrl("https://test-convertigo.convertigo.net/convertigo/projects/convertigo_signup/DisplayObjects/mobile/login/true/" + SwtUtils.isDark());
+		browser.setUrl("https://c8ocloud.convertigo.net/convertigo/projects/convertigo_signup/DisplayObjects/mobile/login/true/" + SwtUtils.isDark());
 	}
 	
 	public void goTrial() {
-//		browser.setUrl("http://localhost:41562/path-to-xfirst");
-//		browser.setUrl("https://www.convertigo.com/startprivatecloud");
-		browser.setUrl("https://test-convertigo.convertigo.net/convertigo/projects/convertigo_signup/DisplayObjects/mobile/startcloudfromstudio/:signup/:dark");
+		browser.setUrl("https://www.convertigo.com/startprivatecloud");
 	}
 }
