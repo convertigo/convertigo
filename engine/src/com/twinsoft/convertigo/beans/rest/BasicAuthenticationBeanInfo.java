@@ -34,7 +34,7 @@ public class BasicAuthenticationBeanInfo extends MySimpleBeanInfo {
 			resourceBundle = getResourceBundle("res/BasicAuthentication");
 
 			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");			
+			shortDescription = resourceBundle.getString("short_description");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
