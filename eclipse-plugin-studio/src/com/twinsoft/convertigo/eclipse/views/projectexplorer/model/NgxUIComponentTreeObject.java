@@ -1148,6 +1148,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							if (!newValue.equals(oldValue)) {
 								if (!((String)newValue).isBlank()) {
 									ComponentRefManager.get(Mode.use).addConsumer((String)newValue, dbo.getQName());
+									((NgxBuilder)getObject().getProject().getMobileBuilder()).updateConsumer();
 								}
 							}
 						}
@@ -1172,15 +1173,6 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						handleSharedActionChanged((UIActionStack) dbo, done);
 					}
 					else if (dbo instanceof UISharedComponent) {
-						if (getObject() instanceof UIUseShared) {
-							UIUseShared uiUse = (UIUseShared)getObject();
-							String useQName = uiUse.getQName();
-							String compQName = dbo.getQName();
-							if (ComponentRefManager.get(Mode.use).getAllConsumers(compQName).contains(useQName)) {
-								((NgxBuilder)uiUse.getProject().getMobileBuilder()).updateConsumer();
-							}
-						}
-						
 						handleSharedComponentChanged((UISharedComponent) dbo, done);
 					}
 				}

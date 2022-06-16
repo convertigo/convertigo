@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent.Compo
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class UISharedRegularComponent extends UISharedComponent implements ISharedComponent, IScriptComponent, IStyleGenerator {
 
@@ -47,6 +48,14 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	public UISharedRegularComponent() {
 		super(true);
+	}
+	
+	@Override
+	public void setName(String name) throws EngineException {
+		if (StringUtils.normalize(name).startsWith("_")) {
+			throw new EngineException("Name must begin with a letter");
+		}
+		super.setName(name);
 	}
 	
 	public String getIconFileName() {
@@ -62,9 +71,13 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		return "comp"+ priority;
 	}
 
+	public String getNsIdentifier() {
+		return UISharedComponent.getNsCompIdentifier(this);
+	}
+	
 	@Override
 	public String getSelector() {
-		return "comp-" + getName().toLowerCase();
+		return UISharedComponent.getNsCompFileName(this);
 	}
 	
 	@Override
@@ -675,15 +688,14 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	protected String computeStyle(UIUseShared uiUse) {
-		String c8o_CompName = getName();
 		String c8o_CompScssPath;
 		MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
 		try {
-			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
-									+ "/" +c8o_CompName.toLowerCase() + ".scss").getCanonicalPath());
+			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(this)
+									+ "/" +UISharedComponent.getNsCompFileName(this) + ".scss").getCanonicalPath());
 			c8o_CompScssPath = getContributor().getContainerPath(container).relativize(scssPath).toString().replace('\\', '/');
 		} catch (Exception e) {
-			c8o_CompScssPath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".scss";
+			c8o_CompScssPath = "../components/"+ UISharedComponent.getNsCompDirName(this) + "/" +UISharedComponent.getNsCompFileName(this) + ".scss";
 		}
 		
 		return "@use \""+ c8o_CompScssPath + "\";" + System.lineSeparator();
@@ -728,9 +740,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	}
 	
 	protected Contributor getContributor(UIUseShared uiUse) {
-		final String compName = getName();
-		final String c8o_CompName = compName;
-		final String c8o_CompModuleName = compName + "Module";
+		final String c8o_CompModuleName = UISharedComponent.getNsCompName(UISharedRegularComponent.this) + "Module";
 		final UIUseShared use = uiUse;
 		
 		return new Contributor() {
@@ -767,11 +777,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 					MobileComponent container = getContainer();
 					String c8o_CompModulePath;
 					try {
-						Path modulePath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
-												+ "/" +c8o_CompName.toLowerCase() + ".module").getCanonicalPath());
+						Path modulePath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(UISharedRegularComponent.this)
+												+ "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module").getCanonicalPath());
 						c8o_CompModulePath = getContainerPath(container).relativize(modulePath).toString().replace('\\', '/');
 					} catch (Exception e) {
-						c8o_CompModulePath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".module";
+						c8o_CompModulePath = "../components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module";
 					}
 					imports.put(c8o_CompModuleName, c8o_CompModulePath);
 				}

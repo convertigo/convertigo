@@ -248,7 +248,15 @@ public class NgxBuilder extends MobileBuilder {
 	}
 	
 	private File compDir(UISharedComponent uisc) {
-		return new File(componentsDir, uisc.getName().toLowerCase());
+		return new File(componentsDir, UISharedComponent.getNsCompDirName(uisc));
+	}
+	
+	private String compFileName(UISharedComponent uisc) {
+		return UISharedComponent.getNsCompFileName(uisc);
+	}
+	
+	private String compName(UISharedComponent uisc) {
+		return UISharedComponent.getNsCompName(uisc);
 	}
 	
 	@Override
@@ -811,12 +819,12 @@ public class NgxBuilder extends MobileBuilder {
 			if (to != null && !to.getName().equals(projectName(useQName)))
 				continue;
     		try {
-     			File dest = new File(Engine.projectDir(projectName(useQName)),"_private/ionic/src/app/components/"+ compName.toLowerCase());
-    			File src = new File(project.getDirPath(),"_private/ionic/src/app/components/"+ compName.toLowerCase());
+     			File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
+    			File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
     			
     			if (src.exists() && shouldUpdate(src, dest)) {
-    				Engine.logEngine.debug("(MobileBuilder) Copying " + src + " to " + dest);
-    				FileUtils.copyDirectory(src, dest, true);
+    				Engine.logEngine.debug("["+project.getName()+"] MB copying " + src + " to " + dest);
+    				FileUtils.copyDirectory(src, dest, ComponentRefManager.copyFileFilter, true);
     				
         			Project dest_project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName(useQName), false);
         			if (dest_project != null && dest_project.isMobileBuilderInitialized()) {
@@ -824,7 +832,7 @@ public class NgxBuilder extends MobileBuilder {
         			}
     			}
     		} catch (Exception e) {
-    			Engine.logEngine.warn("Unable to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
+    			Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
     		}
 		}
     }
@@ -835,23 +843,24 @@ public class NgxBuilder extends MobileBuilder {
 			if (projectName(useQName).equals(project.getName()))
 				continue;
     		try {
-     			File dest = new File(Engine.projectDir(projectName(useQName)),"_private/ionic/src/app/components/"+ compName.toLowerCase());
-    			File src = new File(project.getDirPath(),"_private/ionic/src/app/components/"+ compName.toLowerCase());
+     			File dest = new File(Engine.projectDir(projectName(useQName)), UISharedComponent.getNsCompDirPath(compQName, compName));
+    			File src = new File(project.getDirPath(), UISharedComponent.getNsCompDirPath(compQName, compName));
     			if (!src.exists() && dest.exists()) {
     				FileUtils.deleteQuietly(dest);
     				ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQName);
     			}
     		} catch (Exception e) {
-    			Engine.logEngine.warn("Unable to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
+    			Engine.logEngine.warn("["+project.getName()+"] MB unabled to update consumers for "+ projectName(useQName) + ": " + e.getMessage());
     		}
 		}
     }
     
     static private boolean shouldUpdate(File dirSrc, File dirDest) {
-    	if (!dirDest.exists())
-    		return true;
         for (final File src : dirSrc.listFiles()) {
             if (src.isFile()) {
+            	if (src.getName().endsWith(".temp.ts")) {
+            		continue;
+            	}
             	File dest = new File(dirDest, src.getName());
             	if (dest.exists()) {
                 	if (src.lastModified() != dest.lastModified()) {
@@ -1090,8 +1099,6 @@ public class NgxBuilder extends MobileBuilder {
 				
 				if (initDone) {
 					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for page '"+pageName+"'");
-					
-					updateConsumer();
 				}
 			}
 		}
@@ -1103,16 +1110,12 @@ public class NgxBuilder extends MobileBuilder {
 	private void writeCompTemplate(UISharedComponent comp) throws EngineException {
 		try {
 			if (comp != null) {
-				String compName = comp.getName();
-				File compDir = compDir(comp);
-				File compHtmlFile = new File(compDir, compName.toLowerCase() + ".html");
+				File compHtmlFile = new File(compDir(comp), compFileName(comp) + ".html");
 				String computedTemplate = comp.getComputedTemplate();
 				writeFile(compHtmlFile, computedTemplate, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for component '"+compName+"'");
-					
-					updateConsumer();
+					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -1143,14 +1146,12 @@ public class NgxBuilder extends MobileBuilder {
 	private void writeCompStyle(UISharedComponent comp) throws EngineException {
 		try {
 			if (comp != null) {
-				String compName = comp.getName();
-				File compDir = compDir(comp);
-				File compScssFile = new File(compDir, compName.toLowerCase() + ".scss");
+				File compScssFile = new File(compDir(comp), compFileName(comp) + ".scss");
 				String computedScss = comp.getComputedStyle();
 				writeFile(compScssFile, computedScss, "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for component '"+compName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic scss file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -1182,9 +1183,7 @@ public class NgxBuilder extends MobileBuilder {
 		UISharedComponent comp = (UISharedComponent) compComponent;
 		try {
 			if (comp != null) {
-				String compName = comp.getName();
-				File compDir = compDir(comp);
-				File tempTsFile = new File(compDir, compName.toLowerCase() + ".temp.ts");
+				File tempTsFile = new File(compDir(comp), compFileName(comp) + ".temp.ts");
 				String filePath = tempTsFile.getPath().replace(projectDir.getPath(), File.separator);
 				return filePath;
 			}
@@ -1216,9 +1215,8 @@ public class NgxBuilder extends MobileBuilder {
 			}
 			if (main instanceof UISharedComponent) {
 				UISharedComponent comp = (UISharedComponent)main;
-				String compName = comp.getName();
 				tempTsDir = compDir(comp);
-				tempTsFileName = compName.toLowerCase() + ".function.temp.ts";
+				tempTsFileName = compFileName(comp) + ".function.temp.ts";
 			}
 			
 			if (tempTsDir != null && tempTsFileName != null) {
@@ -1286,13 +1284,12 @@ public class NgxBuilder extends MobileBuilder {
 				}
 				if (main instanceof UISharedComponent) {
 					UISharedComponent comp = (UISharedComponent)main;
-					String compName = comp.getName();
 					tempTsDir = compDir(comp);
-					tempTsFileName = compName.toLowerCase() + ".function.temp.ts";
+					tempTsFileName = compFileName(comp) + ".function.temp.ts";
 					
 					boolean isEnabled = true;
 					if (isEnabled) {
-						File compTsFile = new File(tempTsDir, compName.toLowerCase() + ".ts");
+						File compTsFile = new File(tempTsDir, compFileName(comp) + ".ts");
 						synchronized (writtenFiles) {
 							if (writtenFiles.contains(compTsFile)) {
 								File compTsFileTmp = toTmpFile(compTsFile);
@@ -1337,7 +1334,7 @@ public class NgxBuilder extends MobileBuilder {
 							} else if (main instanceof PageComponent) {
 								sImport = "import { "+ classType +" } from './"+ classType.toLowerCase() +"';";
 							} else if (main instanceof UISharedComponent) {
-								sImport = "import { "+ classType +" } from './"+ classType.toLowerCase() +"';";
+								sImport = "import { "+ compName((UISharedComponent)main) +" } from './"+ compFileName((UISharedComponent)main) +"';";
 							}
 							
 							int i = tsContent.indexOf("{", index);
@@ -1422,13 +1419,12 @@ public class NgxBuilder extends MobileBuilder {
 		UISharedComponent comp = (UISharedComponent) compComponent;
 		try {
 			if (comp != null) {
-				String compName = comp.getName();
 				File compDir = compDir(comp);
 				
 				String tsContent;
 				boolean isEnabled = true;
 				if (isEnabled) {
-					File compTsFile = new File(compDir, compName.toLowerCase() + ".ts");
+					File compTsFile = new File(compDir, compFileName(comp) + ".ts");
 					
 					synchronized (writtenFiles) {
 						if (writtenFiles.contains(compTsFile)) {
@@ -1464,7 +1460,7 @@ public class NgxBuilder extends MobileBuilder {
 				
 				// Write file (do not need delay)
 				tsContent = LsPattern.matcher(tsContent).replaceAll(System.lineSeparator());
-				File tempTsFile = new File(compDir, compName.toLowerCase() + ".temp.ts");
+				File tempTsFile = new File(compDir, compFileName(comp) + ".temp.ts");
 				FileUtils.write(tempTsFile, tsContent, "UTF-8");
 			}
 		}
@@ -1494,13 +1490,11 @@ public class NgxBuilder extends MobileBuilder {
 	private void writeCompTs(UISharedComponent comp) throws EngineException {
 		try {
 			if (comp != null) {
-				String compName = comp.getName();
-				File compDir = compDir(comp);
-				File compTsFile = new File(compDir, compName.toLowerCase() + ".ts");
+				File compTsFile = new File(compDir(comp), compFileName(comp) + ".ts");
 				writeFile(compTsFile, getCompTsContent(comp), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for component '"+compName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic ts file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -1585,13 +1579,11 @@ public class NgxBuilder extends MobileBuilder {
 	private void writeCompModuleTs(UISharedComponent comp) throws EngineException {
 		try {
 			if (comp != null) {
-				String compName = comp.getName();
-				File compDir = compDir(comp);
-				File compModuleTsFile = new File(compDir, compName.toLowerCase() + ".module.ts");
+				File compModuleTsFile = new File(compDir(comp), compFileName(comp) + ".module.ts");
 				writeFile(compModuleTsFile, getCompModuleTsContent(comp), "UTF-8");
 				
 				if (initDone) {
-					Engine.logEngine.trace("(MobileBuilder) Ionic module file generated for component '"+compName+"'");
+					Engine.logEngine.trace("(MobileBuilder) Ionic module file generated for component '"+comp.getName()+"'");
 				}
 			}
 		}
@@ -1918,11 +1910,10 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	private String getCompTsContent(UISharedComponent comp) throws IOException {
-		String compName = comp.getName();
-		String c8o_CompName = compName;
+		String c8o_CompName = compName(comp);
 		String c8o_CompChangeDetection = "ChangeDetectionStrategy.Default"; //comp.getChangeDetectionStrategy();
-		String c8o_CompTplUrl = compName.toLowerCase() + ".html";
-		String c8o_CompStyleUrls = compName.toLowerCase() + ".scss";
+		String c8o_CompTplUrl = compFileName(comp) + ".html";
+		String c8o_CompStyleUrls = compFileName(comp) + ".scss";
 		String c8o_CompSelector = comp.getSelector();
 		String c8o_CompImports = comp.getComputedImports();
 		String c8o_CompInterfaces = comp.getComputedInterfaces();
@@ -2195,12 +2186,11 @@ public class NgxBuilder extends MobileBuilder {
 			}
 		}
 		
-		String compName = comp.getName();
-		String c8o_CompName = compName;
-		String c8o_CompModuleName = compName + "Module";
+		String c8o_CompName = compName(comp);
+		String c8o_CompModuleName = compName(comp) + "Module";
 		String c8o_CompImport = "";
 		
-		c8o_CompImport += "import { "+compName+" } from \"./"+compName.toLowerCase()+"\";" + System.lineSeparator();
+		c8o_CompImport += "import { "+compName(comp)+" } from \"./"+compFileName(comp)+"\";" + System.lineSeparator();
 		
 		File pageTplTs = new File(ionicTplDir, "src/comp.module.tpl");
 		String tsContent = FileUtils.readFileToString(pageTplTs, "UTF-8");
@@ -2948,8 +2938,6 @@ public class NgxBuilder extends MobileBuilder {
 				
 				if (initDone) {
 					Engine.logEngine.trace("(MobileBuilder) Ionic template file generated for app '"+appName+"'");
-					
-					updateConsumer();
 				}
 			}
 		}
@@ -3000,7 +2988,7 @@ public class NgxBuilder extends MobileBuilder {
 	}
 
 	private void deleteUselessCompDir(String compName, String compQName) {
-		File compDir = new File(componentsDir, compName.toLowerCase());
+		File compDir = new File(componentsDir, UISharedComponent.getNsCompDirName(compQName, compName));
 		deleteDir(compDir);
 		if (initDone) {
 			updateConsumers(compName, compQName);
@@ -3082,7 +3070,7 @@ public class NgxBuilder extends MobileBuilder {
 			File compDir = compDir(comp);
 			compDir.mkdirs();
 			
-			FileUtils.deleteQuietly(new File(compDir, compName.toLowerCase() + ".temp.ts"));
+			FileUtils.deleteQuietly(new File(compDir, compFileName(comp) + ".temp.ts"));
 			
 			writeCompTs(comp);
 			writeCompModuleTs(comp);

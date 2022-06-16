@@ -183,7 +183,7 @@ public class UIUseShared extends UIElement {
 					//String scope = getScope();
 					
 					String compSelector = uisc.getSelector();
-					String compIdentifier = "#"+ uisc.getIdentifier();
+					String compIdentifier = "#"+ uisc.getNsIdentifier() + " "+ "#"+ uisc.getIdentifier(); // for compatibility with 8.0.0
 					String useIdentifier = this.getIdentifier().isBlank() ? "":"#"+ this.getIdentifier();
 					String identifiers = compIdentifier + " " + useIdentifier;
 					String classes = attrclasses.length() > 0 ? "class=\""+attrclasses+"\"": "";
@@ -276,27 +276,10 @@ public class UIUseShared extends UIElement {
 						jsonScripts.put("imports", imports);
 						
 						String declarations = jsonScripts.getString("declarations");
-						String dname = uisc.getIdentifier();
-						String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
-						if (main.addDeclaration(dname, dcode)) {
-							declarations += System.lineSeparator() + "\t" + dcode;
-						}
-						String all_dname = "all_" + dname;
-						String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
-						if (main.addDeclaration(all_dname, all_dcode)) {
-							declarations += System.lineSeparator() + "\t" + all_dcode;
-						}
+						declarations += addViewChild(main, uisc.getIdentifier());// for compatibility with 8.0.0
+						declarations += addViewChild(main, uisc.getNsIdentifier());
 						if (!this.getIdentifier().isBlank()) {
-							dname = this.getIdentifier();
-							dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
-							if (main.addDeclaration(dname, dcode)) {
-								declarations += System.lineSeparator() + "\t" + dcode;
-							}
-							all_dname = "all_" + dname;
-							all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
-							if (main.addDeclaration(all_dname, all_dcode)) {
-								declarations += System.lineSeparator() + "\t" + all_dcode;
-							}
+							declarations += addViewChild(main, this.getIdentifier());
 						}
 						jsonScripts.put("declarations", declarations);
 					} catch (JSONException e) {
@@ -311,6 +294,20 @@ public class UIUseShared extends UIElement {
 		}
 	}
 
+	private String addViewChild(IScriptComponent main, String dname) {
+		String declarations = "";
+		String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
+		if (main.addDeclaration(dname, dcode)) {
+			declarations += System.lineSeparator() + "\t" + dcode;
+		}
+		String all_dname = "all_" + dname;
+		String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
+		if (main.addDeclaration(all_dname, all_dcode)) {
+			declarations += System.lineSeparator() + "\t" + all_dcode;
+		}
+		return declarations;
+	}
+	
 	@Override
 	public String computeStyle() {
 		UISharedComponent uisc = getTargetSharedComponent();

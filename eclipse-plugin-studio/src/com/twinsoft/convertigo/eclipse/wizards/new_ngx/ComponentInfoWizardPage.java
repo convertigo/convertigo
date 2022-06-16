@@ -233,7 +233,8 @@ public class ComponentInfoWizardPage extends WizardPage {
 					}
 					setBeanName(name);
 				} catch (EngineException e) {
-					updateStatus("Name could not be set on bean");
+					String msg = e.getMessage();
+					updateStatus(msg == null || msg.isEmpty() ? "Name could not be set on bean" : msg);
 					return;
 				} catch (NullPointerException e) {
 					updateStatus("New Bean has not been instanciated");
