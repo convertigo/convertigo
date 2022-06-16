@@ -69,6 +69,7 @@ public class RegistrationBrowser extends Composite {
 		browser.getBrowser().set(InjectJsCallback.class, params -> {
 			String url = params.frame().browser().url();
 			if (url != null) {
+				browser.setUseExternalBrowser(!url.contains("convertigo.com/startprivatecloud"));
 				try {
 					JsObject window = params.frame().executeJavaScript("window"); 
 					window.putProperty("studio", new StudioAPI());
