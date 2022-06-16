@@ -225,7 +225,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		}
 
 		label = new Label(this, SWT.NONE);
-		label.setText("Convertigo server");
+		label.setText("Convertigo Environment");
 
 		GridData gridData1 = new GridData();
 		gridData1.horizontalSpan = 2;
@@ -401,7 +401,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	private void createConvertigoGroup() {
 		convertigoGroup = new Group(this, SWT.FILL);
 		convertigoGroup.setLayout(new GridLayout());
-		convertigoGroup.setText("Convertigo server login");
+		convertigoGroup.setText("Convertigo Environment login");
 
 		GridData gridData2 = new GridData();
 		gridData2.horizontalAlignment = GridData.FILL;
