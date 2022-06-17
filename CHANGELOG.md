@@ -1,5 +1,21 @@
 # Changelog
 
+## 8.0.1
+
+#### Improvements:
+
+- [#612](https://github.com/convertigo/convertigo/issues/612) [Studio] Better on boarding process
+- [#616](https://github.com/convertigo/convertigo/issues/616) [Studio] Icons on blank project first Studio start 
+- [#618](https://github.com/convertigo/convertigo/issues/618) [Studio] Add a Run project button
+
+#### Bug Fixes:
+
+- [#611](https://github.com/convertigo/convertigo/issues/611) [NGX] Fixed, when using a segment into a single page application routes are now generated correctly 
+- [#614](https://github.com/convertigo/convertigo/issues/614) [Studio] Fixed, no more error on MacOS when try to deploy or export an unbuild project
+- [#619](https://github.com/convertigo/convertigo/issues/619) [HttpConnector] Fixed, now handle __header_ HTTP variable value and remove prefix
+
+---
+
 ## 8.0.0
 
 #### New Features:
@@ -22,7 +38,7 @@
 #### Improvements:
 
 - [#291](https://github.com/convertigo/convertigo/issues/291) [NGX] Improved event catch/finally feature for actions
-- [#424](https://github.com/convertigo/convertigo/issues/424) [NGX] Use faster PNPM instead of NPM for Front End builder’s Package Manager
+- [#424](https://github.com/convertigo/convertigo/issues/424) [NGX] Use faster PNPM instead of NPM for Front End builder�s Package Manager
 - [#506](https://github.com/convertigo/convertigo/issues/506) [Studio] Use Eclipse 2021-12 as base, JDK 17.0.2 and Tomcat 9.0.62
 - [#510](https://github.com/convertigo/convertigo/issues/510) [Builder + NGX] Added an "Application Init" event
 - [#515](https://github.com/convertigo/convertigo/issues/515) [SMTP Step] Added a property to customize the SSL version
