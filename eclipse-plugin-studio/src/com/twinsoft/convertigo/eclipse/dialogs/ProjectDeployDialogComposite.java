@@ -37,6 +37,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
@@ -137,7 +138,16 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 			assembleXsl.setSelection(false);
 			convertigoServer.setText("");
 		}
-
+		
+		String[] items = list.getItems();
+		for (int i = 0; i < items.length; i++) {
+			if (items[i].contains(".convertigo.net/convertigo")) {
+				list.setSelection(i);
+				list.notifyListeners(SWT.Selection, new Event());
+				break;
+			}
+		}
+		
 		if (list.getSelectionIndex() == -1) {
 			delButton.setEnabled(false);
 		}
