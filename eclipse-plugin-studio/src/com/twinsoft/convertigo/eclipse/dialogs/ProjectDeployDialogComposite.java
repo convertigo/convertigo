@@ -37,6 +37,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
@@ -137,7 +138,16 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 			assembleXsl.setSelection(false);
 			convertigoServer.setText("");
 		}
-
+		
+		String[] items = list.getItems();
+		for (int i = 0; i < items.length; i++) {
+			if (items[i].contains(".convertigo.net/convertigo")) {
+				list.setSelection(i);
+				list.notifyListeners(SWT.Selection, new Event());
+				break;
+			}
+		}
+		
 		if (list.getSelectionIndex() == -1) {
 			delButton.setEnabled(false);
 		}
@@ -225,7 +235,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		}
 
 		label = new Label(this, SWT.NONE);
-		label.setText("Convertigo server");
+		label.setText("Convertigo Environment");
 
 		GridData gridData1 = new GridData();
 		gridData1.horizontalSpan = 2;
@@ -401,7 +411,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	private void createConvertigoGroup() {
 		convertigoGroup = new Group(this, SWT.FILL);
 		convertigoGroup.setLayout(new GridLayout());
-		convertigoGroup.setText("Convertigo server login");
+		convertigoGroup.setText("Convertigo Environment login");
 
 		GridData gridData2 = new GridData();
 		gridData2.horizontalAlignment = GridData.FILL;

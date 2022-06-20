@@ -69,8 +69,8 @@ public class C8oBrowser extends Composite {
 			}
 			try {
 				Element elt = (Element) ev.target().get();
-				if (!elt.nodeName().equalsIgnoreCase("a")) {
-					return;
+				while (!elt.nodeName().equalsIgnoreCase("a")) {
+					elt = (Element) elt.parent().get();
 				}
 				String href = elt.attributes().get("href");
 				if (!href.startsWith("http")) {
