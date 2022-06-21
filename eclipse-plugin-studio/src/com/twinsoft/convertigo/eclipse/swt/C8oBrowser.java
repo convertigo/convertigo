@@ -82,7 +82,12 @@ public class C8oBrowser extends Composite {
 					}
 				}
 				if (href.matches("https?://.*")) {
-					com.twinsoft.convertigo.engine.Engine.logStudio.info("Internal browser open link with the default browser: " + href);
+					String msg = "Internal browser open link with the default browser: " + href;
+					if (com.twinsoft.convertigo.engine.Engine.logStudio != null) {
+						com.twinsoft.convertigo.engine.Engine.logStudio.info(msg);
+					} else {
+						System.out.println(msg);
+					}
 					Program.launch(href);
 					ev.preventDefault();
 				}
