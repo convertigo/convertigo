@@ -204,9 +204,6 @@ The Software Starter Edition can only be used if a license for the Software Star
 The Software Enterprise Edition components can only be used if a license for the Software Enterprise Edition is granted 
 to you.
 
-The Software Starter and Enterprise Editions components delivered and bundled with the Software Server 
-are pre-activated for a 30 days trial period and require keys to extend the activation period. 
-
 =================================
 4.3 Conditions for License Types
 =================================
