@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -40,6 +41,8 @@ import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -73,23 +76,33 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
@@ -104,8 +117,12 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IProgressService;
+import org.eclipse.ui.services.IEvaluationService;
+import org.eclipse.ui.wizards.IWizardCategory;
+import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -405,14 +422,99 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	 * to create the viewer and initialize it.
 	 */
 	@SuppressWarnings("deprecation")
-	public void createPartControl(Composite parent) {
+	public void createPartControl(Composite parent) {this.
 		viewContentProvider = new ViewContentProvider(this);
+		
+		Composite stack = new Composite(parent, SWT.NONE);
+		StackLayout stackLayout = new StackLayout();
+		stack.setLayout(stackLayout);
+		
+		Label noEngine = new Label(stack, SWT.CENTER);
+		noEngine.setText("\n"
+				+ "Convertigo Studio isn't completely installed,\n"
+				+ "you have to complete the registration before\n"
+				+ "starting building your projects.\n\n"
+				+ "Please click here to register.");
+		noEngine.addMouseListener(new MouseAdapter() {
 
-		viewer = new TreeViewer(parent,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
+			@Override
+			public void mouseDown(MouseEvent e) {
+				ConvertigoPlugin.getDefault().runSetup();
+			}
+		});
+		
+		Composite noProject = new Composite(stack, SWT.NONE);
+		noProject.setLayout(new GridLayout(1, false));
+		
+		ToolBar toolbar = new ToolBar(noProject, SWT.VERTICAL | SWT.FLAT);
+		toolbar.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, true));
+		
+		String[][] defs = {
+			{"Start Low Code Front End project", "mobile_HighEnd_color_32x32.png", "NewNgxBuilderWizard"},
+			{"Start Low Code Back End project", "sequence_color_32x32.gif", "NewSequencerWizard"},
+			{"Start Hello World sample project", "mobile_HighEnd_color_32x32.png", "NewSampleHelloWorldWizard"},
+			{"Start another type of project", "convertigo_logo_32x32.png", null}
+		};
+		
+		SelectionListener listener = new SelectionListener() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ICommandService commandService = (ICommandService) PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow().getService(ICommandService.class);
+
+				IEvaluationService evaluationService = (IEvaluationService) PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow().getService(IEvaluationService.class);
+				try {
+					
+					for (IWizardDescriptor c : PlatformUI.getWorkbench().getNewWizardRegistry().getRootCategory().getWizards()) {
+						System.out.println(c.getId() + ": " + c.getLabel() + " " + c.getCategory().getId());
+					}
+					
+					for (IWizardCategory c: PlatformUI.getWorkbench().getNewWizardRegistry().getRootCategory().getCategories()) {
+						System.out.println(c.getId() + ": " + c.getLabel() + " " + Arrays.toString(c.getWizards()));
+					}
+					
+					Command c = commandService.getCommand("org.eclipse.ui.newWizard");
+
+					Map<String, String> params = new HashMap<String, String>();
+					params.put("newWizardId", (String) e.widget.getData("newWizardId"));
+
+					c.executeWithChecks(new ExecutionEvent(c, params, null, evaluationService.getCurrentState()));
+
+				} catch (Exception ex) {
+					throw new RuntimeException("Open new wizard command not found");
+				}
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+		
+		for (int i = 0; i < defs.length; i++) {
+			ToolItem btn = new ToolItem(toolbar, SWT.PUSH);
+			btn.setText("     " + defs[i][0] + "     ");
+			try {
+				btn.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/" + defs[i][1]));
+			} catch (IOException e1) {
+			}
+			if (defs[i][2] != null) {
+				btn.setData("newWizardId", "com.twinsoft.convertigo.eclipse.wizards." + defs[i][2]);
+			}
+			btn.addSelectionListener(listener);
+		}
+		
+		viewer = new TreeViewer(stack,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
+				if (!Engine.isStarted) {
+					return;
+				}
 				if (Engine.objectsProvider != null) {
-					viewer.getTree().getDisplay().asyncExec(() -> {
+					getTree().getDisplay().asyncExec(() -> {
 						try {
 							super.refresh(element);
 						} catch (Throwable e) {
@@ -420,6 +522,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						}
 					});
 					packColumns();
+				}
+				
+				if (viewContentProvider.getTreeRoot() != null && viewContentProvider.getTreeRoot().hasChildren()) {
+					if (stackLayout.topControl != getTree()) {
+						stackLayout.topControl = getTree();
+						stack.layout(true);
+					}
+				} else {
+					if (stackLayout.topControl != noProject) {
+						stackLayout.topControl = noProject;
+						stack.layout(true);
+					}
 				}
 			}
 
@@ -429,6 +543,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		};
+		stackLayout.topControl = noEngine;
 		viewer.setData(ProjectExplorerView.class.getCanonicalName(), this);
 		viewer.setContentProvider(viewContentProvider);
 		viewer.addSelectionChangedListener((event) -> {
@@ -454,7 +569,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		});
-
 		viewer.setSorter(new TreeObjectSorter());
 		viewer.setInput(getViewSite());
 

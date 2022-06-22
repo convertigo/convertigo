@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2001-2022 Convertigo SA.
- * 
+ *
  * This program  is free software; you  can redistribute it and/or
  * Modify  it  under the  terms of the  GNU  Affero General Public
  * License  as published by  the Free Software Foundation;  either
  * version  3  of  the  License,  or  (at your option)  any  later
  * version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY;  without even the implied warranty of
  * MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program;
  * if not, see <http://www.gnu.org/licenses/>.
@@ -53,10 +53,10 @@ import com.twinsoft.convertigo.engine.util.RemoteAdminException;
 public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 
 	private ProjectDeployDialogComposite projectDeployDialogComposite;
-	
+
 	private Project project;
 	private Set<ArchiveExportOption> archiveExportOptions;
-	
+
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
 
@@ -67,140 +67,136 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	boolean trustAllCertificates = false;
 	boolean isHttps = false;
 	boolean bAssembleXsl = false;
-	
+
 	public ProjectDeployDialog(Shell parentShell, Project project, Set<ArchiveExportOption> archiveExportOptions) {
 		super(parentShell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project", 460, 500);
 		this.project = project;
 		this.archiveExportOptions = archiveExportOptions;
 	}
-	
+
 	@Override
 	protected Control createButtonBar(Composite parent) {
 		Control buttonBar =  super.createButtonBar(parent);
-		projectDeployDialogComposite = (ProjectDeployDialogComposite) dialogComposite;		
+		projectDeployDialogComposite = (ProjectDeployDialogComposite) dialogComposite;
 		getButton(IDialogConstants.OK_ID).setText("Deploy");
 		projectDeployDialogComposite.setOkButton(getButton(IDialogConstants.OK_ID));
 		return buttonBar;
 	}
 
 	@Override
-	protected void cancelPressed() {		
+	protected void cancelPressed() {
 		try {
 			ConvertigoPlugin.deploymentConfigurationManager.save();
 		} catch (IOException e) {
 			ConvertigoPlugin.logException(e, "Unable to save the deployment configurations");
-		}	
+		}
 		super.cancelPressed();
 	}
-	
+
 	@Override
 	protected void okPressed() {
-		
-			getButton(IDialogConstants.OK_ID).setEnabled(false);
-			progressBar = projectDeployDialogComposite.progressBar;
-			labelProgression = projectDeployDialogComposite.labelProgress;
 
-			convertigoServer = projectDeployDialogComposite.convertigoServer.getText();
-	        if ((convertigoServer == null) || (convertigoServer.equals(""))) return;
-	        
-	        convertigoUserName = projectDeployDialogComposite.convertigoAdmin.getText();
-	        if (convertigoUserName == null) convertigoUserName = "";
-	        
-	        convertigoUserPassword = projectDeployDialogComposite.convertigoPassword.getText();
-	        if (convertigoUserPassword == null) convertigoUserPassword = "";
-	        
-	        isHttps = projectDeployDialogComposite.checkBox.getSelection();
-	        trustAllCertificates = projectDeployDialogComposite.checkTrustAllCertificates.getSelection();
-	        bAssembleXsl = projectDeployDialogComposite.assembleXsl.getSelection();
-        
-	        close();
-			Job deployBack = new Job("Deployment in progress...") {
-				
-				@Override
-				protected IStatus run(IProgressMonitor arg0) {
-					try {
-						boolean doubleFound = false;
-							
-				        Set<String> deploymentConfigurationNames = new HashSet<>();  
-				        deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
-				        String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
-				        
-				        for (String deploymentConfigurationName: deploymentConfigurationNames) {
-				        	DeploymentConfiguration deploymentConfiguration = null;
-				        	if (convertigoServer.equals(deploymentConfigurationName)) {
-				        		deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
-				        		if (deploymentConfiguration != null && !(deploymentConfiguration instanceof DeploymentConfigurationReadOnly)) {
-					        		deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
-					        		deploymentConfiguration.setBHttps(isHttps);
-					        		deploymentConfiguration.setUsername(convertigoUserName);
-					        		deploymentConfiguration.setUserpassword(convertigoUserPassword);
-					        		deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
-					        		doubleFound = true;
-					        		ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, deploymentConfiguration.getServer());
-				        		}
-				        	}
-				        }
-				        
-				        if (!doubleFound) {	        	
-					        DeploymentConfiguration dc = new DeploymentConfiguration(
-						            convertigoServer,
-						            convertigoUserName,
-						            convertigoUserPassword,
-						            isHttps,
-						            trustAllCertificates,
-						            bAssembleXsl
-						        );
-				        	
-			//	            list.add(convertigoServer);
-				            ConvertigoPlugin.deploymentConfigurationManager.add(dc);
-				            ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc.getServer());
-			//		        if (list.getItem(0).equals(ProjectDeployDialogComposite.messageList)) {
-			//		        	list.remove(0);
-			//		        }
-				            projectDeployDialogComposite.fillList();
-				        }
-			
-				        File projectDir = new File(ConvertigoPlugin.projectManager.currentProject.getDirPath() + "/_private");
-				        if (!projectDir.exists()) {
-				        	ConvertigoPlugin.logInfo("Creating \"_private\" project directory");
-				            try {
-				                projectDir.mkdirs();
-				            }
-				            catch(Exception e) {
-				                String message = java.text.MessageFormat.format(
-				                    "Unable to create the private project directory \"{0}\"..",
-				                    new Object[] { ConvertigoPlugin.projectManager.currentProject.getName() }
-				                );
-				                ConvertigoPlugin.logException(e, message);
-				                return Status.CANCEL_STATUS;
-				            }
-				        }
-			
-				        ConvertigoPlugin.deploymentConfigurationManager.save();
-				        
-				        deployInBack();
+		getButton(IDialogConstants.OK_ID).setEnabled(false);
+		progressBar = projectDeployDialogComposite.progressBar;
+		labelProgression = projectDeployDialogComposite.labelProgress;
+
+		convertigoServer = projectDeployDialogComposite.convertigoServer.getText();
+		if ((convertigoServer == null) || (convertigoServer.equals(""))) return;
+
+		convertigoUserName = projectDeployDialogComposite.convertigoAdmin.getText();
+		if (convertigoUserName == null) convertigoUserName = "";
+
+		convertigoUserPassword = projectDeployDialogComposite.convertigoPassword.getText();
+		if (convertigoUserPassword == null) convertigoUserPassword = "";
+
+		isHttps = projectDeployDialogComposite.checkBox.getSelection();
+		trustAllCertificates = projectDeployDialogComposite.checkTrustAllCertificates.getSelection();
+		bAssembleXsl = projectDeployDialogComposite.assembleXsl.getSelection();
+
+		close();
+		Job deployBack = new Job("Deployment in progress...") {
+
+			@Override
+			protected IStatus run(IProgressMonitor arg0) {
+				try {
+					boolean doubleFound = false;
+
+					Set<String> deploymentConfigurationNames = new HashSet<>();
+					deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
+					String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
+
+					for (String deploymentConfigurationName: deploymentConfigurationNames) {
+						DeploymentConfiguration deploymentConfiguration = null;
+						if (convertigoServer.equals(deploymentConfigurationName)) {
+							deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
+							if (deploymentConfiguration != null && !(deploymentConfiguration instanceof DeploymentConfigurationReadOnly)) {
+								deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
+								deploymentConfiguration.setBHttps(isHttps);
+								deploymentConfiguration.setUsername(convertigoUserName);
+								deploymentConfiguration.setUserpassword(convertigoUserPassword);
+								deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
+								doubleFound = true;
+								ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, deploymentConfiguration.getServer());
+							}
+						}
 					}
-					catch (Throwable e) {
-						ConvertigoPlugin.logException(e, "Unable to deploy project!");
-						return Status.CANCEL_STATUS;
+
+					if (!doubleFound) {
+						DeploymentConfiguration dc = new DeploymentConfiguration(
+								convertigoServer,
+								convertigoUserName,
+								convertigoUserPassword,
+								isHttps,
+								trustAllCertificates,
+								bAssembleXsl
+								);
+						
+						ConvertigoPlugin.deploymentConfigurationManager.add(dc);
+						ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc.getServer());
+						projectDeployDialogComposite.fillList();
 					}
-					
-					return Status.OK_STATUS;
+
+					File projectDir = new File(ConvertigoPlugin.projectManager.currentProject.getDirPath() + "/_private");
+					if (!projectDir.exists()) {
+						ConvertigoPlugin.logInfo("Creating \"_private\" project directory");
+						try {
+							projectDir.mkdirs();
+						}
+						catch(Exception e) {
+							String message = java.text.MessageFormat.format(
+									"Unable to create the private project directory \"{0}\"..",
+									new Object[] { ConvertigoPlugin.projectManager.currentProject.getName() }
+									);
+							ConvertigoPlugin.logException(e, message);
+							return Status.CANCEL_STATUS;
+						}
+					}
+
+					ConvertigoPlugin.deploymentConfigurationManager.save();
+
+					deployInBack();
 				}
+				catch (Throwable e) {
+					ConvertigoPlugin.logException(e, "Unable to deploy project!");
+					return Status.CANCEL_STATUS;
+				}
+
+				return Status.OK_STATUS;
+			}
 		};
 
 		deployBack.setUser(true);
-		deployBack.schedule(); 
+		deployBack.schedule();
 	}
-	
+
 	private void deployInBack(){
 		run();
 	}
-	
+
 	public void run() {
 		final Display display = getParentShell().getDisplay();
 		Thread progressBarThread = new Thread("Progress Bar thread") {
-			
+
 			@Override
 			public void run() {
 				int i = 0;
@@ -215,7 +211,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 									progressBar.setSelection(j);
 							}
 						});
-						
+
 						sleep(500);
 					}
 					catch(InterruptedException e) {
@@ -223,9 +219,9 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 					}
 				}
 			}
-			
+
 		};
-		
+
 		try {
 			progressBarThread.start();
 			deploy();
@@ -249,7 +245,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 		catch (final EngineException e) {
 			final String errorMessage = e.getMessage();
 			final String causeStackTrace;
-			
+
 			if (e instanceof RemoteAdminException) {
 				RemoteAdminException rae = (RemoteAdminException) e;
 				causeStackTrace = rae.stackTrace;
@@ -266,7 +262,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 					causeStackTrace = null;
 				}
 			}
-	
+
 			if (causeStackTrace != null) {
 				ConvertigoPlugin.logDeployException(e, errorMessage, causeStackTrace);
 			}
@@ -306,23 +302,23 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 			} catch(com.twinsoft.convertigo.engine.EngineException e) {
 				throw new com.twinsoft.convertigo.engine.EngineException("The archive creation has failed: (EngineException) "+ e.getMessage());
 			}
-		
+
 			ConvertigoPlugin.logDebug("Archive successfully generated!");
-            
+
 			setTextLabel("Authenticating to the Convertigo server");
-			
+
 			RemoteAdmin remoteAdmin = new RemoteAdmin(convertigoServer, isHttps, trustAllCertificates);
-	
+
 			ConvertigoPlugin.logDebug("Trying to connect to the Convertigo remote server...");
-     		ConvertigoPlugin.logDebug("Username: " + convertigoUserName);
+			ConvertigoPlugin.logDebug("Username: " + convertigoUserName);
 			ConvertigoPlugin.logDebug("Password: " + "**************");
 
 			setTextLabel("Connection to the Convertigo server");
-		   
+
 			remoteAdmin.login(convertigoUserName, convertigoUserPassword);
-			
+
 			setTextLabel("Deployment of the archive on the Convertigo server");
-			
+
 			remoteAdmin.deployArchive(file, bAssembleXsl);
 
 			bFinished = true;
@@ -350,9 +346,9 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 				});
 		}
 	}
-	
-    //Create an ADBBean and provide it as the test object
+
+	//Create an ADBBean and provide it as the test object
 	public org.apache.axis2.databinding.ADBBean getTestObject(Class<?> type) throws java.lang.Exception {
-	   return (org.apache.axis2.databinding.ADBBean) type.getConstructor().newInstance();
+		return (org.apache.axis2.databinding.ADBBean) type.getConstructor().newInstance();
 	}
 }

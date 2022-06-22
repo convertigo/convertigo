@@ -23,7 +23,6 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
@@ -41,18 +40,8 @@ public class SetupAction implements IWorkbenchWindowActionDelegate {
 
 	public static boolean runSetup() {
 		Display display = Display.getDefault();
-		WizardDialog wizardDialog = new WizardDialog(display.getActiveShell(), new SetupWizard()) {
-			
-			@Override
-			protected void configureShell(Shell shell) {
-				super.configureShell(shell);
-				shell.setSize(730, 700);
-				setReturnCode(WizardDialog.CANCEL);
-			}
-			
-		};
-		
-		int ret = wizardDialog.open(); 
+		WizardDialog wizardDialog = new WizardDialog(display.getActiveShell(), new SetupWizard());
+		int ret = wizardDialog.open();
 		
 		return ret == WizardDialog.OK;
 	}

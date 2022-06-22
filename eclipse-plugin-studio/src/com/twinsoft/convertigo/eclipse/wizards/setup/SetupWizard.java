@@ -37,6 +37,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -76,6 +77,7 @@ public class SetupWizard extends Wizard {
 	protected WorkspaceCreationPage workspaceCreationPage;
 	protected ConfigureProxyPage configureProxyPage;
 //	protected AlreadyPscKeyPage alreadyPscKeyPage;
+	protected EmbeddedRegistrationPage embeddedRegistrationPage;
 	protected PscKeyValidationPage pscKeyValidationPage;
 //	protected RegistrationPage registrationPage;
 //	protected PscKeyPage pscKeyPage;
@@ -84,6 +86,8 @@ public class SetupWizard extends Wizard {
 	protected ProxyManager proxyManager;
 
 	private String previousPageName = "";
+	
+	String psc = "";
 
 	public SetupWizard() {
 		super();
@@ -149,7 +153,10 @@ public class SetupWizard extends Wizard {
 
 //		alreadyPscKeyPage = new AlreadyPscKeyPage();
 //		addPage(alreadyPscKeyPage);
-
+		
+		embeddedRegistrationPage = new EmbeddedRegistrationPage();
+		addPage(embeddedRegistrationPage);
+		
 		pscKeyValidationPage = new PscKeyValidationPage();
 		addPage(pscKeyValidationPage);
 		
@@ -246,9 +253,7 @@ public class SetupWizard extends Wizard {
 
 		File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
 		try {
-			FileUtils.writeStringToFile(pscFile,
-//					pscKeyPage.getCertificateKey(), "utf-8");
-					pscKeyValidationPage.getCertificateKey(), "utf-8");
+			FileUtils.writeStringToFile(pscFile, psc, "utf-8");
 		} catch (IOException e) {
 			ConvertigoPlugin.logError("Failed to write the PSC file: "
 					+ e.getMessage());
@@ -259,7 +264,8 @@ public class SetupWizard extends Wizard {
 		} else {
 			ConvertigoPlugin.configureDeployConfiguration();
 		}
-
+		WizardDialog container = (WizardDialog) getContainer();
+		container.close();
 		return true;
 	}
 

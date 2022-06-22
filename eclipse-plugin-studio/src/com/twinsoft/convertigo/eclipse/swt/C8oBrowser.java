@@ -69,8 +69,8 @@ public class C8oBrowser extends Composite {
 			}
 			try {
 				Element elt = (Element) ev.target().get();
-				if (!elt.nodeName().equalsIgnoreCase("a")) {
-					return;
+				while (!elt.nodeName().equalsIgnoreCase("a")) {
+					elt = (Element) elt.parent().get();
 				}
 				String href = elt.attributes().get("href");
 				if (!href.startsWith("http")) {
@@ -82,7 +82,12 @@ public class C8oBrowser extends Composite {
 					}
 				}
 				if (href.matches("https?://.*")) {
-					com.twinsoft.convertigo.engine.Engine.logStudio.info("Internal browser open link with the default browser: " + href);
+					String msg = "Internal browser open link with the default browser: " + href;
+					if (com.twinsoft.convertigo.engine.Engine.logStudio != null) {
+						com.twinsoft.convertigo.engine.Engine.logStudio.info(msg);
+					} else {
+						System.out.println(msg);
+					}
 					Program.launch(href);
 					ev.preventDefault();
 				}
@@ -210,7 +215,7 @@ public class C8oBrowser extends Composite {
 		
 	@Override
 	public boolean setFocus() {
-		C8oBrowser.run(() -> browserView.forceFocus());
+		browserView.forceFocus();
 		return super.setFocus();
 	}
 

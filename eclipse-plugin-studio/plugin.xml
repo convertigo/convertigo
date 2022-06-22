@@ -75,12 +75,6 @@
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.actions.ProjectPrintAction"
-               icon="icons/studio/project_print.gif"
-               id="com.twinsoft.convertigo.PrintProject"
-               label="&amp;Print project"
-               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
-         <action
                class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
                icon="icons/administration_16x16.gif"
                id="com.twinsoft.convertigo.Administration"
@@ -116,7 +110,7 @@
                class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
                icon="icons/setupwizard_16x16.gif"
                id="com.twinsoft.convertigo.Setup"
-               label="&amp;Configure Studio"
+               label="&amp;Configure Registration Account"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.OpenPreferencesAction"
@@ -135,45 +129,30 @@
    <extension
          point="org.eclipse.ui.newWizards">
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigo"
-            name="Convertigo Projects"/>
+            id="com.twinsoft.convertigo.eclipse.convertigofrontend"
+            name="Convertigo Low Code Front-End">
+      </category>
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
-            name="Convertigo Samples and Demos"/>
+            id="com.twinsoft.convertigo.eclipse.convertigobackend"
+            name="Convertigo Low Code Back-End">
+      </category>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            name="Legacy publishing (webization)"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
+            name="Convertigo Legacy publishing (webization)">
       </category>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            name="Legacy integration"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+            name="Convertigo Legacy integration"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigolibraries"
-            name="Libraries"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+            name="Convertigo Libraries"/>
 <!-- Mobile projects -->
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewMobileBuilderWizard"
-            name="Ionic3 Mobile Builder application project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a Mobile Builder application project based on ionic3 and Convertigo Angular frameworks.</description>
-            {
-              "url": "template_mobileBuilderIonic=https://github.com/convertigo/c8oprj-template-mobile-builder/archive/8.0.0.zip",
-              "doPage1": true
-            } 
-            </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
+            category="com.twinsoft.convertigo.eclipse.convertigofrontend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"
-            name="Ngx Mobile Builder application project"
+            name="Convertigo Low Code Front-End project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Creates a NGX Mobile Builder application project based on ionic6 and Convertigo Angular frameworks.</description>
@@ -182,9 +161,26 @@
               "doPage1": true
             }
             </wizard>
+       <primaryWizard id="com.twinsoft.convertigo.eclipse.wizards.NewNgxBuilderWizard"></primaryWizard>
+<!-- Sequencer projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigobackend"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
+             icon="icons/studio/sequence_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
+             name="Convertigo Low Code Back-End project"
+             preferredPerspectives="convertigo"
+             project="true">
+             <description>Creates a sequencer project.</description>
+             {
+               "url": "template_sequence=https://github.com/convertigo/c8oprj-template-sequence/archive/7.9.0.zip",
+               "doPage1": true
+             }
+             </wizard>
+      <primaryWizard id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"></primaryWizard>
 <!-- Legacy publishing projects -->
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New3270WebWizard"
@@ -201,7 +197,7 @@
             }
             </wizard>
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New5250WebWizard"
@@ -218,7 +214,7 @@
             }
             </wizard>
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewDKUWebWizard"
@@ -236,7 +232,7 @@
             </wizard>
 <!-- Legacy integration projects -->
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New3270ConnectorWizard"
@@ -253,7 +249,7 @@
             }
             </wizard>
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New5250ConnectorWizard"
@@ -270,7 +266,7 @@
             }
             </wizard>
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewDKUConnectorWizard"
@@ -287,7 +283,7 @@
             }
             </wizard>
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewVT220ConnectorWizard"
@@ -304,7 +300,7 @@
             }
             </wizard>
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            category="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/cicsconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewCicsConnectorWizard"
@@ -320,24 +316,9 @@
               "doPage9": true
             }
             </wizard>
-<!-- Sequencer projects -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
-             icon="icons/studio/sequence_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
-             name="Sequencer project"
-             preferredPerspectives="convertigo"
-             project="true">
-             <description>Creates a sequencer project.</description>
-             {
-               "url": "template_sequence=https://github.com/convertigo/c8oprj-template-sequence/archive/7.9.0.zip",
-               "doPage1": true
-             }
-             </wizard>
 <!-- SQL projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
+             category="com.twinsoft.convertigo.eclipse.convertigobackend"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLProjectWizard"
@@ -354,7 +335,7 @@
              </wizard>
 <!-- SAP projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
+             category="com.twinsoft.convertigo.eclipse.convertigobackend"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/sapconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSAPProjectWizard"
@@ -371,7 +352,7 @@
              </wizard>
 <!-- Site Clipper connector projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
+            category="com.twinsoft.convertigo.eclipse.convertigobackend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/siteclipperconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
@@ -388,7 +369,7 @@
 	   </wizard>
 <!-- Web services projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
+            category="com.twinsoft.convertigo.eclipse.convertigobackend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceRestReferenceWizard"
@@ -405,7 +386,7 @@
              }
        </wizard>
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo"
+            category="com.twinsoft.convertigo.eclipse.convertigobackend"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSwaggerReferenceWizard"
@@ -420,7 +401,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo"
+             category="com.twinsoft.convertigo.eclipse.convertigobackend"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceSoapReferenceWizard"
@@ -436,7 +417,7 @@
        </wizard>
 <!-- Libraries projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_vonage_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryVonageWizard"
@@ -450,7 +431,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_usermanager_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryUserManagerWizard"
@@ -464,7 +445,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_twitter_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryTwitterWizard"
@@ -478,7 +459,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_sigfox_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySigfoxWizard"
@@ -492,7 +473,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_saml_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySamlWizard"
@@ -506,7 +487,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_salesforce_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibrarySalesforceWizard"
@@ -520,7 +501,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_pushManager_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryPushManagerWizard"
@@ -534,7 +515,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_oauth_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryOAuthWizard"
@@ -548,7 +529,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_excel_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryMicrosoftExcelWizard"
@@ -562,7 +543,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_googlesheets_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSheetWizard"
@@ -576,7 +557,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_geocoding_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGeocodingWizard"
@@ -590,7 +571,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_fullsyncgrp_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFullSyncGrpWizard"
@@ -604,7 +585,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_filetransfer_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryFileTransferWizard"
@@ -618,7 +599,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/angularjs_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryExtendedComponentsWizard"
@@ -632,7 +613,7 @@
              }
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             category="com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
              icon="icons/studio/library_amazonLex_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryAmazonLexWizard"
@@ -647,11 +628,11 @@
        </wizard>
 <!-- Mobile sample projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            category="org.eclipse.ui.Examples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/offchat_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleOffChatWizard"
-            name="OffChat sample project"
+            name="Convertigo OffChat sample project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an "Offline Chat" application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description>
@@ -661,11 +642,11 @@
              } 
        </wizard>
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            category="org.eclipse.ui.Examples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/ionicconferenceapp_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleConferenceAppWizard"
-            name="IonicConferenceApp sample project"
+            name="Convertigo IonicConferenceApp sample project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a project creating a IonicConferenceApp application. This demo is based on Ionic Conference App but using the Convertigo Mobile Builder.</description>
@@ -675,11 +656,11 @@
              } 
        </wizard>
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            category="org.eclipse.ui.Examples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/flightshare_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleFlightShareWizard"
-            name="FlightShare sample project"
+            name="Convertigo FlightShare sample project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a project creating a FlightShare application. Flight Share is an application able to share flights within Pilots using Flyin Club Planes.</description>
@@ -689,11 +670,11 @@
              } 
        </wizard>
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            category="org.eclipse.ui.Examples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
-            name="HelloWorld sample project"
+            name="Convertigo HelloWorld sample project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a project creating a sample_HelloWorld application. Simple news reader application using the Convertigo Mobile Builder.</description>
@@ -703,11 +684,11 @@
              }
        </wizard>
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            category="org.eclipse.ui.Examples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewProjectWizard"
             icon="icons/studio/retail_store_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleRetailStoreWizard"
-            name="RetailStore sample project"
+            name="Convertigo RetailStore sample project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone. For this demo, the data come from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on your workstation before running this demo.</description>
@@ -769,7 +750,7 @@
                minimized="false"
                relative="org.eclipse.egit.ui.RepositoriesView"/>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
+               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
                ratio="0.35"
                relationship="left"
                relative="org.eclipse.ui.editorss"/>
@@ -777,25 +758,25 @@
                id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
          </view>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView"
+               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView">
          </view>
          <hiddenMenuItem id="org.eclipse.ui.edit.text.openLocalFile"></hiddenMenuItem>
          <hiddenMenuItem id="org.eclipse.e4.ui.importer.openDirectory.menu"></hiddenMenuItem>
@@ -865,7 +846,7 @@
                minimized="false"
                relative="org.eclipse.egit.ui.RepositoriesView"/>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
+               id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
                ratio="0.35"
                relationship="left"
                relative="org.eclipse.ui.editorss"/>
@@ -873,25 +854,25 @@
                id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView">
          </view>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView"
+               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView">
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.MobileDebugView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView">
          </view>
          <view
                id="com.twinsoft.convertigo.eclipse.views.mobile.MobilePickerView"
                minimized="false"
                relationship="stack"
-               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+               relative="com.twinsoft.convertigo.eclipse.views.mobile.MobilePaletteView">
          </view>
          <hiddenMenuItem id="org.eclipse.ui.edit.text.openLocalFile"></hiddenMenuItem>
          <hiddenMenuItem id="org.eclipse.e4.ui.importer.openDirectory.menu"></hiddenMenuItem>
@@ -4294,6 +4275,24 @@
                style="push"
                toolbarPath="additions"
                tooltip="Find objects in projects treeview"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRunApplicationLowCodeEditor"
+               disabledIcon="icons/studio/run.d.gif"
+               enablesFor="*"
+               icon="icons/studio/run.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.runapplicationlowcodeeditor"
+               label="Run Application Low Code editor"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Run Application Low Code editor">
+               <enablement>
+                  <objectState
+                        name="isApplicationProject"
+                        value="true">
+                  </objectState>
+               </enablement>
+         </action>
       </viewContribution>
    </extension>
    <extension

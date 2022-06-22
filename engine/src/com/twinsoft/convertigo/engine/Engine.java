@@ -1755,7 +1755,11 @@ public class Engine {
 			try {
 				runnable.run();
 			} catch (Throwable t) {
-				Engine.logEngine.trace("Convertigo executor terminated with a throwable.", t);
+				if (Engine.logEngine != null) {
+					Engine.logEngine.trace("Convertigo executor terminated with a throwable.", t);
+				} else {
+					System.err.println("Convertigo executor terminated with a throwable.\n" + t);
+				}
 			} finally {
 				if (!name.equals(th.getName())) {
 					th.setName(name);

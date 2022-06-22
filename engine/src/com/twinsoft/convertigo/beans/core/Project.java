@@ -999,9 +999,13 @@ public class Project extends DatabaseObject implements IInfoProperty {
 
 	@Override
 	public boolean testAttribute(String name, String value) {
+		if ("isApplicationProject".equals(name)) {
+			IApplicationComponent app = mobileApplication != null ? mobileApplication.getApplicationComponent() : null;
+			return app != null;
+		}
 		if ("isMobileApplicationProject".equals(name)) {
-			IApplicationComponent app = mobileApplication != null ? mobileApplication.getApplicationComponent() : null; 
-			return app != null && app instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent; 
+			IApplicationComponent app = mobileApplication != null ? mobileApplication.getApplicationComponent() : null;
+			return app != null && app instanceof com.twinsoft.convertigo.beans.mobile.components.ApplicationComponent;
 		}
 		return super.testAttribute(name, value);
 	}

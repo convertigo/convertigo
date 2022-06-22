@@ -357,6 +357,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				String headerName = var.getHttpName();
 				if (headerName.isBlank()) {
 					headerName = varName;
+				} else if (headerName.startsWith(DynamicHttpVariable.__header_.name())) {
+					headerName = headerName.substring(DynamicHttpVariable.__header_.name().length());
 				}
 				NameValuePair nvp = new BasicNameValuePair(headerName, (String) var.getValueOrNull());
 				map.put(varName, nvp);

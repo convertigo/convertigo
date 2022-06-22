@@ -558,9 +558,9 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			projectName = null; // avoid load of project in view
 			throw new EngineException(message);
 		}
-		ConvertigoPlugin.infoMessageBox("Loading " + projectName + " in a background job.");
 		Job.create("Loading " + projectName, (mon) -> {
 			try {
+				mon.beginTask("Loading " + projectName, IProgressMonitor.UNKNOWN);
 				try {
 					Engine.theApp.referencedProjectManager.importProject(projectUrlParser, true);
 				} catch (Exception e) {
@@ -569,12 +569,6 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 					// User will be able to remove it from the Studio
 					ConvertigoPlugin.logException(e, "Unable to import project '" + projectName + "'!");
 				}
-
-				mon.setTaskName("Project loaded");
-				mon.worked(1);
-
-				mon.setTaskName("Resources created");
-				mon.worked(1);
 
 				updateProjectTreeView();
 			} catch (Exception e) {
@@ -589,6 +583,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 				ConvertigoPlugin.errorMessageBox("Unable to create project " + projectName + ": " + e.getMessage());
 				projectName = null;
 			}
+			mon.done();
 		}).schedule();
 	}
 
