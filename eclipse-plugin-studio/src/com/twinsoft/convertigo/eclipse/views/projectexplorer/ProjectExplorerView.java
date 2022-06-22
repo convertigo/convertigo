@@ -83,6 +83,8 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -94,6 +96,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -420,12 +423,26 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	 * to create the viewer and initialize it.
 	 */
 	@SuppressWarnings("deprecation")
-	public void createPartControl(Composite parent) {
+	public void createPartControl(Composite parent) {this.
 		viewContentProvider = new ViewContentProvider(this);
 		
 		Composite stack = new Composite(parent, SWT.NONE);
 		StackLayout stackLayout = new StackLayout();
 		stack.setLayout(stackLayout);
+		
+		Label noEngine = new Label(stack, SWT.CENTER);
+		noEngine.setText("\n"
+				+ "Convertigo Studio isn't completely installed,\n"
+				+ "you have to complete the registration before\n"
+				+ "starting building your projects.\n\n"
+				+ "Please click here to register.");
+		noEngine.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseDown(MouseEvent e) {
+				ConvertigoPlugin.getDefault().runSetup();
+			}
+		});
 		
 		Composite noProject = new Composite(stack, SWT.NONE);
 		noProject.setLayout(new GridLayout(1, false));
@@ -494,6 +511,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		viewer = new TreeViewer(stack,  SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION) {
 			@Override
 			public void refresh(Object element) {
+				if (!Engine.isStarted) {
+					return;
+				}
 				if (Engine.objectsProvider != null) {
 					getTree().getDisplay().asyncExec(() -> {
 						try {
@@ -524,7 +544,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				packColumns();
 			}
 		};
-		stackLayout.topControl = noProject;
+		stackLayout.topControl = noEngine;
 		viewer.setData(ProjectExplorerView.class.getCanonicalName(), this);
 		viewer.setContentProvider(viewContentProvider);
 		viewer.addSelectionChangedListener((event) -> {

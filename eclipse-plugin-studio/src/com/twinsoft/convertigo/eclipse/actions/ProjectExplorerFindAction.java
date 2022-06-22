@@ -28,6 +28,7 @@ import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.DatabaseObjectFindDialog;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectExplorerFindAction extends MyAbstractAction implements IViewActionDelegate {
 	
@@ -36,23 +37,26 @@ public class ProjectExplorerFindAction extends MyAbstractAction implements IView
 	}
 
 	public void run() {
+		if (!Engine.isStarted) {
+			return;
+		}
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
 		
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
-        	DatabaseObjectFindDialog dofd = new DatabaseObjectFindDialog(shell);
-        	dofd.open();
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to find objects in projects treeview!");
-        }
-        finally {
+
+		try {
+			DatabaseObjectFindDialog dofd = new DatabaseObjectFindDialog(shell);
+			dofd.open();
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to find objects in projects treeview!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 
 	public void init(IViewPart view) {

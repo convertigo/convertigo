@@ -29,6 +29,7 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.import_export.ImportWizard;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectExplorerImportAction extends MyAbstractAction implements IViewActionDelegate {
 
@@ -37,24 +38,27 @@ public class ProjectExplorerImportAction extends MyAbstractAction implements IVi
 
 	@Override
 	public void run(IAction action) {
+		if (!Engine.isStarted) {
+			return;
+		}
 		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
+		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-		
-        try {
+
+		try {
 			ImportWizard importWizard = new ImportWizard();
 			importWizard.setWindowTitle("Convertigo project import Wizard");
-    		WizardDialog wzdlg = new WizardDialog(shell, importWizard);
-    		wzdlg.open();
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to import project!");
-        }
-        finally {
+			WizardDialog wzdlg = new WizardDialog(shell, importWizard);
+			wzdlg.open();
+		}
+		catch (Throwable e) {
+			ConvertigoPlugin.logException(e, "Unable to import project!");
+		}
+		finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
-        }
+		}
 	}
 }

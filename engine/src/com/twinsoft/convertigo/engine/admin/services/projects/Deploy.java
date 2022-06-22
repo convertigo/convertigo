@@ -34,15 +34,15 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.fileupload.FileItem;
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.UploadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 @ServiceDefinition(
@@ -106,36 +106,38 @@ public class Deploy extends UploadService {
 				public void run() {
 					try {
 						Properties props = new Properties();
-
-						props.put("mail.smtp.host",
-								EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_HOST));
-						props.put("mail.smtp.socketFactory.port",
-								EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_PORT));
-						props.put("mail.smtp.auth", "true");
-						props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-						props.put("mail.smtp.socketFactory.fallback", "false");
-
-						// Initializing
+						String smtpServer = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_HOST);
+						String smtpPort = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_PORT);
+						String smtpUsername = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_USER);
+						String smtpPassword = EnginePropertiesManager.getProperty(PropertyName.NOTIFICATIONS_SMTP_PASSWORD);
+						props.put("mail.transport.protocol", "smtps");
+						props.put("mail.smtps.host", smtpServer);
+						props.put("mail.smtps.port", smtpPort);
+						props.put("mail.smtps.auth", "true");
+						props.put("mail.smtps.ssl.protocols", "TLSv1.2");
+						
+						//Initializing
 						Session mailSession = Session.getInstance(props, new Authenticator() {
+
 							@Override
-							public PasswordAuthentication getPasswordAuthentication() {
-								return new PasswordAuthentication(EnginePropertiesManager
-										.getProperty(PropertyName.NOTIFICATIONS_SMTP_USER),
-										EnginePropertiesManager
-												.getProperty(PropertyName.NOTIFICATIONS_SMTP_PASSWORD));
+							protected PasswordAuthentication getPasswordAuthentication() {
+								return new PasswordAuthentication(smtpUsername, smtpPassword);
 							}
 						});
 						MimeMessage message = new MimeMessage(mailSession);
-
+						message.setFrom(new InternetAddress("noreply@convertigo.com"));
+						message.setSender(new InternetAddress("noreply@convertigo.com"));
 						message.addRecipient(
 								Message.RecipientType.TO,
 								new InternetAddress(EnginePropertiesManager
 										.getProperty(PropertyName.NOTIFICATIONS_TARGET_EMAIL)));
 						message.setSubject("[trial] deployment of " + fProjectName + " by " + fUser);
 						message.setText(message.getSubject() + "\n"
-								+ "http://trial.convertigo.net/cems/projects/" + fProjectName + "\n"
-								+ "https://trial.convertigo.net/cems/projects/" + fProjectName);
-						Transport.send(message);
+								+ "https://trial.convertigo.net/convertigo/projects/" + fProjectName);
+						Transport transport = mailSession.getTransport("smtps");
+						transport.connect(smtpServer, Integer.parseInt(smtpPort), smtpUsername, smtpPassword);
+						transport.sendMessage(message, message.getAllRecipients());
+						transport.close();
 					} catch (MessagingException e1) {
 					}
 				}
