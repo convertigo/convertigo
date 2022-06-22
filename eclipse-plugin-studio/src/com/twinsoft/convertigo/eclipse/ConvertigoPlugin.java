@@ -468,6 +468,23 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	private EmbeddedTomcat embeddedTomcat = null;
 	
+	private Runnable afterPscOk = null;
+	public void runSetup() {
+		try {
+			boolean success = SetupAction.runSetup();
+			if (afterPscOk != null) {
+				if (success) {
+					Engine.isStartFailed = false;
+					new Thread(afterPscOk, "Start embedded Tomcat").start();
+				} else {
+					studioLog.message("PSC not validated, please restart the Studio to get the Convertigo Setup wizard again.");
+				}
+			}
+		} catch (Throwable t) {
+			studioLog.exception(t, "Failure during the Convertigo setup wizard");
+		}
+	}
+	
 	/**
 	 * This method is called upon plug-in activation
 	 */
@@ -576,10 +593,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		DatabaseObjectsManager.studioProjects = this;
 
 		final Exception afterPscException[] = { null };
-		final Runnable afterPscOk = new Runnable() {
+		final Runnable afterPscOk = this.afterPscOk = new Runnable() {
 
 			public void run() {
 				try {
+					ConvertigoPlugin.this.afterPscOk = null;
 					// Create embedded Tomcat
 					studioLog.message("Starting the embedded Tomcat");
 					System.setProperty("org.apache.commons.logging.log", "org.apache.commons.logging.impl.Jdk14Logger");
@@ -682,24 +700,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		} catch (PscException e) {
 			studioLog.message("No valid PSC, the Engine will start after the registration wizard.\nFailure message : " + e.getMessage());
 			Engine.isStartFailed = true;
-			Display display = getDisplay();
-			display.asyncExec(new Runnable() {
-
-				public void run() {
-					try {
-						boolean success = SetupAction.runSetup();
-						if (success) {
-							Engine.isStartFailed = false;
-							new Thread(afterPscOk, "Start embedded Tomcat").start();
-						} else {
-							studioLog.message("PSC not validated, please restart the Studio to get the Convertigo Setup wizard again.");
-						}
-					} catch (Throwable t) {
-						studioLog.exception(t, "Failure during the Convertigo setup wizard");
-					}
-				}
-
-			});
+			getDisplay().asyncExec(() -> runSetup());
 		}
 
 		runAtStartup(() -> {
