@@ -27,10 +27,10 @@ ext.convertigoCode = 'Tl'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
-ext.jxBrowserVersion = '7.26'
+ext.jxBrowserVersion = '7.24.4'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.64'
-ext.eclipseVersion = '2022-06'
+ext.tomcatVersion = '9.0.62'
+ext.eclipseVersion = '2021-12'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
