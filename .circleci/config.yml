@@ -337,7 +337,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Checkout the qualif-jmx-1 project
@@ -379,7 +380,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Checkout the qualif-jmx-2 project
@@ -421,7 +423,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Checkout the qualif-jmx-3 project
