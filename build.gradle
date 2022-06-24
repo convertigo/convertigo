@@ -31,6 +31,7 @@ ext.jxBrowserVersion = '7.26'
 ext.swaggerUiVersion = '3.19.3'
 ext.tomcatVersion = '9.0.64'
 ext.eclipseVersion = '2022-06'
+ext.eclipseBase = '4.24'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
@@ -334,7 +335,7 @@ task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-
 			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
 		}
 		def base = file('eclipse-base/base.target')
-		base.text = base.text.replaceFirst('/releases/.+?/', "/releases/${eclipseVersion}/")
+		base.text = base.text.replaceFirst('/releases/.+?/', "/releases/${eclipseVersion}/").replaceFirst('/updates/.+?/', "/updates/${eclipseBase}/")
 	}
 }
 
