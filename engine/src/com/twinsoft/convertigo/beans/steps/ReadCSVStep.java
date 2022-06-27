@@ -19,14 +19,19 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -146,7 +151,6 @@ public class ReadCSVStep extends ReadFileStep {
 				if (org.apache.commons.lang3.StringUtils.isBlank(cell)) {
 					cell = "title" + i;
 				}
-				row[i] = StringUtils.normalize(cell);
 			}
 		}
 	}
@@ -156,15 +160,57 @@ public class ReadCSVStep extends ReadFileStep {
 	}
 	
 	protected Document read(String filePath, boolean schema) throws EngineException {
-		if (separator.length() != 1) {
-			throw new EngineException("The separator must be 1 char");
-		}
-		
 		Document csvDoc = null;
 		
 		File csvFile = new File(getAbsoluteFilePath(filePath));
 		if (!csvFile.exists()) {
 			throw new EngineException("The CSV file \""+ filePath +"\" does not exist.");
+		}
+		
+		if (this.encoding.isEmpty() || this.separator.isEmpty()) {
+			BufferedReader br = null;
+			String[] seps = new String[]{",", ";", "\t", " ", "|"};
+			String separator = seps[0];
+			String encoding = "UTF-8";
+			if (!this.encoding.isEmpty()) {
+				encoding = this.encoding;
+			}
+			int max = 0;
+			try {
+				br = new BufferedReader(new FileReader(csvFile, Charset.forName(encoding)));
+				String l1 = "" + br.readLine();
+				String l2 = "" + br.readLine();
+				if (this.encoding.isEmpty() && (l1.indexOf("�") >= 0 || l2.indexOf("�") >= 0)) {
+					br.close();
+					br = new java.io.BufferedReader(new java.io.FileReader(csvFile, java.nio.charset.Charset.forName(encoding = "ISO-8859-1")));
+					l1 = "" + br.readLine();
+					l2 = ""  +br.readLine();
+				}
+				
+				if (this.encoding.isEmpty()) {
+					this.encoding = encoding;
+				}
+				
+				if (this.separator.isEmpty()) {
+					for (String s: seps) {
+						int len = l1.split(s).length;
+						if (len > max && len == l2.split(s).length) {
+							max = len;
+							separator = s;
+						}
+					}
+					this.separator = separator;
+				}
+				
+				br.close();
+			} catch (Exception e) {
+				if (br != null) {
+					try {
+						br.close();
+					} catch (IOException e1) {
+					}
+				}
+			}
 		}
 		
 		try (Reader reader = new InputStreamReader(FileUtils.newFileInputStreamSkipBOM(csvFile), encoding.isEmpty() ? "utf-8" : encoding)) {
@@ -193,7 +239,14 @@ public class ReadCSVStep extends ReadFileStep {
 			if (verticalDirection) {
 				while (j < cols) {
 					i = (titleLine ? 1 : 0);
-					col = csvDoc.createElement(titleLine ? vLines.get(0)[j] : getTagColName());
+					if (titleLine) {
+						col = csvDoc.createElement(StringUtils.normalize(vLines.get(0)[j]));
+						col.setAttribute("originalKeyName", vLines.get(0)[j]);
+						col.setAttribute("type", "string");
+					} else {
+						col = csvDoc.createElement(getTagColName());
+					}
+					
 					while (i < lines) {
 						line = csvDoc.createElement(getTagLineName());
 						if (!schema) {
@@ -213,7 +266,13 @@ public class ReadCSVStep extends ReadFileStep {
 					j = 0;
 					line = csvDoc.createElement(getTagLineName());
 					while (j < cols) {
-						col = csvDoc.createElement(titleLine ? vLines.get(0)[j]:getTagColName());
+						if (titleLine) {
+							col = csvDoc.createElement(StringUtils.normalize(vLines.get(0)[j]));
+							col.setAttribute("originalKeyName", vLines.get(0)[j]);
+							col.setAttribute("type", "string");
+						} else {
+							col = csvDoc.createElement(getTagColName());
+						}
 						if (!schema) {
 							col.appendChild(csvDoc.createTextNode(vLines.get(i)[j]));
 						}
@@ -286,13 +345,24 @@ public class ReadCSVStep extends ReadFileStep {
 				if (cols != null) {
 					if (verticalDirection) {
 						for (String col : cols) {
-							col = StringUtils.normalize(col);
 							subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
-							subElt.setName(col);
+							subElt.setName(StringUtils.normalize(col));
 							sequence.getItems().add(subElt);
 							
 							cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 							subElt.setType(cType);
+							
+							XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+							attribute.setName("originalKeyName");
+							attribute.setSchemaTypeName(Constants.XSD_STRING);
+							attribute.setDefaultValue(col);
+							cType.getAttributes().add(attribute);
+							
+							attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+							attribute.setName("type");
+							attribute.setSchemaTypeName(Constants.XSD_STRING);
+							attribute.setDefaultValue("string");
+							cType.getAttributes().add(attribute);
 							
 							XmlSchemaSequence subSequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 							cType.setParticle(subSequence);
@@ -302,16 +372,29 @@ public class ReadCSVStep extends ReadFileStep {
 							subElt.setSchemaTypeName(Constants.XSD_STRING);
 							subElt.setMinOccurs(0);
 							subElt.setMaxOccurs(Long.MAX_VALUE);
-							subSequence.getItems().add(subElt);							
+							subSequence.getItems().add(subElt);
 						}
 					} else {
 						subElt.setName(tagLineName);
 						for (String col : cols) {
-							col = StringUtils.normalize(col);
 							subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
-							subElt.setName(col);
-							subElt.setSchemaTypeName(Constants.XSD_STRING);
-							sequence.getItems().add(subElt);							
+							subElt.setName(StringUtils.normalize(col));
+							sequence.getItems().add(subElt);
+							
+							cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+							subElt.setType(cType);
+							
+							XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+							attribute.setName("originalKeyName");
+							attribute.setSchemaTypeName(Constants.XSD_STRING);
+							attribute.setDefaultValue(col);
+							cType.getAttributes().add(attribute);
+							
+							attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+							attribute.setName("type");
+							attribute.setSchemaTypeName(Constants.XSD_STRING);
+							attribute.setDefaultValue("string");
+							cType.getAttributes().add(attribute);
 						}
 					}
 				}

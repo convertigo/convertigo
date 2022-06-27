@@ -248,7 +248,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 			}
 		} catch (Exception e) {
 		}
-		 
+		try {
+			fis.close();
+		} catch (Exception e) {
+		}
 		fis = new FileInputStream(file);
 		return fis;
 	}
