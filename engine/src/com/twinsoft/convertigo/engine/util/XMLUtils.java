@@ -1432,6 +1432,7 @@ public class XMLUtils {
 			// special case when retrieving attachments with Couch : attachment name is the object key
 			((JSONObject) object).put("name", objectKey);
 			objectKey = "attachment";
+			parentElement.setAttribute("type", "array");
 		}
 		
 		// Normalize object key
