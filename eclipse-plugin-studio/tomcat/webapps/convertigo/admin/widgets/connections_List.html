@@ -22,7 +22,7 @@ if not, see <http://www.gnu.org/licenses/>.
 <br/>
 <table>
 	<tr>
-		<td width="180">Contexts currently in use:</td>
+		<td width="350">Contexts currently in use:</td>
 		<td><strong><span id="connectionsContextsInUse"></span> / <span id="connectionsContextsNumber"></span></strong></td>
 	</tr>
 	<tr>
@@ -37,7 +37,7 @@ if not, see <http://www.gnu.org/licenses/>.
 		</td>
 	</tr>
 	<tr>
-		<td>Max HTTP session inactivity (your current session):</td>
+		<td>Max HTTP session inactivity, without request, before destroying it with its contexts. Value for your current session:</td>
 		<td><strong><span id="connectionsHttpTimeout"></span></strong></td>
 	</tr>
 </table>
@@ -48,7 +48,7 @@ if not, see <http://www.gnu.org/licenses/>.
 	<span>
 	    <img src="images/convertigo-administration-picto-bullet-green.png" alt="Green bullet"/>
 	    <img src="images/convertigo-administration-picto-bullet-red.png" alt="Green bullet"/>
-	    Connection state of the context associated to the connection
+	    Connection state of the emulator used by the context associated to the connection
 	</span>
 	
     <span>
@@ -59,13 +59,22 @@ if not, see <http://www.gnu.org/licenses/>.
         <img src="images/convertigo-administration-picto-last-date.png" alt="Last access date"/>
         Last access date to the context
     </span>
+    <br/>
     <span>
         <img src="images/convertigo-administration-picto-activity.png" alt="Context inactivity"/>
-        Inactivity duration                                                       
+        Inactivity duration
     </span>
     <span>
     	<img src="images/edit.gif" alt="Show logs"/>
-        Click to filter logs                                                       
+        Click to filter logs
+    </span>
+    <span>
+    	<strong style="border: solid 1px">&nbsp;FS&nbsp;</strong>
+        FullSync replication activity
+    </span>
+    <span>
+    	<strong style="border: solid 1px">&nbsp;Roles&nbsp;</strong>
+        Number of Convertigo administration roles affected to this session
     </span>
 </div>
 <br/>
@@ -74,7 +83,7 @@ if not, see <http://www.gnu.org/licenses/>.
 <br/>
 <table id="sessionsList"></table>
 <br/>
-<h6>Connections</h6>
+<h6>Contexts</h6>
 <div class="main-display-none">View contexts of <span id="selectedSession" />. Click <a href="javascript: clearSelectedSession()">here to view all contexts</a>.</div>
 <br/>
 <table id="connectionsList"></table>
