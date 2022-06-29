@@ -21,7 +21,6 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -334,7 +333,7 @@ public class ReadCSVStep extends ReadFileStep {
 			File csvFile = getFile();
 			String[] cols = null;
 			if (csvFile != null && csvFile.exists()) {
-				try (Reader reader = new InputStreamReader(new FileInputStream(csvFile), encoding.isEmpty() ? "iso-8859-1" : encoding)) {
+				try (Reader reader = new InputStreamReader(FileUtils.newFileInputStreamSkipBOM(csvFile), encoding.isEmpty() ? "iso-8859-1" : encoding)) {
 					CSVReader csvReader = getCSVReader(reader);
 					cols = csvReader.readNext();
 					processTitleLine(cols);
