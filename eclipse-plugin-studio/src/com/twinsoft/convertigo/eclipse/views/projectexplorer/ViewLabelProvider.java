@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDecla
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ResourceFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ResourceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TemplateTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObject;
@@ -121,6 +122,12 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 						((RequestableObject) dbo).getAccessibility() == Accessibility.Hidden ? "👓 " : (isMac ? "🚪 " : " 🚪  " ) ) ) + 
 						(dbo instanceof Sequence ? (((Sequence)dbo).isAutoStart() ? "💡 ":""):"") + obj.toString();
 			}
+		}
+		if (obj instanceof ResourceFolderTreeObject) {
+			return ((ResourceFolderTreeObject) obj).getName();
+		}
+		if (obj instanceof ResourceTreeObject) {
+			return ((ResourceTreeObject) obj).getName();
 		}
 		return obj.toString();
 	}

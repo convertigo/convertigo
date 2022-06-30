@@ -1302,7 +1302,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			for (IEditorReference editorRef: activePage.getEditorReferences()) {
 				try {
 					IEditorInput editorInput = editorRef.getEditorInput();
-					if (editorInput != null && editorInput instanceof JScriptEditorInput) {							
+					if (editorInput != null && editorInput instanceof JScriptEditorInput) {
 						if (((JScriptEditorInput) editorInput).is(transaction)) {
 							jScriptEditorInput = (JScriptEditorInput) editorInput;
 							break;

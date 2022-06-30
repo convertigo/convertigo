@@ -68,10 +68,12 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -118,6 +120,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.navigator.CommonViewer;
+import org.eclipse.ui.navigator.resources.ProjectExplorer;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.ui.services.IEvaluationService;
@@ -233,6 +238,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTable
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ResourceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SheetTreeObject;
@@ -805,6 +811,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					((IEditableTreeObject) treeObject).launchEditor(null);
 				} else if (treeObject instanceof TraceTreeObject) {
 					tracePlayAction.run();
+				} else if (treeObject instanceof ResourceTreeObject) {
+					try {
+						IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+						IDE.openEditor(page, (IFile) treeObject.getObject());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		};
@@ -1032,6 +1045,42 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					}
 					if (projectTreeObject != null) {
 						ConvertigoPlugin.projectManager.setCurrentProject(projectTreeObject);
+						
+						IProject prj = projectTreeObject.getIProject();
+						List<Object> res = new LinkedList<>();
+						TreeObject current = treeObject;
+						while (res.isEmpty()) {
+							if (current instanceof ProjectTreeObject) {
+								res.add(0, prj);
+							} else if (current instanceof MobileApplicationTreeObject) {
+								res.add(0, prj.findMember("DisplayObjects"));
+							} else if (current instanceof MobilePlatformTreeObject) {
+								res.add(0, prj.findMember("DisplayObjects/platforms/" + ((MobilePlatformTreeObject) current).getName() + "/"));
+							} else if (current instanceof NgxApplicationComponentTreeObject || current instanceof MobileApplicationComponentTreeObject) {
+								res.add(0, prj.findMember("DisplayObjects/mobile/"));
+							}
+							current = current.getParent();
+						}
+						while (res.get(0) != prj) {
+							res.add(0, ((IResource) res.get(0)).getParent());
+						}
+						
+						Object[] resObj = res.toArray();
+						
+						try {
+							IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+							ProjectExplorer pe;
+							if ((pe = (ProjectExplorer) activePage.findView("org.eclipse.ui.navigator.ProjectExplorer")) != null) {
+								CommonViewer cv = pe.getCommonViewer();
+								ITreeSelection ts = new TreeSelection(new org.eclipse.jface.viewers.TreePath(resObj));
+								cv.setSelection(ts, false);
+								cv.setExpandedElements(resObj);
+								Tree tree = cv.getTree();
+								tree.setTopItem(tree.getSelection()[0]);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 
 					boolean doRefresh = true;
