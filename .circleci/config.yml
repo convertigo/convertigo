@@ -267,7 +267,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Docker build and push for default
@@ -306,7 +307,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Docker build and push for aks
