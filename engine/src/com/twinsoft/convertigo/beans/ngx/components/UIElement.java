@@ -319,14 +319,30 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 
 	@Override
 	public String computeStyle() {
-		StringBuilder uses = new StringBuilder();
+		StringBuilder fonts = new StringBuilder();
 		StringBuilder styles = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIStyle) {
+		for (UIComponent component: getUIComponentList()) {
+			if (component instanceof UIFont) {
+				UIFont font = (UIFont)component;
+				String fontImport = font.computeStyle();
+				if (!fontImport.isEmpty()) {
+					styles.append(fontImport).append(System.getProperty("line.separator"));
+				}
+				String tpl = font.computeTemplate();
+				if (!tpl.isEmpty()) {
+					String fontFamily = font.getFontSource().getFontFamily();
+					if (fonts.indexOf(fontFamily) == -1) {
+						boolean first = fonts.length() == 0;
+						fonts.append(first ? "": ", ").append("\""+ fontFamily +"\"");
+						if (first) {
+							styles.append(tpl).append(";").append(System.getProperty("line.separator"));
+						}
+					}
+				}
+			}
+			else if (component instanceof UIStyle) {
 				String tpl = component.computeTemplate();
 				if (!tpl.isEmpty()) {
 					styles.append(tpl).append(";").append(System.getProperty("line.separator"));
@@ -334,10 +350,7 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 			} else if (component instanceof UIUseShared) {
 				String tpl = ((UIUseShared)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@use") && uses.indexOf(tpl) != -1) {
-						continue;
-					}
-					uses.append(tpl);
+					others.append(tpl);
 				}
 			} else if (component instanceof UIElement) {
 				String tpl = ((UIElement)component).computeStyle();
@@ -348,14 +361,14 @@ public class UIElement extends UIComponent implements ITagsProperty, IStyleGener
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (uses.length() > 0) {
-			sb.append(uses).append(System.getProperty("line.separator"));
-		}
 		if (others.length() > 0) {
 			sb.append(others).append(System.getProperty("line.separator"));
 		}
-		if (styles.length() > 0) {
+		if (styles.length() > 0 || fonts.length() > 0) {
 			sb.append("."+ getTagClass()).append(" {").append(System.getProperty("line.separator"));
+			if (fonts.length() > 0) {
+				sb.append("\tfont-family: ").append(fonts).append(";").append(System.getProperty("line.separator"));
+			}
 			sb.append(styles);
 			sb.append("}").append(System.getProperty("line.separator"));
 		}

@@ -78,6 +78,8 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicTab;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicTabButton;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
+import com.twinsoft.convertigo.beans.ngx.components.UIFont;
+import com.twinsoft.convertigo.beans.ngx.components.UIFontStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIStackVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
@@ -363,12 +365,21 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 	private String formatStyleContent(UIStyle ms) {
 		String formated = ms.getStyleContent().getString();
 		DatabaseObject parentDbo = ms.getParent();
-		if (parentDbo != null && parentDbo instanceof UIElement) {
-			String dboTagClass = ((UIElement)parentDbo).getTagClass();
-			if (formated.isEmpty()) {
-				formated = String.format("."+ dboTagClass +" {%n%s%n}", formated);
-			} else {
-				formated = String.format("."+ dboTagClass +" {%n%s}", formated);
+		if (parentDbo != null) {
+			String rule = "";
+			if (ms instanceof UIFont && parentDbo instanceof ApplicationComponent) {
+				rule = "html";
+			} else if (ms instanceof UIFont && parentDbo instanceof UISharedComponent) {
+				rule = ((UISharedComponent)parentDbo).getSelector();
+			} else if (parentDbo instanceof UIElement) {
+				rule = "." + ((UIElement)parentDbo).getTagClass();
+			}
+			if (!rule.isEmpty()) {
+				if (formated.isEmpty()) {
+					formated = String.format(rule +" {%n%s%n}", formated);
+				} else {
+					formated = String.format(rule +" {%n%s}", formated);
+				}
 			}
 		}
 		return formated;
@@ -390,6 +401,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 	}
 	
 	private void openCssFileEditor() {
+		if (getObject() instanceof UIFont) return;
+		if (getObject() instanceof UIFontStyle) return;
+		
 		final UIStyle ms = (UIStyle) getObject();
 		String filePath = "/_private/editor/" + StringUtils.hash(ms.getParent().getQName()) + "/" + ms.getName() + ".scss";
 		try {

@@ -97,7 +97,7 @@ public class UIStyle extends UIComponent {
 	@Override
 	public String computeTemplate() {
 		if (isEnabled()) {
-			String computedStyle = styleContent.getString();
+			String computedStyle = getStyleContent().getString();
 			if (!computedStyle.isEmpty())
 				return computedStyle;
 		}

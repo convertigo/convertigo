@@ -797,6 +797,16 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		return eventList;
 	}
 	
+	public List<UIFont> getUIFontList() {
+		List<UIFont> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIFont) {
+				eventList.add((UIFont) uiComponent);
+			}
+		}
+		return eventList;
+	}
+	
 	/**
 	 * The list of available stack of shared actions for this application.
 	 */
@@ -1058,6 +1068,9 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 	protected synchronized void doGetContributors() {
 		contributors = new ArrayList<>();
 		Set<UIComponent> done = new HashSet<>();
+		for (UIFont uiFont : getUIFontList()) {
+			uiFont.addContributors(done, contributors);
+		}
 		for (UIDynamicMenu uiMenu : getMenuComponentList()) {
 			uiMenu.addContributors(done, contributors);
 		}
@@ -1067,7 +1080,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		for (UIAppEvent appEvent : getUIAppEventList()) {
 			appEvent.addContributors(done, contributors);
 		}
-		for(UIActionStack actionStack: getSharedActionList()) {
+		for (UIActionStack actionStack: getSharedActionList()) {
 			actionStack.addContributors(done, contributors);
 		}
 		
@@ -1424,11 +1437,32 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 		sb.append(System.lineSeparator());
 		
-		// App theme and style
-		Iterator<UIComponent> it = getUIComponentList().iterator();
-		while (it.hasNext()) {
-			UIComponent component = (UIComponent)it.next();
-			if (component instanceof UIStyle && !(component instanceof UITheme)) {
+		// App fonts
+		StringBuilder sbFamilies = new StringBuilder();
+		for (UIFont font: getUIFontList()) {
+			String fontImport = font.computeStyle();
+			if (!fontImport.isEmpty()) {
+				sb.append(fontImport).append(System.getProperty("line.separator"));
+			}
+			if (font.isDefault()) {
+				String fontFamily = font.getFontSource().getFontFamily();
+				if (!fontFamily.isEmpty()) {
+					sbFamilies.append(sbFamilies.length() > 0 ? ", ": "");
+					sbFamilies.append("\""+ fontFamily +"\"");
+				}
+			}
+		}
+		if (sbFamilies.length() > 0) {
+			sb.append(System.getProperty("line.separator"));
+			sb.append("html {").append(System.getProperty("line.separator"));
+			sb.append("\t--ion-font-family: ").append(sbFamilies).append(";").append(System.getProperty("line.separator"));
+			sb.append("}").append(System.getProperty("line.separator"));
+			sb.append(System.getProperty("line.separator"));
+		}
+		
+		// App styles
+		for (UIComponent component: getUIComponentList()) {
+			if (component instanceof UIStyle && !(component instanceof UITheme) && !(component instanceof UIFont)) {
 				String tpl = component.computeTemplate();
 				if (!tpl.isEmpty()) {
 					sb.append(tpl).append(System.getProperty("line.separator"));
@@ -1437,9 +1471,7 @@ public class ApplicationComponent extends MobileComponent implements IApplicatio
 		}
 		
 		// App menu styles
-		Iterator<UIDynamicMenu> itm = getMenuComponentList().iterator();
-		while (itm.hasNext()) {
-			UIDynamicMenu menu = itm.next();
+		for (UIDynamicMenu menu: getMenuComponentList()) {
 			String menuStyle = menu.computeStyle();
 			if (!menuStyle.isEmpty()) {
 				sb.append(menuStyle).append(System.lineSeparator());

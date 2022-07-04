@@ -645,12 +645,26 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	public String computeStyle() {
-		StringBuilder uses = new StringBuilder();
+		StringBuilder families = new StringBuilder();
 		StringBuilder styles = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
 		for (UIComponent component: getUIComponentList()) {
-			if (component instanceof UIStyle) {
+			if (component instanceof UIFont) {
+				UIFont font = (UIFont)component;
+				String fontImport = font.computeStyle();
+				if (!fontImport.isEmpty()) {
+					styles.append(fontImport).append(System.getProperty("line.separator"));
+				}
+				if (font.isDefault()) {
+					String fontFamily = font.getFontSource().getFontFamily();
+					if (!fontFamily.isEmpty()) {
+						families.append(families.length() > 0 ? ", ": "");
+						families.append("\""+ fontFamily +"\"");
+					}
+				}
+			}
+			else if (component instanceof UIStyle) {
 				String tpl = component.computeTemplate();
 				if (!tpl.isEmpty()) {
 					styles.append(tpl).append(System.getProperty("line.separator"));
@@ -659,10 +673,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			else if (component instanceof UIUseShared) {
 				String tpl = ((UIUseShared)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@use") && uses.indexOf(tpl) != -1) {
-						continue;
-					}
-					uses.append(tpl);
+					others.append(tpl);
 				}
 			}
 			else if (component instanceof UIElement) {
@@ -674,11 +685,15 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (uses.length() > 0) {
-			sb.append(uses).append(System.getProperty("line.separator"));
-		}
 		if (others.length() > 0) {
 			sb.append(others).append(System.getProperty("line.separator"));
+		}
+		if (families.length() > 0) {
+			sb.append(System.getProperty("line.separator"));
+			sb.append(getSelector() +" {").append(System.getProperty("line.separator"));
+			sb.append("\tfont-family: ").append(families).append(";").append(System.getProperty("line.separator"));
+			sb.append("}").append(System.getProperty("line.separator"));
+			sb.append(System.getProperty("line.separator"));
 		}
 		if (styles.length() > 0) {
 			sb.append(styles).append(System.getProperty("line.separator"));
