@@ -187,6 +187,16 @@ public class UISharedComponent extends UIComponent implements IShared {
 		return new ArrayList<UICompEvent>();
 	}
 	
+	public List<UIFont> getUIFontList() {
+		List<UIFont> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIFont) {
+				eventList.add((UIFont) uiComponent);
+			}
+		}
+		return eventList;
+	}
+	
 	@Override
 	public String computeJsonModel() {
 		JSONObject jsonModel = new JSONObject();

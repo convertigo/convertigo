@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,8 +40,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -87,6 +91,8 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
+import com.twinsoft.convertigo.beans.ngx.components.UIFont;
+import com.twinsoft.convertigo.beans.ngx.components.UIFontStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
@@ -100,6 +106,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UITheme;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
@@ -115,6 +122,7 @@ public class ComponentManager {
 	
 	private Map<String, List<Component>> map = new TreeMap<>();
 	private Map<String, JSONObject> c8oBeans = new HashMap<String, JSONObject>();
+	private Map<String, JSONObject> fontMap = new HashMap<String, JSONObject>();
 	
 	private List<String> groups;
 	private List<Component> orderedComponents;
@@ -124,10 +132,11 @@ public class ComponentManager {
 	
 	private ComponentManager() {
 		loadModels();
+		loadFonts();
 	}
 	
 	private synchronized void loadModels() {
-		clear();
+		clearModels();
 		
 		if (Engine.isStarted) {
 			Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
@@ -159,6 +168,15 @@ public class ComponentManager {
 	}
 	
 	private void clear() {
+		clearModels();
+		clearFonts();
+	}
+	
+	private void clearFonts() {
+		fontMap.clear();		
+	}
+	
+	private void clearModels() {
 		pCache.clear();
 		bCache.clear();
 		aCache.clear();
@@ -529,6 +547,8 @@ public class ComponentManager {
 			components.add(getDboComponent(UIText.class,group));
 			components.add(getDboComponent(UIStyle.class,group));
 			components.add(getDboComponent(UITheme.class,group));
+			components.add(getDboComponent(UIFont.class,group));
+			components.add(getDboComponent(UIFontStyle.class,group));
 			
 			// Add shared components
 			group = GROUP_SHARED_COMPONENTS;
@@ -1381,5 +1401,154 @@ public class ComponentManager {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+	
+	private JSONObject loadFont(String fontId) {
+		return loadFonts().get(fontId);
+	}
+	
+	protected JSONObject loadFontFromApi(String fontId) {
+		JSONObject jsonFont = null;
+		if (fontId != null && !fontId.isBlank()) {
+			if (fontMap.get(fontId) == null || !fontMap.get(fontId).has("variants")) {
+				try {
+					String url = "https://api.fontsource.org/v1/fonts/"+ fontId;
+					HttpGet get = new HttpGet(url);
+					try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+						int code = response.getStatusLine().getStatusCode();
+						if (code != 200) {
+							throw new EngineException("Code " + code + " for " + url);
+						}
+						String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+						fontMap.put(fontId, new JSONObject(sContent));
+					}
+				} catch (Exception e) {
+					Engine.logEngine.warn("(ComponentManager) Unabled to get font with id "+ fontId + " : " + e.getMessage());
+				}
+			}
+			jsonFont = fontMap.get(fontId);
+		}
+		return jsonFont;
+	}
+	
+	private Map<String, JSONObject> loadFonts() {
+		return loadFontsFromFile();
+	}
+	
+	protected Map<String, JSONObject> loadFontsFromApi() {
+		if (fontMap.isEmpty()) {
+			JSONArray jsonFonts = null;
+			try {
+				String url = "https://api.fontsource.org/v1/fonts";
+				HttpGet get = new HttpGet(url);
+				try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+					int code = response.getStatusLine().getStatusCode();
+					if (code != 200) {
+						throw new EngineException("Code " + code + " for " + url);
+					}
+					String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+					jsonFonts = new JSONArray(sContent);
+				}
+				
+				if (jsonFonts != null) {
+					for (int i = 0; i < jsonFonts.length(); i++) {
+						JSONObject jsonFont = jsonFonts.getJSONObject(i);
+						String fontId = jsonFont.getString("id");
+						fontMap.put(fontId, jsonFont);
+					}
+				}
+			} catch (Exception e) {
+				if (Engine.isStarted) {
+					Engine.logEngine.warn("(ComponentManager) Unabled to load fonts : " + e.getMessage());
+				} else {
+					System.out.println("(ComponentManager) Unabled to load fonts : " + e.getMessage());
+				}
+				fontMap.clear();
+			}
+		}
+		return fontMap;
+	}
+	
+	private Map<String, JSONObject> loadFontsFromFile() {
+		if (fontMap.isEmpty()) {
+			try (InputStream inputstream = getClass().getResourceAsStream("font-sources.json")) {
+				String json = IOUtils.toString(inputstream, "UTF-8");
+				
+				JSONArray jsonFonts = new JSONArray(json);
+				for (int i = 0; i < jsonFonts.length(); i++) {
+					JSONObject jsonFont = jsonFonts.getJSONObject(i);
+					String fontId = jsonFont.getString("id");
+					fontMap.put(fontId, jsonFont);
+				}
+				
+				if (Engine.isStarted) {
+					Engine.logEngine.info("(ComponentManager) Font sources loaded from file");
+				} else {
+					System.out.println("(ComponentManager) Font sources loaded from file");
+				}
+			} catch (Exception e) {
+				if (Engine.isStarted) {
+					Engine.logEngine.warn("(ComponentManager) Unabled to load fonts from file: " + e.getMessage());
+				} else {
+					System.out.println("(ComponentManager) Unabled to load fonts from file: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		}
+		return fontMap;
+	}
+	
+	protected void storeFonts() {
+		Engine.execute(() -> {
+			try {
+				File file = new File("C://Dev/font-sources-bis.json");
+				if (!file.exists()) {
+					Map<String, JSONObject> map = instance.loadFontsFromFile();
+					System.out.println("(ComponentManager) retrieving "+ map.size() +" fonts...");
+					
+					List<String> fontIds = map.keySet().stream().sorted((e1, e2) -> 
+					e1.toString().compareTo(e2.toString())).collect(Collectors.toList());
+					
+					JSONArray array = new JSONArray();
+					for (String fontId: fontIds) {
+						JSONObject jsonOb = getFont(fontId);
+						if (jsonOb == null) {
+							System.out.println("(ComponentManager) Unabled to retrieve font " + fontId);
+							jsonOb = new JSONObject();
+							jsonOb.put("id", fontId);
+						} else {
+							System.out.println("(ComponentManager) Retrieved font " + fontId);
+						}
+						array.put(jsonOb);
+					}
+					
+					String content = array.toString(1);
+					FileUtils.write(file, content, "UTF-8");
+					System.out.println("(ComponentManager) font-sources-bis.json written");
+				} else {
+					String content = FileUtils.readFileToString(file, "UTF-8");
+					JSONArray array = new JSONArray(content);
+					System.out.println("(ComponentManager) checking "+ array.length() +" fonts...");
+					for (int i = 0; i < array.length(); i++) {
+						JSONObject jsonFont = array.getJSONObject(i);
+						String fontId = jsonFont.getString("id");
+						if (jsonFont.length() <= 1) {
+							System.out.println("(ComponentManager) Invalid font " + fontId);
+						}
+					}
+					System.out.println("(ComponentManager) check done");
+				}
+			} catch (Exception e) {
+				System.out.println("(ComponentManager) storeFonts: exception occured " + e.getMessage());
+			}
+		});
+	}
+	
+	static public JSONObject getFont(String fontId) {
+		return instance.loadFont(fontId);
+	}
+	
+	static public Map<String, JSONObject> getFonts() {
+		return instance.loadFonts();
 	}
 }

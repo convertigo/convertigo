@@ -1038,7 +1038,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	@Override
 	public String computeStyle() {
-		StringBuilder uses = new StringBuilder();
 		StringBuilder styles = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
@@ -1051,10 +1050,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			} else if (component instanceof UIUseShared) {
 				String tpl = ((UIUseShared)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@use") && uses.indexOf(tpl) != -1) {
-						continue;
-					}
-					uses.append(tpl);
+					others.append(tpl);
 				}
 			} else if (component instanceof UIElement) {
 				String tpl = ((UIElement)component).computeStyle();
@@ -1065,9 +1061,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (uses.length() > 0) {
-			sb.append(uses).append(System.getProperty("line.separator"));
-		}
 		if (others.length() > 0) {
 			sb.append(others).append(System.getProperty("line.separator"));
 		}

@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:9-jdk17-temurin
+FROM tomcat:9-jdk17-temurin-focal
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -39,7 +39,9 @@ RUN (curl -sL https://aka.ms/InstallAzureCLIDeb | bash) \
   && (curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -) \
   && (echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list) \
   && apt-get update \
-  && apt-get install -y kubectl \
+  && apt-get install -y --no-install-recommends kubectl \
+       nano less strongswan libstrongswan-standard-plugins \
+       iptables net-tools iputils-ping \
   && rm -rf /var/lib/apt/lists/*
   
 RUN curl -sL https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_1.7.6_linux_amd64.gz | gunzip > /usr/local/bin/chisel \
@@ -48,7 +50,7 @@ RUN curl -sL https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_
 
 ## grab gosu for easy step-down from root and tini for signal handling
 
-ENV GOSU_VERSION 1.12
+ENV GOSU_VERSION 1.14
 ENV GOSU_GPG_KEYS B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV TINI_VERSION 0.19.0
 ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5

@@ -475,7 +475,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, tags, false);
+				boolean isReadOnly = false;
+				try {
+					Method method = getObject().getClass().getMethod("isReadOnlyProperty", new Class[] { String.class});
+					isReadOnly = (boolean) method.invoke(getObject(), new Object[] { name });
+				} catch (Exception e) {}
+				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, tags, isReadOnly);
 			}
 			else if (com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
