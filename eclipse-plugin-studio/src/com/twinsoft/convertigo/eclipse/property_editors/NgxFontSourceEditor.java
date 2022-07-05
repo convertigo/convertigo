@@ -26,7 +26,7 @@ public class NgxFontSourceEditor extends AbstractDialogCellEditor {
     public NgxFontSourceEditor(Composite parent) {
         super(parent);
 
-        dialogTitle = "";
+        dialogTitle = "Font definition";
         dialogCompositeClass = NgxFontSourceEditorComposite.class;
     }
 
