@@ -3052,7 +3052,63 @@
                      id="convertigo.menu.step.changeTo"
                      label="Change to"
                      path="changeTo">
-               </menu> 
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToArray"
+                     label="Array"
+                     icon="icons/studio/beans/steps/jsonarray_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLComplexStep;com.twinsoft.convertigo.beans.steps.JsonObjectStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToObject"
+                     label="Object"
+                     icon="icons/studio/beans/steps/jsonobject_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLComplexStep;com.twinsoft.convertigo.beans.steps.JsonArrayStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToComplex"
+                     label="XML Complex"
+                     icon="icons/studio/beans/steps/complex_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.JsonObjectStep;com.twinsoft.convertigo.beans.steps.JsonArrayStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToField"
+                     label="Field"
+                     icon="icons/studio/beans/steps/jsonfield_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLElementStep;com.twinsoft.convertigo.beans.steps.ElementStep">
+                     </objectState>
+                  </enablement>
+               </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSimpleSourceStepAction"
                      enablesFor="1"
@@ -3066,7 +3122,7 @@
                            value="com.twinsoft.convertigo.beans.steps.SourceStep">
                      </objectState>
                   </enablement>
-               </action>   
+               </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSourceStepAction"
                      enablesFor="1"
@@ -3214,7 +3270,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep;com.twinsoft.convertigo.beans.steps.XMLAttributeStep;com.twinsoft.convertigo.beans.steps.ElementStep">
+                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep;com.twinsoft.convertigo.beans.steps.XMLAttributeStep;com.twinsoft.convertigo.beans.steps.ElementStep;com.twinsoft.convertigo.beans.steps.JsonFieldStep">
                      </objectState>
                   </enablement>
                </action>
@@ -3256,7 +3312,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.AttributeStep;com.twinsoft.convertigo.beans.steps.XMLElementStep" />
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep;com.twinsoft.convertigo.beans.steps.XMLElementStep;com.twinsoft.convertigo.beans.steps.JsonFieldStep" />
                   </enablement>
                 </action>
             </objectContribution>

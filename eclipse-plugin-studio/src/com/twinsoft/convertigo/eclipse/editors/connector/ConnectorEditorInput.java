@@ -68,7 +68,11 @@ public class ConnectorEditorInput extends FileInPlaceEditorInput {
 
 	@Override
 	public String getName() {
-		return connector.getParent().getName() + " [C: " + connector.getName()+"]." + getFile().getFileExtension();
+		try {
+			return connector.getParent().getName() + " [C: " + connector.getName()+"]." + getFile().getFileExtension();
+		} catch (Exception e) {
+			return getFile().getName();
+		}
 	}
 
 	@Override

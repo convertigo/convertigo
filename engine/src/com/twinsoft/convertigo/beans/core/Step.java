@@ -66,12 +66,16 @@ import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
 import com.twinsoft.convertigo.beans.steps.IsInStep;
 import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
+import com.twinsoft.convertigo.beans.steps.JsonArrayStep;
+import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
+import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SourceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
+import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.engine.Engine;
@@ -994,7 +998,11 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 					bool.equals(Boolean.valueOf(this instanceof SourceStep)) ||
 					bool.equals(Boolean.valueOf(this instanceof SimpleSourceStep)) ||
 					bool.equals(Boolean.valueOf(this instanceof ElementStep)) ||
-					bool.equals(Boolean.valueOf(this instanceof AttributeStep));
+					bool.equals(Boolean.valueOf(this instanceof AttributeStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof XMLComplexStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof JsonFieldStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof JsonObjectStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof JsonArrayStep));
 		}
 		return super.testAttribute(name, value);
 	}

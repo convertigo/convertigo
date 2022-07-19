@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.beans.rest.PutOperation;
 import com.twinsoft.convertigo.beans.rest.QueryParameter;
 import com.twinsoft.convertigo.beans.steps.AttributeStep;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
+import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
@@ -97,7 +98,7 @@ public class DatabaseObjectsAction {
 				actionModel.isEnabled = false;
 				DatabaseObject dboParent = dbo.getParent();
 				if (DatabaseObjectsManager.acceptDatabaseObjects(dboParent, new ElementStep())) {
-					actionModel.isEnabled = dbo instanceof AttributeStep || dbo instanceof XMLElementStep;
+					actionModel.isEnabled = dbo instanceof AttributeStep || dbo instanceof XMLElementStep || dbo instanceof JsonFieldStep;
 				}
 			}
 			break;
@@ -142,7 +143,8 @@ public class DatabaseObjectsAction {
 					actionModel.isEnabled =
 							dbo instanceof XMLConcatStep ||
 							dbo instanceof XMLAttributeStep ||
-							dbo instanceof ElementStep;
+							dbo instanceof ElementStep ||
+							dbo instanceof JsonFieldStep;
 				}
 			}
 			break;
