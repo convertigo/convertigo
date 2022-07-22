@@ -1638,7 +1638,6 @@ public class SchemaManager implements AbstractManager {
 					}
 					
 					protected boolean makeCompliant(XmlSchemaObject xso, Node node, boolean forceArray) {
-						String tns = node.getNamespaceURI();
 						String nodeName = node.getNodeName();
 						String localName = nodeName.substring(nodeName.indexOf(":")+1);
 						String xsoName = xso instanceof XmlSchemaElement ? ((XmlSchemaElement)xso).getName() : ((XmlSchemaAttribute)xso).getName();
@@ -1793,14 +1792,8 @@ public class SchemaManager implements AbstractManager {
 									// <array c8o_arrayOfSingle=""/> => {"array": [""]}
 									// <enum c8o_arrayOfSingle="">text</enum> => {"enum":["text"]}		
 									// <user c8o_arrayOfSingle=""><name>name</name></user>  => {"user":[{"name":"name"}]}
-									if (nodeName.equals(localName)) {
-										if (immediateElementsByTagName(element, localName) == 1) {
-											element.setAttribute("c8o_arrayOfSingle", "");
-										}
-									} else {
-										if (immediateElementsByTagNameNS(element, tns, localName) == 1) {
-											element.setAttribute("c8o_arrayOfSingle", "");
-										}
+									if (XMLUtils.countOccurrences(element) == 1) {
+										element.setAttribute("c8o_arrayOfSingle", "");
 									}
 								}
 							}
@@ -1827,32 +1820,6 @@ public class SchemaManager implements AbstractManager {
 			Engine.logContext.warn("An error occured while generating compliant XML for REST", t);
 		}
 		return document;
-	}
-	
-	private static int immediateElementsByTagName(Element element, String localName) {
-		int cpt = 0;
-		Element parentEl = (Element) element.getParentNode();
-		NodeList nodeList = parentEl.getElementsByTagName(localName);
-		for (int i=0; i < nodeList.getLength(); i++) {
-			Element el = (Element) nodeList.item(i);
-			if (el.getParentNode().equals(parentEl)) {
-				cpt++;
-			}
-		}
-		return cpt;
-	}
-	
-	private static int immediateElementsByTagNameNS(Element element, String tns, String localName) {
-		int cpt = 0;
-		Element parentEl = (Element) element.getParentNode();
-		NodeList nodeList = parentEl.getElementsByTagNameNS(tns, localName);
-		for (int i=0; i < nodeList.getLength(); i++) {
-			Element el = (Element) nodeList.item(i);
-			if (el.getParentNode().equals(parentEl)) {
-				cpt++;
-			}
-		}
-		return cpt;
 	}
 	
 	public synchronized Document makeResponse(Document document) {
