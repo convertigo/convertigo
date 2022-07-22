@@ -240,7 +240,7 @@ public class XSDExtractor {
 						}
 						else {
 							int oldOccur = ((Integer)occurs.get(key)).intValue();
-							int newOccur = (((Element)node.getParentNode()).getElementsByTagName(key).getLength());
+							int newOccur = XMLUtils.countOccurrences((Element)node);//(((Element)node.getParentNode()).getElementsByTagName(key).getLength());
 							occurs.put(key, Math.max(oldOccur, newOccur));
 							xsdObject = elements.get(key);
 							((XSDElement)xsdObject).parse((Element)node);
