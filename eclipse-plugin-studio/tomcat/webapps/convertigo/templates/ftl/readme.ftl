@@ -101,7 +101,7 @@ ${text}${lineBreak}
 <#macro table title headers rows>
 <#if (rows?size > 0)>
 ${title}${lineBreak}
-<table
+<table>
 <tr>
 <#list headers as header><th>${header}</th></#list>
 </tr>
