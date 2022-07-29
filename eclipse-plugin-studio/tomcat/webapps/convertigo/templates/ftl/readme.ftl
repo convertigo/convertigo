@@ -110,7 +110,7 @@ ${title}${lineBreak}
 <#list headers as header><td>${i[header]}</td></#list>
 </tr>
 </#list>
-</table>
+</table>${lineBreak}
 </#if>
 </#macro>
 
