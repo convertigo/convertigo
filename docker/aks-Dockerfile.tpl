@@ -3,7 +3,7 @@ RUN (curl -sL https://aka.ms/InstallAzureCLIDeb | bash) \
   && (echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list) \
   && apt-get update \
   && apt-get install -y --no-install-recommends kubectl \
-       nano less strongswan libstrongswan-standard-plugins \
+       nano less \
        iptables net-tools iputils-ping \
   && rm -rf /var/lib/apt/lists/*
   
