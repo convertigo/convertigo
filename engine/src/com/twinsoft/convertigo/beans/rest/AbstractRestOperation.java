@@ -436,7 +436,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
         		if (dataOutput.equals(DataContent.toJson)) {
         			JsonRoot jsonRoot = getProject().getJsonRoot();
         			boolean useType = getProject().getJsonOutput() == JsonOutput.useType;
-        			Document document = useType ? Engine.theApp.schemaManager.makeXmlRestCompliant(xmlHttpDocument) : xmlHttpDocument;
+        			boolean makeCompliant = useType && "/openapi".equals(request.getServletPath());
+        			Document document = makeCompliant ? Engine.theApp.schemaManager.makeXmlRestCompliant(xmlHttpDocument) : xmlHttpDocument;
     				XMLUtils.logXml(document, Engine.logContext, "Generated Rest XML (useType="+ useType +")");
        				content = XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);
             		responseContentType = MimeType.Json.value();
