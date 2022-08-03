@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see<http://www.gnu.org/licenses/>.
 
-FROM tomcat:9-jdk17-temurin
+FROM tomcat:9-jdk17-temurin-focal
 
 
 MAINTAINER Nicolas Albert nicolasa@convertigo.com
@@ -48,7 +48,7 @@ RUN curl -sL https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_
 
 ## grab gosu for easy step-down from root and tini for signal handling
 
-ENV GOSU_VERSION 1.12
+ENV GOSU_VERSION 1.14
 ENV GOSU_GPG_KEYS B42F6819007F00F88E364FD4036A9C25BF357DD4
 ENV TINI_VERSION 0.19.0
 ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
@@ -102,7 +102,7 @@ RUN sed -i.bak \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
-ENV CONVERTIGO_VERSION 8.0.1
+ENV CONVERTIGO_VERSION 8.0.2
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
