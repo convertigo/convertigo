@@ -7,7 +7,7 @@ defaults: &defaults
   - MAVEN_OPTS: -Xmx2800m
   
   docker:
-  - image: convertigo/builder-ci:circleci-6
+  - image: convertigo/builder-ci:circleci-7
   
 version: 2
 jobs:
@@ -15,7 +15,7 @@ jobs:
     <<: *defaults
     
     docker:
-    - image: cimg/openjdk:15.0
+    - image: cimg/openjdk:17.0
     
     steps:
     
@@ -267,7 +267,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Docker build and push for default
@@ -306,7 +307,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Docker build and push for aks
@@ -337,7 +339,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
         
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Checkout the qualif-jmx-1 project
@@ -379,7 +382,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Checkout the qualif-jmx-2 project
@@ -421,7 +425,8 @@ jobs:
         keys:
         - v1-build-env-{{ .Environment.CIRCLE_WORKFLOW_ID }}
     
-    - setup_remote_docker
+    - setup_remote_docker:
+        version: 20.10.14
     
     - run:
         name: Checkout the qualif-jmx-3 project

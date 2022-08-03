@@ -49,7 +49,7 @@ public class CompressionFilter implements Filter {
 		+ "^/admin/services/(?:.*GetIcon|logs.Download|mobiles.GetPackage|"
 		+ "mobiles.GetSourcePackage|projects.Export|store.DownloadStoreFolder)");
 	Pattern pOK = Pattern.compile(
-		"^/fullsync/|^/api/|^/admin/services/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
+		"^/fullsync/|^/api/|^/openapi/|^/admin/services/|\\.js$|\\.xml$|\\.pxml$|\\.cxml$|\\.css$|\\.html$|"
 		+ "\\.json$|\\.jsonp$|\\.txt$|\\.csv$|\\.htm$|\\.map$");
 	
 	@Override

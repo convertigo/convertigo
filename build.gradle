@@ -20,7 +20,7 @@ import groovy.xml.XmlUtil
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '8.0.1'
+ext.convertigoVersion = '8.0.2'
 ext.convertigoTag = ''
 ext.convertigoCodename = 'mercury'
 ext.convertigoCode = 'Hg'
@@ -29,8 +29,9 @@ ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
 ext.jxBrowserVersion = '7.26'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.64'
+ext.tomcatVersion = '9.0.65'
 ext.eclipseVersion = '2021-12'
+ext.eclipseBase = '4.22'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
@@ -334,7 +335,7 @@ task updateEclipseVersion(dependsOn: [':updateEclipseProduct', ':eclipse-plugin-
 			it.text = it.text.replaceAll('(<!-- SET-VERSION -->\\s*<version>).*(</version>)', "\$1${convertigoVersion}-SNAPSHOT\$2")
 		}
 		def base = file('eclipse-base/base.target')
-		base.text = base.text.replaceFirst('/releases/.+?/', "/releases/${eclipseVersion}/")
+		base.text = base.text.replaceFirst('/releases/.+?/', "/releases/${eclipseVersion}/").replaceFirst('/updates/.+?/', "/updates/${eclipseBase}/")
 	}
 }
 
