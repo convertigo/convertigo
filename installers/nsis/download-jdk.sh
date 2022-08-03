@@ -3,6 +3,7 @@
 
 mkdir -p /tmp/c8o_jre
 cd /tmp/c8o_jre
+
 JDK_URL=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.4%2B8/OpenJDK17U-jdk_x64_windows_hotspot_17.0.4_8.zip
 curl -sfSL -o jdk.zip ${JDK_URL}
 unzip -q jdk.zip

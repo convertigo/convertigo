@@ -1,5 +1,14 @@
 # Changelog
 
+## 8.0.2
+
+#### Bug Fixes:
+
+- [#632](https://github.com/convertigo/convertigo/issues/632) [UrlMapper] Fixed, JSON requests no more abnormally too long
+- [#635](https://github.com/convertigo/convertigo/issues/635) [FullSync] Fixed, replication re-use the ACL pre-filter for CouchDB server
+
+---
+
 ## 8.0.1
 
 #### Improvements:
@@ -38,7 +47,7 @@
 #### Improvements:
 
 - [#291](https://github.com/convertigo/convertigo/issues/291) [NGX] Improved event catch/finally feature for actions
-- [#424](https://github.com/convertigo/convertigo/issues/424) [NGX] Use faster PNPM instead of NPM for Front End builder�s Package Manager
+- [#424](https://github.com/convertigo/convertigo/issues/424) [NGX] Use faster PNPM instead of NPM for Front End builder?s Package Manager
 - [#506](https://github.com/convertigo/convertigo/issues/506) [Studio] Use Eclipse 2021-12 as base, JDK 17.0.2 and Tomcat 9.0.62
 - [#510](https://github.com/convertigo/convertigo/issues/510) [Builder + NGX] Added an "Application Init" event
 - [#515](https://github.com/convertigo/convertigo/issues/515) [SMTP Step] Added a property to customize the SSL version
