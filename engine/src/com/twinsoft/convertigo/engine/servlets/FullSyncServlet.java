@@ -235,9 +235,9 @@ public class FullSyncServlet extends HttpServlet {
 			boolean isChanges = "_changes".equals(special);
 			
 			String version = fsClient.getServerVersion();
-			boolean isCouchDB = "CouchDB".equals(fsClient.getServerName());
+			boolean isCouchDB = fsClient.isCouchDB();
 			
-			if (isChanges && version.compareTo("2.") >= 0 && isCouchDB) {
+			if (isChanges && fsClient.hasMango()) {
 				method = HttpMethodType.POST;
 			}
 			
@@ -598,7 +598,7 @@ public class FullSyncServlet extends HttpServlet {
 							contentType.mimeType().in(MimeType.Plain, MimeType.Json) &&
 							!"_design".equals(special) &&
 							!requestParser.hasAttachment() && (
-								(isChanges && ((version.compareTo("2.") < 0 && isCouchDB) || !isCouchDB)) ||
+								(isChanges && !fsClient.hasMango()) ||
 								"_bulk_get".equals(special) ||
 								"_all_docs".equals(special) ||
 								"_all_dbs".equals(special) ||
