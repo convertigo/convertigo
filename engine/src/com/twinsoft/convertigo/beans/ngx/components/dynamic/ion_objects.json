@@ -16125,7 +16125,7 @@
 		  ]
         },
         "ChartType": {
-          "attr":"chartType",
+          "attr":"[type]",
           "label": "Chart Type",
           "description": "Indicates the type of charts, it can be: line, bar, radar, pie, polarArea, doughnut.",
           "category": "@Properties",
