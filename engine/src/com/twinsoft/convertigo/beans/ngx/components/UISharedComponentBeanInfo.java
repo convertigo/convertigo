@@ -38,13 +38,16 @@ public class UISharedComponentBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("scriptContent", beanClass, "getScriptContent", "setScriptContent");
 			properties[0].setDisplayName(getExternalizedString("property.scriptContent.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.scriptContent.short_description"));
 			properties[0].setHidden(true);
 						
+			properties[1] = new PropertyDescriptor("exposed", beanClass, "isExposed", "setExposed");
+			properties[1].setDisplayName(getExternalizedString("property.exposed.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.exposed.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

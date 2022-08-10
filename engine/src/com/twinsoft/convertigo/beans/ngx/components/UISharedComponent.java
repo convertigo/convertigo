@@ -34,7 +34,7 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
-public class UISharedComponent extends UIComponent implements IShared {
+public class UISharedComponent extends UIComponent implements IShared, IExposeAble {
 
 	private static final long serialVersionUID = -2430482045373902567L;
 
@@ -169,6 +169,17 @@ public class UISharedComponent extends UIComponent implements IShared {
 
 	public void setScriptContent(FormatedContent scriptContent) {
 		this.scriptContent = scriptContent;
+	}
+	
+	private boolean exposed = true;
+	
+	@Override
+	public boolean isExposed() {
+		return exposed;
+	}
+	
+	public void setExposed(boolean exposed) {
+		this.exposed = exposed;
 	}
 	
 	public List<UICompVariable> getVariables() {

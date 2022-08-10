@@ -1,4 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?><!-- /!\ DO NOT EDIT - USE THE GRADLE TASK updateBeansDefaultValues --><beans>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent" priority="0" version="   8   1   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="exposed">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedComponent"/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UISharedComponent" priority="0" version="   8   1   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="exposed">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedTemplate"/>
+        </property>
+        <property name="scriptContent">
+            <xmlizable classname="com.twinsoft.convertigo.beans.common.FormatedContent">
+                <com.twinsoft.convertigo.beans.common.FormatedContent/>
+            </xmlizable>
+        </property>
+    </mobilecomponent>
+    <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIActionStack" priority="0" version="   8   1   0">
+        <property name="comment">
+            <java.lang.String value=""/>
+        </property>
+        <property name="exposed">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="isEnabled">
+            <java.lang.Boolean value="true"/>
+        </property>
+        <property name="name">
+            <java.lang.String value="SharedAction"/>
+        </property>
+    </mobilecomponent>
     <mobilecomponent classname="com.twinsoft.convertigo.beans.ngx.components.UIFontStyle" priority="0" version="   8   1   0">
         <property name="comment">
             <java.lang.String value=""/>

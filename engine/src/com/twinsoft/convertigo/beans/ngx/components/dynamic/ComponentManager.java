@@ -743,7 +743,7 @@ public class ComponentManager {
 						if (ac != null && ac instanceof ApplicationComponent) {
 							ApplicationComponent app = (ApplicationComponent)ac;
 							for (UIActionStack action: app.getSharedActionList()) {
-								if (action.isEnabled()) {
+								if (action.isEnabled() && action.isExposed()) {
 									components.add(new Component() {
 	
 										@Override
@@ -845,7 +845,7 @@ public class ComponentManager {
 							}
 							
 							for (UISharedComponent usc: app.getSharedComponentList()) {
-								if (usc.isRegular() && usc.isEnabled()) {
+								if (usc.isRegular() && usc.isEnabled() && usc.isExposed()) {
 									final UISharedRegularComponent uisrc = (UISharedRegularComponent)usc;
 									components.add(new Component() {
 										

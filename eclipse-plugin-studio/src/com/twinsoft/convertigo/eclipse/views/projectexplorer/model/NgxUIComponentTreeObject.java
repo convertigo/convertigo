@@ -799,12 +799,30 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				}
 				else if (object instanceof UIDynamicInvoke) {
 					if ("stack".equals(propertyName)) {
-						return nsObject instanceof UIActionStack;
+						//return nsObject instanceof UIActionStack;
+						if (nsObject instanceof UIActionStack) {
+							UIActionStack uas = (UIActionStack)nsObject;
+							boolean isExposed = uas.isExposed();
+							if (uas.getProject().equals(object.getProject())) {
+								return true;
+							} else {
+								return isExposed;
+							}
+						}
 					}
 				}
 				else if (object instanceof UIUseShared) {
 					if ("sharedcomponent".equals(propertyName)) {
-						return nsObject instanceof UISharedComponent;
+						//return nsObject instanceof UISharedComponent;
+						if (nsObject instanceof UISharedComponent) {
+							UISharedComponent usc = (UISharedComponent)nsObject;
+							boolean isExposed = usc.isExposed();
+							if (usc.getProject().equals(object.getProject())) {
+								return true;
+							} else {
+								return isExposed;
+							}
+						}
 					}
 				}
 				else if (object instanceof UIDynamicInfiniteScroll) {

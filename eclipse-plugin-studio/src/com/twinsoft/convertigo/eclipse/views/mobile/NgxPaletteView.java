@@ -26,6 +26,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
+import com.twinsoft.convertigo.beans.ngx.components.IExposeAble;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -33,6 +34,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_ngx.ComponentExplorerComposite;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 
 public class NgxPaletteView extends ViewPart implements ISelectionListener, TreeObjectListener {
 
@@ -65,9 +67,25 @@ public class NgxPaletteView extends ViewPart implements ISelectionListener, Tree
 		}
 	}
 
+	private boolean inProcess = false;
+	
 	public synchronized void refresh() {
-		if (explorerComposite != null) {
-			explorerComposite.reloadComponents();
+		if (inProcess) return;
+		
+		inProcess = true;
+		
+		if (BatchOperationHelper.isStarted()) {
+			BatchOperationHelper.prepareEnd(() -> {
+				if (NgxPaletteView.this.explorerComposite != null) {
+					NgxPaletteView.this.explorerComposite.reloadComponents();
+				}
+				NgxPaletteView.this.inProcess = false;
+			});
+		} else {
+			if (explorerComposite != null) {
+				explorerComposite.reloadComponents();
+			}
+			inProcess = false;
 		}
 	}
 	
@@ -78,7 +96,16 @@ public class NgxPaletteView extends ViewPart implements ISelectionListener, Tree
 
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		if (treeObject.getObject() instanceof IExposeAble) {
+			if (propertyName.equals("exposed")) {
+				refresh();
+			}
+		}
 	}
 
 	@Override
