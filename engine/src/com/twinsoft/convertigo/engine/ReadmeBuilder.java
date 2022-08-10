@@ -101,7 +101,7 @@ public class ReadmeBuilder {
 		
 		private void put(String key, Object value) {
 			if (value instanceof List) {
-				dboMap.put(key, sort(filter(GenericUtils.cast(value))));
+				dboMap.put(key, sort(filter(GenericUtils.cast(value), MarkdownType.Readme)));
 			} else {
 				dboMap.put(key, value);
 			}
@@ -398,7 +398,7 @@ public class ReadmeBuilder {
 		}
 
 		private void walkDetailList(String title, List<? extends DatabaseObject> list) throws Exception {
-			List<? extends DatabaseObject> filteredList = sort(filter(list));
+			List<? extends DatabaseObject> filteredList = sort(filter(list, MarkdownType.Project));
 			if (filteredList.size() > 0) {
 				content += writeDetailsStartBlock("<span style=\"color:"+ FONT_COLOR +"\"><i>"+title+"</i></span>");
 				for (DatabaseObject dbo : filteredList) {
@@ -412,7 +412,7 @@ public class ReadmeBuilder {
 		}
 		
 		private void walkSimpleList(String title, List<? extends DatabaseObject> list) throws Exception {
-			List<? extends DatabaseObject> filteredList = sort(filter(list));
+			List<? extends DatabaseObject> filteredList = sort(filter(list, MarkdownType.Project));
 			if (filteredList.size() > 0) {
 				content += writeTitleBlock("<span style=\"color:"+ FONT_COLOR +"\">"+title+"</span>");
 				content += writeTableStartBlock();
@@ -811,11 +811,19 @@ public class ReadmeBuilder {
 		return ProjectUrlParser.getReadmeUrl(parser.getProjectName());
 	}
 	
-	private static List<? extends DatabaseObject> filter(List<? extends DatabaseObject> list) {
-		List<? extends DatabaseObject> filteredList = list
-				.stream()
-				.filter(dbo -> isEnabled(dbo) && isPublic(dbo) && isExposed(dbo))
-				.collect(Collectors.toList());
+	private static List<? extends DatabaseObject> filter(List<? extends DatabaseObject> list, MarkdownType type) {
+		List<? extends DatabaseObject> filteredList;
+		if (MarkdownType.Project.equals(type)) {
+			filteredList = list
+						.stream()
+						.filter(dbo -> isEnabled(dbo))
+						.collect(Collectors.toList());
+		} else {
+			filteredList = list
+						.stream()
+						.filter(dbo -> isEnabled(dbo) && isPublic(dbo) && isExposed(dbo))
+						.collect(Collectors.toList());
+		}
 		return filteredList = Collections.unmodifiableList(filteredList);
 	}
 	
