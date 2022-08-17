@@ -86,6 +86,7 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.e4.ui.css.core',
 					'org.eclipse.e4.ui.css.swt',
 					'org.eclipse.e4.ui.css.swt.theme',
+					'org.eclipse.egit.core',
 					'org.eclipse.egit.ui',
 					'org.eclipse.jface.text',
 					'org.eclipse.jgit',

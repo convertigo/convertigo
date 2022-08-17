@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
@@ -38,6 +39,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
@@ -218,10 +220,11 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 	 */
 	private void doFinish(IProgressMonitor monitor) throws CoreException {
 		try {
+			Project project = null;
 			if (page10 != null) {
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
-				Project project = createFromBlankProject(monitor, false);
+				project = createFromBlankProject(monitor, false);
 
 				boolean needAuth = page10.useAuthentication();
 				String wsURL = page10.getWsdlURL().toString();
@@ -261,14 +264,40 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 			else if (page1 != null) {
 				projectName = page1.getProjectName();
 				monitor.beginTask("Creating project " + projectName, 7);
-				createFromBlankProject(monitor);
-				return;
+				project = createFromBlankProject(monitor);
 			}
 			
 			else if (pageSummarySampleProject != null) {
 				monitor.beginTask("Creating project", 7);
 				createFromArchiveProject(monitor);
 				return;
+			}
+			
+			if (project != null) {
+				String autoCreate = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY);;
+				if (!"true".equalsIgnoreCase(autoCreate)) {
+					return;
+				}
+				try (Git git = Git.init().setDirectory(project.getDirFile()).call()) {
+					git.add().addFilepattern(".").call();
+					git.commit().setMessage("Initial commit").call();
+
+					@SuppressWarnings("restriction")
+					boolean ok = org.eclipse.egit.core.RepositoryUtil.INSTANCE.addConfiguredRepository(git.getRepository().getDirectory());
+					if (ok) {
+						ConvertigoPlugin.getDisplay().asyncExec(() -> {
+							try {
+								IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+								iproject.close(null);
+								iproject.open(null);
+							} catch (Exception e) {
+								ConvertigoPlugin.logException(e, "An error occured while refreshing git state for the project", false);
+							}
+						});
+					}
+				} catch (Exception e) {
+					ConvertigoPlugin.logException(e, "An error occured while create git repo for the project", false);
+				}
 			}
 			
 		} catch (Exception e) {

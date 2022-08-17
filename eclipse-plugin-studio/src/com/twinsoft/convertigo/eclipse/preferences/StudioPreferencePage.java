@@ -46,6 +46,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbEngineLoadAllProjects = null;
 	private BooleanFieldEditor cbAutoOpenDefaultConnector;
 	private BooleanFieldEditor cbAutoCreateProjectReference = null;
+	private BooleanFieldEditor cbAutoCreateProjectGitRepository = null;
 //	private BooleanFieldEditor cbUseSystemFlowViewer = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
@@ -119,6 +120,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoCreateProjectReference.setPage(this);
 		cbAutoCreateProjectReference.setPreferenceStore(getPreferenceStore());
 		cbAutoCreateProjectReference.load();
+		
+		cbAutoCreateProjectGitRepository = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY,
+				"Auto create project Git repository", groupGeneral);
+		cbAutoCreateProjectGitRepository.setPage(this);
+		cbAutoCreateProjectGitRepository.setPreferenceStore(getPreferenceStore());
+		cbAutoCreateProjectGitRepository.load();
 		
 		// Diagnostics
 		Group groupDiagnostics = new Group(top, SWT.SHADOW_IN);
@@ -202,6 +210,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbEngineLoadAllProjects.loadDefault();
 		cbAutoOpenDefaultConnector.loadDefault();
 		cbAutoCreateProjectReference.loadDefault();
+		cbAutoCreateProjectGitRepository.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
 		mobileBuilderThreshold.loadDefault();
@@ -236,6 +245,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbEngineLoadAllProjects.store();
 		cbAutoOpenDefaultConnector.store();
 		cbAutoCreateProjectReference.store();
+		cbAutoCreateProjectGitRepository.store();
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();
 //		cbUseSystemFlowViewer.store();

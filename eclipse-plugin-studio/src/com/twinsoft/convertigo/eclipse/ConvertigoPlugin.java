@@ -184,6 +184,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_AUTO_OPEN_DEFAULT_CONNECTOR = "autoOpen.defaultConnector";
 	public static final String PREFERENCE_MOBILE_BUILDER_THRESHOLD = "mobileBuilder.threshold";
 	public static final String PREFERENCE_AUTO_CREATE_PROJECT_REFERENCE = "autoCreate.projectReference";
+	public static final String PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY = "autoCreate.projectGitRepository";
 	public static final String PREFERENCE_USE_SYSTEM_FLOWVIEWER = "useSystem.flowViewer";
 	public static final String PREFERENCE_EDITOR_OUTPUT_MODE = "editor.output.mode";
 	public static final String PREFERENCE_HIDE_LIB_PROJECTS = "hide.lib.projects";
@@ -574,6 +575,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the mobile builder threshold option; using default (200).");
 		}
+		
+		
+		getPreferenceStore().setDefault(PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY, true);	
 
 		// In STUDIO, the Convertigo User Workspace is in the current Eclipse Workspace/.metadata/.plugins/com.twinsoft.convertigo.studio
 		Engine.USER_WORKSPACE_PATH = getDefault().getStateLocation().toFile().getCanonicalPath();
@@ -1144,6 +1148,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	private Color stderrConsoleStreamColor = new Color(null, 200, 0, 0);
 
 	private static int TAB_WIDTH = 5;
+	
 	private void createConsoles() {
 		ConsolePlugin consolePlugin = ConsolePlugin.getDefault();
 		IConsoleManager consoleManager = consolePlugin.getConsoleManager();
