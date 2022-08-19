@@ -260,15 +260,15 @@ public class ConvertigoError {
 		addXmlSchemaObjects(schema);
 	}
 	
-	public static ConvertigoError initError(ConvertigoException convertigoException) {
+	public static ConvertigoError initError(Exception convertigoException) {
 		return initError(ErrorType.Convertigo, convertigoException);
 	}
 
-	public static ConvertigoError initError(ErrorType errorType, ConvertigoException convertigoException) {
+	public static ConvertigoError initError(ErrorType errorType, Exception convertigoException) {
 		return initError(-1, errorType, convertigoException);
 	}
 	
-	public static ConvertigoError initError(int errorCode, ErrorType errorType, ConvertigoException convertigoException) {
+	public static ConvertigoError initError(int errorCode, ErrorType errorType, Exception convertigoException) {
 		return new ConvertigoError(errorCode, errorType, convertigoException);
 	}
 

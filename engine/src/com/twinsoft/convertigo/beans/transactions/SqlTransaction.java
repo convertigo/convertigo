@@ -57,8 +57,10 @@ import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.ErrorType;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -477,7 +479,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			
         } catch(SQLException excep) {
         	inError = true;
-        	sql_output = parseResults(excep.getMessage());
+        	sql_output = parseResults(excep.getMessage(), excep);
         }
 		
 		if (sql_output != null) {
@@ -521,7 +523,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					inError = false;
 				} catch(Exception e1) {
 					inError = true;
-					sql_output = parseResults(e1.getMessage());
+					sql_output = parseResults(e1.getMessage(), e1);
 					
 					// We rollback if error and if in auto commit false mode
 					if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
@@ -563,7 +565,7 @@ public class SqlTransaction extends TransactionWithVariables {
             sql_output = parseResults(0);
         } catch(SQLException excep) {
         	inError = true;
-        	sql_output = parseResults(excep.getMessage());
+        	sql_output = parseResults(excep.getMessage(), excep);
         }
 		
 		if (sql_output != null && setAutoCommit) {
@@ -1138,7 +1140,7 @@ public class SqlTransaction extends TransactionWithVariables {
 								}
 								catch (SQLException e) {
 									inError = true;
-									Element sql_output = parseResults(e.getMessage());
+									Element sql_output = parseResults(e.getMessage(), e);
 									if (sql_output != null) {
 										Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 										outputDocumentRootElement.appendChild(sql_output);
@@ -1169,7 +1171,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				try {
 					connector.connection.commit();
 	            } catch(SQLException excep) {
-					Element sql_output = parseResults(excep.getMessage());
+					Element sql_output = parseResults(excep.getMessage(), excep);
 					if (sql_output != null) {
 						Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 						outputDocumentRootElement.appendChild(sql_output);
@@ -1324,18 +1326,29 @@ public class SqlTransaction extends TransactionWithVariables {
     	return xsdType;
     }
     
-	private Element parseResults(String errorMessageSQL) {
+	private Element parseResults(String errorMessageSQL, Exception exception) {
 		if (Engine.logBeans.isTraceEnabled())
-			Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
+			Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL, exception);
 		
 		Document doc = createDOM(getEncodingCharSet());
 		Node document = doc.appendChild(doc.createElement("document"));
 		Node sqlOutput  = document.appendChild(doc.createElement("sql_output"));
-		sqlOutput.appendChild(doc.createElement("error").appendChild(doc.createTextNode(errorMessageSQL)));
-		doc.getDocumentElement().appendChild(sqlOutput);
+		sqlOutput.appendChild(doc.createTextNode(errorMessageSQL));
 			
 		Document output = context.outputDocument;
-		Element elt = (Element)output.importNode(sqlOutput,true);
+		Element elt = (Element) output.importNode(sqlOutput, true);
+		
+		Element error = output.createElement("error");
+		ConvertigoError err = ConvertigoError.initError(-1, ErrorType.Project, exception);
+		try {
+			err.appendOutputNodes(error, context, false);
+			Node last = error.getLastChild();
+			if (last != null && last.getNodeName().equals("stacktrace")) {
+				((Element) last).setTextContent("");
+			}
+			output.getDocumentElement().appendChild(error);
+		} catch (Exception e) {
+		}
 		return elt;
 	}
     
