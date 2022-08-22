@@ -436,6 +436,31 @@
      "value": false
     }
    }
+  },
+  "   8   1   0": {
+   "name": "Label",
+   "properties": {
+    "IonColor": {
+     "name": "IonColor",
+     "mode": "plain",
+     "value": false
+    },
+    "IonMode": {
+     "name": "IonMode",
+     "mode": "plain",
+     "value": false
+    },
+    "Position": {
+     "name": "Position",
+     "mode": "plain",
+     "value": false
+    },
+    "IconSlot": {
+     "name": "IconSlot",
+     "mode": "plain",
+     "value": false
+    }
+   }
   }
  },
  "List": {
