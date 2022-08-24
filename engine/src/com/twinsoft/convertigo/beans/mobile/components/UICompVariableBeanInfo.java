@@ -37,13 +37,13 @@ public class UICompVariableBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[1];
-			
+
 			properties[0] = new PropertyDescriptor("value", beanClass, "getVariableValue", "setVariableValue");
 			properties[0].setDisplayName(getExternalizedString("property.value.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.value.short_description"));
-			properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

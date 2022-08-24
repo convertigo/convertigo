@@ -32,30 +32,29 @@ public class CustomTransactionBeanInfo extends MySimpleBeanInfo {
 			additionalBeanClass = AbstractCouchDbTransaction.class;
 
 			resourceBundle = getResourceBundle("res/CustomTransaction");
-			
+
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/customtransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/customtransaction_color_32x32.png";
-			
+
 			properties = new PropertyDescriptor[3];
-			
+
 			properties[0] = new PropertyDescriptor("httpVerb", CustomTransaction.class, "getHttpVerb", "setHttpVerb");
 			properties[0].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
 			properties[0].setPropertyEditorClass(HttpMethodType.class);
 
-            properties[1] = new PropertyDescriptor("subUrl", beanClass, "getSubUrl", "setSubUrl");
-            properties[1].setDisplayName(getExternalizedString("property.subUrl.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.subUrl.short_description"));
-            //properties[1].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
-            properties[1].setValue("scriptable", Boolean.TRUE);
-			
-            properties[2] = new PropertyDescriptor("httpData", beanClass, "getHttpData", "setHttpData");
-            properties[2].setDisplayName(getExternalizedString("property.httpData.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.httpData.short_description"));
-            properties[2].setValue("scriptable", Boolean.TRUE);
+			properties[1] = new PropertyDescriptor("subUrl", beanClass, "getSubUrl", "setSubUrl");
+			properties[1].setDisplayName(getExternalizedString("property.subUrl.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.subUrl.short_description"));
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+
+			properties[2] = new PropertyDescriptor("httpData", beanClass, "getHttpData", "setHttpData");
+			properties[2].setDisplayName(getExternalizedString("property.httpData.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.httpData.short_description"));
+			properties[2].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

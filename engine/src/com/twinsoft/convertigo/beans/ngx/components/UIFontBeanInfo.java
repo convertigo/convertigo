@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIFontBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIFontBeanInfo() {
 		try {
 			beanClass = UIFont.class;
@@ -37,19 +37,19 @@ public class UIFontBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("fontSource", beanClass, "getFontSource", "setFontSource");
 			properties[0].setDisplayName(getExternalizedString("property.fontSource.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.fontSource.short_description"));
-            properties[0].setPropertyEditorClass(getEditorClass("NgxFontSourceEditor"));
-            properties[0].setValue("category", "@Font");
-			
+			properties[0].setPropertyEditorClass(getEditorClass("NgxFontSourceEditor"));
+			properties[0].setValue(CATEGORY, "@Font");
+
 			properties[1] = new PropertyDescriptor("isDefault", beanClass, "isDefault", "setDefault");
 			properties[1].setDisplayName(getExternalizedString("property.isDefault.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.isDefault.short_description"));
-            properties[1].setValue("category", "@Font");
+			properties[1].setValue(CATEGORY, "@Font");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

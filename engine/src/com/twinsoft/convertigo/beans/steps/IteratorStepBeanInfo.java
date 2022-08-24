@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class IteratorStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public IteratorStepBeanInfo() {
 		try {
 			beanClass = IteratorStep.class;
@@ -32,25 +32,26 @@ public class IteratorStepBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/iterator_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/iterator_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/IteratorStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
-            properties[0] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
+
+			properties[0] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
 			properties[0].setExpert(true);
 			properties[0].setDisplayName(getExternalizedString("property.sourceDefinition.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
-            properties[1] = new PropertyDescriptor("startIndex", beanClass, "getStartIndex", "setStartIndex");
+			properties[1] = new PropertyDescriptor("startIndex", beanClass, "getStartIndex", "setStartIndex");
 			properties[1].setDisplayName(getExternalizedString("property.startIndex.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.startIndex.short_description"));
-			properties[1].setValue("scriptable", Boolean.TRUE);
-			
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
+
 			PropertyDescriptor property = getPropertyDescriptor("condition");
 			property.setDisplayName(getExternalizedString("property.condition.display_name"));
 			property.setShortDescription(getExternalizedString("property.condition.short_description"));

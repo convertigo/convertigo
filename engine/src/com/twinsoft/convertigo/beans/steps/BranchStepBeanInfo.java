@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class BranchStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public BranchStepBeanInfo() {
 		try {
 			beanClass = BranchStep.class;
@@ -34,16 +34,17 @@ public class BranchStepBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[2];
 
-            properties[0] = new PropertyDescriptor("synchronous", beanClass, "isSynchronous", "setSynchronous");
-            properties[0].setDisplayName(getExternalizedString("property.synchronous.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.synchronous.short_description"));
-            properties[0].setHidden(true);
-			
-            properties[1] = new PropertyDescriptor("maxNumberOfThreads", beanClass, "getMaxNumberOfThreads", "setMaxNumberOfThreads");
-            properties[1].setDisplayName(getExternalizedString("property.maxNumberOfThreads.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.maxNumberOfThreads.short_description"));
-            properties[1].setValue("scriptable", Boolean.TRUE);
-            
+			properties[0] = new PropertyDescriptor("synchronous", beanClass, "isSynchronous", "setSynchronous");
+			properties[0].setDisplayName(getExternalizedString("property.synchronous.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.synchronous.short_description"));
+			properties[0].setHidden(true);
+
+			properties[1] = new PropertyDescriptor("maxNumberOfThreads", beanClass, "getMaxNumberOfThreads", "setMaxNumberOfThreads");
+			properties[1].setDisplayName(getExternalizedString("property.maxNumberOfThreads.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.maxNumberOfThreads.short_description"));
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

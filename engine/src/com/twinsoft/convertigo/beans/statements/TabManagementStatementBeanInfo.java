@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class TabManagementStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public TabManagementStatementBeanInfo() {
 		try {
 			beanClass = TabManagementStatement.class;
@@ -32,27 +32,27 @@ public class TabManagementStatementBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/tabmanagement_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/tabmanagement_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/TabManagementStatement");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[3];
-			
+
 			properties[0] = new PropertyDescriptor("action", beanClass, "getAction", "setAction");
 			properties[0].setDisplayName(getExternalizedString("property.action.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.action.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
-			
+
 			properties[1] = new PropertyDescriptor("jsIndex", beanClass, "getJsIndex", "setJsIndex");
 			properties[1].setDisplayName(getExternalizedString("property.jsindex.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.jsindex.short_description"));
-            properties[1].setValue("scriptable", Boolean.TRUE);
-            
-            properties[2] = new PropertyDescriptor("getIndexVarname", beanClass, "getGetIndexVarname", "setGetIndexVarname");
-            properties[2].setDisplayName(getExternalizedString("property.getindexvarname.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.getindexvarname.short_description"));
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+
+			properties[2] = new PropertyDescriptor("getIndexVarname", beanClass, "getGetIndexVarname", "setGetIndexVarname");
+			properties[2].setDisplayName(getExternalizedString("property.getindexvarname.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.getindexvarname.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

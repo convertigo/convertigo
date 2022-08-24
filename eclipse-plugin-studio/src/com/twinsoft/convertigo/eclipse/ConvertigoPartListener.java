@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -31,6 +33,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
 import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.part.FileInPlaceEditorInput;
 import org.eclipse.ui.views.properties.PropertySheet;
 
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
@@ -68,7 +71,7 @@ public class ConvertigoPartListener implements IPartListener {
 						try {
 							tree.getColumn(1).setWidth(tree.getBounds().width);
 						} catch (Exception e) {
-							
+
 						}
 					}
 				}
@@ -99,26 +102,26 @@ public class ConvertigoPartListener implements IPartListener {
 			((SourcePickerView)part).close();// close view properly
 		}
 		if (part instanceof ConsoleView) {
-    		ConvertigoPlugin convertigoPlugin = ConvertigoPlugin.getDefault();
-    		
+			ConvertigoPlugin convertigoPlugin = ConvertigoPlugin.getDefault();
+
 			boolean shuttingDown = convertigoPlugin.isShuttingDown();
 			if (shuttingDown) {
 				IConsole[] tabConsoles = ConsolePlugin.getDefault().getConsoleManager().getConsoles();
-        		String openedConsoles = "";
-        		
+				String openedConsoles = "";
+
 				for (IConsole console : tabConsoles) {
 					if (console instanceof MessageConsole) {
-		        		if ((console.equals(convertigoPlugin.engineConsole)) && (openedConsoles.indexOf("engine") == -1))
-		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "engine";
-		        		else if ((console.equals(convertigoPlugin.stdoutConsole)) && (openedConsoles.indexOf("stdout") == -1))
-		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "stdout";
-		        	}
+						if ((console.equals(convertigoPlugin.engineConsole)) && (openedConsoles.indexOf("engine") == -1))
+							openedConsoles += (openedConsoles.equals("") ? "":",") + "engine";
+						else if ((console.equals(convertigoPlugin.stdoutConsole)) && (openedConsoles.indexOf("stdout") == -1))
+							openedConsoles += (openedConsoles.equals("") ? "":",") + "stdout";
+					}
 				}
 
 				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_OPENED_CONSOLES, openedConsoles);
 			}
 		}
-		
+
 		if (part instanceof EditorPart) {
 			IEditorInput input = ((EditorPart)part).getEditorInput();
 			if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
@@ -130,8 +133,7 @@ public class ConvertigoPartListener implements IPartListener {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}
-			if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
 				try {
 					com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput acei = GenericUtils.cast(input);
 					MobileBuilder mb = acei.getApplication().getProject().getMobileBuilder();
@@ -140,11 +142,22 @@ public class ConvertigoPartListener implements IPartListener {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}
-			
-			if (input instanceof JScriptEditorInput) {
+			} else if (input instanceof JScriptEditorInput) {
 				try {
-					((JScriptEditorInput) input).getFile().getParent().delete(true, null);
+					IFile file = ((JScriptEditorInput) input).getFile();
+					file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
+					file.getParent().delete(true, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else if (input instanceof FileInPlaceEditorInput) {
+				try {
+					IFile file = ((FileInPlaceEditorInput) input).getFile();
+					String path = file.getProjectRelativePath().toString();
+					if (path.startsWith("_private/editor/")) {
+						file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
+						file.getParent().delete(true, null);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -188,7 +201,7 @@ public class ConvertigoPartListener implements IPartListener {
 						} catch (Exception e) {
 						}
 						tree.addKeyListener(new KeyAdapter() {
-							
+
 							@Override
 							public void keyReleased(KeyEvent event) {
 								boolean bCtrl = (((event.stateMask & SWT.CONTROL) != 0) || ((event.stateMask & SWT.CTRL) != 0));
@@ -203,7 +216,7 @@ public class ConvertigoPartListener implements IPartListener {
 									}
 								}
 							}
-							
+
 						});
 					}
 				}

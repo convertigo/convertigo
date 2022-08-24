@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIActionCaseEventBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIActionCaseEventBeanInfo() {
 		try {
 			beanClass = UIActionCaseEvent.class;
@@ -37,19 +37,19 @@ public class UIActionCaseEventBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("caseValue", beanClass, "getCaseValue", "setCaseValue");
 			properties[0].setDisplayName(getExternalizedString("property.caseValue.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.caseValue.short_description"));
-			properties[0].setValue("scriptable", Boolean.TRUE);
-			properties[0].setValue("category", "@Properties");
-			
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(CATEGORY, "@Properties");
+
 			properties[1] = new PropertyDescriptor("passThrough", beanClass, "isPassThrough", "setPassThrough");
 			properties[1].setDisplayName(getExternalizedString("property.passThrough.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.passThrough.short_description"));
-			properties[1].setValue("category", "@Properties");
+			properties[1].setValue(CATEGORY, "@Properties");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

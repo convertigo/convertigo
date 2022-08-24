@@ -24,21 +24,21 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class BlockStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public BlockStatementBeanInfo() {
 		try {
 			beanClass = BlockStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.StatementWithExpressions.class;
 
 			resourceBundle = getResourceBundle("res/BlockStatement");
-			
+
 			properties = new PropertyDescriptor[1];
 
-            properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
-            properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
-			
+			properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
+			properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

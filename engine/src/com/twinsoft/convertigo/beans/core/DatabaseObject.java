@@ -737,7 +737,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 
 			root.appendChild(propertyElement);
 
-			if (Boolean.TRUE.equals(propertyDescriptor.getValue("nillable"))) {
+			if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE))) {
 				try {
 					Method method = this.getClass().getMethod("isNullProperty",
 							new Class[] { String.class });
@@ -922,7 +922,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 								+ targetException.getMessage());
 					}
 
-					if (Boolean.TRUE.equals(pd.getValue("nillable"))) {
+					if (Boolean.TRUE.equals(pd.getValue(MySimpleBeanInfo.NILLABLE))) {
 						Node nodeNull = childAttributes.getNamedItem("isNull");
 						String valNull = (nodeNull == null) ? "false" : nodeNull.getNodeValue();
 						Engine.logBeans.trace("  treats as null='" + valNull + "'");

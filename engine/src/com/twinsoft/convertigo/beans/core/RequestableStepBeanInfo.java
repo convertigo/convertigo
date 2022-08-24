@@ -22,22 +22,23 @@ package com.twinsoft.convertigo.beans.core;
 import java.beans.PropertyDescriptor;
 
 public class RequestableStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public RequestableStepBeanInfo() {
 		try {
 			beanClass = RequestableStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
 			resourceBundle = getResourceBundle("res/RequestableStep");
-			
+
 			properties = new PropertyDescriptor[2];
-			
-            properties[0] = new PropertyDescriptor("contextName", beanClass, "getStepContextName", "setStepContextName");
+
+			properties[0] = new PropertyDescriptor("contextName", beanClass, "getStepContextName", "setStepContextName");
 			properties[0].setDisplayName(getExternalizedString("property.contextName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.contextName.short_description"));
-			properties[0].setValue("scriptable", Boolean.TRUE);
-			
-            properties[1] = new PropertyDescriptor("bInternalInvoke", beanClass, "isInternalInvoke", "setInternalInvoke");
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
+
+			properties[1] = new PropertyDescriptor("bInternalInvoke", beanClass, "isInternalInvoke", "setInternalInvoke");
 			properties[1].setDisplayName(getExternalizedString("property.bInternalInvoke.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.bInternalInvoke.short_description"));
 		}

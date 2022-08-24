@@ -30,20 +30,20 @@ public class AbstractClientInstructionWithPathBeanInfo extends MySimpleBeanInfo 
 			beanClass = AbstractClientInstructionWithPath.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.BaseRule.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_injector_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_injector_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_injector_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_injector_color_32x32.png";
 
 			resourceBundle = getResourceBundle("res/AbstractClientInstructionWithPath");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
-			
+
 			properties = new PropertyDescriptor[1];
 
 			properties[0] = new PropertyDescriptor("targetPath", beanClass, "getTargetPath", "setTargetPath");
-	        properties[0].setDisplayName(getExternalizedString("property.targetpath.display_name"));
-	        properties[0].setShortDescription(getExternalizedString("property.targetpath.short_description"));
-	        properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setDisplayName(getExternalizedString("property.targetpath.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.targetpath.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

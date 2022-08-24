@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public ExceptionStepBeanInfo() {
 		try {
 			beanClass = ExceptionStep.class;
@@ -32,23 +32,24 @@ public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/exception_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/exception_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/ExceptionStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
-			properties = new PropertyDescriptor[1];
-			
-	        properties[0] = new PropertyDescriptor("details", beanClass, "getDetails", "setDetails");
-	        properties[0].setDisplayName(getExternalizedString("property.details.display_name"));
-	        properties[0].setShortDescription(getExternalizedString("property.details.short_description"));
-	        properties[0].setValue("scriptable", Boolean.TRUE);
-	        properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
 
-	        PropertyDescriptor property = getPropertyDescriptor("expression");
-	        property.setDisplayName(getExternalizedString("property.message.display_name"));
-	        property.setShortDescription(getExternalizedString("property.message.short_description"));
+			properties = new PropertyDescriptor[1];
+
+			properties[0] = new PropertyDescriptor("details", beanClass, "getDetails", "setDetails");
+			properties[0].setDisplayName(getExternalizedString("property.details.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.details.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
+			properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
+
+			PropertyDescriptor property = getPropertyDescriptor("expression");
+			property.setDisplayName(getExternalizedString("property.message.display_name"));
+			property.setShortDescription(getExternalizedString("property.message.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

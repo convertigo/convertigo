@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class NavigationBarStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public NavigationBarStatementBeanInfo() {
 		try {
 			beanClass = NavigationBarStatement.class;
@@ -32,24 +32,24 @@ public class NavigationBarStatementBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/navigationbar_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/navigationbar_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/NavigationBarStatement");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[3];
-			
+
 			properties[0] = new PropertyDescriptor("action", beanClass, "getAction", "setAction");
 			properties[0].setDisplayName(getExternalizedString("property.action.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.action.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
-			
+
 			properties[1] = new PropertyDescriptor("jsUrl", beanClass, "getJsUrl", "setJsUrl");
 			properties[1].setDisplayName(getExternalizedString("property.jsurl.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.jsurl.short_description"));
-            properties[1].setValue("scriptable", Boolean.TRUE);
-			
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+
 			properties[2] = new PropertyDescriptor("trigger", beanClass, "getTrigger", "setTrigger");
 			properties[2].setDisplayName(getExternalizedString("property.trigger.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.trigger.short_description"));

@@ -19,11 +19,13 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class CommentEditingSupport extends EditingSupport {
@@ -69,7 +71,14 @@ public class CommentEditingSupport extends EditingSupport {
 	
 	@Override
 	protected boolean canEdit(Object element) {
-		return element instanceof DatabaseObjectTreeObject;
+		if (element instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) element;
+			DatabaseObject dbo = databaseObjectTreeObject.getObject();
+			IFolder folder = databaseObjectTreeObject.getProjectTreeObject().getFolder(
+					"_private/editor/" + dbo.getShortQName() + "-comment");
+			return !folder.exists();
+		};
+		return false;
 	}
 
 }

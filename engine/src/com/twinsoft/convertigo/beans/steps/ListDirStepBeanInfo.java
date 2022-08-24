@@ -30,26 +30,27 @@ public class ListDirStepBeanInfo extends MySimpleBeanInfo {
 		try {
 			beanClass = ListDirStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
-	
+
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/listdir_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/listdir_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/ListDirStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
-			properties = new PropertyDescriptor[2];
-	
-	        properties[0] = new PropertyDescriptor("sourceDirectory", beanClass, "getSourceDirectory", "setSourceDirectory");
-	        properties[0].setDisplayName(getExternalizedString("property.sourceDirectory.display_name"));
-	        properties[0].setShortDescription(getExternalizedString("property.sourceDirectory.short_description"));
-	        properties[0].setValue("scriptable", Boolean.TRUE);
 
-	        properties[1] = new PropertyDescriptor("fileSortByPolicy", beanClass, "getFileSortByPolicy", "setFileSortByPolicy");
-	        properties[1].setDisplayName(getExternalizedString("property.fileSortByPolicy.display_name"));
-	        properties[1].setShortDescription(getExternalizedString("property.fileSortByPolicy.short_description"));
-	        properties[1].setPropertyEditorClass(FileSortByPolicy.class);
+			properties = new PropertyDescriptor[2];
+
+			properties[0] = new PropertyDescriptor("sourceDirectory", beanClass, "getSourceDirectory", "setSourceDirectory");
+			properties[0].setDisplayName(getExternalizedString("property.sourceDirectory.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.sourceDirectory.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
+
+			properties[1] = new PropertyDescriptor("fileSortByPolicy", beanClass, "getFileSortByPolicy", "setFileSortByPolicy");
+			properties[1].setDisplayName(getExternalizedString("property.fileSortByPolicy.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.fileSortByPolicy.short_description"));
+			properties[1].setPropertyEditorClass(FileSortByPolicy.class);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

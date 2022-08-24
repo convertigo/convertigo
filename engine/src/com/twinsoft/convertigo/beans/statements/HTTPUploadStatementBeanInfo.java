@@ -32,26 +32,26 @@ public class HTTPUploadStatementBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_32x32.png";
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			resourceBundle = getResourceBundle("res/HTTPUploadStatement");
-			
+
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
-			
+
 			properties[0] = new PropertyDescriptor("filename", beanClass, "getFilename", "setFilename");
 			properties[0].setDisplayName(getExternalizedString("property.filename.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.filename.short_description"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
-			
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+
 			properties[1] = new PropertyDescriptor("httpFilename", beanClass, "getHttpFilename", "setHttpFilename");
 			properties[1].setDisplayName(getExternalizedString("property.httpfilename.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.httpfilename.short_description"));
-            properties[1].setValue("scriptable", Boolean.TRUE);
-            
-            PropertyDescriptor property = getPropertyDescriptor("httpVerb");
-            property.setHidden(true);            
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+
+			PropertyDescriptor property = getPropertyDescriptor("httpVerb");
+			property.setHidden(true);            
 		} catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
 		}

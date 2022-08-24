@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class MoveFileStepBeanInfo extends MySimpleBeanInfo{
-	
+
 	public MoveFileStepBeanInfo() {
 		try {
 			beanClass = MoveFileStep.class;
@@ -32,25 +32,27 @@ public class MoveFileStepBeanInfo extends MySimpleBeanInfo{
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/move_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/move_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/MoveFileStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");	          
-		
+			shortDescription = resourceBundle.getString("short_description");
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("dataFile", beanClass, "getDataFile", "setDataFile");
 			properties[0].setExpert(true);
 			properties[0].setDisplayName(getExternalizedString("property.dataFile.display_name"));
-	        properties[0].setShortDescription(getExternalizedString("property.dataFile.short_description"));            
-	        properties[0].setValue("scriptable", Boolean.TRUE);
-	        
-	        properties[1] = new PropertyDescriptor("newFilename", beanClass, "getNewFilename", "setNewFilename");
+			properties[0].setShortDescription(getExternalizedString("property.dataFile.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
+
+			properties[1] = new PropertyDescriptor("newFilename", beanClass, "getNewFilename", "setNewFilename");
 			properties[1].setExpert(true);
 			properties[1].setDisplayName(getExternalizedString("property.newFilename.display_name"));
-	        properties[1].setShortDescription(getExternalizedString("property.newFilename.short_description"));    
-	        properties[1].setValue("scriptable", Boolean.TRUE);
+			properties[1].setShortDescription(getExternalizedString("property.newFilename.short_description"));
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

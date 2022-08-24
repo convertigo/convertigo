@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class SimpleIteratorStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public SimpleIteratorStepBeanInfo() {
 		try {
 			beanClass = SimpleIteratorStep.class;
@@ -32,25 +32,26 @@ public class SimpleIteratorStepBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jiterator_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jiterator_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/SimpleIteratorStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
-			properties = new PropertyDescriptor[2];
-			
-            properties[0] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
-            properties[0].setDisplayName(getExternalizedString("property.expression.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.expression.short_description"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
-            properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);  
 
-            properties[1] = new PropertyDescriptor("startIndex", beanClass, "getStartIndex", "setStartIndex");
+			properties = new PropertyDescriptor[2];
+
+			properties[0] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
+			properties[0].setDisplayName(getExternalizedString("property.expression.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.expression.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
+			properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);  
+
+			properties[1] = new PropertyDescriptor("startIndex", beanClass, "getStartIndex", "setStartIndex");
 			properties[1].setDisplayName(getExternalizedString("property.startIndex.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.startIndex.short_description"));
-			properties[1].setValue("scriptable", Boolean.TRUE);
-			
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+
 			PropertyDescriptor property = getPropertyDescriptor("condition");
 			property.setDisplayName(getExternalizedString("property.condition.display_name"));
 			property.setShortDescription(getExternalizedString("property.condition.short_description"));

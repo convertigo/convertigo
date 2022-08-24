@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIDynamicTagBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIDynamicTagBeanInfo() {
 		try {
 			beanClass = UIDynamicTag.class;
@@ -34,13 +34,13 @@ public class UIDynamicTagBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[0];
-			
-			getPropertyDescriptor("tagName").setValue("category", "@Component");
-			getPropertyDescriptor("tagName").setValue("disable", Boolean.FALSE);
+
+			getPropertyDescriptor("tagName").setValue(CATEGORY, "@Component");
+			getPropertyDescriptor("tagName").setValue(DISABLE, Boolean.FALSE);
 			getPropertyDescriptor("tagName").setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
-			
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIControlDirectiveBeanInfo() {
 		try {
 			beanClass = UIControlDirective.class;
@@ -37,37 +37,37 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[5];
-			
+
 			properties[0] = new PropertyDescriptor("directiveName", beanClass, "getDirectiveName", "setDirectiveName");
 			properties[0].setDisplayName(getExternalizedString("property.directiveName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.directiveName.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
-			
+
 			properties[1] = new PropertyDescriptor("directiveExpression", beanClass, "getDirectiveExpression", "setDirectiveExpression");
 			properties[1].setDisplayName(getExternalizedString("property.directiveExpression.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.directiveExpression.short_description"));
-			properties[1].setValue("scriptable", Boolean.TRUE);
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
 			properties[1].setExpert(true);
-			
-            properties[2] = new PropertyDescriptor("directiveSource", beanClass, "getSourceSmartType", "setSourceSmartType");
-            properties[2].setDisplayName(getExternalizedString("property.directiveSource.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.directiveSource.short_description"));
-            properties[2].setPropertyEditorClass(getEditorClass("NgxSmartSourcePropertyDescriptor"));
-            properties[2].setExpert(true);
-			
-            properties[3] = new PropertyDescriptor("directiveItemName", beanClass, "getDirectiveItemName", "setDirectiveItemName");
-            properties[3].setDisplayName(getExternalizedString("property.directiveItemName.display_name"));
-            properties[3].setShortDescription(getExternalizedString("property.directiveItemName.short_description"));
-            properties[3].setExpert(true);
 
-            properties[4] = new PropertyDescriptor("directiveIndexName", beanClass, "getDirectiveIndexName", "setDirectiveIndexName");
-            properties[4].setDisplayName(getExternalizedString("property.directiveIndexName.display_name"));
-            properties[4].setShortDescription(getExternalizedString("property.directiveIndexName.short_description"));
-            properties[4].setExpert(true);
-            
-            getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
+			properties[2] = new PropertyDescriptor("directiveSource", beanClass, "getSourceSmartType", "setSourceSmartType");
+			properties[2].setDisplayName(getExternalizedString("property.directiveSource.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.directiveSource.short_description"));
+			properties[2].setPropertyEditorClass(getEditorClass("NgxSmartSourcePropertyDescriptor"));
+			properties[2].setExpert(true);
+
+			properties[3] = new PropertyDescriptor("directiveItemName", beanClass, "getDirectiveItemName", "setDirectiveItemName");
+			properties[3].setDisplayName(getExternalizedString("property.directiveItemName.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.directiveItemName.short_description"));
+			properties[3].setExpert(true);
+
+			properties[4] = new PropertyDescriptor("directiveIndexName", beanClass, "getDirectiveIndexName", "setDirectiveIndexName");
+			properties[4].setDisplayName(getExternalizedString("property.directiveIndexName.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.directiveIndexName.short_description"));
+			properties[4].setExpert(true);
+
+			getPropertyDescriptor("tagName").setValue(DISABLE, Boolean.TRUE);
 			getPropertyDescriptor("selfClose").setHidden(true);
 			getPropertyDescriptor("identifier").setHidden(true);
 		}

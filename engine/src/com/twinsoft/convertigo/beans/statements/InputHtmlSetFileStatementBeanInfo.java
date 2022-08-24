@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class InputHtmlSetFileStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public InputHtmlSetFileStatementBeanInfo() {
 		try {
 			beanClass = InputHtmlSetFileStatement.class;
@@ -32,9 +32,9 @@ public class InputHtmlSetFileStatementBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/inputhtmlsetfile_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/inputhtmlsetfile_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/InputHtmlSetFileStatement");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
@@ -43,7 +43,7 @@ public class InputHtmlSetFileStatementBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("filename", beanClass, "getFilename", "setFilename");
 			properties[0].setDisplayName(getExternalizedString("property.filename.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.filename.short_description"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

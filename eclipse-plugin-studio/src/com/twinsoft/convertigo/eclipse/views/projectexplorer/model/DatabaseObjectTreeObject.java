@@ -85,6 +85,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.DataPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicInfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.EmulatorTechnologyEditor;
@@ -95,8 +96,8 @@ import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAd
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.TextGenericCellEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScriptablePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -529,30 +530,24 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 		// Special cases
 		if (propertyDescriptor == null) {
-			// editor for scriptable properties
-			Object scriptable = databaseObjectPropertyDescriptor.getValue("scriptable");
-			if ((scriptable != null) && (scriptable.equals(Boolean.TRUE)))
-				propertyDescriptor = new ScriptablePropertyDescriptor(name, displayName);
+			boolean disable = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.DISABLE));
 			
-			// editor for nillable properties
-			if (propertyDescriptor == null) {
-				Object nillable = databaseObjectPropertyDescriptor.getValue("nillable");
-				if ((nillable != null) && (nillable.equals(Boolean.TRUE))) {
-					int style = isMasked ? SWT.PASSWORD:SWT.NONE;
+			if (disable) {
+				propertyDescriptor = new InfoPropertyDescriptor(name, displayName);
+			} else {
+				boolean multiline = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.MULTILINE));
+				int style = isMasked ? SWT.PASSWORD : multiline ? SWT.MULTI : SWT.NONE;
+				boolean nillable = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE));
+				if (nillable) {
 					if (value instanceof String) {
-						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, StringOrNullEditor.class, style);
+						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, StringOrNullEditor.class, style, this, databaseObjectPropertyDescriptor);
+					} else if (value instanceof XMLVector) {
+						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, ArrayOrNullEditor.class, style, this, databaseObjectPropertyDescriptor);
 					}
-					else if (value instanceof XMLVector) {
-						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, ArrayOrNullEditor.class, style);
-					}
+				} else {
+					propertyDescriptor = new DataPropertyDescriptor(name, displayName, TextGenericCellEditor.class, style, this, databaseObjectPropertyDescriptor);
 				}
 			}
-			
-			// editor for disabled properties
-			Object disable = databaseObjectPropertyDescriptor.getValue("disable");
-			if ((disable != null) && (disable.equals(Boolean.TRUE)))
-				propertyDescriptor = new InfoPropertyDescriptor(name, displayName);
-			
 		}
 
 		// Default case
@@ -618,7 +613,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			if (isExtractionRule) {
 				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Selection" : "Configuration");
 			} else {
-				Object categoryValue = databaseObjectPropertyDescriptor.getValue("category");
+				Object categoryValue = databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.CATEGORY);
 				String category = categoryValue == null ? "Base properties" : String.valueOf(categoryValue);
 
 				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Expert" : category);
@@ -809,7 +804,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				}
 				
 				// Get property's nillable value
-				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("nillable"))) {
+				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE))) {
 					try {
 						Boolean isNull = ((INillableProperty)databaseObject).isNullProperty(propertyName);
 						PropertyDescriptor pd = findPropertyDescriptor(propertyName);
@@ -1026,7 +1021,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 			
 			// Set property's nillable value
-			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("nillable"))) {
+			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE))) {
 				try {
 					PropertyDescriptor pd = findPropertyDescriptor(propertyName);
 					if ((pd != null) && (pd instanceof DataOrNullPropertyDescriptor)) {

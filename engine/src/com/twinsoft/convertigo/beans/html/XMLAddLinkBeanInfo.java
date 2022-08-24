@@ -24,28 +24,28 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class XMLAddLinkBeanInfo extends MySimpleBeanInfo {
-    
+
 	public XMLAddLinkBeanInfo() {
 		try {
 			beanClass = XMLAddLink.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.html.XMLAddText.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/html/images/xml_add_link_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/html/images/xml_add_link_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/html/images/xml_add_link_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/html/images/xml_add_link_color_32x32.png";
 
 			resourceBundle = getResourceBundle("res/XMLAddLink");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("href", beanClass, "getHref", "setHref");
 			properties[0].setDisplayName(getExternalizedString("property.href.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.href.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
-			properties[0].setValue("scriptable", Boolean.TRUE);
-			
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+
 			properties[1] = new PropertyDescriptor("targetBlank", beanClass, "isTargetBlank", "setTargetBlank");
 			properties[1].setDisplayName(getExternalizedString("property.targetBlank.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.targetBlank.short_description"));

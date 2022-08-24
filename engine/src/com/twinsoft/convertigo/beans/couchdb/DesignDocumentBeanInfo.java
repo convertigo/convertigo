@@ -30,23 +30,23 @@ public class DesignDocumentBeanInfo extends MySimpleBeanInfo {
 			beanClass =  DesignDocument.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.JsonDocument.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/couchdb/images/designdocument_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/couchdb/images/designdocument_color_32x32.png";
-			
+			iconNameC16 = "/com/twinsoft/convertigo/beans/couchdb/images/designdocument_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/couchdb/images/designdocument_color_32x32.png";
+
 			resourceBundle = getResourceBundle("res/DesignDocument");
-			
+
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");	
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("_id", DesignDocument.class, "getId", "setId");
-			properties[0].setValue("disable", Boolean.TRUE);
+			properties[0].setValue(DISABLE, Boolean.TRUE);
 			properties[0].setDisplayName(getExternalizedString("property._id.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property._id.short_description"));			
-			
+
 			properties[1] = new PropertyDescriptor("_rev", DesignDocument.class, "getRevision", "setRevision");
-			properties[1].setValue("disable", Boolean.TRUE);
+			properties[1].setValue(DISABLE, Boolean.TRUE);
 			properties[1].setDisplayName(getExternalizedString("property._rev.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property._rev.short_description"));			
 		}

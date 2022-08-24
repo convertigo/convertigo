@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIDynamicMenuItemBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIDynamicMenuItemBeanInfo() {
 		try {
 			beanClass = UIDynamicMenuItem.class;
@@ -34,19 +34,19 @@ public class UIDynamicMenuItemBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[4];
-			
+
 			properties[0] = new PropertyDescriptor("itempage", beanClass, "getItemPage", "setItemPage");
 			properties[0].setDisplayName(getExternalizedString("property.itempage.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.itempage.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
-			
+
 			properties[1] = new PropertyDescriptor("itemtitle", beanClass, "getItemTitle", "setItemTitle");
 			properties[1].setDisplayName(getExternalizedString("property.itemtitle.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.itemtitle.short_description"));
-			properties[1].setValue("scriptable", Boolean.TRUE);
-			
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+
 			properties[2] = new PropertyDescriptor("itemicon", beanClass, "getItemIcon", "setItemIcon");
 			properties[2].setDisplayName(getExternalizedString("property.itemicon.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.itemicon.short_description"));

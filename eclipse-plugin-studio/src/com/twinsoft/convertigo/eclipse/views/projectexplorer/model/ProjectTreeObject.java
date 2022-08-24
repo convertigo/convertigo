@@ -872,11 +872,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 	
 	public IFile getFile(String name) {
-		return getIProject().getFile( name);
+		return getIProject().getFile(name);
 	}
 	
 	public IFolder getFolder(String name) {
-		return getIProject().getFolder( name);
+		return getIProject().getFolder(name);
 	}
 	
 	@Override

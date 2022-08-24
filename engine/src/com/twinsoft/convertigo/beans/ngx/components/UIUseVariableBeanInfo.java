@@ -37,16 +37,16 @@ public class UIUseVariableBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[1];
-			
+
 			properties[0] = new PropertyDescriptor("binding", beanClass, "getBinding", "setBinding");
 			properties[0].setDisplayName(getExternalizedString("property.binding.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.binding.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StringComboBoxPropertyDescriptor"));
-			properties[0].setValue("category", "@Component");
-			
-			getPropertyDescriptor("varValue").setValue("category", "@Component");
+			properties[0].setValue(CATEGORY, "@Component");
+
+			getPropertyDescriptor("varValue").setValue(CATEGORY, "@Component");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

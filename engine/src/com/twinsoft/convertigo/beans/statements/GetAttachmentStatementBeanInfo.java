@@ -25,7 +25,7 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.AttachmentManager.Policy;
 
 public class GetAttachmentStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public GetAttachmentStatementBeanInfo() {
 		try {
 			beanClass = GetAttachmentStatement.class;
@@ -33,31 +33,31 @@ public class GetAttachmentStatementBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/getattachment_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/getattachment_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/GetAttachmentStatement");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
 			properties = new PropertyDescriptor[4];
 
-            properties[0] = new PropertyDescriptor("timeout", beanClass, "getTimeout", "setTimeout");
-            properties[0].setDisplayName(getExternalizedString("property.timeout.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.timeout.short_description"));
-            
-            properties[1] = new PropertyDescriptor("policy", beanClass, "getPolicy", "setPolicy");
-            properties[1].setDisplayName(getExternalizedString("property.policy.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.policy.short_description"));
-			properties[1].setPropertyEditorClass(Policy.class);
-            
-            properties[2] = new PropertyDescriptor("filename", beanClass, "getFilename", "setFilename");
-            properties[2].setDisplayName(getExternalizedString("property.filename.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.filename.short_description"));
-            properties[2].setValue("scriptable", Boolean.TRUE);
+			properties[0] = new PropertyDescriptor("timeout", beanClass, "getTimeout", "setTimeout");
+			properties[0].setDisplayName(getExternalizedString("property.timeout.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.timeout.short_description"));
 
-            properties[3] = new PropertyDescriptor("threshold", beanClass, "getThreshold", "setThreshold");
-            properties[3].setDisplayName(getExternalizedString("property.threshold.display_name"));
-            properties[3].setShortDescription(getExternalizedString("property.threshold.short_description"));
+			properties[1] = new PropertyDescriptor("policy", beanClass, "getPolicy", "setPolicy");
+			properties[1].setDisplayName(getExternalizedString("property.policy.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.policy.short_description"));
+			properties[1].setPropertyEditorClass(Policy.class);
+
+			properties[2] = new PropertyDescriptor("filename", beanClass, "getFilename", "setFilename");
+			properties[2].setDisplayName(getExternalizedString("property.filename.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.filename.short_description"));
+			properties[2].setValue(SCRIPTABLE, Boolean.TRUE);
+
+			properties[3] = new PropertyDescriptor("threshold", beanClass, "getThreshold", "setThreshold");
+			properties[3].setDisplayName(getExternalizedString("property.threshold.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.threshold.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
