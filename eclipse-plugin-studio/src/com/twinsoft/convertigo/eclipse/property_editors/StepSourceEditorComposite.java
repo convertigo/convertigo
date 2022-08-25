@@ -64,7 +64,17 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 	private String sourceXpath = null;
 	private boolean sourceChanged = false;
 	
+
+	
 	public StepSourceEditorComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
+		this(parent, style, cellEditor, null, null);
+	}
+	
+	public StepSourceEditorComposite(Composite parent, int style, Step currentStep, Object value) {
+		this(parent, style, null, currentStep, value);
+	}
+	
+	private StepSourceEditorComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor, Step currentStep, Object value) {
 		super(parent, style, cellEditor);
 		
 		sourcePicker = new SourcePickerHelper() {
@@ -118,23 +128,31 @@ public class StepSourceEditorComposite extends AbstractDialogComposite {
 			}
 		};
 		
-		if (cellEditor.databaseObjectTreeObject == null) {
-			Composite parentEditorComposite = cellEditor.getControl().getParent();
-			while (!(parentEditorComposite instanceof TableEditorComposite)) {
-				parentEditorComposite = parentEditorComposite.getParent();
+		if (currentStep != null) {
+			step = currentStep;
+		} else {
+			if (cellEditor.databaseObjectTreeObject == null) {
+				Composite parentEditorComposite = cellEditor.getControl().getParent();
+				while (!(parentEditorComposite instanceof TableEditorComposite)) {
+					parentEditorComposite = parentEditorComposite.getParent();
+				}
+				step = (Step)((TableEditorComposite)parentEditorComposite).cellEditor.databaseObjectTreeObject.getObject();
+			} else {
+				Object object = cellEditor.databaseObjectTreeObject.getObject();
+				if (object instanceof Step) {
+					step = (Step) object;
+				} else { // Variable
+					step = (Step) ((Variable) object).getParent();
+				}
 			}
-			step = (Step)((TableEditorComposite)parentEditorComposite).cellEditor.databaseObjectTreeObject.getObject();
-		}
-		else {
-			Object object = cellEditor.databaseObjectTreeObject.getObject();
-			if (object instanceof Step)
-				step = (Step)object;
-			else // Variable
-				step = (Step)((Variable)object).getParent();
 		}
 		
-		sourcePicker.setStepSourceDefinition(GenericUtils.<XMLVector<String>>cast(GenericUtils.clone(cellEditor.getEditorData())));
-				
+		if (value == null) {
+			value = cellEditor.getEditorData();
+		}
+		
+		sourcePicker.setStepSourceDefinition(GenericUtils.<XMLVector<String>>cast(GenericUtils.clone(value)));
+		
 		initialize();
 	}
 

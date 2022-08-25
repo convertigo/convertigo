@@ -637,7 +637,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		try {
 			boolean bHide = "true".equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_HIDE_LIB_PROJECTS));
 			ActionContributionItem item = (ActionContributionItem) getViewSite().getActionBars().getToolBarManager().find("com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.toggleLibs");
-			item.getAction().setChecked(bHide);
+			if (item != null) {
+				item.getAction().setChecked(bHide);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

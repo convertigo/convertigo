@@ -54,8 +54,8 @@ public class JsonToXmlStepBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("jsonSample", beanClass, "getJsonSample", "setJsonSample");
 			properties[2].setDisplayName(getExternalizedString("property.jsonSample.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.jsonSample.short_description"));
-			properties[2].setPropertyEditorClass(getEditorClass("GenericTextEditor"));
 			properties[2].setValue(GENERIC_EDITOR_EXTENSION, "json");
+			properties[2].setValue(MULTILINE, true);
 			properties[2].setExpert(true);
 		}
 		catch(Exception e) {

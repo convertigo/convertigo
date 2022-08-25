@@ -94,6 +94,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsE
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.SmartTypeCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.TextGenericCellEditor;
@@ -472,7 +473,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					tags = (String[]) getTags.invoke(null, new Object[] { this } );
 					propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
 				}
-   			}
+			}
 			else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
@@ -526,6 +527,29 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				
 				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
 			}
+			else if (SmartTypeCellEditor.class.isAssignableFrom(pec)) {
+				propertyDescriptor = new PropertyDescriptor(name, displayName) {
+					@Override
+					public CellEditor createPropertyEditor(Composite parent) {
+						try {
+
+							Constructor<?> constructor = pec.getConstructor(new Class[] {
+								Composite.class, DatabaseObjectTreeObject.class, java.beans.PropertyDescriptor.class
+							});
+							SmartTypeCellEditor editor = (SmartTypeCellEditor) constructor.newInstance(new Object[] {
+								parent, DatabaseObjectTreeObject.this, databaseObjectPropertyDescriptor
+							});
+							if (getValidator() != null) {
+								editor.setValidator(getValidator());
+							}
+							return editor;
+						} catch(Exception e) {
+							ConvertigoPlugin.logException(e, "Unexpected exception");
+							return null;
+						}
+					}
+				};
+			}
 		}
 
 		// Special cases
@@ -544,7 +568,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					} else if (value instanceof XMLVector) {
 						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, ArrayOrNullEditor.class, style, this, databaseObjectPropertyDescriptor);
 					}
-				} else {
+				} else if (multiline) {
 					propertyDescriptor = new DataPropertyDescriptor(name, displayName, TextGenericCellEditor.class, style, this, databaseObjectPropertyDescriptor);
 				}
 			}

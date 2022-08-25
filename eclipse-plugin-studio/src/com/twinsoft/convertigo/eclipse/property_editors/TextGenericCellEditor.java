@@ -38,6 +38,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IWorkbenchPage;
@@ -65,7 +66,7 @@ public class TextGenericCellEditor extends TextCellEditor {
 	protected PropertyDescriptor propertyDescriptor;
 	protected IWorkbenchPage activePage;
 	private IPropertyListener listener;
-	private FileInPlaceEditorInput input;
+	protected FileInPlaceEditorInput input;
 	protected IEditorPart editorPart;
 
 	public TextGenericCellEditor(Composite parent, int style, DatabaseObjectTreeObject databaseObjectTreeObject, PropertyDescriptor propertyDescriptor) {
@@ -85,12 +86,10 @@ public class TextGenericCellEditor extends TextCellEditor {
 		Color bg = parent.getBackground();
 
 		editor = new Composite(parent, getStyle()) {
-
 			@Override
 			public boolean isFocusControl() {
 				return true;
 			}
-
 		};
 		editor.setFont(font);
 		editor.setBackground(bg);
@@ -102,6 +101,9 @@ public class TextGenericCellEditor extends TextCellEditor {
 		super.createControl(editor);
 
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		for (Listener l: text.getListeners(SWT.FocusOut)) {
+			text.removeListener(SWT.FocusOut, l);
+		}
 		
 		if ((text.getStyle() & SWT.MULTI) != 0) {
 			button = new Button(editor, SWT.PUSH);
@@ -113,33 +115,7 @@ public class TextGenericCellEditor extends TextCellEditor {
 				public void widgetDefaultSelected(SelectionEvent event) {}
 				
 				public void widgetSelected(SelectionEvent event) {
-					try {
-						if ("js".equals(input.getFile().getFileExtension())) {
-							DatabaseObject dbo = databaseObjectTreeObject.getObject();
-							if (dbo instanceof Step) {
-								dbo = ((Step) dbo).getSequence();
-							}
-							if (dbo instanceof IVariableContainer) {
-								IVariableContainer vc = (IVariableContainer) dbo;
-								StringBuilder sb = new StringBuilder();
-								for (Variable v: vc.getVariables()) {
-									sb.append("declare var ").append(v.getName()).append(v.isMultiValued() ? ": Array<string>" : ": string\n");
-								}
-								SwtUtils.fillFile(((IFolder) input.getFile().getParent()).getFile("variables.d.ts"), sb.toString());
-							}
-							String conf = "{\"compilerOptions\": {\"module\": \"es6\", \"target\": \"es6\"},\n" + 
-									"  \"include\": [\"" + ConvertigoTypeScriptDefinition.getDeclarationFile().getAbsolutePath().replace('\\', '/') + "\", \"*\"]}";
-							SwtUtils.fillFile(((IFolder) input.getFile().getParent()).getFile("jsconfig.json"), conf);
-						}
-						SwtUtils.fillFile(input.getFile(), getValue().toString());
-						text.setEditable(false);
-						editorPart = activePage.openEditor(input, "org.eclipse.ui.genericeditor.GenericEditor", true);
-						if (listener == null) {
-							editorPart.addPropertyListener(getListener());
-						}
-					} catch (PartInitException e) {
-						e.printStackTrace();
-					}
+					openEditor();
 				}
 			});
 	
@@ -179,21 +155,83 @@ public class TextGenericCellEditor extends TextCellEditor {
 			text.setText(value.toString());
 		}
 	}
-
+	
 	@Override
 	public void setFocus() {
 		editorPart = activePage.findEditor(getInput());
 		if (editorPart != null) {
-			text.setEditable(false);
+			setEditable(false);
+			editorPart.removePropertyListener(getListener());
 			editorPart.addPropertyListener(getListener());
 		} else {
-			text.setEditable(true);
+			setEditable(true);
 		}
 		
 		super.setFocus();
 	}
 	
-	private FileInPlaceEditorInput getInput() {
+	@Override
+	protected void keyReleaseOccured(KeyEvent keyEvent) {
+		if (keyEvent.character == '\r') { // Return key
+			if (text != null && !text.isDisposed()
+					&& (text.getStyle() & SWT.MULTI) != 0) {
+				if ((keyEvent.stateMask & SWT.CTRL) == 0) {
+					keyEvent.doit = false;
+					fireApplyEditorValue();
+					deactivate();
+				}
+			}
+			return;
+		}
+		if (keyEvent.character == '\u001b') { // Escape character
+			fireCancelEditor();
+		}
+	}
+	
+	protected void setEditable(boolean editable) {
+		text.setEditable(editable);
+	}
+	
+	protected void setNewValue(Object newValue) {
+		databaseObjectTreeObject.setPropertyValue((String) propertyDescriptor.getName(), newValue);
+		databaseObjectTreeObject.hasBeenModified(true);
+	}
+	
+	protected String editorInitValue() {
+		return getValue().toString();
+	}
+	
+	protected void openEditor() {
+		try {
+			getInput();
+			if ("js".equals(input.getFile().getFileExtension())) {
+				DatabaseObject dbo = databaseObjectTreeObject.getObject();
+				if (dbo instanceof Step) {
+					dbo = ((Step) dbo).getSequence();
+				}
+				if (dbo instanceof IVariableContainer) {
+					IVariableContainer vc = (IVariableContainer) dbo;
+					StringBuilder sb = new StringBuilder();
+					for (Variable v: vc.getVariables()) {
+						sb.append("declare var ").append(v.getName()).append(v.isMultiValued() ? ": Array<string>" : ": string\n");
+					}
+					SwtUtils.fillFile(((IFolder) input.getFile().getParent()).getFile("variables.d.ts"), sb.toString());
+				}
+				String conf = "{\"compilerOptions\": {\"module\": \"es6\", \"target\": \"es6\"},\n" + 
+						"  \"include\": [\"" + ConvertigoTypeScriptDefinition.getDeclarationFile().getAbsolutePath().replace('\\', '/') + "\", \"*\"]}";
+				SwtUtils.fillFile(((IFolder) input.getFile().getParent()).getFile("jsconfig.json"), conf);
+			}
+			SwtUtils.fillFile(input.getFile(), editorInitValue());
+			setEditable(false);
+			editorPart = activePage.openEditor(input, "org.eclipse.ui.genericeditor.GenericEditor", true);
+			editorPart.removePropertyListener(getListener());
+			editorPart.addPropertyListener(listener);
+		} catch (PartInitException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	protected FileInPlaceEditorInput getInput() {
 		if (input == null) {
 			String extension = (propertyDescriptor != null &&
 					propertyDescriptor.getValue(MySimpleBeanInfo.GENERIC_EDITOR_EXTENSION) != null) ?
@@ -221,28 +259,5 @@ public class TextGenericCellEditor extends TextCellEditor {
 			};
 		}
 		return listener;
-	}
-	
-	@Override
-	protected void keyReleaseOccured(KeyEvent keyEvent) {
-		if (keyEvent.character == '\r') { // Return key
-			if (text != null && !text.isDisposed()
-					&& (text.getStyle() & SWT.MULTI) != 0) {
-				if ((keyEvent.stateMask & SWT.CTRL) == 0) {
-					keyEvent.doit = false;
-					fireApplyEditorValue();
-					deactivate();
-				}
-			}
-			return;
-		}
-		if (keyEvent.character == '\u001b') { // Escape character
-			fireCancelEditor();
-		}
-	}
-	
-	protected void setNewValue(Object newValue) {
-		databaseObjectTreeObject.setPropertyValue((String) propertyDescriptor.getName(), newValue);
-		databaseObjectTreeObject.hasBeenModified(true);
 	}
 }

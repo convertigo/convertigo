@@ -123,6 +123,7 @@ public class ConvertigoPartListener implements IPartListener {
 		}
 
 		if (part instanceof EditorPart) {
+			IResource toDelete = null;
 			IEditorInput input = ((EditorPart)part).getEditorInput();
 			if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ApplicationComponentEditorInput) {
 				try {
@@ -145,34 +146,46 @@ public class ConvertigoPartListener implements IPartListener {
 			} else if (input instanceof JScriptEditorInput) {
 				try {
 					IFile file = ((JScriptEditorInput) input).getFile();
-					file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
-					file.getParent().delete(true, null);
+					toDelete = file.getParent();
+					toDelete.refreshLocal(IResource.DEPTH_ONE, null);
 				} catch (Exception e) {
-					e.printStackTrace();
 				}
 			} else if (input instanceof FileInPlaceEditorInput) {
 				try {
 					IFile file = ((FileInPlaceEditorInput) input).getFile();
 					String path = file.getProjectRelativePath().toString();
 					if (path.startsWith("_private/editor/")) {
-						file.getParent().refreshLocal(IResource.DEPTH_ONE, null);
-						file.getParent().delete(true, null);
+						toDelete = file.getParent();
+						toDelete.refreshLocal(IResource.DEPTH_ONE, null);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) {
-				try {
-					((com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) input).getFile().delete(true, null);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				toDelete = ((com.twinsoft.convertigo.eclipse.editors.mobile.ComponentFileEditorInput) input).getFile();
 			} else if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) {
+				toDelete = ((com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) input).getFile();
+			}
+			if (toDelete != null) {
 				try {
-					((com.twinsoft.convertigo.eclipse.editors.ngx.ComponentFileEditorInput) input).getFile().delete(true, null);
+					toDelete.delete(true, null);
 				} catch (Exception e) {
-					e.printStackTrace();
+					IResource r = toDelete;
+					com.twinsoft.convertigo.engine.Engine.execute(() -> {
+						int retry = 5;
+						do {
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e1) {}
+							try {
+								r.delete(true, null);
+								return;
+							} catch (Exception ex) {
+							}
+						} while (r.exists() && retry-- > 0);
+					});
 				}
+
 			}
 		}
 	}
