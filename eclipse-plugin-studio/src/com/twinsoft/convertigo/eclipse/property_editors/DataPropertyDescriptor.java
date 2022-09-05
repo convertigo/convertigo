@@ -49,15 +49,20 @@ public class DataPropertyDescriptor extends PropertyDescriptor {
 	public CellEditor createPropertyEditor(Composite parent) {
 		if (dataCellEditorClass != null) {
 			try {
-				Constructor<?> constructor = dataCellEditorClass.getConstructor(new Class[] { Composite.class, int.class, DatabaseObjectTreeObject.class, java.beans.PropertyDescriptor.class });
-				editor = (CellEditor) constructor.newInstance(new Object[] { parent, style, databaseObjectTreeObject, databaseObjectPropertyDescriptor });
+				try {
+					Constructor<?> constructor = dataCellEditorClass.getConstructor(new Class[] { Composite.class, int.class, DatabaseObjectTreeObject.class, java.beans.PropertyDescriptor.class });
+					editor = (CellEditor) constructor.newInstance(new Object[] { parent, style, databaseObjectTreeObject, databaseObjectPropertyDescriptor });
+				} catch (Exception e) {
+					Constructor<?> constructor = dataCellEditorClass.getConstructor(new Class[] { Composite.class, int.class });
+					editor = (CellEditor) constructor.newInstance(new Object[] { parent, style });
+				}
 				if (getValidator() != null) {
 					editor.setValidator(getValidator());
 				}
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unexpected exception");
 			}
-		}
-		return editor;
 	}
+	return editor;
+}
 }

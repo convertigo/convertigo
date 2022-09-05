@@ -24,54 +24,75 @@ import java.util.List;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Composite;
 
 public abstract class ArrayEditor extends AbstractDialogCellEditor {
 
-    /**
-     * The data vector.
-     */
-    protected List<Object> data = null;
+	/**
+	 * The data vector.
+	 */
+	protected List<Object> data = null;
 
-    /**
-     * The template data used for creating new rows.
-     */
-    protected Object[] templateData = null;
+	/**
+	 * The template data used for creating new rows.
+	 */
+	protected Object[] templateData = null;
 
-    /**
-     * The column names.
-     */
-    protected String[] columnNames = null;
-    
-    /**
-     * The column sizes.
-     */
-    protected int[] columnSizes = null;
-    
-    /**
-     * The column alignments.
-     */
-    protected int[] columnAlignments = null;
-    
-    /**
-     * The column editors
-     */
-    protected CellEditor[] columnEditors = null;
+	/**
+	 * The column names.
+	 */
+	protected String[] columnNames = null;
 
-    public ArrayEditor(Composite parent) {
-    	this(parent, SWT.NONE);
-    }
+	/**
+	 * The column sizes.
+	 */
+	protected int[] columnSizes = null;
 
-    public ArrayEditor(Composite parent, int style) {
-    	super(parent, style);
-        dialogCompositeClass = ArrayEditorComposite.class;
-    }
+	/**
+	 * The column alignments.
+	 */
+	protected int[] columnAlignments = null;
 
-    public CellEditor[] getColumnEditors(Composite parent) {
-    	columnEditors = new CellEditor[columnNames.length];
+	/**
+	 * The column editors
+	 */
+	protected CellEditor[] columnEditors = null;
+
+	public ArrayEditor(Composite parent) {
+		this(parent, SWT.NONE);
+	}
+
+	public ArrayEditor(Composite parent, int style) {
+		super(parent, style);
+		dialogCompositeClass = ArrayEditorComposite.class;
+	}
+
+	public CellEditor[] getColumnEditors(Composite parent) {
+		columnEditors = new CellEditor[columnNames.length];
 		for (int i = 0 ; i < columnNames.length ; i++)  {
-			columnEditors[i] = new TextCellEditor(parent, getStyle());
+			columnEditors[i] = new TextCellEditor(parent, getStyle()) {
+
+				@Override
+				protected void keyReleaseOccured(KeyEvent keyEvent) {
+					if (keyEvent.character == '\r') { // Return key
+						if (text != null && !text.isDisposed()
+								&& (text.getStyle() & SWT.MULTI) != 0) {
+							if ((keyEvent.stateMask & SWT.CTRL) == 0) {
+								keyEvent.doit = false;
+								fireApplyEditorValue();
+								deactivate();
+							}
+						}
+						return;
+					}
+					if (keyEvent.character == '\u001b') { // Escape character
+						fireCancelEditor();
+					}
+				}
+
+			};
 		}
 		return columnEditors;
-    }
+	}
 }
