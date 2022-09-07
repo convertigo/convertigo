@@ -296,7 +296,7 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 						});
 					}
 				} catch (Exception e) {
-					ConvertigoPlugin.logException(e, "An error occured while create git repo for the project", false);
+					ConvertigoPlugin.logException(e, "An error occured while create git repository for the project", false);
 				}
 			}
 			
