@@ -26,6 +26,7 @@ var cloud_instance = false;
 //written into engine_GetStatus
 var startDate=new Date();
 var serverDate;
+var serverTimeZone;
 var serverOffset;
 var initialDiffClientServer;
 var engineVersion = "latest";
@@ -103,10 +104,12 @@ $(window).ready(function() {
 		$(this).blur();
 	});
 	
-	callService("engine.GetStatus", function(xml) {		
-		serverDate = parseInt($(xml).find("time").text());	
+	callService("engine.GetStatus", function(xml) {
+		var $t = $(xml).find("time");
+		serverDate = parseInt($t.text());
+		serverTimeZone = $t.attr("timezone");
 		var currentDate = new Date();
-		initialDiffClientServer=serverDate-currentDate.getTime();
+		initialDiffClientServer = serverDate - currentDate.getTime();
 		engineVersion = $(xml).find("version").attr("engine");
 		if (!engineVersion || !engineVersion.length) {
 			engineVersion = "latest";
@@ -151,14 +154,14 @@ function checkAuthentication(){
 	});
 }
 
-function updateDate(){		
+function updateDate() {
 	var currentDate = new Date();
-	var diff = currentDate.getTime()-startDate.getTime();
+	var diff = currentDate.getTime() - startDate.getTime();
 	var utc = serverDate + diff + initialDiffClientServer;
-	$("#mainDate").text(new Date(utc).toLocaleString());
+	$("#mainDate").text(new Date(utc).toLocaleString(navigator.language, {timeZone: serverTimeZone}));
 	setTimeout(function() {
 		updateDate();
-	}, 10000);
+	}, 1000);
 }
 
 function onLoadWidgetsButtonClick(widgetButtonName) {

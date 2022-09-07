@@ -401,8 +401,7 @@ text-transform: uppercase;
 
 #mainDate {
 	float: right;
-	text-align: right;
-	margin: 10px 10px 0 0;
+	margin-right: 20px;
 	font-family: Arial, Helvetica, sans-serif;
 	color: #a5a5a5;
 	font-size: 12px;

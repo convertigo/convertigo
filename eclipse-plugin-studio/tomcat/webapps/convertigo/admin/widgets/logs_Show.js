@@ -51,9 +51,8 @@ function logs_Show_init(options) {
 		$("#logContextualMenu").remove().appendTo("body");
 	}
 	
-	$(".date-pick").datepicker({ dateFormat: "yy-mm-dd" }).bind("mousewheel", {fn: function (delta) {		
-		var ts = new Date();
-		ts = Date.parse($(this).datepicker('getDate'));
+	$(".date-pick").datepicker({ dateFormat: "yy-mm-dd" }).bind("mousewheel", {fn: function (delta) {
+		var ts = Date.parse($(this).datepicker('getDate'));
 		if(dateFormat(ts+(delta * 86400000 ), "yyyy-mm-dd")!=dateFormat(ts, "yyyy-mm-dd"))
 			ts += (delta * 86400000 ); // +/- 1 day : 86400000 = 24 x 60 x 60 x 1000	
 		else
@@ -400,15 +399,17 @@ function resetOptions() {
 		toggleColumnVisibility("delta-time");
 	}
 	
-	var now = new Date();
-	$("#logOptionsStartDate").val(now.format("yyyy-mm-dd"));
-	$("#logOptionsEndDate").val(now.format("yyyy-mm-dd"));
+	var currentDate = new Date();
+	var diff = currentDate.getTime() - startDate.getTime();
+	var utc = serverDate + diff + initialDiffClientServer;
+	var now = new Date(utc - 600000); // - 10 min
+	var re = new RegExp("(..)/(..)/(....) (..):(..):(..)").exec(now.toLocaleString("fr-FR", {timeZone: serverTimeZone}))
+	$("#logOptionsStartDate").val(re[3] + '-' + re[2] + '-' + re[1]);
+	$("#logOptionsEndDate").val(re[3] + '-' + re[2] + '-' + re[1]);
 	
-	now.setTime(now.getTime() - 600000); // -10 min
-	
-	$("#logOptionsStartHour").val(now.format("HH"));
-	$("#logOptionsStartMinute").val(now.format("MM"));
-	$("#logOptionsStartSecond").val(now.format("ss"));
+	$("#logOptionsStartHour").val(re[4]);
+	$("#logOptionsStartMinute").val(re[5]);
+	$("#logOptionsStartSecond").val(re[6]);
 	$("#logOptionsEndHour").val("23");
 	$("#logOptionsEndMinute").val("59");
 	$("#logOptionsEndSecond").val("59");
