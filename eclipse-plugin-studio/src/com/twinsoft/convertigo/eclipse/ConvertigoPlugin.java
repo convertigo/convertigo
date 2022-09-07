@@ -965,8 +965,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		}
 		catch (IllegalStateException e) {}
 
-		if (embeddedTomcat != null)
+		if (embeddedTomcat != null) {
+			Engine.isStarted = false;
 			embeddedTomcat.stop();
+		}
 	}
 
 	/**
@@ -1879,13 +1881,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 
 	@Override
 	public void onEvent(ProgressEvent event) {
-		Job job = Job.create(event.getName(), monitor -> {
-			monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
-			while (event.waitNextStatus()) {
+		try {
+			Job job = Job.create(event.getName(), monitor -> {
 				monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
-			}
-			monitor.done();
-		});
-		job.schedule();
+				while (event.waitNextStatus()) {
+					monitor.beginTask(event.getStatus(), IProgressMonitor.UNKNOWN);
+				}
+				monitor.done();
+			});
+			job.schedule();
+		} catch (IllegalStateException e) {
+			// job manager is probably stopped
+		}
 	}
 }

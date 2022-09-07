@@ -839,7 +839,7 @@ public class Engine {
 	}
 	
 	public static synchronized void stop() throws EngineException {
-		if (Engine.isStudioMode()) {
+		if (Engine.isStudioMode() && isStarted) {
 			throw new EngineException("Cannot stop a Convertigo Studio Engine");
 		}
 		if (Engine.theApp != null) {
