@@ -20,7 +20,7 @@ public class MakeSplash {
 	private static Font font;
 	private static Graphics2D g;
 	private static FontRenderContext frc;
-	private static Color colorBorder = new Color(172, 234, 255);
+	private static Color colorBorder = Color.WHITE;//new Color(172, 234, 255);
 	private static Color colorFill = Color.WHITE;
 
 	private static void write(String text, int x, int y, float size, boolean border) {
@@ -28,11 +28,11 @@ public class MakeSplash {
 		Rectangle2D box = gv.getVisualBounds();
 		Shape shape = gv.getOutline(x - (int) box.getX(), y - (int) box.getY());
 		if (border) {
-			g.setStroke(new BasicStroke(size / 14f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+			g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			g.setColor(colorBorder);
 			g.draw(shape);
-			g.setColor(colorFill);
-			g.fill(shape);
+//			g.setColor(colorFill);
+//			g.fill(shape);
 		} else {
 			g.setColor(colorFill);
 			g.fill(shape);
@@ -50,7 +50,8 @@ public class MakeSplash {
 		System.out.println("Codename      : " + codename + " (" + code + ")");
 		System.out.println("Copyright     : " + copyright);
 		
-		BufferedImage background = ImageIO.read(new File("convertigo_background.png"));
+		BufferedImage background = ImageIO.read(new File("background.png"));
+		BufferedImage convertigo = ImageIO.read(new File("convertigo_studio.png"));
 		BufferedImage logo = ImageIO.read(new File("eclipse_builton.png"));
 		BufferedImage splash = new BufferedImage(
 				background.getWidth(),
@@ -71,6 +72,7 @@ public class MakeSplash {
 				RenderingHints.VALUE_RENDER_QUALITY);
 
 		g.drawImage(background, 0, 0, null);
+		g.drawImage(convertigo, 45, 20, null);
 		g.drawImage(logo, 347, 240, 132, 48, null);
 		
 		try (FileInputStream fis = new FileInputStream("Interstate Light.ttf")) {
@@ -78,11 +80,11 @@ public class MakeSplash {
 		}
 		
 		int dx = -15;
-		int dy = 15;
+		int dy = -5;
 		write(codename, 80 + dx, 175 + dy, 42f, true);
 		write(code, 90 + dx, 225 + dy, 25f, true);
-		write(version, 150 + dx, 230 + dy, 13f, true);
-		write(copyright, 295, 300, 9.5f, false);
+		write(version, 150 + dx, 230 + dy, 16f, false);
+		write(copyright, 285, 295, 11f, false);
 		
 		for (String output: outputs.split(":")) {
 			File output_file = new File(output);
