@@ -733,6 +733,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					}
 				}
 				propertyElement.setAttribute("editorClass", message);
+				if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.MULTILINE))) {
+					propertyElement.setAttribute("isMultiline", "true");
+				}
+				if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.SCRIPTABLE))) {
+					propertyElement.setAttribute("isScriptable", "true");
+				}
 			}
 
 			root.appendChild(propertyElement);
