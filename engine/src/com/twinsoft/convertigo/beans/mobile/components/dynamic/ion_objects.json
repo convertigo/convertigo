@@ -9458,7 +9458,7 @@
 "<br/>",
 "This action will work on web and devices. On web browsers this will result by opening a popup window asking the user for credentials. On devices, the provider login screen will be pushed on the page stack.<br/>",
 "<br/>",
-"This action requires the <b>lib_OAuth</b> project to be installed in the Studio workspace and deployed on the target Convertigo MBaaS servers.<br/>",
+"This action requires the <a href='https://github.com/convertigo/c8oprj-lib-oauth/tree/8.0.0'>lib_OAuth</a> project to be installed in the Studio workspace and deployed on the target Convertigo MBaaS servers.<br/>",
 "<br/>",
 "This actions outputs in the <i>out</i> an object that can be:<br/>",
 " \u2022 <code>{'login':'ok','object':{...provider metadata ...}}</code> if the users starts a new session with Convertigo MBaaS server<br/>",
