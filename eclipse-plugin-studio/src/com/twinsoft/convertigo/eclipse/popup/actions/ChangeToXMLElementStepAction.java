@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
@@ -304,8 +305,12 @@ public class ChangeToXMLElementStepAction extends MyAbstractAction {
 							elementStep.setOutput(jsonFieldStep.isOutput());
 							elementStep.setEnabled(jsonFieldStep.isEnabled());
 							elementStep.setComment(jsonFieldStep.getComment());
-							//elementStep.setSourceDefinition(jelementStep.getSourceDefinition());
-							elementStep.setNodeText(jsonFieldStep.getValue().toStringContent());
+							SmartType v = jsonFieldStep.getValue();
+							if (v.isUseSource()) {
+								elementStep.setSourceDefinition(v.getSourceDefinition());
+							} else {
+								elementStep.setNodeText(jsonFieldStep.getValue().toStringContent());
+							}
 							String nodeName = jsonFieldStep.getKey().toStringContent();
 							String normalized = StringUtils.normalize(nodeName);
 							elementStep.setNodeName(normalized);
