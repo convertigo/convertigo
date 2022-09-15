@@ -104,10 +104,7 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.wst.sse.core',
 					'org.eclipse.wildwebdeveloper',
 					'org.eclipse.wildwebdeveloper.xml'
-					/*,
-					'org.eclipse.wst.jsdt.ui',
-					'org.eclipse.wst.jsdt.core',
-					'ts.eclipse.ide.core'*/].join(',')
+				].join(',')
 			)
 		}.writeTo(manifest)
 		manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")
