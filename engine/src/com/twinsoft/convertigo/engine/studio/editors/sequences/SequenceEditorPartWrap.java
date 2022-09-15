@@ -178,7 +178,7 @@ public class SequenceEditorPartWrap implements EngineListener {
     }
 
     private Context getStudioContext(boolean bForce) {
-        String projectName = sequence.getParent().getName();
+        String projectName = sequence.getParentName();
         String sequenceName = sequence.getName();
         String contextType = ContextManager.CONTEXT_TYPE_SEQUENCE;
         String contextID = Engine.theApp.contextManager.computeStudioContextName(contextType, projectName, sequenceName);

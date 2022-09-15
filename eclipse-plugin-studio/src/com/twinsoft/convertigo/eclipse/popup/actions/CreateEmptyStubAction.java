@@ -61,7 +61,7 @@ public class CreateEmptyStubAction extends AbstractStubAction {
 
 		if (requestable instanceof Transaction) {
 			Transaction transaction = (Transaction) requestable;
-			documentElement.setAttribute("connector", transaction.getParent().getName());
+			documentElement.setAttribute("connector", transaction.getParentName());
 			documentElement.setAttribute("fromcache", "false");
 			documentElement.setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
 			documentElement.setAttribute("project", transaction.getProject().getName());

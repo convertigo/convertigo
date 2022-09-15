@@ -127,7 +127,7 @@ public abstract class CacheManager extends AbstractRunnableManager implements Ba
 			if (context.requestedObject instanceof Transaction) {
 				stubFileName = context.requestedObject.getProject().getDirPath()
 						+ "/stubs/"
-						+ context.requestedObject.getParent().getName() + "."
+						+ context.requestedObject.getParentName() + "."
 						+ context.requestedObject.getName() + ".xml";
 
 			} else if (context.requestedObject instanceof Sequence) {

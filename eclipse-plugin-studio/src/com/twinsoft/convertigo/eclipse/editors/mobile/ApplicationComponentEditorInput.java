@@ -69,7 +69,7 @@ public class ApplicationComponentEditorInput implements IEditorInput {
 
 	@Override
 	public String getToolTipText() {
-		return application.getProject().getName() + "/" + application.getParent().getName() + "/" + application.getName();
+		return application.getProject().getName() + "/" + application.getParentName() + "/" + application.getName();
 	}
 	
 	public boolean is(ApplicationComponent application) {

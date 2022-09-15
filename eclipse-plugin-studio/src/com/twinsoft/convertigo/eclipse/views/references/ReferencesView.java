@@ -401,7 +401,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		
 		// Get the referencing sequence steps
 		String transactionProjectName = transaction.getProject().getName();
-		String transactionConnectorName = transaction.getParent().getName();
+		String transactionConnectorName = transaction.getParentName();
 		
 		try {
 			Project project = null;

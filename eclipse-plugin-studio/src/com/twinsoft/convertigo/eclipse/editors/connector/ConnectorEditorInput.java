@@ -69,7 +69,7 @@ public class ConnectorEditorInput extends FileInPlaceEditorInput {
 	@Override
 	public String getName() {
 		try {
-			return connector.getParent().getName() + " [C: " + connector.getName()+"]." + getFile().getFileExtension();
+			return connector.getParentName() + " [C: " + connector.getName()+"]." + getFile().getFileExtension();
 		} catch (Exception e) {
 			return getFile().getName();
 		}
@@ -82,7 +82,7 @@ public class ConnectorEditorInput extends FileInPlaceEditorInput {
 
 	@Override
 	public String getToolTipText() {
-		return connector.getParent().getName() + "/" + connector.getName();
+		return connector.getParentName() + "/" + connector.getName();
 	}
 
 	@Override

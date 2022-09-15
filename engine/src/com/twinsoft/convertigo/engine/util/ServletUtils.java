@@ -46,7 +46,7 @@ import com.twinsoft.convertigo.engine.enums.RequestAttribute;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 
 public class ServletUtils {
-	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/mobile/)[^.]+");
+	private static final Pattern p_mobile = Pattern.compile("(.*/DisplayObjects/(:?mobile|pwas/.*?)/)[^.]+");
 	
 	public static void handleFileFilter(File file, HttpServletRequest request, HttpServletResponse response, FilterConfig filterConfig, FilterChain chain) throws IOException, ServletException {
 		if (file.exists()) {

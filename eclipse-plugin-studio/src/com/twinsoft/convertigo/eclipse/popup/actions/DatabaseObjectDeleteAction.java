@@ -313,7 +313,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			String dirPath, projectName;
 			File dir;
 			
-			projectName = databaseObject.getParent().getName();
+			projectName = databaseObject.getParentName();
 			
 			MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			messageBox.setText("Also delete linked resources?");

@@ -199,7 +199,7 @@ public class DatabaseObjectDeleteAction extends AbstractRunnableAction {
 				throw new EngineException("Cannot delete the default connector!");
 			}
 
-			String projectName = databaseObject.getParent().getName();
+			String projectName = databaseObject.getParentName();
 			deleteResourcesFolder(projectName, "soap-templates", databaseObject.getName());
 			deleteResourcesFolder(projectName, "Traces", databaseObject.getName());
 		}

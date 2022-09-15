@@ -297,6 +297,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 //		}
 		return parent;
 	}
+	
+	public String getParentName() {
+		DatabaseObject parent = getParent();
+		return parent != null ? parent.getName() : "[null]";
+	}
 
 	public Project getProject() {
 		DatabaseObject databaseObject = this;
