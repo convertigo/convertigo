@@ -12,6 +12,7 @@ META-INF
 /*/build
 /*/lib
 /*/target
+/*/.tycho-consumer-pom.xml
 
 **/.gradle
 /build
