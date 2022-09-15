@@ -1,5 +1,6 @@
 dependencies {
-	runtimeOnly "${jxBrowserGroup}:jxbrowser-linux64:${jxBrowserVersion}", { exclude module: 'jxbrowser'}
+	toSync "${jxBrowserGroup}:jxbrowser-linux64:${jxBrowserVersion}", { exclude module: 'jxbrowser'}
+	implementation fileTree(dir: 'lib', include: '*.jar')
 }
 
 task writeManifest(dependsOn: syncLib) {

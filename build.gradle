@@ -108,14 +108,23 @@ allprojects {
 				if (node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } == null) {
 					node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
 				}
+				def projectPath = projectDir.path.replace('\\', '/') + '/'
+				node.classpathentry.findAll { it.@kind == 'lib' }.each {
+					println 'classpath : ' + it.@path.replace(projectPath, '')
+					it.@path = it.@path.replace(projectPath, '')
+				}
 			}
+		}
+		
+		configurations {
+			toSync
 		}
 		
 		task syncLib(type: Sync) {
 			group 'convertigo'
 			
 			into 'lib'
-			from configurations.runtimeClasspath
+			from configurations.toSync
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}

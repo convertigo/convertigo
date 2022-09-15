@@ -50,15 +50,16 @@ eclipse {
 tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 
 dependencies {
-	runtimeOnly project(':engine')
-	runtimeOnly "${jxBrowserGroup}:jxbrowser:${jxBrowserVersion}"
-	runtimeOnly "${jxBrowserGroup}:jxbrowser-swt:${jxBrowserVersion}"
-	runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	toSync project(':engine')
+	toSync "${jxBrowserGroup}:jxbrowser:${jxBrowserVersion}"
+	toSync "${jxBrowserGroup}:jxbrowser-swt:${jxBrowserVersion}"
+	toSync 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	//runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
-	runtimeOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
-	runtimeOnly 'org.apache.axis2:axis2-adb:1.6.2@jar'
-	runtimeOnly project.property('sapjco3Version')
-	implementation 'com.convertigo.lib:jxbrowser-license:2022.04.15'
+	toSync 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
+	toSync 'org.apache.axis2:axis2-adb:1.6.2@jar'
+	toSync project.property('sapjco3Version')
+	toSync 'com.convertigo.lib:jxbrowser-license:2022.04.15'
+	implementation fileTree(dir: 'lib', include: '*.jar')
 }
 
 task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {
