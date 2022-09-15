@@ -29,7 +29,7 @@
       <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.jface.text"/>
-      <import plugin="org.eclipse.ui.console"/>
+      <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.ui.views"/>
       <import plugin="org.eclipse.wst.xml.ui"/>
@@ -42,6 +42,7 @@
       <import plugin="org.eclipse.core.expressions"/>
       <import plugin="org.eclipse.egit.ui"/>
       <import plugin="org.eclipse.jgit"/>
+      <import plugin="org.eclipse.mylyn.wikitext.ui"/>
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.ui.genericeditor"/>
       <import plugin="org.eclipse.ui.workbench.texteditor"/>

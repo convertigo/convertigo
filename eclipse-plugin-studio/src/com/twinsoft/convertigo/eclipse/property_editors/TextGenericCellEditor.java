@@ -204,7 +204,8 @@ public class TextGenericCellEditor extends TextCellEditor {
 	protected void openEditor() {
 		try {
 			getInput();
-			if ("js".equals(input.getFile().getFileExtension())) {
+			String ext = input.getFile().getFileExtension();
+			if ("js".equals(ext)) {
 				DatabaseObject dbo = databaseObjectTreeObject.getObject();
 				if (dbo instanceof Step) {
 					dbo = ((Step) dbo).getSequence();
@@ -223,7 +224,16 @@ public class TextGenericCellEditor extends TextCellEditor {
 			}
 			SwtUtils.fillFile(input.getFile(), editorInitValue());
 			setEditable(false);
-			editorPart = activePage.openEditor(input, "org.eclipse.ui.genericeditor.GenericEditor", true);
+			
+			if ("md".equals(ext)) {
+				try {
+					editorPart = activePage.openEditor(input, "org.eclipse.mylyn.wikitext.ui.editor.markupEditor", true);
+				} catch (Exception e) {
+					editorPart = activePage.openEditor(input, "org.eclipse.ui.genericeditor.GenericEditor", true);
+				}
+			} else {
+				editorPart = activePage.openEditor(input, "org.eclipse.ui.genericeditor.GenericEditor", true);
+			}
 			editorPart.removePropertyListener(getListener());
 			editorPart.addPropertyListener(listener);
 		} catch (PartInitException e) {
