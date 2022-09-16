@@ -38,11 +38,12 @@
       <import feature="org.eclipse.egit"/>
       <import feature="org.eclipse.egit.gitflow.feature"/>
       <import feature="org.eclipse.platform"/>
+      <import feature="org.eclipse.mylyn.wikitext_feature"/>
+      <import feature="org.eclipse.mylyn.wikitext.editors_feature"/>
       <import feature="org.eclipse.rcp"/>
       <import plugin="org.eclipse.core.expressions"/>
       <import plugin="org.eclipse.egit.ui"/>
       <import plugin="org.eclipse.jgit"/>
-      <import plugin="org.eclipse.mylyn.wikitext.ui"/>
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.ui.genericeditor"/>
       <import plugin="org.eclipse.ui.workbench.texteditor"/>
