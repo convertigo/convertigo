@@ -105,22 +105,26 @@ You can lock the **testplatform** by setting the account :
 
 ## HTTPS / SSL Configuration
 
-In many cases, the Convertigo instance is behind a reverse proxy that handle HTTPS / SSL configuration. But you can configure the container to manage existing SSL certificates or dynamically generate one.
+In many cases, the Convertigo instance is behind a reverse proxy that handles HTTPS / SSL configuration. But you can configure the container to manage existing SSL certificates or dynamically generate one.
 
 If the SSL configuration is correct, the Convertigo Server will listen **HTTP** on port `28080` and **HTTPS** on port `28443`.
 
 ### Provide existing certificate using the /ssl mount point
 
-If you have an existing certificate and a private key, you can put them in **PEM** format in a folder (or in a Kubernetes secret) :
+If you have an existing certificate and a private key, you can put them in **PEM** format in a folder (or in a Kubernetes secret):
 - `key.pem` : the private key in PEM format (no password)
 - `cert.pem` : the server certificate in PEM format, can also contain the full chain of certificates
 - `chain.pem` : the optional chain of certificates not included in `cert.pem` using the PEM format
 
     docker run -d --name C8O -v <my SSL folder>:/ssl -p 28443:28443 convertigo
 
+If you want to expose both **HTTP** and **HTTPS** you can expose both **ports**:
+
+    docker run -d --name C8O -v <my SSL folder>:/ssl -p 28080:28080 -p 28443:28443 convertigo
+
 ### Provide existing certificate using environment variables
 
-If you cannot mount a volume, you can probably add environment variables of previously described files. Content cannot be set directly in a variable but their base64 version can. Here the variables to configure:
+If you cannot mount a volume, you can probably add environment variables of previously described files. Content cannot be set directly in a variable but their base64 version can. Here are the variables to configure:
 - `SSL_KEY_B64` : the private key in base64 PEM format (no password)
 - `SSL_CERT_B64` : the server certificate in base64 PEM format, can also contain the full chain of certificates
 - `SSL_CHAIN_B64` : the optional chain of certificates not included in `cert.pem` using the base64 PEM format
@@ -138,13 +142,13 @@ Use the `SSL_SELFSIGNED` environment variable to indicate for what domain you wa
 
     docker run -d --name C8O -e SSL_SELFSIGNED=mycomputer -p 28443:28443 convertigo
 
-Generated files can be retrieve if the `/ssl` mount point is configured on folder without `cert.pem` nor `key.pem`.
+Generated files can be retrieved if the `/ssl` mount point is configured on folder without `cert.pem` nor `key.pem`.
 
     docker run -d --name C8O -v <my empty SSL folder>:/ssl -e SSL_SELFSIGNED=mycomputer -p 28443:28443 convertigo
 
 ## `JAVA_OPTS` Environment variable
 
-Convertigo is based on a *Java* process with some defaults *JVM* options. You can override our defaults *JVM* options with you own.
+Convertigo is based on a **Java** process with some defaults **JVM** options. You can override our defaults **JVM** options with you own.
 
 Add any *Java JVM* options such as -D[something] :
 
@@ -162,7 +166,7 @@ The default `JXMX` value is `2048` and can be defined :
 
 ## `COOKIE_PATH` Environment variable
 
-Convertigo generates a `JSESSIONID` to maintain the user session and stores in a *cookie*. The *cookie* is set for the server path `/` by default. In case of a front server with multiple services for different paths, you can set a path restriction for the *cookie* with the `JSESSIONID`. Just define the `COOKIE_PATH` environment variable with a compatible path.
+Convertigo generates a `JSESSIONID` to maintain the user session and stores in a *cookie*. The **cookie** is set for the server path `/` by default. In case of a front server with multiple services for different paths, you can set a path restriction for the **cookie** with the `JSESSIONID`. Just define the `COOKIE_PATH` environment variable with a compatible path.
 
 The default `COOKIE_PATH` value is `/` and can be defined :
 
@@ -170,21 +174,21 @@ The default `COOKIE_PATH` value is `/` and can be defined :
 
 ## `COOKIE_SECURE` Environment variable
 
-Convertigo use a *cookie* to maintain sessions. Requests on port `28080` are *HTTP* but we advice to use an *HTTPS* front for production (nginx, kubernetes ingress, ...). In this case, you can secure yours cookies to be used only with secured connections by adding the `Secure` flag.
+Convertigo uses a **cookie** to maintain sessions. Requests on port `28080` are **HTTP** but we advise to use an **HTTPS** front for production (nginx, kubernetes ingress, ...). In this case, you can secure your cookies to be used only with secured connections by adding the `Secure` flag.
 
-The Secure flag can be enabled by setting the `COOKIE_SECURE` environment variable to `true`. Once enabled, cookies and sessions aren't working through an *HTTP* connection.
+The Secure flag can be enabled by setting the `COOKIE_SECURE` environment variable to `true`. Once enabled, cookies and sessions aren't working through an **HTTP** connection.
 
 The default `COOKIE_SECURE` value is `false` and can be defined :
 
     docker run -d --name C8O -e COOKIE_SECURE="true" -p 28080:28080 convertigo
 
-**Note :** if you have configured the **SSL** configuration and you access the **HTTPS 28443** port, cookies are automatically `Secure`.
+**Note :** if you have set the **SSL** configuration and you access the **HTTPS 28443** port, cookies are automatically `Secure`.
 
 ## `COOKIE_SAMESITE` Environment variable
 
-Allow to configure the *SameSite* parameter for generated cookies. Can be empty, `none`, `lax` or `strict`.
+Allow to configure the **SameSite** parameter for generated cookies. Can be empty, `none`, `lax` or `strict`.
 
-The default `COOKIE_SAMESITE` value is *empty* and can be defined this way:
+The default `COOKIE_SAMESITE` value is **empty** and can be defined this way:
 
     docker run -d –name C8O -e COOKIE_SAMESITE=lax -p 28080:28080 convertigo
 
@@ -192,23 +196,23 @@ The default `COOKIE_SAMESITE` value is *empty* and can be defined this way:
 
 Allow to configure the default Tomcat *session-timeout* in minutes. This value is used for non-project calls (Administration console, Fullsync...). This value is overridden by each projects' calls (Sequence, Transaction ...).
 
-The default `SESSION_TIMEOUT` value is *30* and can be defined this way:
+The default `SESSION_TIMEOUT` value is **30** and can be defined this way:
 
     docker run -d –name C8O -e SESSION_TIMEOUT=5 -p 28080:28080 convertigo
 
 ## `DISABLE_SUDO` Environment variable
 
-The image include *sudo* command line, configured to allow the *convertigo* user to use it without password and to perform some *root* action inside the container. This variable allow to disable this permission.
+The image includes **sudo** command line, configured to allow the **convertigo** user to use it without password and to perform some **root** action inside the container. This variable allow to disable this permission.
 
-The default `DISABLE_SUDO` value is *empty* and can be defined this way:
+The default `DISABLE_SUDO` value is **empty** and can be defined this way:
 
     docker run -d –name C8O -e DISABLE_SUDO=true -p 28080:28080 convertigo
 
 ## `DISABLE_SUDO` Environment variable
 
-The image include *sudo* command line, configured to allow the *convertigo* user to use it without password and to perform some *root* action inside the container. This variable allow to disable this permission.
+The image include **sudo** command line, configured to allow the **convertigo** user to use it without password and to perform some **root** action inside the container. This variable allows to disable this permission.
 
-The default `DISABLE_SUDO` value is *empty* and can be defined this way:
+The default `DISABLE_SUDO` value is **empty** and can be defined this way:
 
     docker run -d –name C8O -e DISABLE_SUDO=true -p 28080:28080 convertigo
 
