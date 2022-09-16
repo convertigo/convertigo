@@ -1680,11 +1680,7 @@ a.start {
 }
 
 .connections-legend {
-	margin: 10px;
-}
-
-.connections-legend > span {
-    margin: 10px;
+	margin: -15px;
 }
 
 /* = CONNECTIONS WIDGET
