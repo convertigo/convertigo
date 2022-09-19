@@ -181,7 +181,7 @@ dependencies {
 	compileFlat    'com.convertigo.lib:soapui-xmlbeans:3.5.1'
 	compileFlat    'com.convertigo.lib:soapui:3.5.1'
 	implementation 'com.convertigo.provider:convertigo-provider-couchdb:8.1.0-SNAPSHOT'
-	implementation('com.convertigo.provider:convertigo-provider-plugins:7.9.0-SNAPSHOT') {
+	implementation('com.convertigo.provider:convertigo-provider-plugins:8.1.0-SNAPSHOT') {
 		exclude group: 'xml-apis', module: 'xml-apis'
 		exclude group: 'xalan', module: 'xalan'
 	}	

@@ -865,7 +865,7 @@ public class HttpConnector extends Connector {
 		try {
 			// Fire event for plugins
 			long t0 = System.currentTimeMillis();
-			Engine.theApp.pluginsManager.fireHttpConnectorGetDataStart(context);
+			Engine.theApp.pluginsManager.fireHttpConnectorGetDataStart(context, t0);
 
 			Engine.logBeans.trace("(HttpConnector) Retrieving data as a bytes array...");
 			Engine.logBeans.debug("(HttpConnector) Connecting to: " + sUrl);

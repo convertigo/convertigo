@@ -48,9 +48,10 @@ public abstract class Plugin {
 		return properties.getProperty(prop_prefix+key, defaultValue);
 	}
 	
-	abstract protected void httpConnectorGetDataStart(Context context);
+	abstract protected void httpConnectorGetDataStart(Context context, Long t0);
 	abstract protected void httpConnectorGetDataEnd(Context context, Long t0, Long t1);
 	abstract protected void httpServletRequestEnd(HttpServletRequest request, Long t0, Long t1);
 	abstract protected void requesterCoreProcessRequestStart(Context context, Object inputData);
 	abstract protected void requesterCoreProcessRequestEnd(Context context, Object inputData);
+	abstract protected void requestableTimeoutException(Context context, Long t1);
 }

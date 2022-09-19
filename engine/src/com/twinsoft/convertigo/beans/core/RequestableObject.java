@@ -322,7 +322,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     			                
     			                if (runningThread.bContinue) {
     			                	if (System.currentTimeMillis() - lTime > haveToWait) {
-    			                		// Cleans up before stopping
+    			        				long t1 = System.currentTimeMillis();
+    			        				Engine.theApp.pluginsManager.fireRequestableTimeoutException(context, t1);
+
+    			        				// Cleans up before stopping
     			                		cleanup();
     			                		
     			                		// Stops thread
