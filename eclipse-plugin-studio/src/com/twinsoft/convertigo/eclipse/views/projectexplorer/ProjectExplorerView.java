@@ -412,15 +412,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private void packColumns() {
-		Display.getCurrent().asyncExec(new Runnable() {
-
-			@Override
-			public void run() {
-				for (TreeColumn tc : viewer.getTree().getColumns()) {
+		ConvertigoPlugin.asyncExec(() -> {
+			for (TreeColumn tc : viewer.getTree().getColumns()) {
+				try {
 					tc.pack();
+				} catch (Exception e) {
 				}
 			}
-
 		});
 	}
 
@@ -521,13 +519,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					return;
 				}
 				if (Engine.objectsProvider != null) {
-					getTree().getDisplay().asyncExec(() -> {
-						try {
-							super.refresh(element);
-						} catch (Throwable e) {
-							ConvertigoPlugin.logDebug3("Failed to refresh: " + e);
-						}
-					});
+					ConvertigoPlugin.asyncExec(() -> super.refresh(element));
 					packColumns();
 				}
 				
@@ -762,23 +754,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		//statusLine.setMessage("Convertigo Studio "+ com.twinsoft.convertigo.engine.Version.fullProductVersion + " - " + analyzeKey());
 		statusLine.setMessage("Convertigo EMS Studio "+ com.twinsoft.convertigo.engine.Version.fullProductVersion);
 	}
-
-	//    private String analyzeKey() {
-	//    	String message = "";
-	//		Object[] args;
-	//    	switch(Registration.keyType) {        
-	//			case Registration.KEY_TYPE_EVALUATION:
-	//				args = new Object[] { Integer.valueOf(Registration.remainingDays) };
-	//				message = MessageFormat.format("Evaluation version (remaining {0} day(s)...)", args);
-	//				break;
-	//			case Registration.KEY_TYPE_COMMERCIAL:
-	//				args = new Object[] { Registration.registeredUser, Integer.toString(Registration.licenseNumber) };
-	//				message = MessageFormat.format("Registered to {0}, license #{1}", args);
-	//				break;
-	//        }
-	//    	return message;
-	//    }
-	//	
+	
 	private void fillContextMenu(IMenuManager manager) {
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
@@ -1112,7 +1088,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					lastItem = viewer.getTree().getSelection();
 				}
 			}
-		});	
+		});
 	}
 
 	private void hookGlobalActions() {
@@ -1144,7 +1120,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				job.setUser(true);
 				job.schedule();
 			} catch(Exception e) {
-				String message = "Error while loading the project \"" + projectName + "\".\n" + e.getMessage(); 
+				String message = "Error while loading the project \"" + projectName + "\".\n" + e.getMessage();
 				ConvertigoPlugin.logException(e, message);
 			}
 		}
@@ -1337,13 +1313,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							boolean updateReferences = false;
 							int update = 0;
 							// Updates references to object if needed
-							if ((theTreeObject instanceof ProjectTreeObject) || 
-									(theTreeObject instanceof SequenceTreeObject) || 
-									(theTreeObject instanceof ConnectorTreeObject) || 
-									(theTreeObject instanceof TransactionTreeObject) || 
-									(theTreeObject instanceof VariableTreeObject2) || 
+							if ((theTreeObject instanceof ProjectTreeObject) ||
+									(theTreeObject instanceof SequenceTreeObject) ||
+									(theTreeObject instanceof ConnectorTreeObject) ||
+									(theTreeObject instanceof TransactionTreeObject) ||
+									(theTreeObject instanceof VariableTreeObject2) ||
 									(theTreeObject instanceof IDesignTreeObject) ||
-									(theTreeObject instanceof MobilePageComponentTreeObject) || 
+									(theTreeObject instanceof MobilePageComponentTreeObject) ||
 									(theTreeObject instanceof MobileUIComponentTreeObject) ||
 									(theTreeObject instanceof NgxPageComponentTreeObject) ||
 									(theTreeObject instanceof NgxUIComponentTreeObject)) {
@@ -1610,16 +1586,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				monitor.beginTask("Reloading \""+ dboName + "\" object", worksNumber);
 
 				monitor.subTask("Storing expanded paths...");
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						// Store the currently expanded tree objects
-						objects = viewer.getExpandedElements();
-						if (objects != null) {
-							expendedPaths = new String[objects.length];
-							for (int i = 0 ; i < objects.length ; i++) {
-								TreeObject object = (TreeObject)objects[i];
-								expendedPaths[i] = object.getPath();
-							}
+				ConvertigoPlugin.syncExec(() -> {
+					// Store the currently expanded tree objects
+					objects = viewer.getExpandedElements();
+					if (objects != null) {
+						expendedPaths = new String[objects.length];
+						for (int i = 0 ; i < objects.length ; i++) {
+							TreeObject object = (TreeObject)objects[i];
+							expendedPaths[i] = object.getPath();
 						}
 					}
 				});
@@ -1645,7 +1619,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			finally {
 				// Updating the tree viewer
 				if (parentTreeObject != null) {
-					Display.getDefault().syncExec(() -> {
+					ConvertigoPlugin.syncExec(() -> {
 						// Reload is complete, notify now for newly added objects
 						Set<Object> done = new HashSet<Object>();
 						for (TreeObject ob: addedTreeObjects) {
@@ -1657,7 +1631,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					});
 
 					if (expendedPaths != null) {
-						Display.getDefault().asyncExec(() -> {
+						ConvertigoPlugin.asyncExec(() -> {
 							for (int i=0; i<expendedPaths.length; i++) {
 								String previousPath = expendedPaths[i];
 								TreeObject treeObject = findTreeObjectByPath(parentTreeObject, previousPath);
@@ -1735,7 +1709,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		loadDatabaseObject(parentTreeObject, parentDatabaseObject, projectLoadingJob, projectLoadingJob.getMonitor());
 	}
 
-	private void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, ProjectLoadingJob projectLoadingJob, final IProgressMonitor monitor) throws EngineException, IOException {        
+	private void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, ProjectLoadingJob projectLoadingJob, final IProgressMonitor monitor) throws EngineException, IOException {
 		// Add load subtask here because of databaseObjectLoaded event no more received since memory improvement
 		// (getSubDatabaseObject called only when necessary)
 
@@ -1779,7 +1753,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					final TreeParent parentTreeObject = this.parentTreeObject;
 					final ProjectLoadingJob projectLoadingJob = this.projectLoadingJob;
 
-					// retrieve sibling parameters					
+					// retrieve sibling parameters
 					ObjectsFolderTreeObject currentTreeFolder = this.currentTreeFolder;
 
 					String dboName = (databaseObject instanceof Step) ? ((Step) databaseObject).getStepNodeName() : databaseObject.getName();
@@ -2045,7 +2019,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
 						}
 
-						// no virtual folder 
+						// no virtual folder
 						if (folderType == Integer.MIN_VALUE) {
 							parentTreeObject.addChild(databaseObjectTreeObject);
 						}
@@ -2234,7 +2208,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 					monitor.worked(1);
 
-					// children cannot be added in the current virtual folder 
+					// children cannot be added in the current virtual folder
 					this.currentTreeFolder = null;
 
 					super.walk(databaseObject);
@@ -2281,7 +2255,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					}
 				}
 			}
-		}	
+		}
 		catch (CoreException e) {
 			ConvertigoPlugin.logInfo("Error opening Ressources for project '" + sheet.getProject().getName() + "': "+ e.getMessage());
 		}
@@ -2302,31 +2276,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		doc = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(file.getContents()));
 		return doc;
 	}
-
-	//	private void loadTrace(TreeParent parentTreeObject, File dir) {
-	//		FolderTreeObject folderTreeObject = new FolderTreeObject(viewer, "Traces");
-	//		parentTreeObject.addChild(folderTreeObject);
-	//	
-	//		if (!dir.exists()) {
-	//			if (!dir.mkdir())
-	//				return;
-	//		}
-	//		File[] files = dir.listFiles(new FilenameFilter() {
-	//			public boolean accept(File dir, String name) {
-	//				if (new File(dir, name).isFile() && (name.endsWith(".etr"))) return true;
-	//				return false;
-	//			}
-	//		});
-	//		if (files == null) return;
-	//
-	//		File file;
-	//		TraceTreeObject traceTreeObject;
-	//		for (int i = 0; i < files.length; i++) {
-	//			file = files[i];
-	//			traceTreeObject = new TraceTreeObject(viewer, file);
-	//			folderTreeObject.addChild(traceTreeObject);
-	//		}
-	//	}
 
 	public TreeObject findTreeObjectByPath(TreeParent treeParent, String path) {
 		TreeObject foundObject = null;
@@ -2436,7 +2385,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				projectTreeObject.closeAllEditors();
 			}
 			invisibleRoot.removeChild(treeObject);
-			viewer.getTree().getDisplay().asyncExec(() -> viewer.refresh());
+			ConvertigoPlugin.asyncExec(() -> viewer.refresh());
 		}
 	}
 
@@ -2710,12 +2659,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public void renameSelectedTreeObject() {
 		TreeObject treeObject = getFirstSelectedTreeObject();
-		if ((treeObject != null) && 
-				((treeObject instanceof DatabaseObjectTreeObject) || 
+		if ((treeObject != null) &&
+				((treeObject instanceof DatabaseObjectTreeObject) ||
 						(treeObject instanceof TraceTreeObject) ||
 						(treeObject instanceof DesignDocumentViewTreeObject) ||
 						(treeObject instanceof DesignDocumentFilterTreeObject) ||
-						(treeObject instanceof DesignDocumentUpdateTreeObject))) 
+						(treeObject instanceof DesignDocumentUpdateTreeObject)))
 		{
 			edit(treeObject);
 		}
@@ -3068,7 +3017,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			int len = treeObjects.length;
 			treePaths = new TreePath[len];
 			for (int i=0;i<len;i++) {
-				treeObject = treeObjects[i]; 
+				treeObject = treeObjects[i];
 				treePath = new TreePath(treeObject.getParents(true));
 				if (treePath != null)
 					treePaths[i] = treePath;
@@ -3137,7 +3086,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(beanClass);
 			return databaseObjectBeanInfo;
 		} catch (Exception e) {
-			String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")"; 
+			String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")";
 			ConvertigoPlugin.logException(e, message);
 			return null;
 		}
@@ -3175,25 +3124,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				// silently ignore
 			}
 		}
-		
+
 		if (highlightDetectedObject) {
 			if (source instanceof DatabaseObject) {
-				getSite().getShell().getDisplay().syncExec(new Runnable() {
-					public void run() {
-						DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
-						if (databaseTreeObject != null) {
-							if (lastDetectedDatabaseObjectTreeObject != null) {
-								lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
-								updateTreeObject(lastDetectedDatabaseObjectTreeObject);
-							}
-							databaseTreeObject.isDetectedObject = true;
-							updateTreeObject(databaseTreeObject);
-							viewer.expandToLevel(databaseTreeObject, 0);
-							lastDetectedDatabaseObjectTreeObject = databaseTreeObject;
-							if (databaseTreeObject instanceof ScreenClassTreeObject) {
-								lastDetectedScreenClass = (ScreenClass)source;
-								lastDetectedScreenClassTreeObject = (ScreenClassTreeObject)databaseTreeObject;
-							}
+				ConvertigoPlugin.syncExec(() -> {
+					DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
+					if (databaseTreeObject != null) {
+						if (lastDetectedDatabaseObjectTreeObject != null) {
+							lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
+							updateTreeObject(lastDetectedDatabaseObjectTreeObject);
+						}
+						databaseTreeObject.isDetectedObject = true;
+						updateTreeObject(databaseTreeObject);
+						viewer.expandToLevel(databaseTreeObject, 0);
+						lastDetectedDatabaseObjectTreeObject = databaseTreeObject;
+						if (databaseTreeObject instanceof ScreenClassTreeObject) {
+							lastDetectedScreenClass = (ScreenClass)source;
+							lastDetectedScreenClassTreeObject = (ScreenClassTreeObject)databaseTreeObject;
 						}
 					}
 				});
@@ -3210,33 +3157,31 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		final Object data = compositeEvent.data;
 		final Object source = compositeEvent.getSource();
 		if (source instanceof DatabaseObject) {
-			Display.getDefault().syncExec(new Runnable() {
-				public void run() {
-					DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
-					try {
-						reloadTreeObject(databaseObjectTreeObject);
+			ConvertigoPlugin.syncExec(() -> {
+				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
+				try {
+					reloadTreeObject(databaseObjectTreeObject);
 
-						if ((data != null) && (data instanceof String)) {
-							// case of learned Javelin transaction, expand to see newly added handlers
-							if (databaseObjectTreeObject instanceof TransactionTreeObject) {
-								viewer.expandToLevel(databaseObjectTreeObject, 2);
-							}
-
-							// case of we need to select a treeObject given its path
-							TreeObject treeObjectToSelect = findTreeObjectByPath(databaseObjectTreeObject, (String)data);
-							if (treeObjectToSelect != null) {
-								viewer.expandToLevel(treeObjectToSelect, 0);
-								setSelectedTreeObject(treeObjectToSelect);
-
-								StructuredSelection structuredSelection = new StructuredSelection(treeObjectToSelect);
-								ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)ProjectExplorerView.this, structuredSelection);
-							}
+					if ((data != null) && (data instanceof String)) {
+						// case of learned Javelin transaction, expand to see newly added handlers
+						if (databaseObjectTreeObject instanceof TransactionTreeObject) {
+							viewer.expandToLevel(databaseObjectTreeObject, 2);
 						}
-					} catch (EngineException e) {
-						ConvertigoPlugin.logException(e, "Unexpected exception");
-					} catch (IOException e) {
-						ConvertigoPlugin.logException(e, "Unexpected exception");
+
+						// case of we need to select a treeObject given its path
+						TreeObject treeObjectToSelect = findTreeObjectByPath(databaseObjectTreeObject, (String)data);
+						if (treeObjectToSelect != null) {
+							viewer.expandToLevel(treeObjectToSelect, 0);
+							setSelectedTreeObject(treeObjectToSelect);
+
+							StructuredSelection structuredSelection = new StructuredSelection(treeObjectToSelect);
+							ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)ProjectExplorerView.this, structuredSelection);
+						}
 					}
+				} catch (EngineException e) {
+					ConvertigoPlugin.logException(e, "Unexpected exception");
+				} catch (IOException e) {
+					ConvertigoPlugin.logException(e, "Unexpected exception");
 				}
 			});
 		}
@@ -3245,31 +3190,27 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void objectSelected(CompositeEvent compositeEvent) {
 		final Object source = compositeEvent.getSource();
 		if (source instanceof DatabaseObject) {
-			getSite().getShell().getDisplay().syncExec(new Runnable() {
-				public void run() {
-					DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
-					if (databaseTreeObject != null) {
-						viewer.expandToLevel(databaseTreeObject, 0);
-						setSelectedTreeObject(databaseTreeObject);
+			ConvertigoPlugin.syncExec(() -> {
+				DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
+				if (databaseTreeObject != null) {
+					viewer.expandToLevel(databaseTreeObject, 0);
+					setSelectedTreeObject(databaseTreeObject);
 
-						StructuredSelection structuredSelection = new StructuredSelection(databaseTreeObject);
-						ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)ProjectExplorerView.this, structuredSelection);
-					}
+					StructuredSelection structuredSelection = new StructuredSelection(databaseTreeObject);
+					ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)ProjectExplorerView.this, structuredSelection);
 				}
 			});
 		}
 	}
 
 	public void documentGenerated(EngineEvent engineEvent) {
-		getSite().getShell().getDisplay().syncExec(new Runnable() {
-			public void run() {
-				if (lastDetectedDatabaseObjectTreeObject != null) {
-					lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
-					updateTreeObject(lastDetectedDatabaseObjectTreeObject);
-				}
-				lastDetectedDatabaseObjectTreeObject = null;
-				lastDetectedScreenClassTreeObject = null;
+		ConvertigoPlugin.syncExec(() -> {
+			if (lastDetectedDatabaseObjectTreeObject != null) {
+				lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
+				updateTreeObject(lastDetectedDatabaseObjectTreeObject);
 			}
+			lastDetectedDatabaseObjectTreeObject = null;
+			lastDetectedScreenClassTreeObject = null;
 		});
 	}
 
@@ -3295,32 +3236,22 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void projectMigrated(EngineEvent engineEvent) {
 		final String projectName = (String)engineEvent.getSource();
 		if (projectName != null) {
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					try {
-						ConvertigoPlugin.logDebug("[ProjectExplorerView] event 'projectMigrated' received for project "+projectName);
-						((ViewContentProvider) viewer.getContentProvider()).loadProject(projectName);
-						viewer.refresh();
-					}
-					catch (Throwable t) {t.printStackTrace();}
-				}
+			ConvertigoPlugin.asyncExec(() -> {
+				ConvertigoPlugin.logDebug("[ProjectExplorerView] event 'projectMigrated' received for project "+projectName);
+				((ViewContentProvider) viewer.getContentProvider()).loadProject(projectName);
+				viewer.refresh();
 			});
 		}
 	}
 
 	public void migrationFinished(EngineEvent engineEvent) {
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				try {
-					ConvertigoPlugin.logDebug("[ProjectExplorerView] event 'migrationFinished' received");
-					if (!Engine.isStudioMode()) {
-						Engine.theApp.referencedProjectManager.check();
-					}
-					refreshProjects();
-					refreshTree();
-				}
-				catch (Throwable t) {t.printStackTrace();}
+		ConvertigoPlugin.asyncExec(() -> {
+			ConvertigoPlugin.logDebug("[ProjectExplorerView] event 'migrationFinished' received");
+			if (!Engine.isStudioMode()) {
+				Engine.theApp.referencedProjectManager.check();
 			}
+			refreshProjects();
+			refreshTree();
 		});
 	}
 
@@ -3328,7 +3259,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		TreeObject[] projectTreeObject = {null};
 		if (targetProjectName != null) {
 			projectTreeObject[0] = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
-		} 
+		}
 
 		// if project already exists, backup it and delete it after
 		if (projectTreeObject[0] != null) {
@@ -3336,8 +3267,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_data"));
 				DatabaseObjectsManager.deleteDir(new File(Engine.projectDir(targetProjectName) + "/_private"));
 			}
-			// delete project resource (but not content)
-			//			ConvertigoPlugin.getDefault().deleteProjectPluginResource(false, targetProjectName);
+			if (projectTreeObject[0] instanceof ProjectTreeObject) {
+				projectTreeObject[0] = unloadProjectTreeObject((ProjectTreeObject) projectTreeObject[0]);
+			}
 		}
 
 		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
@@ -3359,30 +3291,30 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				Project importedProject = doImport ?
 						Engine.theApp.databaseObjectsManager.importProject(filePath, true) :
 							Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
-						viewer.getControl().getDisplay().syncExec(() -> {
-							try {
-								// project's name may have been changed because of non-normalized name (fix ticket #788 : Cannot import project 213.car)
-								String projectName = importedProject.getName();
-	
-								// loads project into tree view
-								if (projectTreeObject[0] == null) {
-									importProjectTreeObject(projectName);
-								} else {
-									// recreate project resource
-									ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-									reloadProject(projectTreeObject[0]);
-								}
-	
-								refreshTree();
-							} catch (Exception e) {
-								exception[0] = e;
-							}
-						});
+				ConvertigoPlugin.syncExec(() -> {
+					try {
+						// project's name may have been changed because of non-normalized name (fix ticket #788 : Cannot import project 213.car)
+						String projectName = importedProject.getName();
+
+						// loads project into tree view
+						if (projectTreeObject[0] == null) {
+							importProjectTreeObject(projectName);
+						} else {
+//							// recreate project resource
+							ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
+							reloadProject(projectTreeObject[0]);
+						}
+
+						refreshTree();
+					} catch (Exception e) {
+						exception[0] = e;
+					}
+				});
 			} catch (Exception e) {
 				exception[0] = e;
 			}
 			if (exception[0] != null) {
-				viewer.getControl().getDisplay().syncExec(() -> {
+				ConvertigoPlugin.syncExec(() -> {
 					Engine.logStudio.error("Failed to import project", exception[0]);
 					ConvertigoPlugin.errorMessageBox("Failed to import project [" + exception[0].getClass().getSimpleName() + "]: " + exception[0].getMessage());
 				});
