@@ -1450,7 +1450,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			IWorkspace myWorkspace = ResourcesPlugin.getWorkspace();
 			IWorkspaceRoot myWorkspaceRoot = myWorkspace.getRoot();
 			resourceProject = myWorkspaceRoot.getProject(projectName);
-			if (!resourceProject.exists()) {
+			
+			String existingProjectName;
+			try {
+				existingProjectName = resourceProject.getDescription().getName();
+			} catch (Exception e) {
+				try {
+					resourceProject.delete(false, true, monitor);
+				} catch (Exception e2) {
+				}
+				existingProjectName = null;
+			}
+			
+			if (existingProjectName == null) {
 				if (projectDir == null) {
 					sb.append(" in the workspace folder.");
 					resourceProject.create(monitor);
@@ -1463,7 +1475,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 				}
 				openProject(resourceProject, monitor);
 			} else {
-				if (resourceProject.isOpen() && !projectName.equals(resourceProject.getDescription().getName())) {
+				if (resourceProject.isOpen() && !projectName.equals(existingProjectName)) {
 					resourceProject.delete(false, true, monitor);
 					return createProjectPluginResource(projectName, projectDir, monitor);
 				} else {
