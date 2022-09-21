@@ -790,7 +790,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		catch(EcmaError e) {
 			message = "Unable to evaluate step expression code for '"+ sourceName +"' property or variable.\n" +
-			"Step: \"" + getName() + "\"\n" +
+			"Step: \"" + getName() + " (priority:"+ priority +")" + "\"\n" +
 			"A Javascript runtime error has occured at line " + 
 			e.lineNumber() + ", column " + e.columnNumber() + ": " +
 			e.getMessage() + " \n" + e.lineSource();
@@ -798,13 +798,13 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		catch(EvaluatorException e) {
 			message = "Unable to evaluate step expression code for '"+ sourceName +"' property or variable.\n" +
-			"Step: \"" + getName() + "\"\n" +
+			"Step: \"" + getName() + " (priority:"+ priority +")" + "\"\n" +
 			"A Javascript evaluation error has occured: " + e.getMessage();
 			logException(e,message, bDialog);
 		}
 		catch(JavaScriptException e) {
 			message = "Unable to evaluate step expression code for '"+ sourceName +"' property or variable.\n" +
-			"Step: \"" + getName() + "\"\n" +
+			"Step: \"" + getName() + " (priority:"+ priority +")" + "\"\n" +
 			"A Javascript error has occured: " + e.getMessage();
 			logException(e,message, bDialog);
 		}
