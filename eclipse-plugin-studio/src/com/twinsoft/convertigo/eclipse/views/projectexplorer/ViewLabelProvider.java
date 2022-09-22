@@ -175,7 +175,7 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 				
 				iconName = MySimpleBeanInfo.getIconName(variableTreeObject.databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);
 				if (iconName == null) {
-					iconName = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.png";
+					iconName = "/com/twinsoft/convertigo/beans/variables/images/variable_color_16x16.png";
 				}
 				
 				image = ViewImageProvider.getImageFromCache(iconName, variableTreeObject);

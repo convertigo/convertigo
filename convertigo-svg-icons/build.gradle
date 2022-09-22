@@ -23,5 +23,9 @@ application {
 }
 
 run {
-	args project.rootProject.file('engine/src/com/twinsoft/convertigo/beans')
+	inputs.files fileTree('../engine/src/com/twinsoft/convertigo/beans').matching {
+		include '**/*.svg'
+	}
+	outputs.file '../engine/src/com/twinsoft/convertigo/beans/ngx/components/images/uiappevent_32x32.png'
+	args '../engine/src/com/twinsoft/convertigo/beans'
 }

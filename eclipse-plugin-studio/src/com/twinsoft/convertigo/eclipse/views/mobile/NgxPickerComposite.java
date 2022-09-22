@@ -447,7 +447,7 @@ public class NgxPickerComposite extends Composite {
 				
 		btnSequence = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/sequences/images/genericsequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnSequence.setText("SQ");
 		}

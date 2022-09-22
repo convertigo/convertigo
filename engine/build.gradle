@@ -512,4 +512,5 @@ task generateDocumentationMd(type: JavaExec, dependsOn: engineDependenciesClassp
 
 processResources.dependsOn('copyFlashUpdateDependencies')
 compileJava.dependsOn(['copyLicense', 'copyFlashUpdateDependencies', 'updateProductVersion'])
+processResources.dependsOn(':convertigo-svg-icons:run')
 jar.dependsOn('updateBeansDefaultValues')
