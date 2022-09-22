@@ -30,8 +30,8 @@ public class UIAppEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIAppEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIAppEvent");
 

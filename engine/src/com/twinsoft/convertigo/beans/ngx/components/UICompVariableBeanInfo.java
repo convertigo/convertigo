@@ -30,8 +30,8 @@ public class UICompVariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = UICompVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UICompVariable");
 

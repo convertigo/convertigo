@@ -8320,8 +8320,8 @@
 "This component can be used on any component in order to modify the text, element placement or adjust the padding and margin.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/layout/css-utilities'>CSS Utilities</a>."],
       "group": "Miscellaneous",
-      "icon16": "formatlayout_color_16x16.png",
-      "icon32": "formatlayout_color_32x32.png",
+      "icon16": "formatlayout_16x16.png",
+      "icon32": "formatlayout_32x32.png",
       "properties": {
         "TextAlignment": {
           "attr": "class",
@@ -8797,8 +8797,8 @@
 "You can add <i>Event</i> component with chained <i>Actions</i> to a <i>Button</i> to handle button click.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/button'>Buttons</a>."],
       "group": "Buttons",
-      "icon16": "button_color_16x16.png",
-      "icon32": "button_color_32x32.png",
+      "icon16": "button_16x16.png",
+      "icon32": "button_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
         "Disabled": "false",
@@ -8880,8 +8880,8 @@
 "A <i>Menu Button</i> component automatically creates the icon and functionality to open a menu on a page.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/menu-button'>MenuButton</a>."],
       "group": "Menus",
-      "icon16": "menu-button_color_16x16.png",
-      "icon32": "menu-button_color_32x32.png",
+      "icon16": "menubutton_16x16.png",
+      "icon32": "menubutton_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
         "Disabled": "false",
@@ -8942,8 +8942,8 @@
 "In case it's desired to keep <i>MenuToggle</i> always visible, the AutoHide property can be set to false.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/menu-toggle'>MenuToggle</a>."],
       "group": "Menus",
-      "icon16": "menu-toggle_color_16x16.png",
-      "icon32": "menu-toggle_color_32x32.png",
+      "icon16": "menutoggle_16x16.png",
+      "icon32": "menutoggle_32x32.png",
       "properties": {
         "AutoHide": {
           "attr": "auto-hide",
@@ -8984,8 +8984,8 @@
 "It is smart enough to know what to render based on the mode and when to show based on the navigation stack.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/back-button'>Avatar</a>."],
       "group": "Menus",
-      "icon16": "backbutton_color_16x16.png",
-      "icon32": "backbutton_color_32x32.png",
+      "icon16": "backbutton_16x16.png",
+      "icon32": "backbutton_32x32.png",
       "properties": {
         "ButtonFormType" : "button",
         "Disabled": "false",
@@ -9068,8 +9068,8 @@
 "Add an <code>onSubmit</code> <i>Event</i> with chained <i>Actions</i> to the <i>Form</i> component to handle the form submission when the button is taped.<br/><br/>",
 "You can use the <i>AutoDisabled</i> property of the <i>Submit Button</i> to disable it if the form data are not valid."],
       "group": "Forms",
-      "icon16": "button_color_16x16.png",
-      "icon32": "button_color_32x32.png",
+      "icon16": "button_16x16.png",
+      "icon32": "button_32x32.png",
       "properties": {
         "ButtonFormType" : "submit",
         "Disabled": "false",
@@ -9144,8 +9144,8 @@
 "ion-button| Defines a <i>Reset Button</i> component.<br/>",
 "A <i>Reset Button</i> works with a <i>Form</i> component. It will clear all fields of the form when taped."],
       "group": "Forms",
-      "icon16": "button_color_16x16.png",
-      "icon32": "button_color_32x32.png",
+      "icon16": "resetbutton_16x16.png",
+      "icon32": "resetbutton_32x32.png",
       "properties": {
         "ButtonFormType" : "reset",
         "Disabled": "false",
@@ -9392,8 +9392,8 @@
 " To specify what side the buttons should appear on, set the side property to 'start', 'end', 'top', 'bottom'.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/fab-list'>FabList</a>."],
       "group": "Buttons",
-      "icon16": "fab_list_16x16.png",
-      "icon32": "fab_list_32x32.png",
+      "icon16": "fablist_16x16.png",
+      "icon32": "fablist_32x32.png",
       "properties": {
         "Activated": {
           "attr": "activated",
@@ -9434,8 +9434,8 @@
 "Icons can be used on their own, or inside of a number of components.<br/>",
 " For more information: <a href='https://ionicons.com/'>Icons</a>."],
       "group": "Buttons",
-      "icon16": "icon_color_16x16.png",
-      "icon32": "icon_color_32x32.png",
+      "icon16": "icon_16x16.png",
+      "icon32": "icon_32x32.png",
       "properties": {
         "IconName": "add",
         "IconMdName": false,
@@ -9570,8 +9570,8 @@
 "You can use the <i>padding</i> property to automatically define some margins.<br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/content'>Content</a>."],
       "group": "Containers",
-      "icon16": "content_color_16x16.png",
-      "icon32": "content_color_32x32.png",
+      "icon16": "content_16x16.png",
+      "icon32": "content_32x32.png",
       "properties": {
         "IonColor": false,
         "IonSlot": {
@@ -9702,8 +9702,8 @@
 "The <i>Footer</i> is a root component of a page that sits at the bottom of the page. Footer can be a wrapper for <i>ToolBar</i> to make sure the content area is sized correctly.<br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/footer'>Footer</a>."],
       "group": "Containers",
-      "icon16": "footer_color_16x16.png",
-      "icon32": "footer_color_32x32.png",
+      "icon16": "footer_16x16.png",
+      "icon32": "footer_32x32.png",
       "properties": {
           "IonMode": false,
           "Translucent": {
@@ -9778,8 +9778,8 @@
 "It's important to note that <i>Header</i> needs to be the one of the three root elements of a page.<br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/header'>Header</a>."],
       "group": "Containers",
-      "icon16": "header_color_16x16.png",
-      "icon32": "header_color_32x32.png",
+      "icon16": "header_16x16.png",
+      "icon32": "header_32x32.png",
       "properties": {
           "IonMode": false,
         "Collapse": {
@@ -10126,8 +10126,8 @@
 "To center an <i>Image</i>, place it inside a <i>Text Format</i> component with property <i>Align center</i> set.<br/>",
 " For more information: <a href='https://www.w3schools.com/tags/tag_img.asp'>Image</a>."],
       "group": "HTML",
-      "icon16": "img_HTML_color_16x16.png",
-      "icon32": "img_HTML_color_32x32.png",
+      "icon16": "image_16x16.png",
+      "icon32": "image_32x32.png",
       "properties": {
         "url": {
           "mode":"script",
@@ -10181,8 +10181,8 @@
 " To use it, place the <i>Tooltip</i> inside any component such as <i>Button</i> or <i>Generic item</i>.<br/>",
 " For more information: <a href='https://www.npmjs.com/package/ng2-tooltip-directive'>ng2-tooltip-directive</a>."],
         "group": "Miscellaneous",
-        "icon16": "tooltips_color_16x16.png",
-        "icon32": "tooltips_color_32x32.png",
+        "icon16": "tooltips_16x16.png",
+        "icon32": "tooltips_32x32.png",
           "properties": {
               "AnimationDuration": {
               "attr": "animation-duration",
@@ -10435,8 +10435,8 @@
 "You can choose between two types: determinate and indeterminate.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/progress-bar'>ProgressBar</a>."],
            "group": "Forms",
-        "icon16": "progressbar_color_16x16.png",
-        "icon32": "progressbar_color_32x32.png",
+        "icon16": "progressbar_16x16.png",
+        "icon32": "progressbar_32x32.png",
         "properties": {
             "IonColor": false,
             "IonMode": false,
@@ -10503,8 +10503,8 @@
 "ion-skeleton-text | The <i>Skeleton Text</i> is a component for rendering placeholder content. The element will render a gray block at the specified width.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/skeleton-text'>Skeleton Text</a>."],
       "group": "Miscellaneous",
-      "icon16": "skeleton_color_16x16.png",
-      "icon32": "skeleton_color_32x32.png",
+      "icon16": "skeleton_16x16.png",
+      "icon32": "skeleton_32x32.png",
       "properties": {
         "IonSlot": false,
         "Animated": {
@@ -10570,8 +10570,8 @@
 "ion-spinner| The ion-spinner component provides a variety of animated SVG spinners. Spinners enables you to give users feedback that the app is actively processing/thinking/waiting/chillin’ out, or whatever you’d like it to indicate.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/spinner'>Spinner</a>."],
       "group": "Miscellaneous",
-      "icon16": "spinner_color_16x16.png",
-      "icon32": "spinner_color_32x32.png",
+      "icon16": "spinner_16x16.png",
+      "icon32": "spinner_32x32.png",
       "properties": {
         "IonColor": false,
         "Duration": {
@@ -10635,8 +10635,8 @@
 "- to clear all cache entries<br/>",
 "<code>page.resetImageCache()</code>"],
       "group": "FullSync Components",
-      "icon16": "img_fs_color_16x16.png",
-      "icon32": "img_fs_color_32x32.png",
+      "icon16": "fsimage_16x16.png",
+      "icon32": "fsimage_32x32.png",
       "properties": {
         "url": {
           "hidden": true,
@@ -11254,8 +11254,8 @@
 "The <i>Tabs Container</i> does not have any styling and works as a router outlet in order to handle navigation. It does not provide any UI feedback or mechanism to switch between tabs. In order to do so, a <i>Tab Bar</i> should be provided as a direct child.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/tabs'>Tabs</a>."],
       "group": "Components",
-      "icon16": "tabscontainer_color_16x16.png",
-      "icon32": "tabscontainer_color_32x32.png",
+      "icon16": "tabscontainer_16x16.png",
+      "icon32": "tabscontainer_32x32.png",
       "properties": {
       },
       "events": {
@@ -11279,8 +11279,8 @@
 "A <i>Tab Bar</i> is component that contains a set of <i>Tab Button</i>s. It must be provided inside of a <i>Tabs Container</i> to communicate with each tab.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/tab-bar'>Tab Bar</a>."],
       "group": "Components",
-      "icon16": "tabbar_color_16x16.png",
-      "icon32": "tabbar_color_32x32.png",
+      "icon16": "tabbar_16x16.png",
+      "icon32": "tabbar_32x32.png",
       "properties": {
         "IonColor" : false,
         "IonMode" : false,
@@ -11324,8 +11324,8 @@
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure the page you associate contains a <i>Content</i> or <code>&lt;ion-content&gt;</code> to make it work properly in a <i>Tab Button</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/tab-button'>Tab Button</a>."],
       "group": "Components",
-      "icon16": "tab_color_16x16.png",
-      "icon32": "tab_color_32x32.png",
+      "icon16": "tab_16x16.png",
+      "icon32": "tab_32x32.png",
       "properties": {
         "Disabled": "false",
         "IonMode": false,
@@ -11390,8 +11390,8 @@
 "If you'd like to use a specific menu for a given page, simply specify it in the <i>Menu id</i> property of your <i>Page</i> component.<br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/menu'>Menu</a>."],
       "group": "Menus",
-      "icon16": "menu_color_16x16.png",
-      "icon32": "menu_color_32x32.png",
+      "icon16": "menu_16x16.png",
+      "icon32": "menu_32x32.png",
       "properties": {
       "Disabled": {
             "hidden": true,
@@ -11496,8 +11496,8 @@
 "You can add <i>Menu Item</i>s under a <i>Menu</i> component, one per page you'd like to navigate to.<br/>",
 "You can not add child components to it except <i>Attr</i> components.<br/>"],
       "group": "Menus",
-      "icon16": "menuitem_color_16x16.png",
-      "icon32": "menuitem_color_32x32.png",
+      "icon16": "menuitem_16x16.png",
+      "icon32": "menuitem_32x32.png",
       "properties": {
       }
     },
@@ -11514,8 +11514,8 @@
 "A <i>Page</i> is considered as visible if it is <code>enabled</code> and if its <i>Include in auto menu</i> property is set to <ode>true</code>.<br/>",
 "You can not add child components to it except <i>Attr</i> components."],
       "group": "Menus",
-      "icon16": "menuautoitem_color_16x16.png",
-      "icon32": "menuautoitem_color_32x32.png",
+      "icon16": "menuautoitem_16x16.png",
+      "icon32": "menuautoitem_32x32.png",
       "properties": {
       }
     },
@@ -11627,8 +11627,8 @@
 " Once the async operation has completed and the refreshing should end, call complete().<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/refresher'>Refresher</a>."],
         "group": "Forms",
-        "icon16": "refresher_color_16x16.png",
-        "icon32": "refresher_color_32x32.png",
+        "icon16": "refresher_16x16.png",
+        "icon32": "refresher_32x32.png",
         "properties": {
             "Disabled": "false",
             "IonSlot": "fixed",
@@ -11736,7 +11736,7 @@
                 "category": "@Properties",
                 "value": false
             }
-          }            
+          }
       },
 
     "Searchbar": {
@@ -11747,9 +11747,9 @@
 "ion-searchbar| Defines a <i>Search Bar</i> component.<br/>",
 "This component manages the display of a searchbar which can be used to search or filter items.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/searchbar'>Searchbar</a>."],
-        "group": "Forms",     
-        "icon16": "searchbar_color_16x16.png",
-        "icon32": "searchbar_color_32x32.png",
+        "group": "Forms",
+        "icon16": "searchbar_16x16.png",
+        "icon32": "searchbar_32x32.png",
         "properties": {
             "Disabled": false,
             "IonColor": false,
@@ -12012,8 +12012,8 @@
 "They are typically used within an <i>Generic Item</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/badge'>Badge</a>."],
       "group": "Components",
-      "icon16": "badge_color_16x16.png",
-      "icon32": "badge_color_32x32.png",
+      "icon16": "badge_16x16.png",
+      "icon32": "badge_32x32.png",
       "properties": {
         "IonColor": false,
         "IonMode": false,
@@ -12040,8 +12040,8 @@
 "The <i>Slides Container</i> component is a multi-section container. Each section can be swiped or dragged between. It contains any number of <i>Slide Item</i> components.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/slides'>Slides</a>."],
       "group": "Slides",
-      "icon16": "slides_color_16x16.png",
-      "icon32": "slides_color_32x32.png",
+      "icon16": "slides_16x16.png",
+      "icon32": "slides_32x32.png",
       "properties": {
         "IonMode": false,
         "Height": {
@@ -12174,8 +12174,8 @@
 "Add <i>Slide Item</i> components inside a <i>Slides</i> component. Any slide content should be written in this component.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/slide'>Slide</a>."],
       "group": "Slides",
-      "icon16": "slide_color_16x16.png",
-      "icon32": "slide_color_32x32.png"
+      "icon16": "slide_16x16.png",
+      "icon32": "slide_32x32.png"
     },
 
     "Chip": {
@@ -12187,8 +12187,8 @@
 "Chips represent complex entities in small blocks, such as a contact. A chip can contain several different elements such as avatars, text, and icons.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/chip'>Chip</a>."],
       "group": "Containers",
-      "icon16": "chip_color_16x16.png",
-      "icon32": "chip_color_32x32.png",
+      "icon16": "chip_16x16.png",
+      "icon32": "chip_32x32.png",
       "properties": {
         "IonColor": false,
         "IonMode": false,
@@ -12818,8 +12818,8 @@
 "A <i>Sliding Button</i> must be place inside a <i>Sliding ButtonSet</i> of a <i>Sliding Container</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/item-option'>Sliding option</a>."],
       "group": "Lists",
-      "icon16": "slidingoption_16x16.png",
-      "icon32": "slidingoption_32x32.png",
+      "icon16": "slidingbutton_16x16.png",
+      "icon32": "slidingbutton_32x32.png",
       "properties": {
         "ButtonFormType": "button",
         "Disabled": "false",
@@ -12860,8 +12860,8 @@
 "To position an avatar on the left or right side of an item, set its Slot property to 'start' or 'end', respectively.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/avatar'>Avatar</a>."],
       "group": "Lists",
-      "icon16": "listavatar_16x16.png",
-      "icon32": "listavatar_32x32.png",
+      "icon16": "avataritem_16x16.png",
+      "icon32": "avataritem_32x32.png",
       "properties": {
         "IonSlot": false
       },
@@ -12959,8 +12959,8 @@
 "A <i>Text Item</i> is a simple component that can be used to style the text color of an inner <i>Text</i> component.<br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/text'>Text Item</a>."],
       "group": "Containers",
-      "icon16": "text_item_16x16.png",
-      "icon32": "text_item_32x32.png",
+      "icon16": "textitem_16x16.png",
+      "icon32": "textitem_32x32.png",
       "properties": {
         "IonColor": false,
         "IonMode": false
@@ -12986,8 +12986,8 @@
 "It can also contain <i>Sliding Options</i> to reveal buttons when swiped left or right.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/item'>Generic Item</a>."],
       "group": "Containers",
-      "icon16": "generic_item_16x16.png",
-      "icon32": "generic_item_32x32.png",
+      "icon16": "genericitem_16x16.png",
+      "icon32": "genericitem_32x32.png",
       "properties": {
         "Button" : {
           "attr": "button",
@@ -13100,8 +13100,8 @@
 "It can also contain <i>Sliding Options</i> to reveal buttons when swiped left or right.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/item'>List Item</a>."],
       "group": "Lists",
-      "icon16": "list_item_16x16.png",
-      "icon32": "list_item_32x32.png",
+      "icon16": "listitem_16x16.png",
+      "icon32": "listitem_32x32.png",
       "properties": {
         "Button" : {
           "attr": "button",
@@ -13214,8 +13214,8 @@
 "A <i>Form Item</i> may be used to contain form's input components such as <i>Label</i> or <i>Text Input</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/item'>Form Item</a>."],
       "group": "Forms",
-      "icon16": "form_item_16x16.png",
-      "icon32": "form_item_32x32.png",
+      "icon16": "formitem_16x16.png",
+      "icon32": "formitem_32x32.png",
       "properties": {
         "Button" : {
           "attr": "button",
@@ -13334,8 +13334,8 @@
 " For more information: <a href='https://ionicframework.com/docs/api/label'>Label</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "label_color_16x16.png",
-      "icon32": "label_color_32x32.png",
+      "icon16": "label_16x16.png",
+      "icon32": "label_32x32.png",
       "properties": {
         "IonColor" : false,
         "IonMode" : false,
@@ -13391,8 +13391,8 @@
 "Notes are styled to appear grey by default. Notes can be used in an item as metadata text.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/note'>Note</a>.<br/>"],
       "group": "Forms",
-      "icon16": "note_color_16x16.png",
-      "icon32": "note_color_32x32.png",
+      "icon16": "note_16x16.png",
+      "icon32": "note_32x32.png",
       "properties": {
         "IonColor" : false,
         "IonMode" : false,
@@ -13642,8 +13642,8 @@
 " For more information: <a href='https://ionicframework.com/docs/api/radio'>Radio</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "radio_color_16x16.png",
-      "icon32": "radio_color_32x32.png",
+      "icon16": "radio_16x16.png",
+      "icon32": "radio_32x32.png",
       "properties": {
         "Disabled": "false",
         "IonColor": false,
@@ -13694,8 +13694,8 @@
 " For more information: <a href='https://ionicframework.com/docs/api/toggle'>Toggle</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "toggle_color_16x16.png",
-      "icon32": "toggle_color_32x32.png",
+      "icon16": "toggle_16x16.png",
+      "icon32": "toggle_32x32.png",
       "properties": {
         "ControlName": "",
         "DoubleBinding": false,
@@ -13786,8 +13786,8 @@
 " For more information: <a href='https://ionicframework.com/docs/api/input'>Input</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "input_color_16x16.png",
-      "icon32": "input_color_32x32.png",
+      "icon16": "input_16x16.png",
+      "icon32": "input_32x32.png",
       "properties": {
         "ControlName": "",
         "DoubleBinding": false,
@@ -14142,8 +14142,8 @@
 " For more information: <a href='https://ionicframework.com/docs/api/textarea'>TextArea</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "textarea_color_16x16.png",
-      "icon32": "textarea_color_32x32.png",
+      "icon16": "textarea_16x16.png",
+      "icon32": "textarea_32x32.png",
       "properties": {
         "ControlName": "",
         "DoubleBinding": false,
@@ -14406,8 +14406,8 @@
 " For more information: <a href='https://ionicframework.com/docs/api/checkbox'>Checkbox</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "input_checkbox_16x16.png",
-      "icon32": "input_checkbox_32x32.png",
+      "icon16": "inputcheckbox_16x16.png",
+      "icon32": "inputcheckbox_32x32.png",
       "properties": {
         "ControlName": "",
         "DoubleBinding": false,
@@ -14507,8 +14507,8 @@
 "For more information: <a href='https://ionicframework.com/docs/api/datetime'>DateTime</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "input_datetime_16x16.png",
-      "icon32": "input_datetime_32x32.png",
+      "icon16": "datetime_16x16.png",
+      "icon32": "datetime_32x32.png",
       "properties": {
         "ControlName": "",
         "DoubleBinding": false,
@@ -14920,8 +14920,8 @@
 "The grid is composed of three units : grid, rows and columns.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/grid'>Grid</a>."],
       "group": "Grid System",
-      "icon16": "grid_color_16x16.png",
-      "icon32": "grid_color_32x32.png",
+      "icon16": "grid_16x16.png",
+      "icon32": "grid_32x32.png",
       "properties": {
         "Fixed": {
           "attr": "fixed",
@@ -15014,8 +15014,8 @@
 "A <i>Grid Row</i> is composed of 12 slots that can be filled with <i>Grid Column</i>s.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/row'>GridRow</a>."],
       "group": "Grid System",
-      "icon16": "grid_row_color_16x16.png",
-      "icon32": "grid_row_color_32x32.png",
+      "icon16": "gridrow_16x16.png",
+      "icon32": "gridrow_32x32.png",
       "properties": {
         "Width": {
          "attr": "[style.width]",
@@ -15123,8 +15123,8 @@
 "This component must be inserted in a <i>Grid Row</i> and contains other components or HTML.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/col'>GridCol</a>."],
       "group": "Grid System",
-      "icon16": "grid_column_color_16x16.png",
-      "icon32": "grid_column_color_32x32.png",
+      "icon16": "gridcolumn_16x16.png",
+      "icon32": "gridcolumn_32x32.png",
       "properties": {
          "FlexAlignement": {
           "attr": "class",
@@ -15447,8 +15447,8 @@
 "With so much content to display at once, and often so little screen realestate, cards have fast become the design pattern of choice for many companies, including the likes of Google, Twitter, and Spotify.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/card'>Card</a>."],
       "group": "Cards",
-      "icon16": "card_color_16x16.png",
-      "icon32": "card_color_32x32.png",
+      "icon16": "card_16x16.png",
+      "icon32": "card_32x32.png",
       "properties": {
         "Button": {
           "attr": "button",
@@ -15528,8 +15528,8 @@
 "Use a <i>Card Header</i> component inside of a <i>Card Container</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/card-header'>Card Header</a>."],
       "group": "Cards",
-      "icon16": "cardheader_color_16x16.png",
-      "icon32": "cardheader_color_32x32.png",
+      "icon16": "cardheader_16x16.png",
+      "icon32": "cardheader_32x32.png",
       "properties": {
         "IonColor": false,
         "IonMode": false,
@@ -15558,8 +15558,8 @@
 "Use a <i>Card Content</i> component inside of a <i>Card Container</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/card-content'>CardContent</a>."],
       "group": "Cards",
-      "icon16": "cardcontent_color_16x16.png",
-      "icon32": "cardcontent_color_32x32.png",
+      "icon16": "cardcontent_16x16.png",
+      "icon32": "cardcontent_32x32.png",
       "properties": {
         "IonMode": false
       }
@@ -15574,8 +15574,8 @@
 "Use a <i>Card Title</i> component inside of a <i>Card Header</i> component.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/card-title'>CardTitle</a>."],
       "group": "Cards",
-      "icon16": "cardtitle_color_16x16.png",
-      "icon32": "cardtitle_color_32x32.png",
+      "icon16": "cardtitle_16x16.png",
+      "icon32": "cardtitle_32x32.png",
       "properties": {
         "IonColor": false,
         "IonMode": false
@@ -15594,8 +15594,8 @@
 "Use a <i>Card SubTitle</i> component inside of a <i>Card Header</i> component.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/card-subtitle'>CardSubTitle</a>."],
       "group": "Cards",
-      "icon16": "cardsubtitle_color_16x16.png",
-      "icon32": "cardsubtitle_color_32x32.png",
+      "icon16": "cardsubtitle_16x16.png",
+      "icon32": "cardsubtitle_32x32.png",
       "properties": {
         "IonColor": false,
         "IonMode": false
@@ -15722,8 +15722,8 @@
 "Several <i>Map Marker</i> can be displayed on a map, just add them in your <i>Goolgle Map</i> component.<br/>",
 " For more information: <a href='https://angular-maps.com/api-docs/agm-core/directives/AgmMarker.html'>AgmMarker</a>."],
       "group": "Google Map",
-      "icon16": "gmapmarker_color_16x16.png",
-      "icon32": "gmapmarker_color_32x32.png",
+      "icon16": "gmapmarker_16x16.png",
+      "icon32": "gmapmarker_32x32.png",
       "properties": {
         "IconUrl": {
           "mode": "script",
@@ -15789,8 +15789,8 @@
 "You can use any type of HTML markup in an <i>Information Window</i> component to format the details for this <i>Map Marker</i>.<br/>",
 " For more information: <a href='https://angular-maps.com/api-docs/agm-core/components/AgmInfoWindow.html'>AgmInfoWindow</a>."],
       "group": "Google Map",
-      "icon16": "gmapiwindow_color_16x16.png",
-      "icon32": "gmapiwindow_color_32x32.png",
+      "icon16": "gmapiwindow_16x16.png",
+      "icon32": "gmapiwindow_32x32.png",
       "properties": {
       }
     },
@@ -15804,8 +15804,8 @@
 "This component displays a circular area of a specified radius on a <i>Google Map</i>.<br/>",
 " For more information: <a href='https://angular-maps.com/api-docs/agm-core/directives/AgmCircle.html'>AgmCircle</a>."],
        "group": "Google Map",
-       "icon16": "gmapcircle_color_16x16.png",
-       "icon32": "gmapcircle_color_32x32.png",
+       "icon16": "gmapcircle_16x16.png",
+       "icon32": "gmapcircle_32x32.png",
        "properties": {
         "Latitude": {
            "mode": "script",
@@ -15994,8 +15994,8 @@
 "It helps to display a video from a remote or local video ressource.<br/>",
 " For more information: <a href='https://www.w3schools.com/html/html5_video.asp'>Video</a>."],
       "group": "Components",
-      "icon16": "video_color_16x16.png",
-      "icon32": "video_color_32x32.png",
+      "icon16": "video_16x16.png",
+      "icon32": "video_32x32.png",
       "properties": {
         "src": {
           "attr" : "[src]",
@@ -16056,8 +16056,8 @@
 "Please refer to <a href='https://www.npmjs.com/package/ng2-charts'>chart.js</a> documentation for each property and data formats.<br/>",
 "To set width and height properties, use the Grid system."],
       "group": "Components",
-      "icon16": "chart_color_16x16.png",
-      "icon32": "chart_color_32x32.png",
+      "icon16": "chart_16x16.png",
+      "icon32": "chart_32x32.png",
       "properties": {
         "BaseChart": {
           "label": "Chart base",
@@ -16191,8 +16191,8 @@
 "Can trigger the (onChange), (monthChange) , (onSelect), (onSelectStart) and (onSelectEnd) events.<br/>",
 " For more information: <a href='https://github.com/hsuanxyz/ion2-calendar'>ion2-calendar</a>."],
       "group": "Forms",
-      "icon16": "calendar_color_16x16.png",
-      "icon32": "calendar_color_32x32.png",
+      "icon16": "calendar_16x16.png",
+      "icon32": "calendar_32x32.png",
       "properties": {
         "IonColor" : "primary",
         "type": {
@@ -16403,8 +16403,8 @@
 "<code><pre>//disable scroll\nevent.target.disabled = true;\n\nlet isOK = true;\n//TODO: add your code\n//get next items and push them\n//...\nif (isOK) {\n\t//enable scroll\n\tevent.target.disabled = false;\n}\n\n//specify loading is complete\nevent.target.complete();\nresolve();\n</pre></code><br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/infinite-scroll'>InfiniteScroll</a>."],
       "group": "Lists",
-      "icon16": "infinitescroll_color_16x16.png",
-      "icon32": "infinitescroll_color_32x32.png",
+      "icon16": "infinitescroll_16x16.png",
+      "icon32": "infinitescroll_32x32.png",
       "properties": {
         "Disabled": {
           "attr": "disabled",
@@ -16463,8 +16463,8 @@
 "You may add it under a <i>InfiniteScroll</i> component.<br/>",
 "For more information: <a href='https://ionicframework.com/docs/api/infinite-scroll-content'>InfiniteScrollContent</a>."],
       "group": "Lists",
-      "icon16": "infinitescrollcontent_color_16x16.png",
-      "icon32": "infinitescrollcontent_color_32x32.png",
+      "icon16": "infinitescrollcontent_16x16.png",
+      "icon32": "infinitescrollcontent_32x32.png",
       "properties": {
         "LoadingSpinner": {
           "attr": "loadingSpinner",
@@ -16588,8 +16588,8 @@
 "For more information: <a href='https://github.com/szimek/signature_pad'>signature_pad</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add your component under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form.<br/>"],
       "group": "Forms",
-      "icon16": "signaturecomponent_color_16x16.png",
-      "icon32": "signaturecomponent_color_32x32.png",
+      "icon16": "signature_16x16.png",
+      "icon32": "signature_32x32.png",
       "properties": {
         "ControlName": "",
         "DoubleBinding": false,
@@ -16749,8 +16749,8 @@
       "label": "Treeview",
       "description": "c8o-treeview. | Displays data in a Tree View. This component is based on the <a href='https://www.npmjs.com/package/angular-tree-component' >angular-tree-component</a> component. <br /><br />JSON data can be sourced from a Sequence or from the local FullSync database. JSON data format is described in the <b>Tree data</b> property",
       "group": "Lists",
-      "icon16": "treeviewcomponent_color_16x16.png",
-      "icon32": "treeviewcomponent_color_32x32.png",
+      "icon16": "treeviewcomponent_16x16.png",
+      "icon32": "treeviewcomponent_32x32.png",
       "properties": {
         "treenodes": {
           "mode": "script",
@@ -16926,8 +16926,8 @@
 " \u2022 $modal-inset-height-small:500px;     //Height of the small modal inset<br/>",
 " \u2022 $modal-inset-height-large:600px;     //Height of the large modal inset."],
       "group": "Actions",
-      "icon16": "modalaction_color_16x16.png",
-      "icon32": "modalaction_color_32x32.png",
+      "icon16": "modalaction_16x16.png",
+      "icon32": "modalaction_32x32.png",
        "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'ModalPage ' + target; }",
       "properties": {
         "IonMode": false,
@@ -17608,8 +17608,8 @@
 "<br/>",
 "You can use the <i>Close Popover</i> action to dismiss a Popover."],
       "group": "Actions",
-      "icon16": "popoveraction_color_16x16.png",
-      "icon32": "popoveraction_color_32x32.png",
+      "icon16": "popoveraction_16x16.png",
+      "icon32": "popoveraction_32x32.png",
       "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'Popover ' + target; }",
       "properties": {
         "IonMode": false,
@@ -17727,8 +17727,8 @@
 "A Toast is a subtle notification commonly used in modern applications. It can be used to provide feedback about an operation or to display a system message. The toast appears on top of the applications content, and can be dismissed to resume user interaction with the application.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/api/toast'>Toast</a>."],
       "group": "Actions",
-      "icon16": "toastaction_color_16x16.png",
-      "icon32": "toastaction_color_32x32.png",
+      "icon16": "toastaction_16x16.png",
+      "icon32": "toastaction_32x32.png",
       "properties": {
         "IonColor": false,
         "IonMode": false,
@@ -17861,8 +17861,8 @@
       "label": "Error",
       "description": "Defines an <i>Error</i> action component. | This component helps generating an error with a given message.",
       "group": "Actions",
-      "icon16": "erroraction_color_16x16.png",
-      "icon32": "erroraction_color_32x32.png",
+      "icon16": "erroraction_16x16.png",
+      "icon32": "erroraction_32x32.png",
       "properties": {
         "message": {
           "label": "Message",
@@ -17892,8 +17892,8 @@
 " \u2022 if not mycondition<br/>",
 " \u2022 &nbsp;&nbsp;&nbsp;&nbsp;Do some other stuff"],
     "group": "Actions",
-    "icon16": "ifaction_color_16x16.png",
-    "icon32": "ifaction_color_32x32.png",
+    "icon16": "ifaction_16x16.png",
+    "icon32": "ifaction_32x32.png",
     "displayFormat": "function displayFormat() { return 'if' + (negate == 'true'? ' not':'') + ' ('+ condition+')'; }",
     "properties": {
       "condition": {
@@ -17927,8 +17927,8 @@
 "If the <i>condition</i> is verified, it will execute the next action underneath, otherwise it will execute actions placed under the <b><i>Else Handler</i></b> you may have added.<br/>",
 "You can use the <i>Negate</i> property to test the reverse condition.<br/>"],
     "group": "Actions",
-    "icon16": "ifelseaction_color_16x16.png",
-    "icon32": "ifelseaction_color_32x32.png",
+    "icon16": "ifelseaction_16x16.png",
+    "icon32": "ifelseaction_32x32.png",
     "displayFormat": "function displayFormat() { return 'ifElse' + (negate == 'true'? ' not':'') + ' ('+ condition+')'; }",
     "properties": {
       "condition": {
@@ -17959,8 +17959,8 @@
     "label": "Log",
     "description": "Defines an <i>Log</i> action component. | You can use logs actions to display some information in the device logs. These logs will also be automatically sent to the Convertigo Server and will be threaded within the backend sequence execution so that you can follow a full client interaction thread.",
     "group": "Actions",
-    "icon16": "logaction_color_16x16.png",
-    "icon32": "logaction_color_32x32.png",
+    "icon16": "logaction_16x16.png",
+    "icon32": "logaction_32x32.png",
     "properties": {
       "message": {
         "label": "Message",
@@ -17997,8 +17997,8 @@
       "label": "Close Loading",
       "description": "Defines a <i>Close Loading</i> action component. | This component closes a loading opened by 'Show Loading'",
       "group": "Actions",
-      "icon16": "closeloadingaction_color_16x16.png",
-      "icon32": "closeloadingaction_color_32x32.png",
+      "icon16": "closeloadingaction_16x16.png",
+      "icon32": "closeloadingaction_32x32.png",
       "properties": {
         "data": {
           "label": "Page data",
@@ -18016,8 +18016,8 @@
       "label": "Show Loading",
       "description": "Defines a <i>Show Loading</i> action component. | This component show a loading",
       "group": "Actions",
-      "icon16": "showloadingaction_color_16x16.png",
-      "icon32": "showloadingaction_color_32x32.png",
+      "icon16": "showloadingaction_16x16.png",
+      "icon32": "showloadingaction_32x32.png",
       "properties": {
         "IonMode": false,
         "message": {
@@ -18153,8 +18153,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
       "group": "Actions",
-      "icon16": "callsequenceaction_color_16x16.png",
-      "icon32": "callsequenceaction_color_32x32.png",
+      "icon16": "callsequenceaction_16x16.png",
+      "icon32": "callsequenceaction_32x32.png",
       "displayFormat": "function displayFormat() { return 'Call ('+ requestable +')'; }",
       "properties": {
         "requestable": {
@@ -18261,8 +18261,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
       "group": "FullSync Actions",
-      "icon16": "callfullsyncaction_color_16x16.png",
-      "icon32": "callfullsyncaction_color_32x32.png",
+      "icon16": "callfullsyncaction_16x16.png",
+      "icon32": "callfullsyncaction_32x32.png",
       "displayFormat": "function displayFormat() { var db = requestable.substring(requestable.lastIndexOf('.')+1); return 'Call ('+ db + '.' + verb +')'; }",
       "properties": {
         "requestable": {
@@ -18331,8 +18331,8 @@
       "label": "ClearDataSource",
       "description": "Defines a <i>ClearDataSource</i> action component. | Use the <i>ClearDataSource</i> to delete data stored from a previous fullsync query or sequence call.",
       "group": "FullSync Actions",
-      "icon16": "cleardatasourceaction_color_16x16.png",
-      "icon32": "cleardatasourceaction_color_32x32.png",
+      "icon16": "cleardatasourceaction_16x16.png",
+      "icon32": "cleardatasourceaction_32x32.png",
       "properties": {
         "requestables": {
           "label": "Requestables",
@@ -18353,8 +18353,8 @@
 "Defines a <i>PushPage</i> action component. |  This component helps to display a given page.<br/>",
 "Pushing a new page onto the top of the navigation stack causes the new page to be animated in.<br/>"],
       "group": "Actions",
-      "icon16": "pushpageaction_color_16x16.png",
-      "icon32": "pushpageaction_color_32x32.png",
+      "icon16": "pushpageaction_16x16.png",
+      "icon32": "pushpageaction_32x32.png",
       "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'PushPage ' + target; }",
       "properties": {
         "page": {
@@ -18387,8 +18387,8 @@
 "Defines a <i>NavigatePage</i> action component. | This component helps navigating to a page giving its URL.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/angular/navigation'>Navigation</a>."],
       "group": "Actions",
-      "icon16": "navigatepageaction_color_16x16.png",
-      "icon32": "navigatepageaction_color_32x32.png",
+      "icon16": "navigatepageaction_16x16.png",
+      "icon32": "navigatepageaction_32x32.png",
       "properties": {
         "url": {
           "label": "Page url",
@@ -18419,8 +18419,8 @@
 "Defines a <i>RootPage</i> action component. | This component helps setting a page as the root one. Setting a page as root will place it as the first page in the stack, ie. the page where we will return when the user hits the back button for each of the pages present on the stack.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/angular/navigation'>Navigation</a>."],
       "group": "Actions",
-      "icon16": "rootpageaction_color_16x16.png",
-      "icon32": "rootpageaction_color_32x32.png",
+      "icon16": "rootpageaction_16x16.png",
+      "icon32": "rootpageaction_32x32.png",
       "displayFormat": "function displayFormat() {var target = page.substring(page.lastIndexOf('.')+1); return 'RootPage ' + target; }",
       "properties": {
         "page": {
@@ -18453,8 +18453,8 @@
 "Defines a <i>PopPage</i> action component. | This component helps navigating back to last page. Popping a page will return to the previous page in the stack, as if the user had clicked on the back button.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/angular/navigation'>Navigation</a>."],
       "group": "Actions",
-      "icon16": "poppageaction_color_16x16.png",
-      "icon32": "poppageaction_color_32x32.png",
+      "icon16": "poppageaction_16x16.png",
+      "icon32": "poppageaction_32x32.png",
       "properties": {
       }
     },
@@ -18473,8 +18473,8 @@
 "<br/>",
 ""],
       "group": "Actions",
-      "icon16": "setglobalaction_color_16x16.png",
-      "icon32": "setglobalaction_color_32x32.png",
+      "icon16": "setglobalaction_16x16.png",
+      "icon32": "setglobalaction_32x32.png",
       "properties": {
         "Property": {
           "label": "Property",
@@ -18507,8 +18507,8 @@
 "<br/>",
 ""],
       "group": "Actions",
-      "icon16": "setlocalaction_color_16x16.png",
-      "icon32": "setlocalaction_color_32x32.png",
+      "icon16": "setlocalaction_16x16.png",
+      "icon32": "setlocalaction_32x32.png",
       "properties": {
         "Property": {
           "label": "Property",
@@ -18785,8 +18785,8 @@
 " Default mocked value for login are <code>{email: 'user@convertigo.com', userId: 'my_id', displayName: 'John Doe', familyName: 'Doe', givenName: 'John', imageUrl: 'http://saffroninteractive.com/wp-content/uploads/2017/10/empty-avatar2.png', idToken'my_id_token', serverAuthCode: '12', accessToken: 'my_access_token'}</code>.<br/>",
 " Default mocked value for logout is <code>true</code>."],
       "group": "Actions",
-      "icon16": "googleloginaction_color_16x16.png",
-      "icon32": "googleloginaction_color_32x32.png",
+      "icon16": "googleloginaction_16x16.png",
+      "icon32": "googleloginaction_32x32.png",
       "properties": {
             "mockedResponseE": {
             "label": "Mocked email",
@@ -18929,8 +18929,8 @@
 "<b>Note :</b>.<br/>",
 "If the database is replicated for the first time, the action will wait for a full replication before executing next action. If the database has already been replicated once, the replication will start and execute next action immediately having the replication going on in the background, thus allowing to display the first page of the app immediately."],
       "group": "FullSync Actions",
-      "icon16": "fssyncaction_color_16x16.png",
-      "icon32": "fssyncaction_color_32x32.png",
+      "icon16": "fssyncaction_16x16.png",
+      "icon32": "fssyncaction_32x32.png",
       "properties": {
         "requestable": {
           "editor": "NamedSourceSelectorEditor",
@@ -19024,8 +19024,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
     "group": "FullSync Actions",
-    "icon16": "fspostaction_color_16x16.png",
-    "icon32": "fspostaction_color_32x32.png",
+    "icon16": "fspostaction_16x16.png",
+    "icon32": "fspostaction_32x32.png",
     "properties": {
       "requestable": {
         "editor": "NamedSourceSelectorEditor",
@@ -19102,8 +19102,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
     "group": "FullSync Actions",
-    "icon16": "putattachementaction_color_16x16.png",
-    "icon32": "putattachementaction_color_32x32.png",
+    "icon16": "putattachementaction_16x16.png",
+    "icon32": "putattachementaction_32x32.png",
     "properties": {
       "requestable": {
         "editor": "NamedSourceSelectorEditor",
@@ -19193,8 +19193,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
     "group": "FullSync Actions",
-    "icon16": "deleteattachementaction_color_16x16.png",
-    "icon32": "deleteattachementaction_color_32x32.png",
+    "icon16": "deleteattachementaction_16x16.png",
+    "icon32": "deleteattachementaction_32x32.png",
     "properties": {
       "requestable": {
         "editor": "NamedSourceSelectorEditor",
@@ -19247,8 +19247,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
     "group": "FullSync Actions",
-    "icon16": "fsgetaction_color_16x16.png",
-    "icon32": "fsgetaction_color_32x32.png",
+    "icon16": "fsgetaction_16x16.png",
+    "icon32": "fsgetaction_32x32.png",
     "properties": {
       "requestable": {
         "editor": "NamedSourceSelectorEditor",
@@ -19317,8 +19317,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
     "group": "FullSync Actions",
-    "icon16": "fsdeleteaction_color_16x16.png",
-    "icon32": "fsdeleteaction_color_32x32.png",
+    "icon16": "fsdeleteaction_16x16.png",
+    "icon32": "fsdeleteaction_32x32.png",
     "properties": {
       "requestable": {
         "editor": "NamedSourceSelectorEditor",
@@ -19387,8 +19387,8 @@
 "<br/>",
 " If you want to disable loading controller, you can set property <i>disable loading controller</i> to true."],
     "group": "FullSync Actions",
-    "icon16": "fsviewsaction_color_16x16.png",
-    "icon32": "fsviewsaction_color_32x32.png",
+    "icon16": "fsviewsaction_16x16.png",
+    "icon32": "fsviewsaction_32x32.png",
     "properties": {
         "noLoading": {
           "label": "Disable loading controller",
@@ -19627,8 +19627,8 @@
 "It uses the native Android file picker for the user to select a file.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/native/file-chooser'>File Chooser</a>."],
       "group": "Native Actions",
-      "icon16": "filechooseraction_color_16x16.png",
-      "icon32": "filechooseraction_color_32x32.png",
+      "icon16": "filechooseraction_16x16.png",
+      "icon32": "filechooseraction_32x32.png",
       "properties": {
       "mockedResponse": {
             "label": "Mocked response",
@@ -19827,8 +19827,8 @@
 " \u2022 out: A concatenation of spoken string(s) if the action succeed</code><br/>",
 "For more information : <a href='https://ionicframework.com/docs/native/speech-recognition'>SpeechRecognition</a>."],
       "group": "Native Actions",
-        "icon16": "speechtotextaction_color_16x16.png",
-        "icon32": "speechtotextaction_color_32x32.png",
+        "icon16": "speechtotextaction_16x16.png",
+        "icon32": "speechtotextaction_32x32.png",
       "properties": {
         "locale": {
           "label": "Locale",
@@ -19926,8 +19926,8 @@
 " \u2022 out: A boolean thats indicates if the action succeed</code><br/>",
 "For more information : <a href='https://ionicframework.com/docs/native/text-to-speech'>TextToSpeech</a>."],
       "group": "Native Actions",
-        "icon16": "texttospeechaction_color_16x16.png",
-        "icon32": "texttospeechaction_color_32x32.png",
+        "icon16": "texttospeechaction_16x16.png",
+        "icon32": "texttospeechaction_32x32.png",
       "properties": {
         "text": {
              "label": "Text",
@@ -20145,8 +20145,8 @@
 "The return value can be accessed by the navigation stack, using <code> parent.out </code> for example.<br/>",
 " For more information : <a href='https://ionicframework.com/docs/api/alert'>Alert</a>."],
       "group": "Actions",
-        "icon16": "alertaction_color_16x16.png",
-        "icon32": "alertaction_color_32x32.png",
+        "icon16": "alertaction_16x16.png",
+        "icon32": "alertaction_32x32.png",
         "properties": {
             "IonMode": false,
             "header": {
@@ -20565,8 +20565,8 @@
 " Default value is <code>true</code>.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/native/file-opener'>File Opener</a>."],
       "group": "Native Actions",
-      "icon16": "fileopeneraction_color_16x16.png",
-      "icon32": "fileopeneraction_color_32x32.png",
+      "icon16": "fileopeneraction_16x16.png",
+      "icon32": "fileopeneraction_32x32.png",
       "properties": {
          "mockedResponse": {
             "label": "Mocked response",
@@ -20627,8 +20627,8 @@
 "It uses the native Cordova camera plugin which provides an API for taking pictures and for choosing images from the system's image library.<br/>",
 "For more information : <a href='https://github.com/apache/cordova-plugin-camera'>Camera</a>."],
       "group": "Native Actions",
-      "icon16": "cameraaction_color_16x16.png",
-      "icon32": "cameraaction_color_32x32.png",
+      "icon16": "cameraaction_16x16.png",
+      "icon32": "cameraaction_32x32.png",
       "properties": {
      
           "quality": {
@@ -20844,8 +20844,8 @@
 "<code>{format: 'QR_CODE', cancel: false, text: 'http://www.convertigo.com/'}</code>.<br/>",
 "For more information : <a href='https://github.com/phonegap/phonegap-plugin-barcodescanner'>BarcodeScanner plugin docs</a>."],
     "group": "Native Actions",
-    "icon16": "barcodeaction_color_16x16.png",
-    "icon32": "barcodeaction_color_32x32.png",
+    "icon16": "barcodeaction_16x16.png",
+    "icon32": "barcodeaction_32x32.png",
     "properties": {
         "mockedFormat": {
             "label": "Mocked format response",
@@ -21026,8 +21026,8 @@
 " It uses the native Cordova plugin which allows you to uninstall any application giving its package ID.<br/>",
 " For more information : <a href='https://ionicframework.com/docs/native/file-opener'>File Opener</a>."],
       "group": "Native Actions",
-      "icon16": "uninstallaction_color_16x16.png",
-      "icon32": "uninstallaction_color_32x32.png",
+      "icon16": "uninstallaction_16x16.png",
+      "icon32": "uninstallaction_32x32.png",
       "properties": {
                "mockedResponse": {
             "label": "Mocked response",
@@ -21107,8 +21107,8 @@
 "<br/>",
 "LinkedIn OAuth requires configuration on the client side and the Convertigo MBaaS server side. On the client side configure the given <b>Client ID</b> value in the <b>Client ID</b> property. On the Convertigo MBaaS side,  configure two symbols with the admin console :<table><tr><td>lib_oauth.linkedin.clientid</td><td>Client ID value</td></tr><tr><td>lib_oauth.linkedin.keysecret</td><td>Client Secret value</td></tr></table>."],
       "group": "Actions",
-      "icon16": "oauthloginaction_color_16x16.png",
-      "icon32": "oauthloginaction_color_32x32.png",
+      "icon16": "oauthloginaction_16x16.png",
+      "icon32": "oauthloginaction_32x32.png",
       "properties": {
           "provider": {
               "label": "OAuth Provider",
@@ -21216,8 +21216,8 @@
 "It uses the native Cordova plugin which allows you to check if an application is installed giving its package ID.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/native/file-opener'>File Opener</a>."],
       "group": "Native Actions",
-      "icon16": "checkinstallaction_color_16x16.png",
-      "icon32": "checkinstallaction_color_32x32.png",
+      "icon16": "checkinstallaction_16x16.png",
+      "icon32": "checkinstallaction_32x32.png",
       "properties": {
           "mockedResponse": {
             "label": "Mocked response",
@@ -21336,8 +21336,8 @@
       "description": [
 "Defines a <i>EmitValue</i> action component. |This component helps emiting an input variable value from a shared component."],
       "group": "Actions",
-      "icon16": "emiteventaction_color_16x16.png",
-      "icon32": "emiteventaction_color_32x32.png",
+      "icon16": "emitvalueaction_16x16.png",
+      "icon32": "emitvalueaction_32x32.png",
       "displayFormat": "function displayFormat() {var target = compvar.substring(compvar.lastIndexOf('.')+1); return 'EmitValue ' + target; }",
       "properties": {
           "compvar": {
@@ -21361,8 +21361,8 @@
 " \u2022 <i>Animatable</i> <br />View the elements with an <b>Identifier</b> property set. Select here one element Identifier to animate.<br/>",
 " \u2022 <i>Apply mode</i> <br />Animate only the selected element (single) or all elements (all) with the same <b>Identifier</b> value. <br />You can also chain animations to animate in parrallel (Sibling <i>Animate</i> actions) or serial (Child <i>Animate actions</i>). <br /><br />Animations are based on the <a href='https://daneden.github.io/animate.css/'>animate.css</a> package"],
       "group": "Actions",
-      "icon16": "animateaction_color_16x16.png",
-      "icon32": "animateaction_color_32x32.png",
+      "icon16": "animateaction_16x16.png",
+      "icon32": "animateaction_32x32.png",
       "properties": {
           "type": {
             "label": "Animation name",
@@ -21575,8 +21575,8 @@
 "See <i>SharedAction</i> component<br/>",
 "See <i>Variable</i> component"],
       "group": "Actions",
-      "icon16": "invokesharedaction_color_16x16.png",
-      "icon32": "invokesharedaction_color_32x32.png",
+      "icon16": "invokesharedaction_16x16.png",
+      "icon32": "invokesharedaction_32x32.png",
       "properties": {
       }
     },
@@ -21590,8 +21590,8 @@
 "To work properly the <i>IterateAction</i> needs a <i>Loop Handler</i> in which you may add any kind of action to be executed at each loop.<br/>",
 "The <i>Loop Handler</i> exposes the loop's current item and index you can use in actions."],
       "group": "Actions",
-      "icon16": "iterateaction_color_16x16.png",
-      "icon32": "iterateaction_color_32x32.png",
+      "icon16": "iterateaction_16x16.png",
+      "icon32": "iterateaction_32x32.png",
       "properties": {
           "items": {
             "label": "Items",
@@ -21613,8 +21613,8 @@
 "Defines a <i>SwitchAction</i> component. | This component evaluates an expression, matches the expression’s value to a case clause, and executes actions associated with that case.<br/>",
 "To work properly the <i>SwitchAction</i> needs <i>SwitchCase Handler</i> and/or <i>SwitchDefault Handler</i> in which you may add any kind of action to be executed.<br/>"],
       "group": "Actions",
-      "icon16": "switchaction_color_16x16.png",
-      "icon32": "switchaction_color_32x32.png",
+      "icon16": "switchaction_16x16.png",
+      "icon32": "switchaction_32x32.png",
       "displayFormat": "function displayFormat() { return 'Switch ('+ expression +')' }",
       "properties": {
           "expression": {
@@ -21636,8 +21636,8 @@
       "description": [
 "Defines an <i>PauseAction</i> component. | This component helps waiting for a given time to be elapsed."],
       "group": "Actions",
-      "icon16": "pauseaction_color_16x16.png",
-      "icon32": "pauseaction_color_32x32.png",
+      "icon16": "pauseaction_16x16.png",
+      "icon32": "pauseaction_32x32.png",
       "properties": {
           "duration": {
             "label": "Duration",

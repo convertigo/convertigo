@@ -82,6 +82,7 @@ configurations {
 jar {
 	archiveBaseName = 'convertigo-engine'
 	include 'com/twinsoft/**'
+	exclude 'com/twinsoft/beans/**/*.svg'
 }
 
 task dependenciesJar(type: Jar, dependsOn: ':patches:jar') {

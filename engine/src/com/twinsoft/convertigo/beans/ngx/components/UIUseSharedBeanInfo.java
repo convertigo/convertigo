@@ -30,8 +30,8 @@ public class UIUseSharedBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIUseShared.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIElement.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiuseshared_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiuseshared_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiuseshared_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiuseshared_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIUseShared");
 

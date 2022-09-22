@@ -30,8 +30,8 @@ public class UIControlDirectiveBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIControlDirective.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIElement.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontroldirective_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontroldirective_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontroldirective_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontroldirective_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIControlDirective");
 

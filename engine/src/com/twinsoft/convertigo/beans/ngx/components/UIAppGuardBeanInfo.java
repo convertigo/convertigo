@@ -30,8 +30,8 @@ public class UIAppGuardBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIAppGuard.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappguard_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappguard_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappguard_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiappguard_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIAppGuard");
 

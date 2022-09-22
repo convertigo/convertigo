@@ -1,0 +1,27 @@
+apply plugin: 'eclipse'
+apply plugin: 'java'
+apply plugin: 'application'
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src']
+		}
+		resources {
+			srcDirs = ['src']
+		}
+	}
+}
+
+dependencies {
+	implementation 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
+	implementation 'org.apache.xmlgraphics:batik-codec:1.7'
+}
+
+application {
+	mainClass = 'com.convertigo.icons.MakeIcons'
+}
+
+run {
+	args project.rootProject.file('engine/src/com/twinsoft/convertigo/beans')
+}

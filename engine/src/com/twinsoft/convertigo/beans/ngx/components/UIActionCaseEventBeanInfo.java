@@ -30,8 +30,8 @@ public class UIActionCaseEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIActionCaseEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIActionEvent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactioncaseevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactioncaseevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactioncaseevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactioncaseevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIActionCaseEvent");
 

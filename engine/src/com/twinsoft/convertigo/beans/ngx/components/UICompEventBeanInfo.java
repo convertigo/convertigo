@@ -30,8 +30,8 @@ public class UICompEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UICompEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIControlAttr.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UICompEvent");
 

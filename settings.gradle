@@ -1,4 +1,5 @@
 include 'convertigo-splash'
+include 'convertigo-svg-icons'
 include 'eclipse-feature'
 include 'eclipse-plugin-jxbrowser-linux64'
 include 'eclipse-plugin-jxbrowser-mac'

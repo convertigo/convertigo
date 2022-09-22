@@ -30,8 +30,8 @@ public class UICustomAsyncActionBeanInfo extends MySimpleBeanInfo {
 			beanClass = UICustomAsyncAction.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UICustomAction.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicustomasyncaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicustomasyncaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicustomasyncaction_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicustomasyncaction_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UICustomAsyncAction");
 

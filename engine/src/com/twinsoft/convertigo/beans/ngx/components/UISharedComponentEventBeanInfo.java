@@ -30,8 +30,8 @@ public class UISharedComponentEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UISharedComponentEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponentevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponentevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponentevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponentevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UISharedComponentEvent");
 

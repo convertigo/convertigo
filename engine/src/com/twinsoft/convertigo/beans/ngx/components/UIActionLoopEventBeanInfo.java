@@ -30,8 +30,8 @@ public class UIActionLoopEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIActionLoopEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIActionEvent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIActionLoopEvent");
 

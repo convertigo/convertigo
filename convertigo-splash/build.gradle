@@ -13,7 +13,9 @@ sourceSets {
 	}
 }
 
-mainClassName = "com.convertigo.splash.MakeSplash"
+application {
+	mainClass = 'com.convertigo.splash.MakeSplash'
+}
 
 run.systemProperties(
 	'c8o_version': "V ${convertigoVersionFull}",

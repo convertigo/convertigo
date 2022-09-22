@@ -30,8 +30,8 @@ public class UIStackVariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIStackVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIStackVariable");
 
