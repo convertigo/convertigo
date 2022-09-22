@@ -19689,8 +19689,8 @@
 "It uses the native Chooser to select a file.<br/>",
 "For more information : <a href='https://ionicframework.com/docs/native/chooser'>Chooser</a>."],
       "group": "Native Actions",
-      "icon16": "filechooseraction_color_16x16.png",
-      "icon32": "filechooseraction_color_32x32.png",
+      "icon16": "filechooseraction_16x16.png",
+      "icon32": "filechooseraction_32x32.png",
       "properties": {
       "mockedResponse": {
             "label": "Mocked response",
@@ -21304,8 +21304,8 @@
 "<code>{user: 'user89', id: 89}</code><br/>",
 "The event may be handled by an existing <i>Event</i> component added to a <i>Use Shared</i> component."],
       "group": "Actions",
-      "icon16": "emiteventaction_color_16x16.png",
-      "icon32": "emiteventaction_color_32x32.png",
+      "icon16": "emiteventaction_16x16.png",
+      "icon32": "emiteventaction_32x32.png",
       "displayFormat": "function displayFormat() {var target = event.substring(event.lastIndexOf('.')+1); return 'EmitEvent ' + target; }",
       "properties": {
           "event": {

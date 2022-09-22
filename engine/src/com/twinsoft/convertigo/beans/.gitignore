@@ -52,6 +52,8 @@ ngx/components/dynamic/images/datetime_16x16.png
 ngx/components/dynamic/images/datetime_32x32.png
 ngx/components/dynamic/images/deleteattachementaction_16x16.png
 ngx/components/dynamic/images/deleteattachementaction_32x32.png
+ngx/components/dynamic/images/emiteventaction_16x16.png
+ngx/components/dynamic/images/emiteventaction_32x32.png
 ngx/components/dynamic/images/emitvalueaction_16x16.png
 ngx/components/dynamic/images/emitvalueaction_32x32.png
 ngx/components/dynamic/images/erroraction_16x16.png
