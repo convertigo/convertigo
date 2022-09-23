@@ -7947,8 +7947,8 @@
 "<i>Accordion</i> components components should be grouped inside an <i>Accordion Group</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/accordion-group'>Accordion group</a>."],
       "group": "Containers",
-      "icon16": "accordion_group_16x16.png",
-      "icon32": "accordion_group_32x32.png",
+      "icon16": "accordiongroup_16x16.png",
+      "icon32": "accordiongroup_32x32.png",
       "properties": {
         "IonMode": false,
         "Disabled": "false",
@@ -17053,8 +17053,8 @@
 "Defines a <i>Close Modal</i> action component. | Use this action to close a modal page previously opened through the <i>Modal Page</i> action.<br/>",
 "Add a <i>Close Modal</i> action under an Event."],
       "group" : "Actions",
-      "icon16": "closemodalaction_color_16x16.png",
-      "icon32": "closemodalaction_color_32x32.png",
+      "icon16": "closemodalaction_16x16.png",
+      "icon32": "closemodalaction_32x32.png",
       "properties": {
         "data": {
           "label": "Page data",
@@ -17102,8 +17102,8 @@
 "You can use the <i>Close Popover</i> action to dismiss a Popover.",
 " For more information: <a href='https://ionicframework.com/docs/api/popover'>Popover</a>."],
       "group": "Containers",
-      "icon16": "inlinepopover_color_16x16.png",
-      "icon32": "inlinepopover_color_32x32.png",
+      "icon16": "popoveraction_16x16.png",
+      "icon32": "popoveraction_32x32.png",
       "properties": {
           "IonMode": false,
         "Alignment": {
@@ -17372,8 +17372,8 @@
 "You can use the <i>Close Modal</i> action to dismiss a Modal.",
 " For more information: <a href='https://ionicframework.com/docs/api/modal'>Modal</a>."],
       "group": "Containers",
-      "icon16": "inlinemodal_color_16x16.png",
-      "icon32": "inlinemodal_color_32x32.png",
+      "icon16": "modalaction_16x16.png",
+      "icon32": "modalaction_32x32.png",
       "properties": {
           "IonMode": false,
         "Animated": {

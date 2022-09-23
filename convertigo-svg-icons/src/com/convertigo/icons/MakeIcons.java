@@ -43,7 +43,7 @@ public class MakeIcons {
 		try (PrintWriter writer = new PrintWriter(rootPath.resolve(".gitignore").toFile(), StandardCharsets.UTF_8)) {
 			toIgnore.forEach(writer::println);
 		}
-		System.out.println("Successfully convert " + toIgnore.size() + " svg icons from " + rootPath);
+		System.out.println("Success makes " + toIgnore.size() + " png icons from svg in " + rootPath);
 	}
 
 	void convert(Path path) {

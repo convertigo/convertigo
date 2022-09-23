@@ -1,3 +1,7 @@
+ngx/components/dynamic/images/accordion_16x16.png
+ngx/components/dynamic/images/accordion_32x32.png
+ngx/components/dynamic/images/accordiongroup_16x16.png
+ngx/components/dynamic/images/accordiongroup_32x32.png
 ngx/components/dynamic/images/alertaction_16x16.png
 ngx/components/dynamic/images/alertaction_32x32.png
 ngx/components/dynamic/images/animateaction_16x16.png
@@ -46,6 +50,8 @@ ngx/components/dynamic/images/cleardatasourceaction_16x16.png
 ngx/components/dynamic/images/cleardatasourceaction_32x32.png
 ngx/components/dynamic/images/closeloadingaction_16x16.png
 ngx/components/dynamic/images/closeloadingaction_32x32.png
+ngx/components/dynamic/images/closemodalaction_16x16.png
+ngx/components/dynamic/images/closemodalaction_32x32.png
 ngx/components/dynamic/images/content_16x16.png
 ngx/components/dynamic/images/content_32x32.png
 ngx/components/dynamic/images/datetime_16x16.png
@@ -128,6 +134,10 @@ ngx/components/dynamic/images/lazyimage_16x16.png
 ngx/components/dynamic/images/lazyimage_32x32.png
 ngx/components/dynamic/images/list_16x16.png
 ngx/components/dynamic/images/list_32x32.png
+ngx/components/dynamic/images/listdivider_16x16.png
+ngx/components/dynamic/images/listdivider_32x32.png
+ngx/components/dynamic/images/listgroup_16x16.png
+ngx/components/dynamic/images/listgroup_32x32.png
 ngx/components/dynamic/images/listheader_16x16.png
 ngx/components/dynamic/images/listheader_32x32.png
 ngx/components/dynamic/images/listitem_16x16.png
