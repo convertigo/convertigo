@@ -44,7 +44,7 @@ public class UIFontStyle extends UIStyle implements ITagsProperty {
 	
 	public String getRuleTargets() {
 		if (getParent() instanceof UIElement) {
-			return "class"+ getParent().priority;
+			ruleTargets = "class" + getParent().priority;
 		}
 		return ruleTargets;
 	}

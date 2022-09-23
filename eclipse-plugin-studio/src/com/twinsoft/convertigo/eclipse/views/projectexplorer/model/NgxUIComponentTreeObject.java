@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,6 +62,8 @@ import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
+import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
+import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.UICompVariable;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIControlEvent;
@@ -86,8 +87,6 @@ import com.twinsoft.convertigo.beans.ngx.components.UIStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIText;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
-import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard.AppGuardType;
-import com.twinsoft.convertigo.beans.ngx.components.UICompEvent;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonProperty;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -102,15 +101,15 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 import com.twinsoft.convertigo.engine.mobile.ComponentRefManager;
+import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
 import com.twinsoft.convertigo.engine.mobile.NgxBuilder;
-import com.twinsoft.convertigo.engine.mobile.ComponentRefManager.Mode;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
-	
+
 	public NgxUIComponentTreeObject(Viewer viewer, UIComponent object) {
 		super(viewer, object);
 	}
@@ -133,11 +132,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 	}
 
 	@Override
-    public boolean isEnabled() {
+	public boolean isEnabled() {
 		setEnabled(getObject().isEnabled());
-    	return super.isEnabled();
-    }
-	
+		return super.isEnabled();
+	}
+
 	@Override
 	public void launchEditor(String editorType) {
 		UIComponent uic = getObject();
@@ -152,24 +151,24 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			super.launchEditor(editorType);
 		}
 	}
-	
+
 	public void editCompTsFile() {
 		if (!(getObject() instanceof ISharedComponent)) {
 			return;
 		}
-		
+
 		final UISharedComponent comp = (UISharedComponent)getObject();
 		try {
 			// Refresh project resource
 			String projectName = comp.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			
+
 			// Close editor
 			String filePath = comp.getProject().getMobileBuilder().getTempTsRelativePath((ISharedComponent)comp);
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
-			
+
 			// Write temporary file
 			comp.getProject().getMobileBuilder().writeCompTempTs((ISharedComponent) comp);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
@@ -182,19 +181,19 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							.getWorkbench()
 							.getEditorRegistry()
 							.getDefaultEditor(file.getName());
-					
+
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
 							.getActiveWorkbenchWindow()
 							.getActivePage();
-	
+
 					String editorId = desc.getId();
-					
+
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
 					addMarkers(file, editorPart);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
-						
+
 						@Override
 						public void propertyChanged(Object source, int propId) {
 							if (source instanceof ITextEditor) {
@@ -203,7 +202,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 										isFirstChange = true;
 										return;
 									}
-									
+
 									isFirstChange = false;
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
@@ -214,32 +213,32 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							}
 						}
 					});
-				}			
+				}
 			}
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to open typescript file for component '" + comp.getName() + "'!");
 		}
 	}
-	
+
 	private void editFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
 		try {
 			IScriptComponent main = uic.getMainScriptComponent();
 			if (main == null) {
 				return;
 			}
-			
+
 			// Refresh project resources for editor
 			String projectName = uic.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			
+
 			// Close editor and Reopen it after file has been rewritten
 			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(uic);
 			IFile file = project.getFile(relativePath);
 			if (!(uic instanceof UICustomAction)) {
 				closeComponentFileEditor(file);
 			}
-			
+
 			if (main instanceof ApplicationComponent) {
 				if (uic.compareToTplVersion("7.5.2.0") < 0) {
 					ConvertigoPlugin.logError("The ability to use forms or actions inside a menu is avalaible since 7.5.2 version."
@@ -249,7 +248,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 			uic.getProject().getMobileBuilder().writeFunctionTempTsFile(uic, functionMarker);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
-			
+
 			// Open file in editor
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, uic);
@@ -258,20 +257,20 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							.getWorkbench()
 							.getEditorRegistry()
 							.getDefaultEditor(file.getName());
-					
+
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
 							.getActiveWorkbenchWindow()
 							.getActivePage();
-	
+
 					String editorId = desc.getId();
-					
+
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
 					addMarkers(file, editorPart);
-					
+
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
-						
+
 						@Override
 						public void propertyChanged(Object source, int propId) {
 							if (source instanceof ITextEditor) {
@@ -280,7 +279,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 										isFirstChange = true;
 										return;
 									}
-									
+
 									isFirstChange = false;
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
@@ -293,13 +292,13 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							}
 						}
 					});
-				}			
+				}
 			}
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to edit function for '"+ uic.getName() +"' component!");
 		}
 	}
-	
+
 	private void openHtmlFileEditor() {
 		final UICustom mc = (UICustom)getObject();
 		String filePath = "/_private/" + mc.priority+".html";
@@ -308,11 +307,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			String projectName = mc.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			
+
 			// Close editor
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
-			
+
 			// Write html file
 			try {
 				InputStream is = new ByteArrayInputStream(mc.getCustomTemplate().getBytes("ISO-8859-1"));
@@ -320,22 +319,22 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				file.setCharset("ISO-8859-1", null);
 			} catch (UnsupportedEncodingException e) {}
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
-			
+
 			// Open file in editor
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, mc);
 				if (input != null) {
 					String editorId = "org.eclipse.ui.genericeditor.GenericEditor";
-					
+
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
 							.getActiveWorkbenchWindow()
 							.getActivePage();
-	
+
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
-						
+
 						@Override
 						public void propertyChanged(Object source, int propId) {
 							if (source instanceof ITextEditor) { //org.eclipse.wst.sse.ui.StructuredTextEditor
@@ -344,7 +343,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 										isFirstChange = true;
 										return;
 									}
-									
+
 									isFirstChange = false;
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
@@ -355,13 +354,13 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							}
 						}
 					});
-				}			
+				}
 			}
 		} catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open file '" + filePath + "'!");
 		}
 	}
-	
+
 	private String formatStyleContent(UIStyle ms) {
 		String formated = ms.getStyleContent().getString();
 		DatabaseObject parentDbo = ms.getParent();
@@ -384,7 +383,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 		return formated;
 	}
-	
+
 	private String unformatStyleContent(UIStyle ms, String s) {
 		String unformated = s;
 		DatabaseObject parentDbo = ms.getParent();
@@ -399,40 +398,40 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		};
 		return unformated;
 	}
-	
+
 	private void openCssFileEditor() {
 		if (getObject() instanceof UIFont) return;
 		if (getObject() instanceof UIFontStyle) return;
-		
+
 		final UIStyle ms = (UIStyle) getObject();
 		String filePath = "/_private/editor/" + StringUtils.hash(ms.getParent().getQName()) + "/" + ms.getName() + ".scss";
 		try {
 			// Refresh project resource
 			String projectName = ms.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			
+
 			// Close editor
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
-			
+
 			// Write css file
 			SwtUtils.fillFile(file, formatStyleContent(ms));
-			
+
 			// Open file in editor
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, ms);
 				if (input != null) {
 					String editorId = "org.eclipse.ui.genericeditor.GenericEditor";
-					
+
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
 							.getActiveWorkbenchWindow()
 							.getActivePage();
-	
+
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
-						
+
 						@Override
 						public void propertyChanged(Object source, int propId) {
 							if (source instanceof ITextEditor) {
@@ -441,7 +440,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 										isFirstChange = true;
 										return;
 									}
-									
+
 									isFirstChange = false;
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
@@ -455,36 +454,36 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							}
 						}
 					});
-				}			
+				}
 			}
 		} catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open file '" + filePath + "'!");
 		}
 	}
-	
+
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 	}
 
 	@Override
-    protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
+	protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
 		List<PropertyDescriptor> l = super.getDynamicPropertyDescriptors();
 		DatabaseObject dbo = getObject();
-        if (dbo instanceof UIDynamicElement) {
-        	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
-        	if (ionBean != null) {
-	    		for (IonProperty property : ionBean.getProperties().values()) {
-	    			String id = property.getName();
-	    			String displayName = property.getLabel();
-	    			String editor = property.getEditor();
-	    			Object[] values = property.getValues();
-	    			int len = values.length;
-	    			
-	    			if (property.isHidden()) {
-	    				continue;
-	    			}
-	    			
+		if (dbo instanceof UIDynamicElement) {
+			IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+			if (ionBean != null) {
+				for (IonProperty property : ionBean.getProperties().values()) {
+					String id = property.getName();
+					String displayName = property.getLabel();
+					String editor = property.getEditor();
+					Object[] values = property.getValues();
+					int len = values.length;
+
+					if (property.isHidden()) {
+						continue;
+					}
+
 					PropertyDescriptor propertyDescriptor = null;
 					if (editor.isEmpty()) {
 						if (len == 0) {
@@ -494,24 +493,21 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							propertyDescriptor = new PropertyDescriptor(id, displayName);
 						}
 						else {
-		        			boolean isEditable = values[len-1].equals(true);
-		        			int size = isEditable ? len-1:len;
-		        			String[] tags = new String[size];
-		        			for (int i=0; i<size; i++) {
-		        				Object value = values[i];
-		        				tags[i] = value.equals(false) ? "not set":value.toString();
-		        			}
-		        			//propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
-		        			propertyDescriptor = new NgxSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
-		        			((NgxSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
-		    	        }
+							boolean isEditable = values[len-1].equals(true);
+							int size = isEditable ? len-1:len;
+							String[] tags = new String[size];
+							for (int i=0; i<size; i++) {
+								Object value = values[i];
+								tags[i] = value.equals(false) ? "not set":value.toString();
+							}
+							//propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
+							propertyDescriptor = new NgxSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
+							((NgxSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
+						}
 					} else {
 						if (editor.equals("StringComboBoxPropertyDescriptor")) {
 							try {
-								Class<?> c = Class.forName("com.twinsoft.convertigo.eclipse.property_editors." + editor);
-								Method getTags = c.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-								String[] tags = (String[]) getTags.invoke(null, new Object[] { this, id } );
-								propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, true);
+								propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, this);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -532,101 +528,101 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 									}
 									return cellEditor;
 								}
-								
+
 							};
 						}
 					}
-	    	        propertyDescriptor.setCategory(property.getCategory());
-	    	        propertyDescriptor.setDescription(cleanDescription(property.getDescription()));
-	    	        propertyDescriptor.setValidator(getValidator(id));
-	    			l.add(propertyDescriptor);
-	    		}
-        	}
-        }
+					propertyDescriptor.setCategory(property.getCategory());
+					propertyDescriptor.setDescription(cleanDescription(property.getDescription()));
+					propertyDescriptor.setValidator(getValidator(id));
+					l.add(propertyDescriptor);
+				}
+			}
+		}
 		return l;
-    }
-    
+	}
+
 	@Override
 	public Object getPropertyValue(Object id) {
 		DatabaseObject dbo = getObject();
-        if (dbo instanceof UIDynamicElement) {
-        	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
-        	if (ionBean != null) {
-	        	if (ionBean.hasProperty((String)id)) {
-        			return ionBean.getPropertyValue((String)id);
-	        	}
-	        	if (((String)id).equals(P_TYPE)) {
-	        		return ionBean.getName();
-	        	}
-        	}
-        }
+		if (dbo instanceof UIDynamicElement) {
+			IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+			if (ionBean != null) {
+				if (ionBean.hasProperty((String)id)) {
+					return ionBean.getPropertyValue((String)id);
+				}
+				if (((String)id).equals(P_TYPE)) {
+					return ionBean.getName();
+				}
+			}
+		}
 		return super.getPropertyValue(id);
 	}
 
 	@Override
 	public void setPropertyValue(Object id, Object value) {
 		DatabaseObject dbo = getObject();
-        if (dbo instanceof UIDynamicElement) {
-        	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
-        	if (ionBean != null) {
-	        	if (ionBean.hasProperty((String)id)) {
-	        		if (value != null) {
-	        			if (value instanceof String) {
-	        				value = new MobileSmartSourceType((String) value);
-	        			}
-		        		Object oldValue = ionBean.getPropertyValue((String)id);	        			
-	        			if (!value.equals(oldValue)) {
-	        				MobileBuilder mb = null;
-	        				
-	        				IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
-	        				if (editorPart != null) {
-	        					IEditorInput input = editorPart.getEditorInput();
-	        					if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
-	        						com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
-	        						mb = editorInput.getApplication().getProject().getMobileBuilder();
-	        					}
-	        				}
-	        				try {
-				        		ionBean.setPropertyValue((String)id, value);
-				        		
-				        		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
-				        		hasBeenModified(true);
-				        		viewer.update(this, null);
-				        		
-				    			Engine.logStudio.info("---------------------- SetPropertyValue started: "+ (String)id + "----------------------");
-				    			if (mb != null) {
-				    				mb.prepareBatchBuild();
-				    			}
-				    			BatchOperationHelper.start();
-				    			
-				    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, (String)id, oldValue, value);
-				    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
-				        		
-				    	        BatchOperationHelper.stop();
-	        				} catch (Exception e) {
-	        					
-	        				} finally {
-	        					BatchOperationHelper.cancel();
-	        					Engine.logStudio.info("---------------------- SetPropertyValue ended:   "+ (String)id + "----------------------");
-	        				}
-	        				
-			    	        return;
-	        			}
-	        		}
-	        	}
-        	}
-        }
-        if (dbo instanceof UIAppGuard) {
-        	UIAppGuard dboGuard = (UIAppGuard)dbo;
-        	if ("guardType".equals(id)) {
-        		String guardType = (String)value;
-        		if (!guardType.equals(dboGuard.getGuardType().name())) {
-        			if (dboGuard.getApplication().hasGuard(AppGuardType.valueOf(guardType))) {
-        				return;
-        			}
-        		}
-        	}
-        }
+		if (dbo instanceof UIDynamicElement) {
+			IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+			if (ionBean != null) {
+				if (ionBean.hasProperty((String)id)) {
+					if (value != null) {
+						if (value instanceof String) {
+							value = new MobileSmartSourceType((String) value);
+						}
+						Object oldValue = ionBean.getPropertyValue((String)id);
+						if (!value.equals(oldValue)) {
+							MobileBuilder mb = null;
+
+							IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
+							if (editorPart != null) {
+								IEditorInput input = editorPart.getEditorInput();
+								if (input instanceof com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput) {
+									com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput editorInput = GenericUtils.cast(input);
+									mb = editorInput.getApplication().getProject().getMobileBuilder();
+								}
+							}
+							try {
+								ionBean.setPropertyValue((String)id, value);
+
+								TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
+								hasBeenModified(true);
+								viewer.update(this, null);
+
+								Engine.logStudio.info("---------------------- SetPropertyValue started: "+ (String)id + "----------------------");
+								if (mb != null) {
+									mb.prepareBatchBuild();
+								}
+								BatchOperationHelper.start();
+
+								TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, (String)id, oldValue, value);
+								ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+
+								BatchOperationHelper.stop();
+							} catch (Exception e) {
+
+							} finally {
+								BatchOperationHelper.cancel();
+								Engine.logStudio.info("---------------------- SetPropertyValue ended:   "+ (String)id + "----------------------");
+							}
+
+							return;
+						}
+					}
+				}
+			}
+		}
+		if (dbo instanceof UIAppGuard) {
+			UIAppGuard dboGuard = (UIAppGuard)dbo;
+			if ("guardType".equals(id)) {
+				String guardType = (String)value;
+				if (!guardType.equals(dboGuard.getGuardType().name())) {
+					if (dboGuard.getApplication().hasGuard(AppGuardType.valueOf(guardType))) {
+						return;
+					}
+				}
+			}
+		}
 		super.setPropertyValue(id, value);
 	}
 
@@ -638,76 +634,76 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			Object thisTreeObject() {
 				return NgxUIComponentTreeObject.this;
 			}
-			
+
 			@Override
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
 				UIComponent object = getObject();
-				
+
 				if (object instanceof UIDynamicTabButton) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxPageComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxPageComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("tabpage");
 					}
 				}
 				else if (object instanceof UIDynamicMenuItem) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxPageComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxPageComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("itempage");
 					}
 				}
 				else if (object instanceof UIDynamicAnimate) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxPageComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxPageComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("identifiable");
 					}
 				}
 				else if (object instanceof UIDynamicInvoke) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("stack");
 					}
 				}
 				else if (object instanceof UIUseShared) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("sharedcomponent");
 					}
 				}
 				else if (object instanceof UIDynamicInfiniteScroll) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxPageComponentTreeObject.class.isAssignableFrom(c) ||
-						NgxUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxPageComponentTreeObject.class.isAssignableFrom(c) ||
+							NgxUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("scrollaction");
 					}
 				}
 				else if (object instanceof UIDynamicElement) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						SequenceTreeObject.class.isAssignableFrom(c) ||
-						ConnectorTreeObject.class.isAssignableFrom(c))
+							SequenceTreeObject.class.isAssignableFrom(c) ||
+							ConnectorTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("requestable");
 					}
-					
+
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -715,7 +711,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					{
 						list.add("page");
 					}
-					
+
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 							NgxApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -724,22 +720,22 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						list.add("event");
 						list.add("compvar");
 					}
-					
+
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						ConnectorTreeObject.class.isAssignableFrom(c) ||
-						DesignDocumentTreeObject.class.isAssignableFrom(c) ||
-						DesignDocumentViewTreeObject.class.isAssignableFrom(c))
+							ConnectorTreeObject.class.isAssignableFrom(c) ||
+							DesignDocumentTreeObject.class.isAssignableFrom(c) ||
+							DesignDocumentViewTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("fsview");
 					}
 				}
 				return list;
 			}
-			
+
 			@Override
 			protected boolean isNamedSource(String propertyName) {
 				UIComponent object = getObject();
-				
+
 				if (object instanceof UIDynamicTab) {
 					return "tabpage".equals(propertyName);
 				}
@@ -759,19 +755,19 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					return "scrollaction".equals(propertyName);
 				}
 				else if (object instanceof UIDynamicElement) {
-					return "requestable".equals(propertyName) || 
-								"fsview".equals(propertyName) ||
-									"page".equals(propertyName) ||
-										"event".equals(propertyName) ||
-											"compvar".equals(propertyName);
+					return "requestable".equals(propertyName) ||
+							"fsview".equals(propertyName) ||
+							"page".equals(propertyName) ||
+							"event".equals(propertyName) ||
+							"compvar".equals(propertyName);
 				}
 				return false;
 			}
-			
+
 			@Override
 			public boolean isSelectable(String propertyName, Object nsObject) {
 				UIComponent object = getObject();
-				
+
 				if (object instanceof UIDynamicTabButton) {
 					if ("tabpage".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
@@ -920,9 +916,9 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
 				if (isNamedSource(propertyName)) {
 					boolean hasBeenRenamed = false;
-					
+
 					Object oValue = getPropertyValue(propertyName);
-					
+
 					String pValue;
 					if (oValue instanceof MobileSmartSourceType) {
 						MobileSmartSourceType sst = (MobileSmartSourceType) oValue;
@@ -930,7 +926,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					} else {
 						pValue = (String) oValue;
 					}
-					
+
 					String _pValue = pValue;
 					if (pValue != null && (pValue.startsWith(oldName + ".") || pValue.equals(oldName))) {
 						_pValue = newName + pValue.substring(oldName.length());
@@ -975,27 +971,27 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							else if (object instanceof UIDynamicElement) {
 								if ("requestable".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("requestable", new MobileSmartSourceType(_pValue));
+									setPropertyValue("requestable", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("fsview".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("fsview", new MobileSmartSourceType(_pValue));
+									setPropertyValue("fsview", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("page".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("page", new MobileSmartSourceType(_pValue));
+									setPropertyValue("page", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("event".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("event", new MobileSmartSourceType(_pValue));
+									setPropertyValue("event", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("compvar".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("compvar", new MobileSmartSourceType(_pValue));
+									setPropertyValue("compvar", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 							}
@@ -1007,20 +1003,20 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							}
 						}
 					}
-			
+
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
 						viewer.refresh();
-						
+
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(NgxUIComponentTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
-						
-		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(NgxUIComponentTreeObject.this, propertyName, pValue, _pValue);
-		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+
+						TreeObjectEvent treeObjectEvent = new TreeObjectEvent(NgxUIComponentTreeObject.this, propertyName, pValue, _pValue);
+						ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
 			}
-			
+
 			@Override
 			protected void refactorSmartSources(Class<?> c, String oldName, String newName) {
 				try {
@@ -1041,18 +1037,18 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 										hasBeenChanged = true;
 									}
 								}
-								
+
 								if (hasBeenChanged) {
 									Object nValue = getPropertyValue(propertyName);
-									
+
 									hasBeenModified(true);
 									viewer.refresh();
-									
+
 									ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(NgxUIComponentTreeObject.this);
 									getDescriptors();// refresh editors (e.g labels in combobox)
-									
-					    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(NgxUIComponentTreeObject.this, propertyName, oValue, nValue);
-					    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+
+									TreeObjectEvent treeObjectEvent = new TreeObjectEvent(NgxUIComponentTreeObject.this, propertyName, oValue, nValue);
+									ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 								}
 							}
 						}
@@ -1063,21 +1059,21 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		};
 	}
-	
+
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
-		
+
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
-		
+
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
-			
+
 			try {
 				if (this.equals(treeObject)) {
 					// a use has been added by dnd a library shared component from palette
@@ -1089,7 +1085,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							((NgxBuilder)getObject().getProject().getMobileBuilder()).updateConsumer();
 						}
 					}
-					
+
 					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
 					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
 					if (uisa != null && !uisa.equals(getObject())) {
@@ -1112,28 +1108,28 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 	}
 
-	
+
 	@Override
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectRemoved(treeObjectEvent);
-		
+
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
-		
+
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject deletedObject = deletedTreeObject.getObject();
 			try {
 				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
 					UIComponent parentDbo = getObject();
-					
+
 					if (deletedObject instanceof UIUseShared) {
 						UIUseShared use = (UIUseShared)deletedObject;
 						String compQName = use.getSharedComponentQName();
 						String useQNname = parentDbo.getQName() + "." + deletedObject.getName();
 						ComponentRefManager.get(Mode.use).removeConsumer(compQName, useQNname);
 					}
-										
+
 					UIActionStack uisa = parentDbo.getSharedAction();
 					UISharedComponent uisc = parentDbo.getSharedComponent();
 					if (uisa != null) {
@@ -1155,19 +1151,19 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
-		
+
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
-		
+
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
-		
+
 		refactorSmartSources(treeObjectEvent);
-		
+
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
-			
+
 			try {
 				if (this.equals(treeObject)) {
 					if (propertyName.equals("scriptContent")) {
@@ -1184,10 +1180,10 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 								}
 							}
 						}
-						
+
 						markMainAsDirty(getObject(), done);
 					}
-					
+
 					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
 					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
 					if (uisa != null && !uisa.equals(getObject())) {
@@ -1200,7 +1196,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 					if (propertyName.equals("name")) {
 						handlesBeanNameChanged(treeObjectEvent);
 					}
-					
+
 					if (dbo instanceof UIActionStack) {
 						handleSharedActionChanged((UIActionStack) dbo, done);
 					}
@@ -1213,7 +1209,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		}
 	}
-	
+
 	protected void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
 		if (sharedAction != null) {
 			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
@@ -1222,7 +1218,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
 					UIActionStack uisa = udi.getSharedAction();
 					UISharedComponent uisc = udi.getSharedComponent();
-					
+
 					// udi inside a shared action
 					if (uisa != null && !uisa.equals(sharedAction)) {
 						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
@@ -1243,13 +1239,13 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		}
 	}
-	
+
 	protected void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
 		if (sharedComponent != null) {
 			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
 			if (getObject() instanceof UIUseShared) {
 				UIUseShared udu = (UIUseShared)getObject();
-				
+
 				if (udu.getSharedComponentQName().equals(sharedComponent.getQName())) {
 					UISharedComponent uisc = udu.getSharedComponent();
 					// udu inside a shared component
@@ -1268,7 +1264,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		}
 	}
-	
+
 	protected void markMainTsAsDirty() {
 		if (getObject() instanceof UISharedComponent) {
 			UISharedComponent comp = (UISharedComponent)getObject();
@@ -1280,7 +1276,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		}
 	}
-	
+
 	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
 		if (uic != null) {
 			IScriptComponent main = uic.getMainScriptComponent();
@@ -1301,7 +1297,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		}
 	}
-	
+
 	protected void markMainAsDirty(UIComponent uic) throws EngineException {
 		markMainAsDirty(uic, new HashSet<Object>());
 	}
@@ -1314,28 +1310,28 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		}
 		return false;
 	}
-	
+
 	protected void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		
+
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
-		
+
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
-		
+
 		// Case of DatabaseObjectTreeObject
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			try {
 				boolean sourcesUpdated = false;
-				
+
 				// A bean name has changed
 				if (propertyName.equals("name")) {
 					boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
-					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL)
+							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
 						try {
 							if (dbo instanceof Project) {
 								String oldName = (String)oldValue;
@@ -1397,7 +1393,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						}
 					}
 				}
-				
+
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
 					if (hasSameScriptComponent(getObject(), uic)) {
@@ -1430,16 +1426,16 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						}
 					}
 				}
-				
+
 				// Need TS regeneration
 				if (sourcesUpdated) {
 					hasBeenModified(true);
 					viewer.refresh();
-					
+
 					markMainAsDirty(getObject());
 				}
-				
-				
+
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1449,12 +1445,12 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)treeObject;
 			try {
 				boolean sourcesUpdated = false;
-				
+
 				// View name changed
 				if (propertyName.equals("name")) {
 					boolean fromSameProject = getProjectTreeObject().equals(ddvto.getProjectTreeObject());
-					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL)
+							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
 						try {
 							String oldName = (String)oldValue;
 							String newName = (String)newValue;
@@ -1469,28 +1465,28 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 						}
 					}
 				}
-				
+
 				// Need TS regeneration
 				if (sourcesUpdated) {
 					hasBeenModified(true);
-					
+
 					viewer.refresh();
 					markMainAsDirty(getObject());
 				}
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		int update = treeObjectEvent.update;
-		
+
 		if (update != TreeObjectEvent.UPDATE_NONE) {
 			// Case a UIStackVariable has been renamed
 			if (databaseObject instanceof UIStackVariable) {
@@ -1504,7 +1500,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							boolean isLocalProject = variable.getProject().equals(udi.getProject());
 							boolean isSameValue = variable.getName().equals(oldValue);
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-							
+
 							if (!isSameValue && shouldUpdate) {
 								Iterator<UIComponent> it = udi.getUIComponentList().iterator();
 								while (it.hasNext()) {
@@ -1515,11 +1511,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 											try {
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
-												
+
 												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(udi);
-												
+
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 												break;
 											} catch (EngineException e) {
@@ -1545,7 +1541,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							boolean isLocalProject = variable.getProject().equals(uus.getProject());
 							boolean isSameValue = variable.getName().equals(oldValue);
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-							
+
 							if (!isSameValue && shouldUpdate) {
 								Iterator<UIComponent> it = uus.getUIComponentList().iterator();
 								while (it.hasNext()) {
@@ -1556,11 +1552,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 											try {
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
-												
+
 												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(uus);
-												
+
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 												break;
 											} catch (EngineException e) {
@@ -1586,7 +1582,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 							boolean isLocalProject = event.getProject().equals(uus.getProject());
 							boolean isSameValue = event.getName().equals(oldValue);
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-							
+
 							if (!isSameValue && shouldUpdate) {
 								Iterator<UIComponent> it = uus.getUIComponentList().iterator();
 								while (it.hasNext()) {
@@ -1597,11 +1593,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 											try {
 												uice.setEventName((String) newValue);
 												uice.hasChanged = true;
-												
+
 												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(uus);
-												
+
 												notifyDataseObjectPropertyChanged(uice, "eventName", oldValue, newValue, new HashSet<Object>());
 												break;
 											} catch (EngineException e) {
@@ -1631,7 +1627,7 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 									boolean isLocalProject = variable.getProject().equals(uia.getProject());
 									boolean isSameValue = variable.getName().equals(oldValue);
 									boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-									
+
 									if (!isSameValue && shouldUpdate) {
 										Iterator<UIComponent> it = uia.getUIComponentList().iterator();
 										while (it.hasNext()) {
@@ -1642,11 +1638,11 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 													try {
 														uicv.setName((String) newValue);
 														uicv.hasChanged = true;
-														
+
 														hasBeenModified(true);
 														viewer.refresh();
 														markMainAsDirty(uia);
-														
+
 														notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 														break;
 													} catch (EngineException e) {
@@ -1664,14 +1660,14 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 			}
 		}
 	}
-	
+
 	protected void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		TreeObject to = ConvertigoPlugin.projectManager.getProjectExplorerView().findTreeObjectByUserObject(dbo);
 		if (to != null) {
 			notifyTreeObjectPropertyChanged(to, propertyName, oldValue, newValue, done);
 		}
 	}
-	
+
 	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		if (done == null) {
 			done = new HashSet<Object>();
@@ -1679,16 +1675,16 @@ public class NgxUIComponentTreeObject extends NgxComponentTreeObject implements 
 		if (!done.add(to)) {
 			return;
 		}
-		
+
 		/*if (to instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject tdbo = (DatabaseObjectTreeObject)to;
     		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
     		tdbo.hasBeenModified(true);
     		viewer.update(tdbo, null);
 		}*/
-		
+
 		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");
-        TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, 0, done);
-        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
+		TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, 0, done);
+		ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
 	}
 }
