@@ -55,7 +55,7 @@
     },
 
     "ButtonType": {
-      "attr": "button-type",
+      "attr": "buttonType",
       "label": "Button type",
       "description": "Specifies ionic button style.",
       "category": "@Properties",
@@ -331,7 +331,7 @@
     },
     
     "LinkRouterDirection": {
-      "attr": "router-direction",
+      "attr": "routerDirection",
       "label": "Router direction",
       "description": "Specifies the transition direction when navigating to another page using a <i>URL</i>.",
       "category": "@Link",
@@ -398,7 +398,7 @@
     },
     
     "DetailIconName": {
-      "attr": "detail-icon",
+      "attr": "detailIcon",
       "label": "Detail icon",
       "description": "Specifies detail icon name to use when <i>Detail</i> is set to <code>true</code>.",
       "category": "@Properties",
@@ -6589,7 +6589,7 @@
     },
     
     "ToggleIcon": {
-      "attr": "toggle-icon",
+      "attr": "toggleIcon",
       "label": "Toggle icon",
       "description": "The toggle icon to use. This icon will be rotated when the accordion is expanded or collapsed.",
       "category": "@Properties",
@@ -7862,7 +7862,7 @@
         },
         "ToggleIcon": false,
         "ToggleIconSlot": {
-          "attr": "toggle-icon-slot",
+          "attr": "toggleIconSlot",
           "label": "Toggle iconn slot",
           "description": "The slot inside of ion-item to place the toggle icon. Defaults to 'end'.",
           "category": "@Properties",
@@ -8887,7 +8887,7 @@
         "Disabled": "false",
         "IonColor": false,
         "AutoHide": {
-          "attr": "auto-hide",
+          "attr": "autoHide",
           "label": "Auto hide",
           "description": "Specifies whether to automatically hides the menu button when the corresponding menu is not active.",
           "category": "@Properties",
@@ -8946,7 +8946,7 @@
       "icon32": "menutoggle_32x32.png",
       "properties": {
         "AutoHide": {
-          "attr": "auto-hide",
+          "attr": "autoHide",
           "label": "Auto hide",
           "description": "Specifies whether to automatically hides the menu button when the corresponding menu is not active.",
           "category": "@Properties",
@@ -9617,7 +9617,7 @@
           ]
         },
         "ForceOverScroll": {
-          "attr": "force-overscroll",
+          "attr": "forceOverscroll",
           "label": "Force overscroll",
           "description": "Specifies whether to force over scroll.",
           "category": "@Properties",
@@ -9629,7 +9629,7 @@
           ]
         },
         "ScrollEvents": {
-          "attr": "scroll-events",
+          "attr": "scrollEvents",
           "label": "Scroll events",
           "description": "Specifies whether to enable scroll events and start listening from (ionScroll).",
           "category": "@Properties",
@@ -9641,7 +9641,7 @@
           ]
         },
         "ScrollX": {
-          "attr": "scroll-x",
+          "attr": "scrollX",
           "label": "Scroll X",
           "description": "Specifies whether to enable the content scrolling in the X axis.",
           "category": "@Properties",
@@ -9653,7 +9653,7 @@
           ]
         },
         "ScrollY": {
-          "attr": "scroll-y",
+          "attr": "scrollY",
           "label": "Scroll Y",
           "description": "Specifies whether to enable the content scrolling in the Y axis.",
           "category": "@Properties",
@@ -10185,7 +10185,7 @@
         "icon32": "tooltips_32x32.png",
           "properties": {
               "AnimationDuration": {
-              "attr": "animation-duration",
+              "attr": "animationDuration",
               "label": "Animation duration",
               "description": "The duration controls how long the animation takes to run from start to finish.",
               "category": "@Properties",
@@ -10209,7 +10209,7 @@
               ]
               },
               "HideDelay": {
-              "attr": "hide-delay",
+              "attr": "hideDelay",
               "label": "Hide delay",
               "description": "The delay in ms before removing the tooltip.",
               "category": "@Properties",
@@ -10269,7 +10269,7 @@
               ]
               },
               "ShowDelay": {
-              "attr": "show-delay",
+              "attr": "showDelay",
               "label": "Show delay",
               "description": "The delay in ms before showing the tooltip.",
               "category": "@Properties",
@@ -10341,7 +10341,7 @@
               ]
             },
             "TooltipClass": {
-              "attr": "tooltip-class",
+              "attr": "tooltipClass",
               "label": "Tooltip classes",
               "description": "Comma separated class names to be passed to the tooltip.",
               "category": "@Properties",
@@ -10352,7 +10352,7 @@
               ]
             },
             "TooltipContent": {
-              "attr": "content-type",
+              "attr": "contentType",
               "label": "Tooltip content",
               "description": "The content type passed to the tooltip.",
               "category": "@Properties",
@@ -10389,7 +10389,7 @@
               ]
               },
               "MaxWidth": {
-              "attr": "max-width",
+              "attr": "maxWidth",
               "label": "Max width",
               "description": "Maximum width of the tooltip in pixels.",
               "category": "@Properties",
@@ -10401,7 +10401,7 @@
               ]
               },
               "ZIndex": {
-              "attr": "z-index",
+              "attr": "zIndex",
               "label": "Z-index",
               "description": "Z-index of the tooltip.",
               "category": "@Properties",
@@ -11286,7 +11286,7 @@
         "IonMode" : false,
         "IonSlot" : "bottom",
         "SelectedTab": {
-            "attr": "selected-tab",
+            "attr": "selectedTab",
             "label": "Selected tab",
             "description": "The selected tab button.",
             "category": "@Properties",
@@ -11431,7 +11431,7 @@
           ]
         },
         "MenuSwipeEnabled": {
-          "attr": "swipe-gesture",
+          "attr": "swipeGesture",
           "label": "Swiping",
           "description": "Specifies whether swiping the menu is enabled.",
           "category": "@Properties",
@@ -11443,7 +11443,7 @@
           ]
         },
         "MenuMaxEdgeStart": {
-          "attr": "max-edge-start",
+          "attr": "maxEdgeStart",
           "label": "Edge threshold",
           "description": "Specifies the edge threshold for dragging the menu open.",
           "category": "@Properties",
@@ -11640,7 +11640,7 @@
                "value": "280ms"
             },
             "PullFactor": {
-               "attr": "pull-factor",
+               "attr": "pullFactor",
                "label": "Pull factor",
                "description": "How much to multiply the pull speed by. To slow the pull animation down, pass a number less than 1. To speed up the pull, pass a number greater than 1. The default value is 1 which is equal to the speed of the cursor.",
                "category": "@Properties",
@@ -11648,7 +11648,7 @@
                "value": "1"
             },
             "PullMax": {
-               "attr": "pull-max",
+               "attr": "pullMax",
                "label": "Pull max",
                "description": "The maximum distance of the pull until the refresher will automatically go into the refreshing state. Defaults to the result of pullMin + 60. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
                "category": "@Properties",
@@ -11656,7 +11656,7 @@
                "value": false
             },
             "PullMin": {
-               "attr": "pull-min",
+               "attr": "pullMin",
                "label": "Pull min",
                "description": "The minimum distance the user must pull down until the refresher will go into the refreshing state. Does not apply when the refresher content uses a spinner, enabling the native refresher.",
                "category": "@Properties",
@@ -13453,7 +13453,7 @@
         "Disabled": "false",
         "DoubleBinding": false,
         "CancelText": {
-          "attr": "cancel-text",
+          "attr": "cancelText",
           "label": "Cancel Text",
           "description": "The text to display on the cancel button. Default: Cancel",
           "category": "@Properties",
@@ -13465,7 +13465,7 @@
           ]
         },
         "OkText": {
-          "attr": "ok-text",
+          "attr": "okText",
           "label": "Ok Text",
           "description": "The text to display on the ok button. Default: Ok",
           "category": "@Properties",
@@ -13477,7 +13477,7 @@
           ]
         },
         "CompareWith": {
-          "attr": "compare-with",
+          "attr": "compareWith",
           "label": "Compare with",
           "description": "A property name or function used to compare object values.",
           "category": "@Properties",
@@ -13497,7 +13497,7 @@
           ]
         },
         "InterfaceOptions": {
-          "attr": "interface-options",
+          "attr": "interfaceOptions",
           "label": "Interface dialog options",
           "description": "Any additional options that the alert, action-sheet or popover interface can take. See the ion-alert docs, the ion-action-sheet docs and the ion-popover docs for the create options for each interface. Note: Options will not override inputs or buttons with the alert interface.",
           "category": "@Properties",
@@ -13523,7 +13523,7 @@
           ]
         },
         "SelectedText": {
-          "attr": "selected-text",
+          "attr": "selectedText",
           "label": "Control selected text",
           "description": "The text to display instead of the selected option's value.",
           "category": "@Control",
@@ -13855,7 +13855,7 @@
           ]
         },
         "ClearInput": {
-          "attr": "clear-input",
+          "attr": "clearInput",
           "label": "ClearInput",
           "description": "If true, a clear icon will appear in the input when there is a value. Clicking it clears the input.",
           "category": "@Properties",
@@ -13867,7 +13867,7 @@
           ]
         },
         "ClearOnEdit": {
-          "attr": "clear-on-edit",
+          "attr": "clearOnEdit",
           "label": "ClearOnEdit",
           "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
           "category": "@Properties",
@@ -14151,7 +14151,7 @@
         "IonColor": false,
         "IonMode": false,
         "AutoGrow": {
-          "attr": "auto-grow",
+          "attr": "autoGrow",
           "label": "AutoGrow",
           "description": "If true, the element height will increase based on the value.",
           "category": "@Properties",
@@ -14190,7 +14190,7 @@
           ]
         },
         "ClearOnEdit": {
-          "attr": "clear-on-edit",
+          "attr": "clearOnEdit",
           "label": "ClearOnEdit",
           "description": "If true, the value will be cleared after focus upon edit. Defaults to true when type is 'password', false for all other types.",
           "category": "@Properties",
@@ -14528,7 +14528,7 @@
           ]
         },
         "ClearText": {
-          "attr": "clear-text",
+          "attr": "clearText",
           "label": "Clear text",
           "description": "The text to display on the picker's clear button.",
           "category": "@Properties",
@@ -14540,7 +14540,7 @@
           ]
         },
         "DoneText": {
-          "attr": "done-text",
+          "attr": "doneText",
           "label": "Done text",
           "description": "The text to display on the picker's 'Done' button. Default: Done.",
           "category": "@Properties",
@@ -14552,7 +14552,7 @@
           ]
         },
         "FirstDayOfWeek": {
-          "attr": "first-day-of-week",
+          "attr": "firstDayOfWeek",
           "label": "First day of week",
           "description": "The first day of the week to use. Default is 0 and represents Sunday.",
           "category": "@Properties",
@@ -14560,14 +14560,14 @@
           "value": "1"
         },
         "DayValues": {
-          "attr": "day-values",
+          "attr": "dayValues",
           "label": "Day values",
           "description": "Values used to create the list of selectable days. By default every day is shown for the given month. However, to control exactly which days of the month to display, the dayValues input can take either an array of numbers, or string of comma separated numbers. Note that even if the array days have an invalid number for the selected month, like 31 in February, it will correctly not show days which are not valid for the selected month.",
           "category": "@Properties",
           "value": false
         },
         "HourCycle": {
-          "attr": "hour-cycle",
+          "attr": "hourCycle",
           "label": "Hour values",
           "description": "The hour cycle to use: h12 for a cycle from 1 to 12 hours or h23 for a cycle from 0 to 23 hours. If no value is set, this is specified by the current locale.",
           "category": "@Properties",
@@ -14579,21 +14579,21 @@
           ]
         },
         "HourValues": {
-          "attr": "hour-values",
+          "attr": "hourValues",
           "label": "Hour values",
           "description": "Values used to create the list of selectable hours. By default the hour values range from 0 to 23 for 24-hour, or 1 to 12 for 12-hour. However, to control exactly which hours to display, the hourValues input can take either a number, an array of numbers, or string of comma separated numbers.",
           "category": "@Properties",
           "value": false
         },
         "MonthValues": {
-          "attr": "month-values",
+          "attr": "monthValues",
           "label": "Month values",
           "description": "Values used to create the list of selectable months. By default the month values range from 1 to 12. However, to control exactly which months to display, the monthValues input can take either a number, an array of numbers, or string of comma separated numbers. For example, if only summer months should be shown, then this input value would be monthValues=\"6,7,8\". Note that month numbers do not have a zero-based index, meaning January's value is 1, and December's is 12.",
           "category": "@Properties",
           "value": false
         },
         "MinuteValues": {
-          "attr": "minute-values",
+          "attr": "minuteValues",
           "label": "Minute values",
           "description": "Values used to create the list of selectable minutes. By default the minutes range from 0 to 59. However, to control exactly which minutes to display, the minuteValues input can take either a number, an array of numbers, or string of comma separated numbers. For example, if the minute selections should only be every 15 minutes, then this input value would be minuteValues=\"0,15,30,45\".",
           "category": "@Properties",
@@ -14662,7 +14662,7 @@
           ]
         },
         "ShowClearButton": {
-          "attr": "show-clear-button",
+          "attr": "showClearButton",
           "label": "Show clear button",
           "description": "If true, a \"Clear\" button will be rendered alongside the default \"Cancel\" and \"OK\" buttons at the bottom of the datetime component. Developers can also use the button slot if they want to customize these buttons. If custom buttons are set in the button slot then the default buttons will not be rendered.",
           "category": "@Properties",
@@ -14674,7 +14674,7 @@
           ]
         },
         "ShowDefaultButtons": {
-          "attr": "show-default-buttons",
+          "attr": "showDefaultButtons",
           "label": "Show default buttons",
           "description": "If true, the default \"Cancel\" and \"OK\" buttons will be rendered at the bottom of the datetime component. Developers can also use the button slot if they want to customize these buttons. If custom buttons are set in the button slot then the default buttons will not be rendered.",
           "category": "@Properties",
@@ -14686,7 +14686,7 @@
           ]
         },
         "ShowDefaultTimeLabel": {
-          "attr": "show-default-time-label",
+          "attr": "showDefaultTimeLabel",
           "label": "Show default time label",
           "description": "If true, the default \"Time\" label will be rendered for the time selector of the ion-datetime component. Developers can also use the time-label slot if they want to customize this label. If a custom label is set in the time-label slot then the default label will not be rendered.",
           "category": "@Properties",
@@ -14698,7 +14698,7 @@
           ]
         },
         "ShowDefaultTitle": {
-          "attr": "show-default-title",
+          "attr": "showDefaultTitle",
           "label": "Show default title",
           "description": "If true, a header will be shown above the calendar picker. On ios mode this will include the slotted title, and on md mode this will include the slotted title and the selected date.",
           "category": "@Properties",
@@ -14732,7 +14732,7 @@
           ]
         },
         "YearValues": {
-          "attr": "year-values",
+          "attr": "yearValues",
           "label": "Year values",
           "description": "Values used to create the list of selectable years. By default the year values range between the min and max datetime inputs. However, to control exactly which years to display, the yearValues input can take either an array of numbers, or string of comma separated numbers. For example, to show upcoming and recent leap years, then this input's value would be yearValues=\"2024,2020,2016,2012,2008\".",
           "category": "@Properties",
@@ -15150,35 +15150,35 @@
           "value": false
          },
          "OffsetLg": {
-          "attr": "offset-lg",
+          "attr": "offsetLg",
           "label": "Offset 992-1200 px (lg)",
           "description": "The amount to offset the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetMd": {
-          "attr": "offset-md",
+          "attr": "offsetMd",
           "label": "Offset 768-992 px (md)",
           "description": "The amount to offset the column for md screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetSm": {
-          "attr": "offset-sm",
+          "attr": "offsetSm",
           "label": "Offset 576-768 px (sm)",
           "description": "The amount to offset the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetXl": {
-          "attr": "offset-xl",
+          "attr": "offsetXl",
           "label": "Offset 1200-over px (xl)",
           "description": "The amount to offset the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
           "value": false
          },
          "OffsetXs": {
-          "attr": "offset-xs",
+          "attr": "offsetXs",
           "label": "Offset 0-576 px (xs)",
           "description": "The amount to offset the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Offset",
@@ -15192,35 +15192,35 @@
           "value": false
          },
          "PullLg": {
-          "attr": "pull-lg",
+          "attr": "pullLg",
           "label": "Pull 992-1200 px (lg)",
           "description": "The amount to pull the column for lg screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullMd": {
-          "attr": "pull-md",
+          "attr": "pullMd",
           "label": "Pull 768-992 px (md)",
           "description": "The amount to pull the column for md screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullSm": {
-          "attr": "pull-sm",
+          "attr": "pullSm",
           "label": "Pull 576-768 px (sm)",
           "description": "The amount to pull the column for sm screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullXl": {
-          "attr": "pull-xl",
+          "attr": "pullXl",
           "label": "Pull 1200-over px (xl)",
           "description": "The amount to pull the column for xl screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
           "value": false
          },
          "PullXs": {
-          "attr": "pull-xs",
+          "attr": "pullXs",
           "label": "Pull 0-576 px (xs)",
           "description": "The amount to pull the column for xs screens, in terms of how many columns it should shift to the start of the total available.",
           "category": "@Pull",
@@ -15234,35 +15234,35 @@
           "value": false
          },
          "PushLg": {
-          "attr": "push-lg",
+          "attr": "pushLg",
           "label": "Push 992-1200 px (lg)",
           "description": "The amount to push the column for lg screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushMd": {
-          "attr": "push-md",
+          "attr": "pushMd",
           "label": "Push 768-992 px (md)",
           "description": "The amount to push the column for md screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushSm": {
-          "attr": "push-sm",
+          "attr": "pushSm",
           "label": "Push 576-768 px (sm)",
           "description": "The amount to push the column for sm screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushXl": {
-          "attr": "push-xl",
+          "attr": "pushXl",
           "label": "Push 1200-over px (xl)",
           "description": "The amount to push the column for xl screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
           "value": false
          },
          "PushXs": {
-          "attr": "push-xs",
+          "attr": "pushXs",
           "label": "Push 0-576 px (xs)",
           "description": "The amount to push the column for xs screens, in terms of how many columns it should shift to the end of the total available.",
           "category": "@Push",
@@ -15293,7 +15293,7 @@
           ]
          },
          "SizeLg": {
-          "attr": "size-lg",
+          "attr": "sizeLg",
           "label": "Size 992-1200 px (lg)",
           "description": "The size of the column for lg screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -15317,7 +15317,7 @@
           ]
          },
          "SizeMd": {
-          "attr": "size-md",
+          "attr": "sizeMd",
           "label": "Size 768-992 px (md)",
           "description": "The size of the column for md screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -15341,7 +15341,7 @@
           ]
          },
          "SizeSm": {
-          "attr": "size-sm",
+          "attr": "sizeSm",
           "label": "Size 576-768 px (sm)",
           "description": "The size of the column for sm screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -15365,7 +15365,7 @@
           ]
          },
          "SizeXl": {
-          "attr": "size-xl",
+          "attr": "sizeXl",
           "label": "Size 1200-over px (xl)",
           "description": "The size of the column for xl screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -15389,7 +15389,7 @@
           ]
          },
          "SizeXs": {
-          "attr": "size-xs",
+          "attr": "sizeXs",
           "label": "Size 0-576 px (xs)",
           "description": "The size of the column for xs screens, in terms of how many columns it should take up out of the total available. If 'auto' is set the column will be the size of its content.",
           "category": "@Size",
@@ -17160,7 +17160,7 @@
           "value": false
         },
         "BackdropDismiss": {
-          "attr": "backdrop-dismiss",
+          "attr": "backdropDismiss",
           "label": "Backdrop dismiss",
           "description": "If true, the popover will be dismissed when the backdrop is clicked.",
           "category": "@Properties",
@@ -17172,7 +17172,7 @@
           ]
         },
         "DismissOnSelect": {
-          "attr": "dismiss-on-select",
+          "attr": "dismissOnSelect",
           "label": "Dismiss on select",
           "description": "If true, the popover will be automatically dismissed when the content has been clicked.",
           "category": "@Properties",
@@ -17184,7 +17184,7 @@
           ]
         },
         "IsOpen": {
-          "attr": "is-open",
+          "attr": "isOpen",
           "label": "Is open",
           "description": "If true, the popover will open. If false, the popover will close. Use this if you need finer grained control over presentation, otherwise just use the popoverController or the trigger property. Note: isOpen will not automatically be set back to false when the popover dismisses. You will need to do that in your code.",
           "category": "@Properties",
@@ -17196,7 +17196,7 @@
           ]
         },
         "KeyboardClose": {
-          "attr": "keyboard-close",
+          "attr": "keyboardClose",
           "label": "Keyboard close",
           "description": "If true, the keyboard will be automatically dismissed when the overlay is presented.",
           "category": "@Properties",
@@ -17220,7 +17220,7 @@
           ]
         },
         "ShowBackdrop": {
-          "attr": "show-backdrop",
+          "attr": "showBackdrop",
           "label": "Show backdrop",
           "description": "If true, a backdrop will be displayed behind the popover.",
           "category": "@Properties",
@@ -17283,7 +17283,7 @@
           ]
         },
         "TriggerAction": {
-          "attr": "trigger-action",
+          "attr": "triggerAction",
           "label": "Trigger action",
           "description": "Describes what kind of interaction with the trigger that should cause the popover to open. Does not apply when the trigger property is undefined. If 'click', the popover will be presented when the trigger is left clicked. If 'hover', the popover will be presented when a pointer hovers over the trigger. If 'context-menu', the popover will be presented when the trigger is right clicked on desktop and long pressed on mobile. This will also prevent your device's normal context menu from appearing.",
           "category": "@Control",

@@ -840,7 +840,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					((TreeObjectListener) listeners[i+1]).treeObjectPropertyChanged(treeObjectEvent);
 				} catch (Exception e){
 					String message = "fireTreeObjectPropertyChanged failed for treeObject: " + ((TreeObject) listeners[i+1]).getName();
-					ConvertigoPlugin.logException(e, message);
+					ConvertigoPlugin.logException(e, message, false);
 				};
 			}
 		}
@@ -859,7 +859,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					((TreeObjectListener) listeners[i+1]).treeObjectAdded(treeObjectEvent);
 				} catch (Exception e){
 					String message = "fireTreeObjectAdded failed for treeObject: " + ((TreeObject) listeners[i+1]).getName();
-					ConvertigoPlugin.logException(e, message);
+					ConvertigoPlugin.logException(e, message, false);
 				};
 			}
 		}
@@ -2688,12 +2688,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			databaseObjectTreeObject = projectTreeObject;
 		} else {
 			DatabaseObject parentDatabaseObject = databaseObject.getParent();
-			DatabaseObjectTreeObject parentDatabaseObjectTreeObject = findTreeObjectByUserObjectFromCache(parentDatabaseObject);
-			if (parentDatabaseObjectTreeObject == null) {
-				parentDatabaseObjectTreeObject = findTreeObjectByUserObject(parentDatabaseObject, projectTreeObject);
-			}
-			if (parentDatabaseObjectTreeObject != null) {
-				databaseObjectTreeObject = parentDatabaseObjectTreeObject.findDatabaseObjectTreeObjectChild(databaseObject);
+			if (parentDatabaseObject != null) {
+				DatabaseObjectTreeObject parentDatabaseObjectTreeObject = findTreeObjectByUserObjectFromCache(parentDatabaseObject);
+				if (parentDatabaseObjectTreeObject == null) {
+					parentDatabaseObjectTreeObject = findTreeObjectByUserObject(parentDatabaseObject, projectTreeObject);
+				}
+				if (parentDatabaseObjectTreeObject != null) {
+					databaseObjectTreeObject = parentDatabaseObjectTreeObject.findDatabaseObjectTreeObjectChild(databaseObject);
+				}
 			}
 		}
 		if (databaseObjectTreeObject != null) {

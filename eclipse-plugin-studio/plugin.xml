@@ -157,7 +157,7 @@
             project="true">
             <description>Creates a NGX Mobile Builder application project based on ionic6 and Convertigo Angular frameworks.</description>
             {
-              "url": "template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.0.0.zip",
+              "url": "template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.1.0.zip",
               "doPage1": true
             }
             </wizard>
