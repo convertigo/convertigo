@@ -896,7 +896,7 @@ public class ComponentManager {
 										
 										@Override
 										public String getImagePath() {
-											String defaultImagePath = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedregular_color_32x32.png";
+											String defaultImagePath = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_32x32.png";
 											try {
 												File f = new File(project.getDirPath(), uisrc.getIconFileName());
 												if (f.exists()) {
