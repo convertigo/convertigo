@@ -9325,8 +9325,8 @@
 "Place your <i>FAB Button</i> components in this container to make them non scrollable with <i>Content</i>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/fab'>FabContainer</a>."],
       "group": "Buttons",
-      "icon16": "container_fab_16x16.png",
-      "icon32": "container_fab_32x32.png",
+      "icon16": "containerfab_16x16.png",
+      "icon32": "containerfab_32x32.png",
       "properties": {
         "IonSlot": false,
         "Activated": {
@@ -9468,8 +9468,8 @@
 "You can define whether buttons are aligned left: <code>start</code> or right: <code>end</code>.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/buttons'>Button Set</a>."],
       "group": "Buttons",
-      "icon16": "buttonset_color_16x16.png",
-      "icon32": "buttonset_color_32x32.png",
+      "icon16": "buttonset_16x16.png",
+      "icon32": "buttonset_32x32.png",
       "properties": {
         "SetPosition": {
           "attr": "slot",
@@ -11696,8 +11696,8 @@
 "By default, Ionic provides the pulling icon and refreshing spinner that looks best for the platform the user is on. However, you can change the default icon and spinner, along with adding text for each state by adding properties to the child <i>Content Refresher</i> component.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/refresher-content'>RefresherContent</a>."],
         "group": "Forms", 
-        "icon16": "refreshercontent_color_16x16.png",
-        "icon32": "refreshercontent_color_32x32.png",
+        "icon16": "refreshercontent_16x16.png",
+        "icon32": "refreshercontent_32x32.png",
         "properties": {
             "PullingIcon": {
                 "attr":"pulling-icon",
@@ -11982,8 +11982,8 @@
 "<i>Bar Title</i> is a component that sets the title of a <i>ToolBar</i> or <i>NavBar</i> component.<br/>",
 " For more information: <a href='https://ionicframework.com/docs/api/title'>Title</a>."],
       "group": "Components",
-      "icon16": "bartitle_color_16x16.png",
-      "icon32": "bartitle_color_32x32.png",
+      "icon16": "bartitle_16x16.png",
+      "icon32": "bartitle_32x32.png",
       "properties": {
         "IonColor": false,
         "IonSize": false
@@ -13580,8 +13580,8 @@
 " For more information: <a href='https://ionicframework.com/docs/api/radio-group'>Radio Group</a>.<br/><br/>",
 "<span class='orangetwinsoft'><u>Note:</u></span> Make sure to add each <i>Radio Button</i> under a <i>Generic Item</i> or <code>&lt;ion-item&gt;</code> to make it work properly in form."],
       "group": "Forms",
-      "icon16": "radiolist_color_16x16.png",
-      "icon32": "radiolist_color_32x32.png",
+      "icon16": "radiolist_16x16.png",
+      "icon32": "radiolist_32x32.png",
       "properties": {
         "ControlName": "",
         "DoubleBinding": false,
@@ -17074,8 +17074,8 @@
 "Defines a <i>Close Popover</i> action component. | Use this action to close a popover page previously opened using a <i>Popover Page</i> action.<br/>",
 "Add a <i>Close Popover</i> action under an Event."],
           "group" : "Actions",
-          "icon16": "closepopoveraction_color_16x16.png",
-          "icon32": "closepopoveraction_color_32x32.png",
+          "icon16": "closepopoveraction_16x16.png",
+          "icon32": "closepopoveraction_32x32.png",
         "properties": {
           "data": {
             "label": "Page data",
@@ -17102,8 +17102,8 @@
 "You can use the <i>Close Popover</i> action to dismiss a Popover.",
 " For more information: <a href='https://ionicframework.com/docs/api/popover'>Popover</a>."],
       "group": "Containers",
-      "icon16": "popoveraction_16x16.png",
-      "icon32": "popoveraction_32x32.png",
+      "icon16": "popover_16x16.png",
+      "icon32": "popover_32x32.png",
       "properties": {
           "IonMode": false,
         "Alignment": {
@@ -20007,8 +20007,8 @@
 " Default mocked value is <code>0</code>.<br/>",
 "For more information : <a href='https://github.com/EddyVerbruggen/cordova-plugin-actionsheet'>Action Sheet</a>."],
       "group": "Native Actions",
-      "icon16": "actionsheetaction_color_16x16.png",
-      "icon32": "actionsheetaction_color_32x32.png",
+      "icon16": "actionsheetaction_16x16.png",
+      "icon32": "actionsheetaction_32x32.png",
       "properties": {
       "mockedResponse": {
             "label": "Mocked response",
