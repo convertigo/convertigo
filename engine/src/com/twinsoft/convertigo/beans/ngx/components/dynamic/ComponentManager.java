@@ -25,7 +25,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -897,11 +896,14 @@ public class ComponentManager {
 										
 										@Override
 										public String getImagePath() {
+											String defaultImagePath = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedregular_color_32x32.png";
 											try {
-												return new File(project.getDirPath(), uisrc.getIconFileName()).getCanonicalPath();
-											} catch (IOException e) {
-												return "";
-											}
+												File f = new File(project.getDirPath(), uisrc.getIconFileName());
+												if (f.exists()) {
+													return f.getCanonicalPath();
+												}
+											} catch (Exception e) {}
+											return defaultImagePath;
 										}
 										
 										@Override
