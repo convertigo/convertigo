@@ -468,7 +468,7 @@ public class NgxPickerComposite extends Composite {
 		
 		btnAction = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uicustomaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uicustomaction_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnAction.setText("AC");
 		}
@@ -478,7 +478,7 @@ public class NgxPickerComposite extends Composite {
 		
 		btnShared = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnShared.setText("SH");
 		}
@@ -498,7 +498,7 @@ public class NgxPickerComposite extends Composite {
 		
 		btnForm = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uiform_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uiform_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnForm.setText("FM");
 		}
@@ -508,7 +508,7 @@ public class NgxPickerComposite extends Composite {
 		
 		btnGlobal = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setglobalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setglobalaction_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnGlobal.setText("GS");
 		}
@@ -518,7 +518,7 @@ public class NgxPickerComposite extends Composite {
 
 		btnLocal = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setlocalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setlocalaction_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnLocal.setText("LS");
 		}
