@@ -90,7 +90,7 @@ public class UIDynamicMenuItems extends UIDynamicMenuItem {
 				
 				sb.append("<ion-item "+ attrclass +" *ngFor=\"let p of appPages;\" [hidden]=\"!p.includedInAutoMenu\" routerDirection=\"root\" [routerLink]=\"[p.url]\" lines=\"none\" detail=\"false\" [class.selected]=\"selectedPath.startsWith('/'+p.url)\">")
 				.append(System.lineSeparator())
-				.append("<ion-icon [slot]=\"p.iconPos\" [ios]=\"p.icon + '-outline'\" [md]=\"p.icon + '-sharp'\"></ion-icon>")
+				.append("<ion-icon [slot]=\"(p.icon != '' && p.iconPos == '') ? 'start':p.iconPos\" [ios]=\"p.icon + (p.icon == '' ? '':'-outline')\" [md]=\"p.icon + (p.icon == '' ? '':'-sharp')\"></ion-icon>")
 				.append(System.lineSeparator())
 				.append("<ion-label>{{ p.titleKey | translate }}</ion-label>")
 				.append(System.lineSeparator())
