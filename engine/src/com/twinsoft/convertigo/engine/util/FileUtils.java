@@ -159,24 +159,26 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		if (dir.exists()) {
 			if (dir.isDirectory()) {
 				int code = -1;
+				ProcessBuilder pb;
 				try {
-					if (Engine.isWindows()) {
-						code = new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath()).start().waitFor();
-					} else {
-						code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
-					}
+					pb = Engine.isWindows() ?
+							new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath())
+							:new ProcessBuilder("rm", "-rf", dir.getCanonicalPath());
+					code = pb.inheritIO().start().waitFor();
 				} catch (Exception e) {
+				}
+				
+				if (code == -1) {
 					try {
-						if (Engine.isWindows()) {
-							code = new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath()).start().waitFor();
-						} else {
-							code = new ProcessBuilder("rm", "-rf", dir.getCanonicalPath()).start().waitFor();
-						}
-					} catch (Exception e2) {
-						Engine.logEngine.warn("System remove dir failed to delete the folder " + dir + ". Use the Java version. Error is: " + e2);
+						Thread.sleep(500);
+						pb = Engine.isWindows() ?
+								new ProcessBuilder("cmd.exe", "/C", "rmdir", "/s", "/q", dir.getCanonicalPath())
+								:new ProcessBuilder("rm", "-rf", dir.getCanonicalPath());
+						code = pb.inheritIO().start().waitFor();
+					} catch (Exception e) {
 					}
 				}
-
+				
 				if (code != 0 || dir.exists()) {
 					org.apache.commons.io.FileUtils.deleteDirectory(dir);
 				}
