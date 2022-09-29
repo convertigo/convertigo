@@ -44,92 +44,92 @@ import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 		roles = { Role.WEB_ADMIN, Role.LOGS_CONFIG, Role.LOGS_VIEW },
 		parameters = {},
 		returnValue = ""
-	)
+		)
 public class Get extends JSonService {
 	static private final String attr_start = Get.class.getCanonicalName()+".start";
 	static private final String attr_appender = Get.class.getCanonicalName()+".appender.";
-	
+
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-        HttpSession session = request.getSession();
-        LogManager logmanager = LogServiceHelper.getLogManager(request);
-        Long start = System.currentTimeMillis();
-        session.setAttribute(attr_start, start);
-        
-        synchronized (logmanager) {
-	        boolean realtime = false;
-	        try {
-	        	realtime = Boolean.parseBoolean(request.getParameter("realtime"));
-	        } catch (Exception e) {}
-	        
-	        if (realtime) {
-	        	LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.timeout, LogManagerParameter.nbLines);
-		        logmanager.setContinue(true);
-		        
-	        	if (session.getAttribute("isRealtime") == null) {
-	        		// fix #2959 - Removed 10 last minutes added to real time mode
-	        		//logmanager.setDateStart(new Date(System.currentTimeMillis() - 600000));
-	        		logmanager.setDateStart(new Date(System.currentTimeMillis()));
-	        		logmanager.setDateEnd(LogManager.date_last);
-	        		session.setAttribute("isRealtime", true);
-	        	}
-	            Appender appender = (Appender) session.getAttribute(attr_appender + ServiceUtils.getAdminInstance(request));
-	            if (appender == null) {
-	            	appender = new AppenderSkeleton() {
-	
-	                	@Override
-	                	protected void append(LoggingEvent arg0) {
-	                		synchronized (this) {
-	    						this.notifyAll();
-	    					}
-	                	}
-	
-	        			public void close() {
-	        			}
-	
-	        			public boolean requiresLayout() {
-	        				return false;
-	        			}
-	                };
-	                session.setAttribute(attr_appender + ServiceUtils.getAdminInstance(request), appender);
-	            } else {
-	            	synchronized (appender) {
-	            		appender.notifyAll();
-	            	}
-	            }
-	            try {
-	    	        Engine.logConvertigo.addAppender(appender);
-	    	        
-	    	        boolean interrupted = false;
-	    	        JSONArray lines = logmanager.getLines();
-	    	        while (lines.length() == 0 && !interrupted && session.getAttribute(attr_start) == start) {
-	    	        	synchronized (appender) {
+		HttpSession session = request.getSession();
+		LogManager logmanager = LogServiceHelper.getLogManager(request);
+		Long start = System.currentTimeMillis();
+		session.setAttribute(attr_start, start);
+
+		synchronized (logmanager) {
+			boolean realtime = false;
+			try {
+				realtime = Boolean.parseBoolean(request.getParameter("realtime"));
+			} catch (Exception e) {}
+
+			if (realtime) {
+				LogServiceHelper.prepareLogManager(request, logmanager, LogManagerParameter.filter, LogManagerParameter.timeout, LogManagerParameter.nbLines);
+				logmanager.setContinue(true);
+
+				if (session.getAttribute("isRealtime") == null) {
+					// fix #2959 - Removed 10 last minutes added to real time mode
+					//logmanager.setDateStart(new Date(System.currentTimeMillis() - 600000));
+					logmanager.setDateStart(new Date(System.currentTimeMillis()));
+					logmanager.setDateEnd(LogManager.date_last);
+					session.setAttribute("isRealtime", true);
+				}
+				Appender appender = (Appender) session.getAttribute(attr_appender + ServiceUtils.getAdminInstance(request));
+				if (appender == null) {
+					appender = new AppenderSkeleton() {
+
+						@Override
+						protected void append(LoggingEvent arg0) {
+							synchronized (this) {
+								this.notifyAll();
+							}
+						}
+
+						public void close() {
+						}
+
+						public boolean requiresLayout() {
+							return false;
+						}
+					};
+					session.setAttribute(attr_appender + ServiceUtils.getAdminInstance(request), appender);
+				} else {
+					synchronized (appender) {
+						appender.notifyAll();
+					}
+				}
+				try {
+					Engine.logConvertigo.addAppender(appender);
+
+					boolean interrupted = false;
+					JSONArray lines = logmanager.getLines();
+					while (lines.length() == 0 && !interrupted && session.getAttribute(attr_start) == start) {
+						synchronized (appender) {
 							try {
 								appender.wait(2000);
 							} catch (InterruptedException e) {
 								interrupted = true;
 							}
 						}
-	    	        	lines = logmanager.getLines();
-	    	        }
-	    	        response.put("lines", lines);
-	            } finally {
-	            	if (appender != null) {
-	            		Engine.logConvertigo.removeAppender(appender);
-	            	}
-	            }
-	        } else {
-	        	LogServiceHelper.prepareLogManager(request, logmanager);
-	        	session.removeAttribute("isRealtime");
-		        
-	        	JSONArray lines = logmanager.getLines();
-	        	logmanager.setContinue(true);
-	        	while (lines.length() == 0 && logmanager.hasMoreResults() && session.getAttribute(attr_start) == start) {
-	        		lines = logmanager.getLines();
-	        	}
-	        	
+						lines = logmanager.getLines();
+					}
+					response.put("lines", lines);
+				} finally {
+					if (appender != null) {
+						Engine.logConvertigo.removeAppender(appender);
+					}
+				}
+			} else {
+				LogServiceHelper.prepareLogManager(request, logmanager);
+				session.removeAttribute("isRealtime");
+
+				JSONArray lines = logmanager.getLines();
+				logmanager.setContinue(true);
+				while (lines.length() == 0 && logmanager.hasMoreResults() && session.getAttribute(attr_start) == start) {
+					lines = logmanager.getLines();
+				}
+
 				response.put("lines", lines);
 				response.put("hasMoreResults", logmanager.hasMoreResults());
-	        }
+			}
 		}
 	}
 }

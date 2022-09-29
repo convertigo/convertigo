@@ -41,14 +41,17 @@ public class FileReloadInputStream extends InputStream {
 	public FileReloadInputStream(File file) throws IOException {
 		path = file.toPath();
 		is = Files.newInputStream(path, StandardOpenOption.READ);
-		
+
 		Thread th = new Thread(() -> {
 			try {
 				Path ppath = path.getParent();
 				ws = ppath.getFileSystem().newWatchService();
 				this.wk = ppath.register(ws, StandardWatchEventKinds.ENTRY_CREATE);
-				while (true) {
-					WatchKey wk = ws.take();
+				while (!close) {
+					WatchKey wk = null;
+					if (!close) {
+						wk = ws.take();
+					}
 					for (final WatchEvent<?> event: wk.pollEvents()) {
 						Path ctx = (Path) event.context();
 						
@@ -60,14 +63,13 @@ public class FileReloadInputStream extends InputStream {
 						}
 					}
 					
-	                if (!wk.reset() || close) {
-	                	wk.cancel();
-	                	ws.close();
-	                    break;
-	                }
+					if (!wk.reset() || close) {
+						wk.cancel();
+						ws.close();
+						break;
+					}
 				}
 			} catch (Exception e) {
-				
 			}
 		});
 		th.setName("FileReloadInputStream:" + file.getName());
