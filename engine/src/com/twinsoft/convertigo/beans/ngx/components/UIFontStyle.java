@@ -169,6 +169,7 @@ public class UIFontStyle extends UIStyle implements ITagsProperty {
 			if (getParent() instanceof UIElement) {
 				return new String[] {"class"+ getParent().priority};
 			}
+			return new String[] {"ion-item","ion-text","ion-content"};
 		}
 		return new String[0];
 	}
@@ -177,7 +178,7 @@ public class UIFontStyle extends UIStyle implements ITagsProperty {
 	public String toString() {
 		String formated = "";
 		if (ruleTargets.isBlank()) {
-			formated = "?";
+			formated = "[inherit] -> Please specify a Rule selector";
 		} else {
 			formated += ruleTargets + " [";
 			formated += fontFamily.isBlank() ? "inherit" : fontFamily;
