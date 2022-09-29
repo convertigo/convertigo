@@ -20354,8 +20354,8 @@
 "Defines an <i>Action Sheet</i> component. | An Action Sheet is a dialog that displays a set of options. It appears on top of the app's content, and must be manually dismissed by the user before they can resume interaction with the app.<br/>",
 " For more information : <a href='https://ionicframework.com/docs/api/action-sheet'>Action sheet</a>."],
       "group": "Actions",
-        "icon16": "actionsheetaction_color_16x16.png",
-        "icon32": "actionsheetaction_color_32x32.png",
+        "icon16": "actionsheetaction_16x16.png",
+        "icon32": "actionsheetaction_32x32.png",
         "properties": {
             "IonMode": false,
             "header": {
