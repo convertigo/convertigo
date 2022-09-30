@@ -377,7 +377,7 @@ public class ProcessUtils {
 			} else {
 				Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
 				ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile())
-				.redirectError(Redirect.DISCARD).redirectInput(Redirect.DISCARD).start().waitFor();
+				.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
 				dir = new File(dir, "bin");
 			}
 			FileUtils.deleteQuietly(archive);
@@ -466,7 +466,7 @@ public class ProcessUtils {
 			Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
 			dir.mkdirs();
 			ProcessUtils.getProcessBuilder(null, "tar", "--strip-components=" + (Engine.isLinux() ? 1 : 3), "-zxf", archive.getAbsolutePath()).directory(dir)
-				.redirectError(Redirect.DISCARD).redirectInput(Redirect.DISCARD).start().waitFor();
+				.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
 		}
 		archive.delete();
 		Engine.logEngine.info("jdk dir: " + dir);

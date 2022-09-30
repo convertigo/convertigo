@@ -1770,7 +1770,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					String prod = prodOnly ? " | grep -e \"--watch\" -e \":watch\"" : "";
 					Process process = new ProcessBuilder("/bin/bash", "-c",
 						"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\"" + prod + " | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
-					).redirectError(Redirect.DISCARD).redirectInput(Redirect.DISCARD).start();
+					).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
 					int code = process.waitFor();
 					if (code == 0) {
 						retry = 0;

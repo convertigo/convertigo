@@ -761,7 +761,7 @@ public class Engine {
 								String geometry = EnginePropertiesManager.getProperty(PropertyName.LINUX_XVNC_GEOMETRY);
 								Engine.logEngine.debug("Xvnc will use depth " + depth + " and geometry " + geometry);
 								Process pr_xvnc = new ProcessBuilder(Xvnc.getAbsolutePath(), display, "-fp",
-										fonts.getAbsolutePath(), "-depth", depth, "-geometry", geometry).redirectInput(Redirect.DISCARD)
+										fonts.getAbsolutePath(), "-depth", depth, "-geometry", geometry).redirectOutput(Redirect.DISCARD)
 										.start();
 								Thread.sleep(500);
 								try {
