@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -729,19 +730,16 @@ public class ReadmeBuilder {
 		String comment = dbo.getComment();
 		
 		// handle objects for a c8oForms based project
-		String name = dbo.getName();
-		if (name.startsWith("forms_") || name.startsWith("formssource_")) {
-			try {
-				String json = comment;
-				JSONObject jsonObject = new JSONObject(json);
-				if (jsonObject.has("en")) {
-					comment = jsonObject.getJSONObject("en").getString("comment");
-				} else {
-					String firstKey = (String) jsonObject.keys().next();
-					comment = jsonObject.getJSONObject(firstKey).getString("comment");
-				}
-			} catch (Exception e) {}
-		}
+		try {
+			String json = comment;
+			JSONObject jsonObject = new JSONObject(json);
+			if (jsonObject.has("en")) {
+				comment = jsonObject.getJSONObject("en").getString("comment");
+			} else {
+				String firstKey = (String) jsonObject.keys().next();
+				comment = jsonObject.getJSONObject(firstKey).getString("comment");
+			}
+		} catch (Exception e) {}
 		
 		comment = comment.replace("<code>", "<breakLine><breakLine>```<breakLine>");
 		comment = comment.replace("</code>", "<breakLine>```<breakLine><breakLine>");
@@ -879,7 +877,7 @@ public class ReadmeBuilder {
 
         // Write output to md file
         File mdFile = new File(project.getDirFile(), "readme.md");
-        Writer fileWriter = new FileWriter(mdFile);
+        Writer fileWriter = new FileWriter(mdFile, Charset.forName("UTF-8"));
         try {
             template.process(map, fileWriter);
         } finally {
