@@ -267,6 +267,7 @@ public class OpenApiUtils {
 		
 		if (doIt) {
 			try {
+				Engine.theApp.schemaManager.clearCache(projectName);
 				XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.noCache);
 				NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
 				for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
