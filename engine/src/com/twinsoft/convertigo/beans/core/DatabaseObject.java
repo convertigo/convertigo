@@ -1339,6 +1339,37 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
         return children;
     }
 	
+    public List<DatabaseObject> getSiblingsInFolder() {
+    	List<DatabaseObject> siblings = new ArrayList<DatabaseObject>();
+    	try {
+	    	List<DatabaseObject> children = parent.getDatabaseObjectChildren();
+			for (DatabaseObject child: children) {
+				if (child.getFolderType().equals(getFolderType())) {
+					siblings.add(child);
+				}
+			}
+    	} catch (Exception e) {}
+    	return siblings;
+    }
+    
+	public DatabaseObject getPreviousSiblingInFolder() {
+		try {
+			List<DatabaseObject> siblings = getSiblingsInFolder();
+			int index = siblings.indexOf(this);
+			return siblings.get(index - 1);
+		} catch (Exception e) {}
+		return null;
+	}
+
+	public DatabaseObject getNextSiblingInFolder() {
+		try {
+			List<DatabaseObject> siblings = getSiblingsInFolder();
+			int index = siblings.indexOf(this);
+			return siblings.get(index + 1);
+		} catch (Exception e) {}
+		return null;
+	}
+	
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
 		List<DatabaseObject> children = getDatabaseObjectChildren();
 		for (DatabaseObject child: children) {
