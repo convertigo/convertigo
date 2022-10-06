@@ -39,6 +39,7 @@ public class Delete extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
             String projectName = request.getParameter("projectName");
             Engine.theApp.databaseObjectsManager.deleteProjectAndCar(projectName);
+            Engine.theApp.schemaManager.clearCache(projectName);
     		Engine.logAdmin.info("The project '" + projectName + "' has been deleted");
 	}
 
