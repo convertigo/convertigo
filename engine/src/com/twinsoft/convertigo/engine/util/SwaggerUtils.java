@@ -667,7 +667,7 @@ public class SwaggerUtils {
 							}
 							else if (h_Accept.equals(MimeType.Json.value())) {
 								transaction = new JsonHttpTransaction();
-								((JsonHttpTransaction)transaction).setIncludeDataType(false);
+								((JsonHttpTransaction)transaction).setIncludeDataType(true);
 							}
 						}
 						
@@ -904,7 +904,7 @@ public class SwaggerUtils {
 						}
 						else if (h_Accept.equals(MimeType.Json.value())) {
 							transaction = new JsonHttpTransaction();
-							((JsonHttpTransaction)transaction).setIncludeDataType(false);
+							((JsonHttpTransaction)transaction).setIncludeDataType(true);
 						}
 						
 					}
