@@ -19,6 +19,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -27,11 +30,28 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ProjectGenerateReadmeAction extends MyAbstractAction {
 
 	public ProjectGenerateReadmeAction() {
 		super();
+	}
+
+	@Override
+	public void selectionChanged(IAction action, ISelection selection) {
+		try {
+			boolean enable = false;
+			super.selectionChanged(action, selection);
+			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
+			if (treeObject instanceof ProjectTreeObject) {
+				String autoUpdate = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_UPDATE_README);
+				enable = !autoUpdate.equalsIgnoreCase("true");
+			}
+			action.setEnabled(enable);
+		}
+		catch (Exception e) {}
 	}
 
 	public void run() {

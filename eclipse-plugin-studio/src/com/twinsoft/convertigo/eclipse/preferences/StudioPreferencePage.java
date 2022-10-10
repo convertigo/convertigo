@@ -47,6 +47,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbAutoOpenDefaultConnector;
 	private BooleanFieldEditor cbAutoCreateProjectReference = null;
 	private BooleanFieldEditor cbAutoCreateProjectGitRepository = null;
+	private BooleanFieldEditor cbAutoUpdateReadme = null;
 //	private BooleanFieldEditor cbUseSystemFlowViewer = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	private StringFieldEditor localBuildAdditionalPath = null;
@@ -127,6 +128,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoCreateProjectGitRepository.setPage(this);
 		cbAutoCreateProjectGitRepository.setPreferenceStore(getPreferenceStore());
 		cbAutoCreateProjectGitRepository.load();
+		
+		cbAutoUpdateReadme = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_AUTO_UPDATE_README,
+				"Auto update Readme on save", groupGeneral);
+		cbAutoUpdateReadme.setPage(this);
+		cbAutoUpdateReadme.setPreferenceStore(getPreferenceStore());
+		cbAutoUpdateReadme.load();
 		
 		// Diagnostics
 		Group groupDiagnostics = new Group(top, SWT.SHADOW_IN);
@@ -211,6 +219,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbAutoOpenDefaultConnector.loadDefault();
 		cbAutoCreateProjectReference.loadDefault();
 		cbAutoCreateProjectGitRepository.loadDefault();
+		cbAutoUpdateReadme.loadDefault();
 		localBuildAdditionalPath.loadDefault();
 		localBuildFolder.loadDefault();
 		mobileBuilderThreshold.loadDefault();
@@ -245,6 +254,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbEngineLoadAllProjects.store();
 		cbAutoOpenDefaultConnector.store();
 		cbAutoCreateProjectReference.store();
+		cbAutoUpdateReadme.store();
 		cbAutoCreateProjectGitRepository.store();
 		localBuildAdditionalPath.store();
 		localBuildFolder.store();

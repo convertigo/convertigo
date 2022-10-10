@@ -185,6 +185,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 	public static final String PREFERENCE_MOBILE_BUILDER_THRESHOLD = "mobileBuilder.threshold";
 	public static final String PREFERENCE_AUTO_CREATE_PROJECT_REFERENCE = "autoCreate.projectReference";
 	public static final String PREFERENCE_AUTO_CREATE_PROJECT_GIT_REPOSITORY = "autoCreate.projectGitRepository";
+	public static final String PREFERENCE_AUTO_UPDATE_README = "autoUpdate.readme";
 	public static final String PREFERENCE_USE_SYSTEM_FLOWVIEWER = "useSystem.flowViewer";
 	public static final String PREFERENCE_EDITOR_OUTPUT_MODE = "editor.output.mode";
 	public static final String PREFERENCE_HIDE_LIB_PROJECTS = "hide.lib.projects";
