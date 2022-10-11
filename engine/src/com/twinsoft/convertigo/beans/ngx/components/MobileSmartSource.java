@@ -98,7 +98,8 @@ public class MobileSmartSource {
 		Iteration,
 		Form,
 		Global,
-		Local;
+		Local,
+		Icon;
 		
 		public SourceData toSourceData(String project, String source) {
 			if (project != null && !project.isEmpty()) {
@@ -119,6 +120,8 @@ public class MobileSmartSource {
 						return new MobileSmartSource().new GlobalData(project, source);
 					} else if (this.equals(Filter.Local)) {
 						return new MobileSmartSource().new LocalData(project, source);
+					} else if (this.equals(Filter.Icon)) {
+						return new MobileSmartSource().new IconData(project, source);
 					}
 				}
 			}
@@ -143,6 +146,8 @@ public class MobileSmartSource {
 					return new MobileSmartSource().new GlobalData(jsonObject);
 				} else if (this.equals(Filter.Local)) {
 					return new MobileSmartSource().new LocalData(jsonObject);
+				} else if (this.equals(Filter.Icon)) {
+					return new MobileSmartSource().new IconData(jsonObject);
 				}
 			}
 			return null;
@@ -298,6 +303,8 @@ public class MobileSmartSource {
 							addSourceData(new MobileSmartSource().new GlobalData(jsonSourceData));
 						} else if (filter.equals(Filter.Local)) {
 							addSourceData(new MobileSmartSource().new LocalData(jsonSourceData));
+						} else if (filter.equals(Filter.Icon)) {
+							addSourceData(new MobileSmartSource().new IconData(jsonSourceData));
 						}
 					}
 				}
@@ -1068,6 +1075,55 @@ public class MobileSmartSource {
 		}
 		
 	}
+	
+	public class IconData extends SourceData {
+		private String icon;
+		
+		public IconData(JSONObject jsonObject) {
+			super(jsonObject);
+			try {
+				icon = jsonObject.getString("icon");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		public IconData(String project, String source) {
+			super();
+			try {
+				icon = source;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JSONObject toJson() {
+			JSONObject jsonObject = new JSONObject();
+			try {
+				jsonObject.put("icon", icon);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			return jsonObject;
+		}
+
+		@Override
+		public String getValue() {
+			return getSource();
+		}
+
+		@Override
+		public String getValueEx() {
+			return icon;
+		}
+		
+		@Override
+		public String getSource() {
+			return icon;
+		}
+		
+	}
 
 	private JSONObject jsonObject = new JSONObject();
 	
@@ -1571,6 +1627,16 @@ public class MobileSmartSource {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+				}
+			} else if (Filter.Icon.equals(getFilter())) {
+				try {
+					String projectName = getProjectName();
+					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+					
+					DatabaseObject dbo = (ApplicationComponent)project.getMobileApplication().getApplicationComponent();
+					return dbo;
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}

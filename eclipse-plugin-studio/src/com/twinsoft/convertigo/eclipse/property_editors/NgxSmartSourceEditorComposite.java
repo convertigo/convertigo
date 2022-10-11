@@ -41,6 +41,7 @@ public class NgxSmartSourceEditorComposite extends AbstractDialogComposite {
 		npc = new NgxPickerComposite(this, true);
 		npc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		npc.setCurrentInput(dbto, source);
+		setSize(800, 800);
 	}
 
 	@Override
