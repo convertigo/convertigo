@@ -151,7 +151,7 @@ import io.swagger.v3.parser.util.OpenAPIDeserializer;
 public class OpenApiUtils {
 
 	public static String servletMappingPath = "openapi";
-	private static String jsonSchemaDirectory = "oas3";
+	public static String jsonSchemaDirectory = "oas3";
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?"+servletMappingPath+")");
 	
 	public static OpenAPI read(String url) {
