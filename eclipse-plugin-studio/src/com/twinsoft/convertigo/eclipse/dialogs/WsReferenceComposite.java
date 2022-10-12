@@ -54,9 +54,7 @@ public class WsReferenceComposite extends Composite {
 	
 	private static final List<String> restUrls = Arrays.asList(
 			"https://petstore3.swagger.io/api/v3/openapi.yaml",
-			"https://petstore3.swagger.io/api/v3/openapi.json",
-			"https://petstore.swagger.io/v2/swagger.yaml",
-			"https://petstore.swagger.io/v2/swagger.json");
+			"https://petstore3.swagger.io/api/v3/openapi.json");
 	
 	public WsReferenceComposite(Composite parent, int style, GridData gridData) {
 		super(parent, style);
@@ -132,13 +130,20 @@ public class WsReferenceComposite extends Composite {
 			}
 		});
 		
-		loginText = new Text(this, SWT.NONE);
-		loginText.setMessage("Login");
+		gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		
+		Label loginLabel = new Label(this, SWT.NULL);
+		loginLabel.setText("Login:  ");
+		loginText = new Text(this, SWT.NONE | SWT.BORDER);
+		loginText.setMessage("login");
 		loginText.setEnabled(false);
 		loginText.setLayoutData(gridData);
 		
-		passwordText = new Text(this, SWT.SINGLE | SWT.PASSWORD);
-		passwordText.setMessage("Password");
+		Label passwordLabel = new Label(this, SWT.NULL);
+		passwordLabel.setText("Password:  ");
+		passwordText = new Text(this, SWT.BORDER | SWT.SINGLE | SWT.PASSWORD);
+		passwordText.setMessage("password");
 		passwordText.setEnabled(false);
 		passwordText.setLayoutData(gridData);
 		
