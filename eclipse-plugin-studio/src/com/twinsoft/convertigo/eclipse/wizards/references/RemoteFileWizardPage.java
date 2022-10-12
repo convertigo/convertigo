@@ -159,6 +159,8 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
 		
+		urlPath = combo.getText();
+		
 		dialogChanged();
 		setControl(container);
 	}
