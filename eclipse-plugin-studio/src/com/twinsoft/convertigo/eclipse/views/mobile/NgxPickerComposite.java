@@ -21,14 +21,24 @@ package com.twinsoft.convertigo.eclipse.views.mobile;
 
 import java.beans.BeanInfo;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
@@ -38,14 +48,23 @@ import org.apache.ws.commons.schema.XmlSchemaType;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -54,31 +73,45 @@ import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TreeDropTargetEffect;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.navigator.CommonViewer;
+import org.eclipse.ui.navigator.resources.ProjectExplorer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.teamdev.jxbrowser.browser.callback.InjectCssCallback;
+import com.teamdev.jxbrowser.browser.callback.StartDownloadCallback;
 import com.teamdev.jxbrowser.dom.event.EventType;
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.teamdev.jxbrowser.ui.Rect;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MobileObject;
@@ -132,24 +165,24 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class NgxPickerComposite extends Composite {
-
+public class NgxPickerComposite extends Composite {	
 	Composite content, headerComposite;
-	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal, btnLocal, btnIcon;
+	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal, btnLocal, btnIcon, btnAsset;
 	private CheckboxTreeViewer checkboxTreeViewer;
-	private SashForm treesSashForm;
-	private C8oBrowser browser;
 	private TreeViewer modelTreeViewer;
 	private Button b_custom;
 	private Control l_source;
 	private Text t_custom, t_prefix, t_data, t_suffix;
 	private Label message;
+	private Filter currentFilter = Filter.Sequence;
 	private String currentSource = null;
 	//private MobileComponent currentMC = null;
 	private MobileObject currentMC = null;
@@ -158,6 +191,34 @@ public class NgxPickerComposite extends Composite {
 	private boolean isParentDialog = false;
 	private boolean isUpdating = false;
 
+	private static void set(Widget widget, Object o) {
+		Class<?> cls = o.getClass();
+		if (cls.isAnonymousClass() || cls.isSynthetic()) {
+			Class<?>[] ifaces = cls.getInterfaces();
+			if (ifaces.length == 1) {
+				cls = ifaces[0];
+			}
+		}
+		widget.setData(cls.toString(), o);
+	}
+
+	private static void set(Widget widget, Object o, Class<?> cls) {
+		widget.setData(cls.toString(), o);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <E> E get(Widget widget, Class<E> cls) {
+		return (E) widget.getData(cls.toString());
+	}
+	
+	private interface DownloadAction {
+		void run(File dir, String url);
+	}
+	
+	private interface CopyAction {
+		void run(File dir, File toCopy);
+	}
+	
 	private EngineListenerHelper engineListener = new EngineListenerHelper() {
 
 		private JSONObject computeJsonModel(AbstractCouchDbTransaction acdt, String dataPath, Document document) throws Exception {
@@ -199,7 +260,7 @@ public class NgxPickerComposite extends Composite {
 				String project = documentElement.getAttribute("project");
 				String connector = documentElement.getAttribute("connector");
 				String transaction = documentElement.getAttribute("transaction");
-				if (lastSelected !=null && lastSelected instanceof TVObject) {
+				if (lastSelected != null && lastSelected instanceof TVObject) {
 					TVObject tvObject = (TVObject)lastSelected;
 					Object object = tvObject.getObject();
 					if (object != null && object instanceof DatabaseObject) {
@@ -354,67 +415,41 @@ public class NgxPickerComposite extends Composite {
 	}
 
 	private void makeUI(Composite parent) {
-		parent.setLayout(new GridLayout(1, false));
-		parent.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+		GridLayout gl = new GridLayout(1, false);
+		gl.marginHeight = gl.marginWidth = 0;
+		parent.setLayout(gl);
 
 		StackLayout stackLayout = new StackLayout();
 
 		SelectionListener listener = new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				btnSequence.setSelection(false);
-				btnDatabase.setSelection(false);
-				btnAction.setSelection(false);
-				btnShared.setSelection(false);
-				btnIteration.setSelection(false);
-				btnForm.setSelection(false);
-				btnGlobal.setSelection(false);
-				btnLocal.setSelection(false);
-				btnIcon.setSelection(false);
-
+				for (ToolItem i: btnSequence.getParent().getItems()) {
+					i.setSelection(false);
+				}
 				ToolItem button = (ToolItem) e.widget;
 				button.setSelection(true);
+				currentFilter = get(button, Filter.class);
+				Composite topControl = get(button, Composite.class);
+				if (topControl == null) {
+					topControl = get(btnSequence, Composite.class);
+				}
 
-				if (e.widget != btnIcon) {
-					if (stackLayout.topControl != treesSashForm) {
-						stackLayout.topControl = treesSashForm;
-						treesSashForm.getParent().layout(true);
-					}
-					final NgxPickerContentProvider contentProvider = (NgxPickerContentProvider) checkboxTreeViewer.getContentProvider();
-					if (contentProvider != null) {
+				Runnable init = get(topControl, Runnable.class);
+				if (init != null && topControl.getChildren().length == 0) {
+					topControl.setLayout(new FillLayout());
+					init.run();
+					topControl.layout(true);
+				}
 
-						if (btnSequence.getSelection()) {
-							contentProvider.setFilterBy(Filter.Sequence);
-						} else if (btnDatabase.getSelection()) {
-							contentProvider.setFilterBy(Filter.Database);
-						} else if (btnAction.getSelection()) {
-							contentProvider.setFilterBy(Filter.Action);
-						} else if (btnShared.getSelection()) {
-							contentProvider.setFilterBy(Filter.Shared);
-						} else if (btnIteration.getSelection()) {
-							contentProvider.setFilterBy(Filter.Iteration);
-						} else if (btnForm.getSelection()) {
-							contentProvider.setFilterBy(Filter.Form);
-						} else if (btnGlobal.getSelection()) {
-							contentProvider.setFilterBy(Filter.Global);
-						} else if (btnLocal.getSelection()) {
-							contentProvider.setFilterBy(Filter.Local);
-						}
-						modelTreeViewer.setInput(null);
-						checkboxTreeViewer.getTree().removeAll();
-						checkboxTreeViewer.refresh();
-						initTreeSelection(checkboxTreeViewer, null);
-					}
-				} else {
-					if (stackLayout.topControl != browser) {
-						stackLayout.topControl = browser;
-						browser.getParent().layout(true);
-					}
-					Project project = NgxPickerComposite.this.currentMC.getProject();
-					File page = new File(project.getDirFile(), "_private/ionic/node_modules/ionicons/dist/cheatsheet.html");
-					if (page.exists()) {
-						browser.setUrl(page.getAbsoluteFile().toURI().toString());
-					}
+				if (stackLayout.topControl != topControl) {
+					stackLayout.topControl = topControl;
+					topControl.getParent().layout(true);
+				}
+
+				Runnable onSelect = get(button, Runnable.class);
+				if (onSelect != null) {
+					onSelect.run();
 				}
 			}
 			@Override
@@ -480,6 +515,7 @@ public class NgxPickerComposite extends Composite {
 		btnSequence.setToolTipText("Show Sequence Sources");
 		btnSequence.addSelectionListener(listener);
 		btnSequence.setSelection(true);
+		set(btnSequence, Filter.Sequence);
 
 		btnDatabase = new ToolItem(toolbar, btnStyle);
 		try {
@@ -490,6 +526,7 @@ public class NgxPickerComposite extends Composite {
 		btnDatabase.setImage(image);
 		btnDatabase.setToolTipText("Show FullSync Databases Sources");
 		btnDatabase.addSelectionListener(listener);
+		set(btnDatabase, Filter.Database);
 
 		btnAction = new ToolItem(toolbar, btnStyle);
 		try {
@@ -500,6 +537,7 @@ public class NgxPickerComposite extends Composite {
 		btnAction.setImage(image);
 		btnAction.setToolTipText("Show Action Sources");
 		btnAction.addSelectionListener(listener);
+		set(btnAction, Filter.Action);
 
 		btnShared = new ToolItem(toolbar, btnStyle);
 		try {
@@ -510,6 +548,7 @@ public class NgxPickerComposite extends Composite {
 		btnShared.setImage(image);
 		btnShared.setToolTipText("Show Shared component Sources");
 		btnShared.addSelectionListener(listener);
+		set(btnShared, Filter.Shared);
 
 		btnIteration = new ToolItem(toolbar, btnStyle);
 		try {
@@ -520,6 +559,7 @@ public class NgxPickerComposite extends Composite {
 		btnIteration.setImage(image);
 		btnIteration.setToolTipText("Show Iterators on current page Sources");
 		btnIteration.addSelectionListener(listener);
+		set(btnIteration, Filter.Iteration);
 
 		btnForm = new ToolItem(toolbar, btnStyle);
 		try {
@@ -530,6 +570,7 @@ public class NgxPickerComposite extends Composite {
 		btnForm.setImage(image);
 		btnForm.setToolTipText("Show Forms on current page Sources");
 		btnForm.addSelectionListener(listener);
+		set(btnForm, Filter.Form);
 
 		btnGlobal = new ToolItem(toolbar, btnStyle);
 		try {
@@ -540,6 +581,7 @@ public class NgxPickerComposite extends Composite {
 		btnGlobal.setImage(image);
 		btnGlobal.setToolTipText("Show Global objects");
 		btnGlobal.addSelectionListener(listener);
+		set(btnGlobal, Filter.Global);
 
 		btnLocal = new ToolItem(toolbar, btnStyle);
 		try {
@@ -550,6 +592,7 @@ public class NgxPickerComposite extends Composite {
 		btnLocal.setImage(image);
 		btnLocal.setToolTipText("Show Local objects");
 		btnLocal.addSelectionListener(listener);
+		set(btnLocal, Filter.Local);
 
 		btnIcon = new ToolItem(toolbar, btnStyle);
 		try {
@@ -560,14 +603,38 @@ public class NgxPickerComposite extends Composite {
 		btnIcon.setImage(image);
 		btnIcon.setToolTipText("Show available Icons");
 		btnIcon.addSelectionListener(listener);
+		set(btnIcon, Filter.Icon);
+		btnIcon.setData("updateTexts", true);
+
+		btnAsset = new ToolItem(toolbar, btnStyle);
+		try {
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/filechooseraction_16x16.png", BeanInfo.ICON_COLOR_16x16);
+		} catch (Exception e) {
+			btnAsset.setText("AS");
+		}
+		btnAsset.setImage(image);
+		btnAsset.setToolTipText("Show available Assets");
+		btnAsset.addSelectionListener(listener);
+		set(btnAsset, Filter.Asset);
+		btnAsset.setData("updateTexts", true);
 
 		message = new Label(headerComposite, SWT.NONE);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		Composite stack = new Composite(parent, SWT.NONE);
 		stack.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		treesSashForm = new SashForm(stack, SWT.NONE);
 		stack.setLayout(stackLayout);
+
+		SashForm treesSashForm = new SashForm(stack, SWT.NONE);
+		set(btnSequence, treesSashForm, Composite.class);
+		set(btnAction, treesSashForm, Composite.class);
+		set(btnShared, treesSashForm, Composite.class);
+		set(btnDatabase, treesSashForm, Composite.class);
+		set(btnIteration, treesSashForm, Composite.class);
+		set(btnForm, treesSashForm, Composite.class);
+		set(btnGlobal, treesSashForm, Composite.class);
+		set(btnLocal, treesSashForm, Composite.class);
+
 		stackLayout.topControl = treesSashForm;
 
 		checkboxTreeViewer = new CheckboxTreeViewer(treesSashForm, SWT.BORDER | SWT.SINGLE);
@@ -626,7 +693,7 @@ public class NgxPickerComposite extends Composite {
 
 		});
 
-		treesSashForm.setWeights(new int[] {1, 1});
+		treesSashForm.setWeights(1, 1);
 
 		Composite sourceComposite = new Composite(parent, SWT.NONE);
 		sourceComposite.setLayout(new GridLayout(2, false));
@@ -702,73 +769,440 @@ public class NgxPickerComposite extends Composite {
 			source.setTransfer(dragTransfers);
 			source.addDragListener(dragAdapter);
 		}
+		set(btnSequence, (Runnable) () -> {
+			final NgxPickerContentProvider contentProvider = (NgxPickerContentProvider) checkboxTreeViewer.getContentProvider();
+			if (contentProvider != null) {
+				contentProvider.setFilterBy(currentFilter);
+				modelTreeViewer.setInput(null);
+				checkboxTreeViewer.getTree().removeAll();
+				checkboxTreeViewer.refresh();
+				initTreeSelection(checkboxTreeViewer, null);
+			}
+		});
+		set(btnAction, get(btnSequence, Runnable.class));
+		set(btnShared, get(btnSequence, Runnable.class));
+		set(btnDatabase, get(btnSequence, Runnable.class));
+		set(btnIteration, get(btnSequence, Runnable.class));
+		set(btnForm, get(btnSequence, Runnable.class));
+		set(btnGlobal, get(btnSequence, Runnable.class));
+		set(btnLocal, get(btnSequence, Runnable.class));
 
-		browser = new C8oBrowser(stack, SWT.NONE);
-		browser.setText("<h1>Please select a NGX project</h1>");
-		browser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
-			com.teamdev.jxbrowser.dom.Document doc = event.frame().document().get();
-			com.teamdev.jxbrowser.dom.Element style = doc.createElement("style");
-			style.textContent(".selected { border-style: outset; border-color: red; border-radius: 10px }\n");
-			doc.findElementByTagName("head").get().appendChild(style);
-			doc.addEventListener(EventType.CLICK, c -> {
-				com.teamdev.jxbrowser.dom.Element elt = (com.teamdev.jxbrowser.dom.Element) c.target().get();
-				if (!elt.nodeName().equals("use")) {
-					List<com.teamdev.jxbrowser.dom.Element> lst = elt.findElementsByCssSelector("use");
-					elt = lst.size() == 1 ? lst.get(0) : null;
+		Composite browserComposite = new Composite(stack, SWT.NONE);
+		set(btnIcon, browserComposite);
+		set(browserComposite, (Runnable) () -> {
+			C8oBrowser browser = new C8oBrowser(browserComposite, SWT.NONE);
+			if (currentMC == null) {
+				browser.setText("<h1>Please select a NGX project</h1>");
+			}
+			browser.getBrowser().set(InjectCssCallback.class, event -> {
+				return InjectCssCallback.Response.inject("h1, h3 { display: none }\n"
+						+ ".selected { border-style: outset; border-color: red; border-radius: 10px }\n");
+			});
+			browser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
+				com.teamdev.jxbrowser.dom.Document doc = event.frame().document().get();
+
+				doc.addEventListener(EventType.CLICK, c -> {
+					if (currentFilter == Filter.Icon) {
+						com.teamdev.jxbrowser.dom.Element elt = (com.teamdev.jxbrowser.dom.Element) c.target().get();
+						if (!elt.nodeName().equals("use")) {
+							List<com.teamdev.jxbrowser.dom.Element> lst = elt.findElementsByCssSelector("use");
+							elt = lst.size() == 1 ? lst.get(0) : null;
+						}
+						if (elt != null) {
+							String icon = "'" + elt.attributeValue("href").substring(1) + "'";
+							doc.findElementsByCssSelector("svg.selected").forEach(s -> s.removeAttribute("class"));
+							((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
+							ConvertigoPlugin.asyncExec(() -> t_data.setText(icon));
+						}
+						c.preventDefault();
+					}
+				}, false);
+
+				try {
+					MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
+					if (currentFilter == Filter.Icon) {
+						String iconName;
+						if (cs != null && cs.getFilter() == Filter.Icon) {
+							iconName = cs.getModel().getData();
+						} else {
+							iconName = "'add'";
+							ConvertigoPlugin.asyncExec(() -> t_data.setText(iconName));
+						}
+						String selected = "#" + iconName.replace("'", "");
+						for (com.teamdev.jxbrowser.dom.Element elt: doc.findElementsByCssSelector("use")) {
+							if (selected.equals(elt.attributeValue("href"))) {
+								((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
+								Rect rect = ((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).boundingClientRect();
+								event.frame().executeJavaScript("window.scrollTo(0, " + (rect.y() - 40) + ");");
+								break;
+							}
+						}
+					}
+					for (com.teamdev.jxbrowser.dom.Element elt: doc.findElementsByCssSelector("a")) {
+						elt.putAttribute("draggable", "false");
+					}
+				} catch (Exception e) {
 				}
-				if (elt != null) {
-					String icon = "'" + elt.attributeValue("href").substring(1) + "'";
-					doc.findElementsByCssSelector("svg.selected").forEach(s -> s.removeAttribute("class"));
-					((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
-					ConvertigoPlugin.asyncExec(() -> t_data.setText(icon));
+			});
+			set(btnIcon, (Runnable) () -> {
+				if (currentMC != null) {
+					Project project = currentMC.getProject();
+					File page = new File(project.getDirFile(), "_private/ionic/node_modules/ionicons/dist/cheatsheet.html");
+					if (page.exists()) {
+						browser.setUrl(page.getAbsoluteFile().toURI().toString());
+					}
 				}
-				c.preventDefault();
-			}, false);
+			});
+		});
+
+		Composite assetComposite = new Composite(stack, SWT.NONE);
+		set(btnAsset, assetComposite);
+		set(assetComposite, (Runnable) () -> {
+			SashForm assetSash = new SashForm(assetComposite, SWT.NONE);
 			
-			MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
-			String iconName;
-			if (cs != null && cs.getFilter() == Filter.Icon) {
-				iconName = cs.getModel().getData();
-			} else {
-				iconName = "'add'";
-				ConvertigoPlugin.asyncExec(() -> t_data.setText(iconName));
-			}
-			String selected = "#" + iconName.replace("'", "");
-			for (com.teamdev.jxbrowser.dom.Element elt: doc.findElementsByCssSelector("use")) {
-				if (selected.equals(elt.attributeValue("href"))) {
-					((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
-					Rect rect = ((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).boundingClientRect();
-					event.frame().executeJavaScript("window.scrollTo(0, " + (rect.y() - 40) + ");");
-					break;
+			Composite assetLeft = new Composite(assetSash, SWT.NONE);
+			assetLeft.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).create());
+			
+			TreeViewer assetTree = new TreeViewer(assetLeft, SWT.VIRTUAL);
+			assetTree.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
+			set(assetComposite, assetTree);
+			
+			Composite tb = new Composite(assetLeft, SWT.NONE);
+			ConvertigoPlugin.asyncExec(() -> {
+				tb.setBackground(assetTree.getTree().getBackground());
+			});
+			tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
+			tb.setLayout(GridLayoutFactory.fillDefaults().numColumns(4).equalWidth(true).extendedMargins(5, 5, 0, 5).create());
+			
+			Callable<File> getFile = () -> {
+				String path = t_data.getText();
+				if (path.length() > 2) {
+					File root = (File) assetTree.getInput();
+					path = path.substring(1, path.length() - 1);
+					File f = new File(root.getParentFile(), path);
+					if (f.exists()) {
+						return f;
+					}
 				}
+				return null;
+			};
+			
+			DownloadAction downloadAction = (dir, url) -> {
+				File dest = dir == null ? (File) assetTree.getInput() : dir.isFile() ? dir.getParentFile() : dir;
+				Engine.execute(() -> {
+					try {
+						HttpGet get = new HttpGet(url);
+						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+							Header header = response.getLastHeader("Content-Disposition");
+							String name = null;
+							if (header != null) {
+								Matcher m = Pattern.compile("filename=\"(.*?)\"").matcher(header.getValue());
+								if (m.find()) {
+									name = m.group(1);
+								}
+							}
+							if (name == null) {
+								name = get.getURI().getPath().replaceAll(".*/", "");
+							}
+							if (StringUtils.isNotBlank(name)) {
+								try (FileOutputStream fos = new FileOutputStream(new File(dest, name))) {
+									response.getEntity().writeTo(fos);
+								}
+							}
+						}
+						ConvertigoPlugin.asyncExec(() -> assetTree.refresh());
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				});
+			};
+			
+			CopyAction copyAction = (dir, toCopy) -> {
+				if (toCopy.exists()) {
+					File dest = dir == null ? (File) assetTree.getInput() : dir.isFile() ? dir.getParentFile() : dir;
+					Engine.execute(() -> {
+						try {
+							FileUtils.copyFileToDirectory(toCopy, dest);
+						} catch (IOException e1) {
+						}
+						ConvertigoPlugin.asyncExec(() -> assetTree.refresh());
+					});
+				}
+			};
+			
+			Button ti = null;
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Refresh file tree");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						assetTree.refresh();
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.gif"));
+			} catch (IOException e1) {
+				ti.setText("Refresh");
 			}
-			for (com.teamdev.jxbrowser.dom.Element elt: doc.findElementsByCssSelector("a")) {
-				elt.putAttribute("draggable", "false");
+			
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Add an asset file");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						try {
+							FileDialog fd = new FileDialog(NgxPickerComposite.this.getShell(), SWT.NONE);
+							File dir = getFile.call();
+							String path = fd.open();
+							if (StringUtils.isBlank(path)) {
+								return;
+							}
+							copyAction.run(dir, new File(path));
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_open.gif"));
+			} catch (IOException e1) {
+				ti.setText("Add");
 			}
+			
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Download an asset file");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						try {
+							InputDialog id = new InputDialog(getShell(), "Download asset", "Download an HTTP url as a file asset.", "https://", v -> Pattern.matches("^https?://.*", v) ? null : "You must enter an http URL");
+							if (id.open() == InputDialog.OK) {
+								String url = id.getValue();
+								File dir = getFile.call();
+								downloadAction.run(dir, url);
+							}
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getBeanIcon(CachedIntrospector.getBeanInfo(HttpConnector.class), BeanInfo.ICON_COLOR_16x16));
+			} catch (Exception e1) {
+				ti.setText("Add");
+			}
+			
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Explore files");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						try {
+							IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+							ProjectExplorer pe;
+							if ((pe = (ProjectExplorer) activePage.showView("org.eclipse.ui.navigator.ProjectExplorer")) != null) {
+								CommonViewer cv = pe.getCommonViewer();
+								File file = getFile.call();
+								IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(currentMC.getProject().getName());
+								
+								String path = currentMC.getProject().getDirFile().toPath().relativize(file.toPath()).toString();
+								iproject.findMember("DisplayObjects/mobile/assets").refreshLocal(IResource.DEPTH_INFINITE, null);
+								IResource ifile = iproject.findMember(path);
+								List<Object> res = new LinkedList<>();
+								res.add(ifile);
+								while (res.get(0) != iproject) {
+									res.add(0, ((IResource) res.get(0)).getParent());
+								}
+								
+								Object[] resObj = res.toArray();
+								ITreeSelection ts = new TreeSelection(new TreePath(resObj));
+								cv.setSelection(ts, false);
+								cv.setExpandedElements(resObj);
+								Tree tree = cv.getTree();
+								tree.setTopItem(tree.getSelection()[0]);
+							}
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_explorer.gif"));
+			} catch (IOException e1) {
+				ti.setText("Explore");
+			}
+			
+			C8oBrowser assetBrowser = new C8oBrowser(assetSash, SWT.NONE);
+			assetBrowser.getBrowser().set(StartDownloadCallback.class, (a, b) -> {
+				ConvertigoPlugin.asyncExec(() -> {
+					assetBrowser.setVisible(false);
+				assetSash.layout(true);
+				});
+				b.cancel();
+			});
+			
+			assetBrowser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
+				for (com.teamdev.jxbrowser.dom.Element elt: event.frame().document().get().findElementsByCssSelector("*")) {
+					elt.putAttribute("draggable", "false");
+				}
+				ConvertigoPlugin.asyncExec(() -> {
+					assetBrowser.setVisible(true);
+					assetSash.layout(true);
+				});
+			});
+			
+			assetTree.setContentProvider(new ITreeContentProvider() {
+
+				@Override
+				public Object[] getElements(Object inputElement) {
+					return getChildren(inputElement);
+				}
+
+				@Override
+				public Object[] getChildren(Object parentElement) {
+					File file = (File) parentElement;
+					File[] files = file.listFiles();
+					if (files != null) {
+						Arrays.sort(files, (o1, o2) -> {
+							if (o1.isDirectory() && o2.isFile()) {
+								return -1;
+							}
+							if (o1.isFile() && o2.isDirectory()) {
+								return 1;
+							}
+							return o1.getName().compareTo(o2.getName());
+						});
+					}
+					return files;
+				}
+
+				@Override
+				public Object getParent(Object element) {
+					File file = (File) element;
+					return file.getParentFile();
+				}
+
+				@Override
+				public boolean hasChildren(Object element) {
+					return getChildren(element) != null;
+				}
+
+			});
+			
+			assetTree.setLabelProvider(new LabelProvider() {
+
+				@Override
+				public Image getImage(Object element) {
+					File file = (File) element;
+					try {
+						return ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/" + (file.isDirectory() ? "folder.png" : "new.gif"));
+					} catch (IOException e) {
+						return super.getImage(element);
+					}
+				}
+
+				@Override
+				public String getText(Object element) {
+					File file = (File) element;
+					return super.getText(file.getName());
+				}
+
+			});
+			
+			assetTree.addSelectionChangedListener(event -> {
+				TreeSelection ts = (TreeSelection) event.getSelection();
+				File file = (File) ts.getFirstElement();
+				if (file == null) {
+					return;
+				}
+				if (file.isFile()) {
+					assetBrowser.setUrl(file.getAbsolutePath());
+				} else {
+					assetBrowser.setVisible(false);
+					assetSash.layout(true);
+				}
+				File root = ((File) assetTree.getInput()).getParentFile();
+				String path = root.toPath().relativize(file.toPath()).toString();
+				path = path.replace('\\', '/');
+				path = "'" + path + "'";
+				t_data.setText(path);
+			});
+			
+			assetTree.addDropSupport(DND.DROP_MOVE | DND.DROP_COPY, new Transfer[] {
+					TextTransfer.getInstance(), FileTransfer.getInstance()
+			}, new TreeDropTargetEffect(assetTree.getTree()) {
+
+				@Override
+				public void drop(DropTargetEvent event) {
+					String[] strs = (event.data instanceof String) ? new String[]{(String) event.data} :
+						(event.data instanceof String[]) ? GenericUtils.cast(event.data) : new String[0];
+					
+					for (String str: strs) {
+						try {
+							File dir = event.item == null ? null : (File) event.item.getData();
+							if (dir == null) {
+								dir = (File) assetTree.getInput();
+							}
+							if (Pattern.matches("^https?://.*", str)) {
+								downloadAction.run(dir, str);
+							} else {
+								copyAction.run(dir, new File(str));
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					
+					super.drop(event);
+				}
+				
+			});
+			
+			assetBrowser.setVisible(false);
+			
+			if (currentMC == null) {
+				tb.setEnabled(false);
+			}
+			set(btnAsset, (Runnable) () -> {
+				if (currentMC == null) {
+					return;
+				}
+				tb.setEnabled(true);
+				Project project = currentMC.getProject();
+				File dir = new File(project.getDirFile(), "DisplayObjects/mobile/assets/");
+				if (dir.exists() && dir.isDirectory() && !dir.equals(assetTree.getInput())) {
+					assetTree.setInput(dir);
+					MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
+					if (currentFilter == Filter.Asset && cs != null) {
+						String path = cs.getModel().getData();
+						if (path.length() > 2) {
+							path = path.substring(1, path.length() - 1);
+							File f = new File(dir.getParentFile(), path);
+							if (f.exists()) {
+								TreePath tpath = new TreePath(new File[] {f});
+								assetTree.setSelection(new TreeSelection(tpath), true);
+							}
+						}
+					}
+				}
+			});
 		});
 	}
 
 	private Filter getFilter() {
-		Filter filter = null;
-		if (btnSequence.getSelection())
-			filter = Filter.Sequence;
-		else if (btnDatabase.getSelection())
-			filter = Filter.Database;
-		else if (btnAction.getSelection())
-			filter = Filter.Action;
-		else if (btnShared.getSelection())
-			filter = Filter.Shared;
-		else if (btnIteration.getSelection())
-			filter = Filter.Iteration;
-		else if (btnForm.getSelection())
-			filter = Filter.Form;
-		else if (btnGlobal.getSelection())
-			filter = Filter.Global;
-		else if (btnLocal.getSelection())
-			filter = Filter.Local;
-		else if (btnIcon.getSelection())
-			filter = Filter.Icon;
-		return filter;
+		return currentFilter;
 	}
 
 	public String getSmartSourceString() {
@@ -792,7 +1226,7 @@ public class NgxPickerComposite extends Composite {
 			model.setSuffix(t_suffix.getText());
 			model.setUseCustom(b_custom.getSelection());
 			model.setSourceData(getModelData());
-			if (filter != Filter.Icon) {
+			if (!GenericUtils.contains(filter, Filter.Icon, Filter.Asset)) {
 				model.setPath(path);
 			}
 
@@ -823,15 +1257,9 @@ public class NgxPickerComposite extends Composite {
 
 	private void setWidgetsEnabled(boolean enabled) {
 		try {
-			btnSequence.setEnabled(enabled);
-			btnDatabase.setEnabled(enabled);
-			btnAction.setEnabled(enabled);
-			btnShared.setEnabled(enabled);
-			btnIteration.setEnabled(enabled);
-			btnForm.setEnabled(enabled);
-			btnGlobal.setEnabled(enabled);
-			btnLocal.setEnabled(enabled);
-			btnIcon.setEnabled(enabled);
+			for (ToolItem i: btnSequence.getParent().getItems()) {
+				i.setEnabled(enabled);
+			}
 			checkboxTreeViewer.getTree().setEnabled(enabled);
 		} catch (Exception e) {
 
@@ -966,6 +1394,11 @@ public class NgxPickerComposite extends Composite {
 		List<SourceData> sourceList =  new ArrayList<SourceData>();
 		if (Filter.Icon == getFilter()) {
 			SourceData sd = Filter.Icon.toSourceData(currentMC.getProject().getName(), t_data.getText());
+			if (sd != null) {
+				sourceList.add(sd);
+			}
+		} else if (Filter.Asset == getFilter()) {
+			SourceData sd = Filter.Asset.toSourceData(currentMC.getProject().getName(), t_data.getText());
 			if (sd != null) {
 				sourceList.add(sd);
 			}
@@ -1680,6 +2113,9 @@ public class NgxPickerComposite extends Composite {
 				if (btnIcon.getSelection()) {
 					btnIcon.notifyListeners(SWT.Selection, null);
 				}
+				if (btnAsset.getSelection()) {
+					btnAsset.notifyListeners(SWT.Selection, null);
+				}
 
 				MobileSmartSource cs = MobileSmartSource.valueOf(source);
 				if (cs != null) {
@@ -1691,33 +2127,13 @@ public class NgxPickerComposite extends Composite {
 					ToolItem buttonToSelect = btnSequence;
 					currentSource = source;
 					Filter filter = cs.getFilter();
-					if (Filter.Sequence.equals(filter)) {
-						buttonToSelect = btnSequence;
-					}
-					if (Filter.Database.equals(filter)) {
-						buttonToSelect = btnDatabase;
-					}
-					if (Filter.Action.equals(filter)) {
-						buttonToSelect = btnAction;
-					}
-					if (Filter.Shared.equals(filter)) {
-						buttonToSelect = btnShared;
-					}
-					if (Filter.Iteration.equals(filter)) {
-						buttonToSelect = btnIteration;
-					}
-					if (Filter.Form.equals(filter)) {
-						buttonToSelect = btnForm;
-					}
-					if (Filter.Global.equals(filter)) {
-						buttonToSelect = btnGlobal;
-					}
-					if (Filter.Local.equals(filter)) {
-						buttonToSelect = btnLocal;
-					}
-					if (Filter.Icon.equals(filter)) {
-						buttonToSelect = btnIcon;
-						updateTexts(cs);
+					for (ToolItem i: btnSequence.getParent().getItems()) {
+						if (filter == get(i, Filter.class)) {
+							buttonToSelect = i;
+							if (Boolean.TRUE == i.getData("updateTexts")) {
+								updateTexts(cs);
+							}
+						}
 					}
 					buttonToSelect.notifyListeners(SWT.Selection, null);
 				}

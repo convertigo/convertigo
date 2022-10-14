@@ -19,9 +19,8 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.widgets.Composite;
 
 import com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerComposite;
@@ -34,14 +33,12 @@ public class NgxSmartSourceEditorComposite extends AbstractDialogComposite {
 		super(parent, style, cellEditor);
 		
 		DatabaseObjectTreeObject dbto = cellEditor.databaseObjectTreeObject;
-		String source = (String)cellEditor.getEditorData();
-		
-		this.setLayout(new GridLayout(1, false));
-		
+		String source = (String) cellEditor.getEditorData();
+		setLayout(GridLayoutFactory.fillDefaults().create());
 		npc = new NgxPickerComposite(this, true);
-		npc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		npc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
 		npc.setCurrentInput(dbto, source);
-		setSize(800, 800);
+		getShell().setMinimumSize(800, 600);
 	}
 
 	@Override
@@ -53,7 +50,7 @@ public class NgxSmartSourceEditorComposite extends AbstractDialogComposite {
 	@Override
 	public Object getValue() {
 		String jsonString = npc.getSmartSourceString();
-		return jsonString == null || jsonString.isEmpty() ? "{}":jsonString;
+		return jsonString == null || jsonString.isEmpty() ? "{}" : jsonString;
 	}
 
 }
