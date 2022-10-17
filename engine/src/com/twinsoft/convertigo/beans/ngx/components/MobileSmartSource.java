@@ -1170,7 +1170,6 @@ public class MobileSmartSource {
 		try {
 			jsonObject = new JSONObject(jsonString);
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -1518,7 +1517,7 @@ public class MobileSmartSource {
 		
 		boolean isDroppable = true;
 		String qname = dbo.getQName() + ".";
-		if (GenericUtils.contains(getFilter(), Filter.Action, Filter.Shared, Filter.Iteration)) {
+		if (GenericUtils.contains(getFilter(), Filter.Action, Filter.Shared, Filter.Iteration, Filter.Icon, Filter.Asset)) {
 			isDroppable = targetDbo.getQName().startsWith(qname);
 		}
 		return isDroppable;

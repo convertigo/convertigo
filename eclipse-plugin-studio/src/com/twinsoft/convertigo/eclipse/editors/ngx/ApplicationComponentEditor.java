@@ -149,12 +149,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		@JsAccessible
 		public void onDragOver(JsObject o) {
 			try {
-				int x = ((Double) o.property("x").get()).intValue();
-				int y = ((Double) o.property("y").get()).intValue();
-				int xx = zoomFactor.swt(x);
-				int yy = zoomFactor.swt(y);
-				
-				highlightPoint(xx, yy);
+				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
+				if (paletteSource != null) {
+					int x = ((Double) o.property("x").get()).intValue();
+					int y = ((Double) o.property("y").get()).intValue();
+					int xx = zoomFactor.swt(x);
+					int yy = zoomFactor.swt(y);
+					
+					highlightPoint(xx, yy);
+				}
 			} catch (Exception e) {
 			}
 		}
@@ -190,7 +193,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							dragStartMobileComponent = null;
 						}
 					});
-				} else {
+				} else if (paletteSource != null) {
 					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
 					if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {

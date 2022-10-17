@@ -381,6 +381,7 @@ public class NgxSmartSourceTypeCellEditor extends AbstractDialogCellEditor {
     			msst.setSmartValue((String) newValue);
     		}
    			comboBox.setText(msst.getValue());
+   			focusLost();
     	}
 	}
 

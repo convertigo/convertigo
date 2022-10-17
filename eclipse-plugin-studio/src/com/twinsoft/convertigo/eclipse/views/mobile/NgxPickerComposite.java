@@ -77,6 +77,7 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TreeDragSourceEffect;
 import org.eclipse.swt.dnd.TreeDropTargetEffect;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -108,12 +109,16 @@ import org.w3c.dom.Element;
 import com.teamdev.jxbrowser.browser.callback.InjectCssCallback;
 import com.teamdev.jxbrowser.browser.callback.StartDownloadCallback;
 import com.teamdev.jxbrowser.dom.event.EventType;
+import com.teamdev.jxbrowser.js.JsAccessible;
+import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.teamdev.jxbrowser.ui.Rect;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
@@ -157,9 +162,11 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerContentProvider.TVObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
@@ -217,6 +224,15 @@ public class NgxPickerComposite extends Composite {
 	
 	private interface CopyAction {
 		void run(File dir, File toCopy);
+	}
+	
+	public class IconDrag {
+		@JsAccessible
+		public void onDragStart(JsObject o) {
+			_onDragStart(o);
+		}
+		
+		void _onDragStart(JsObject o) {};
 	}
 	
 	private EngineListenerHelper engineListener = new EngineListenerHelper() {
@@ -786,11 +802,18 @@ public class NgxPickerComposite extends Composite {
 		set(btnForm, get(btnSequence, Runnable.class));
 		set(btnGlobal, get(btnSequence, Runnable.class));
 		set(btnLocal, get(btnSequence, Runnable.class));
-
+		
 		Composite browserComposite = new Composite(stack, SWT.NONE);
 		set(btnIcon, browserComposite);
 		set(browserComposite, (Runnable) () -> {
+			browserComposite.setLayout(GridLayoutFactory.fillDefaults().margins(0, 0).create());
+			if (!isParentDialog) {
+				Label dndLabel = new Label(browserComposite, SWT.CENTER);
+				dndLabel.setText("↓ Drag icons to set properties ↓");
+				dndLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			}
 			C8oBrowser browser = new C8oBrowser(browserComposite, SWT.NONE);
+			browser.setLayoutData(new GridData(GridData.FILL_BOTH));
 			if (currentMC == null) {
 				browser.setText("<h1>Please select a NGX project</h1>");
 			}
@@ -801,21 +824,22 @@ public class NgxPickerComposite extends Composite {
 			browser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
 				com.teamdev.jxbrowser.dom.Document doc = event.frame().document().get();
 
-				doc.addEventListener(EventType.CLICK, c -> {
-					if (currentFilter == Filter.Icon) {
-						com.teamdev.jxbrowser.dom.Element elt = (com.teamdev.jxbrowser.dom.Element) c.target().get();
-						if (!elt.nodeName().equals("use")) {
-							List<com.teamdev.jxbrowser.dom.Element> lst = elt.findElementsByCssSelector("use");
-							elt = lst.size() == 1 ? lst.get(0) : null;
-						}
-						if (elt != null) {
-							String icon = "'" + elt.attributeValue("href").substring(1) + "'";
-							doc.findElementsByCssSelector("svg.selected").forEach(s -> s.removeAttribute("class"));
-							((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
-							ConvertigoPlugin.asyncExec(() -> t_data.setText(icon));
-						}
-						c.preventDefault();
+				doc.addEventListener(EventType.MOUSE_DOWN, c -> {
+					com.teamdev.jxbrowser.dom.Element elt = (com.teamdev.jxbrowser.dom.Element) c.target().get();
+					if (!elt.nodeName().equals("use")) {
+						List<com.teamdev.jxbrowser.dom.Element> lst = elt.findElementsByCssSelector("use");
+						elt = lst.size() == 1 ? lst.get(0) : null;
 					}
+					if (elt != null) {
+						String icon = "'" + elt.attributeValue("href").substring(1) + "'";
+						doc.findElementsByCssSelector("svg.selected").forEach(s -> s.removeAttribute("class"));
+						((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
+						ConvertigoPlugin.asyncExec(() -> t_data.setText(icon));
+					}
+				}, false);
+
+				doc.addEventListener(EventType.CLICK, c -> {
+					c.preventDefault();
 				}, false);
 
 				try {
@@ -838,10 +862,31 @@ public class NgxPickerComposite extends Composite {
 							}
 						}
 					}
-					for (com.teamdev.jxbrowser.dom.Element elt: doc.findElementsByCssSelector("a")) {
-						elt.putAttribute("draggable", "false");
-					}
 				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if (!isParentDialog) {
+					JsObject window = event.frame().executeJavaScript("window");
+					window.putProperty("java", new IconDrag() {
+						@Override
+						void _onDragStart(JsObject o) {
+							JsObject dt = (JsObject) o.property("dataTransfer").get();
+							dt.call("clearData");
+							String[] key = {null};
+							ConvertigoPlugin.syncExec(() -> {
+								String jsonString = getSmartSourceString();
+								if (StringUtils.isNotBlank(jsonString)) {
+									key[0] = MobileSourceTransfer.getInstance().setMobileSource(new MobileSource(jsonString));
+								}
+							});
+							if (key[0] != null) {
+								dt.call("setData", "text/plain", key[0]);
+							}
+						}
+					});
+					event.frame().executeJavaScript("Array.from(document.getElementsByTagName('a')).forEach(a => a.addEventListener('dragstart', e => window.java.onDragStart(e)))");
+				} else {
+					browser.getBrowserView().dragAndDrop().disable();
 				}
 			});
 			set(btnIcon, (Runnable) () -> {
@@ -862,6 +907,11 @@ public class NgxPickerComposite extends Composite {
 			
 			Composite assetLeft = new Composite(assetSash, SWT.NONE);
 			assetLeft.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).create());
+			
+			Label dndInfo = new Label(assetLeft, SWT.CENTER);
+			dndInfo.setText(isParentDialog ? "↓ Drop files below ↓":
+				"↓ Drop files below and drag to set properties ↓");
+			dndInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
 			TreeViewer assetTree = new TreeViewer(assetLeft, SWT.VIRTUAL);
 			assetTree.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1045,6 +1095,7 @@ public class NgxPickerComposite extends Composite {
 			}
 			
 			C8oBrowser assetBrowser = new C8oBrowser(assetSash, SWT.NONE);
+			assetBrowser.getBrowserView().dragAndDrop().disable();
 			assetBrowser.getBrowser().set(StartDownloadCallback.class, (a, b) -> {
 				ConvertigoPlugin.asyncExec(() -> {
 					assetBrowser.setVisible(false);
@@ -1054,9 +1105,6 @@ public class NgxPickerComposite extends Composite {
 			});
 			
 			assetBrowser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
-				for (com.teamdev.jxbrowser.dom.Element elt: event.frame().document().get().findElementsByCssSelector("*")) {
-					elt.putAttribute("draggable", "false");
-				}
 				ConvertigoPlugin.asyncExec(() -> {
 					assetBrowser.setVisible(true);
 					assetSash.layout(true);
@@ -1170,6 +1218,21 @@ public class NgxPickerComposite extends Composite {
 				
 			});
 			
+			assetTree.addDragSupport(DND.DROP_MOVE | DND.DROP_COPY, new Transfer[] { MobileSourceTransfer.getInstance() }, new TreeDragSourceEffect(assetTree.getTree()) {
+
+				@Override
+				public void dragStart(DragSourceEvent event) {
+					try {
+						String jsonString = getSmartSourceString();
+						if (StringUtils.isNotBlank(jsonString)) {
+							MobileSourceTransfer.getInstance().setMobileSource(new MobileSource(jsonString));
+						}
+					} catch (Exception e) {
+					}
+				}
+
+			});
+			
 			assetBrowser.setVisible(false);
 			
 			if (currentMC == null) {
@@ -1177,6 +1240,7 @@ public class NgxPickerComposite extends Composite {
 			}
 			set(btnAsset, (Runnable) () -> {
 				if (currentMC == null) {
+					assetTree.setInput(null);
 					return;
 				}
 				tb.setEnabled(true);
@@ -1245,6 +1309,11 @@ public class NgxPickerComposite extends Composite {
 	private void resetViewers() {
 		checkboxTreeViewer.setInput(null);
 		modelTreeViewer.setInput(null);
+		for (ToolItem item: btnSequence.getParent().getItems()) {
+			if (item.getSelection()) {
+				item.notifyListeners(SWT.Selection, null);
+			}
+		}
 		currentSource = null;
 		firstSelected = null;
 		lastSelected = null;
@@ -2088,7 +2157,7 @@ public class NgxPickerComposite extends Composite {
 		currentMC = null;
 		setWidgetsEnabled(true);
 
-		if (selected instanceof NgxComponentTreeObject) {
+		if (selected instanceof NgxPageComponentTreeObject || selected instanceof NgxUIComponentTreeObject) {
 			UIComponent uic = null;
 			if (selected instanceof NgxPageComponentTreeObject) {
 				currentMC = ((NgxPageComponentTreeObject) selected).getObject();
@@ -2140,9 +2209,25 @@ public class NgxPickerComposite extends Composite {
 
 			}
 			updateMessage();
-		} else {
-			resetViewers();
-			updateMessage();
+			return;
 		}
+		if (selected instanceof DatabaseObjectTreeObject) {
+			try {
+				ProjectTreeObject prjt = ((DatabaseObjectTreeObject) selected).getProjectTreeObject();
+				MobileApplication app = prjt.getObject().getMobileApplication();
+				IApplicationComponent iapp = app.getApplicationComponent();
+				if (iapp instanceof ApplicationComponent) {
+					TreeObject dbot = prjt.findTreeObjectByUserObject(((ApplicationComponent) iapp).getRootPage());
+					if (dbot != null) {
+						setCurrentInput(dbot, source);
+						return;
+					}
+				}
+			} catch (Exception e) {
+			}
+		}
+		
+		resetViewers();
+		updateMessage();
 	}
 }

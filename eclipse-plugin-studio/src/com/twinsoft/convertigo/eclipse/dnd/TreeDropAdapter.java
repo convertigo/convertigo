@@ -158,6 +158,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (event.data == null) {
 				return;
 			}
+		} else {
+			for (TransferData transferData : event.dataTypes) {
+				if (MobileSourceTransfer.getInstance().isSupportedType(transferData)) {
+					event.data = MobileSourceTransfer.getInstance().getMobileSource();
+					break;
+				}
+			}
 		}
 		
 		if ("gtk".equalsIgnoreCase(SWT.getPlatform()) && event.detail == 0) {
@@ -311,7 +318,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							}
 							BatchOperationHelper.start();
 							// Parse failed probably because data was not XML but an XPATH String
-							// in this case, create DatabaseObjects of the correct Type according to the folder where the XPATH is dropped on  
+							// in this case, create DatabaseObjects of the correct Type according to the folder where the XPATH is dropped on
 							performDrop(data, explorerView, targetTreeObject);
 							BatchOperationHelper.stop();
 							return true;
@@ -1046,6 +1053,44 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	 */
 	@Override
 	public boolean validateDrop(Object target, int operation, TransferData transferType) {
+		if (MobileSourceTransfer.getInstance().isSupportedType(transferType)) {
+			MobileSource mobileSource = MobileSourceTransfer.getInstance().getMobileSource();
+			if (mobileSource != null) {
+				if (target instanceof MobileUIComponentTreeObject) {
+					MobileUIComponentTreeObject mcto = GenericUtils.cast(target);
+					
+					com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
+					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
+						return false;
+					}
+					
+					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
+							if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
+								return true;
+							}
+						}
+					}
+				}
+				if (target instanceof NgxUIComponentTreeObject) {
+					NgxUIComponentTreeObject mcto = GenericUtils.cast(target);
+					
+					com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
+					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
+						return false;
+					}
+					
+					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
+						if (descriptor instanceof NgxSmartSourcePropertyDescriptor) {
+							if (!((NgxSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+			return false;
+		}
 		if (TextTransfer.getInstance().isSupportedType(transferType)) {
 			if (getCurrentOperation() == DND.DROP_MOVE) {
 				Object targetObject = getCurrentTarget();
@@ -1079,7 +1124,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					}
 				}
 			}
-			return true;
 		}
 		if (StepSourceTransfer.getInstance().isSupportedType(transferType)) {
 			if (target instanceof TreeObject) {
@@ -1155,43 +1199,6 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						}
 					} catch (Exception e) {
 						e.printStackTrace(System.out);
-					}
-				}
-			}
-		}
-		if (MobileSourceTransfer.getInstance().isSupportedType(transferType)) {
-			MobileSource mobileSource = MobileSourceTransfer.getInstance().getMobileSource();
-			if (mobileSource != null) {
-				if (target instanceof MobileUIComponentTreeObject) {
-					MobileUIComponentTreeObject mcto = GenericUtils.cast(target);
-					
-					com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.mobile.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
-					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
-						return false;
-					}
-					
-					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
-						if (descriptor instanceof MobileSmartSourcePropertyDescriptor) {
-							if (!((MobileSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
-								return true;
-							}
-						}
-					}
-				}
-				if (target instanceof NgxUIComponentTreeObject) {
-					NgxUIComponentTreeObject mcto = GenericUtils.cast(target);
-					
-					com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource mss = com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.valueOf(mobileSource.getJsonString());
-					if (mss == null || !mss.isDroppableInto(mcto.getObject())) {
-						return false;
-					}
-					
-					for (IPropertyDescriptor descriptor : mcto.getPropertyDescriptors()) {
-						if (descriptor instanceof NgxSmartSourcePropertyDescriptor) {
-							if (!((NgxSmartSourcePropertyDescriptor)descriptor).isReadOnly()) {
-								return true;
-							}
-						}
 					}
 				}
 			}
