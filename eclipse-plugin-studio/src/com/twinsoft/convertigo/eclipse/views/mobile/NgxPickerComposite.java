@@ -808,8 +808,8 @@ public class NgxPickerComposite extends Composite {
 		set(browserComposite, (Runnable) () -> {
 			browserComposite.setLayout(GridLayoutFactory.fillDefaults().margins(0, 0).create());
 			if (!isParentDialog) {
-				Label dndLabel = new Label(browserComposite, SWT.CENTER);
-				dndLabel.setText("↓ Drag icons to set properties ↓");
+				Label dndLabel = new Label(browserComposite, SWT.CENTER | SWT.WRAP);
+				dndLabel.setText("↓ Drag icons on project treeview objects to set properties ↓");
 				dndLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 			C8oBrowser browser = new C8oBrowser(browserComposite, SWT.NONE);
@@ -908,9 +908,9 @@ public class NgxPickerComposite extends Composite {
 			Composite assetLeft = new Composite(assetSash, SWT.NONE);
 			assetLeft.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).create());
 			
-			Label dndInfo = new Label(assetLeft, SWT.CENTER);
+			Label dndInfo = new Label(assetLeft, SWT.CENTER | SWT.WRAP);
 			dndInfo.setText(isParentDialog ? "↓ Drop files below ↓":
-				"↓ Drop files below and drag to set properties ↓");
+				"↓ Drop files below and drag on project treeview objects to set properties ↓");
 			dndInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
 			TreeViewer assetTree = new TreeViewer(assetLeft, SWT.VIRTUAL);
