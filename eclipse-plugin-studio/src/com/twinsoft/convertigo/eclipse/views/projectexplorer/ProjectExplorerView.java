@@ -60,6 +60,8 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -87,6 +89,7 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -95,6 +98,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -427,12 +432,53 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	 * to create the viewer and initialize it.
 	 */
 	@SuppressWarnings("deprecation")
-	public void createPartControl(Composite parent) {this.
+	public void createPartControl(Composite parent) {
+		parent.setLayout(GridLayoutFactory.fillDefaults().margins(0, 0).spacing(0, 0).create());
 		viewContentProvider = new ViewContentProvider(this);
 		
 		Composite stack = new Composite(parent, SWT.NONE);
+		stack.setLayoutData(new GridData(GridData.FILL_BOTH));
 		StackLayout stackLayout = new StackLayout();
 		stack.setLayout(stackLayout);
+		
+		Composite rateUsBar = new Composite(parent, SWT.NONE);
+		rateUsBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		rateUsBar.setLayout(GridLayoutFactory.fillDefaults().numColumns(5).margins(0, 0).spacing(2, 2).create());
+
+		String[][] rateDef = {
+				{"2", "Star us on GitHub", "icons/studio/github-16.png", "https://github.com/convertigo/convertigo"},
+				{"1", null, "icons/studio/twitter-16.png", "https://twitter.com/convertigo"},
+				{"1", null, "icons/studio/linkedin-16.png", "https://www.linkedin.com/company/convertigo/"},
+				{null, null, "icons/studio/close-16.png", null}
+		};
+		
+		for (String[] def: rateDef) {
+			try {
+				Button rateUsButton = new Button(rateUsBar, SWT.PUSH);
+				rateUsButton.setData("style", "background-color: rgb(0, 200, 247); color: white");
+				if (def[1] != null) {
+					rateUsButton.setText(def[1]);
+				}
+				GridDataFactory gdf = GridDataFactory.fillDefaults();
+				if (def[0] != null) {
+					gdf.grab(true, false).span(Integer.parseInt(def[0]), 1);
+				}
+				rateUsButton.setLayoutData(gdf.create());
+				rateUsButton.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						if (def[3] != null) {
+							Program.launch(def[3]);
+						} else {
+							rateUsBar.dispose();
+							parent.layout(true);
+						}
+					}
+				});
+				rateUsButton.setImage(ConvertigoPlugin.getDefault().getStudioIcon(def[2]));
+			} catch (Exception e2) {
+			}
+		}
 		
 		Label noEngine = new Label(stack, SWT.CENTER);
 		noEngine.setText("\n"
