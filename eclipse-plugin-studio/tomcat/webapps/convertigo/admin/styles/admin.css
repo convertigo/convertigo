@@ -822,10 +822,33 @@ background-position-x: -2px;
 	padding-top: 20px;
 }
 
-.adminTitle{
+.adminTitle {
 	position: relative;
 	left: 25px;
-	top: -2px;
+	margin-top: 40px;
+	margin-bottom: 15px;
+}
+
+.adminTitle span {
+	font-size: x-large;
+	padding: 10px;
+	white-space: nowrap;
+	line-height: 40px;
+	vertical-align: middle;
+}
+
+.adminTitle a {
+	font-size: 16px;
+	padding: 10px;
+	background-color: #00C8F7;
+	color: white;
+	border-radius: 10px;
+}
+
+.adminTitle a img {
+	width: 32px;
+	height: 32px;
+	margin-bottom: -10px;
 }
 
 /* == for ie 

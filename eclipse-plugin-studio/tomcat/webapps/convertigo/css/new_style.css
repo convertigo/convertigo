@@ -135,7 +135,8 @@ a:hover {
 .logo {
 	width: 195px;
 	height: 70px;
-	margin:0 0 10px 0;
+	margin: -15px 45px 10px 0;
+	float: left;
 }
 #global {
 	width: 99%;
@@ -1078,4 +1079,31 @@ ul.connectors .acc {
 	color: red;
 	text-align: left;
 	white-space: pre-wrap;
+}
+
+.adminTitle {
+	margin-top: 20px;
+	margin-bottom: 15px;
+}
+
+.adminTitle span {
+	font-size: x-large;
+	padding: 10px;
+	white-space: nowrap;
+	line-height: 40px;
+	vertical-align: middle;
+}
+
+.adminTitle a {
+	font-size: 16px;
+	padding: 10px;
+	background-color: #00C8F7;
+	color: white !important;
+	border-radius: 10px;
+}
+
+.adminTitle a img {
+	width: 32px;
+	height: 32px;
+	margin-bottom: -10px;
 }
