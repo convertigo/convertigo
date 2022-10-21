@@ -158,7 +158,7 @@ function updateDate() {
 	var currentDate = new Date();
 	var diff = currentDate.getTime() - startDate.getTime();
 	var utc = serverDate + diff + initialDiffClientServer;
-	$("#mainDate").text(new Date(utc).toLocaleString(navigator.language, {timeZone: serverTimeZone}));
+	$("#mainDate").text(new Date(utc).toLocaleString(navigator.language, {timeZone: serverTimeZone}) + " " + serverTimeZone);
 	setTimeout(function() {
 		updateDate();
 	}, 1000);
