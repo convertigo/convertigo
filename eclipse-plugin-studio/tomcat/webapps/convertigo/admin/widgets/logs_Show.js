@@ -44,7 +44,7 @@ var latestLogJqXHR;
 
 var purgeDates = [];
 
-function logs_Show_init(options) {	
+function logs_Show_init(options) {
 	// The menu element should be moved to the body element in order
 	// to match the popup menu library requirements
 	if ($("body>#logContextualMenu").length == 0) {
@@ -54,7 +54,7 @@ function logs_Show_init(options) {
 	$(".date-pick").datepicker({ dateFormat: "yy-mm-dd" }).bind("mousewheel", {fn: function (delta) {
 		var ts = Date.parse($(this).datepicker('getDate'));
 		if(dateFormat(ts+(delta * 86400000 ), "yyyy-mm-dd")!=dateFormat(ts, "yyyy-mm-dd"))
-			ts += (delta * 86400000 ); // +/- 1 day : 86400000 = 24 x 60 x 60 x 1000	
+			ts += (delta * 86400000 ); // +/- 1 day : 86400000 = 24 x 60 x 60 x 1000
 		else
 			ts += (delta * 90000000 ); // Daylight Saving Time
 		$(this).datepicker('setDate',dateFormat(ts, "yyyy-mm-dd"));
@@ -168,7 +168,7 @@ function logs_Show_init(options) {
 	
 	setOptions(options);
 	
-	logs_Show_update();	
+	logs_Show_update();
 }
 
 function setOptions(options) {
@@ -267,25 +267,24 @@ function onLogTogglePurgeClick() {
 
 
 function onLogToggleLevelClick() {
-	
-	if($("#Configuration_layout").length==0){			
-		//load the configuration page		
+	if ($("#Configuration_layout").length == 0) {
+		//load the configuration page
 		callFromLogShow=true;
 		$("#widgetButtonConfiguration").click();
-	}else{		
-		if($("#logLevelCopyFromConfigurationButton").html().length == 0){
+	} else {
+		if ($("#logLevelCopyFromConfigurationButton").html().length == 0) {
 			var $configTable=$("#tab-Logs").find("table tbody:first");
 			$("#logLevelCopyFromConfiguration").append($configTable);
 			var $buttonUpdate=$("#configFirstUpdateButtonLocation").find("button");
 			$("#logLevelCopyFromConfigurationButton")
 			.append($buttonUpdate)
 			.click(function(){
-				updateConfiguration();					
-			});						
+				updateConfiguration();
+			});
 		}
 		$("#logLevel").slideToggle();
 		$("#logOptions, #logPurge, #logHelp").slideUp();
-	}	
+	}
 	
 	
 }
@@ -304,13 +303,17 @@ function onLogOptionsResetClick() {
 }
 
 function onLogOptionsGoToEndClick() {
-	if (bHasMoreResults) {
-		bGoToEnd = true;
-		getLines();
-	}
-	else {
-		var logDivTable = $logDivTable[0];
-		logDivTable.scrollTop = logDivTable.scrollHeight;
+	if ($(this).prop("checked")) {
+		if (bHasMoreResults) {
+			bGoToEnd = true;
+			getLines();
+		} else {
+			var logDivTable = $logDivTable[0];
+			logDivTable.scrollTop = logDivTable.scrollHeight;
+			$(this).prop("checked", false).button("refresh");
+		}
+	} else {
+		bGoToEnd = false;
 	}
 }
 
@@ -490,6 +493,7 @@ function onLogGetSuccess(json, textStatus, jqXHR) {
 			$("#logMessageSearching").hide();
 			logDivTable.scrollTop = logDivTable.scrollHeight;
 			bGoToEnd = false;
+			$("#logOptionsGoToEnd").prop("checked", false).button("refresh");
 		}
 	}
 }
@@ -667,14 +671,14 @@ function formatLine(nLine, line) {
 		message = "<div class=\"log-message\">" + message + "</div>";
 	}
 
-	// Extra columns are columns that contain "key=value" 
+	// Extra columns are columns that contain "key=value"
 	var extra = "";
 	var j = 1;
 	for (var i = 5; i < line.length; i++) {
 		extra += "<span class=\"log-extra log-extra" + i + "\">" +
 		line[i] + "</span>";
 		if( i != line.length -1)
-			extra += " <br/>"; //blank important		
+			extra += " <br/>"; //blank important
 		j++;
 	}
 
