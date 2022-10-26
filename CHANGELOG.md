@@ -1,5 +1,52 @@
 # Changelog
 
+## 8.1.0
+
+#### New Features:
+
+- [#553](https://github.com/convertigo/convertigo/issues/553) [Ngx Builder] Display in Ngx palette shared components/actions provided by projects
+- [#610](https://github.com/convertigo/convertigo/issues/610) [Studio] Automatic generation of project MD files
+- [#622](https://github.com/convertigo/convertigo/issues/622) [Ngx Builder] New Font and FontStyle component
+- [#629](https://github.com/convertigo/convertigo/issues/629) [Ngx Builder] Added an Assets section in Ngx Source picker
+- [#630](https://github.com/convertigo/convertigo/issues/630) [Steps] Added in "Change to" feature : From XML Elements to JSON Field and vice-versa
+- [#644](https://github.com/convertigo/convertigo/issues/644) [Docker] Easy configuration to enable HTTPS
+- [#660](https://github.com/convertigo/convertigo/issues/660) [Ngx Builder] New icon picker with preview for all "Icon" properties
+
+#### Improvements:
+
+- [#493](https://github.com/convertigo/convertigo/issues/493) [Studio] Setup automatic GitRepo creation and Initial Commit on project creation
+- [#620](https://github.com/convertigo/convertigo/issues/620) [Studio] Manage conflicts of components with the same name from different libraries and used in the same project
+- [#621](https://github.com/convertigo/convertigo/issues/621) [Steps] ReadCSV step: Add some improvements to Step
+- [#624](https://github.com/convertigo/convertigo/issues/624) [Studio] Update Eclipse, Tomcat, Browser, Java to latest
+- [#628](https://github.com/convertigo/convertigo/issues/628) [Studio] Object selection in Convertigo Project View now reveals corresponding file in Project Explorer View
+- [#639](https://github.com/convertigo/convertigo/issues/639) Added multiline support for requestable variable default value (single and multi valued)
+- [#640](https://github.com/convertigo/convertigo/issues/640) [Studio] Update the default GitHub Actions file with build cache configuration to speed up builds
+- [#643](https://github.com/convertigo/convertigo/issues/643) [Admin] Add server time + timezone in admin console
+- [#646](https://github.com/convertigo/convertigo/issues/646) [Mobile] Handle hard reload of PWA
+- [#649](https://github.com/convertigo/convertigo/issues/649) [Ngx Builder] Upgrade NGX TPL for the 8.1.0 release (Angular 14.2.3, Ionic 6.2.8)
+- [#664](https://github.com/convertigo/convertigo/issues/664) [Admin] Toggle "Go to end" to stop log fetch before the end
+
+#### Bug Fixes:
+
+- [#568](https://github.com/convertigo/convertigo/issues/568) [Ngx Builder] Fixed, shared Components handle correctly page events and subscribe handlers
+- [#587](https://github.com/convertigo/convertigo/issues/587) [Ngx Builder] Fixed, when starting a project that contains errors, it is displayed into mobile builder view 
+- [#626](https://github.com/convertigo/convertigo/issues/626) [Fullsync] Fixed, GetDocument transaction in JSON output now contains all attachments
+- [#627](https://github.com/convertigo/convertigo/issues/627) [FS/CouhDB Connector] Fixed, PutDocumentAttachment on PouchDB handles space with + for docid
+- [#633](https://github.com/convertigo/convertigo/issues/633) Fixed, the generation of the transaction schema from the xml fix the occurrences of nodes
+- [#636](https://github.com/convertigo/convertigo/issues/636) [FullSync] Fixed, PouchDB mode filter ACL for _changes
+- [#637](https://github.com/convertigo/convertigo/issues/637) [NGX] Fixed, changing Chart type now have effect
+- [#641](https://github.com/convertigo/convertigo/issues/641) [SQL] Fixed, now add error element in case of failure
+- [#642](https://github.com/convertigo/convertigo/issues/642) [NGX] Fixed, NavParams are now updated after a root/push/navigate page
+- [#645](https://github.com/convertigo/convertigo/issues/645) [Studio] Fixed, importing .car from same workspace and already present doesn’t pop error
+- [#650](https://github.com/convertigo/convertigo/issues/650) [NGX] Fixed, added slot=start attribute in menuAutoItems
+- [#651](https://github.com/convertigo/convertigo/issues/651) Fixed, Process exec don’t lock the Thread
+- [#656](https://github.com/convertigo/convertigo/issues/656) Fixed, project schema cache is now cleared on successful project delete / import / deploy / reload
+- [#657](https://github.com/convertigo/convertigo/issues/657) [NGX Builder] Fixed, UIComponent reorder now don’t fail anymore
+- [#658](https://github.com/convertigo/convertigo/issues/658) Fixed, importing Swagger OAS3 API now creates Transactions with the 'Include data type in XML response node' to True
+- [#661](https://github.com/convertigo/convertigo/issues/661) [Rest Web Service Reference] Fixed, added labels for URL authentication account wizard
+
+---
+
 ## 8.0.2
 
 #### Bug Fixes:
