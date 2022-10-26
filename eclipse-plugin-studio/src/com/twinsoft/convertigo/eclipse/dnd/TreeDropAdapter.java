@@ -1124,6 +1124,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					}
 				}
 			}
+			return true;
 		}
 		if (StepSourceTransfer.getInstance().isSupportedType(transferType)) {
 			if (target instanceof TreeObject) {
