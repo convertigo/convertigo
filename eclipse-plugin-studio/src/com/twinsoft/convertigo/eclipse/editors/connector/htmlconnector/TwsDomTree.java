@@ -48,41 +48,41 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class TwsDomTree extends TreeWrapper {
-	
+
 	private	TreeItem selectedTreeItem = null;
 	private Image imageAttrib = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/attrib.png"));
 	private Image imageNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/node.png"));
 	private Image imageText = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/text.png"));
 	private List<MenuMaker> menuMakers = new ArrayList<MenuMaker>();
 	private List<KeyAccelerator> keyAccelerators =  new ArrayList<KeyAccelerator>();
-	
+
 	public interface MenuMaker {
 		void makeMenu(TwsDomTree tree, TreeItem treeItem, MouseEvent e, Menu menu);
 	}
-	
+
 	public interface KeyAccelerator {
 		boolean doAction(TwsDomTree tree, KeyEvent e);
 	}
-	
+
 	public TwsDomTree(Composite parent, int style) {
 		super(parent, style|SWT.VIRTUAL);
 		addMouseListener(new MouseAdapter() {
-			
+
 			@Override
 			public void mouseDown(MouseEvent e) {
 				buildContextMenu(e);
 			}
-			
+
 		});
 		addKeyListener(new KeyListener() {
-			
+
 			public void keyPressed(KeyEvent e) {
 				doKeyAction(e);
 			}
-			
-			public void keyReleased(KeyEvent e) {	
+
+			public void keyReleased(KeyEvent e) {
 			}
-			
+
 		});
 		addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
@@ -121,7 +121,7 @@ public class TwsDomTree extends TreeWrapper {
 		});
 		addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent e) { }
-			
+
 			public void focusLost(FocusEvent e) {
 				if (selectedTreeItem != null) {
 					deselectAll();
@@ -137,7 +137,7 @@ public class TwsDomTree extends TreeWrapper {
 	 */
 	public void fillDomTree(final Document document) {
 		selectedTreeItem = null;
-		
+
 		removeAll();
 		if (document != null) {
 			Tree t = getTree();
@@ -145,11 +145,19 @@ public class TwsDomTree extends TreeWrapper {
 			t.setData(document);
 			t.setData("childs", childs);
 			t.setItemCount(childs.length);
+			TreeItem[] items = t.getItems();
+			while (items.length == 1) {
+				t.showItem(items[0]);
+				items = items[0].getItems();
+			}
+			if (items.length > 0) {
+				t.showItem(items[0]);
+			}
 		}
 	}
-	
+
 	/**
-	 * Adds a node in the visual tree. This method is used by the @see fillDomTree method 
+	 * Adds a node in the visual tree. This method is used by the @see fillDomTree method
 	 *  
 	 * @param parent 	the parent (Can be the tree or a parent TreeItem)
 	 * @param node		the node to be added
@@ -168,10 +176,10 @@ public class TwsDomTree extends TreeWrapper {
 			Node[] childs = XMLUtils.toNodeArray(node.getChildNodes());
 			tItem.setData("childs", childs);
 			tItem.setItemCount(childs.length + dec);
-			
+
 			values[0] = node.getNodeName();
 			values[1] = getTextValue(node);
-			
+
 			tItem.setText(values);
 			tItem.setImage(imageNode);
 			break;
@@ -207,10 +215,10 @@ public class TwsDomTree extends TreeWrapper {
 			break;
 		default: break;
 		}
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Recurses to the first text node and gets its text value
 	 * 
@@ -227,11 +235,11 @@ public class TwsDomTree extends TreeWrapper {
 		}
 		return "";
 	}
-	
+
 	public TreeItem findTreeItem(Node elt) {
 		return findTreeItem(elt, this);
 	}
-	
+
 	public TreeItem findTreeItem(Node elt, Object parent) {
 		Tree tree = getTree();
 		TreeItem treeItem;
@@ -243,7 +251,7 @@ public class TwsDomTree extends TreeWrapper {
 				items = tree.getItems();
 			} else {
 				treeItem = (TreeItem) parent;
-				items = treeItem.getItems(); 
+				items = treeItem.getItems();
 			}
 
 			// scan all items to match the one that have as data our searched node
@@ -266,7 +274,7 @@ public class TwsDomTree extends TreeWrapper {
 			return null;
 		}
 	}
-	
+
 	public void selectTreeItem(TreeItem ti) {
 		if (selectedTreeItem != null) {
 			selectedTreeItem.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
@@ -275,11 +283,11 @@ public class TwsDomTree extends TreeWrapper {
 		selectedTreeItem.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 		//deselectAll();
 	}
-	
+
 	public Node selectElementInTree(Node elt) {
 		return selectElementInTree(elt, this);
 	}
-	
+
 	public Node selectElementInTree(Node elt, Object parent) {
 		Tree tree = getTree();
 		TreeItem treeItem;
@@ -291,7 +299,7 @@ public class TwsDomTree extends TreeWrapper {
 				items = tree.getItems();
 			} else {
 				treeItem = (TreeItem) parent;
-				items = treeItem.getItems(); 
+				items = treeItem.getItems();
 			}
 
 			// scan all items to match the one that have as data our searched node
@@ -319,7 +327,7 @@ public class TwsDomTree extends TreeWrapper {
 		} catch (Exception e) {	}
 		return null;
 	}
-	
+
 	private void buildContextMenu(MouseEvent e) {
 		Point point = new Point(e.x, e.y);
 		TreeItem  treeItem = getTree().getItem(point);
@@ -339,18 +347,18 @@ public class TwsDomTree extends TreeWrapper {
 			menu.dispose();
 		}
 	}
-	
+
 	public void addMenuMaker(MenuMaker menuMaker) {
 		menuMakers.add(menuMaker);
 	}
-	
+
 	public void addKeyAccelerator(KeyAccelerator keyAccelerator) {
 		keyAccelerators.add(keyAccelerator);
 	}
-	
+
 	public Document getDocument() {
 		TreeItem top = (getItemCount() > 0) ? getItem(0) : null;
-		
+
 		if (top != null) {
 			Node obj = getTreeItemData(top);
 			if (obj != null) {
@@ -359,7 +367,7 @@ public class TwsDomTree extends TreeWrapper {
 		}
 		return null;
 	}
-	
+
 	private void doKeyAction(KeyEvent e) {
 		boolean run = true;
 		Iterator<KeyAccelerator> i = keyAccelerators.iterator();
@@ -367,7 +375,7 @@ public class TwsDomTree extends TreeWrapper {
 			run = i.next().doAction(this, e);
 		}
 	}
-	
+
 	private Node getTreeItemData(TreeItem ti) {
 		Node ret = (Node) ti.getData();
 		if (ret == null) {
@@ -380,7 +388,7 @@ public class TwsDomTree extends TreeWrapper {
 	public void collapseAll() {
 		getTopItem().setExpanded(false);
 	}
-	
+
 	public void expandAll(TreeItem treeItem) {
 		TreeItem[] treeItems = treeItem.getItems();
 		treeItem.setExpanded(true);
