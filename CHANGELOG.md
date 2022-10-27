@@ -25,6 +25,7 @@
 - [#646](https://github.com/convertigo/convertigo/issues/646) [Mobile] Handle hard reload of PWA
 - [#649](https://github.com/convertigo/convertigo/issues/649) [Ngx Builder] Upgrade NGX TPL for the 8.1.0 release (Angular 14.2.3, Ionic 6.2.8)
 - [#664](https://github.com/convertigo/convertigo/issues/664) [Admin] Toggle "Go to end" to stop log fetch before the end
+- [#669](https://github.com/convertigo/convertigo/issues/669) [Studio] Auto-expand DOM tree for items having only one child
 
 #### Bug Fixes:
 
@@ -37,13 +38,15 @@
 - [#637](https://github.com/convertigo/convertigo/issues/637) [NGX] Fixed, changing Chart type now have effect
 - [#641](https://github.com/convertigo/convertigo/issues/641) [SQL] Fixed, now add error element in case of failure
 - [#642](https://github.com/convertigo/convertigo/issues/642) [NGX] Fixed, NavParams are now updated after a root/push/navigate page
-- [#645](https://github.com/convertigo/convertigo/issues/645) [Studio] Fixed, importing .car from same workspace and already present doesn’t pop error
+- [#645](https://github.com/convertigo/convertigo/issues/645) [Studio] Fixed, importing .car from same workspace and already present doesn't pop error
 - [#650](https://github.com/convertigo/convertigo/issues/650) [NGX] Fixed, added slot=start attribute in menuAutoItems
-- [#651](https://github.com/convertigo/convertigo/issues/651) Fixed, Process exec don’t lock the Thread
+- [#651](https://github.com/convertigo/convertigo/issues/651) Fixed, Process exec don't lock the Thread
 - [#656](https://github.com/convertigo/convertigo/issues/656) Fixed, project schema cache is now cleared on successful project delete / import / deploy / reload
-- [#657](https://github.com/convertigo/convertigo/issues/657) [NGX Builder] Fixed, UIComponent reorder now don’t fail anymore
+- [#657](https://github.com/convertigo/convertigo/issues/657) [NGX Builder] Fixed, UIComponent reorder now don't fail anymore
 - [#658](https://github.com/convertigo/convertigo/issues/658) Fixed, importing Swagger OAS3 API now creates Transactions with the 'Include data type in XML response node' to True
 - [#661](https://github.com/convertigo/convertigo/issues/661) [Rest Web Service Reference] Fixed, added labels for URL authentication account wizard
+- [#666](https://github.com/convertigo/convertigo/issues/666) Fixed, client-side errors don't contain sensitive information
+- [#668](https://github.com/convertigo/convertigo/issues/668) [SequenceStep] Fixed, Source Picker of a SequenceStep don't show "output false" elements
 
 ---
 
