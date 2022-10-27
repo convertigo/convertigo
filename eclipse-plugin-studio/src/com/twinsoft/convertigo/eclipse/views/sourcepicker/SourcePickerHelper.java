@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.transform.TransformerException;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -57,6 +58,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dnd.StepSource;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
@@ -84,17 +86,17 @@ public class SourcePickerHelper implements IStepSourceEditor {
 	protected String onDisplayXhtml(String xpath) {
 		return xpath;
 	}
-	
+
 	public void displayTargetWsdlDom(final DatabaseObject dbo) {
 		try {
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
 					Display display = Display.getDefault();
-					Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-					
+					Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);
+
 					Shell shell = getParentShell();
 					shell.setCursor(waitCursor);
-					
+
 					boolean needToClean = true;
 					try {
 						if (dbo instanceof Step) {
@@ -102,26 +104,35 @@ public class SourcePickerHelper implements IStepSourceEditor {
 							String xpath = getSourceXPath();
 							String anchor = step.getAnchor();
 							Document stepDoc = null;
-							
+
 							Step targetStep = step;
 							while (targetStep instanceof IteratorStep) {
 								targetStep = getTargetStep(targetStep);
 							}
-							
+
 							if (targetStep != null) {
 								Project project = step.getProject();
 								String projectName = project.getName();
-								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, Option.fullSchema);
-								XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
+								XmlSchemaObject xso;
+								if (targetStep instanceof SequenceStep) {
+									XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName);
+									XmlSchemaCollection col = SchemaMeta.getCollection(schema);
+									xso = targetStep.getXmlSchemaObject(col, schema);
+									SchemaMeta.setSchema(xso, schema);
+								} else {
+									XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, Option.fullSchema);
+									xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
+								}
+
 								if (xso != null) {
-									stepDoc = XmlSchemaUtils.getDomInstance(xso);	
+									stepDoc = XmlSchemaUtils.getDomInstance(xso);
 								} else {
 									System.out.println("Could not retrieve schema for step \""+ targetStep.getName() + "\"!");
 								}
 							} else {
 								System.out.println("Could not retrieve schema : targeted step is null!");
 							}
-							
+
 							if (stepDoc != null/* && !(targetStep instanceof IteratorStep)*/) { // stepDoc can be null for non "xml" step : e.g jIf
 								Document doc = step.getSequence().createDOM();
 								Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
@@ -145,10 +156,10 @@ public class SourcePickerHelper implements IStepSourceEditor {
 							clean();
 						}
 						onDisplayDone();
-						
+
 						shell.setCursor(null);
 						waitCursor.dispose();
-			        }
+					}
 				}
 			});
 		} catch (Exception e) {
@@ -156,26 +167,26 @@ public class SourcePickerHelper implements IStepSourceEditor {
 			clean();
 		}
 	}
-	
+
 	protected void onDisplayDone() {
 		// does nothing
 	}
-	
+
 	private Shell getParentShell() {
 		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
+				.getWorkbench()
+				.getActiveWorkbenchWindow()
+				.getActivePage();
 		if (activePage != null) {
 			return activePage.getActivePart().getSite().getShell();
 		} else {
 			return ConvertigoPlugin.getMainShell();
 		}
 	}
-	
+
 	private void removeUserDefinedNodes(Element parent) {
 		HashSet<Node> toRemove = new HashSet<Node>();
-		
+
 		NodeList list = parent.getChildNodes();
 		for (int i=0; i<list.getLength(); i++) {
 			Node node = list.item(i);
@@ -196,21 +207,21 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		}
 		toRemove.clear();
 	}
-	
+
 	public String getSourceXPath() {
 		return stepSourceDefinition.get(1);
 	}
-	
+
 	protected void clean() {
 		setSourceXPath(".");
 		twsDomTree.removeAll();
 		xpathEvaluator.removeAnchor();
 	}
-	
+
 	private void setSourceXPath(String xpath) {
 		stepSourceDefinition.set(1, xpath);
 	}
-	
+
 	private Step getTargetStep(Step step) throws EngineException {
 		if (step != null && (step instanceof IStepSourceContainer)) {
 			com.twinsoft.convertigo.beans.core.StepSource source = new com.twinsoft.convertigo.beans.core.StepSource(step,((IStepSourceContainer)step).getSourceDefinition());
@@ -222,7 +233,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		}
 		return step;
 	}
-	
+
 	public void displayXhtml(Document dom){
 		try {
 			currentDom = dom;
@@ -232,19 +243,19 @@ public class SourcePickerHelper implements IStepSourceEditor {
 			ConvertigoPlugin.logException(e, "Error while filling DOM tree");
 		}
 	}
-	
+
 	public Document getDom() {
 		return currentDom;
 	}
-	
+
 	public void setStepSourceDefinition(XMLVector<String> stepSourceDefinition) {
 		this.stepSourceDefinition = stepSourceDefinition;
 	}
-	
+
 	public XMLVector<String> getStepSourceDefinition() {
 		return stepSourceDefinition;
 	}
-	
+
 	public void selectItemsInTree(TreeItem[] items) {
 		Tree tree = twsDomTree.getTree();
 		tree.setSelection(items);
@@ -255,7 +266,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		TreeItem[] items = new TreeItem[]{};
 		try {
 			xpath = xpath.replaceAll(regexpForPredicates, "");
-			
+
 			NodeList nl = twsCachedXPathAPI.selectNodeList(currentDom, xpath);
 			if (nl.getLength()>0) {
 				TreeItem tItem = twsDomTree.findTreeItem(nl.item(0));
@@ -271,17 +282,17 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		}
 		return items;
 	}
-	
+
 	public void createXhtmlTree(Composite parent) {
 		GridData gd = new GridData();
 		gd.horizontalAlignment = GridData.FILL;
 		gd.verticalAlignment = GridData.FILL;
 		gd.grabExcessVerticalSpace = true;
 		gd.grabExcessHorizontalSpace = true;
-		
+
 		twsDomTree = new TwsDomTree(parent, SWT.BORDER | SWT.MULTI);
-		twsDomTree.getTree().setLayoutData(gd);	
-		
+		twsDomTree.getTree().setLayoutData(gd);
+
 		// Generates xpath when item is selected with mouse clic
 		twsDomTree.addMouseListener(new MouseAdapter(){
 			public void mouseDown(MouseEvent e){
@@ -295,7 +306,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 				}
 			}
 		});
-		
+
 		twsDomTree.addKeyListener(new KeyAdapter() {
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -309,9 +320,9 @@ public class SourcePickerHelper implements IStepSourceEditor {
 				}
 				catch (Exception ex) {}
 			}
-		});	
+		});
 	}
-	
+
 	public void createXPathEvaluator(StepXpathEvaluatorComposite xpathEvaluatorComposite) {
 		xpathEvaluator = xpathEvaluatorComposite;
 		GridData gd = new GridData();
@@ -320,7 +331,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 		gd.grabExcessVerticalSpace = true;
 		gd.grabExcessHorizontalSpace = true;
 		xpathEvaluator.setLayoutData(gd);
-		
+
 		xpathEvaluator.getXpath().addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				String anchor = xpathEvaluator.getAnchor();
@@ -334,15 +345,15 @@ public class SourcePickerHelper implements IStepSourceEditor {
 			}
 		});
 	}
-	
+
 	public TwsDomTree getTwsDomTree() {
 		return twsDomTree;
 	}
-	
+
 	public StepXpathEvaluatorComposite getXpathEvaluator() {
 		return xpathEvaluator;
 	}
-	
+
 	@Override
 	public Object getDragData() {
 		return new StepSource(getStepSourceDefinition().get(0), getSourceXPath());
