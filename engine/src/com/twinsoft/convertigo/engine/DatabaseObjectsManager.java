@@ -342,10 +342,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				throw new EngineException("Unable to load the project \"" + projectName + "\"", e);
 			} finally {
 				long t1 = Calendar.getInstance().getTime().getTime();
-				Engine.logDatabaseObjectManager.trace("Project loaded in " + (t1 - t0) + " ms");
+				Engine.logDatabaseObjectManager.info("Project loaded in " + (t1 - t0) + " ms");
 			}
 		} else if (!(projectPath = project.getDirFile()).exists()) {
-			Engine.logDatabaseObjectManager.trace("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + projectPath);
+			Engine.logDatabaseObjectManager.warn("Retrieve from cache project \"" + projectName + "\" but removing it because its folder missing: " + projectPath);
 			clearCache(project);
 			project = null;
 		} else {
@@ -1593,6 +1593,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 		
 		try {
+			Engine.logDatabaseObjectManager.info("Renaming project '" + oldName + "' to '" + newName + "' " + (keepOldReferences ? "with" : "without") + " keepOldReferences");
 			clearCache(project);
 			project.setName(newName);
 			project.hasChanged = true;

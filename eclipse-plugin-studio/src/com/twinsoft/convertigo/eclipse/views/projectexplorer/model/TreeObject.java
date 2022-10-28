@@ -163,7 +163,7 @@ public abstract class TreeObject implements IAdaptable {
 	
 	@Override
 	public String toString() {
-		return object.toString();
+		return object != null ? object.toString() : "<null>";
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

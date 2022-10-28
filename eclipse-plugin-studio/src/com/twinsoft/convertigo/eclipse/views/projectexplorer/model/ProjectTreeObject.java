@@ -135,6 +135,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 	
 	public boolean close() {
+		Engine.logStudio.info("Closing ProjectTree: " + this);
+		
 		// close opened editors
 		closeAllEditors();
 		

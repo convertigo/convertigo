@@ -259,6 +259,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					} else if (propertyName.equals("tplProjectName")) {
 						// close app editor and reinitialize builder
 						Project project = ac.getProject();
+						Engine.logStudio.info("tplProjectName property of " + project + " changed, reloading builder...");
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);

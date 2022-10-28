@@ -1850,6 +1850,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 			try {
 				TreeObject treeProject = pew.getProjectRootObject(project.getName());
 				if (treeProject != null && !project.equals(treeProject.getObject())) {
+					Engine.logStudio.warn("Project '" + project.getName() + "' loaded and project in ProjectTree is different: reloading the ProjectTree!");
 					pew.reloadProject(treeProject);
 				}
 			} catch (Exception e) {
