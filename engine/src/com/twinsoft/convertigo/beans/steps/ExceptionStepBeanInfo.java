@@ -45,7 +45,6 @@ public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
 			properties[0].setShortDescription(getExternalizedString("property.details.short_description"));
 			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 			properties[0].setValue(MULTILINE, Boolean.TRUE);
-			properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
 
 			PropertyDescriptor property = getPropertyDescriptor("expression");
 			property.setDisplayName(getExternalizedString("property.message.display_name"));
