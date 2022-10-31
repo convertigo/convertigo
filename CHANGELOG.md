@@ -47,6 +47,8 @@
 - [#661](https://github.com/convertigo/convertigo/issues/661) [Rest Web Service Reference] Fixed, added labels for URL authentication account wizard
 - [#666](https://github.com/convertigo/convertigo/issues/666) Fixed, client-side errors don't contain sensitive information
 - [#668](https://github.com/convertigo/convertigo/issues/668) [SequenceStep] Fixed, Source Picker of a SequenceStep don't show "output false" elements
+- [#670](https://github.com/convertigo/convertigo/issues/670) [Admin] Fixed, speed up logviewer init
+- [#671](https://github.com/convertigo/convertigo/issues/671) [Studio] Fixed, Engine Preferences: speed up mouse wheel scroll and fix the scroll height
 
 ---
 
