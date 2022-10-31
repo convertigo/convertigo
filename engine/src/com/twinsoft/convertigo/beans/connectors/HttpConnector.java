@@ -839,11 +839,11 @@ public class HttpConnector extends Connector {
 	public byte[] getData(Context context, String sUrl) throws IOException, EngineException {
 		HttpMethod method = null;
 
-		try {
-			// Fire event for plugins
-			long t0 = System.currentTimeMillis();
-			Engine.theApp.pluginsManager.fireHttpConnectorGetDataStart(context);
+		// Fire event for plugins
+		long t0 = System.currentTimeMillis();
+		Engine.theApp.pluginsManager.fireHttpConnectorGetDataStart(context, t0);
 
+		try {
 			Engine.logBeans.trace("(HttpConnector) Retrieving data as a bytes array...");
 			Engine.logBeans.debug("(HttpConnector) Connecting to: " + sUrl);
 
@@ -1130,11 +1130,6 @@ public class HttpConnector extends Connector {
 			Engine.logBeans.debug("(HttpConnector) Total read bytes: "
 					+ ((result != null) ? result.length : 0));
 
-
-			// Fire event for plugins
-			long t1 = System.currentTimeMillis();
-			Engine.theApp.pluginsManager.fireHttpConnectorGetDataEnd(context, t0, t1);
-			
 			StringBuilder sb = new StringBuilder();
 			sb.append("HTTP result {ContentType: " + context.contentType + ", Length: " + (result != null ? result.length : 0) + "}\n\n");
 			
@@ -1149,6 +1144,10 @@ public class HttpConnector extends Connector {
 
 			return result;
 		} finally {
+			// Fire event for plugins
+			long t1 = System.currentTimeMillis();
+			Engine.theApp.pluginsManager.fireHttpConnectorGetDataEnd(context, t0, t1);
+			
 			if (method != null)
 				method.releaseConnection();
 		}

@@ -93,14 +93,15 @@ public class PluginsManager {
 		return properties.getProperty(key, defaultValue);
 	}
     
-    public synchronized void fireHttpConnectorGetDataStart(Context context) {
+    public synchronized void fireHttpConnectorGetDataStart(Context context, Long t0) {
     	for (Plugin plugin : plugins.values()) {
     		try {
-    			plugin.httpConnectorGetDataStart(context);
+    			plugin.httpConnectorGetDataStart(context, t0);
 	    	}
 	    	catch (Exception e) {}
 		 }
     }
+    
     public synchronized void fireHttpConnectorGetDataEnd(Context context, Long t0, Long t1) {
   		 for (Plugin plugin : plugins.values()) {
   			 try {
@@ -141,5 +142,14 @@ public class PluginsManager {
     		}
     		catch (Exception e) {}
 		}
+    }
+
+    public synchronized void fireRequestableTimeoutException(Context context, Long t1) {
+    	for (Plugin plugin : plugins.values()) {
+    		try {
+    			plugin.requestableTimeoutException(context, t1);
+	    	}
+	    	catch (Exception e) {}
+		 }
     }
 }
