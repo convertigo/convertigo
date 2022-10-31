@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.logmanager;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -48,7 +49,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 
 
-public class LogManager {
+public class LogManager implements Closeable {
 	public static final Date date_first = new Date(0);
 	public static final Date date_last = new Date(Long.MAX_VALUE);
 	public static final DateFormat date_format = new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss,SSS ");
