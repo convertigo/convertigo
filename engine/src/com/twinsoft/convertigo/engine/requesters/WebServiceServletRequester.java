@@ -32,6 +32,7 @@ import javax.xml.soap.SOAPPart;
 
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
@@ -183,6 +184,7 @@ public class WebServiceServletRequester extends ServletRequester {
 
 	@Override
 	public Object postGetDocument(Document document) throws Exception {
+		ConvertigoError.cleanDocument(context.getXpathApi(), document);
 		return document;
 	}
 	

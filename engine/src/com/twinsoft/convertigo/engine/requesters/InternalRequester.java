@@ -73,6 +73,10 @@ public class InternalRequester extends GenericRequester {
         return "InternalRequester";
     }
     
+    public boolean isInternal() {
+    	return true;
+    }
+    
     protected void initInternalVariables() throws EngineException {
 		Map<String, Object> request = GenericUtils.cast(inputData);
 

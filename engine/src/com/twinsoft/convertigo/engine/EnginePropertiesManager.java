@@ -340,9 +340,25 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500 ("throw_http_500", "false", "Throw HTTP 500 in case of unrecoverable servlet error", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide detailed information in case of unrecoverable servlet error", PropertyCategory.Main),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide all error informations", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_REQUESTABLE_INFORMATION ("show_error_requestable_information", "true", "Show error requestable informations", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_CONTEXT_INFORMATION ("show_error_context_information", "false", "Show error context informations", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_TYPE ("show_error_type", "true", "Show error type", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_CODE ("show_error_code", "true", "Show error code", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_MESSAGE ("show_error_message", "true", "Show error message", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_DETAIL ("show_error_detail", "true", "Show error detail", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_EXCEPTION ("show_error_exception", "false", "Show error exception", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_STACKTRACE ("show_error_stacktrace", "false", "Show error stacktrace", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)

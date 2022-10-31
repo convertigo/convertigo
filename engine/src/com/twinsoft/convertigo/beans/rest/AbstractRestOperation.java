@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataContent;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.DataType;
 import com.twinsoft.convertigo.beans.core.UrlMappingParameter.Type;
 import com.twinsoft.convertigo.beans.core.UrlMappingResponse;
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -387,7 +388,8 @@ public abstract class AbstractRestOperation extends UrlMappingOperation {
     		String encoding = "UTF-8";
     		if (result != null) {
         		Document xmlHttpDocument = (Document) result;
-        		
+    			ConvertigoError.cleanDocument(internalRequester.context.getXpathApi(), xmlHttpDocument);
+    			
 				// Extract the encoding Char Set from PI
     			Node firstChild = xmlHttpDocument.getFirstChild();
     			if ((firstChild.getNodeType() == Document.PROCESSING_INSTRUCTION_NODE)
