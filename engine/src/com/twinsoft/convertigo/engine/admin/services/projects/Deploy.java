@@ -92,9 +92,9 @@ public class Deploy extends UploadService {
 
 		String projectName = projectArchive.substring(0, projectArchive.indexOf(".car"));
 
-		Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true,
-				bAssembleXsl);
-
+		Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true, bAssembleXsl);
+		Engine.theApp.schemaManager.clearCache(projectName);
+		
 		if (Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(PropertyName.NOTIFICATIONS_NOTIFY_PROJECT_DEPLOYMENT))) {
 
