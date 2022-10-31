@@ -12,6 +12,7 @@ META-INF
 /*/build
 /*/lib
 /*/target
+/*/bnpp
 
 **/.gradle
 /build

@@ -112,3 +112,114 @@ project(':engine').afterEvaluate {
 		inputs.property('engine-dependency', '' + project(':engine').configurations.runtime.getAllDependencies())
 	}
 }
+
+task bnppClasses(type: Copy) {
+	def classesDir = file('bnpp/dist/classes')
+    from('bin/main') {
+    	exclude 'com/twinsoft/convertigo/**/*BeanInfo.class'
+    	
+    	//beans
+    	include 'com/twinsoft/convertigo/beans/connectors/HttpConnector*.class'
+    	include 'com/twinsoft/convertigo/beans/connectors/SqlConnector*.class'
+    	
+    	include 'com/twinsoft/convertigo/beans/core/RequestableObject*.class'
+    	include 'com/twinsoft/convertigo/beans/core/Step.class'
+    	
+    	include 'com/twinsoft/convertigo/beans/mobile/components/RouteDataActionComponent*.class'
+    	include 'com/twinsoft/convertigo/beans/mobile/components/dynamic/ion_objects.json'
+    	
+    	include 'com/twinsoft/convertigo/beans/rest/AbstractRestOperation*.class'
+    	include 'com/twinsoft/convertigo/beans/rest/BasicAuthentication*.class'
+    	
+    	include 'com/twinsoft/convertigo/beans/steps/GetRequestHeaderStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/LDAPAuthenticationStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/PdfFormStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/SessionSetObjectStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/SessionSetStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/SetAuthenticatedUserStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/SetResponseHeaderStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/SetResponseStatusStep*.class'
+    	include 'com/twinsoft/convertigo/beans/steps/XMLErrorStep*.class'
+    	
+    	include 'com/twinsoft/convertigo/beans/transactions/HttpTransaction*.class'
+    	
+    	// eclipse
+    	include 'com/twinsoft/convertigo/eclipse/editors/mobile/ApplicationComponentEditor*.class'
+    	include 'com/twinsoft/convertigo/eclipse/editors/property_editors/ModelObjectEditorComposite*.class'
+    	
+    	// engine
+   		include 'com/twinsoft/convertigo/engine/ConvertigoError*.class'
+   		include 'com/twinsoft/convertigo/engine/EnginePropertiesManager*.class'
+   		include 'com/twinsoft/convertigo/engine/JdbcConnectionManager*.class'
+    	include 'com/twinsoft/convertigo/engine/Plugin*.class'
+    	include 'com/twinsoft/convertigo/engine/PluginsManager*.class'
+     	include 'com/twinsoft/convertigo/engine/SchemaManager*.class'
+    	
+    	include 'com/twinsoft/convertigo/engine/admin/services/projects/Delete*.class'
+    	include 'com/twinsoft/convertigo/engine/admin/services/projects/Deploy*.class'
+    	include 'com/twinsoft/convertigo/engine/admin/services/projects/Reload*.class'
+    	
+    	include 'com/twinsoft/convertigo/engine/requesters/GenericRequester*.class'
+    	include 'com/twinsoft/convertigo/engine/requesters/InternalRequester*.class'
+    	include 'com/twinsoft/convertigo/engine/requesters/JsonServletRequester*.class'
+    	include 'com/twinsoft/convertigo/engine/requesters/WebServiceServletRequester*.class'
+    	
+    	include 'com/twinsoft/convertigo/engine/servlets/RestApiServlet*.class'
+    	
+        include 'com/twinsoft/convertigo/engine/plugins/BnppPlugin*.class'
+        include 'com/twinsoft/convertigo/engine/plugins/FrontalInpiBiller*.class'
+        include 'com/twinsoft/convertigo/engine/plugins/FrontalInseeBiller*.class'
+        include 'com/twinsoft/convertigo/engine/plugins/PortalUtils*.class'
+        
+        include 'com/twinsoft/convertigo/engine/util/JsonSchemaUtils*.class'
+        include 'com/twinsoft/convertigo/engine/util/OpenApiUtils*.class'
+        include 'com/twinsoft/convertigo/engine/util/XMLUtils*.class'
+        include 'com/twinsoft/convertigo/engine/util/XSDExtractor*.class'
+    }
+    into(classesDir)
+    
+    // uncomment to preserve file lastModified
+    /*def copyDetails = []
+    eachFile { copyDetails << it }
+    doLast {
+    	copyDetails.each { FileCopyDetails details ->
+        	def target = new File(destinationDir, details.path)
+            if (target.exists()) { target.setLastModified(details.lastModified) }
+        }
+    }*/
+}
+
+task bnppStudioPatch(type: Zip, dependsOn: ['bnppClasses']) {
+	archiveFileName = "patchStudio.zip"
+	destinationDir = file('bnpp/dist/patch')
+	preserveFileTimestamps = true
+    from('bnpp/dist/classes')
+}
+
+task bnppServerPatch(type: Zip, dependsOn: ['bnppClasses']) {
+	archiveFileName = "patchServer.zip"
+	destinationDir = file('bnpp/dist/patch')
+	preserveFileTimestamps = true
+    from('bnpp/dist/classes') {
+    	exclude 'com/twinsoft/convertigo/eclipse'
+    }
+}
+
+task generateBnppPatches(dependsOn: ['bnppStudioPatch','bnppServerPatch']) {
+	group 'bnpp'
+	
+	doLast {
+		def classesDir = file('bnpp/dist/classes')
+		delete classesDir
+		
+		def d = new Date().format('yyyyMMdd')
+		
+		def studioZip = file('bnpp/dist/patch/patchStudio_'+d+'.zip')
+		delete studioZip
+		file('bnpp/dist/patch/patchStudio.zip').renameTo(studioZip)
+		
+		def serverZip = file('bnpp/dist/patch/patchServer_'+d+'.zip')
+		delete serverZip
+		file('bnpp/dist/patch/patchServer.zip').renameTo(serverZip)
+	}
+}
