@@ -328,7 +328,7 @@ public class ProcessUtils {
 			File dir = getLocalNodeDir(version);
 			Engine.logEngine.info("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
 			if (dir.exists()) {
-				if (!Engine.isWindows()) {
+				if (!Engine.isWindows() && !dir.getName().equals("bin")) {
 					dir = new File(dir, "bin");
 				}
 				return dir;
