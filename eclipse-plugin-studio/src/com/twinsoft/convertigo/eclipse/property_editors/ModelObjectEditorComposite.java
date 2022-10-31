@@ -39,7 +39,8 @@ import com.twinsoft.convertigo.beans.core.UrlMapper;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.servlets.RestApiServlet;
 import com.twinsoft.convertigo.engine.util.FileUtils;
-import com.twinsoft.convertigo.engine.util.SwaggerUtils;
+import com.twinsoft.convertigo.engine.util.OpenApiUtils;
+//import com.twinsoft.convertigo.engine.util.SwaggerUtils;
 
 public class ModelObjectEditorComposite extends AbstractDialogComposite {
 	protected List list = null;
@@ -90,7 +91,8 @@ public class ModelObjectEditorComposite extends AbstractDialogComposite {
 				
 				try {
 					String projectName = project.getName();
-					File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + SwaggerUtils.jsonSchemaDirectory);
+					//File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + SwaggerUtils.jsonSchemaDirectory);
+					File targetDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + OpenApiUtils.jsonSchemaDirectory);
 					RestApiServlet.buildSwaggerDefinition(projectName, false);
 					
 					Collection<File> jsonschemas = FileUtils.listFiles(targetDir, new String[] { "jsonschema" }, false);
