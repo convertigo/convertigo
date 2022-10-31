@@ -6286,7 +6286,7 @@
           "TreeviewComponent"
         ],
         "package_dependencies": [
-            {"package":"angular-tree-component", "version":"7.0.0"}
+            {"package":"angular-tree-component", "version":"7.0.2"}
         ]
       }	        
     },
