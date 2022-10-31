@@ -534,6 +534,22 @@ public class XMLUtils {
 		return null;
 	}
 
+	public static int countOccurrences(Element element) {
+		int cpt = 0;
+		try {
+			Node node = ((Element) element.getParentNode()).getFirstChild();
+			while (node != null) {
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					if (element.getNodeName().equals(node.getNodeName())) {
+						cpt++;
+					}
+				}
+				node = node.getNextSibling();
+			}
+		} catch (Exception e) {}
+		return cpt;
+	}
+	
 	public static Node findChildNode(Node parentNode, int type) {
 		Node foundNode = null;
 		NodeList nl = parentNode.getChildNodes();
