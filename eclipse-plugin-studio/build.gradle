@@ -153,6 +153,7 @@ task bnppClasses(type: Copy) {
    		include 'com/twinsoft/convertigo/engine/JdbcConnectionManager*.class'
     	include 'com/twinsoft/convertigo/engine/Plugin*.class'
     	include 'com/twinsoft/convertigo/engine/PluginsManager*.class'
+    	include 'com/twinsoft/convertigo/engine/ProductVersion*.class'
      	include 'com/twinsoft/convertigo/engine/SchemaManager*.class'
     	
     	include 'com/twinsoft/convertigo/engine/admin/services/projects/Delete*.class'
@@ -221,5 +222,8 @@ task generateBnppPatches(dependsOn: ['bnppStudioPatch','bnppServerPatch']) {
 		def serverZip = file('bnpp/dist/patch/patchServer_'+d+'.zip')
 		delete serverZip
 		file('bnpp/dist/patch/patchServer.zip').renameTo(serverZip)
+	
+		println "VERIFIER si com.twinsoft.convertigo.engine.ProductVersion.tag est bien positionné à patch-" + d + " !!"
+		println "Si ce n'est pas le cas, modifier le à la date du jour et relancer la tâche !"
 	}
 }
