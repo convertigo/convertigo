@@ -1620,6 +1620,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				try {
 					node = null;
 					long priority = Long.parseLong(mPriority.group(1));
+					Set<DatabaseObject> alreadyWalked =  new HashSet<DatabaseObject>();
+					
 					new WalkHelper() {
 
 						@Override
@@ -1647,7 +1649,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							if (databaseObject.priority == priority) {
 								throw new DatabaseObjectFoundException(databaseObject);
 							}
-							super.walk(databaseObject);
+							if(!alreadyWalked.contains(databaseObject)) {
+								alreadyWalked.add(databaseObject);
+								super.walk(databaseObject);
+							}
+							
 						}
 						
 					}.init(applicationEditorInput.application);
