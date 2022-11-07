@@ -116,6 +116,10 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 	 * Add the pages to the wizard according to the templateID
 	 */
 	public void addPages() {
+		if (!Engine.isStarted) {
+			addPage(new NoEngineWizardPage(selection));
+			return;
+		}
 		if (doPageSummarySampleProject) {
 			pageSummarySampleProject = new NewProjectWizardPageSummarySampleProject(selection);
 			addPage(pageSummarySampleProject);
@@ -219,6 +223,10 @@ public class NewProjectWizard extends Wizard implements INewWizard, IExecutableE
 	 * variable
 	 */
 	private void doFinish(IProgressMonitor monitor) throws CoreException {
+		if (!Engine.isStarted) {
+			ConvertigoPlugin.asyncExec(() -> ConvertigoPlugin.getDefault().runSetup());
+			return;
+		}
 		try {
 			Project project = null;
 			if (page10 != null) {

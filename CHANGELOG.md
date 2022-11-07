@@ -51,6 +51,7 @@
 - [#671](https://github.com/convertigo/convertigo/issues/671) [Studio] Fixed, Engine Preferences: speed up mouse wheel scroll and fix the scroll height
 - [#672](https://github.com/convertigo/convertigo/issues/672) [Node] Fixed, use the right node bin folder for MacOS and Linux
 - [#674](https://github.com/convertigo/convertigo/issues/674) [Studio] Fixed, hightlight elements supported for recursive shared components
+- [#675](https://github.com/convertigo/convertigo/issues/675) [Studio] Fixed, project creation invite to perform the registration wizard
 
 ---
 
