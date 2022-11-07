@@ -45,6 +45,7 @@
 - [#657](https://github.com/convertigo/convertigo/issues/657) [NGX Builder] Fixed, UIComponent reorder now don't fail anymore
 - [#658](https://github.com/convertigo/convertigo/issues/658) Fixed, importing Swagger OAS3 API now creates Transactions with the 'Include data type in XML response node' to True
 - [#661](https://github.com/convertigo/convertigo/issues/661) [Rest Web Service Reference] Fixed, added labels for URL authentication account wizard
+- [#662](https://github.com/convertigo/convertigo/issues/662) [FullSync] Fixed, PouchDB now can start if another Studio is already open
 - [#666](https://github.com/convertigo/convertigo/issues/666) Fixed, client-side errors don't contain sensitive information
 - [#668](https://github.com/convertigo/convertigo/issues/668) [SequenceStep] Fixed, Source Picker of a SequenceStep don't show "output false" elements
 - [#670](https://github.com/convertigo/convertigo/issues/670) [Admin] Fixed, speed up logviewer init
