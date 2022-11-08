@@ -47,7 +47,7 @@ public class NoEngineWizardPage extends WizardPage {
 				+ "Convertigo Studio isn't completely installed,\n"
 				+ "you have to complete the registration before\n"
 				+ "starting building your projects.\n\n"
-				+ "Please 'Finish' to register.");
+				+ "Please, click 'Finish' to register.");
 		setErrorMessage("Press finish to start the registration wizard");
 		setPageComplete(true);
 		setControl(noEngine);
