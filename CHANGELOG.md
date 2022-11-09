@@ -53,6 +53,7 @@
 - [#672](https://github.com/convertigo/convertigo/issues/672) [Node] Fixed, use the right node bin folder for MacOS and Linux
 - [#674](https://github.com/convertigo/convertigo/issues/674) [Studio] Fixed, hightlight elements supported for recursive shared components
 - [#675](https://github.com/convertigo/convertigo/issues/675) [Studio] Fixed, project creation invite to perform the registration wizard
+- [#676](https://github.com/convertigo/convertigo/issues/676) [Step] Fixed, JsonSource handles a single string element
 
 ---
 
