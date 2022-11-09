@@ -313,12 +313,18 @@ public class LogManager implements Closeable {
 	}
 	
 	private void renew() throws IOException {
+		if (br != null) {
+			br.close();
+		}
 		if (is != null) {
 			is.close();
 		}
-		is = new TemporalInputStream(new File(Engine.LOG_PATH), Engine.LOG_ENGINE_NAME, date_format, date_format_offset, date_start, date_end, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING));
-		reset();
 		need_renew = false;
+		is = new TemporalInputStream(new File(Engine.LOG_PATH), Engine.LOG_ENGINE_NAME, date_format, date_format_offset, date_start, date_end, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING));
+		br = new BufferedReader(new InputStreamReader(is, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING)));
+		has_more_results = true;
+		candidate = null;
+		line = null;
 	}
 	
 	private void reset() throws IOException {

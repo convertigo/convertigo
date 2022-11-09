@@ -31,13 +31,12 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
 public class FileReloadInputStream extends InputStream {
-	
+
 	Path path;
 	InputStream is;
 	WatchService ws;
-	WatchKey wk;
 	boolean close = false;
-	
+
 	public FileReloadInputStream(File file) throws IOException {
 		path = file.toPath();
 		is = Files.newInputStream(path, StandardOpenOption.READ);
@@ -46,23 +45,21 @@ public class FileReloadInputStream extends InputStream {
 			try {
 				Path ppath = path.getParent();
 				ws = ppath.getFileSystem().newWatchService();
-				this.wk = ppath.register(ws, StandardWatchEventKinds.ENTRY_CREATE);
+				WatchKey wk = ppath.register(ws, StandardWatchEventKinds.ENTRY_CREATE);
 				while (!close) {
-					WatchKey wk = null;
-					if (!close) {
-						wk = ws.take();
+					wk = ws.take();
+					if (close) {
+						break;
 					}
 					for (final WatchEvent<?> event: wk.pollEvents()) {
 						Path ctx = (Path) event.context();
-						
-						if (path.endsWith(ctx)) {
+						if (!close && path.endsWith(ctx)) {
 							synchronized (path) {
 								is.close();
 								is = Files.newInputStream(path, StandardOpenOption.READ);
 							}
 						}
 					}
-					
 					if (!wk.reset() || close) {
 						wk.cancel();
 						ws.close();
@@ -70,6 +67,13 @@ public class FileReloadInputStream extends InputStream {
 					}
 				}
 			} catch (Exception e) {
+			} finally {
+				if (ws != null) {
+					try {
+						ws.close();
+					} catch (IOException e) {
+					}
+				}
 			}
 		});
 		th.setName("FileReloadInputStream:" + file.getName());
@@ -120,10 +124,6 @@ public class FileReloadInputStream extends InputStream {
 				ws.close();
 			} catch (Exception e) {
 			}
-			try {
-				wk.cancel();
-			} catch (Exception e) {
-			}
 			is.close();
 		}
 	}
@@ -147,5 +147,5 @@ public class FileReloadInputStream extends InputStream {
 		synchronized (path) {
 			return is.markSupported();
 		}
-	}	
+	}
 }

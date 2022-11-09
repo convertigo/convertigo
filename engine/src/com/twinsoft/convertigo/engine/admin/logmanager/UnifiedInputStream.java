@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.engine.admin.logmanager;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,32 +32,34 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileReloadInputStream;
 
 public class UnifiedInputStream extends InputStream {
+	private File basefile;
 	private List<File> files;
 	private InputStream current_file;
 	private long pre_size = 0;
 	private long current_position;
 	private Iterator<File> chain;
-	
-	public UnifiedInputStream(List<File> files) throws IOException {
+
+	public UnifiedInputStream(List<File> files, File basefile) throws IOException {
 		this.files = new ArrayList<File>(files);
+		this.basefile = basefile;
 		if (this.files.size() == 0) {
 			throw new FileNotFoundException("File needed");
 		}
-		for (int i = 0;i < this.files.size()-1;i++) {
+		for (int i = 0; i < this.files.size() - 1; i++) {
 			pre_size += this.files.get(i).length();
 		}
-		reset();		
+		reset();
 	}
 
 	public long getPointer() {
 		return current_position;
 	}
-	
+
 	@Override
 	public int read() throws IOException {
 		int i = current_file.read();
 		if (i == -1) {
-			if (nextFile()) { 
+			if (nextFile()) {
 				i = read();
 			}
 		} else {
@@ -113,7 +116,7 @@ public class UnifiedInputStream extends InputStream {
 			off += n;
 			len -= n;
 			if (len > 0 && nextFile()) {
-				return n + read(b, off, len); 
+				return n + read(b, off, len);
 			}
 		}
 		return n;
@@ -123,7 +126,7 @@ public class UnifiedInputStream extends InputStream {
 	public long skip(long n) throws IOException {
 		n = current_file.skip(n);
 		current_position += n;
-		
+
 		int available = current_file.available();
 		if (available < 0 && nextFile()) {
 			current_position += available;
@@ -131,25 +134,29 @@ public class UnifiedInputStream extends InputStream {
 		}
 		return n;
 	}
-	
+
 	@Override
 	public synchronized void reset() throws IOException {
 		current_position = 0;
-		if (current_file != null) current_file.close();
+		if (current_file != null) {
+			current_file.close();
+		}
 		chain = this.files.iterator();
-		current_file = new FileReloadInputStream(chain.next());
+		File next = chain.next();
+		current_file = next.equals(basefile) ? new FileReloadInputStream(next) : new FileInputStream(next);
 	}
 
 	private boolean nextFile() throws IOException {
 		if (chain.hasNext() && current_file != null) {
 			current_file.close();
-			current_file = new FileReloadInputStream(chain.next());
+			File next = chain.next();
+			current_file = next.equals(basefile) ? new FileReloadInputStream(next) : new FileInputStream(next);
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
+
 	private File getLastFile() {
 		return files.get(files.size() - 1);
 	}
