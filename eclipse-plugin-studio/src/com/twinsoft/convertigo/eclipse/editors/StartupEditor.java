@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.engine.util.URLUtils;
 public class StartupEditor extends EditorPart {
 
 	public static final String ID = "com.twinsoft.convertigo.eclipse.editors.StartupEditor";
-	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-7-9/";
+	private static final String STARTUP_URL = "https://www.convertigo.com/convertigo-startup-page-8-1/";
 
 	C8oBrowser browser = null;
 	
