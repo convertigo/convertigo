@@ -895,6 +895,9 @@ public class NgxPickerComposite extends Composite {
 					File page = new File(project.getDirFile(), "_private/ionic/node_modules/ionicons/dist/cheatsheet.html");
 					if (page.exists()) {
 						browser.setUrl(page.getAbsoluteFile().toURI().toString());
+					} else {
+						browser.setText("<html><body><h1 style=\"text-align: center\">Application must be built once<br/>"
+								+ "to initialize icons preview</h1></body></html>");
 					}
 				}
 			});
