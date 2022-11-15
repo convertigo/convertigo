@@ -62,6 +62,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -266,6 +267,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup, Stud
 		preferenceStore.setValue(key, value);
 	}
 
+	static {
+		TrayDialog.setDialogHelpAvailable(false);
+	}
+	
 	//The shared instance.
 	private static ConvertigoPlugin plugin;
 

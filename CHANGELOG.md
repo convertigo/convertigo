@@ -26,6 +26,7 @@
 - [#649](https://github.com/convertigo/convertigo/issues/649) [Ngx Builder] Upgrade NGX TPL for the 8.1.0 release (Angular 14.2.3, Ionic 6.2.8)
 - [#664](https://github.com/convertigo/convertigo/issues/664) [Admin] Toggle "Go to end" to stop log fetch before the end
 - [#669](https://github.com/convertigo/convertigo/issues/669) [Studio] Auto-expand DOM tree for items having only one child
+- [#679](https://github.com/convertigo/convertigo/issues/679) [Studio] Remove unwanted Help buttons in new object wizards
 
 #### Bug Fixes:
 

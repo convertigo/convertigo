@@ -54,21 +54,21 @@ public class XMLTableWizardPage extends WizardPage {
 	private Button pushRowUp = null;
 	private Button pushColDown = null;
 	private Button pushColUp = null;
-	
+
 	private Text headerRow = null;
 	private Text headerCol = null;
-	
+
 	private String xpath = null;
 	private Document dom = null;
 	private XMLVector<XMLVector<Object>> xDescription = null;
 	private Vector<Vector<String>> data = null;
 	private int numColumns = 2;
-	
+
 	public XMLTableWizardPage(String xpath, Document dom) {
 		super("XMLTableWizardPage");
 		setTitle("New Table");
 		setMessage("Please configure rows and lines");
-		
+
 		this.xpath = xpath;
 		this.dom = dom;
 	}
@@ -79,40 +79,35 @@ public class XMLTableWizardPage extends WizardPage {
 		container.setLayout(layout);
 		layout.numColumns = numColumns;
 		layout.verticalSpacing = 10;
-		
+
 		createXPath(container);
 		createInfos(container);
 		createTable(container);
 		//createKTable(container);
-		
+
 		fillXMLTableDescription();
-		
+
 		setControl(container);
 	}
-	
-	@Override
-	public void performHelp() {
-		getPreviousPage().performHelp();
-	}
-	
+
 	private void createXPath(Composite parent) {
-        GridData gridData = new GridData();
-        gridData.horizontalSpan = numColumns;
-        gridData.horizontalAlignment = GridData.FILL;
-		
+		GridData gridData = new GridData();
+		gridData.horizontalSpan = numColumns;
+		gridData.horizontalAlignment = GridData.FILL;
+
 		Label label = new Label(parent, SWT.NULL);
 		label.setLayoutData(gridData);
 		label.setText("&XPath : " + xpath);
 	}
-	
+
 	private void createInfos(Composite parent) {
 		GridLayout headerRowLayout = new GridLayout();
 		headerRowLayout.numColumns = 4;
-		
+
 		Group headerRowGroup = new Group(parent, SWT.NONE);
 		headerRowGroup.setLayout(headerRowLayout);
 		headerRowGroup.setText("Headers");
-        headerRowGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		headerRowGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		checkBoxHeadersFromRow = new Button(headerRowGroup, SWT.CHECK);
 		checkBoxHeadersFromRow.setText("Headers at row");
 		checkBoxHeadersFromRow.setSelection(true);
@@ -123,12 +118,12 @@ public class XMLTableWizardPage extends WizardPage {
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 		});
-		
-		headerRow = new Text(headerRowGroup, SWT.NULL);
-        headerRow.setText("0");
-        headerRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-        pushRowDown = new Button(headerRowGroup, SWT.PUSH);
+		headerRow = new Text(headerRowGroup, SWT.NULL);
+		headerRow.setText("0");
+		headerRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+		pushRowDown = new Button(headerRowGroup, SWT.PUSH);
 		pushRowDown.setText("+");
 		pushRowDown.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -137,7 +132,7 @@ public class XMLTableWizardPage extends WizardPage {
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 		});
-		
+
 		pushRowUp = new Button(headerRowGroup, SWT.PUSH);
 		pushRowUp.setText("-");
 		pushRowUp.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
@@ -148,14 +143,14 @@ public class XMLTableWizardPage extends WizardPage {
 			}
 		});
 
-		
+
 		GridLayout headerColLayout = new GridLayout();
 		headerColLayout.numColumns = 4;
-		
+
 		Group headerColGroup = new Group(parent, SWT.NONE);
 		headerColGroup.setLayout(headerColLayout);
 		headerColGroup.setText("Headers");
-		
+
 		headerColGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		checkBoxHeadersFromCol = new Button(headerColGroup, SWT.CHECK);
 		checkBoxHeadersFromCol.setText("Headers at col");
@@ -167,12 +162,12 @@ public class XMLTableWizardPage extends WizardPage {
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 		});
-		
+
 		headerCol = new Text(headerColGroup, SWT.NULL);
 		headerCol.setText("0");
 		headerCol.setEnabled(false);
 		headerCol.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		
+
 		pushColDown = new Button(headerColGroup, SWT.PUSH);
 		pushColDown.setText("+");
 		pushColDown.setEnabled(false);
@@ -183,7 +178,7 @@ public class XMLTableWizardPage extends WizardPage {
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 		});
-		
+
 		pushColUp = new Button(headerColGroup, SWT.PUSH);
 		pushColUp.setText("-");
 		pushColUp.setEnabled(false);
@@ -195,7 +190,7 @@ public class XMLTableWizardPage extends WizardPage {
 			}
 		});
 	}
-	
+
 	private void checkBoxFirstRowSelected() {
 		headerRow.setText(checkBoxHeadersFromRow.getSelection() ? headerRow.getText():"0");
 		headerRow.setEnabled(checkBoxHeadersFromRow.getSelection());
@@ -204,7 +199,7 @@ public class XMLTableWizardPage extends WizardPage {
 		fillXMLTableDescription();
 		setPageComplete(true);
 	}
-	
+
 	private void checkBoxFirstColSelected() {
 		headerCol.setText(checkBoxHeadersFromCol.getSelection() ? headerCol.getText():"0");
 		headerCol.setEnabled(checkBoxHeadersFromCol.getSelection());
@@ -213,7 +208,7 @@ public class XMLTableWizardPage extends WizardPage {
 		fillXMLTableDescription();
 		setPageComplete(true);
 	}
-	
+
 	private void pushRowSelected(boolean bIncrease) {
 		int number = Integer.parseInt(headerRow.getText().trim(), 10);
 		number = (bIncrease ? ++number : ((number>0) ? --number : 0));
@@ -221,7 +216,7 @@ public class XMLTableWizardPage extends WizardPage {
 		fillXMLTableDescription();
 		setPageComplete(true);
 	}
-	
+
 	private void pushColSelected(boolean bIncrease) {
 		int number = Integer.parseInt(headerCol.getText().trim(), 10);
 		number = (bIncrease ? ++number : ((number>0) ? --number : 0));
@@ -242,31 +237,31 @@ public class XMLTableWizardPage extends WizardPage {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
 	}
-	
+
 	private void fillXMLTableDescription() {
-		
+
 		NodeList tables;
 		try {
 			String theXPath = (xpath.indexOf("//TABLE") != -1) ? xpath: ( xpath.startsWith("/") ? xpath : "/"+xpath);
 			tables = XPathAPI.eval(dom.getDocumentElement(), theXPath).nodelist();
 			if (tables.getLength() > 0) {
-				
+
 				//------------------------------------------------------------- For Bean XMLTable
 				xDescription = new XMLVector<XMLVector<Object>>();
-				
+
 				Element table = (Element)tables.item(0);
-				
+
 				int iHeaderRow = Integer.parseInt(headerRow.getText().trim(), 10);
 				int iHeaderCol = Integer.parseInt(headerCol.getText().trim(), 10);
-				
+
 				boolean bHeadersFromRow = checkBoxHeadersFromRow.getSelection();
 				boolean bHeadersFromCol = checkBoxHeadersFromCol.getSelection();
 
 				boolean hasTableBody = XPathAPI.eval(table, "./TBODY").nodelist().getLength() > 0;
-				
+
 				int iTR = iHeaderRow + 1;
 				int iTD = iHeaderCol + 1;
-				
+
 				if (!bHeadersFromCol && !bHeadersFromRow) {
 					XMLTableRow xRow = XMLTableRow.create();
 					xRow.setXpath(hasTableBody ? "./TBODY/TR":"./TR");
@@ -284,13 +279,13 @@ public class XMLTableWizardPage extends WizardPage {
 						XMLTableRow xRow = XMLTableRow.create();
 						String rowXPath = (hasTableBody ? (bHeadersFromRow ? "(./TBODY/TR)[position()>"+ iTR +"]":"./TBODY/TR") : (bHeadersFromRow ? "(./TR)[position()>"+ iTR +"]":"./TR"));
 						xRow.setXpath(bHeadersFromCol ? (hasTableBody ? "(./TBODY/TR)["+ iRow +"]":"(./TR)["+ iRow +"]") : rowXPath);
-						
+
 						NodeList nlTD = XPathAPI.eval(nlTR.item(i), "(./TD)[position()>"+ iHeaderCol +"] | (./TH)[position()>"+ iHeaderCol +"]").nodelist();
 						for(int j=0;j<nlTD.getLength();j++){
 							NodeList nltxt = XPathAPI.eval(nlTD.item(j), ".//text()").nodelist();
 							String tmpVal = "";
 							for(int k=0;k<nltxt.getLength();k++){
-								tmpVal += StringUtils.normalize(nltxt.item(k).getNodeValue()); 
+								tmpVal += StringUtils.normalize(nltxt.item(k).getNodeValue());
 							}
 							tmpVal.trim();
 							tmpVal = tmpVal.equals("") ? "X":tmpVal;
@@ -330,13 +325,13 @@ public class XMLTableWizardPage extends WizardPage {
 								while ((last = xRow.getColumns().size())>1)
 									xRow.getColumns().remove(last-1);
 							}
-							
+
 							xDescription.add(xRow.toXMLVector());
 							if (oldRowName == null) oldRowName = xRow.getName();
 							else bSameRowHeaderNames = oldRowName.equals(xRow.getName());
 						}
 					}
-					
+
 					if (bSameRowHeaderNames) { // optimization for table's rows with same names
 						XMLTableRow xRow = new XMLTableRow(xDescription.get(0));
 						xRow.setXpath(hasTableBody ? "(./TBODY/TR)[position()>"+ (bHeadersFromRow?iTR:iHeaderRow) +"]":"(./TR)[position()>"+ (bHeadersFromRow?iTR:iHeaderRow) +"]");
@@ -344,22 +339,22 @@ public class XMLTableWizardPage extends WizardPage {
 						xDescription.add(xRow.toXMLVector());
 					}
 				}
-				
+
 				//------------------------------------------------------------ For SWT Table
 				data = new Vector<Vector<String>>();
-				
+
 				NodeList nlCol = XPathAPI.eval(table, (hasTableBody ? "./TBODY/TR":"./TR")).nodelist();
 				for(int i=0;i<nlCol.getLength();i++){
 					if (i < iHeaderRow)
 						continue;
-					
+
 					NodeList nltd = XPathAPI.eval(nlCol.item(i), "./TD|./TH").nodelist();
 					Vector<String> row = new Vector<String>();
 					for(int j=0;j<nltd.getLength();j++){
 						NodeList nltxt = XPathAPI.eval(nltd.item(j), ".//text()").nodelist();
 						String tmpVal = "";
 						for(int k=0;k<nltxt.getLength();k++){
-							tmpVal += StringUtils.normalize(nltxt.item(k).getNodeValue()); 
+							tmpVal += StringUtils.normalize(nltxt.item(k).getNodeValue());
 						}
 						if (j < iHeaderCol)
 							continue;
@@ -367,7 +362,7 @@ public class XMLTableWizardPage extends WizardPage {
 					}
 					data.add(row);
 				}
-				
+
 				if (table != null) {
 					setTableData();
 				}
@@ -383,13 +378,13 @@ public class XMLTableWizardPage extends WizardPage {
 			boolean bHeadersFromRow = checkBoxHeadersFromRow.getSelection();
 			boolean bHeadersFromCol = checkBoxHeadersFromCol.getSelection();
 			String columnText, itemText;
-			
+
 			// clear table
 			for (int i = 0; i < table.getColumnCount(); i++)
 				table.getColumn(i).setText("");
 			table.removeAll();
 			table.setHeaderVisible(bHeadersFromRow);
-			
+
 			// fill table
 			if (xDescription != null) {
 				for (int i=0; i<data.size(); i++) {
@@ -397,40 +392,40 @@ public class XMLTableWizardPage extends WizardPage {
 					if ((i == 0) && bHeadersFromRow) {
 						for (int j=0; j<row.size(); j++) {
 							TableColumn column = null;
-				    		try {
-				    			column = table.getColumn(j);
-				    		}
-				    		catch (IllegalArgumentException e) {}
-				    		if (column == null)
-				    			column = new TableColumn(table, SWT.NONE);
-				    		
-				    		columnText = row.get(j);
-				    		columnText = (columnText.equals("") ? "*":columnText);
-				    		column.setText(columnText);
-				    		column.setWidth(50);
+							try {
+								column = table.getColumn(j);
+							}
+							catch (IllegalArgumentException e) {}
+							if (column == null)
+								column = new TableColumn(table, SWT.NONE);
+
+							columnText = row.get(j);
+							columnText = (columnText.equals("") ? "*":columnText);
+							column.setText(columnText);
+							column.setWidth(50);
 						}
 					}
 					else {
 						TableItem item = null;
 						try {
 							item = table.getItem(i);
-			    		}
-			    		catch (IllegalArgumentException e) {}
-			    		if (item == null)
-			    			item = new TableItem(table, SWT.NONE);
-			    		
-			    		if (bHeadersFromCol)
-			    			item.setBackground(0, Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-			    		
-			    		for (int j=0; j<row.size(); j++) {
-			    			itemText = row.get(j);
-			    			item.setText(j, itemText);
-					    }
+						}
+						catch (IllegalArgumentException e) {}
+						if (item == null)
+							item = new TableItem(table, SWT.NONE);
+
+						if (bHeadersFromCol)
+							item.setBackground(0, Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+
+						for (int j=0; j<row.size(); j++) {
+							itemText = row.get(j);
+							item.setText(j, itemText);
+						}
 					}
-		    		
+
 					if (i == data.size()-1) {
 						for (int j=0; j<row.size(); j++) {
-						     table.getColumn(j).pack();
+							table.getColumn(j).pack();
 						}
 					}
 

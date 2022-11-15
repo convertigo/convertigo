@@ -107,45 +107,44 @@ import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class NewObjectWizard extends Wizard {
-	
+
 	private String className = "java.lang.Object";
 	private DatabaseObject parentObject = null; 
 	private String xpath = null;
 	private Document dom = null;
-	
-    private ObjectExplorerWizardPage objectExplorerPage = null;
-    private ObjectInfoWizardPage objectInfoPage = null;
-    private SQLQueriesWizardPage sqlQueriesWizardPage = null;
-    
+
+	private ObjectExplorerWizardPage objectExplorerPage = null;
+	private ObjectInfoWizardPage objectInfoPage = null;
+	private SQLQueriesWizardPage sqlQueriesWizardPage = null;
+
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
-    public DatabaseObject newBean = null;
+	public DatabaseObject newBean = null;
 
-    public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, String xpath, Document dom) {
-    	this(selectedDatabaseObject, newClassName);
+	public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, String xpath, Document dom) {
+		this(selectedDatabaseObject, newClassName);
 		this.xpath = xpath;
 		this.dom = dom;
 	}
 
-    public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
+	public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
 		super();
 		this.parentObject = selectedDatabaseObject;
 		this.className = newClassName;
 		setWindowTitle("Create a new object");
 		setNeedsProgressMonitor(true);
-		setHelpAvailable(true);
 	}
 
-    
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.wizard.Wizard#addPages()
 	 */
-    @Override
+	@Override
 	public void addPages() {
 		try {
 			String objectExplorerPageTitle = "", objectExplorerPageMessage = "";
 			Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
-			
+
 			if (beanClass.equals(Project.class)) {
 				objectExplorerPageTitle = "New Project";
 				objectExplorerPageMessage = "Please select a project template.";
@@ -262,16 +261,16 @@ public class NewObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New Mapping Response";
 				objectExplorerPageMessage = "Please select a mapping response template.";
 			}
-			
+
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);
 		}
-        catch (ClassNotFoundException e) {
-            String message = java.text.MessageFormat.format("Unable to find the \"{0}\" class.", new Object[] {className});
-            ConvertigoPlugin.logWarning(message);
-        }
-        finally {
-        	;
-        }
+		catch (ClassNotFoundException e) {
+			String message = java.text.MessageFormat.format("Unable to find the \"{0}\" class.", new Object[] {className});
+			ConvertigoPlugin.logWarning(message);
+		}
+		finally {
+			;
+		}
 	}
 
 	private void addBeanPages(String objectExplorerPageTitle, String objectExplorerPageMessage, Class<DatabaseObject> beanClass) {
@@ -279,10 +278,10 @@ public class NewObjectWizard extends Wizard {
 		objectExplorerPage.setTitle(objectExplorerPageTitle);
 		objectExplorerPage.setMessage(objectExplorerPageMessage);
 		this.addPage(objectExplorerPage);
-		
+
 		objectInfoPage = new ObjectInfoWizardPage(parentObject);
 		this.addPage(objectInfoPage);
-		
+
 		if ((xpath != null) && (dom != null)) {
 			if (beanClass.equals(ExtractionRule.class)) {
 				this.addPage(new XMLTableWizardPage(xpath, dom));
@@ -300,33 +299,28 @@ public class NewObjectWizard extends Wizard {
 			ServiceCodeWizardPage serviceCodePage = new ServiceCodeWizardPage();
 			this.addPage(serviceCodePage);
 		}
-		
+
 		if (beanClass.equals(Reference.class)) {
 			ProjectSchemaWizardPage projectSchemaWizardPage = new ProjectSchemaWizardPage(parentObject);
 			this.addPage(projectSchemaWizardPage);
-			
+
 			XsdSchemaFileWizardPage xsdSchemaFileWizardPage = new XsdSchemaFileWizardPage(parentObject);
 			this.addPage(xsdSchemaFileWizardPage);
-			
+
 			WsdlSchemaFileWizardPage wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
 			this.addPage(wsdlSchemaWizardPage);
-			
+
 			WebServiceWizardPage soapServiceWizardPage = new WebServiceWizardPage(parentObject);
 			this.addPage(soapServiceWizardPage);
 
 			RestServiceWizardPage restServiceWizardPage = new RestServiceWizardPage(parentObject);
 			this.addPage(restServiceWizardPage);
 		}
-		
+
 		if (beanClass.equals(UrlMapping.class)) {
 			UrlMappingWizardPage urlMappingWizardPage = new UrlMappingWizardPage(parentObject);
 			this.addPage(urlMappingWizardPage);
 		}
-	}
-	
-	@Override
-	public boolean isHelpAvailable() {
-		return false;// removes "Help" rectangular button next to other wizard buttons
 	}
 
 	private DatabaseObject getCreatedBean() {
@@ -336,20 +330,20 @@ public class NewObjectWizard extends Wizard {
 		}
 		return dbo;
 	}
-	
+
 	private Class<?> getCreatedBeanClass() {
 		if (objectExplorerPage != null) {
 			return objectExplorerPage.getCreatedBeanClass();
 		}
 		return null;
 	}
-	
+
 	@Override
 	public boolean canFinish() {
 		IWizardPage nextPage = getPage("SQLQueriesWizardPage");
 		if (nextPage!=null) {
-			return (getContainer().getCurrentPage().getNextPage() == getPage("SQLQueriesWizardPage") || 
-				getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
+			return (getContainer().getCurrentPage().getNextPage() == getPage("SQLQueriesWizardPage") ||
+					getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
 		} else {
 			return (getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
 		}
@@ -370,36 +364,36 @@ public class NewObjectWizard extends Wizard {
 				}
 			}
 			monitor.beginTask("Creating new object", total);
-			
+
 			newBean = getCreatedBean();
-            if (newBean != null) {
-    			monitor.setTaskName("Object created");
-    			monitor.worked(1);
-    			
-            	dboName = newBean.getName();
+			if (newBean != null) {
+				monitor.setTaskName("Object created");
+				monitor.worked(1);
+
+				dboName = newBean.getName();
 				if (!StringUtils.isNormalized(dboName))
 					throw new EngineException("Bean name is not normalized : \""+dboName+"\".");
-            	
-		        // Verify if a child object with same name exist and change name
+
+				// Verify if a child object with same name exist and change name
 				while (bContinue) {
 					if (index == 0) name = dboName;
 					else name = dboName + index;
 					newBean.setName(name);
 					newBean.hasChanged = true;
 					newBean.bNew = true;
-					
-			        try {
-			        	new WalkHelper() {
-			        		boolean root = true;
-			        		boolean find = false;
-							
+
+					try {
+						new WalkHelper() {
+							boolean root = true;
+							boolean find = false;
+
 							@Override
 							protected boolean before(DatabaseObject dbo, Class<? extends DatabaseObject> dboClass) {
 								boolean isInstance = dboClass.isInstance(newBean);
 								find |= isInstance;
 								return isInstance;
 							}
-							
+
 							@Override
 							protected void walk(DatabaseObject dbo) throws Exception {
 								if (root) {
@@ -415,42 +409,42 @@ public class NewObjectWizard extends Wizard {
 								}
 							}
 
-			        	}.init(parentObject);
-			        	bContinue = false;
-			        } catch (ObjectWithSameNameException owsne) {
+						}.init(parentObject);
+						bContinue = false;
+					} catch (ObjectWithSameNameException owsne) {
 						if ((parentObject instanceof HtmlTransaction) && (newBean instanceof Statement)) {
 							throw new EngineException("HtmlTransaction already contains a statement named \""+ name +"\".", owsne);
 						}
-			        	
+
 						// Silently ignore
 						index++;
-			        } catch (EngineException ee) {
-			        	throw ee;
+					} catch (EngineException ee) {
+						throw ee;
 					} catch (Exception e) {
 						throw new EngineException("Exception in create", e);
 					}
 				}
-				
+
 				// Now add bean to target
 				try {
 					boolean hasChanged = parentObject.hasChanged;
 					if ((newBean instanceof Statement) && (parentObject instanceof Transaction)) {
 						newBean.priority = 0;
 					}
-					
+
 					if (newBean instanceof ScreenClass)
 						newBean.priority = parentObject.priority + 1;
-					
+
 					if (newBean instanceof Criteria) {
 						Connector connector = parentObject.getConnector();
 						if (parentObject.equals(((IScreenClassContainer<?>)connector).getDefaultScreenClass()))
 							throw new EngineException("You cannot add a new criterion on default screenclass.");
 					}
-						
+
 					parentObject.add(newBean);
-	    			monitor.setTaskName("Object added");
-	    			monitor.worked(1);
-					
+					monitor.setTaskName("Object added");
+					monitor.worked(1);
+
 					if (newBean instanceof HTTPStatement) {
 						HTTPStatement httpStatement = (HTTPStatement)newBean;
 						HtmlConnector connector = (HtmlConnector)httpStatement.getParentTransaction().getParent();
@@ -461,66 +455,66 @@ public class NewObjectWizard extends Wizard {
 					}
 
 					if (newBean instanceof ContinueWithSiteClipperStatement) {
-						Project project = newBean.getProject();	
+						Project project = newBean.getProject();
 						if (project != null) {
-							
+
 							String[] connectorWithSiteClipperConnector = ContinueWithSiteClipperStatement
 									.getSiteClippersConnectorNames(project);
 							if (connectorWithSiteClipperConnector.length > 0) {
 								((ContinueWithSiteClipperStatement) newBean)
-										.setSiteClipperConnectorName(connectorWithSiteClipperConnector[0]);
+								.setSiteClipperConnectorName(connectorWithSiteClipperConnector[0]);
 							}
 						}
 					}
-					
+
 					if (newBean instanceof Connector) {
 						Project project = (Project)parentObject;
 						if (project.getDefaultConnector() == null)
 							project.setDefaultConnector((Connector)newBean);
-						
+
 						Connector.setupConnector(newBean);
 					}
-					
+
 					if (newBean instanceof PageComponent) {
 						ApplicationComponent application = (ApplicationComponent)parentObject;
 						if (application.getRootPage() == null)
 							application.setRootPage((PageComponent)newBean);
 					}
-					
+
 					if (newBean instanceof SequenceStep) {
 						Project project = newBean.getProject();
-						
+
 						((SequenceStep) newBean).setSourceSequence(project.getName() + TransactionStep.SOURCE_SEPARATOR +
 								project.getSequencesList().get(0));
 					}
-					
+
 					if (newBean instanceof TransactionStep) {
 						Project project = newBean.getProject();
 						Connector connector = project.getDefaultConnector();
 						Transaction transaction = connector.getDefaultTransaction();
-						
+
 						((TransactionStep) newBean).setSourceTransaction(
 								project.getName() + TransactionStep.SOURCE_SEPARATOR +
 								connector.getName() + TransactionStep.SOURCE_SEPARATOR +
 								transaction.getName());
 					}
-					
+
 					if (newBean instanceof IThenElseContainer) {
 						ThenStep thenStep = new ThenStep();
 						((IThenElseContainer)newBean).addStep(thenStep);
-						
+
 						ElseStep elseStep = new ElseStep();
 						((IThenElseContainer)newBean).addStep(elseStep);
-					}						
-					
+					}
+
 					if (newBean instanceof IThenElseStatementContainer) {
 						ThenStatement thenStatement = new ThenStatement();
 						((IThenElseStatementContainer)newBean).addStatement(thenStatement);
-						
+
 						ElseStatement elseStatement = new ElseStatement();
 						((IThenElseStatementContainer)newBean).addStatement(elseStatement);
 					}
-					
+
 					if (newBean instanceof Sheet) {
 						InputStream is = null;
 						try {
@@ -539,12 +533,12 @@ public class NewObjectWizard extends Wizard {
 							}
 						}
 					}
-					
+
 					if (newBean instanceof TestCase) {
 						TestCase testCase = (TestCase)newBean;
-					testCase.importRequestableVariables((RequestableObject)testCase.getParent());
+						testCase.importRequestableVariables((RequestableObject)testCase.getParent());
 					}
-					
+
 					if (newBean instanceof RequestableHttpVariable) {
 						RequestableHttpVariable variable = (RequestableHttpVariable)newBean;
 						AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) variable.getParent();
@@ -552,7 +546,7 @@ public class NewObjectWizard extends Wizard {
 						boolean isVarPost = httpMethodType.equals(HttpMethodType.PUT) || httpMethodType.equals(HttpMethodType.POST);
 						variable.setHttpMethod(isVarPost ? HttpMethodType.POST.name() : HttpMethodType.GET.name());
 					}
-					
+
 					if (newBean instanceof WebServiceReference) {
 						try {
 							Project project = (Project)parentObject;
@@ -567,7 +561,7 @@ public class NewObjectWizard extends Wizard {
 							throw new Exception(e);
 						}
 					}
-					
+
 					if (newBean instanceof RestServiceReference) {
 						try {
 							Project project = (Project)parentObject;
@@ -582,13 +576,13 @@ public class NewObjectWizard extends Wizard {
 							throw new Exception(e);
 						}
 					}
-					
+
 					if (newBean instanceof SqlTransaction) {
 						SqlTransaction sqlTransaction = (SqlTransaction)newBean;
 						sqlTransaction.setSqlQuery(sqlQueriesWizardPage.getSQLQueries());
 						sqlTransaction.initializeQueries(true);
 					}
-					
+
 					if (newBean instanceof SapJcoLogonTransaction) {
 						SapJcoLogonTransaction sapLogonTransaction = (SapJcoLogonTransaction)newBean;
 						sapLogonTransaction.addCredentialsVariables();
@@ -622,7 +616,7 @@ public class NewObjectWizard extends Wizard {
 			}
 		}
 	}
-	
+
 	public boolean performFinish() {
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
@@ -656,6 +650,6 @@ public class NewObjectWizard extends Wizard {
 		newBean = null;
 		return super.performCancel();
 	}
-	
-	
+
+
 }
