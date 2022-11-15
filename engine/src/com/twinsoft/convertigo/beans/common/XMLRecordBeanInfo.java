@@ -25,34 +25,34 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class XMLRecordBeanInfo extends MySimpleBeanInfo {
-    
+
 	public XMLRecordBeanInfo() {
 		try {
 			beanClass = XMLRecord.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.common.AbstractXMLReferer.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/xmlrecord_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/xmlrecord_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/xmlrecord_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/xmlrecord_color_32x32.png";
 
 			resourceBundle = getResourceBundle("res/XMLRecord");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("tagName", beanClass, "getTagName", "setTagName");
 			properties[0].setDisplayName(getExternalizedString("property.tagName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.tagName.short_description"));
 			properties[0].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
-			
+
 			properties[1] = new PropertyDescriptor("description", beanClass, "getDescription", "setDescription");
 			properties[1].setDisplayName(getExternalizedString("property.description.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.description.short_description"));
 			//properties[1].setPropertyEditorClass(getEditorClass("XMLRecordEditor"));
 			properties[1].setExpert(true);
-			properties[1].setValue("disable", Boolean.TRUE);
-			
+			properties[1].setValue(DISABLE, Boolean.TRUE);
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

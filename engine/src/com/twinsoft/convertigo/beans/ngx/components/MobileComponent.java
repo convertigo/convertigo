@@ -60,6 +60,7 @@ public abstract class MobileComponent extends MobileObject {
 		try {
 			if (style != null && !style.isEmpty()) {
 				StringBuilder uses = new StringBuilder();
+				StringBuilder imports = new StringBuilder();
 				StringBuilder others = new StringBuilder();
 				for (String line: Arrays.asList(style.split(System.lineSeparator()))) {
 					line = line.trim();
@@ -67,7 +68,11 @@ public abstract class MobileComponent extends MobileObject {
 						if (!uses.toString().contains(line)) {
 							uses.append(line).append(System.getProperty("line.separator"));
 						}
-					} else {
+					} else if (!line.isEmpty() && line.startsWith("@import")) {
+						if (!imports.toString().contains(line)) {
+							imports.append(line).append(System.getProperty("line.separator"));
+						}
+					} else if (!line.isEmpty()) {
 						others.append(line).append(System.getProperty("line.separator"));
 					}
 				}
@@ -75,6 +80,9 @@ public abstract class MobileComponent extends MobileObject {
 				StringBuilder sb = new StringBuilder();
 				if (uses.length() > 0) {
 					sb.append(uses).append(System.getProperty("line.separator"));
+				}
+				if (imports.length() > 0) {
+					sb.append(imports).append(System.getProperty("line.separator"));
 				}
 				if (others.length() > 0) {
 					sb.append(others).append(System.getProperty("line.separator"));

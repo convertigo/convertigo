@@ -20,14 +20,25 @@
 package com.twinsoft.convertigo.eclipse.views.mobile;
 
 import java.beans.BeanInfo;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
@@ -37,55 +48,90 @@ import org.apache.ws.commons.schema.XmlSchemaType;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreePath;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TreeDragSourceEffect;
+import org.eclipse.swt.dnd.TreeDropTargetEffect;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.navigator.CommonViewer;
+import org.eclipse.ui.navigator.resources.ProjectExplorer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.teamdev.jxbrowser.browser.callback.InjectCssCallback;
+import com.teamdev.jxbrowser.browser.callback.StartDownloadCallback;
+import com.teamdev.jxbrowser.dom.event.EventType;
+import com.teamdev.jxbrowser.js.JsAccessible;
+import com.teamdev.jxbrowser.js.JsObject;
+import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
+import com.teamdev.jxbrowser.ui.Rect;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
-import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IAction;
 import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.Filter;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceData;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceModel;
+import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIActionStack;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
@@ -95,10 +141,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAction;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
 import com.twinsoft.convertigo.beans.ngx.components.UISharedComponent;
-import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.Filter;
-import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceData;
-import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSource.SourceModel;
-import com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType;
+import com.twinsoft.convertigo.beans.ngx.components.dynamic.IonBean;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AllDocsTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.DeleteDatabaseTransaction;
@@ -116,32 +159,37 @@ import com.twinsoft.convertigo.eclipse.dnd.MobileSource;
 import com.twinsoft.convertigo.eclipse.dnd.MobileSourceTransfer;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
+import com.twinsoft.convertigo.eclipse.swt.C8oBrowser;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.mobile.NgxPickerContentProvider.TVObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxPageComponentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.NgxUIComponentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.CouchParam;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class NgxPickerComposite extends Composite {
-
+public class NgxPickerComposite extends Composite {	
 	Composite content, headerComposite;
-	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal, btnLocal;
+	private ToolItem btnAction, btnShared, btnSequence, btnDatabase, btnIteration, btnForm, btnGlobal, btnLocal, btnIcon, btnAsset;
 	private CheckboxTreeViewer checkboxTreeViewer;
 	private TreeViewer modelTreeViewer;
 	private Button b_custom;
 	private Control l_source;
 	private Text t_custom, t_prefix, t_data, t_suffix;
 	private Label message;
+	private Filter currentFilter = Filter.Sequence;
 	private String currentSource = null;
 	//private MobileComponent currentMC = null;
 	private MobileObject currentMC = null;
@@ -149,6 +197,43 @@ public class NgxPickerComposite extends Composite {
 	private List<TVObject> checkedList = new ArrayList<TVObject>();
 	private boolean isParentDialog = false;
 	private boolean isUpdating = false;
+
+	private static void set(Widget widget, Object o) {
+		Class<?> cls = o.getClass();
+		if (cls.isAnonymousClass() || cls.isSynthetic()) {
+			Class<?>[] ifaces = cls.getInterfaces();
+			if (ifaces.length == 1) {
+				cls = ifaces[0];
+			}
+		}
+		widget.setData(cls.toString(), o);
+	}
+
+	private static void set(Widget widget, Object o, Class<?> cls) {
+		widget.setData(cls.toString(), o);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <E> E get(Widget widget, Class<E> cls) {
+		return (E) widget.getData(cls.toString());
+	}
+	
+	private interface DownloadAction {
+		void run(File dir, String url);
+	}
+	
+	private interface CopyAction {
+		void run(File dir, File toCopy);
+	}
+	
+	public class IconDrag {
+		@JsAccessible
+		public void onDragStart(JsObject o) {
+			_onDragStart(o);
+		}
+		
+		void _onDragStart(JsObject o) {};
+	}
 	
 	private EngineListenerHelper engineListener = new EngineListenerHelper() {
 
@@ -156,34 +241,34 @@ public class NgxPickerComposite extends Composite {
 			String responseEltName = acdt.getXsdTypePrefix() + acdt.getName() + "Response";
 			String xsdTypes = acdt.generateXsdTypes(document, true);
 			String xsdDom = acdt.generateXsd(xsdTypes);
-			
+
 			XmlSchemaCollection collection = new XmlSchemaCollection();
 			XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, collection);
 			SchemaMeta.setCollection(xmlSchema, collection);
 			ConvertigoError.updateXmlSchemaObjects(xmlSchema);
-			
+
 			QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), acdt.getXsdResponseTypeName());
 			XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName);
 			Transaction.addSchemaResponseObjects(xmlSchema, cType);
-			
+
 			QName responseQName = new QName(xmlSchema.getTargetNamespace(), acdt.getXsdResponseElementName());
 			XmlSchemaElement xse = xmlSchema.getElementByName(responseQName);
 			SchemaMeta.setSchema(xse, xmlSchema);
-			
+
 			Document doc = XmlSchemaUtils.getDomInstance(xse);
 			//System.out.println(XMLUtils.prettyPrintDOM(doc));
-			
+
 			String jsonString = XMLUtils.XmlToJson(doc.getDocumentElement(), true, true);
 			JSONObject jsonObject = new JSONObject(jsonString);
 			//System.out.println(jsonString);
-			
+
 			String searchPath = "document."+ responseEltName +".response.couchdb_output";
 			searchPath += dataPath;
 			JSONObject jsonOutput = findJSONObject(jsonObject, searchPath);
 
 			return jsonOutput;
 		}
-		
+
 		@Override
 		public void documentGenerated(Document document) {
 			final Element documentElement = document.getDocumentElement();
@@ -191,20 +276,20 @@ public class NgxPickerComposite extends Composite {
 				String project = documentElement.getAttribute("project");
 				String connector = documentElement.getAttribute("connector");
 				String transaction = documentElement.getAttribute("transaction");
-				if (lastSelected !=null && lastSelected instanceof TVObject) {
+				if (lastSelected != null && lastSelected instanceof TVObject) {
 					TVObject tvObject = (TVObject)lastSelected;
 					Object object = tvObject.getObject();
 					if (object != null && object instanceof DatabaseObject) {
-						
+
 						Map<String, Object> data = lookupModelData(tvObject);
 						DatabaseObject dbo = (DatabaseObject) data.get("databaseObject");
 						//Map<String, String> params = GenericUtils.cast(data.get("params"));
 						String dataPath = (String) data.get("searchPath");
-						
+
 						// internalView (GetViewTransaction)
 						if (CouchDbConnector.internalView.equals(transaction)) {
 							if (dbo instanceof DesignDocument) {
-								DesignDocument dd = (DesignDocument)dbo;
+								DesignDocument dd = (DesignDocument) dbo;
 								CouchDbConnector cc = dd.getConnector();
 								if (cc.getName().equals(connector) && cc.getProject().getName().equals(project)) {
 									GetViewTransaction gvt = (GetViewTransaction) cc.getTransactionByName(CouchDbConnector.internalView);
@@ -215,7 +300,7 @@ public class NgxPickerComposite extends Composite {
 											jsonOutput.remove("error");
 											jsonOutput.remove("reason");
 											jsonOutput.remove("attr");
-											
+
 											Display.getDefault().asyncExec(new Runnable() {
 												public void run() {
 													if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
@@ -225,7 +310,7 @@ public class NgxPickerComposite extends Composite {
 													}
 												}
 											});
-											
+
 										} catch (Exception e) {
 											e.printStackTrace();
 										}
@@ -233,7 +318,7 @@ public class NgxPickerComposite extends Composite {
 								}
 							}
 							if (dbo instanceof UIDynamicAction) {
-								UIDynamicAction uida = (UIDynamicAction)dbo;
+								UIDynamicAction uida = (UIDynamicAction) dbo;
 								IonBean ionBean = uida.getIonBean();
 								if (ionBean != null) {
 									try {
@@ -245,17 +330,17 @@ public class NgxPickerComposite extends Composite {
 											GetViewTransaction gvt = (GetViewTransaction) cc.getTransactionByName(CouchDbConnector.internalView);
 											if (gvt != null) {
 												JSONObject jsonObject = new JSONObject(uida.computeJsonModel());
-												
+
 												JSONObject jsonOutput = computeJsonModel(gvt, dataPath, document);
 												jsonOutput.remove("_c8oMeta");
 												jsonOutput.remove("error");
 												jsonOutput.remove("reason");
 												jsonOutput.remove("attr");
-												
+
 												if (jsonObject.has("out")) {
 													jsonObject.put("out", jsonOutput);
 												}
-												
+
 												Display.getDefault().asyncExec(new Runnable() {
 													public void run() {
 														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
@@ -273,11 +358,11 @@ public class NgxPickerComposite extends Composite {
 								}
 							}
 						}
-						
+
 						// internalDocument (GetDocumentTransaction)
 						if (CouchDbConnector.internalDocument.equals(transaction)) {
 							if (dbo instanceof UIDynamicAction) {
-								UIDynamicAction uida = (UIDynamicAction)dbo;
+								UIDynamicAction uida = (UIDynamicAction) dbo;
 								IonBean ionBean = uida.getIonBean();
 								if (ionBean != null) {
 									try {
@@ -287,17 +372,17 @@ public class NgxPickerComposite extends Composite {
 											GetDocumentTransaction gdt = (GetDocumentTransaction) cc.getTransactionByName(CouchDbConnector.internalDocument);
 											if (gdt != null) {
 												JSONObject jsonObject = new JSONObject(uida.computeJsonModel());
-												
+
 												JSONObject jsonOutput = computeJsonModel(gdt, dataPath, document);
 												jsonOutput.remove("_c8oMeta");
 												jsonOutput.remove("error");
 												jsonOutput.remove("reason");
 												jsonOutput.remove("attr");
-												
+
 												if (jsonObject.has("out")) {
 													jsonObject.put("out", jsonOutput);
 												}
-												
+
 												Display.getDefault().asyncExec(new Runnable() {
 													public void run() {
 														if (modelTreeViewer != null && !modelTreeViewer.getTree().isDisposed()) {
@@ -325,20 +410,17 @@ public class NgxPickerComposite extends Composite {
 			});
 		}
 	};
-	
+
 	public NgxPickerComposite(Composite parent, boolean isParentDialog) {
 		super(parent, SWT.NONE);
 		this.isParentDialog = isParentDialog;
 		makeUI(this);
 		updateMessage();
-		ConvertigoPlugin.runAtStartup(new Runnable() {
-			@Override
-			public void run() {
-				Engine.theApp.addEngineListener(engineListener);
-			}
+		ConvertigoPlugin.runAtStartup(() -> {
+			Engine.theApp.addEngineListener(engineListener);
 		});
 	}
-	
+
 	@Override
 	public void dispose() {
 		try {
@@ -349,60 +431,54 @@ public class NgxPickerComposite extends Composite {
 	}
 
 	private void makeUI(Composite parent) {
-		parent.setLayout(new GridLayout(1, false));
-		parent.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-		
+		GridLayout gl = new GridLayout(1, false);
+		gl.marginHeight = gl.marginWidth = 0;
+		parent.setLayout(gl);
+
+		StackLayout stackLayout = new StackLayout();
+
 		SelectionListener listener = new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				final NgxPickerContentProvider contentProvider = (NgxPickerContentProvider) checkboxTreeViewer.getContentProvider();
-				if (contentProvider != null) {
-					btnSequence.setSelection(false);
-					btnDatabase.setSelection(false);
-					btnAction.setSelection(false);
-					btnShared.setSelection(false);
-					btnIteration.setSelection(false);
-					btnForm.setSelection(false);
-					btnGlobal.setSelection(false);
-					btnLocal.setSelection(false);
-					
-					ToolItem button = (ToolItem) e.widget;
-					button.setSelection(true);
-					
-					if (btnSequence.getSelection()) {
-						contentProvider.setFilterBy(Filter.Sequence);
-					} else if (btnDatabase.getSelection()) {
-						contentProvider.setFilterBy(Filter.Database);
-					} else if (btnAction.getSelection()) {
-						contentProvider.setFilterBy(Filter.Action);
-					} else if (btnShared.getSelection()) {
-						contentProvider.setFilterBy(Filter.Shared);
-					} else if (btnIteration.getSelection()) {
-						contentProvider.setFilterBy(Filter.Iteration);
-					} else if (btnForm.getSelection()) {
-						contentProvider.setFilterBy(Filter.Form);
-					} else if (btnGlobal.getSelection()) {
-						contentProvider.setFilterBy(Filter.Global);
-					} else if (btnLocal.getSelection()) {
-						contentProvider.setFilterBy(Filter.Local);
-					}
-					modelTreeViewer.setInput(null);
-					checkboxTreeViewer.getTree().removeAll();
-					checkboxTreeViewer.refresh();
-					initTreeSelection(checkboxTreeViewer, null);
+				for (ToolItem i: btnSequence.getParent().getItems()) {
+					i.setSelection(false);
+				}
+				ToolItem button = (ToolItem) e.widget;
+				button.setSelection(true);
+				currentFilter = get(button, Filter.class);
+				Composite topControl = get(button, Composite.class);
+				if (topControl == null) {
+					topControl = get(btnSequence, Composite.class);
+				}
+
+				Runnable init = get(topControl, Runnable.class);
+				if (init != null && topControl.getChildren().length == 0) {
+					topControl.setLayout(new FillLayout());
+					init.run();
+					topControl.layout(true);
+				}
+
+				if (stackLayout.topControl != topControl) {
+					stackLayout.topControl = topControl;
+					topControl.getParent().layout(true);
+				}
+
+				Runnable onSelect = get(button, Runnable.class);
+				if (onSelect != null) {
+					onSelect.run();
 				}
 			}
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				
+
 			}
 		};
-		
+
 		SelectionListener c_listener = new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean isCustom = b_custom.getSelection();
-				
+
 				boolean doSetCustomText = false;
 				if (isParentDialog) {
 					MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
@@ -412,7 +488,7 @@ public class NgxPickerComposite extends Composite {
 				} else {
 					doSetCustomText = true;
 				}
-				
+
 				if (doSetCustomText) {
 					MobileSmartSource nmss = MobileSmartSource.valueOf(getSmartSourceString());
 					if (nmss != null) {
@@ -432,22 +508,22 @@ public class NgxPickerComposite extends Composite {
 
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				
+
 			}
 		};
-		
+
 		headerComposite = new Composite(parent, SWT.NONE);
 		headerComposite.setLayout(SwtUtils.newGridLayout(2, false, 0, 0, 0, 0));
 		headerComposite.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 1, 1));
-		
+
 		ToolBar toolbar = new ToolBar(headerComposite, SWT.NONE);
-		
+
 		int btnStyle = SWT.CHECK;
 		Image image = null;
-				
+
 		btnSequence = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/sequences/images/genericsequence_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnSequence.setText("SQ");
 		}
@@ -455,7 +531,8 @@ public class NgxPickerComposite extends Composite {
 		btnSequence.setToolTipText("Show Sequence Sources");
 		btnSequence.addSelectionListener(listener);
 		btnSequence.setSelection(true);
-		
+		set(btnSequence, Filter.Sequence);
+
 		btnDatabase = new ToolItem(toolbar, btnStyle);
 		try {
 			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/connectors/images/fullsyncconnector_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
@@ -465,26 +542,29 @@ public class NgxPickerComposite extends Composite {
 		btnDatabase.setImage(image);
 		btnDatabase.setToolTipText("Show FullSync Databases Sources");
 		btnDatabase.addSelectionListener(listener);
-		
+		set(btnDatabase, Filter.Database);
+
 		btnAction = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uicustomaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uicustomaction_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnAction.setText("AC");
 		}
 		btnAction.setImage(image);
 		btnAction.setToolTipText("Show Action Sources");
 		btnAction.addSelectionListener(listener);
-		
+		set(btnAction, Filter.Action);
+
 		btnShared = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnShared.setText("SH");
 		}
 		btnShared.setImage(image);
 		btnShared.setToolTipText("Show Shared component Sources");
 		btnShared.addSelectionListener(listener);
+		set(btnShared, Filter.Shared);
 
 		btnIteration = new ToolItem(toolbar, btnStyle);
 		try {
@@ -495,42 +575,84 @@ public class NgxPickerComposite extends Composite {
 		btnIteration.setImage(image);
 		btnIteration.setToolTipText("Show Iterators on current page Sources");
 		btnIteration.addSelectionListener(listener);
-		
+		set(btnIteration, Filter.Iteration);
+
 		btnForm = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uiform_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/images/uiform_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnForm.setText("FM");
 		}
 		btnForm.setImage(image);
 		btnForm.setToolTipText("Show Forms on current page Sources");
 		btnForm.addSelectionListener(listener);
-		
+		set(btnForm, Filter.Form);
+
 		btnGlobal = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setglobalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setglobalaction_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnGlobal.setText("GS");
 		}
 		btnGlobal.setImage(image);
 		btnGlobal.setToolTipText("Show Global objects");
 		btnGlobal.addSelectionListener(listener);
+		set(btnGlobal, Filter.Global);
 
 		btnLocal = new ToolItem(toolbar, btnStyle);
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setlocalaction_color_16x16.png", BeanInfo.ICON_COLOR_16x16);
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/setlocalaction_16x16.png", BeanInfo.ICON_COLOR_16x16);
 		} catch (Exception e) {
 			btnLocal.setText("LS");
 		}
 		btnLocal.setImage(image);
 		btnLocal.setToolTipText("Show Local objects");
 		btnLocal.addSelectionListener(listener);
-		
+		set(btnLocal, Filter.Local);
+
+		btnIcon = new ToolItem(toolbar, btnStyle);
+		try {
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/icon_16x16.png", BeanInfo.ICON_COLOR_16x16);
+		} catch (Exception e) {
+			btnIcon.setText("IC");
+		}
+		btnIcon.setImage(image);
+		btnIcon.setToolTipText("Show available Icons");
+		btnIcon.addSelectionListener(listener);
+		set(btnIcon, Filter.Icon);
+		btnIcon.setData("updateTexts", true);
+
+		btnAsset = new ToolItem(toolbar, btnStyle);
+		try {
+			image = ConvertigoPlugin.getDefault().getIconFromPath("/com/twinsoft/convertigo/beans/ngx/components/dynamic/images/filechooseraction_16x16.png", BeanInfo.ICON_COLOR_16x16);
+		} catch (Exception e) {
+			btnAsset.setText("AS");
+		}
+		btnAsset.setImage(image);
+		btnAsset.setToolTipText("Show available Assets");
+		btnAsset.addSelectionListener(listener);
+		set(btnAsset, Filter.Asset);
+		btnAsset.setData("updateTexts", true);
+
 		message = new Label(headerComposite, SWT.NONE);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		SashForm treesSashForm = new SashForm(parent, SWT.NONE);
-		treesSashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+		Composite stack = new Composite(parent, SWT.NONE);
+		stack.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		stack.setLayout(stackLayout);
+
+		SashForm treesSashForm = new SashForm(stack, SWT.NONE);
+		set(btnSequence, treesSashForm, Composite.class);
+		set(btnAction, treesSashForm, Composite.class);
+		set(btnShared, treesSashForm, Composite.class);
+		set(btnDatabase, treesSashForm, Composite.class);
+		set(btnIteration, treesSashForm, Composite.class);
+		set(btnForm, treesSashForm, Composite.class);
+		set(btnGlobal, treesSashForm, Composite.class);
+		set(btnLocal, treesSashForm, Composite.class);
+
+		stackLayout.topControl = treesSashForm;
+
 		checkboxTreeViewer = new CheckboxTreeViewer(treesSashForm, SWT.BORDER | SWT.SINGLE);
 		checkboxTreeViewer.setContentProvider(new NgxPickerContentProvider());
 		checkboxTreeViewer.addCheckStateListener(new ICheckStateListener() {
@@ -542,7 +664,7 @@ public class NgxPickerComposite extends Composite {
 						checkboxTreeViewer.setChecked(element, !event.getChecked());
 						return;
 					}
-					
+
 					TVObject tvoChecked = (TVObject)element;
 					if (event.getChecked())
 						checkedList.add(tvoChecked);
@@ -572,8 +694,8 @@ public class NgxPickerComposite extends Composite {
 				}
 			}
 		});
-	
-		
+
+
 		modelTreeViewer = new TreeViewer(treesSashForm, SWT.BORDER);
 		modelTreeViewer.setContentProvider(new NgxPickerContentProvider());
 		modelTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -584,15 +706,15 @@ public class NgxPickerComposite extends Composite {
 					updateTexts();
 				}
 			}
-			
+
 		});
-		
-		treesSashForm.setWeights(new int[] {1, 1});
+
+		treesSashForm.setWeights(1, 1);
 
 		Composite sourceComposite = new Composite(parent, SWT.NONE);
 		sourceComposite.setLayout(new GridLayout(2, false));
 		sourceComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+
 		if (isParentDialog) {
 			l_source = new Label(sourceComposite, SWT.NONE);
 			((Label) l_source).setText(" SOURCE ");
@@ -601,46 +723,46 @@ public class NgxPickerComposite extends Composite {
 			((Button) l_source).setText(" SOURCE ");
 			l_source.setToolTipText("Drag me on a Ngx UI component in the project tree to bind this source to an UI component property");
 		}
-		
+
 		Composite dataComposite = new Composite(sourceComposite, SWT.NONE);
 		dataComposite.setLayout(new GridLayout(2, false));
 		dataComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+
 		Label l_prefix = new Label(dataComposite, SWT.NONE);
 		l_prefix.setText("Prefix");
-		
+
 		t_prefix = new Text(dataComposite, SWT.BORDER);
 		t_prefix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+
 		Label l_data = new Label(dataComposite, SWT.NONE);
 		l_data.setText("Data");
-		
+
 		t_data = new Text(dataComposite, SWT.BORDER | SWT.READ_ONLY);
 		t_data.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+
 		Label l_suffix = new Label(dataComposite, SWT.NONE);
 		l_suffix.setText("Suffix");
-		
+
 		t_suffix = new Text(dataComposite, SWT.BORDER);
 		t_suffix.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+
 		b_custom = new Button(dataComposite, SWT.CHECK);
 		b_custom.setText("Custom");
 		b_custom.addSelectionListener(c_listener);
-		
+
 		t_custom = new Text(dataComposite, SWT.BORDER);
 		t_custom.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		t_custom.setEnabled(false);
-		
+
 		// Add DND support
 		boolean dragEnabled = !isParentDialog;
 		if (dragEnabled) {
-		    Transfer[] dragTransfers = new Transfer[] { MobileSourceTransfer.getInstance() };
-		    int operations = DND.DROP_COPY | DND.DROP_MOVE;
-			
+			Transfer[] dragTransfers = new Transfer[] { MobileSourceTransfer.getInstance() };
+			int operations = DND.DROP_COPY | DND.DROP_MOVE;
+
 			DragSourceAdapter dragAdapter = new DragSourceAdapter() {
-		    	@Override
-		    	public void dragStart(DragSourceEvent event) {
+				@Override
+				public void dragStart(DragSourceEvent event) {
 					try {
 						String jsonString = getSmartSourceString();
 						if (jsonString != null && !jsonString.isEmpty()) {
@@ -650,50 +772,514 @@ public class NgxPickerComposite extends Composite {
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
 					}
-		    	}
+				}
 			};
-			
+
 			DragSource source = null;
-	
+
 			source = new DragSource(modelTreeViewer.getTree(), operations);
 			source.setTransfer(dragTransfers);
 			source.addDragListener(dragAdapter);
-			
+
 			source = new DragSource(l_source, operations);
 			source.setTransfer(dragTransfers);
 			source.addDragListener(dragAdapter);
 		}
+		set(btnSequence, (Runnable) () -> {
+			final NgxPickerContentProvider contentProvider = (NgxPickerContentProvider) checkboxTreeViewer.getContentProvider();
+			if (contentProvider != null) {
+				contentProvider.setFilterBy(currentFilter);
+				modelTreeViewer.setInput(null);
+				checkboxTreeViewer.getTree().removeAll();
+				checkboxTreeViewer.refresh();
+				initTreeSelection(checkboxTreeViewer, null);
+			}
+		});
+		set(btnAction, get(btnSequence, Runnable.class));
+		set(btnShared, get(btnSequence, Runnable.class));
+		set(btnDatabase, get(btnSequence, Runnable.class));
+		set(btnIteration, get(btnSequence, Runnable.class));
+		set(btnForm, get(btnSequence, Runnable.class));
+		set(btnGlobal, get(btnSequence, Runnable.class));
+		set(btnLocal, get(btnSequence, Runnable.class));
+		
+		Composite browserComposite = new Composite(stack, SWT.NONE);
+		set(btnIcon, browserComposite);
+		set(browserComposite, (Runnable) () -> {
+			browserComposite.setLayout(GridLayoutFactory.fillDefaults().margins(0, 0).create());
+			if (!isParentDialog) {
+				Label dndLabel = new Label(browserComposite, SWT.CENTER | SWT.WRAP);
+				dndLabel.setText("↓ Drag icons on project treeview objects to set properties ↓");
+				dndLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			}
+			C8oBrowser browser = new C8oBrowser(browserComposite, SWT.NONE);
+			browser.setLayoutData(new GridData(GridData.FILL_BOTH));
+			if (currentMC == null) {
+				browser.setText("<h1>Please select a NGX project</h1>");
+			}
+			browser.getBrowser().set(InjectCssCallback.class, event -> {
+				return InjectCssCallback.Response.inject("h1, h3 { display: none }\n"
+						+ ".selected { border-style: outset; border-color: red; border-radius: 10px }\n");
+			});
+			browser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
+				com.teamdev.jxbrowser.dom.Document doc = event.frame().document().get();
+
+				doc.addEventListener(EventType.MOUSE_DOWN, c -> {
+					com.teamdev.jxbrowser.dom.Element elt = (com.teamdev.jxbrowser.dom.Element) c.target().get();
+					if (!elt.nodeName().equals("use")) {
+						List<com.teamdev.jxbrowser.dom.Element> lst = elt.findElementsByCssSelector("use");
+						elt = lst.size() == 1 ? lst.get(0) : null;
+					}
+					if (elt != null) {
+						String icon = "'" + elt.attributeValue("href").substring(1) + "'";
+						doc.findElementsByCssSelector("svg.selected").forEach(s -> s.removeAttribute("class"));
+						((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
+						ConvertigoPlugin.asyncExec(() -> t_data.setText(icon));
+					}
+				}, false);
+
+				doc.addEventListener(EventType.CLICK, c -> {
+					c.preventDefault();
+				}, false);
+
+				try {
+					MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
+					if (currentFilter == Filter.Icon) {
+						String iconName;
+						if (cs != null && cs.getFilter() == Filter.Icon) {
+							iconName = cs.getModel().getData();
+						} else {
+							iconName = "'add'";
+							ConvertigoPlugin.asyncExec(() -> t_data.setText(iconName));
+						}
+						String selected = "#" + iconName.replace("'", "");
+						for (com.teamdev.jxbrowser.dom.Element elt: doc.findElementsByCssSelector("use")) {
+							if (selected.equals(elt.attributeValue("href"))) {
+								((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).putAttribute("class", "selected");
+								Rect rect = ((com.teamdev.jxbrowser.dom.Element) elt.parent().get()).boundingClientRect();
+								event.frame().executeJavaScript("window.scrollTo(0, " + (rect.y() - 40) + ");");
+								break;
+							}
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				if (!isParentDialog) {
+					JsObject window = event.frame().executeJavaScript("window");
+					window.putProperty("java", new IconDrag() {
+						@Override
+						void _onDragStart(JsObject o) {
+							JsObject dt = (JsObject) o.property("dataTransfer").get();
+							dt.call("clearData");
+							String[] key = {null};
+							ConvertigoPlugin.syncExec(() -> {
+								String jsonString = getSmartSourceString();
+								if (StringUtils.isNotBlank(jsonString)) {
+									key[0] = MobileSourceTransfer.getInstance().setMobileSource(new MobileSource(jsonString));
+								}
+							});
+							if (key[0] != null) {
+								dt.call("setData", "text/plain", key[0]);
+							}
+						}
+					});
+					event.frame().executeJavaScript("Array.from(document.getElementsByTagName('a')).forEach(a => a.addEventListener('dragstart', e => window.java.onDragStart(e)))");
+				} else {
+					browser.getBrowserView().dragAndDrop().disable();
+				}
+			});
+			set(btnIcon, (Runnable) () -> {
+				if (currentMC != null) {
+					Project project = currentMC.getProject();
+					File page = new File(project.getDirFile(), "_private/ionic/node_modules/ionicons/dist/cheatsheet.html");
+					if (page.exists()) {
+						browser.setUrl(page.getAbsoluteFile().toURI().toString());
+					} else {
+						browser.setText("<html><body><h1 style=\"text-align: center\">Application must be built once<br/>"
+								+ "to initialize icons preview</h1></body></html>");
+					}
+				}
+			});
+		});
+
+		Composite assetComposite = new Composite(stack, SWT.NONE);
+		set(btnAsset, assetComposite);
+		set(assetComposite, (Runnable) () -> {
+			SashForm assetSash = new SashForm(assetComposite, SWT.NONE);
+			
+			Composite assetLeft = new Composite(assetSash, SWT.NONE);
+			assetLeft.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).create());
+			
+			Label dndInfo = new Label(assetLeft, SWT.CENTER | SWT.WRAP);
+			dndInfo.setText(isParentDialog ? "↓ Drop files below ↓":
+				"↓ Drop files below and drag on project treeview objects to set properties ↓");
+			dndInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+			TreeViewer assetTree = new TreeViewer(assetLeft, SWT.VIRTUAL);
+			assetTree.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
+			set(assetComposite, assetTree);
+			
+			Composite tb = new Composite(assetLeft, SWT.NONE);
+			ConvertigoPlugin.asyncExec(() -> {
+				tb.setBackground(assetTree.getTree().getBackground());
+			});
+			tb.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
+			tb.setLayout(GridLayoutFactory.fillDefaults().numColumns(4).equalWidth(true).extendedMargins(5, 5, 0, 5).create());
+			
+			Callable<File> getFile = () -> {
+				String path = t_data.getText();
+				if (path.length() > 2) {
+					File root = (File) assetTree.getInput();
+					path = path.substring(1, path.length() - 1);
+					File f = new File(root.getParentFile(), path);
+					if (f.exists()) {
+						return f;
+					}
+				}
+				return null;
+			};
+			
+			DownloadAction downloadAction = (dir, url) -> {
+				File dest = dir == null ? (File) assetTree.getInput() : dir.isFile() ? dir.getParentFile() : dir;
+				Engine.execute(() -> {
+					try {
+						HttpGet get = new HttpGet(url);
+						try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+							Header header = response.getLastHeader("Content-Disposition");
+							String name = null;
+							if (header != null) {
+								Matcher m = Pattern.compile("filename=\"(.*?)\"").matcher(header.getValue());
+								if (m.find()) {
+									name = m.group(1);
+								}
+							}
+							if (name == null) {
+								name = get.getURI().getPath().replaceAll(".*/", "");
+							}
+							if (StringUtils.isNotBlank(name)) {
+								try (FileOutputStream fos = new FileOutputStream(new File(dest, name))) {
+									response.getEntity().writeTo(fos);
+								}
+							}
+						}
+						ConvertigoPlugin.asyncExec(() -> assetTree.refresh());
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				});
+			};
+			
+			CopyAction copyAction = (dir, toCopy) -> {
+				if (toCopy.exists()) {
+					File dest = dir == null ? (File) assetTree.getInput() : dir.isFile() ? dir.getParentFile() : dir;
+					Engine.execute(() -> {
+						try {
+							FileUtils.copyFileToDirectory(toCopy, dest);
+						} catch (IOException e1) {
+						}
+						ConvertigoPlugin.asyncExec(() -> assetTree.refresh());
+					});
+				}
+			};
+			
+			Button ti = null;
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Refresh file tree");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						assetTree.refresh();
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/refresh.gif"));
+			} catch (IOException e1) {
+				ti.setText("Refresh");
+			}
+			
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Add an asset file");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						try {
+							FileDialog fd = new FileDialog(NgxPickerComposite.this.getShell(), SWT.NONE);
+							File dir = getFile.call();
+							String path = fd.open();
+							if (StringUtils.isBlank(path)) {
+								return;
+							}
+							copyAction.run(dir, new File(path));
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_open.gif"));
+			} catch (IOException e1) {
+				ti.setText("Add");
+			}
+			
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Download an asset file");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						try {
+							InputDialog id = new InputDialog(getShell(), "Download asset", "Download an HTTP url as a file asset.", "https://", v -> Pattern.matches("^https?://.*", v) ? null : "You must enter an http URL");
+							if (id.open() == InputDialog.OK) {
+								String url = id.getValue();
+								File dir = getFile.call();
+								downloadAction.run(dir, url);
+							}
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getBeanIcon(CachedIntrospector.getBeanInfo(HttpConnector.class), BeanInfo.ICON_COLOR_16x16));
+			} catch (Exception e1) {
+				ti.setText("Add");
+			}
+			
+			try {
+				ti = new Button(tb, SWT.PUSH);
+				ti.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
+				ti.setToolTipText("Explore files");
+				ti.addSelectionListener(new SelectionAdapter() {
+
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						try {
+							IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+							ProjectExplorer pe;
+							if ((pe = (ProjectExplorer) activePage.showView("org.eclipse.ui.navigator.ProjectExplorer")) != null) {
+								CommonViewer cv = pe.getCommonViewer();
+								File file = getFile.call();
+								IProject iproject = ConvertigoPlugin.getDefault().getProjectPluginResource(currentMC.getProject().getName());
+								
+								String path = currentMC.getProject().getDirFile().toPath().relativize(file.toPath()).toString();
+								iproject.findMember("DisplayObjects/mobile/assets").refreshLocal(IResource.DEPTH_INFINITE, null);
+								IResource ifile = iproject.findMember(path);
+								List<Object> res = new LinkedList<>();
+								res.add(ifile);
+								while (res.get(0) != iproject) {
+									res.add(0, ((IResource) res.get(0)).getParent());
+								}
+								
+								Object[] resObj = res.toArray();
+								ITreeSelection ts = new TreeSelection(new TreePath(resObj));
+								cv.setSelection(ts, false);
+								cv.setExpandedElements(resObj);
+								Tree tree = cv.getTree();
+								tree.setTopItem(tree.getSelection()[0]);
+							}
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+					
+				});
+				ti.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/project_explorer.gif"));
+			} catch (IOException e1) {
+				ti.setText("Explore");
+			}
+			
+			C8oBrowser assetBrowser = new C8oBrowser(assetSash, SWT.NONE);
+			assetBrowser.getBrowserView().dragAndDrop().disable();
+			assetBrowser.getBrowser().set(StartDownloadCallback.class, (a, b) -> {
+				ConvertigoPlugin.asyncExec(() -> {
+					assetBrowser.setVisible(false);
+				assetSash.layout(true);
+				});
+				b.cancel();
+			});
+			
+			assetBrowser.getBrowser().navigation().on(FrameLoadFinished.class, event -> {
+				ConvertigoPlugin.asyncExec(() -> {
+					assetBrowser.setVisible(true);
+					assetSash.layout(true);
+				});
+			});
+			
+			assetTree.setContentProvider(new ITreeContentProvider() {
+
+				@Override
+				public Object[] getElements(Object inputElement) {
+					return getChildren(inputElement);
+				}
+
+				@Override
+				public Object[] getChildren(Object parentElement) {
+					File file = (File) parentElement;
+					File[] files = file.listFiles();
+					if (files != null) {
+						Arrays.sort(files, (o1, o2) -> {
+							if (o1.isDirectory() && o2.isFile()) {
+								return -1;
+							}
+							if (o1.isFile() && o2.isDirectory()) {
+								return 1;
+							}
+							return o1.getName().compareTo(o2.getName());
+						});
+					}
+					return files;
+				}
+
+				@Override
+				public Object getParent(Object element) {
+					File file = (File) element;
+					return file.getParentFile();
+				}
+
+				@Override
+				public boolean hasChildren(Object element) {
+					return getChildren(element) != null;
+				}
+
+			});
+			
+			assetTree.setLabelProvider(new LabelProvider() {
+
+				@Override
+				public Image getImage(Object element) {
+					File file = (File) element;
+					try {
+						return ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/" + (file.isDirectory() ? "folder.png" : "new.gif"));
+					} catch (IOException e) {
+						return super.getImage(element);
+					}
+				}
+
+				@Override
+				public String getText(Object element) {
+					File file = (File) element;
+					return super.getText(file.getName());
+				}
+
+			});
+			
+			assetTree.addSelectionChangedListener(event -> {
+				TreeSelection ts = (TreeSelection) event.getSelection();
+				File file = (File) ts.getFirstElement();
+				if (file == null) {
+					return;
+				}
+				if (file.isFile()) {
+					assetBrowser.setUrl(file.getAbsolutePath());
+				} else {
+					assetBrowser.setVisible(false);
+					assetSash.layout(true);
+				}
+				File root = ((File) assetTree.getInput()).getParentFile();
+				String path = root.toPath().relativize(file.toPath()).toString();
+				path = path.replace('\\', '/');
+				path = "'" + path + "'";
+				t_data.setText(path);
+			});
+			
+			assetTree.addDropSupport(DND.DROP_MOVE | DND.DROP_COPY, new Transfer[] {
+					TextTransfer.getInstance(), FileTransfer.getInstance()
+			}, new TreeDropTargetEffect(assetTree.getTree()) {
+
+				@Override
+				public void drop(DropTargetEvent event) {
+					String[] strs = (event.data instanceof String) ? new String[]{(String) event.data} :
+						(event.data instanceof String[]) ? GenericUtils.cast(event.data) : new String[0];
+					
+					for (String str: strs) {
+						try {
+							File dir = event.item == null ? null : (File) event.item.getData();
+							if (dir == null) {
+								dir = (File) assetTree.getInput();
+							}
+							if (Pattern.matches("^https?://.*", str)) {
+								downloadAction.run(dir, str);
+							} else {
+								copyAction.run(dir, new File(str));
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					
+					super.drop(event);
+				}
+				
+			});
+			
+			assetTree.addDragSupport(DND.DROP_MOVE | DND.DROP_COPY, new Transfer[] { MobileSourceTransfer.getInstance() }, new TreeDragSourceEffect(assetTree.getTree()) {
+
+				@Override
+				public void dragStart(DragSourceEvent event) {
+					try {
+						String jsonString = getSmartSourceString();
+						if (StringUtils.isNotBlank(jsonString)) {
+							MobileSourceTransfer.getInstance().setMobileSource(new MobileSource(jsonString));
+						}
+					} catch (Exception e) {
+					}
+				}
+
+			});
+			
+			assetBrowser.setVisible(false);
+			
+			if (currentMC == null) {
+				tb.setEnabled(false);
+			}
+			set(btnAsset, (Runnable) () -> {
+				if (currentMC == null) {
+					assetTree.setInput(null);
+					return;
+				}
+				tb.setEnabled(true);
+				Project project = currentMC.getProject();
+				File dir = new File(project.getDirFile(), "DisplayObjects/mobile/assets/");
+				if (dir.exists() && dir.isDirectory() && !dir.equals(assetTree.getInput())) {
+					assetTree.setInput(dir);
+					MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
+					if (currentFilter == Filter.Asset && cs != null) {
+						String path = cs.getModel().getData();
+						if (path.length() > 2) {
+							path = path.substring(1, path.length() - 1);
+							File f = new File(dir.getParentFile(), path);
+							if (f.exists()) {
+								TreePath tpath = new TreePath(new File[] {f});
+								assetTree.setSelection(new TreeSelection(tpath), true);
+							}
+						}
+					}
+				}
+			});
+		});
 	}
-	
+
 	private Filter getFilter() {
-		Filter filter = null;
-		if (btnSequence.getSelection())
-			filter = Filter.Sequence;
-		else if (btnDatabase.getSelection())
-			filter = Filter.Database;
-		else if (btnAction.getSelection())
-			filter = Filter.Action;
-		else if (btnShared.getSelection())
-			filter = Filter.Shared;
-		else if (btnIteration.getSelection())
-			filter = Filter.Iteration;
-		else if (btnForm.getSelection())
-			filter = Filter.Form;
-		else if (btnGlobal.getSelection())
-			filter = Filter.Global;
-		else if (btnLocal.getSelection())
-			filter = Filter.Local;
-		return filter;
+		return currentFilter;
 	}
-	
+
 	public String getSmartSourceString() {
 		try {
 			Filter filter = getFilter();
 			String projectName = currentMC.getProject().getName();
-			
+
 			MobileSmartSource cmss = MobileSmartSource.valueOf(currentSource);
 			String input = cmss == null ? "": cmss.getInput();
-			
+
 			String path = getModelPath();
 			String searchPath = "root";
 			int index = path.indexOf(searchPath);
@@ -707,11 +1293,13 @@ public class NgxPickerComposite extends Composite {
 			model.setSuffix(t_suffix.getText());
 			model.setUseCustom(b_custom.getSelection());
 			model.setSourceData(getModelData());
-			model.setPath(path);
-			
+			if (!GenericUtils.contains(filter, Filter.Icon, Filter.Asset)) {
+				model.setPath(path);
+			}
+
 			JSONObject jsonModel = model.toJson();
 			//System.out.println(jsonModel.toString(1));
-			
+
 			MobileSmartSource nmss = new MobileSmartSource(filter, projectName, input, jsonModel);
 			//System.out.println(nmss.toJsonString(1));
 			return nmss.toJsonString();
@@ -720,10 +1308,15 @@ public class NgxPickerComposite extends Composite {
 			return "";
 		}
 	}
-	
+
 	private void resetViewers() {
 		checkboxTreeViewer.setInput(null);
 		modelTreeViewer.setInput(null);
+		for (ToolItem item: btnSequence.getParent().getItems()) {
+			if (item.getSelection()) {
+				item.notifyListeners(SWT.Selection, null);
+			}
+		}
 		currentSource = null;
 		firstSelected = null;
 		lastSelected = null;
@@ -733,20 +1326,15 @@ public class NgxPickerComposite extends Composite {
 		t_data.setText("");
 		t_custom.setText("");
 	}
-	
+
 	private void setWidgetsEnabled(boolean enabled) {
 		try {
-			btnSequence.setEnabled(enabled);
-			btnDatabase.setEnabled(enabled);
-			btnAction.setEnabled(enabled);
-			btnShared.setEnabled(enabled);
-			btnIteration.setEnabled(enabled);
-			btnForm.setEnabled(enabled);
-			btnGlobal.setEnabled(enabled);
-			btnLocal.setEnabled(enabled);
+			for (ToolItem i: btnSequence.getParent().getItems()) {
+				i.setEnabled(enabled);
+			}
 			checkboxTreeViewer.getTree().setEnabled(enabled);
 		} catch (Exception e) {
-			
+
 		}
 	}
 
@@ -767,7 +1355,7 @@ public class NgxPickerComposite extends Composite {
 			}
 		}
 	}
-	
+
 	private void initTreeSelection(TreeViewer treeViewer, Object object) {
 		if (treeViewer != null) {
 			if (object == null) {
@@ -776,12 +1364,12 @@ public class NgxPickerComposite extends Composite {
 					object = treeItems[0].getData();
 				}
 			}
-			
+
 			StructuredSelection structuredSelection = null;
 			if (object != null) {
 				structuredSelection = new StructuredSelection(object);
 			}
-			
+
 			MobileSmartSource cs = MobileSmartSource.valueOf(currentSource);
 			if (treeViewer.equals(checkboxTreeViewer)) {
 				checkboxTreeViewer.expandAll();
@@ -815,7 +1403,7 @@ public class NgxPickerComposite extends Composite {
 					}
 				}
 			}
-			
+
 			if (cs != null) {
 				if (treeViewer.equals(checkboxTreeViewer)) {
 					checkedList.clear();
@@ -834,11 +1422,11 @@ public class NgxPickerComposite extends Composite {
 			}
 		}
 	}
-	
+
 	private void updateMessage() {
 		updateMessage(null);
 	}
-	
+
 	private void updateMessage(String msg) {
 		String msgTxt = "      ";
 		if (currentMC == null) {
@@ -853,50 +1441,62 @@ public class NgxPickerComposite extends Composite {
 		}
 		message.setText(msgTxt);
 	}
-	
-//	private List<String> getSourceList() {
-//		TVObject tvoSelected = null;
-//		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
-//		if (selected != null && selected instanceof TVObject) {
-//			tvoSelected = (TVObject)selected;
-//		}
-//		
-//		List<String> sourceList =  new ArrayList<String>();
-//		List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
-//		for (TVObject tvo : tvoList) {
-//			if (tvo.equals(tvoSelected)) {
-//				sourceList.add(0, tvo.getSource());
-//			}
-//			else {
-//				sourceList.add(tvo.getSource());
-//			}
-//		}
-//		return sourceList;
-//	}
-	
+
+	//	private List<String> getSourceList() {
+	//		TVObject tvoSelected = null;
+	//		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
+	//		if (selected != null && selected instanceof TVObject) {
+	//			tvoSelected = (TVObject)selected;
+	//		}
+	//		
+	//		List<String> sourceList =  new ArrayList<String>();
+	//		List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
+	//		for (TVObject tvo : tvoList) {
+	//			if (tvo.equals(tvoSelected)) {
+	//				sourceList.add(0, tvo.getSource());
+	//			}
+	//			else {
+	//				sourceList.add(tvo.getSource());
+	//			}
+	//		}
+	//		return sourceList;
+	//	}
+
 	private List<SourceData> getModelData() {
-		TVObject tvoSelected = null;
-		Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
-		if (selected != null && selected instanceof TVObject) {
-			tvoSelected = (TVObject)selected;
-		}
-		
 		List<SourceData> sourceList =  new ArrayList<SourceData>();
-		List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
-		for (TVObject tvo : tvoList) {
-			SourceData sd = tvo.getSourceData();
+		if (Filter.Icon == getFilter()) {
+			SourceData sd = Filter.Icon.toSourceData(currentMC.getProject().getName(), t_data.getText());
 			if (sd != null) {
-				if (tvo.equals(tvoSelected)) {
-					sourceList.add(0, sd);
-				}
-				else {
-					sourceList.add(sd);
+				sourceList.add(sd);
+			}
+		} else if (Filter.Asset == getFilter()) {
+			SourceData sd = Filter.Asset.toSourceData(currentMC.getProject().getName(), t_data.getText());
+			if (sd != null) {
+				sourceList.add(sd);
+			}
+		} else {
+			TVObject tvoSelected = null;
+			Object selected = checkboxTreeViewer.getStructuredSelection().getFirstElement();
+			if (selected != null && selected instanceof TVObject) {
+				tvoSelected = (TVObject) selected;
+			}
+
+			List<TVObject> tvoList = GenericUtils.cast(Arrays.asList(checkboxTreeViewer.getCheckedElements()));
+			for (TVObject tvo : tvoList) {
+				SourceData sd = tvo.getSourceData();
+				if (sd != null) {
+					if (tvo.equals(tvoSelected)) {
+						sourceList.add(0, sd);
+					}
+					else {
+						sourceList.add(sd);
+					}
 				}
 			}
 		}
 		return sourceList;
 	}
-	
+
 	private String getModelPath() {
 		String path = "";
 		ITreeSelection selection = modelTreeViewer.getStructuredSelection();
@@ -906,60 +1506,60 @@ public class NgxPickerComposite extends Composite {
 		}
 		return path;
 	}
-	
-//	private void updateText() {
-//		boolean isDirective = btnIteration.getSelection();
-//		boolean isForm = btnForm.getSelection();
-//		boolean isGlobal = btnGlobal.getSelection();
-//		List<String> sourceData = getSourceList();
-//		int size = sourceData.size();
-//		
-//		StringBuffer buf = new StringBuffer();
-//		if ((isDirective || isForm || isGlobal) && size > 0) {
-//			String data = sourceData.get(0);
-//			if (!data.isEmpty()) {
-//				buf.append(data);
-//			}
-//		}
-//		else {
-//			for (String data : sourceData) {
-//				if (!data.isEmpty()) {
-//					buf.append(buf.length() > 0 ? ", ":"").append(data);
-//				}
-//			}
-//		}
-//		
-//		String path = getModelPath();
-//		String searchPath = "root";
-//		int index = path.indexOf(searchPath);
-//		if (index != -1) {
-//			path = path.substring(index + searchPath.length());
-//		}
-//		
-//		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
-//		t_data.setText(computedText);
-//	}
 
-//	private void updateText(String s) {
-//		t_custom.setText(s);
-//	}
-	
+	//	private void updateText() {
+	//		boolean isDirective = btnIteration.getSelection();
+	//		boolean isForm = btnForm.getSelection();
+	//		boolean isGlobal = btnGlobal.getSelection();
+	//		List<String> sourceData = getSourceList();
+	//		int size = sourceData.size();
+	//		
+	//		StringBuffer buf = new StringBuffer();
+	//		if ((isDirective || isForm || isGlobal) && size > 0) {
+	//			String data = sourceData.get(0);
+	//			if (!data.isEmpty()) {
+	//				buf.append(data);
+	//			}
+	//		}
+	//		else {
+	//			for (String data : sourceData) {
+	//				if (!data.isEmpty()) {
+	//					buf.append(buf.length() > 0 ? ", ":"").append(data);
+	//				}
+	//			}
+	//		}
+	//		
+	//		String path = getModelPath();
+	//		String searchPath = "root";
+	//		int index = path.indexOf(searchPath);
+	//		if (index != -1) {
+	//			path = path.substring(index + searchPath.length());
+	//		}
+	//		
+	//		String computedText = buf.length() > 0 ? (isDirective || isForm || isGlobal ? buf + path : "listen(["+ buf +"])" + path):"";
+	//		t_data.setText(computedText);
+	//	}
+
+	//	private void updateText(String s) {
+	//		t_custom.setText(s);
+	//	}
+
 	private void updateTexts() {
 		Filter filter = getFilter();
-		
+
 		String path = getModelPath();
 		String searchPath = "root";
 		int index = path.indexOf(searchPath);
 		if (index != -1) {
 			path = path.substring(index + searchPath.length());
 		}
-		
+
 		SourceModel model = MobileSmartSource.emptyModel(filter);
 		model.setSourceData(getModelData());
 		model.setPath(path);
 		t_data.setText(model.computeValue());
 	}
-	
+
 	private void updateTexts(MobileSmartSource cs) {
 		if (cs != null) {
 			SourceModel sm = cs.getModel();
@@ -980,13 +1580,13 @@ public class NgxPickerComposite extends Composite {
 			}
 		}
 	}
-	
+
 	private Map<String, Object> lookupModelData(TVObject tvObject) {
 		Map<String, Object> data = new HashMap<String, Object>();
 		Map<String, String> params = new HashMap<String, String>();
 		DatabaseObject dbo = null;
 		String searchPath = "";
-		
+
 		Object object = tvObject.getObject();
 		JSONObject infos = tvObject.getInfos();
 		if (object != null) {
@@ -1004,15 +1604,15 @@ public class NgxPickerComposite extends Composite {
 				} else if (object instanceof UIControlDirective) {
 					dbo = (UIControlDirective)object;
 					do {
-						UIControlDirective directive = (UIControlDirective)dbo;					
-						
+						UIControlDirective directive = (UIControlDirective)dbo;
+
 						String rootDboName = "";
 						if (directive.getPage() != null) {
 							rootDboName = directive.getPage().getName();
 						} else if (directive.getMenu() != null) {
 							rootDboName = directive.getMenu().getName();
 						}
-						
+
 						MobileSmartSourceType msst = directive.getSourceSmartType();
 						MobileSmartSource mss = msst.getSmartSource();
 						if (mss != null) {
@@ -1054,14 +1654,14 @@ public class NgxPickerComposite extends Composite {
 		data.put("searchPath", searchPath);
 		return data;
 	}
-	
+
 	private void cleanJsonModel(Object object) {
 		if (object != null) {
 			if (object instanceof JSONObject) {
 				JSONObject jsonObject = (JSONObject) object;
 				jsonObject.remove("text");
 				jsonObject.remove("attr");
-				
+
 				JSONArray names = jsonObject.names();
 				if (names != null) {
 					for (int i = 0; i < names.length(); i++) {
@@ -1085,14 +1685,14 @@ public class NgxPickerComposite extends Composite {
 			}
 		}
 	}
-	
+
 	private JSONObject getJsonModel(Map<String, Object> data, DatabaseObject databaseObject) throws Exception {
 		JSONObject jsonModel = new JSONObject();
-		
+
 		Map<String, String> params;
 		DatabaseObject dbo;
 		String dataPath;
-		
+
 		if (databaseObject == null) {
 			dbo = (DatabaseObject) data.get("databaseObject");
 			params = GenericUtils.cast(data.get("params"));
@@ -1102,30 +1702,30 @@ public class NgxPickerComposite extends Composite {
 			params = new HashMap<String, String>();
 			dataPath = "";
 		}
-		
+
 		if (dbo != null) {
 			// case of requestable
 			if (dbo instanceof RequestableObject) {
 				RequestableObject ro = (RequestableObject)dbo;
-				
+
 				Project project = ro.getProject();
 				String responseEltName = ro.getXsdTypePrefix() + ro.getName() + "Response";
 				boolean isDocumentNode = JsonRoot.docNode.equals(project.getJsonRoot()) && dataPath.isEmpty();
-				
+
 				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName());
 				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, ro);
 				if (xso != null) {
 					Document document = XmlSchemaUtils.getDomInstance(xso);
 					//System.out.println(XMLUtils.prettyPrintDOM(document));
-					
+
 					String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
 					JSONObject jsonObject = new JSONObject(jsonString);
-					
+
 					String searchPath = "document."+ responseEltName +".response";
 					searchPath += isDocumentNode || !dataPath.startsWith(".document")? dataPath : dataPath.replaceFirst("\\.document", "");
-					
+
 					JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-					
+
 					jsonModel = isDocumentNode ? new JSONObject().put("document", jsonOutput) : jsonOutput;
 				}
 			}
@@ -1136,7 +1736,7 @@ public class NgxPickerComposite extends Composite {
 				String view = params.get("view");
 				String viewName = ddoc + "/" + view;
 				String includeDocs = params.get("include_docs");
-				
+
 				Display.getDefault().asyncExec(new Runnable() {
 					public void run() {
 						IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -1145,29 +1745,29 @@ public class NgxPickerComposite extends Composite {
 						if (connectorEditor == null) {
 							try {
 								connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-												"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+										"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
 							} catch (PartInitException e) {
 								ConvertigoPlugin.logException(e,
 										"Error while loading the connector editor '"
 												+ connector.getName() + "'");
 							}
 						}
-						
-	    				if (connectorEditor != null) {
-	    					// activate connector's editor
-	    					activePage.activate(connectorEditor);
-	    					
-	    					// set transaction's parameters
-	    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-	    					((GetViewTransaction)transaction).setViewname(viewName);
-	   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
-	   										    					
-	    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-	   						view_reduce.setValueOrNull(false);
-	    					
-	    					// execute view transaction
-	    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
-	    				}
+
+						if (connectorEditor != null) {
+							// activate connector's editor
+							activePage.activate(connectorEditor);
+
+							// set transaction's parameters
+							Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+							((GetViewTransaction)transaction).setViewname(viewName);
+							((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+
+							Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+							view_reduce.setValueOrNull(false);
+
+							// execute view transaction
+							connectorEditor.getDocument(CouchDbConnector.internalView, false);
+						}
 					}
 				});
 			}
@@ -1175,35 +1775,35 @@ public class NgxPickerComposite extends Composite {
 			else if (dbo instanceof UIForm) {
 				//JSONObject jsonObject = new JSONObject("{\"controls\":{\"['area']\":{\"value\":\"\"}}}");
 				JSONObject jsonObject = new JSONObject(((UIForm)dbo).computeJsonModel());
-				
+
 				String searchPath = dataPath;
-				
+
 				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-				
+
 				jsonModel = jsonOutput;
 			}
 			// case of UIACtionStack
 			else if (dbo instanceof UIActionStack) {
 				JSONObject jsonObject = new JSONObject(((UIActionStack)dbo).computeJsonModel());
-				
+
 				String searchPath = dataPath;
-				
+
 				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-				
+
 				jsonModel = jsonOutput;
 			}
 			// case of UIDynamicAction or UICustomAction
 			else if (dbo instanceof IAction) {
 				JSONObject jsonObject = new JSONObject();
-				
+
 				if (dbo instanceof UIDynamicAction) {
 					UIDynamicAction uida = (UIDynamicAction)dbo;
 					jsonObject = new JSONObject(uida.computeJsonModel());
-					
+
 					IonBean ionBean = uida.getIonBean();
 					if (ionBean != null) {
 						String name = ionBean.getName();
-						
+
 						if ("CallSequenceAction".equals(name)) {
 							String qname = ionBean.getProperty("requestable").getValue().toString();
 							DatabaseObject sequence = Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
@@ -1221,7 +1821,7 @@ public class NgxPickerComposite extends Composite {
 							if (connector != null) {
 								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(connector.getProject().getName());
 								AbstractCouchDbTransaction act = null;
-								
+
 								if ("all".equals(verb))
 									act = new AllDocsTransaction();
 								else if ("create".equals(verb))
@@ -1244,19 +1844,19 @@ public class NgxPickerComposite extends Composite {
 									act = new ResetDatabaseTransaction();
 								else if ("view".equals(verb))
 									act = new GetViewTransaction();
-								
+
 								if (act != null) {
 									QName typeQName = act.getComplexTypeAffectation();
 									XmlSchemaType xmlSchemaType = schema.getTypeByName(typeQName);
 									Document document = XmlSchemaUtils.getDomInstance(xmlSchemaType);
-									
+
 									String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
 									JSONObject jsonOutput = new JSONObject(jsonString).getJSONObject("document");
 									cleanJsonModel(jsonOutput);
 									jsonOutput.remove("_c8oMeta");
 									jsonOutput.remove("error");
 									jsonOutput.remove("reason");
-									
+
 									if (jsonObject.has("out")) {
 										jsonObject.put("out", jsonOutput);
 									}
@@ -1276,42 +1876,42 @@ public class NgxPickerComposite extends Composite {
 										if (connectorEditor == null) {
 											try {
 												connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-																"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+														"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
 											} catch (PartInitException e) {
 												ConvertigoPlugin.logException(e,
 														"Error while loading the connector editor '"
 																+ connector.getName() + "'");
 											}
 										}
-										
-					    				if (connectorEditor != null) {
-					    					// activate connector's editor
-					    					activePage.activate(connectorEditor);
-					    					
-					    					// set transaction's parameters
-					    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalDocument);
-					    					Variable var_docid = ((GetDocumentTransaction)transaction).getVariable(CouchParam.docid.param());
-					    					var_docid.setValueOrNull(docid);
-					    					
-					    					// execute view transaction
-					    					connectorEditor.getDocument(CouchDbConnector.internalDocument, false);
-					    				}
+
+										if (connectorEditor != null) {
+											// activate connector's editor
+											activePage.activate(connectorEditor);
+
+											// set transaction's parameters
+											Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalDocument);
+											Variable var_docid = ((GetDocumentTransaction)transaction).getVariable(CouchParam.docid.param());
+											var_docid.setValueOrNull(docid);
+
+											// execute view transaction
+											connectorEditor.getDocument(CouchDbConnector.internalDocument, false);
+										}
 									}
 								});
-								
+
 							}
 						}
 						else if ("FullSyncViewAction".equals(name)) {
 							String fsview = ionBean.getProperty("fsview").getValue().toString();
 							String includeDocs =  ionBean.getProperty("include_docs").getValue().toString();
 							String reduce =  ionBean.getProperty("reduce").getValue().toString();
-							
+
 							String qname = fsview.substring(0, fsview.lastIndexOf('.'));
 							DesignDocument dd = (DesignDocument) Engine.theApp.databaseObjectsManager.getDatabaseObjectByQName(qname);
 							Connector connector = dd.getConnector();
-							
+
 							String viewName = dd.getName() + "/" + fsview.substring(fsview.lastIndexOf('.')+1);
-							
+
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
 									IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -1320,29 +1920,29 @@ public class NgxPickerComposite extends Composite {
 									if (connectorEditor == null) {
 										try {
 											connectorEditor = (ConnectorEditor) activePage.openEditor(new ConnectorEditorInput(connector),
-															"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
+													"com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor");
 										} catch (PartInitException e) {
 											ConvertigoPlugin.logException(e,
 													"Error while loading the connector editor '"
 															+ connector.getName() + "'");
 										}
 									}
-									
-				    				if (connectorEditor != null) {
-				    					// activate connector's editor
-				    					activePage.activate(connectorEditor);
-				    					
-				    					// set transaction's parameters
-				    					Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
-				    					((GetViewTransaction)transaction).setViewname(viewName);
-				   						((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
-				   										    					
-				    					Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
-				   						view_reduce.setValueOrNull(reduce);
-				    					
-				    					// execute view transaction
-				    					connectorEditor.getDocument(CouchDbConnector.internalView, false);
-				    				}
+
+									if (connectorEditor != null) {
+										// activate connector's editor
+										activePage.activate(connectorEditor);
+
+										// set transaction's parameters
+										Transaction transaction = connector.getTransactionByName(CouchDbConnector.internalView);
+										((GetViewTransaction)transaction).setViewname(viewName);
+										((GetViewTransaction)transaction).setQ_include_docs(includeDocs);
+
+										Variable view_reduce = ((GetViewTransaction)transaction).getVariable(CouchParam.prefix + "reduce");
+										view_reduce.setValueOrNull(reduce);
+
+										// execute view transaction
+										connectorEditor.getDocument(CouchDbConnector.internalView, false);
+									}
 								}
 							});
 						} else if (name.startsWith("FullSync")) {
@@ -1352,7 +1952,7 @@ public class NgxPickerComposite extends Composite {
 								if (connector != null) {
 									XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(connector.getProject().getName());
 									AbstractCouchDbTransaction act = null;
-									
+
 									if ("FullSyncDeleteAction".equals(name))
 										act = new DeleteDocumentTransaction();
 									else if ("FullSyncDeleteAttachmentAction".equals(name))
@@ -1361,19 +1961,19 @@ public class NgxPickerComposite extends Composite {
 										act = new PostDocumentTransaction();
 									else if ("FullSyncPutAttachmentAction".equals(name))
 										act = new PutDocumentAttachmentTransaction();
-									
+
 									if (act != null) {
 										QName typeQName = act.getComplexTypeAffectation();
 										XmlSchemaType xmlSchemaType = schema.getTypeByName(typeQName);
 										Document document = XmlSchemaUtils.getDomInstance(xmlSchemaType);
-										
+
 										String jsonString = XMLUtils.XmlToJson(document.getDocumentElement(), true, true);
 										JSONObject jsonOutput = new JSONObject(jsonString).getJSONObject("document");
 										cleanJsonModel(jsonOutput);
 										jsonOutput.remove("_c8oMeta");
 										jsonOutput.remove("error");
 										jsonOutput.remove("reason");
-										
+
 										if (jsonObject.has("out")) {
 											jsonObject.put("out", jsonOutput);
 										}
@@ -1386,21 +1986,21 @@ public class NgxPickerComposite extends Composite {
 				else if (dbo instanceof UICustomAction) {
 					jsonObject = new JSONObject(((UICustomAction)dbo).computeJsonModel());
 				}
-				
+
 				String searchPath = dataPath;
-				
+
 				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-				
+
 				jsonModel = jsonOutput;
 			}
 			// case of UISharedComponent
 			else if (dbo instanceof UISharedComponent) {
 				JSONObject jsonObject = new JSONObject(((UISharedComponent)dbo).computeJsonModel());
-				
+
 				String searchPath = dataPath;
-				
+
 				JSONObject jsonOutput = findJSONObject(jsonObject,searchPath);
-				
+
 				jsonModel = jsonOutput;
 			}
 			// case of ApplicationComponent
@@ -1415,25 +2015,25 @@ public class NgxPickerComposite extends Composite {
 		}
 		return jsonModel;
 	}
-	
+
 	private void updateModel(TVObject tvObject) {
 		Object object = tvObject.getObject();
 		if (object != null) {
 			Thread t = new Thread(new Runnable() {
 				public void run() {
 					isUpdating = true;
-					
+
 					Display.getDefault().asyncExec(new Runnable() {
 						public void run() {
 							setWidgetsEnabled(false);
 							updateMessage("generating model...");
 						}
 					});
-					
+
 					try {
 						Map<String, Object> data = lookupModelData(tvObject);
 						JSONObject jsonModel = getJsonModel(data, null);
-						
+
 						Display.getDefault().asyncExec(new Runnable() {
 							public void run() {
 								modelTreeViewer.setInput(jsonModel);
@@ -1444,7 +2044,7 @@ public class NgxPickerComposite extends Composite {
 						});
 					} catch (Exception e) {
 						e.printStackTrace();
-						
+
 						Display.getDefault().asyncExec(new Runnable() {
 							public void run() {
 								setWidgetsEnabled(true);
@@ -1461,14 +2061,14 @@ public class NgxPickerComposite extends Composite {
 			modelTreeViewer.setInput(null);
 		}
 	}
-	
+
 	private JSONObject findJSONObject(JSONObject jsonParent, String searchPath) {
 		try {
 			JSONObject jsonObject = jsonParent;
 			String path = searchPath;
 			path = path.replaceAll("\\['", ".");
 			path = path.replaceAll("'\\]", ".");
-			
+
 			String[] keys = path.split("\\.");
 			for (String key: keys) {
 				if (key.startsWith("[") && key.endsWith("]"))
@@ -1499,17 +2099,17 @@ public class NgxPickerComposite extends Composite {
 		}
 		return null;
 	}
-	
+
 	private void fillCheckedList(TreeItem parent, List<String> csSourceList) {
 		if (csSourceList != null && !csSourceList.isEmpty()) {
 			TreeItem[] items = null;
-			
+
 			if (parent == null) {
 				items = checkboxTreeViewer.getTree().getItems();
 			}
 			else {
 				items = parent.getItems();
-				
+
 				TVObject tvo = (TVObject) parent.getData();
 				String tvoSource = tvo.getSource();
 				if (csSourceList.contains(tvoSource)) {
@@ -1520,17 +2120,17 @@ public class NgxPickerComposite extends Composite {
 						checkedList.add(tvo);
 				}
 			}
-			
+
 			for (int i=0; i<items.length; i++) {
 				fillCheckedList(items[i], csSourceList);
 			}
 		}
 	}
-	
+
 	private TVObject findModelItem(TreeItem parent, String modelPath) {
 		if (modelPath != null && !modelPath.isEmpty()) {
 			TreeItem[] items = null;
-			
+
 			items = parent == null ? modelTreeViewer.getTree().getItems() : parent.getItems();
 			for (int i=0; i<items.length; i++) {
 				TreeItem treeItem = items[i];
@@ -1548,19 +2148,19 @@ public class NgxPickerComposite extends Composite {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public boolean setFocus() {
 		return checkboxTreeViewer.getTree().setFocus();
 	}
-	
+
 	public void setCurrentInput(Object selected, String source) {
 		if (isUpdating) return;
-		
+
 		currentMC = null;
 		setWidgetsEnabled(true);
-		
-		if (selected instanceof NgxComponentTreeObject) {
+
+		if (selected instanceof NgxPageComponentTreeObject || selected instanceof NgxUIComponentTreeObject) {
 			UIComponent uic = null;
 			if (selected instanceof NgxPageComponentTreeObject) {
 				currentMC = ((NgxPageComponentTreeObject) selected).getObject();
@@ -1573,7 +2173,7 @@ public class NgxPickerComposite extends Composite {
 				currentMC = currentMC == null ? uic.getSharedComponent() : currentMC;
 				currentMC = currentMC == null ? uic.getApplication() : currentMC;
 			}
-			
+
 			if (currentMC == null) {
 				resetViewers();
 			} else {
@@ -1582,49 +2182,55 @@ public class NgxPickerComposite extends Composite {
 					checkboxTreeViewer.setInput(currentMC);
 					initTreeSelection(checkboxTreeViewer, null);
 				}
-				
+				if (btnIcon.getSelection()) {
+					btnIcon.notifyListeners(SWT.Selection, null);
+				}
+				if (btnAsset.getSelection()) {
+					btnAsset.notifyListeners(SWT.Selection, null);
+				}
+
 				MobileSmartSource cs = MobileSmartSource.valueOf(source);
 				if (cs != null) {
 					NgxPickerContentProvider contentProvider = (NgxPickerContentProvider) checkboxTreeViewer.getContentProvider();
 					if (isParentDialog) { // when dbo's property edition
 						contentProvider.setSelectedDbo(uic);
 					}
-					
+
 					ToolItem buttonToSelect = btnSequence;
 					currentSource = source;
 					Filter filter = cs.getFilter();
-					if (Filter.Sequence.equals(filter)) {
-						buttonToSelect = btnSequence;
-					}
-					if (Filter.Database.equals(filter)) {
-						buttonToSelect = btnDatabase;
-					}
-					if (Filter.Action.equals(filter)) {
-						buttonToSelect = btnAction;
-					}
-					if (Filter.Shared.equals(filter)) {
-						buttonToSelect = btnShared;
-					}
-					if (Filter.Iteration.equals(filter)) {
-						buttonToSelect = btnIteration;
-					}
-					if (Filter.Form.equals(filter)) {
-						buttonToSelect = btnForm;
-					}
-					if (Filter.Global.equals(filter)) {
-						buttonToSelect = btnGlobal;
-					}
-					if (Filter.Local.equals(filter)) {
-						buttonToSelect = btnLocal;
+					for (ToolItem i: btnSequence.getParent().getItems()) {
+						if (filter == get(i, Filter.class)) {
+							buttonToSelect = i;
+							if (Boolean.TRUE == i.getData("updateTexts")) {
+								updateTexts(cs);
+							}
+						}
 					}
 					buttonToSelect.notifyListeners(SWT.Selection, null);
 				}
-				
+
 			}
 			updateMessage();
-		} else {
-			resetViewers();
-			updateMessage();
+			return;
 		}
+		if (selected instanceof DatabaseObjectTreeObject) {
+			try {
+				ProjectTreeObject prjt = ((DatabaseObjectTreeObject) selected).getProjectTreeObject();
+				MobileApplication app = prjt.getObject().getMobileApplication();
+				IApplicationComponent iapp = app.getApplicationComponent();
+				if (iapp instanceof ApplicationComponent) {
+					TreeObject dbot = prjt.findTreeObjectByUserObject(((ApplicationComponent) iapp).getRootPage());
+					if (dbot != null) {
+						setCurrentInput(dbot, source);
+						return;
+					}
+				}
+			} catch (Exception e) {
+			}
+		}
+		
+		resetViewers();
+		updateMessage();
 	}
 }

@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.beans.BeanInfo;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
@@ -34,6 +35,10 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -53,6 +58,7 @@ import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIComponent;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
+import com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditor;
 import com.twinsoft.convertigo.eclipse.editors.ngx.ApplicationComponentEditorInput;
@@ -62,6 +68,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject implements IEditableTreeObject {
 	public static final String P_TPL_VERSION = "#tplVersion";
@@ -89,6 +96,30 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 		return super.testAttribute(target, name, value);
 	}
 
+	
+	@Override
+	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectRemoved(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
+			DatabaseObject deletedObject = deletedTreeObject.getObject();
+			try {
+				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
+					// a shared component has been deleted from this app
+					if (deletedObject instanceof UISharedRegularComponent) {
+						File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)deletedObject).getIconFileName());
+						FileUtils.deleteQuietly(iconFile);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
+
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
@@ -103,12 +134,23 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 			DatabaseObject dbo = doto.getObject();
 			
 			try {
-				// we add a page to this app
-				if (dbo instanceof PageComponent && getObject().equals(dbo.getParent())) {
-					PageComponent page = (PageComponent)dbo;
-					if (page.bNew) {
-						page.markPageAsDirty();
+				if (dbo.bNew && getObject().equals(dbo.getParent())) {
+					// a page has been added to this app
+					if (dbo instanceof PageComponent) {
+						((PageComponent)dbo).markPageAsDirty();
 					}
+					
+					// a shared component has been added to this app
+					if (dbo instanceof UISharedRegularComponent) {
+						File iconFile = new File(getObject().getProject().getDirPath(), ((UISharedRegularComponent)dbo).getIconFileName());
+						if (!iconFile.exists()) {
+							Image image = ConvertigoPlugin.getDefault().getBeanIcon(dbo, BeanInfo.ICON_COLOR_32x32);
+							ImageLoader saver = new ImageLoader();
+							saver.data = new ImageData[] { image.getImageData() };
+							saver.save(iconFile.getCanonicalPath(), SWT.IMAGE_PNG);
+						}
+					}
+					
 				}
 			} catch (Exception e) {}
 		}
@@ -134,9 +176,30 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 			try {
 				ApplicationComponent ac = getObject();
 				
-				// for Page or Menu or Route
+				// for Page or Menu or Component or Action
 				if (ac.equals(dbo.getParent())) {
 					markApplicationAsDirty(done);
+					
+					if (propertyName.equals("name")) {
+						String oldName = (String)oldValue;
+						String newName = (String)newValue;
+						
+						boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
+						if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
+							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+							
+							if (dbo instanceof UISharedRegularComponent) {
+								UISharedRegularComponent uisc = (UISharedRegularComponent)dbo;
+								try {
+									File oldIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(oldName));
+									File newIconFile = new File(ac.getProject().getDirPath(), uisc.getIconFileName(newName));
+									if (oldIconFile.exists() && !newIconFile.exists()) {
+										oldIconFile.renameTo(newIconFile);
+									}
+								} catch (Exception e) {}
+							}
+						}
+					}
 				}
 				// for any component inside a route
 				else if (ac.equals(dbo.getParent().getParent())) {
@@ -196,6 +259,7 @@ public class NgxApplicationComponentTreeObject extends NgxComponentTreeObject im
 					} else if (propertyName.equals("tplProjectName")) {
 						// close app editor and reinitialize builder
 						Project project = ac.getProject();
+						Engine.logStudio.info("tplProjectName property of " + project + " changed, reloading builder...");
 						closeAllEditors(false);
 						MobileBuilder.releaseBuilder(project);
 						MobileBuilder.initBuilder(project);

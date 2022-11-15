@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.ngx.components.UISharedComponentEvent.Compo
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.mobile.MobileBuilder;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class UISharedRegularComponent extends UISharedComponent implements ISharedComponent, IScriptComponent, IStyleGenerator {
 
@@ -50,13 +51,33 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	}
 	
 	@Override
+	public void setName(String name) throws EngineException {
+		if (StringUtils.normalize(name).startsWith("_")) {
+			throw new EngineException("Name must begin with a letter");
+		}
+		super.setName(name);
+	}
+	
+	public String getIconFileName() {
+		return getIconFileName(getName());
+	}
+	
+	public String getIconFileName(String name) {
+		return (name + "_icon_32x32.png").toLowerCase();
+	}
+	
+	@Override
 	public String getIdentifier() {
 		return "comp"+ priority;
 	}
 
+	public String getNsIdentifier() {
+		return UISharedComponent.getNsCompIdentifier(this);
+	}
+	
 	@Override
 	public String getSelector() {
-		return "comp-" + getName().toLowerCase();
+		return UISharedComponent.getNsCompFileName(this);
 	}
 	
 	@Override
@@ -624,12 +645,26 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	public String computeStyle() {
-		StringBuilder uses = new StringBuilder();
+		StringBuilder families = new StringBuilder();
 		StringBuilder styles = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
 		for (UIComponent component: getUIComponentList()) {
-			if (component instanceof UIStyle) {
+			if (component instanceof UIFont) {
+				UIFont font = (UIFont)component;
+				String fontImport = font.computeStyle();
+				if (!fontImport.isEmpty()) {
+					styles.append(fontImport).append(System.getProperty("line.separator"));
+				}
+				if (font.isDefault()) {
+					String fontFamily = font.getFontSource().getFontFamily();
+					if (!fontFamily.isEmpty()) {
+						families.append(families.length() > 0 ? ", ": "");
+						families.append("\""+ fontFamily +"\"");
+					}
+				}
+			}
+			else if (component instanceof UIStyle) {
 				String tpl = component.computeTemplate();
 				if (!tpl.isEmpty()) {
 					styles.append(tpl).append(System.getProperty("line.separator"));
@@ -638,10 +673,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 			else if (component instanceof UIUseShared) {
 				String tpl = ((UIUseShared)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@use") && uses.indexOf(tpl) != -1) {
-						continue;
-					}
-					uses.append(tpl);
+					others.append(tpl);
 				}
 			}
 			else if (component instanceof UIElement) {
@@ -653,11 +685,15 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (uses.length() > 0) {
-			sb.append(uses).append(System.getProperty("line.separator"));
-		}
 		if (others.length() > 0) {
 			sb.append(others).append(System.getProperty("line.separator"));
+		}
+		if (families.length() > 0) {
+			sb.append(System.getProperty("line.separator"));
+			sb.append(getSelector() +" {").append(System.getProperty("line.separator"));
+			sb.append("\tfont-family: ").append(families).append(";").append(System.getProperty("line.separator"));
+			sb.append("}").append(System.getProperty("line.separator"));
+			sb.append(System.getProperty("line.separator"));
 		}
 		if (styles.length() > 0) {
 			sb.append(styles).append(System.getProperty("line.separator"));
@@ -667,15 +703,14 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	
 	@Override
 	protected String computeStyle(UIUseShared uiUse) {
-		String c8o_CompName = getName();
 		String c8o_CompScssPath;
 		MobileComponent container = (MobileComponent) uiUse.getMainScriptComponent();
 		try {
-			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
-									+ "/" +c8o_CompName.toLowerCase() + ".scss").getCanonicalPath());
+			Path scssPath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(this)
+									+ "/" +UISharedComponent.getNsCompFileName(this) + ".scss").getCanonicalPath());
 			c8o_CompScssPath = getContributor().getContainerPath(container).relativize(scssPath).toString().replace('\\', '/');
 		} catch (Exception e) {
-			c8o_CompScssPath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".scss";
+			c8o_CompScssPath = "../components/"+ UISharedComponent.getNsCompDirName(this) + "/" +UISharedComponent.getNsCompFileName(this) + ".scss";
 		}
 		
 		return "@use \""+ c8o_CompScssPath + "\";" + System.lineSeparator();
@@ -720,9 +755,7 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 	}
 	
 	protected Contributor getContributor(UIUseShared uiUse) {
-		final String compName = getName();
-		final String c8o_CompName = compName;
-		final String c8o_CompModuleName = compName + "Module";
+		final String c8o_CompModuleName = UISharedComponent.getNsCompName(UISharedRegularComponent.this) + "Module";
 		final UIUseShared use = uiUse;
 		
 		return new Contributor() {
@@ -759,11 +792,11 @@ public class UISharedRegularComponent extends UISharedComponent implements IShar
 					MobileComponent container = getContainer();
 					String c8o_CompModulePath;
 					try {
-						Path modulePath = Paths.get(new File (container.getProject().getDirFile(), "_private/ionic/src/app/components/"+c8o_CompName.toLowerCase()
-												+ "/" +c8o_CompName.toLowerCase() + ".module").getCanonicalPath());
+						Path modulePath = Paths.get(new File (container.getProject().getDirFile(), UISharedComponent.getNsCompDirPath(UISharedRegularComponent.this)
+												+ "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module").getCanonicalPath());
 						c8o_CompModulePath = getContainerPath(container).relativize(modulePath).toString().replace('\\', '/');
 					} catch (Exception e) {
-						c8o_CompModulePath = "../components/"+ c8o_CompName.toLowerCase() + "/" +c8o_CompName.toLowerCase() + ".module";
+						c8o_CompModulePath = "../components/"+ UISharedComponent.getNsCompDirName(UISharedRegularComponent.this) + "/" + UISharedComponent.getNsCompFileName(UISharedRegularComponent.this) + ".module";
 					}
 					imports.put(c8o_CompModuleName, c8o_CompModulePath);
 				}

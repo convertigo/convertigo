@@ -19,62 +19,68 @@ if not, see <http://www.gnu.org/licenses/>.
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Convertigo Enterprise Mobility Server - Administration Console</title>
-	<link href="../favicon.ico" rel="shortcut icon" type="image/x-icon">
-	<link rel="stylesheet" type="text/css" href="styles/jquery/redmond/jquery-ui.css" />
-	<link rel="stylesheet" type="text/css" href="styles/jquery/customRedmond/custom_jquery-ui.css" />
-	<link rel="stylesheet" type="text/css" href="styles/jquery/ui.jqgrid.css" />
+    <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="styles/jquery/redmond/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="styles/jquery/customRedmond/custom_jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="styles/jquery/ui.jqgrid.css" />
     <link rel="stylesheet" type="text/css" href="styles/jquery/jquery.treeview.css" />
     <link rel="stylesheet" type="text/css" href="styles/jquery/jquery.contextMenu.css" />
-	<link rel="stylesheet" type="text/css" href="styles/admin.css" />
-	<link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-	
-	<!-- jquery resources -->
-	<script type="text/javascript" src="js/jquery/jquery.min.js"></script>		
-	<script type="text/javascript" src="js/jquery/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="js/jquery/jqgrid/i18n/grid.locale-en.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles/admin.css" />
+    <link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    
+    <!-- jquery resources -->
+    <script type="text/javascript" src="js/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="js/jquery/jqgrid/i18n/grid.locale-en.js"></script>
     <script type="text/javascript" src="js/jquery/jqgrid/jquery.jqGrid.min.js"></script>
     <script type="text/javascript" src="js/jquery/jquery.contextMenu.js"></script>
     <script type="text/javascript" src="js/jquery/jquery.mousewheel.min.js"></script>
-			
-	<!-- template resources -->	
-    <script type="text/javascript" src="js/admin.js"></script>    
-	<script type="text/javascript" src="js/jquery/jquery.flot.js"></script>
-	<script type="text/javascript" src="js/jquery/excanvas.min.js"></script>
-	<script type="text/javascript" src="js/staticlogo.js"></script>
-	<script type="text/javascript" src="js/dateFormat.js"></script>	
-	<script type="text/javascript" src="js/ajaxupload.js"></script>
-	<script type="text/javascript" src="js/cronpicker.js"></script>
-	
+            
+    <!-- template resources -->
+    <script type="text/javascript" src="js/admin.js"></script>
+    <script type="text/javascript" src="js/jquery/jquery.flot.js"></script>
+    <script type="text/javascript" src="js/jquery/excanvas.min.js"></script>
+    <script type="text/javascript" src="js/staticlogo.js"></script>
+    <script type="text/javascript" src="js/dateFormat.js"></script>
+    <script type="text/javascript" src="js/ajaxupload.js"></script>
+    <script type="text/javascript" src="js/cronpicker.js"></script>
+    
 </head>
 
 <body>
 
     <div id="mainglobal">
-    	
-        <!-- Content --> 
+        
+        <!-- Content -->
         <div id="maincontainer">
             <div class="maincontent_bgleft">
                 <div class="maincontent_bgright">
                     
-                    <!-- Header -->       
+                    <!-- Header -->
                     <div id="mainheader">
-                    	
-                    	<div id="logOut" >                    		
-	                        <a ><div class="main_picto_close"></div></a>
-	                        <div class="main_top">	                        	 
-	                             
-	                        </div>
+                        
+                        <div id="logOut" >
+                            <a ><div class="main_picto_close"></div></a>
+                            <div class="main_top">
+                                 
+                            </div>
                         </div>
                         
                         <div id="mainlogo"></div>
-                        <h1 class="adminTitle">\\ Administration Console</h1>                       
+                        <div class="adminTitle">
+                            <span>\\ Administration Console</span>
+                            <span><a href="https://github.com/convertigo/convertigo" target="_blank">Star us on GitHub <img src="images/github-32.png"></a></span>
+                            <span><a href="https://twitter.com/convertigo" target="_blank"><img src="images/twitter-32.png"></a></span>
+                            <span><a href="https://www.linkedin.com/company/convertigo/" target="_blank"><img src="images/linkedin-32.png"></a></span>
+                        </div>
+                        <span title="server time" id="mainDate"></span>
                         <hr>
                     </div>
                     
                     <table id="maincontent">
-                    	<tr valign="top">
+                        <tr valign="top">
                             <td width="175">
                                 <!-- Menu -->
                                 <div id="mainmenu">
@@ -85,28 +91,28 @@ if not, see <http://www.gnu.org/licenses/>.
                                                 <div style="margin-left: -21px;" class="mainmenu_mb_menuV">
                                                     <ul class="mainmenu_ulG">
                                                         <li class="mainmenu_nolist">
-                                                        	<a href="#Home"><img title="Home" alt="Home" id="widgetButtonHome" src="images/menu/01.png" class="loadWidgetsButton">
+                                                            <a href="#Home"><img title="Home" alt="Home" id="widgetButtonHome" src="images/menu/01.png" class="loadWidgetsButton">
                                                            </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Connections"><img title="Connections" alt="Connections" src="images/menu/04.png" id="widgetButtonConnections" class="loadWidgetsButton">
-                                                        	</a>
+                                                            </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Certificates"><img title="Certificates" alt="Certificates" src="images/menu/09.png" id="widgetButtonCertificates" class="loadWidgetsButton">
-                                                        	</a>
-                                                        </li>                                                        
+                                                            </a>
+                                                        </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#TracePlayer"><img title="Trace Player" alt="Trace player" src="images/menu/06.png" id="widgetButtonTracePlayer" class="loadWidgetsButton">
                                                           </a>
-                                                        </li>                                                        
+                                                        </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Scheduler"><img title="Scheduler" alt="Scheduler" src="images/menu/05.png" id="widgetButtonScheduler" class="loadWidgetsButton">
-                                                        	</a>
+                                                            </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Roles"><img title="Roles" alt="Roles" src="images/menu/16.png" id="widgetButtonRoles" class="loadWidgetsButton">
-                                                        	</a>
+                                                            </a>
                                                         </li>
                                                     </ul>
                                                 </div>
@@ -120,35 +126,35 @@ if not, see <http://www.gnu.org/licenses/>.
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Projects"><img title="Projects" alt="Projects" src="images/menu/03.png" id="widgetButtonProjects" class="loadWidgetsButton">
-                                                        	</a>
-                                                        </li>                                                        
+                                                            </a>
+                                                        </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Logs"><img title="Logs" alt="Logs" src="images/menu/07.png" id="widgetButtonLogs" class="loadWidgetsButton">
-                                                        	</a>
-                                                        </li>                                                        
+                                                            </a>
+                                                        </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#Cache"><img title="Cache" alt="Cache" src="images/menu/10.png" id="widgetButtonCache" class="loadWidgetsButton">
-                                                        	</a>
-                                                        </li>                                                       
+                                                            </a>
+                                                        </li>
                                                         <li class="mainmenu_nolist main-display-none">
                                                             <a href="#Keys"><img title="Keys" alt="Keys" src="images/menu/11.png" id="widgetButtonKeys" class="loadWidgetsButton">
-                                                        	</a>
-                                                        </li> 
+                                                            </a>
+                                                        </li>
                                                         <li class="mainmenu_nolist main-display-none">
                                                             <a href="#GlobalSymbols"><img title="Global Symbols" alt="GlobalSymbols" src="images/menu/14.png" id="widgetButtonGlobalSymbols" class="loadWidgetsButton">
-                                                        	</a>
+                                                            </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="#FullSync"><img title="FullSync" alt="FullSync" src="images/menu/17.png" id="widgetButtonFullSync" class="loadWidgetsButton">
-                                                        	</a>
-                                                        </li>                                                
+                                                            </a>
+                                                        </li>
                                                     </ul>
                                                 </div>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <hr id="sperationOfMenus" />                                   
+                                    <hr id="sperationOfMenus" />
                                     <table class="navigatemenu_tab">
                                         <tbody>
                                             <tr valign="top">
@@ -156,7 +162,7 @@ if not, see <http://www.gnu.org/licenses/>.
                                                 <div class="mainmenu_mb_menuV fix1">
                                                     <ul class="mainmenu_ulG">
                                                         <li class="mainmenu_nolist">
-                                                        	<a href="../index.html"><img title="Test Platform" alt="Test Platform" src="images/navigationImages/100x100_picto_test.png">
+                                                            <a href="../index.html"><img title="Test Platform" alt="Test Platform" src="images/navigationImages/100x100_picto_test.png">
                                                             </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
@@ -166,8 +172,8 @@ if not, see <http://www.gnu.org/licenses/>.
                                                         <li class="mainmenu_nolist">
                                                             <!-- <a href="https://www.convertigo.com/en/itcenter.html" target="_blank"> -->
                                                             <a href="https://www.convertigo.com/documentations" target="_blank"><img title="Documentation" alt="Documentation" src="images/navigationImages/100x100_picto_doc.png">
-                                                        	</a>
-                                                        </li>                                                                                                            
+                                                            </a>
+                                                        </li>
                                                     </ul>
                                                 </div>
                                                 </td>
@@ -175,19 +181,19 @@ if not, see <http://www.gnu.org/licenses/>.
                                                 <div class="mainmenu_mb_menuV fix2">
                                                     <ul class="mainmenu_ulD">
                                                         <li class="mainmenu_nolist">
-                                                        	<a id="swaggerLink" href="#" target="_blank"><img title="Swagger Console" alt="Swagger Console" src="images/navigationImages/100x100_picto_swagger.png">
+                                                            <a id="swaggerLink" href="#" target="_blank"><img title="Swagger Console" alt="Swagger Console" src="images/navigationImages/100x100_picto_swagger.png">
                                                             </a>
                                                         </li>
                                                         <li class="mainmenu_nolist">
                                                             <a href="https://www.convertigo.com/developers/" target="_blank"><img title="Developer network" alt="Developer Network" src="images/navigationImages/100x100_picto_itcenter.png">
-                                                        	</a>
+                                                            </a>
                                                         </li>
-                                                	</ul>
+                                                    </ul>
                                                 </div>
                                                 </td>
                                             </tr>
                                         </tbody>
-                                    </table>                                    
+                                    </table>
                                 </div>
                             </td>
                             <td>
@@ -198,11 +204,11 @@ if not, see <http://www.gnu.org/licenses/>.
                     </table>
                     
                     <div id="dlgConfirm" class="main-display-none">
-                    	<p id="dlgConfirmMessage" class="dlgInfoMessage"/>
-                    </div>  
+                        <p id="dlgConfirmMessage" class="dlgInfoMessage"/>
+                    </div>
                                    
                     <div id="dlgInfo" class="main-display-none">
-                    	<p id="dlgInfoMessage" class="dlgInfoMessage"/>
+                        <p id="dlgInfoMessage" class="dlgInfoMessage"/>
                     </div>
                     
                     <div id="dlgError" class="main-display-none">
@@ -218,8 +224,9 @@ if not, see <http://www.gnu.org/licenses/>.
             <div id="mainfooter">
                 <div class="mainfooter_bgleft"></div>
                 <div class="mainfooter_bgcenter"></div>
-                <div class="mainfooter_bgright"></div>      
+                <div class="mainfooter_bgright"></div>
                 <div class="mainfooter_copyright">
+                <br/>
                      <a href="https://www.convertigo.com">www.convertigo.com</a>
             <br/>
             Copyright &copy; 2001-2022 Convertigo SA. All rights reserved. &nbsp;
@@ -230,7 +237,7 @@ if not, see <http://www.gnu.org/licenses/>.
             
             <!-- Ajax wait div -->
 <!--             <div id="ajax_wait" title="Current server jobs"></div> -->
-        <!-- End Content --> 
+        <!-- End Content -->
         </div>
 
     </div>

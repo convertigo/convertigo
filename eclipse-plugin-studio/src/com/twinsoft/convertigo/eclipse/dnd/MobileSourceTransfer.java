@@ -19,17 +19,20 @@
 
 package com.twinsoft.convertigo.eclipse.dnd;
 
+import java.util.UUID;
+
 import org.eclipse.swt.dnd.ByteArrayTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.TransferData;
 
 public class MobileSourceTransfer extends ByteArrayTransfer {
 	private static final String MYTYPENAME = "MobileSource";
 	private static final int MYTYPEID = registerType(MYTYPENAME);
 	private static MobileSourceTransfer _instance = new MobileSourceTransfer();
+	private String lastKey = "";;
 	private MobileSource mobileSource;
 	
-	public MobileSourceTransfer() {
-		
+	private MobileSourceTransfer() {
 	}
 
 	public static MobileSourceTransfer getInstance () {
@@ -42,7 +45,7 @@ public class MobileSourceTransfer extends ByteArrayTransfer {
 	}
 	
 	@Override
-	protected int[] getTypeIds(){
+	protected int[] getTypeIds() {
 		return new int[] {MYTYPEID};
 	}
 
@@ -62,11 +65,25 @@ public class MobileSourceTransfer extends ByteArrayTransfer {
 		return mobileSource;
 	}
 
-	public void setMobileSource(Object mobileSource) {
+	public String setMobileSource(Object mobileSource) {
 		if (mobileSource instanceof MobileSource) {
 			this.mobileSource = (MobileSource) mobileSource;
 		} else {
 			this.mobileSource = null;
 		}
+		lastKey = "c8o-ngx-dnd:" + UUID.randomUUID().toString();
+		return lastKey;
+	}
+
+	@Override
+	public boolean isSupportedType(TransferData transferData) {
+		if (super.isSupportedType(transferData)) {
+			return true;
+		}
+		if (TextTransfer.getInstance().isSupportedType(transferData)) {
+			String lastKey = (String) TextTransfer.getInstance().nativeToJava(transferData);
+			return this.lastKey.equals(lastKey);
+		};
+		return false;
 	}
 }

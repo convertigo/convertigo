@@ -683,7 +683,7 @@ public class UICustomAction extends UIComponent implements IAction {
 			} else if (main instanceof PageComponent) {
 				classType = ((PageComponent)main).getName();
 			} else if (main instanceof UISharedComponent) {
-				classType = ((UISharedComponent)main).getName();
+				classType = UISharedComponent.getNsCompName((UISharedComponent)main);
 			}
 		}
 		return classType;

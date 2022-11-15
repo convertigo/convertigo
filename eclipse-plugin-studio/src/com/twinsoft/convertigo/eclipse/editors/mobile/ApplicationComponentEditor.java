@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.mobile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashSet;
@@ -1566,7 +1567,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				if (Engine.isWindows()) {
 					Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
 						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'",
-						"CALL", "TERMINATE").start();
+						"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
 					String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
 					int id = output.indexOf('\n');
@@ -1576,7 +1577,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					
 					process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
 							("Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\_private\\\\%'").replace("\\", "\\\\"),
-							"CALL", "TERMINATE").start();
+							"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
 					output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
 					id = output.indexOf('\n');
@@ -1586,7 +1587,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				} else {
 					Process process = new ProcessBuilder("/bin/bash", "-c",
 							"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\" | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
-					).start();
+					).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
 					int code = process.waitFor();
 					if (code == 0) {
 						retry = 0;

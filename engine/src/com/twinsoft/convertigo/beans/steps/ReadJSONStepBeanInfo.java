@@ -48,7 +48,7 @@ public class ReadJSONStepBeanInfo extends MySimpleBeanInfo{
 			properties[1] = new PropertyDescriptor("jsonSample", beanClass, "getJsonSample", "setJsonSample");
 			properties[1].setDisplayName(getExternalizedString("property.jsonSample.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.jsonSample.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("GenericTextEditor"));
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
 			properties[1].setValue(GENERIC_EDITOR_EXTENSION, "json");
 			properties[1].setExpert(true);
 		}

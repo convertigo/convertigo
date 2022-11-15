@@ -70,11 +70,6 @@ public class EmulatorTechnologyWizardPage extends WizardPage {
 		//dialogChanged();
 		setControl(container);
 	}
-	
-	@Override
-	public void performHelp() {
-		getPreviousPage().performHelp();
-	}
 
 	private void initialize() {
 		emulatorTechnologyCombo.select(emulatorTechnologyCombo.indexOf(EmulatorTechnologyEditor.IBM5250));
@@ -132,7 +127,7 @@ public class EmulatorTechnologyWizardPage extends WizardPage {
 				i ++;
 		}
 		if (found)
-			returnValue = classNames[i]; 
+			returnValue = classNames[i];
 		return returnValue;
 	}
 	

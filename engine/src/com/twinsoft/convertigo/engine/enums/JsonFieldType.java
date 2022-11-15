@@ -39,4 +39,18 @@ public enum JsonFieldType {
 	public String toString() {
 		return toString;
 	}
+	
+	public static JsonFieldType parse(String type) {
+		if (type != null) {
+			type = type.toLowerCase();
+			if (type.matches("number|int|integer|float|double")) {
+				return number;
+			} else if (type.matches("bool|boolean")) {
+				return bool;
+			} else if (type.equals("null")) {
+				return nul;
+			}
+		}
+		return string;
+	}
 }

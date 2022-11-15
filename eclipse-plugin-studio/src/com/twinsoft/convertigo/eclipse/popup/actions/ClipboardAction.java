@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -310,6 +311,20 @@ public class ClipboardAction extends MyAbstractAction {
                 }
         	}
 			
+            boolean needNgxPaletteReload = false;
+        	Object[] pastedObjects = clipboardManager.pastedObjects;
+        	if (pastedObjects != null) {
+	        	for (int i=0; i<pastedObjects.length; i++) {
+	        		Object object = pastedObjects[i];
+	        		if (object != null && 
+	        			 (object instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+	        				object instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent)) {
+	        			needNgxPaletteReload = true;
+	        			break;
+	        		}
+	        	}
+        	}
+        	
             // Updating the tree
             if (targetTreeObject != null) {
             	TreeObject treeObjectToReload = targetTreeObject;
@@ -339,6 +354,14 @@ public class ClipboardAction extends MyAbstractAction {
         			explorerView.objectChanged(new CompositeEvent(treeObjectToReload.getObject(),treeObjectToSelect.getPath()));
         		}
             }
+            
+			// Refresh ngx palette view
+			if (needNgxPaletteReload) {
+				NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
+				if (ngxPaletteView != null) {
+					ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+				}
+			}
 		}
 	}
 	

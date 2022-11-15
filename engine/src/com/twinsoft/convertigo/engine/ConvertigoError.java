@@ -32,10 +32,14 @@ import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.ErrorType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.Log;
 
@@ -260,15 +264,15 @@ public class ConvertigoError {
 		addXmlSchemaObjects(schema);
 	}
 	
-	public static ConvertigoError initError(ConvertigoException convertigoException) {
+	public static ConvertigoError initError(Exception convertigoException) {
 		return initError(ErrorType.Convertigo, convertigoException);
 	}
 
-	public static ConvertigoError initError(ErrorType errorType, ConvertigoException convertigoException) {
+	public static ConvertigoError initError(ErrorType errorType, Exception convertigoException) {
 		return initError(-1, errorType, convertigoException);
 	}
 	
-	public static ConvertigoError initError(int errorCode, ErrorType errorType, ConvertigoException convertigoException) {
+	public static ConvertigoError initError(int errorCode, ErrorType errorType, Exception convertigoException) {
 		return new ConvertigoError(errorCode, errorType, convertigoException);
 	}
 
@@ -276,5 +280,65 @@ public class ConvertigoError {
 		if (t instanceof ConvertigoException)
 			return ((ConvertigoException)t).getError();
 		return new ConvertigoError(-1, ErrorType.Convertigo, t);
-	}	
+	}
+	
+	static public void cleanDocument(TwsCachedXPathAPI xpathApi, Document document) {
+		try {
+			// clean errors in document : take into account error's schema !
+			if (document != null && EnginePropertiesManager.getProperty(PropertyName.HIDING_ERROR_INFORMATION ).equals("false")) {
+				NodeList eList = xpathApi.selectNodeList(document,".//error");
+				if (eList.getLength() > 0) {
+					String xpath1 = ""; // for nodes with empty text
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_REQUESTABLE_INFORMATION ).equals("false")) {
+						xpath1 += (xpath1.isEmpty() ? "":" | ") + "./@project | ./@connector | ./@transaction | ./@sequence";
+					}
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_TYPE ).equals("false")) {
+						xpath1 += (xpath1.isEmpty() ? "":" | ") + "./@type";
+					}
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_CODE ).equals("false")) {
+						xpath1 += (xpath1.isEmpty() ? "":" | ") + "./code/text()";
+					}
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_MESSAGE ).equals("false")) {
+						xpath1 += (xpath1.isEmpty() ? "":" | ") + "./message/text()";
+					}
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_DETAIL ).equals("false")) {
+						xpath1 += (xpath1.isEmpty() ? "":" | ") + "./details/text()";
+					}
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_EXCEPTION ).equals("false")) {
+						xpath1 += (xpath1.isEmpty() ? "":" | ") + "./exception/text()";
+					}
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_STACKTRACE ).equals("false")) {
+						xpath1 += (xpath1.isEmpty() ? "":" | ") + "./stacktrace/text()";
+					}
+					
+					String xpath2 = ""; // for nodes to remvove
+					if (EnginePropertiesManager.getProperty(PropertyName.SHOW_ERROR_CONTEXT_INFORMATION ).equals("false")) {
+						xpath2 += (xpath2.isEmpty() ? "":" | ") + "./context/variable";
+					}
+					
+					if (!xpath1.isEmpty() || !xpath2.isEmpty()) {
+						for (int i = 0; i < eList.getLength(); i++) {
+							if (!xpath1.isEmpty()) {
+								NodeList tList = xpathApi.selectNodeList((Element) eList.item(i), xpath1);
+								for (int j = 0; j < tList.getLength(); j++) {
+									Node node = tList.item(j);
+									if (node.getNodeType() == Node.TEXT_NODE || 
+											node.getNodeType() == Node.ATTRIBUTE_NODE) {
+										node.setNodeValue("");
+									}
+								}
+							}
+							if (!xpath2.isEmpty()) {
+								NodeList tList = xpathApi.selectNodeList((Element) eList.item(i), xpath2);
+								for (int j = 0; j < tList.getLength(); j++) {
+									Node node = tList.item(j);
+									node.getParentNode().removeChild(node);
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {}
+	}
 }

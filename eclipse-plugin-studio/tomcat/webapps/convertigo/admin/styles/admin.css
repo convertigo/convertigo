@@ -401,8 +401,7 @@ text-transform: uppercase;
 
 #mainDate {
 	float: right;
-	text-align: right;
-	margin: 10px 10px 0 0;
+	margin-right: 20px;
 	font-family: Arial, Helvetica, sans-serif;
 	color: #a5a5a5;
 	font-size: 12px;
@@ -823,10 +822,33 @@ background-position-x: -2px;
 	padding-top: 20px;
 }
 
-.adminTitle{
+.adminTitle {
 	position: relative;
 	left: 25px;
-	top: -2px;
+	margin-top: 40px;
+	margin-bottom: 15px;
+}
+
+.adminTitle span {
+	font-size: x-large;
+	padding: 10px;
+	white-space: nowrap;
+	line-height: 40px;
+	vertical-align: middle;
+}
+
+.adminTitle a {
+	font-size: 16px;
+	padding: 10px;
+	background-color: #00C8F7;
+	color: white;
+	border-radius: 10px;
+}
+
+.adminTitle a img {
+	width: 32px;
+	height: 32px;
+	margin-bottom: -10px;
 }
 
 /* == for ie 
@@ -1681,11 +1703,7 @@ a.start {
 }
 
 .connections-legend {
-	margin: 10px;
-}
-
-.connections-legend > span {
-    margin: 10px;
+	margin: -15px;
 }
 
 /* = CONNECTIONS WIDGET

@@ -183,7 +183,7 @@ public class UIUseShared extends UIElement {
 					//String scope = getScope();
 					
 					String compSelector = uisc.getSelector();
-					String compIdentifier = "#"+ uisc.getIdentifier();
+					String compIdentifier = "#"+ uisc.getNsIdentifier() + " "+ "#"+ uisc.getIdentifier(); // for compatibility with 8.0.0
 					String useIdentifier = this.getIdentifier().isBlank() ? "":"#"+ this.getIdentifier();
 					String identifiers = compIdentifier + " " + useIdentifier;
 					String classes = attrclasses.length() > 0 ? "class=\""+attrclasses+"\"": "";
@@ -276,27 +276,10 @@ public class UIUseShared extends UIElement {
 						jsonScripts.put("imports", imports);
 						
 						String declarations = jsonScripts.getString("declarations");
-						String dname = uisc.getIdentifier();
-						String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
-						if (main.addDeclaration(dname, dcode)) {
-							declarations += System.lineSeparator() + "\t" + dcode;
-						}
-						String all_dname = "all_" + dname;
-						String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
-						if (main.addDeclaration(all_dname, all_dcode)) {
-							declarations += System.lineSeparator() + "\t" + all_dcode;
-						}
+						declarations += addViewChild(main, uisc.getIdentifier());// for compatibility with 8.0.0
+						declarations += addViewChild(main, uisc.getNsIdentifier());
 						if (!this.getIdentifier().isBlank()) {
-							dname = this.getIdentifier();
-							dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
-							if (main.addDeclaration(dname, dcode)) {
-								declarations += System.lineSeparator() + "\t" + dcode;
-							}
-							all_dname = "all_" + dname;
-							all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
-							if (main.addDeclaration(all_dname, all_dcode)) {
-								declarations += System.lineSeparator() + "\t" + all_dcode;
-							}
+							declarations += addViewChild(main, this.getIdentifier());
 						}
 						jsonScripts.put("declarations", declarations);
 					} catch (JSONException e) {
@@ -311,6 +294,20 @@ public class UIUseShared extends UIElement {
 		}
 	}
 
+	private String addViewChild(IScriptComponent main, String dname) {
+		String declarations = "";
+		String dcode = "@ViewChild(\""+ dname +"\", { static: false }) public "+ dname+";";
+		if (main.addDeclaration(dname, dcode)) {
+			declarations += System.lineSeparator() + "\t" + dcode;
+		}
+		String all_dname = "all_" + dname;
+		String all_dcode = "@ViewChildren(\""+ dname +"\") public "+ all_dname+" : QueryList<any>;";
+		if (main.addDeclaration(all_dname, all_dcode)) {
+			declarations += System.lineSeparator() + "\t" + all_dcode;
+		}
+		return declarations;
+	}
+	
 	@Override
 	public String computeStyle() {
 		UISharedComponent uisc = getTargetSharedComponent();
@@ -386,45 +383,49 @@ public class UIUseShared extends UIElement {
 		String qname =  getSharedComponentQName();
 		if (target == null || !target.getQName().equals(qname)) {
 			target = null;
-			if (qname.indexOf('.') != -1) {
-				String p_name = qname.substring(0, qname.indexOf('.'));
-				Project project = this.getProject();
-				if (project != null) {
-					Project p = null;
-					try {
-						p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
-						if (p == null) {
-							throw new Exception();
+			if (parent != null) { // parent may be null while dnd from palette
+				if (qname.indexOf('.') != -1) {
+					String p_name = qname.substring(0, qname.indexOf('.'));
+					Project project = this.getProject();
+					if (project != null) {
+						Project p = null;
+						try {
+							p = Engine.theApp.referencedProjectManager.importProjectFrom(project, p_name);
+							if (p == null) {
+								throw new Exception();
+							}
+						} catch (Exception e) {
+							Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
 						}
-					} catch (Exception e) {
-						Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" is missing !");
-					}
-					if (p != null) {
-						if (p.getMobileApplication() != null) {
-							try {
-								ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
-								if (app != null) {
-									for (UISharedComponent uisc: app.getSharedComponentList()) {
-										if (uisc.getQName().equals(qname)) {
-											target = uisc;
-											break;
+						if (p != null) {
+							if (p.getMobileApplication() != null) {
+								try {
+									ApplicationComponent app = (ApplicationComponent) p.getMobileApplication().getApplicationComponent();
+									if (app != null) {
+										for (UISharedComponent uisc: app.getSharedComponentList()) {
+											if (uisc.getQName().equals(qname)) {
+												target = uisc;
+												break;
+											}
 										}
 									}
+								} catch (ClassCastException e) {
+									Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is not compatible !");
 								}
-							} catch (ClassCastException e) {
-								Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is not compatible !");
+							} else {
+								Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" does not contain any mobile application !");
 							}
-						} else {
-							Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted project \""+ p_name +"\" does not contain any mobile application !");
-						}
-						
-						if (target == null) {
-							Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is missing !");
+							
+							if (target == null) {
+								Engine.logBeans.warn("(UIUseShared) For \""+  this.toString() +"\", targeted component \""+ qname +"\" is missing !");
+							}
 						}
 					}
+				} else {
+					Engine.logBeans.warn("(UIUseShared) Component \""+ this.toString() +"\" has no target shared component defined !");
 				}
 			} else {
-				Engine.logBeans.warn("(UIUseShared) Component \""+ this.toString() +"\" has no target shared component defined !");
+				System.out.println("(UIUseShared) Skipping component \""+ this.toString() +"\": parent is null");
 			}
 		}
 		return target;

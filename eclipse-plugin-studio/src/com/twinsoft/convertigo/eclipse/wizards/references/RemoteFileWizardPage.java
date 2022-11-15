@@ -119,7 +119,7 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 		wsRefAuthenticated.setFilterNames(filterNames);
 		wsRefAuthenticated.setFilterExtension(filterExtension);
 		
-		combo = wsRefAuthenticated.getCombo();		
+		combo = wsRefAuthenticated.getCombo();
 		combo.addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				comboChanged();
@@ -158,6 +158,8 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 		loginText.addModifyListener(ml);
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
+		
+		urlPath = combo.getText();
 		
 		dialogChanged();
 		setControl(container);
@@ -250,10 +252,10 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 		}
 		
 		if (message == null) {
-			if (useAuthentication.getSelection() && 
+			if (useAuthentication.getSelection() &&
 					(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
 				message = "Please enter login and password";
-			} 
+			}
 		}
 		
 		if (message == null) {
@@ -327,7 +329,7 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 	}
 
 	@Override
-	public void setTextStatus(String message) {	
+	public void setTextStatus(String message) {
 		if (!urlPath.isEmpty() && wsRefAuthenticated.isValidURL()) {
 			setErrorMessage(message);
 			setPageComplete(message==null);
@@ -335,10 +337,6 @@ public abstract class RemoteFileWizardPage extends WizardPage implements IWsRefe
 			setErrorMessage("Please enter a valid URL");
 			setPageComplete(false);
 		}
-	}
-	@Override
-	public void performHelp() {
-		getPreviousPage().performHelp();
 	}
 
 	public IWizardPage getNextPage() {

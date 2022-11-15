@@ -66,12 +66,16 @@ import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
 import com.twinsoft.convertigo.beans.steps.IsInStep;
 import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
+import com.twinsoft.convertigo.beans.steps.JsonArrayStep;
+import com.twinsoft.convertigo.beans.steps.JsonFieldStep;
+import com.twinsoft.convertigo.beans.steps.JsonObjectStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
 import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.SourceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
+import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.engine.Engine;
@@ -786,7 +790,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		catch(EcmaError e) {
 			message = "Unable to evaluate step expression code for '"+ sourceName +"' property or variable.\n" +
-			"Step: \"" + getName() + "\"\n" +
+			"Step: \"" + getName() + " (priority:"+ priority +")" + "\"\n" +
 			"A Javascript runtime error has occured at line " + 
 			e.lineNumber() + ", column " + e.columnNumber() + ": " +
 			e.getMessage() + " \n" + e.lineSource();
@@ -794,13 +798,13 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		catch(EvaluatorException e) {
 			message = "Unable to evaluate step expression code for '"+ sourceName +"' property or variable.\n" +
-			"Step: \"" + getName() + "\"\n" +
+			"Step: \"" + getName() + " (priority:"+ priority +")" + "\"\n" +
 			"A Javascript evaluation error has occured: " + e.getMessage();
 			logException(e,message, bDialog);
 		}
 		catch(JavaScriptException e) {
 			message = "Unable to evaluate step expression code for '"+ sourceName +"' property or variable.\n" +
-			"Step: \"" + getName() + "\"\n" +
+			"Step: \"" + getName() + " (priority:"+ priority +")" + "\"\n" +
 			"A Javascript error has occured: " + e.getMessage();
 			logException(e,message, bDialog);
 		}
@@ -994,7 +998,11 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 					bool.equals(Boolean.valueOf(this instanceof SourceStep)) ||
 					bool.equals(Boolean.valueOf(this instanceof SimpleSourceStep)) ||
 					bool.equals(Boolean.valueOf(this instanceof ElementStep)) ||
-					bool.equals(Boolean.valueOf(this instanceof AttributeStep));
+					bool.equals(Boolean.valueOf(this instanceof AttributeStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof XMLComplexStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof JsonFieldStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof JsonObjectStep)) ||
+					bool.equals(Boolean.valueOf(this instanceof JsonArrayStep));
 		}
 		return super.testAttribute(name, value);
 	}

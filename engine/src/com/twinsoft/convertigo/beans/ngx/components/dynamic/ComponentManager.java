@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,14 +39,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IApplicationComponent;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.IAction;
 import com.twinsoft.convertigo.beans.ngx.components.MobileComponent;
@@ -77,12 +83,15 @@ import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAttr;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicEmit;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIf;
+import com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicIterate;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenu;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicMenuItem;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicSwitch;
 import com.twinsoft.convertigo.beans.ngx.components.UIElement;
 import com.twinsoft.convertigo.beans.ngx.components.UIEventSubscriber;
+import com.twinsoft.convertigo.beans.ngx.components.UIFont;
+import com.twinsoft.convertigo.beans.ngx.components.UIFontStyle;
 import com.twinsoft.convertigo.beans.ngx.components.UIForm;
 import com.twinsoft.convertigo.beans.ngx.components.UIAppGuard;
 import com.twinsoft.convertigo.beans.ngx.components.UIPageEvent;
@@ -96,8 +105,10 @@ import com.twinsoft.convertigo.beans.ngx.components.UITheme;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseShared;
 import com.twinsoft.convertigo.beans.ngx.components.UIUseVariable;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.WeakValueHashMap;
 
@@ -108,7 +119,9 @@ public class ComponentManager {
 	private SortedMap<String, IonBean> bCache = new TreeMap<>();
 	private Map<String, String> aCache = new WeakValueHashMap<>();
 	
+	private Map<String, List<Component>> map = new TreeMap<>();
 	private Map<String, JSONObject> c8oBeans = new HashMap<String, JSONObject>();
+	private Map<String, JSONObject> fontMap = new HashMap<String, JSONObject>();
 	
 	private List<String> groups;
 	private List<Component> orderedComponents;
@@ -118,10 +131,11 @@ public class ComponentManager {
 	
 	private ComponentManager() {
 		loadModels();
+		loadFonts();
 	}
 	
 	private synchronized void loadModels() {
-		clear();
+		clearModels();
 		
 		if (Engine.isStarted) {
 			Engine.logEngine.info("(ComponentManager) Start loading Ionic objects");
@@ -153,9 +167,19 @@ public class ComponentManager {
 	}
 	
 	private void clear() {
+		clearModels();
+		clearFonts();
+	}
+	
+	private void clearFonts() {
+		fontMap.clear();		
+	}
+	
+	private void clearModels() {
 		pCache.clear();
 		bCache.clear();
 		aCache.clear();
+		map.clear();
 		c8oBeans.clear();
 		
 		groups = null;
@@ -421,10 +445,19 @@ public class ComponentManager {
 		return dbo;
 	}
 	
-	public static void refresh() {
+	public static void reloadModels() {
 		instance.loadModels();
 	}
-	
+
+	public static void reloadComponents() {
+		instance.groups = null;
+		instance.orderedComponents = null;
+		instance.components = null;
+		
+		instance.makeGroups();
+		instance.makeComponentsByGroup();
+	}
+
 	public static List<String> getGroups() {
 		return instance.makeGroups();
 	}
@@ -458,6 +491,13 @@ public class ComponentManager {
 		
 		groups.remove(GROUP_ACTIONS);
 		groups.add(GROUP_ACTIONS);
+		
+		makeComponents();
+		for (String group: map.keySet()) {
+			if (!groups.contains(group)) {
+				groups.add(group);
+			}
+		}
 		
 		return groups = Collections.unmodifiableList(groups);
 	}
@@ -495,6 +535,7 @@ public class ComponentManager {
 		components = new ArrayList<Component>(10);
 		
 		try {
+			/*-------------------------- BUILTINS --------------------------*/
 			String group;
 			// Add Customs
 			group = GROUP_CUSTOMS;
@@ -505,10 +546,11 @@ public class ComponentManager {
 			components.add(getDboComponent(UIText.class,group));
 			components.add(getDboComponent(UIStyle.class,group));
 			components.add(getDboComponent(UITheme.class,group));
+			components.add(getDboComponent(UIFont.class,group));
+			components.add(getDboComponent(UIFontStyle.class,group));
 			
 			// Add shared components
 			group = GROUP_SHARED_COMPONENTS;
-			//components.add(getDboComponent(UISharedComponent.class,group)); // deprecated
 			components.add(getDboComponent(UISharedRegularComponent.class,group));
 			components.add(getDboComponent(UIUseShared.class,group));
 			components.add(getDboComponent(UICompVariable.class,group));
@@ -544,8 +586,6 @@ public class ComponentManager {
 			components.add(getDboComponent(UICustomAsyncAction.class,group));
 			
 			components.add(getDboComponent(UIForm.class,"Forms"));
-//			components.add(getDboComponent(UIFormControlValidator.class,"Forms"));
-//			components.add(getDboComponent(UIFormCustomValidator.class,"Forms"));
 			
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -656,7 +696,7 @@ public class ComponentManager {
 						});
 						
 						for (PropertyDescriptor dbopd : propertyDescriptors) {
-							if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue("disable"))) {
+							if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue(MySimpleBeanInfo.DISABLE))) {
 								propertiesDescription += "<li><i>"+ dbopd.getDisplayName() +"</i>" ;
 								propertiesDescription += "</br>"+ dbopd.getShortDescription().replace("|", "") +"</li>";
 							}
@@ -679,7 +719,250 @@ public class ComponentManager {
 					return bean.getHint();
 				}
 
+				@Override
+				public boolean isBuiltIn() {
+					return true;
+				}
+
 			});
+		}
+		
+		/*-------------------------- ADDITIONALS --------------------------*/
+		if (Engine.isStarted) {
+			try {
+				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+				for (String projectName : projectNames) {
+					if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+						continue;
+					}
+					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName, false);
+					String readmeUrl = ProjectUrlParser.getReadmeUrl(project);
+					if (project.getMobileApplication() != null) {
+						IApplicationComponent ac = project.getMobileApplication().getApplicationComponent();
+						if (ac != null && ac instanceof ApplicationComponent) {
+							ApplicationComponent app = (ApplicationComponent)ac;
+							for (UIActionStack action: app.getSharedActionList()) {
+								if (action.isEnabled() && action.isExposed()) {
+									components.add(new Component() {
+	
+										@Override
+										public String getDescription() {
+											String description = action.getComment();
+											if (description.isEmpty()) {
+												description = "A "+ action.getName() + " action.";
+											}
+											if (description.indexOf(" | ") == -1) {
+												description += " | ";
+											}
+											if (!readmeUrl.isEmpty()) {
+												description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
+											}
+											return description;
+										}
+	
+										@Override
+										public String getName() {
+											return action.getName();
+										}
+	
+										@Override
+										public String getGroup() {
+											try {
+												String group = action.getProject().getName();
+												if (group.startsWith("lib_")) {
+													group = group.substring("lib_".length());
+												}
+												return group;
+											} catch (Exception e) {
+												return "";
+											}
+										}
+	
+										@Override
+										public String getLabel() {
+											return action.getName();
+										}
+	
+										@Override
+										public String getTag() {
+											return "";
+										}
+	
+										@Override
+										public String getImagePath() {
+											return null;
+										}
+	
+										@Override
+										public String getPropertiesDescription() {
+											String propertiesDescription = "";
+											for (UIStackVariable variable: action.getVariables()) {
+												propertiesDescription += "<li><i>"+ variable.getName() +"</i>" ;
+												propertiesDescription += "</br>"+ variable.getComment() +"</li>";
+											}
+											
+											return propertiesDescription;
+										}
+	
+										@Override
+										public boolean isAllowedIn(DatabaseObject parent) {
+											try {
+												Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIDynamicInvoke");
+												if (acceptDatabaseObjects(parent, dboClass)) {
+													return true;
+												}
+											} catch (Exception e) {
+												e.printStackTrace();
+											}
+											return false;
+										}
+	
+										@Override
+										protected JSONObject getHint() {
+											return super.getHint();
+										}
+										
+										@Override
+										public boolean isBuiltIn() {
+											return false;
+										}
+	
+										@Override
+										protected DatabaseObject createBean() {
+											DatabaseObject invokeAction = ComponentManager.createBean(getComponentByName("InvokeAction"));
+											UIDynamicInvoke uidi = GenericUtils.cast(invokeAction);
+											if (uidi != null) {
+												uidi.setSharedActionQName(action.getQName());
+												uidi.bNew = true;
+												uidi.hasChanged = true;
+											}
+											return uidi;
+										}
+										
+									});
+								}
+							}
+							
+							for (UISharedComponent usc: app.getSharedComponentList()) {
+								if (usc.isRegular() && usc.isEnabled() && usc.isExposed()) {
+									final UISharedRegularComponent uisrc = (UISharedRegularComponent)usc;
+									components.add(new Component() {
+										
+										@Override
+										public boolean isAllowedIn(DatabaseObject parent) {
+											try {
+												Class<?> dboClass = Class.forName("com.twinsoft.convertigo.beans.ngx.components.UIUseShared");
+												if (acceptDatabaseObjects(parent, dboClass)) {
+													return true;
+												}
+											} catch (Exception e) {
+												e.printStackTrace();
+											}
+											return false;
+										}
+										
+										@Override
+										public String getTag() {
+											return uisrc.getSelector();
+										}
+										
+										@Override
+										public String getPropertiesDescription() {
+											String propertiesDescription = "";
+											List<UICompVariable> list = uisrc.getVariables();
+											propertiesDescription += list.size() > 0 ? "<br><b>variables</b><br>":"";
+											for (UICompVariable variable: list) {
+												propertiesDescription += "<li><i>"+ variable.getName() +"</i>" ;
+												propertiesDescription += "</br>"+ variable.getComment() +"</li>";
+											}
+											List<UICompEvent> liste = uisrc.getUICompEventList();
+											propertiesDescription += liste.size() > 0 ? "<br><b>events</b><br>":"";
+											for (UICompEvent event: liste) {
+												propertiesDescription += "<li><i>"+ event.getName() +"</i>" ;
+												propertiesDescription += "</br>"+ event.getComment() +"</li>";
+											}
+											return propertiesDescription;
+										}
+										
+										@Override
+										public String getName() {
+											return uisrc.getName();
+										}
+										
+										@Override
+										public String getLabel() {
+											return uisrc.getName();
+										}
+										
+										@Override
+										public String getImagePath() {
+											String defaultImagePath = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_32x32.png";
+											try {
+												File f = new File(project.getDirPath(), uisrc.getIconFileName());
+												if (f.exists()) {
+													return f.getCanonicalPath();
+												}
+											} catch (Exception e) {}
+											return defaultImagePath;
+										}
+										
+										@Override
+										public String getGroup() {
+											try {
+												String group = uisrc.getProject().getName();
+												if (group.startsWith("lib_")) {
+													group = group.substring("lib_".length());
+												}
+												return group;
+											} catch (Exception e) {
+												return "";
+											}
+										}
+										
+										@Override
+										public String getDescription() {
+											String description = uisrc.getComment();
+											if (description.isEmpty()) {
+												description = "A "+ uisrc.getName() + " component.";
+											}
+											if (description.indexOf(" | ") == -1) {
+												description += " | ";
+											}
+											if (!readmeUrl.isEmpty()) {
+												description += "<br>For more informations: <a href=\""+readmeUrl+"\">readme</a>";
+											}
+											return description;
+										}
+										
+										@Override
+										protected DatabaseObject createBean() {
+											com.twinsoft.convertigo.beans.ngx.components.UIUseShared use = new com.twinsoft.convertigo.beans.ngx.components.UIUseShared();
+											if (use != null) {
+												use.setSharedComponentQName(uisrc.getQName());
+												use.bNew = true;
+												use.hasChanged = true;
+											}
+											return use;
+										}
+
+										@Override
+										protected JSONObject getHint() {
+											return super.getHint();
+										}
+
+										@Override
+										public boolean isBuiltIn() {
+											return false;
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		Collections.sort(components, new Comparator<Component>() {
@@ -688,6 +971,16 @@ public class ComponentManager {
 				return c1.getLabel().compareTo(c2.getLabel());
 			}				
 		} );
+		
+		for (Component component : components) {
+			String group = component.getGroup();
+			if (!map.containsKey(group)) {
+				map.put(group, new ArrayList<Component>());
+			}
+			if (!map.get(group).contains(component)) {
+				map.get(group).add(component);
+			}
+		}
 		
 		return components = Collections.unmodifiableList(components);
 	}
@@ -987,6 +1280,11 @@ public class ComponentManager {
 				}
 				return super.getHint();
 			}
+
+			@Override
+			public boolean isBuiltIn() {
+				return true;
+			}
 			
 		};
 	}
@@ -1105,5 +1403,154 @@ public class ComponentManager {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+	
+	private JSONObject loadFont(String fontId) {
+		return loadFonts().get(fontId);
+	}
+	
+	protected JSONObject loadFontFromApi(String fontId) {
+		JSONObject jsonFont = null;
+		if (fontId != null && !fontId.isBlank()) {
+			if (fontMap.get(fontId) == null || !fontMap.get(fontId).has("variants")) {
+				try {
+					String url = "https://api.fontsource.org/v1/fonts/"+ fontId;
+					HttpGet get = new HttpGet(url);
+					try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+						int code = response.getStatusLine().getStatusCode();
+						if (code != 200) {
+							throw new EngineException("Code " + code + " for " + url);
+						}
+						String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+						fontMap.put(fontId, new JSONObject(sContent));
+					}
+				} catch (Exception e) {
+					Engine.logEngine.warn("(ComponentManager) Unabled to get font with id "+ fontId + " : " + e.getMessage());
+				}
+			}
+			jsonFont = fontMap.get(fontId);
+		}
+		return jsonFont;
+	}
+	
+	private Map<String, JSONObject> loadFonts() {
+		return loadFontsFromFile();
+	}
+	
+	protected Map<String, JSONObject> loadFontsFromApi() {
+		if (fontMap.isEmpty()) {
+			JSONArray jsonFonts = null;
+			try {
+				String url = "https://api.fontsource.org/v1/fonts";
+				HttpGet get = new HttpGet(url);
+				try (CloseableHttpResponse response = Engine.theApp.httpClient4.execute(get)) {
+					int code = response.getStatusLine().getStatusCode();
+					if (code != 200) {
+						throw new EngineException("Code " + code + " for " + url);
+					}
+					String sContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+					jsonFonts = new JSONArray(sContent);
+				}
+				
+				if (jsonFonts != null) {
+					for (int i = 0; i < jsonFonts.length(); i++) {
+						JSONObject jsonFont = jsonFonts.getJSONObject(i);
+						String fontId = jsonFont.getString("id");
+						fontMap.put(fontId, jsonFont);
+					}
+				}
+			} catch (Exception e) {
+				if (Engine.isStarted) {
+					Engine.logEngine.warn("(ComponentManager) Unabled to load fonts : " + e.getMessage());
+				} else {
+					System.out.println("(ComponentManager) Unabled to load fonts : " + e.getMessage());
+				}
+				fontMap.clear();
+			}
+		}
+		return fontMap;
+	}
+	
+	private Map<String, JSONObject> loadFontsFromFile() {
+		if (fontMap.isEmpty()) {
+			try (InputStream inputstream = getClass().getResourceAsStream("font-sources.json")) {
+				String json = IOUtils.toString(inputstream, "UTF-8");
+				
+				JSONArray jsonFonts = new JSONArray(json);
+				for (int i = 0; i < jsonFonts.length(); i++) {
+					JSONObject jsonFont = jsonFonts.getJSONObject(i);
+					String fontId = jsonFont.getString("id");
+					fontMap.put(fontId, jsonFont);
+				}
+				
+				if (Engine.isStarted) {
+					Engine.logEngine.info("(ComponentManager) Font sources loaded from file");
+				} else {
+					System.out.println("(ComponentManager) Font sources loaded from file");
+				}
+			} catch (Exception e) {
+				if (Engine.isStarted) {
+					Engine.logEngine.warn("(ComponentManager) Unabled to load fonts from file: " + e.getMessage());
+				} else {
+					System.out.println("(ComponentManager) Unabled to load fonts from file: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		}
+		return fontMap;
+	}
+	
+	protected void storeFonts() {
+		Engine.execute(() -> {
+			try {
+				File file = new File("C://Dev/font-sources-bis.json");
+				if (!file.exists()) {
+					Map<String, JSONObject> map = instance.loadFontsFromFile();
+					System.out.println("(ComponentManager) retrieving "+ map.size() +" fonts...");
+					
+					List<String> fontIds = map.keySet().stream().sorted((e1, e2) -> 
+					e1.toString().compareTo(e2.toString())).collect(Collectors.toList());
+					
+					JSONArray array = new JSONArray();
+					for (String fontId: fontIds) {
+						JSONObject jsonOb = getFont(fontId);
+						if (jsonOb == null) {
+							System.out.println("(ComponentManager) Unabled to retrieve font " + fontId);
+							jsonOb = new JSONObject();
+							jsonOb.put("id", fontId);
+						} else {
+							System.out.println("(ComponentManager) Retrieved font " + fontId);
+						}
+						array.put(jsonOb);
+					}
+					
+					String content = array.toString(1);
+					FileUtils.write(file, content, "UTF-8");
+					System.out.println("(ComponentManager) font-sources-bis.json written");
+				} else {
+					String content = FileUtils.readFileToString(file, "UTF-8");
+					JSONArray array = new JSONArray(content);
+					System.out.println("(ComponentManager) checking "+ array.length() +" fonts...");
+					for (int i = 0; i < array.length(); i++) {
+						JSONObject jsonFont = array.getJSONObject(i);
+						String fontId = jsonFont.getString("id");
+						if (jsonFont.length() <= 1) {
+							System.out.println("(ComponentManager) Invalid font " + fontId);
+						}
+					}
+					System.out.println("(ComponentManager) check done");
+				}
+			} catch (Exception e) {
+				System.out.println("(ComponentManager) storeFonts: exception occured " + e.getMessage());
+			}
+		});
+	}
+	
+	static public JSONObject getFont(String fontId) {
+		return instance.loadFont(fontId);
+	}
+	
+	static public Map<String, JSONObject> getFonts() {
+		return instance.loadFonts();
 	}
 }

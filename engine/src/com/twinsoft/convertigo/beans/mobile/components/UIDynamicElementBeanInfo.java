@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIDynamicElementBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIDynamicElementBeanInfo() {
 		try {
 			beanClass = UIDynamicElement.class;
@@ -34,13 +34,13 @@ public class UIDynamicElementBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[1];
-			
+
 			properties[0] = new PropertyDescriptor("beanData", beanClass, "getBeanData", "setBeanData");
 			properties[0].setHidden(true);
-			
-			getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
+
+			getPropertyDescriptor("tagName").setValue(DISABLE, Boolean.TRUE);
 			getPropertyDescriptor("selfClose").setHidden(true);
 		}
 		catch(Exception e) {

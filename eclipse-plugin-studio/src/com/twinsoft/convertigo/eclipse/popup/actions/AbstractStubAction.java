@@ -72,7 +72,7 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 					Transaction transaction = transactionTreeObject.getObject();
 					File stubDir = new File(transaction.getProject().getDirPath() + "/stubs");
 					stubDir.mkdirs();
-					File stubFile = new File(stubDir, transaction.getParent().getName() + "." + transaction.getName() + ".xml");
+					File stubFile = new File(stubDir, transaction.getParentName() + "." + transaction.getName() + ".xml");
 					Document dom = getXML(treeObject);
 					writeStub(dom, stubFile);
 				}

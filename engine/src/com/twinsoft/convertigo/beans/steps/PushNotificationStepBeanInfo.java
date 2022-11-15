@@ -25,7 +25,7 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.steps.PushNotificationStep.ApnsNotificationType;
 
 public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public PushNotificationStepBeanInfo() {
 		try {
 			beanClass = PushNotificationStep.class;
@@ -33,39 +33,39 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/pushnotificationstep_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/pushnotificationstep_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/PushNotificationStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
 			properties = new PropertyDescriptor[8];
-			
+
 			properties[0] = new PropertyDescriptor("token", beanClass, "getTokens", "setTokens");
-            properties[0].setDisplayName(getExternalizedString("property.token.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.token.short_description"));
+			properties[0].setDisplayName(getExternalizedString("property.token.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.token.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
 			properties[1] = new PropertyDescriptor("GCMApiKey", beanClass, "getGCMApiKey", "setGCMApiKey");
-            properties[1].setDisplayName(getExternalizedString("property.gcmapikey.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.gcmapikey.short_description"));
-            properties[1].setValue("scriptable", Boolean.TRUE);
-			
+			properties[1].setDisplayName(getExternalizedString("property.gcmapikey.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.gcmapikey.short_description"));
+			properties[1].setValue(SCRIPTABLE, Boolean.TRUE);
+
 			properties[2] = new PropertyDescriptor("clientCertificate", beanClass, "getClientCertificate", "setClientCertificate");
-            properties[2].setDisplayName(getExternalizedString("property.clientcertificate.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.clientcertificate.short_description"));
-            properties[2].setValue("scriptable", Boolean.TRUE);
+			properties[2].setDisplayName(getExternalizedString("property.clientcertificate.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.clientcertificate.short_description"));
+			properties[2].setValue(SCRIPTABLE, Boolean.TRUE);
 
 			properties[3] = new PropertyDescriptor("certificatePassword", beanClass, "getCertificatePassword", "setCertificatePassword");
-            properties[3].setDisplayName(getExternalizedString("property.certificatepassword.display_name"));
-            properties[3].setShortDescription(getExternalizedString("property.certificatepassword.short_description"));
-            properties[3].setValue("scriptable", Boolean.TRUE);
+			properties[3].setDisplayName(getExternalizedString("property.certificatepassword.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.certificatepassword.short_description"));
+			properties[3].setValue(SCRIPTABLE, Boolean.TRUE);
 
 			properties[4] = new PropertyDescriptor("apnsNotificationType", beanClass, "getApnsNotificationType", "setApnsNotificationType");
-            properties[4].setDisplayName(getExternalizedString("property.apnsnotificationtype.display_name"));
-            properties[4].setShortDescription(getExternalizedString("property.apnsnotificationtype.short_description"));
-            properties[4].setPropertyEditorClass(ApnsNotificationType.class);
-            
+			properties[4].setDisplayName(getExternalizedString("property.apnsnotificationtype.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.apnsnotificationtype.short_description"));
+			properties[4].setPropertyEditorClass(ApnsNotificationType.class);
+
 			properties[5] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
 			properties[5].setExpert(false);
 			properties[5].setDisplayName(getExternalizedString("property.sourceDefinition.display_name"));
@@ -76,12 +76,12 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[6].setExpert(false);
 			properties[6].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
-            properties[6].setValue("scriptable", Boolean.TRUE);
+			properties[6].setValue(SCRIPTABLE, Boolean.TRUE);
 
 			properties[7] = new PropertyDescriptor("useProductionAPNS", beanClass, "getUseProductionAPNS", "setUseProductionAPNS");
-            properties[7].setDisplayName(getExternalizedString("property.useProductionAPNS.display_name"));
-            properties[7].setShortDescription(getExternalizedString("property.useProductionAPNS.short_description"));
-            properties[7].setValue("scriptable", Boolean.TRUE);
+			properties[7].setDisplayName(getExternalizedString("property.useProductionAPNS.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.useProductionAPNS.short_description"));
+			properties[7].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

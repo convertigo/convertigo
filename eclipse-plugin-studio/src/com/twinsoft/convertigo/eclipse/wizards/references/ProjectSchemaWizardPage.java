@@ -44,10 +44,10 @@ import com.twinsoft.convertigo.engine.util.ProjectUrlParser;
 
 public class ProjectSchemaWizardPage extends WizardPage {
 	private Object parentObject = null;
-	
+
 	private Tree tree;
 	private String projectName;
-	
+
 	public ProjectSchemaWizardPage(Object parentObject) {
 		super("ProjectSchemaWizardPage");
 		this.parentObject = parentObject;
@@ -64,13 +64,13 @@ public class ProjectSchemaWizardPage extends WizardPage {
 
 		Label label = new Label(container, SWT.NULL);
 		label.setText("&Project:");
-		
+
 		tree = new Tree(container, SWT.SINGLE | SWT.BORDER);
 		tree.setHeaderVisible(false);
 		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gridData.verticalSpan = 20;
 		gridData.horizontalSpan = 2;
-		tree.setLayoutData(gridData);		
+		tree.setLayoutData(gridData);
 		tree.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
 				TreeItem item = (TreeItem) event.item;
@@ -79,17 +79,12 @@ public class ProjectSchemaWizardPage extends WizardPage {
 			}
 		});
 		tree.setVisible(false);
-		
+
 		initialize();
 		setControl(container);
 		dialogChanged();
 	}
 
-	@Override
-	public void performHelp() {
-		getPreviousPage().performHelp();
-	}
-	
 	private void initialize() {
 		if (parentObject instanceof Project) {
 			Project project = (Project)parentObject;
@@ -101,7 +96,7 @@ public class ProjectSchemaWizardPage extends WizardPage {
 					projectList.add(((ProjectSchemaReference)reference).getParser().getProjectName());
 				}
 			}
-			
+
 			for (String name: Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 				if (!projectList.contains(name)) {
 					TreeItem branch = new TreeItem(tree, SWT.NONE);
@@ -113,7 +108,7 @@ public class ProjectSchemaWizardPage extends WizardPage {
 		else
 			tree.setVisible(false);
 	}
-	
+
 	private void dialogChanged() {
 		if (projectName == null) {
 			updateStatus("Please select a project");
@@ -132,10 +127,10 @@ public class ProjectSchemaWizardPage extends WizardPage {
 			updateStatus("New Bean has not been instantiated");
 			return;
 		}
-		
+
 		updateStatus(null);
 	}
-	
+
 	private void updateStatus(String message) {
 		setErrorMessage(message);
 		setPageComplete(message == null);
@@ -145,5 +140,5 @@ public class ProjectSchemaWizardPage extends WizardPage {
 	public IWizardPage getNextPage() {
 		return null;
 	}
-	
+
 }

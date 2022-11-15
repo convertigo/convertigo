@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class CookiesAddStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public CookiesAddStatementBeanInfo() {
 		try {
 			beanClass = CookiesAddStatement.class;
@@ -32,18 +32,18 @@ public class CookiesAddStatementBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/cookiesadd_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/cookiesadd_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/CookiesAddStatement");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
 			properties = new PropertyDescriptor[1];
-            properties[0] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
-            properties[0].setDisplayName(getExternalizedString("property.expression.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.expression.short_description"));
-            properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
+			properties[0].setDisplayName(getExternalizedString("property.expression.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.expression.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

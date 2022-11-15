@@ -38,26 +38,26 @@ import com.twinsoft.convertigo.engine.Engine;
 public class ConvertigoTypeScriptDefinition {
 	SortedSet<Class<?>> classes = new TreeSet<>((c1, c2) -> c1.getName().compareTo(c2.getName()));
 	StringBuilder append = new StringBuilder();
-	
+
 	private void handleCls(Class<?> cls) {
 		if (cls == null) {
 			return;
 		}
-		
+
 		while (cls.isArray()) {
 			cls = cls.getComponentType();
 		}
-		
+
 		if (cls.isPrimitive()) {
 			return;
 		}
-		
+
 		String name = cls.getName();
 		if (name.matches("(jdk|sun|org\\.(mozilla|eclipse|apache\\.xerces|xml)|w3c\\.xml|"
 				+ "java\\.lang\\.(module|ref|reflect)|java\\.security)\\..*")) {
 			return;
 		}
-		
+
 		if (classes.add(cls)) {
 			handleCls(cls.getSuperclass());
 			for (Field field: cls.getDeclaredFields()) {
@@ -71,7 +71,7 @@ public class ConvertigoTypeScriptDefinition {
 			}
 		}
 	}
-	
+
 	private String convertType(Class<?> cls, Class<?> type) {
 		String sType;
 		if (type.equals(String.class) || type.equals(Character.class) || type.equals(char.class)) {
@@ -91,7 +91,7 @@ public class ConvertigoTypeScriptDefinition {
 		}
 		return sType;
 	}
-	
+
 	private String getCode(String prepend, Class<?> cls) {
 		String nPrepend = prepend + "  ";
 		StringBuilder sb = new StringBuilder();
@@ -131,7 +131,7 @@ public class ConvertigoTypeScriptDefinition {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getCode(String exPkg, String prepend, Queue<Class<?>> classes) {
 		String nPrepend = prepend + "  ";
 		StringBuilder sb = new StringBuilder();
@@ -173,19 +173,20 @@ public class ConvertigoTypeScriptDefinition {
 		}
 		return sb.toString();
 	}
-	
+
 	private String getCode() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getCode("", "", new LinkedList<>(classes)));
 		return sb.append(append).toString();
 	}
-	
+
 	private static File[] file = new File[]{null};
 	public static File getDeclarationFile() {
 		synchronized (file) {
 			if (file[0] == null) {
 				long ts = System.currentTimeMillis();
 				ConvertigoTypeScriptDefinition tsd = new ConvertigoTypeScriptDefinition();
+				tsd.handleCls(com.twinsoft.convertigo.engine.Engine.class);
 				tsd.handleCls(com.twinsoft.convertigo.engine.Context.class);
 				tsd.handleCls(com.twinsoft.convertigo.engine.util.LogWrapper.class);
 				tsd.handleCls(com.twinsoft.convertigo.engine.util.Crypto2.class);
@@ -198,13 +199,14 @@ public class ConvertigoTypeScriptDefinition {
 				tsd.handleCls(org.apache.commons.lang3.StringUtils.class);
 				tsd.handleCls(org.apache.commons.codec.binary.Base64.class);
 				tsd.handleCls(org.apache.commons.codec.binary.Hex.class);
+				tsd.handleCls(org.apache.commons.codec.binary.StringUtils.class);
 				tsd.handleCls(org.w3c.dom.Document.class);
-				
+
 				tsd.append.append("declare var context: com.twinsoft.convertigo.engine.Context\n")
-					.append("declare var log: com.twinsoft.convertigo.engine.util.LogWrapper\n")
-					.append("declare var dom: org.w3c.dom.Document\n")
-					.append("declare function use(cls: string): any\n")
-					.append("declare function include(path: string): any\n");
+				.append("declare var log: com.twinsoft.convertigo.engine.util.LogWrapper\n")
+				.append("declare var dom: org.w3c.dom.Document\n")
+				.append("declare function use(cls: string): any\n")
+				.append("declare function include(path: string): any\n");
 				String code = tsd.getCode();
 				ts = System.currentTimeMillis() - ts;
 				Engine.logStudio.info("(ConvertigoTypeScriptDefinition) Handle " + tsd.classes.size() + " classes in " + ts  + " ms.");
@@ -218,28 +220,28 @@ public class ConvertigoTypeScriptDefinition {
 		}
 		return file[0];
 	}
-	
-    static public String getPackageName(Class<?> c) {
-    	String pn;
-        while (c.isArray()) {
-            c = c.getComponentType();
-        }
-        if (c.isPrimitive()) {
-            pn = "java.lang";
-        } else {
-            String cn = c.getName();
-            int dot = cn.lastIndexOf('.');
-            pn = (dot != -1) ? cn.substring(0, dot).intern() : "";
-        }
-        return pn;
-    }
-	
+
+	static public String getPackageName(Class<?> c) {
+		String pn;
+		while (c.isArray()) {
+			c = c.getComponentType();
+		}
+		if (c.isPrimitive()) {
+			pn = "java.lang";
+		} else {
+			String cn = c.getName();
+			int dot = cn.lastIndexOf('.');
+			pn = (dot != -1) ? cn.substring(0, dot).intern() : "";
+		}
+		return pn;
+	}
+
 	public static void main(String[] args) throws IOException {
-//		System.out.println("Handle " + tsd.classes.size() + " classes.");
-//		System.out.println(tsd.getCode());
-//		for (Class<?> cls: tsd.classes) {
-//			System.out.println(cls.getCanonicalName());
-//		}
+		//		System.out.println("Handle " + tsd.classes.size() + " classes.");
+		//		System.out.println(tsd.getCode());
+		//		for (Class<?> cls: tsd.classes) {
+		//			System.out.println(cls.getCanonicalName());
+		//		}
 	}
 
 }

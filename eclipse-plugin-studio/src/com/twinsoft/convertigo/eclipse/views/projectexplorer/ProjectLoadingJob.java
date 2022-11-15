@@ -183,7 +183,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 				loadDatabaseObject(projectTreeObject, project);
 				
 				// Comment out the following line to disable the resources tree part
-				//loadResource(projectTreeObject, "Resources", resourceProject.members());
+				//loadResource(projectTreeObject, "Resources", ((ProjectTreeObject) projectTreeObject).getIProject().members());
 				
 				Status status = new Status(Status.OK, ConvertigoPlugin.PLUGIN_UNIQUE_ID, 0, "Project " + projectName + " loaded", null);
 				return status;
@@ -248,9 +248,11 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 				if (name.equals("_data")) continue;
 				if (name.equals("_lib")) continue;
 				if (name.equals("_private")) continue;
+				if (name.equals("_c8oProject")) continue;
 				loadResource(resourceFolderTreeObject, ((IFolder) resource), ((IFolder) resource).members());
 			}
 			else {
+				if (name.equals("c8oProject.yaml")) continue;
 				if (name.equals(".project")) continue;
 				if (name.endsWith(".etr")) continue;
 				resourceTreeObject = new ResourceTreeObject(viewer, (IFile) resource);

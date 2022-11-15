@@ -25,7 +25,7 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.ngx.components.UIDynamicAnimate.ApplyMode;
 
 public class UIDynamicAnimateBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIDynamicAnimateBeanInfo() {
 		try {
 			beanClass = UIDynamicAnimate.class;
@@ -35,20 +35,20 @@ public class UIDynamicAnimateBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("identifiable", beanClass, "getIdentifiable", "setIdentifiable");
 			properties[0].setDisplayName(getExternalizedString("property.identifiable.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.identifiable.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
-			properties[0].setValue("category", "@Component");
-			
+			properties[0].setValue(CATEGORY, "@Component");
+
 			properties[1] = new PropertyDescriptor("mode", beanClass, "getMode", "setMode");
 			properties[1].setDisplayName(getExternalizedString("property.mode.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.mode.short_description"));
 			properties[1].setPropertyEditorClass(ApplyMode.class);
-			properties[1].setValue("category", "@Component");
+			properties[1].setValue(CATEGORY, "@Component");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

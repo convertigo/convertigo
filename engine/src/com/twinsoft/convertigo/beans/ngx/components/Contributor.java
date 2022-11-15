@@ -75,7 +75,7 @@ public abstract class Contributor {
 			containerDir = new File(appDir, "/pages/"+container.getName().toLowerCase());
 		}
 		else if (container instanceof UISharedComponent && ((UISharedComponent)container).isRegular()) {
-			containerDir = new File(appDir, "/components/"+container.getName().toLowerCase());
+			containerDir = new File(appDir, "/components/"+ UISharedComponent.getNsCompDirName((UISharedComponent)container));
 		}
 		return Paths.get(containerDir.getCanonicalPath());
 	}

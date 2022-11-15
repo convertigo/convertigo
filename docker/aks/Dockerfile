@@ -39,7 +39,9 @@ RUN (curl -sL https://aka.ms/InstallAzureCLIDeb | bash) \
   && (curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -) \
   && (echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list) \
   && apt-get update \
-  && apt-get install -y kubectl \
+  && apt-get install -y --no-install-recommends kubectl \
+       nano less \
+       iptables net-tools iputils-ping \
   && rm -rf /var/lib/apt/lists/*
   
 RUN curl -sL https://github.com/jpillora/chisel/releases/download/v1.7.6/chisel_1.7.6_linux_amd64.gz | gunzip > /usr/local/bin/chisel \
@@ -54,18 +56,14 @@ ENV TINI_VERSION 0.19.0
 ENV TINI_GPG_KEYS 6380DC428747F6C393FEACA59A84159D7001A4E5
 
 RUN export GNUPGHOME="$(mktemp -d)" \
-  && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GOSU_GPG_KEYS" \
-  || gpg --batch --keyserver pgp.mit.edu --recv-keys "$GOSU_GPG_KEYS" \
-  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" \
+  && ( gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$GOSU_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$GOSU_GPG_KEYS" ) \
   && curl -o /usr/local/bin/gosu -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
   && curl -o /usr/local/bin/gosu.asc -fSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-$(dpkg --print-architecture | awk -F- '{ print $NF }').asc" \
   && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
   && rm /usr/local/bin/gosu.asc \
   && chmod +x /usr/local/bin/gosu \
-  && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$TINI_GPG_KEYS" \
-  || gpg --batch --keyserver pgp.mit.edu --recv-keys "$TINI_GPG_KEYS" \
-  || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" \
+  && ( gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$TINI_GPG_KEYS" \
   || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEYS" ) \
   && curl -o /usr/local/bin/tini -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
   && curl -o /usr/local/bin/tini.asc -fSL "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-$(dpkg --print-architecture | awk -F- '{ print $NF }').asc" \
@@ -83,15 +81,23 @@ RUN useradd -s /bin/false -m convertigo \
     && echo "convertigo ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/convertigo \
     && chmod 0440 /etc/sudoers.d/convertigo
 
-## disable unused AJP, APR and Jasper features
+## disable unused AJP and Jasper features
 ## change HTTP port the historic Convertigo port 28080
 
 RUN sed -i.bak \
         -e '/protocol="AJP/d' \
-        -e '/AprLifecycleListener/d' \
         -e '/JasperListener/d' \
         -e 's/port="8080"/port="28080" maxThreads="64000" relaxedQueryChars="{}[]|"/' \
         -e 's,</Host>,  <Valve className="org.apache.catalina.valves.RemoteIpValve" />\n      </Host>,' \
+        -e 's,</Service>,<!--SSL<Connector port="28443" protocol="org.apache.coyote.http11.Http11AprProtocol" SSLEnabled="true" maxThreads="64000" relaxedQueryChars="{}[]|">\n\
+      <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />\n\
+      <SSLHostConfig>\n\
+        <Certificate certificateKeyFile="/certs/key.pem"\n\
+                     certificateFile="/certs/cert.pem"\n\
+                     certificateChainFile="/certs/chain.pem"\n\
+                     type="RSA" />\n\
+      </SSLHostConfig>\n\
+    </Connector>SSL-->\n  </Service>,' \
         conf/server.xml \
     && sed -i.bak \
         -e 's,<Context>,<Context sessionCookiePath="/">,' \
@@ -102,7 +108,7 @@ RUN sed -i.bak \
     && chown -R convertigo:convertigo conf temp work logs \
     && chmod -w conf/*
 
-ENV CONVERTIGO_VERSION 8.0.2
+ENV CONVERTIGO_VERSION 8.1.0
 
 ENV CONVERTIGO_WAR_URL https://github.com/convertigo/convertigo/releases/download/$CONVERTIGO_VERSION/convertigo-$CONVERTIGO_VERSION.war
 
@@ -113,14 +119,13 @@ ENV CONVERTIGO_GPG_KEYS 6A7779BB78FE368DF74B708FD4DA8FBEB64BF75F
 ## and remove unnecessary components for the mbaas version
 
 RUN export GNUPGHOME="$(mktemp -d)" \
-    && ( gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$CONVERTIGO_GPG_KEYS" \
-    || gpg --batch --keyserver pgp.mit.edu --recv-keys "$CONVERTIGO_GPG_KEYS" \
-    || gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$CONVERTIGO_GPG_KEYS" \
+    && ( gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$CONVERTIGO_GPG_KEYS" \
     || gpg --batch --keyserver keyserver.pgp.com --recv-keys "$CONVERTIGO_GPG_KEYS" ) \
     && curl -fSL -o /tmp/convertigo.war $CONVERTIGO_WAR_URL \
     && curl -fSL -o /tmp/convertigo.war.asc $CONVERTIGO_WAR_URL.asc \
     && gpg --batch --verify /tmp/convertigo.war.asc /tmp/convertigo.war \
     && mkdir -p webapps/ROOT webapps/convertigo \
+    && mkdir /certs \
     && (cd webapps/convertigo \
         && unzip -q /tmp/convertigo.war \
         && (chmod -f a+x WEB-INF/xvnc/* || true) \

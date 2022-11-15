@@ -22,10 +22,10 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpSession;
@@ -48,6 +49,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.enums.SessionAttribute;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
@@ -939,37 +941,29 @@ public class ContextManager extends AbstractRunnableManager {
 	}
 	
 	private void clearOldLogs() {
-		int iDot = Engine.LOG_ENGINE_NAME.indexOf('.');
-		if (iDot < 1) {
+		SortedMap<Date, File> files = null;
+		try (LogManager lm = new LogManager()) {
+			lm.setDateStart(new Date(0));
+			lm.setDateEnd(new Date());
+			files = lm.getTimedFiles();
+		} catch (Exception e) {
+			System.out.println("clearOldLogs: " + e.getMessage());
+		}
+		
+		if (files == null) {
 			return;
 		}
-		long nb = EnginePropertiesManager.getPropertyAsLong(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX) + 1;
-		String prefix = Engine.LOG_ENGINE_NAME.substring(0, iDot + 1);
-		String[] files = new File(Engine.LOG_PATH).list();
-		Arrays.sort(files);
-		for (int i = files.length - 1; i >= 0; i--) {
-			if (files[i].startsWith(Engine.LOG_ENGINE_NAME)) {
-				nb--;
-			}
+		
+		int nb = EnginePropertiesManager.getPropertyAsInt(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX);
+		if ((nb = files.size() - nb) <= 0) {
+			return;
 		}
-		StringBuilder sb = null;
-		for (int i = files.length - 1; i >= 0; i--) {
-			if (files[i].startsWith(prefix) && !files[i].startsWith(Engine.LOG_ENGINE_NAME)) {
-				if (nb > 0) {
-					nb--;
-				} else {
-					File toDelete = new File(Engine.LOG_PATH, files[i]);
-					boolean deleted = toDelete.delete();
-					if (Engine.logEngine.isInfoEnabled()) {
-						if (sb == null) {
-							sb = new StringBuilder("Purging old log files:");
-						}
-						sb.append("\n - " + toDelete + " is deleted: " + deleted);
-					}
-				}
-			}
-		}
-		if (sb != null) {
+
+		StringBuilder sb = new StringBuilder("Purging old log files:");
+		files.values().stream().limit(nb).forEachOrdered(toDelete -> 
+			sb.append("\n - " + toDelete + " is deleted: " + toDelete.delete())
+		);
+		if (!sb.isEmpty()) {
 			Engine.logEngine.info(sb);
 		}
 	}

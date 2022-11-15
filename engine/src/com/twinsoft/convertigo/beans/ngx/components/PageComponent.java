@@ -20,6 +20,7 @@
 package com.twinsoft.convertigo.beans.ngx.components;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -1038,7 +1040,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	
 	@Override
 	public String computeStyle() {
-		StringBuilder uses = new StringBuilder();
 		StringBuilder styles = new StringBuilder();
 		StringBuilder others = new StringBuilder();
 		
@@ -1051,10 +1052,7 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 			} else if (component instanceof UIUseShared) {
 				String tpl = ((UIUseShared)component).computeStyle();
 				if (!tpl.isEmpty()) {
-					if (tpl.startsWith("@use") && uses.indexOf(tpl) != -1) {
-						continue;
-					}
-					uses.append(tpl);
+					others.append(tpl);
 				}
 			} else if (component instanceof UIElement) {
 				String tpl = ((UIElement)component).computeStyle();
@@ -1065,9 +1063,6 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (uses.length() > 0) {
-			sb.append(uses).append(System.getProperty("line.separator"));
-		}
 		if (others.length() > 0) {
 			sb.append(others).append(System.getProperty("line.separator"));
 		}
@@ -1115,7 +1110,12 @@ public class PageComponent extends MobileComponent implements IPageComponent, IT
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("icon")) {
-			return EnumUtils.toStrings(IonIcon.class);
+			String[] icons = EnumUtils.toStrings(IonIcon.class);
+			List<String> iconList = Arrays.asList(icons).stream()
+									.filter(icon -> !icon.endsWith("-outline") && !icon.endsWith("-sharp"))
+									.collect(Collectors.toList());
+			String[] arr = new String[iconList.size()];
+			return iconList.toArray(arr);
 		}
 		if (propertyName.equals("iconPosition")) {
 			return new String[] {"start","end"};

@@ -26,7 +26,7 @@ import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 
 
 public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public HTTPStatementBeanInfo() {
 		try {
 			beanClass = HTTPStatement.class;
@@ -34,14 +34,14 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/http_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/http_32x32.png";
-			
+
 			properties = new PropertyDescriptor[10];
-			
+
 			resourceBundle = getResourceBundle("res/HTTPStatement");
-			
+
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
-			
+
 			properties[0] = new PropertyDescriptor("httpVerb", beanClass, "getHttpVerb", "setHttpVerb");
 			properties[0].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
@@ -50,42 +50,42 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			properties[1] = new PropertyDescriptor("https", beanClass, "isHttps", "setHttps");
 			properties[1].setDisplayName(getExternalizedString("property.https.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.https.short_description"));
-			
+
 			properties[2] = new PropertyDescriptor("port", beanClass, "getPort", "setPort");
 			properties[2].setDisplayName(getExternalizedString("property.port.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.port.short_description"));
-			
+
 			properties[3] = new PropertyDescriptor("host", beanClass, "getHost", "setHost");
 			properties[3].setDisplayName(getExternalizedString("property.host.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.host.short_description"));
-			
+
 			properties[4] = new PropertyDescriptor("requestUri", beanClass, "getRequestUri", "setRequestUri");
 			properties[4].setDisplayName(getExternalizedString("property.requestUri.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.requestUri.short_description"));
-			properties[4].setValue("scriptable", Boolean.TRUE);
-			
+			properties[4].setValue(SCRIPTABLE, Boolean.TRUE);
+
 			properties[5] = new PropertyDescriptor("httpVersion", beanClass, "getHttpVersion", "setHttpVersion");
 			properties[5].setDisplayName(getExternalizedString("property.httpVersion.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.httpVersion.short_description"));
 			properties[5].setHidden(true);
-			
+
 			properties[6] = new PropertyDescriptor("headers", beanClass, "getHeaders", "setHeaders");
 			properties[6].setDisplayName(getExternalizedString("property.headers.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.headers.short_description"));
 			properties[6].setExpert(true);
 			properties[6].setPropertyEditorClass(getEditorClass("HttpParametersEditor"));
-			
+
 			properties[7] = new PropertyDescriptor("customHttpVerb", beanClass, "getCustomHttpVerb", "setCustomHttpVerb");
 			properties[7].setDisplayName(getExternalizedString("property.customHttpVerb.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.customHttpVerb.short_description"));
 			properties[7].setExpert(true);
-			
+
 			properties[8] = new PropertyDescriptor("trigger", beanClass, "getTrigger", "setTrigger");
 			properties[8].setDisplayName(getExternalizedString("property.trigger.display_name"));
 			properties[8].setShortDescription(getExternalizedString("property.trigger.short_description"));
 			properties[8].setExpert(true);
 			properties[8].setPropertyEditorClass(getEditorClass("HttpTriggerEditor"));
-			
+
 			properties[9] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
 			properties[9].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
 			properties[9].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));

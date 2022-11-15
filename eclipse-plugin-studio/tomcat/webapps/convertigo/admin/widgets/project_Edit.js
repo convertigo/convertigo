@@ -390,23 +390,32 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 		} else {
 			if ($xmlProperty.attr("isMasked") == "true") {
 				$responseField= $("#projectEditTemplate .projectEditInputPassword").clone();
-			}
-			else {
+			} else if ($xmlProperty.attr("isMultiline") == "true" || $.inArray(propertyEditor, ["TextEditor", "JavascriptTextEditor", "GenericTextEditor"]) != -1) {
+				$responseField = getInputCopyOf("projectEditTextArea");
+				$responseField
+					.attr("cols", "80")
+					.attr("rows", "3")
+					.text(value);
+				if (propertyEditor != "null") {
+					$responseField.prop("disabled", true);
+				}
+			} else {
 				$responseField= $("#projectEditTemplate .projectEditInputText").clone();
-			}
-							
-			$responseField.attr("value",value).data("propertyName",propertyName);
-
-			if (propertyEditor != "null" && propertyEditor != "TextEditor") {
-				$responseField.prop("disabled", true);
-			}
-			else {
-				$responseField.attr("class","projectEdit-form-item");
-				if ($responseField.prop("disabled")) {
-					$responseField.prop("disabled", false);
+				if (propertyEditor != "null") {
+					$responseField.prop("disabled", true);
+				} else {
+					$responseField.attr("class","projectEdit-form-item");
+					if ($responseField.prop("disabled")) {
+						$responseField.prop("disabled", false);
+					}
 				}
 			}
 			
+			if ($xmlProperty.attr("isScriptable") == "true") {
+				$responseField.css("background-color", "lightcyan");
+			}
+			
+			$responseField.attr("value", value).data("propertyName", propertyName);
 		}
 		if($xmlPropertyValue.attr("compiledValue")){
 			$responseField.attr("title",$xmlPropertyValue.attr("compiledValue"));
@@ -438,7 +447,7 @@ function addVectorProperty(propertyName, editor, $xmlProperty) {
 		})
 	});
 	
-	$propertyContentTable.find("input").attr("disabled", "disabled");
+	$propertyContentTable.find("input,textarea").attr("disabled", "disabled");
 	return $propertyContentTable;
 }
 

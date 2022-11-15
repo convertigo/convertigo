@@ -272,7 +272,7 @@ public class CicsTransaction extends Transaction {
 		boolean bLoadFromFile = false;
 		
 		if (bLoadFromFile) {
-			String strFilePath = Engine.projectDir(parent.getParent().getName()) + "/" + getName() + "2.xml";
+			String strFilePath = Engine.projectDir(parent.getParentName()) + "/" + getName() + "2.xml";
 			File f = new File(strFilePath);
 			if (f.exists()) {
 				array = null;
@@ -629,7 +629,7 @@ public class CicsTransaction extends Transaction {
 		if (Engine.logBeans.isTraceEnabled()) {
 			try {
 				FileOutputStream output = null;
-				String strFilePath = Engine.projectDir(parent.getParent().getName()) + "/" + getName() + ((i == 0) ? "_input.txt" : "_output.txt");
+				String strFilePath = Engine.projectDir(parent.getParentName()) + "/" + getName() + ((i == 0) ? "_input.txt" : "_output.txt");
 				try {
 					output = new FileOutputStream(strFilePath,true);
 				}
@@ -694,7 +694,7 @@ public class CicsTransaction extends Transaction {
 			FileOutputStream output = null;
 			try {
 				if (strFilePath == null)
-					strFilePath = Engine.projectDir(parent.getParent().getName()) + "/" + getName() + ".htm";
+					strFilePath = Engine.projectDir(parent.getParentName()) + "/" + getName() + ".htm";
 				
 				output = new FileOutputStream(strFilePath);
 				output.write(htmlText.getBytes());

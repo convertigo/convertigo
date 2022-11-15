@@ -94,6 +94,7 @@ public class Deploy extends UploadService {
 		Project project = Engine.theApp.databaseObjectsManager.deployProject(getRepository() + projectArchive, true, bAssembleXsl);
 		
 		String projectName = project.getName();
+		Engine.theApp.schemaManager.clearCache(projectName);
 		Project.executeAutoStartSequences(projectName);
 		
 		if (Boolean.parseBoolean(EnginePropertiesManager

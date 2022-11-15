@@ -26,9 +26,17 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
+import com.twinsoft.convertigo.beans.ngx.components.IExposeAble;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_ngx.ComponentExplorerComposite;
+import com.twinsoft.convertigo.engine.helpers.BatchOperationHelper;
 
-public class NgxPaletteView extends ViewPart implements ISelectionListener {
+public class NgxPaletteView extends ViewPart implements ISelectionListener, TreeObjectListener {
 
 	protected ComponentExplorerComposite explorerComposite = null;
 	
@@ -37,27 +45,82 @@ public class NgxPaletteView extends ViewPart implements ISelectionListener {
 	}
 
 	@Override
-	public void dispose() {
-		getSite().getPage().removeSelectionListener(this);
-		super.dispose();
-	}
-
-	@Override
 	public void createPartControl(Composite parent) {
 		explorerComposite = new ComponentExplorerComposite(parent, SWT.NONE);
 		
 		getSite().getPage().addSelectionListener(this);
+		ConvertigoPlugin.projectManager.getProjectExplorerView().addTreeObjectListener(this);
+	}
+
+	@Override
+	public void dispose() {
+		getSite().getPage().removeSelectionListener(this);
+		ConvertigoPlugin.projectManager.getProjectExplorerView().removeTreeObjectListener(this);
+		
+		super.dispose();
 	}
 
 	@Override
 	public void setFocus() {
-		explorerComposite.setFocus();
+		if (explorerComposite != null) {
+			explorerComposite.setFocus();
+		}
 	}
 
+	private boolean inProcess = false;
+	
+	public synchronized void refresh() {
+		if (inProcess) return;
+		
+		inProcess = true;
+		
+		if (BatchOperationHelper.isStarted()) {
+			BatchOperationHelper.prepareEnd(() -> {
+				if (NgxPaletteView.this.explorerComposite != null) {
+					NgxPaletteView.this.explorerComposite.reloadComponents();
+				}
+				NgxPaletteView.this.inProcess = false;
+			});
+		} else {
+			if (explorerComposite != null) {
+				explorerComposite.reloadComponents();
+			}
+			inProcess = false;
+		}
+	}
+	
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		// TODO Auto-generated method stub
 		
 	}
 
+	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		
+		String propertyName = (String)treeObjectEvent.propertyName;
+		propertyName = ((propertyName == null) ? "" : propertyName);
+		
+		if (treeObject.getObject() instanceof IExposeAble) {
+			if (propertyName.equals("exposed")) {
+				refresh();
+			}
+		}
+	}
+
+	@Override
+	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+			refresh();
+		}
+	}
+
+	@Override
+	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof ProjectTreeObject || treeObject instanceof UnloadedProjectTreeObject) {
+			refresh();
+		}
+	}
 }

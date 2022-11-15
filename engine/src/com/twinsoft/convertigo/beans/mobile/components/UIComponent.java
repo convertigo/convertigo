@@ -265,8 +265,16 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
     	if (pos == 0)
     		return;
     	
-    	if (before == null)
-    		before = ordered.get(pos-1);
+//    	if (before == null)
+//			before = ordered.get(pos-1);
+		if (before == null) {
+			DatabaseObject previous = databaseObject.getPreviousSiblingInFolder();
+			if (previous != null) {
+				before = previous.priority;
+			} else {
+				return;
+			}
+		}
     	int pos1 = ordered.indexOf(before);
     	
     	ordered.add(pos1, value);
@@ -289,8 +297,16 @@ public abstract class UIComponent extends MobileComponent implements IUIComponen
     	if (pos+1 == ordered.size())
     		return;
     	
-    	if (after == null)
-    		after = ordered.get(pos+1);
+//    	if (after == null)
+//			after = ordered.get(pos+1);
+		if (after == null) {
+			DatabaseObject next = databaseObject.getNextSiblingInFolder();
+			if (next != null) {
+				after = next.priority;
+			} else {
+				return;
+			}
+		}
     	int pos1 = ordered.indexOf(after);
     	
     	ordered.add(pos1+1, value);

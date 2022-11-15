@@ -32,20 +32,21 @@ public class RemoveContextStepBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/remove_context_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/remove_context_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/RemoveContextStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          
-		
+
 			properties = new PropertyDescriptor[1];
-			
+
 			properties[0] = new PropertyDescriptor("contextName", beanClass, "getContextName", "setContextName");
 			properties[0].setDisplayName(getExternalizedString("property.contextName.display_name"));
-	        properties[0].setShortDescription(getExternalizedString("property.contextName.short_description"));            
-	        properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setShortDescription(getExternalizedString("property.contextName.short_description"));            
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
 			properties[0].setExpert(true);
-	        
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

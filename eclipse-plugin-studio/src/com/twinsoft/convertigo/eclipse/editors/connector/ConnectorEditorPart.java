@@ -210,7 +210,7 @@ public class ConnectorEditorPart extends Composite implements EngineListener {
 
 	private Context getStudioContext(boolean bForce) {
 
-		String projectName = connector.getParent().getName();
+		String projectName = connector.getParentName();
 		String connectorName = connector.getName();
 		String contextType = ContextManager.CONTEXT_TYPE_TRANSACTION;
 		String contextID = Engine.theApp.contextManager.computeStudioContextName(contextType, projectName, connectorName);

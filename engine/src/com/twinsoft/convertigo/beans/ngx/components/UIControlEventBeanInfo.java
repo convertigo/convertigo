@@ -30,8 +30,8 @@ public class UIControlEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIControlEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIControlAttr.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontrolevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontrolevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontrolevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicontrolevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIControlEvent");
 

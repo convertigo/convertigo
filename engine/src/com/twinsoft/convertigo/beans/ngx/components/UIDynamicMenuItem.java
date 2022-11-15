@@ -210,6 +210,7 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 					pageTitle = page.getTitle();
 					pageIcon = page.getIcon();
 					pageIconPos = page.getIconPosition();
+					pageIconPos = !pageIcon.isEmpty() && pageIconPos.isEmpty() ? "start" : pageIconPos;
 					pageSegment = page.getSegment();
 				} catch (Exception e) {}
 			}
@@ -220,8 +221,8 @@ public class UIDynamicMenuItem extends UIDynamicElement implements ITagsProperty
 			}
 			
 			String title = titleText.isEmpty() ? pageTitle:titleText;
-			String pos = itemiconPos.isEmpty() ? pageIconPos:itemiconPos;
 			String icon = itemicon.isEmpty() ? pageIcon:itemicon;
+			String pos = itemiconPos.isEmpty() ? pageIconPos:itemiconPos;
 //			String menuId = getMenuId();
 			
 			StringBuilder sb = new StringBuilder();

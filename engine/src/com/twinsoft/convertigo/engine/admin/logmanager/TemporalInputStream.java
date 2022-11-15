@@ -51,33 +51,33 @@ public class TemporalInputStream extends InputStream {
 	private final static int BUF_SIZE = 60;
 	private final byte [] b = new byte[BUF_SIZE];
 	private String encoding;
-	
+
 	public TemporalInputStream(File directory, String base_file, DateFormat date_format, int date_offset, Date date_start, Date date_end, String encoding) throws IOException {
 		if (date_start.compareTo(date_end) >= 0) {
 			throw new IllegalArgumentException("date_start must be less than date_end");
 		}
-		
+
 		this.date_format = date_format;
-		if (date_format.isLenient()) {  
+		if (date_format.isLenient()) {
 			this.date_format.setLenient(false); // see #1567, date_format need to be strict
 		}
-		
+
 		this.date_offset = date_offset;
 		files = new LinkedList<File>();
 		boolean end_finded = false;
-		
+
 		{
 			String[] split = split_dot.split(base_file);
 			this.is_ori = Pattern.compile("(" + split[0] + ")(\\." + split[1] + ")\\..*").matcher("");
-			 this.is_ts = Pattern.compile(split[0] + "\\.([\\w]*)\\.([\\w]*)\\." + split[1]).matcher("");
+			this.is_ts = Pattern.compile(split[0] + "\\.([\\w]*)\\.([\\w]*)\\." + split[1]).matcher("");
 		}
-		
+
 		this.encoding = encoding;
 		renameFiles(directory);
-		
+
 		String [] filenames = directory.list();
 		Arrays.sort(filenames);
-		
+
 		for (String filename : filenames) {
 			is_ts.reset(filename);
 			if (is_ts.matches() && is_ts.groupCount() == 2) {
@@ -103,7 +103,7 @@ public class TemporalInputStream extends InputStream {
 				}
 			}
 		}
-		
+
 		File basefile = new File(directory, base_file);
 		if (position_start == -1) {
 			try {
@@ -120,11 +120,11 @@ public class TemporalInputStream extends InputStream {
 				position_end = -1;
 			}
 		}
-		
-		is = new UnifiedInputStream(files);
+
+		is = new UnifiedInputStream(files, basefile);
 		is.skip(position_start);
 	}
-	
+
 	@Override
 	public int read() throws IOException {
 		int n = is.read();
@@ -133,11 +133,11 @@ public class TemporalInputStream extends InputStream {
 		}
 		return n;
 	}
-	
+
 	@Override
 	public int available() throws IOException {
 		if (position_end != -1) {
-			return (int) (position_end - is.getPointer());	
+			return (int) (position_end - is.getPointer());
 		} else {
 			return is.available();
 		}
@@ -170,13 +170,13 @@ public class TemporalInputStream extends InputStream {
 	public long skip(long n) throws IOException {
 		return is.skip(n);
 	}
-	
+
 	@Override
 	public synchronized void reset() throws IOException {
 		is.reset();
 		is.skip(position_start);
 	}
-	
+
 	public SortedMap<Date, File> getTimedFiles() {
 		SortedMap<Date, File> map = new TreeMap<Date, File>();
 		for (File file : files) {
@@ -188,15 +188,15 @@ public class TemporalInputStream extends InputStream {
 		}
 		return map;
 	}
-	
+
 	private Date extractDate(RandomAccessFile raf) throws IOException {
 		Date date = null;
 		long pos = raf.getFilePointer();
 		String line = readSubLine(raf);
-		
+
 		while (line != null && pos < Long.MAX_VALUE) {
 			date = parseDate(line);
-			
+
 			if (date == null) {
 				int c = goToNextLine(raf);
 				pos = raf.getFilePointer();
@@ -205,15 +205,15 @@ public class TemporalInputStream extends InputStream {
 				line = null;
 			}
 		}
-		
+
 		raf.seek(pos);
-		
+
 		return date;
 	}
-	
+
 	private long findPosition(File file, Date date) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		
+
 		try {
 			Date cur_date = extractDate(raf);
 			if (cur_date != null) {
@@ -240,12 +240,12 @@ public class TemporalInputStream extends InputStream {
 					} finally {
 						date.setTime(date.getTime() + 1);
 					}
-					
+
 					if (cur_date != null && date.compareTo(cur_date) < 0) {
 						raf.seek(min);
 						cur_date = extractDate(raf);
 					}
-					
+
 					// Fix #1788 : 'Out of range Date' exception when start date is 2011-01-25 12:32 for log file of #1787
 					// can find next cur_date but last_date is a valid candidate for the end date
 					if (cur_date == null && last_date != null) {
@@ -266,12 +266,12 @@ public class TemporalInputStream extends InputStream {
 			raf.close();
 		}
 	}
-	
+
 	private Date parseDate(String line) throws IllegalArgumentException {
 		date_position.setIndex(date_offset);
 		return date_format.parse(line, date_position);
 	}
-	
+
 	private void renameFile(File file, String basename, String extension) throws IOException {
 		try {
 			Date first_date = null;
@@ -283,7 +283,7 @@ public class TemporalInputStream extends InputStream {
 					last_date = findLastDate(raf);
 				}
 			} finally {
-				raf.close();	
+				raf.close();
 			}
 			if (first_date != null && last_date != null) {
 				file.renameTo(new File(file.getParentFile(), basename + '.' + Long.toString(first_date.getTime(), Character.MAX_RADIX) + '.' + Long.toString(last_date.getTime(), Character.MAX_RADIX) + extension));
@@ -292,25 +292,25 @@ public class TemporalInputStream extends InputStream {
 			// can happen while cleanup old files
 		}
 	}
-	
+
 	private Date findFirstDate(RandomAccessFile raf) throws IOException {
 		Date date = null;
-		
+
 		while (date == null && raf.getFilePointer() < raf.length()) {
 			date = parseDate(raf);
-			
+
 			if (date == null) {
 				goToNextLine(raf);
 			}
 		}
-		
+
 		return date;
 	}
-	
+
 	private Date findLastDate(RandomAccessFile raf) throws IOException {
 		Date date = null;
 		long pos = raf.length() - 2;
-		
+
 		while (date == null && pos > 0) {
 			do {
 				raf.seek(pos);
@@ -321,14 +321,14 @@ public class TemporalInputStream extends InputStream {
 			}
 			date = parseDate(raf);
 		}
-		
+
 		return date;
 	}
-	
+
 	private int goToNextLine(RandomAccessFile raf) throws IOException {
 		boolean keepReading = true;
 		int c = -1;
-		
+
 		while (keepReading) {
 			switch (c = raf.read()) {
 			case -1:
@@ -345,10 +345,10 @@ public class TemporalInputStream extends InputStream {
 			default:
 			}
 		}
-		
+
 		return c;
 	}
-	
+
 	private String readSubLine(RandomAccessFile raf) throws IOException {
 		long p = raf.getFilePointer();
 		int r = raf.read(b);
@@ -363,11 +363,11 @@ public class TemporalInputStream extends InputStream {
 		}
 		return new String(b, 0, r, encoding);
 	}
-	
+
 	private Date parseDate(RandomAccessFile raf) throws IOException {
 		return parseDate(readSubLine(raf));
 	}
-	
+
 	private void renameFiles(File dir) {
 		synchronized (TemporalInputStream.class) {
 			for (File file : dir.listFiles()) {

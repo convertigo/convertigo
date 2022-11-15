@@ -24,32 +24,32 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIActionLoopEventBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIActionLoopEventBeanInfo() {
 		try {
 			beanClass = UIActionLoopEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIActionEvent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionloopevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIActionLoopEvent");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("varItemName", beanClass, "getVarItemName", "setVarItemName");
 			properties[0].setDisplayName(getExternalizedString("property.varItemName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.varItemName.short_description"));
-			properties[0].setValue("category", "@Properties");
-			
+			properties[0].setValue(CATEGORY, "@Properties");
+
 			properties[1] = new PropertyDescriptor("varIndexName", beanClass, "getVarIndexName", "setVarIndexName");
 			properties[1].setDisplayName(getExternalizedString("property.varIndexName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.varIndexName.short_description"));
-			properties[1].setValue("category", "@Properties");
-			
+			properties[1].setValue(CATEGORY, "@Properties");
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

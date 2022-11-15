@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
-public class UIActionStack extends UIComponent implements IShared {
+public class UIActionStack extends UIComponent implements IShared, IExposeAble {
 
 	private static final long serialVersionUID = -5668525501858865747L;
 
@@ -462,4 +462,16 @@ public class UIActionStack extends UIComponent implements IShared {
 	public FolderType getFolderType() {
 		return FolderType.SHARED_ACTION;
 	}
+
+	private boolean exposed = true;
+	
+	@Override
+	public boolean isExposed() {
+		return exposed;
+	}
+	
+	public void setExposed(boolean exposed) {
+		this.exposed = exposed;
+	}
+
 }

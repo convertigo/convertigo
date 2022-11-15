@@ -151,7 +151,7 @@ import io.swagger.v3.parser.util.OpenAPIDeserializer;
 public class OpenApiUtils {
 
 	public static String servletMappingPath = "openapi";
-	private static String jsonSchemaDirectory = "oas3";
+	public static String jsonSchemaDirectory = "oas3";
 	private static Pattern parseRequestUrl = Pattern.compile("http(s)?://(.*?)(/.*?"+servletMappingPath+")");
 	
 	public static OpenAPI read(String url) {
@@ -267,6 +267,7 @@ public class OpenApiUtils {
 		
 		if (doIt) {
 			try {
+				Engine.theApp.schemaManager.clearCache(projectName);
 				XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, Option.noCache);
 				NamespaceMap nsMap = (NamespaceMap) xmlSchemaCollection.getNamespaceContext();
 				for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
@@ -1031,7 +1032,7 @@ public class OpenApiUtils {
 								}
 								else if (h_Accept.equals(MimeType.Json.value())) {
 									transaction = new JsonHttpTransaction();
-									((JsonHttpTransaction)transaction).setIncludeDataType(false);
+									((JsonHttpTransaction)transaction).setIncludeDataType(true);
 								}
 							}
 							

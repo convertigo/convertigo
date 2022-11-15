@@ -30,8 +30,8 @@ public class UISharedRegularComponentBeanInfo extends MySimpleBeanInfo {
 			beanClass = UISharedRegularComponent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UISharedComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedregular_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedregular_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uisharedcomponent_32x32.png";
 			
 			resourceBundle = getResourceBundle("res/UISharedRegularComponent");
 

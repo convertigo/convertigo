@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.beans.core;
 import java.beans.PropertyDescriptor;
 
 public class DatabaseObjectBeanInfo extends MySimpleBeanInfo {
-    
+
 	public DatabaseObjectBeanInfo() {
 		try {
 			beanClass = DatabaseObject.class;
@@ -32,15 +32,16 @@ public class DatabaseObjectBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[2];
 
-            properties[0] = new PropertyDescriptor("comment", beanClass, "getComment", "setComment");
-            properties[0].setDisplayName(getExternalizedString("property.comment.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.comment.short_description"));
-            properties[0].setPropertyEditorClass(getEditorClass("TextEditor"));
+			properties[0] = new PropertyDescriptor("comment", beanClass, "getComment", "setComment");
+			properties[0].setDisplayName(getExternalizedString("property.comment.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.comment.short_description"));
+			properties[0].setValue(GENERIC_EDITOR_EXTENSION, "md");
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
 
-            properties[1] = new PropertyDescriptor("name", beanClass, "getName", "setName");
-            properties[1].setDisplayName(getExternalizedString("property.name.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.name.short_description"));
-            properties[1].setHidden(true);
+			properties[1] = new PropertyDescriptor("name", beanClass, "getName", "setName");
+			properties[1].setDisplayName(getExternalizedString("property.name.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.name.short_description"));
+			properties[1].setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

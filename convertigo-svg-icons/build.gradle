@@ -1,0 +1,31 @@
+apply plugin: 'eclipse'
+apply plugin: 'java'
+apply plugin: 'application'
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src']
+		}
+		resources {
+			srcDirs = ['src']
+		}
+	}
+}
+
+dependencies {
+	implementation 'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
+	implementation 'org.apache.xmlgraphics:batik-codec:1.7'
+}
+
+application {
+	mainClass = 'com.convertigo.icons.MakeIcons'
+}
+
+run {
+	inputs.files fileTree('../engine/src/com/twinsoft/convertigo/beans').matching {
+		include '**/*.svg'
+	}
+	outputs.file '../engine/src/com/twinsoft/convertigo/beans/ngx/components/images/uiappevent_32x32.png'
+	args '../engine/src/com/twinsoft/convertigo/beans'
+}

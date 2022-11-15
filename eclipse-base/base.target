@@ -11,11 +11,13 @@
 			<unit id="org.eclipse.rcp.feature.group" version="0.0.0"/>
 			<unit id="org.eclipse.wildwebdeveloper.feature.feature.group" version="0.0.0"/>
 			<unit id="org.eclipse.wst.xml_ui.feature.feature.group" version="0.0.0"/>
-			<repository location="https://download.eclipse.org/releases/2021-12/"/>
+			<unit id="org.eclipse.mylyn.wikitext_feature.feature.group" version="0.0.0"/>
+			<unit id="org.eclipse.mylyn.wikitext.editors_feature.feature.group" version="0.0.0"/>
+			<repository location="https://download.eclipse.org/releases/2022-09/"/>
 		</location>
-	<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
-		<unit id="org.eclipse.pde.feature.group" version="0.0.0"/>
-		<repository location="https://download.eclipse.org/eclipse/updates/4.22/"/>
-	</location>
-</locations>
+		<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
+			<unit id="org.eclipse.pde.feature.group" version="0.0.0"/>
+			<repository location="https://download.eclipse.org/eclipse/updates/4.25/"/>
+		</location>
+	</locations>
 </target>

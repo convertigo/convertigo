@@ -483,6 +483,16 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIFontStyle">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.PageComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIElement"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UIFont">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.ngx.components.UITheme">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent"/>
 				</bean>

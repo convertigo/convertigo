@@ -66,6 +66,7 @@ import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JScriptEditorInput;
+import com.twinsoft.convertigo.eclipse.views.mobile.NgxPaletteView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
@@ -99,6 +100,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
+        	boolean needNgxPaletteReload = false;
         	treeNodesToUpdate = new ArrayList<>();
         	
     		ProjectExplorerView explorerView = getProjectExplorerView();
@@ -109,6 +111,12 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     				for (TreeObject t: Arrays.asList(selectedTreeObjects)) {
     					if (t instanceof DatabaseObjectTreeObject) {
     						treeObjects.add((DatabaseObjectTreeObject) t);
+    						
+    						DatabaseObject dbo = ((DatabaseObjectTreeObject) t).getObject();
+    						if (dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UIActionStack ||
+    								dbo instanceof com.twinsoft.convertigo.beans.ngx.components.UISharedRegularComponent) {
+    							needNgxPaletteReload = true;
+    						}
     					}
     				};
     				
@@ -243,6 +251,14 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
     				
     				// Refresh tree to show potential 'broken' steps
     				explorerView.refreshTree();
+    				
+					// Refresh ngx palette view
+					if (needNgxPaletteReload) {
+						NgxPaletteView ngxPaletteView = ConvertigoPlugin.getDefault().getNgxPaletteView();
+						if (ngxPaletteView != null) {
+							ConvertigoPlugin.getDefault().getNgxPaletteView().refresh();
+						}
+					}
     			}
     		}
         }
@@ -297,7 +313,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			String dirPath, projectName;
 			File dir;
 			
-			projectName = databaseObject.getParent().getName();
+			projectName = databaseObject.getParentName();
 			
 			MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			messageBox.setText("Also delete linked resources?");

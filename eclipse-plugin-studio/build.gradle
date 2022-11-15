@@ -50,15 +50,16 @@ eclipse {
 tasks['eclipse'].dependsOn ':engine:dependenciesSourceJar'
 
 dependencies {
-	runtimeOnly project(':engine')
-	runtimeOnly "${jxBrowserGroup}:jxbrowser:${jxBrowserVersion}"
-	runtimeOnly "${jxBrowserGroup}:jxbrowser-swt:${jxBrowserVersion}"
-	runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
+	toSync project(':engine')
+	toSync "${jxBrowserGroup}:jxbrowser:${jxBrowserVersion}"
+	toSync "${jxBrowserGroup}:jxbrowser-swt:${jxBrowserVersion}"
+	toSync 'org.apache.tomcat.embed:tomcat-embed-core:' + tomcatVersion
 	//runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-logging-log4j:' + tomcatVersion
-	runtimeOnly 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
-	runtimeOnly 'org.apache.axis2:axis2-adb:1.6.2@jar'
-	runtimeOnly project.property('sapjco3Version')
-	implementation 'com.convertigo.lib:jxbrowser-license:2022.04.15'
+	toSync 'org.apache.tomcat:tomcat-dbcp:' + tomcatVersion
+	toSync 'org.apache.axis2:axis2-adb:1.6.2@jar'
+	toSync project.property('sapjco3Version')
+	toSync 'com.convertigo.lib:jxbrowser-license:2022.04.15'
+	implementation fileTree(dir: 'lib', include: '*.jar')
 }
 
 task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI']) {
@@ -86,6 +87,7 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.e4.ui.css.core',
 					'org.eclipse.e4.ui.css.swt',
 					'org.eclipse.e4.ui.css.swt.theme',
+					'org.eclipse.egit.core',
 					'org.eclipse.egit.ui',
 					'org.eclipse.jface.text',
 					'org.eclipse.jgit',
@@ -95,17 +97,15 @@ task writeManifest(dependsOn: ['copyLicense', 'syncLib', ':engine:unzipSwaggerUI
 					'org.eclipse.ui.editors',
 					'org.eclipse.ui.genericeditor',
 					'org.eclipse.ui.ide',
+					'org.eclipse.ui.navigator',
+					'org.eclipse.ui.navigator.resources',
 					'org.eclipse.ui.workbench.texteditor',
-					'org.eclipse.ui.ide',
 					'org.eclipse.ui.views',
 					'org.eclipse.wst.sse.ui',
 					'org.eclipse.wst.sse.core',
 					'org.eclipse.wildwebdeveloper',
 					'org.eclipse.wildwebdeveloper.xml'
-					/*,
-					'org.eclipse.wst.jsdt.ui',
-					'org.eclipse.wst.jsdt.core',
-					'ts.eclipse.ide.core'*/].join(',')
+				].join(',')
 			)
 		}.writeTo(manifest)
 		manifest.text = manifest.text.replaceAll("Import-Package: .*\\s+", "")

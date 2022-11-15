@@ -18,7 +18,8 @@
       <programArgsMac>-vm
 ./../jre/bin/java
       </programArgsMac>
-      <vmArgs>--add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+      <vmArgs>-Dfile.encoding=UTF-8
+--add-exports=java.base/sun.nio.ch=ALL-UNNAMED
 --add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED
 --add-opens=java.base/java.lang=ALL-UNNAMED
 --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
@@ -35,7 +36,7 @@
    <splash
       location="com.twinsoft.convertigo.studio.product"
       startupProgressRect="0,316,500,16"
-      startupMessageRect="20,230,480,20"
+      startupMessageRect="40,265,220,35"
       startupForegroundColor="FFFFFF" />
    <launcher name="ConvertigoStudio">
       <linux icon="images/convertigo_256x256_8.xpm"/>
@@ -96,7 +97,6 @@
       <plugin id="org.eclipse.update.configurator" autoStart="true" startLevel="4" />
       <property name="org.eclipse.update.reconcile" value="false" />
       <property name="osgi.instance.area.default" value="@user.home/ConvertigoWorkspace" os="macosx" />
-      <property name="osgi.framework.extensions" value="org.eclipse.wst.jsdt.nashorn.extension" />
    </configurations>
 
    <repositories>

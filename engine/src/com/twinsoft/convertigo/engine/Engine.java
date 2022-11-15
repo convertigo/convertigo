@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Constructor;
 import java.security.Provider;
 import java.security.Security;
@@ -754,13 +755,13 @@ public class Engine {
 							File wm = new File(vncDir, "/matchbox-window-manager");
 							if (vncDir.exists() && Xvnc.exists() && fonts.exists() && wm.exists()) {
 								for (File file : GenericUtils.<File> asList(Xvnc, wm)) {
-									new ProcessBuilder("/bin/chmod", "u+x", file.getAbsolutePath()).start().waitFor();
+									new ProcessBuilder("/bin/chmod", "u+x", file.getAbsolutePath()).inheritIO().start().waitFor();
 								}
 								String depth = EnginePropertiesManager.getProperty(PropertyName.LINUX_XVNC_DEPTH);
 								String geometry = EnginePropertiesManager.getProperty(PropertyName.LINUX_XVNC_GEOMETRY);
 								Engine.logEngine.debug("Xvnc will use depth " + depth + " and geometry " + geometry);
 								Process pr_xvnc = new ProcessBuilder(Xvnc.getAbsolutePath(), display, "-fp",
-										fonts.getAbsolutePath(), "-depth", depth, "-geometry", geometry)
+										fonts.getAbsolutePath(), "-depth", depth, "-geometry", geometry).redirectOutput(Redirect.DISCARD)
 										.start();
 								Thread.sleep(500);
 								try {
@@ -771,7 +772,7 @@ public class Engine {
 									Engine.logEngine.debug("Xvnc failed to run with exit code " + exit
 											+ " and this error : <<" + new String(buf, "UTF-8") + ">>");
 								} catch (Exception e) {
-									new ProcessBuilder(wm.getAbsolutePath()).start();
+									new ProcessBuilder(wm.getAbsolutePath()).inheritIO().start();
 									Engine.logEngine.debug("Xvnc successfully started !");
 								}
 							} else {
@@ -839,7 +840,7 @@ public class Engine {
 	}
 	
 	public static synchronized void stop() throws EngineException {
-		if (Engine.isStudioMode()) {
+		if (Engine.isStudioMode() && isStarted) {
 			throw new EngineException("Cannot stop a Convertigo Studio Engine");
 		}
 		if (Engine.theApp != null) {

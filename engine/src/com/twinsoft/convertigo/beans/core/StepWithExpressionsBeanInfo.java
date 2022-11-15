@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.beans.core;
 import java.beans.PropertyDescriptor;
 
 public class StepWithExpressionsBeanInfo extends MySimpleBeanInfo {
-    
+
 	public StepWithExpressionsBeanInfo() {
 		try {
 			beanClass = StepWithExpressions.class;
@@ -30,7 +30,7 @@ public class StepWithExpressionsBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = getResourceBundle("res/StepWithExpressions");
 
-			properties = new PropertyDescriptor[0];			
+			properties = new PropertyDescriptor[0];
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

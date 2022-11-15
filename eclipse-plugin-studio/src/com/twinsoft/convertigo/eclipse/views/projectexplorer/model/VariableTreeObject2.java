@@ -167,7 +167,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 				 * locate testcase belonging to same sequence
 				 */
 				for (int i=0; i<list.size(); i++) {
-					if (((testCase = (TestCase)list.get(i)) != null) && (testCase.getParent().getName().equals(parentName))) {
+					if (((testCase = (TestCase)list.get(i)) != null) && (testCase.getParentName().equals(parentName))) {
 						/*
 						 * get the testcase variables list
 						 */

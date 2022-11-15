@@ -22,7 +22,7 @@ if not, see <http://www.gnu.org/licenses/>.
 <br/>
 <table>
 	<tr>
-		<td width="180">Contexts currently in use:</td>
+		<td width="350">Contexts currently in use:</td>
 		<td><strong><span id="connectionsContextsInUse"></span> / <span id="connectionsContextsNumber"></span></strong></td>
 	</tr>
 	<tr>
@@ -37,44 +37,55 @@ if not, see <http://www.gnu.org/licenses/>.
 		</td>
 	</tr>
 	<tr>
-		<td>Max HTTP session inactivity (your current session):</td>
-		<td><strong><span id="connectionsHttpTimeout"></span></strong></td>
+		<td>Max HTTP session inactivity:</td>
+		<td><strong><span id="connectionsHttpTimeout"></span></strong> without request before destroying it with its contexts</td>
 	</tr>
 </table>
 
 <h6>Legend</h6>
 
-<div class="connections-legend">
-	<span>
-	    <img src="images/convertigo-administration-picto-bullet-green.png" alt="Green bullet"/>
-	    <img src="images/convertigo-administration-picto-bullet-red.png" alt="Green bullet"/>
-	    Connection state of the context associated to the connection
-	</span>
-	
-    <span>
-	    <img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>
-	    Creation date of the context
-    </span>
-    <span>
-        <img src="images/convertigo-administration-picto-last-date.png" alt="Last access date"/>
-        Last access date to the context
-    </span>
-    <span>
-        <img src="images/convertigo-administration-picto-activity.png" alt="Context inactivity"/>
-        Inactivity duration                                                       
-    </span>
-    <span>
-    	<img src="images/edit.gif" alt="Show logs"/>
-        Click to filter logs                                                       
-    </span>
-</div>
+<table class="connections-legend" cellspacing="20">
+	<tr>
+		<td colspan="2">
+			<img src="images/convertigo-administration-picto-bullet-green.png" alt="Green bullet"/>
+			<img src="images/convertigo-administration-picto-bullet-red.png" alt="Green bullet"/>
+			Connection state of the connector used by the context associated to the connection
+		</td>
+		<td>
+			<img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>
+			Creation date of the context
+		</td>
+		<td>
+			<img src="images/convertigo-administration-picto-last-date.png" alt="Last access date"/>
+			Last access date to the context
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/convertigo-administration-picto-activity.png" alt="Context inactivity"/>
+			Inactivity duration
+		</td>
+		<td>
+			<img src="images/edit.gif" alt="Show logs"/>
+			Click to filter logs
+		</td>
+		<td>
+			<strong style="border: solid 1px">&nbsp;FS&nbsp;</strong>
+			FullSync replication activity
+		</td>
+		<td>
+			<strong style="border: solid 1px">&nbsp;Roles&nbsp;</strong>
+			Number of Convertigo administration roles affected to this session
+		</td>
+	</tr>
+</table>
 <br/>
 <h6>Sessions</h6>
 <div><a href="javascript: toggleSessions()">Show / hide</a> sessions. Click a session to filter its contexts.</div>
 <br/>
 <table id="sessionsList"></table>
 <br/>
-<h6>Connections</h6>
+<h6>Contexts</h6>
 <div class="main-display-none">View contexts of <span id="selectedSession" />. Click <a href="javascript: clearSelectedSession()">here to view all contexts</a>.</div>
 <br/>
 <table id="connectionsList"></table>

@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -57,7 +58,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 
 public class ProcessUtils {
-	private static String defaultNodeVersion = "v14.18.1";
+	private static String defaultNodeVersion = "v16.18.0";
 	private static File defaultNodeDir;
 	
 	public static String getDefaultNodeVersion() {
@@ -327,7 +328,7 @@ public class ProcessUtils {
 			File dir = getLocalNodeDir(version);
 			Engine.logEngine.info("getLocalNodeDir " + dir + (dir.exists() ? " exists" : " doesn't exist"));
 			if (dir.exists()) {
-				if (!Engine.isWindows()) {
+				if (!Engine.isWindows() && !dir.getName().equals("bin")) {
 					dir = new File(dir, "bin");
 				}
 				return dir;
@@ -375,7 +376,8 @@ public class ProcessUtils {
 				}
 			} else {
 				Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
-				ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile()).start().waitFor();
+				ProcessUtils.getProcessBuilder(null, "tar", "-zxf", archive.getAbsolutePath()).directory(archive.getParentFile())
+				.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
 				dir = new File(dir, "bin");
 			}
 			FileUtils.deleteQuietly(archive);
@@ -463,7 +465,8 @@ public class ProcessUtils {
 		} else {
 			Engine.logEngine.info("tar -zxf " + archive.getAbsolutePath() + " into " + archive.getParentFile());
 			dir.mkdirs();
-			ProcessUtils.getProcessBuilder(null, "tar", "--strip-components=" + (Engine.isLinux() ? 1 : 3), "-zxf", archive.getAbsolutePath()).directory(dir).start().waitFor();
+			ProcessUtils.getProcessBuilder(null, "tar", "--strip-components=" + (Engine.isLinux() ? 1 : 3), "-zxf", archive.getAbsolutePath()).directory(dir)
+				.redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start().waitFor();
 		}
 		archive.delete();
 		Engine.logEngine.info("jdk dir: " + dir);
@@ -562,7 +565,7 @@ public class ProcessUtils {
 		}
 
 		Engine.logEngine.info("Android commands");
-		Process p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).start();
+		Process p = ProcessUtils.getProcessBuilder(binDir.getAbsolutePath(), Engine.isWindows() ? "sdkmanager.bat" : "sdkmanager", "--licenses", "--sdk_root=" + dir.getAbsolutePath()).redirectErrorStream(true).start();
 		BufferedOutputStream bos = new BufferedOutputStream(p.getOutputStream());
 		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
 		Engine.execute(() -> {

@@ -157,7 +157,7 @@
             project="true">
             <description>Creates a NGX Mobile Builder application project based on ionic6 and Convertigo Angular frameworks.</description>
             {
-              "url": "template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.0.0.zip",
+              "url": "template_ngxBuilderIonic=https://github.com/convertigo/c8oprj-template-ngx-builder/archive/8.1.0.zip",
               "doPage1": true
             }
             </wizard>
@@ -637,7 +637,7 @@
             project="true">
             <description>Imports a project creating a sampleOffChat application. This application demonstrates FullSync technology used to an "Offline Chat" application. This app enables users to establish conversations between them and chat using text messages and photos. When the device is online, messages will flow from one to the other immediately, using FullSync “live” replications. If the device if offline, posts will be secured in the local FullSync NoSQL database and will be synced automatically when the device is online again.</description>
              {
-               "url": "sampleMobileOffChat=https://github.com/convertigo/c8oprj-sample-offchat/archive/8.0.0.zip",
+               "url": "sampleMobileOffChat=https://github.com/convertigo/c8oprj-sample-offchat/archive/8.1.0.zip",
                "doPageSummarySampleProject": true
              } 
        </wizard>
@@ -665,7 +665,7 @@
             project="true">
             <description>Imports a project creating a FlightShare application. Flight Share is an application able to share flights within Pilots using Flyin Club Planes.</description>
              {
-               "url": "FlightShare=https://github.com/convertigo/c8oprj-sample-flightshare/archive/8.0.0.zip",
+               "url": "FlightShare=https://github.com/convertigo/c8oprj-sample-flightshare/archive/8.1.0.zip",
                "doPageSummarySampleProject": true
              } 
        </wizard>
@@ -679,7 +679,7 @@
             project="true">
             <description>Imports a project creating a sample_HelloWorld application. Simple news reader application using the Convertigo Mobile Builder.</description>
              {
-               "url": "sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/8.0.0.zip",
+               "url": "sample_HelloWorld=https://github.com/convertigo/c8oprj-sample-helloworld/archive/8.1.0.zip",
                "doPageSummarySampleProject": true
              }
        </wizard>
@@ -693,7 +693,7 @@
             project="true">
             <description>Imports a project creating a sampleRetailStore application. This application demonstrates FullSync technology used for a mobile retail store application where the user can browse a catalog of products downloaded on his mobile phone. For this demo, the data come from a static XML file imported in the FullSync server database. When the mobile application is launched, a first step will be done to import the data in the server database, then the data will be “synced” on the mobile device. Be sure to install a CouchDB server on your workstation before running this demo.</description>
              {
-               "url": "sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/8.0.0.zip",
+               "url": "sampleMobileRetailStore=https://github.com/convertigo/c8oprj-sample-retailstore/archive/8.1.0.zip",
                "doPageSummarySampleProject": true
              } 
        </wizard>
@@ -1853,6 +1853,12 @@
                id="convertigo.action.reloadXmlProject"
                label="Reload your project"
                menubarPath="project"/>
+		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectGenerateReadmeAction"
+               enablesFor="1"
+               id="convertigo.action.generateReadme"
+               label="Generate readme.md"
+               menubarPath="markdown"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportSoapWsReference"
                enablesFor="1"
@@ -3046,7 +3052,63 @@
                      id="convertigo.menu.step.changeTo"
                      label="Change to"
                      path="changeTo">
-               </menu> 
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToArray"
+                     label="Array"
+                     icon="icons/studio/beans/steps/jsonarray_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLComplexStep;com.twinsoft.convertigo.beans.steps.JsonObjectStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToObject"
+                     label="Object"
+                     icon="icons/studio/beans/steps/jsonobject_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLComplexStep;com.twinsoft.convertigo.beans.steps.JsonArrayStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToComplex"
+                     label="XML Complex"
+                     icon="icons/studio/beans/steps/complex_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.JsonObjectStep;com.twinsoft.convertigo.beans.steps.JsonArrayStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToJsonStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToField"
+                     label="Field"
+                     icon="icons/studio/beans/steps/jsonfield_16x16.png"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLElementStep;com.twinsoft.convertigo.beans.steps.ElementStep">
+                     </objectState>
+                  </enablement>
+               </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSimpleSourceStepAction"
                      enablesFor="1"
@@ -3060,7 +3122,7 @@
                            value="com.twinsoft.convertigo.beans.steps.SourceStep">
                      </objectState>
                   </enablement>
-               </action>   
+               </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSourceStepAction"
                      enablesFor="1"
@@ -3208,7 +3270,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep;com.twinsoft.convertigo.beans.steps.XMLAttributeStep;com.twinsoft.convertigo.beans.steps.ElementStep">
+                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep;com.twinsoft.convertigo.beans.steps.XMLAttributeStep;com.twinsoft.convertigo.beans.steps.ElementStep;com.twinsoft.convertigo.beans.steps.JsonFieldStep">
                      </objectState>
                   </enablement>
                </action>
@@ -3250,7 +3312,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.AttributeStep;com.twinsoft.convertigo.beans.steps.XMLElementStep" />
+                           value="com.twinsoft.convertigo.beans.steps.AttributeStep;com.twinsoft.convertigo.beans.steps.XMLElementStep;com.twinsoft.convertigo.beans.steps.JsonFieldStep" />
                   </enablement>
                 </action>
             </objectContribution>

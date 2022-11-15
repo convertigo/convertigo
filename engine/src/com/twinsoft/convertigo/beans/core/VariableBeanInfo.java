@@ -22,7 +22,7 @@ package com.twinsoft.convertigo.beans.core;
 import java.beans.*;
 
 public class VariableBeanInfo extends MySimpleBeanInfo {
-    
+
 	public VariableBeanInfo() {
 		try {
 			beanClass = Variable.class;
@@ -31,34 +31,36 @@ public class VariableBeanInfo extends MySimpleBeanInfo {
 			resourceBundle = getResourceBundle("res/Variable");
 
 			properties = new PropertyDescriptor[5];
-			
-            properties[0] = new PropertyDescriptor("description", beanClass, "getDescription", "setDescription");
+
+			properties[0] = new PropertyDescriptor("description", beanClass, "getDescription", "setDescription");
 			properties[0].setDisplayName(getExternalizedString("property.description.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.description.short_description"));
-			
-            properties[1] = new PropertyDescriptor("value", beanClass, "getDefaultValue", "setDefaultValue");
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
+
+			properties[1] = new PropertyDescriptor("value", beanClass, "getDefaultValue", "setDefaultValue");
 			properties[1].setDisplayName(getExternalizedString("property.value.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.value.short_description"));
-			properties[1].setValue("nillable", Boolean.TRUE);
-			
-            properties[2] = new PropertyDescriptor("visibility", beanClass, "getVisibility", "setVisibility");
+			properties[1].setValue(NILLABLE, Boolean.TRUE);
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
+
+			properties[2] = new PropertyDescriptor("visibility", beanClass, "getVisibility", "setVisibility");
 			properties[2].setDisplayName(getExternalizedString("property.visibility.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.visibility.short_description"));
 			properties[2].setPropertyEditorClass(getEditorClass("VisibilityEditor"));
 			properties[2].setValue(BLACK_LIST_NAME,true);
-			
+
 			properties[3] = new PropertyDescriptor("bSoapArray", beanClass, "isSoapArray", "setSoapArray");
 			properties[3].setDisplayName(getExternalizedString("property.bsoaparray.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.bsoaparray.short_description"));
 			properties[3].setHidden(true);
-			
-            properties[4] = new PropertyDescriptor("required", beanClass, "isRequired", "setRequired");
-            properties[4].setDisplayName(getExternalizedString("property.required.display_name"));
-            properties[4].setShortDescription(getExternalizedString("property.required.short_description"));
+
+			properties[4] = new PropertyDescriptor("required", beanClass, "isRequired", "setRequired");
+			properties[4].setDisplayName(getExternalizedString("property.required.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.required.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
 		}
 	}
-	
+
 }

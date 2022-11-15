@@ -30,22 +30,22 @@ public class UICompVariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = UICompVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uicompvariable_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UICompVariable");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[2];
-			
+
 			properties[0] = new PropertyDescriptor("value", beanClass, "getVariableValue", "setVariableValue");
 			properties[0].setDisplayName(getExternalizedString("property.value.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.value.short_description"));
-			properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 			properties[0].setExpert(true);
-			
+
 			properties[1] = new PropertyDescriptor("autoEmit", beanClass, "isAutoEmit", "setAutoEmit");
 			properties[1].setDisplayName(getExternalizedString("property.autoEmit.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.autoEmit.short_description"));

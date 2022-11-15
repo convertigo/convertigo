@@ -34,6 +34,7 @@ import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -43,6 +44,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -94,7 +96,10 @@ public class ComponentExplorerComposite extends Composite {
 	protected Composite [] composites = null;
 	protected ExpandItem [] items = null;
 	protected ExpandBar bar;
-
+	protected Text searchText;
+	protected Button bBtn;
+	protected Button aBtn;
+	
 	protected List<String> documentedDboList = new ArrayList<String>();
 
 	public ComponentExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
@@ -135,9 +140,23 @@ public class ComponentExplorerComposite extends Composite {
 	protected void findDatabaseObjects(String searchText) {
 		if (objectsMap.isEmpty()) {
 			try {
-				List<String> categories = ComponentManager.getGroups();
-				List<Component> components = ComponentManager.getComponentsByGroup();
-
+				List<String> categories = new ArrayList<String>();
+				categories.addAll(ComponentManager.getGroups());
+				
+				List<Component> components = new ArrayList<Component>();
+				components.addAll(ComponentManager.getComponentsByGroup());
+				
+				boolean showBuiltins = bBtn.getSelection();
+				boolean showAdditionals = aBtn.getSelection();
+				for (Component c : components) {
+					if (!showBuiltins && c.isBuiltIn()) {
+						categories.remove(c.getGroup());
+					}
+					if (!showAdditionals && !c.isBuiltIn()) {
+						categories.remove(c.getGroup());
+					}
+				}
+				
 				handCursor = new Cursor(Display.getDefault(), SWT.CURSOR_HAND);
 
 				//initialize composites.
@@ -162,6 +181,10 @@ public class ComponentExplorerComposite extends Composite {
 
 				boolean bSelected = true;
 				for (Component c : components) {
+					if (!categories.contains(c.getGroup())) {
+						continue;
+					}
+					
 					boolean isAllowed = isAllowed(c);
 					boolean isMatching = searchText.isEmpty() || 
 							c.getLabel().toLowerCase().indexOf(searchText.toLowerCase()) != -1 ||
@@ -211,7 +234,8 @@ public class ComponentExplorerComposite extends Composite {
 
 	private void addLabelEx(Component component, boolean bSelected) {
 		String category = component.getGroup();
-		if("".equals(category)) {
+		if (category == null) return;
+		if ("".equals(category)) {
 			composite = composites[0];
 		} else {
 			for(int i=0; i < items.length; i++) {
@@ -224,7 +248,12 @@ public class ComponentExplorerComposite extends Composite {
 		final CLabel label = new CLabel(composite, SWT.NONE);
 		Image image = null;
 		try {
-			image = ConvertigoPlugin.getDefault().getIconFromPath(component.getImagePath(), BeanInfo.ICON_COLOR_32x32);
+			String imagePath = component.getImagePath();
+			if (imagePath.startsWith("/com/twinsoft/convertigo/")) {
+				image = ConvertigoPlugin.getDefault().getIconFromPath(imagePath, BeanInfo.ICON_COLOR_32x32);
+			} else {
+				image = new Image(getDisplay(), imagePath);
+			}
 		} catch (Exception e) {}
 		label.setImage(image);
 		label.setText(component.getLabel());
@@ -241,7 +270,7 @@ public class ComponentExplorerComposite extends Composite {
 
 		// DND support for Mobile palette
 		if (wizardPage == null) {
-			Transfer[] types = new Transfer[] { PaletteSourceTransfer.getInstance() };
+			Transfer[] types = new Transfer[] { PaletteSourceTransfer.getInstance(), TextTransfer.getInstance() };
 			int operations = DND.DROP_COPY | DND.DROP_MOVE;
 
 			DragSource source = new DragSource(label, operations);
@@ -265,6 +294,7 @@ public class ComponentExplorerComposite extends Composite {
 							String sXml = ClipboardAction.dnd.copy(dbo);
 							if (sXml != null) {
 								event.doit = true;
+								event.data = sXml;
 								PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
 							}
 						} else {
@@ -273,6 +303,11 @@ public class ComponentExplorerComposite extends Composite {
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
 					}
+				}
+
+				@Override
+				public void dragSetData(DragSourceEvent event) {
+					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				}
 			});
 		}
@@ -335,17 +370,41 @@ public class ComponentExplorerComposite extends Composite {
 
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
-		gridData.horizontalSpan = 3;
+		gridData.horizontalSpan = 5;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.verticalAlignment = GridData.BEGINNING;
+		
 		Composite searchComposite = new Composite(this, SWT.NONE);
 		searchComposite.setLayoutData(gridData);
-		searchComposite.setLayout(new GridLayout(3, false));
+		searchComposite.setLayout(new GridLayout(5, false));
 
+		bBtn = new Button(searchComposite, SWT.NONE | SWT.TOGGLE);
+		bBtn.setText("Builtins");
+		bBtn.setToolTipText("Toggle builtins visibility");
+		bBtn.setSelection(true);
+		bBtn.setEnabled(true);
+		bBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				search(searchText.getText());
+			}
+		});
+		aBtn = new Button(searchComposite, SWT.NONE | SWT.TOGGLE);
+		aBtn.setText("Additionals");
+		aBtn.setToolTipText("Toggle additionals visibility");
+		aBtn.setSelection(true);
+		aBtn.setEnabled(true);
+		aBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				search(searchText.getText());
+			}
+		});
+		
 		CLabel searchLabel = new CLabel(searchComposite, SWT.NONE);
 		searchLabel.setText("Search:");
 
-		Text searchText = new Text(searchComposite, SWT.LEFT | SWT.BORDER | SWT.SINGLE);
+		searchText = new Text(searchComposite, SWT.LEFT | SWT.BORDER | SWT.SINGLE);
 		searchText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		searchText.setText("");
 		searchText.addModifyListener(new ModifyListener() {
@@ -414,10 +473,18 @@ public class ComponentExplorerComposite extends Composite {
 		gridData.grabExcessHorizontalSpace = true;
 		helpBrowser.setLayoutData(gridData);
 
-		ComponentManager.refresh();
+		ComponentManager.reloadModels();
+		
+		reloadComponents();
+	}
+
+	public void reloadComponents() {
+		ComponentManager.reloadComponents();
 
 		getDisplay().asyncExec(() -> {
-			search("");
+			if (!searchText.isDisposed()) {
+				search(searchText.getText());
+			}
 		});
 	}
 
@@ -477,7 +544,7 @@ public class ComponentExplorerComposite extends Composite {
 	private String cleanDescription(String description, boolean bHtml) {
 		String cleanDescription = description;
 		// Replace first space
-		if (cleanDescription.charAt(0) == ' ') {
+		if (cleanDescription.length() > 0 && cleanDescription.charAt(0) == ' ') {
 			cleanDescription = cleanDescription.substring(1);
 		}
 

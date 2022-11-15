@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class BlockStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public BlockStepBeanInfo() {
 		try {
 			beanClass = BlockStep.class;
@@ -34,12 +34,13 @@ public class BlockStepBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[1];
 
-            properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
-            properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
-            properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
-			
+			properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
+			properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[0].setValue(MULTILINE, Boolean.TRUE);
+			properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
+
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

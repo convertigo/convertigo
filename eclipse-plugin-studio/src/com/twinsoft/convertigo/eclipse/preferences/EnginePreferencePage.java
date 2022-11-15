@@ -24,8 +24,6 @@ import java.util.StringTokenizer;
 
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IWorkbench;
@@ -43,20 +41,14 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
 		super();
 		setDescription("You can hover your mouse on all properties configured with symbols in order to display the computed value in a tooltip.");
 	}
-	
+
 	private Map<PropertyName, String> modifiedProperties;
-	
+
 	protected Control createContents(Composite parent) {
 		EnginePreferenceComposite composite = new EnginePreferenceComposite(parent, SWT.NONE);
-		
-		GridLayout layout = new GridLayout();
-		
-		layout.marginTop = 0;
-		composite.setLayout(layout);
-		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+
 		modifiedProperties = composite.getModifiedProperties();
-        return composite.getExpandBar();
+		return composite;
 	}
 
 	public void init(IWorkbench workbench) { }
@@ -85,7 +77,7 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
 					propertyAsStringArray[i] = item;
 					i++;
 				}
-				
+
 				EnginePropertiesManager.setPropertyFromStringArray(property, propertyAsStringArray);
 			}
 			else {

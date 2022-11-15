@@ -19,6 +19,9 @@
 
 package com.convertigo.gradle;
 
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
@@ -106,6 +109,14 @@ public class ProjectDeploy extends ConvertigoTask {
 		try {
 			retry = Integer.parseInt(getProject().getProperties().get("convertigo.deploy.retry").toString());
 		} catch (Exception e) {}
+		
+		onlyIf((t) -> {
+			if (Pattern.matches("^https?://.+", getServer()) && StringUtils.isNoneBlank(getUser(), getPassword())) {
+				return true;
+			}
+			getLogger().warn("Skip deploy, no http server URL or account configured.");
+			return false;
+		});
 	}
 	
 	@TaskAction

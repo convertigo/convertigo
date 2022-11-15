@@ -10,7 +10,7 @@ Convertigo Community edition is an open source fullstack Low Code & No Code plat
 3.	**Convertigo SDKs**: Can be used with third party Mobile development tools such as Xcode (iOS) Android Studio (Android). SDKS are available on each platform standard repository (Bintray for Android, Cocoapods for iOS and NPM for Angular, ReactNative and Vue.js)
 4.	**Convertigo Forms**:  The No Code App Builder to build form based apps as PWAs or Web applications with a Web Based NoCode studio intented for non technical developpers (Citizen Developpers) 
 
-Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 150K developers worldwide, building enterprise class mobile apps.
+Convertigo Community edition brought to you by Convertigo SA (Paris & San Francisco). The platform is currently used by more than 150K developers worldwide, building enterprise class web and mobile apps.
 
 [![convertigo-image]][convertigo-url]
 > [www.convertigo.com][convertigo-url]

@@ -22,6 +22,7 @@ package com.twinsoft.convertigo.eclipse.editors.ngx;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashSet;
@@ -148,12 +149,15 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 		@JsAccessible
 		public void onDragOver(JsObject o) {
 			try {
-				int x = ((Double) o.property("x").get()).intValue();
-				int y = ((Double) o.property("y").get()).intValue();
-				int xx = zoomFactor.swt(x);
-				int yy = zoomFactor.swt(y);
-				
-				highlightPoint(xx, yy);
+				PaletteSource paletteSource = PaletteSourceTransfer.getInstance().getPaletteSource();
+				if (paletteSource != null) {
+					int x = ((Double) o.property("x").get()).intValue();
+					int y = ((Double) o.property("y").get()).intValue();
+					int xx = zoomFactor.swt(x);
+					int yy = zoomFactor.swt(y);
+					
+					highlightPoint(xx, yy);
+				}
 			} catch (Exception e) {
 			}
 		}
@@ -189,7 +193,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							dragStartMobileComponent = null;
 						}
 					});
-				} else {
+				} else if (paletteSource != null) {
 					String xmlData = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 					DatabaseObject source = (DatabaseObject) ConvertigoPlugin.clipboardManagerDND.read(xmlData).get(0);
 					if (source instanceof UIDynamicAction && exHighlightMobileComponent instanceof UIDynamicElement) {
@@ -1616,6 +1620,8 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 				try {
 					node = null;
 					long priority = Long.parseLong(mPriority.group(1));
+					Set<DatabaseObject> alreadyWalked =  new HashSet<DatabaseObject>();
+					
 					new WalkHelper() {
 
 						@Override
@@ -1643,7 +1649,11 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 							if (databaseObject.priority == priority) {
 								throw new DatabaseObjectFoundException(databaseObject);
 							}
-							super.walk(databaseObject);
+							if(!alreadyWalked.contains(databaseObject)) {
+								alreadyWalked.add(databaseObject);
+								super.walk(databaseObject);
+							}
+							
 						}
 						
 					}.init(applicationEditorInput.application);
@@ -1748,7 +1758,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					String prod = prodOnly ? " AND CommandLine Like '%--watch%'" : "";
 					Process process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
 						"Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\DisplayObjects\\\\%'" + prod,
-						"CALL", "TERMINATE").start();
+						"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
 					String output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
 					int id = output.indexOf('\n');
@@ -1758,7 +1768,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					
 					process = new ProcessBuilder("wmic", "PROCESS", "WHERE",
 							("Name='node.exe' AND CommandLine Like '%\\\\" + projectName + "\\\\DisplayObjects\\\\%'" + prod).replace("\\", "\\\\"),
-							"CALL", "TERMINATE").start();
+							"CALL", "TERMINATE").redirectError(Redirect.DISCARD).start();
 					output = IOUtils.toString(process.getInputStream(), Charset.defaultCharset());
 					process.waitFor();
 					id = output.indexOf('\n');
@@ -1769,7 +1779,7 @@ public final class ApplicationComponentEditor extends EditorPart implements Mobi
 					String prod = prodOnly ? " | grep -e \"--watch\" -e \":watch\"" : "";
 					Process process = new ProcessBuilder("/bin/bash", "-c",
 						"ps -e" + (Engine.isLinux() ? "f" : "") + " | grep -v \"sed -n\"" + prod + " | sed -n -E \"s,[^0-9]*([0-9]+).*(node|npm|ng).*/"+ projectName + "/DisplayObjects/.*,\\1,p\" | xargs kill"
-					).start();
+					).redirectError(Redirect.DISCARD).redirectOutput(Redirect.DISCARD).start();
 					int code = process.waitFor();
 					if (code == 0) {
 						retry = 0;

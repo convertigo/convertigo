@@ -40,18 +40,18 @@ public class ServiceCodeWizardPage extends WizardPage {
 	protected Text textConnectionParameter;
 	protected Text textHostName;
 	protected Text textHostPort;
-	
+
 	private String connectionType;
 	private String serviceCode = "";
-	
+
 	private final String descriptionMessage = "Please enter a connection address for connector object.";
-	
+
 	public ServiceCodeWizardPage() {
 		super("ServiceCodeWizardPage");
 		setTitle("Connection address");
 		setDescription(descriptionMessage);
 	}
-	
+
 	public ServiceCodeWizardPage(ISelection selection) {
 		super("ServiceCodeWizardPage");
 		setTitle("Connection address");
@@ -64,16 +64,16 @@ public class ServiceCodeWizardPage extends WizardPage {
 		container.setLayout(layout);
 		layout.numColumns = 2;
 		layout.verticalSpacing = 9;
-		
+
 		GridData gridData3;
 		Label label1;
 		IWizardPage wp = getWizard().getPage("ObjectExplorerWizardPage");
 		if (wp == null) {
 			gridData3 = new org.eclipse.swt.layout.GridData();
-	        gridData3.horizontalSpan = 2;
-	        label1 = new Label(container, SWT.NONE);
-	        label1.setText("The chosen project template includes a ''screen'' connector. \n\nThis connector needs:\n\t a destination address, as a hostname (or IP adress) and optionally a port,\n\t a connection parameter, optional.\n ");
-	        label1.setLayoutData(gridData3);
+			gridData3.horizontalSpan = 2;
+			label1 = new Label(container, SWT.NONE);
+			label1.setText("The chosen project template includes a ''screen'' connector. \n\nThis connector needs:\n\t a destination address, as a hostname (or IP adress) and optionally a port,\n\t a connection parameter, optional.\n ");
+			label1.setLayoutData(gridData3);
 		}
 		GridData gridData2 = new org.eclipse.swt.layout.GridData();
 		gridData2.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
@@ -117,21 +117,16 @@ public class ServiceCodeWizardPage extends WizardPage {
 				dialogChanged();
 			}
 		});
-		
+
 		initialize();
 		dialogChanged();
 		setControl(container);
-	}
-	
-	@Override
-	public void performHelp() {
-		getPreviousPage().performHelp();
 	}
 
 	private void initialize() {
 		IWizardPage wp = getWizard().getPage("ObjectExplorerWizardPage");
 		if (wp != null) {
-		// connector object add
+			// connector object add
 			EmulatorTechnologyWizardPage emulTechWP = (EmulatorTechnologyWizardPage)getWizard().getPage("EmulatorTechnologyWizardPage");
 			String emulTech = emulTechWP.getEmulatorTechnology();
 			String[] tags = EmulatorTechnologyEditor.getTags(null);
@@ -146,14 +141,14 @@ public class ServiceCodeWizardPage extends WizardPage {
 			}
 			String testedValue = "";
 			if (found)
-				testedValue = tags[i]; 
-			
+				testedValue = tags[i];
+
 			if (testedValue.equals(EmulatorTechnologyEditor.BULLDKU)) {
 				connectionType = "TCP";
 				textConnectionParameter.setText("");
 				textHostName.setText("localhost");
 				textHostPort.setText("23");
-			} else if (testedValue.equals(EmulatorTechnologyEditor.IBM3270) 
+			} else if (testedValue.equals(EmulatorTechnologyEditor.IBM3270)
 					|| testedValue.equals(EmulatorTechnologyEditor.IBM5250)
 					|| testedValue.equals(EmulatorTechnologyEditor.VT)) {
 				connectionType = "DIR";
@@ -169,7 +164,7 @@ public class ServiceCodeWizardPage extends WizardPage {
 				connectionType = "";
 			}
 		} else {
-		// new project creation
+			// new project creation
 			NewProjectWizard newProjW = (NewProjectWizard)getWizard();
 			switch (newProjW.wizardId) {
 			case "com.twinsoft.convertigo.eclipse.wizards.NewDKUConnectorWizard":
@@ -189,14 +184,14 @@ public class ServiceCodeWizardPage extends WizardPage {
 			}
 		}
 	}
-	
+
 	private void dialogChanged() {
 		String servCode = buildServiceCode();
 		if (servCode.length() == 0) {
 			updateStatus("Connection address must be specified");
 			return;
 		}
-		
+
 		IWizardPage wp = getWizard().getPage("ObjectExplorerWizardPage");
 		if (wp != null) {
 			try {
@@ -210,9 +205,9 @@ public class ServiceCodeWizardPage extends WizardPage {
 				return;
 			}
 		} else {
-			setServiceCode(servCode); 
+			setServiceCode(servCode);
 		}
-		
+
 		updateStatus(null);
 	}
 
@@ -220,7 +215,7 @@ public class ServiceCodeWizardPage extends WizardPage {
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
-	
+
 	private String buildServiceCode() {
 		String param = textConnectionParameter.getText();
 		String hostName = textHostName.getText();
@@ -233,12 +228,12 @@ public class ServiceCodeWizardPage extends WizardPage {
 				host = hostName;
 			}
 		}
-		
+
 		// for update status not to work when no data has been typed
 		if ( (connectionType.length() == 0 && param.length() == 0) // empty connection type and no parameter filled
-			|| connectionType.length() != 0 && host.length() == 0) // not empty connection type and no host filled
+				|| connectionType.length() != 0 && host.length() == 0) // not empty connection type and no host filled
 			return "";
-		
+
 		// real service code building
 		if (connectionType.equals(""))
 			return param;
@@ -253,7 +248,7 @@ public class ServiceCodeWizardPage extends WizardPage {
 	public void setServiceCode(String serviceCode) {
 		this.serviceCode = serviceCode;
 	}
-	
+
 	public void update() {
 		initialize();
 	}

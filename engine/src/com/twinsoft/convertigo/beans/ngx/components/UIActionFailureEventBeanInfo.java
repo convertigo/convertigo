@@ -30,8 +30,8 @@ public class UIActionFailureEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIActionFailureEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIActionEvent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionfailureevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionfailureevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionfailureevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionfailureevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIActionFailureEvent");
 

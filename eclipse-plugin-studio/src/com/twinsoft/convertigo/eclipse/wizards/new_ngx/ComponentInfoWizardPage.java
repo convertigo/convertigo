@@ -62,14 +62,14 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ComponentInfoWizardPage extends WizardPage {
 	private Object parentObject = null;
-	
+
 	private Text beanName;
 	private Tree tree;
 	private String treeItemName = null;
-	
+
 	private CouchVariablesComposite couchVariablesComposite = null;
 	private Composite container = null;
-	
+
 	public ComponentInfoWizardPage(Object parentObject) {
 		super("ComponentInfoWizardPage");
 		this.parentObject = parentObject;
@@ -95,27 +95,27 @@ public class ComponentInfoWizardPage extends WizardPage {
 				dialogChanged(false);
 			}
 		});
-		
+
 		if (parentObject instanceof CouchDbConnector || parentObject instanceof FullSyncConnector) {
 			couchVariablesComposite = new CouchVariablesComposite(container, SWT.V_SCROLL);
-			
+
 			GridData couchVarData = new GridData(GridData.FILL_BOTH);
 			couchVarData.horizontalSpan = 2;
-			
+
 			couchVariablesComposite.setLayoutData(couchVarData);
-			
+
 		} else {
 			tree = new Tree(container, SWT.SINGLE | SWT.BORDER);
 			tree.setHeaderVisible(false);
 			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 			gridData.verticalSpan = 20;
 			gridData.horizontalSpan = 2;
-			tree.setLayoutData(gridData);		
+			tree.setLayoutData(gridData);
 			tree.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(final Event event) {
 					TreeItem item = (TreeItem) event.item;
 					treeItemName = item.getText();
-					String suffix = getBeanName().endsWith(ScHandlerStatement.EVENT_ENTRY_HANDLER) ? 
+					String suffix = getBeanName().endsWith(ScHandlerStatement.EVENT_ENTRY_HANDLER) ?
 							ScHandlerStatement.EVENT_ENTRY_HANDLER:
 								getBeanName().endsWith(ScHandlerStatement.EVENT_EXIT_HANDLER) ?
 										ScHandlerStatement.EVENT_EXIT_HANDLER : "";
@@ -125,21 +125,16 @@ public class ComponentInfoWizardPage extends WizardPage {
 			});
 			tree.setVisible(false);
 		}
-		
+
 		initialize();
 		dialogChanged(true);
 		setControl(container);
-	}
-	
-	@Override
-	public void performHelp() {
-		getPreviousPage().performHelp();
 	}
 
 	private void initialize() {
 		beanName.setText("");
 	}
-	
+
 	public void fillTree(Class<? extends DatabaseObject> beanClass) {
 		treeItemName = null;
 		tree.removeAll();
@@ -153,43 +148,43 @@ public class ComponentInfoWizardPage extends WizardPage {
 						ScreenClass defaultScreenClass = htmlConnector.getDefaultScreenClass();
 						TreeItem branch = new TreeItem(tree, SWT.NONE);
 						branch.setText(defaultScreenClass.getName());
-						
+
 						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
-						
+
 						for (ScreenClass screenClass : screenClasses) {
-							getInHeritedScreenClass(screenClass, branch);				
+							getInHeritedScreenClass(screenClass, branch);
 						}
 					} else if (connector instanceof JavelinConnector) {
 						JavelinConnector javelinConnector = (JavelinConnector) connector;
 						ScreenClass defaultScreenClass = javelinConnector.getDefaultScreenClass();
 						TreeItem branch = new TreeItem(tree, SWT.NONE);
 						branch.setText(defaultScreenClass.getName());
-						
+
 						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
-						
+
 						for (ScreenClass screenClass : screenClasses) {
-							getInHeritedScreenClass(screenClass, branch);				
-						}	
+							getInHeritedScreenClass(screenClass, branch);
+						}
 					}
 					tree.setVisible(true);
 				}
 			}
 			else if (beanClass.equals(HandlerStatement.class)) {
 				TreeItem branch;
-				
+
 				branch = new TreeItem(tree, SWT.NONE);
-				branch.setText(HandlerStatement.EVENT_TRANSACTION_STARTED);				
+				branch.setText(HandlerStatement.EVENT_TRANSACTION_STARTED);
 
 				branch = new TreeItem(tree, SWT.NONE);
 				branch.setText(HandlerStatement.EVENT_XML_GENERATED);
-				
+
 				tree.setVisible(true);
 			}
 			else
 				tree.setVisible(false);
 		}
 	}
-	
+
 	public void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
 		TreeItem leaf = new TreeItem(branch, SWT.NONE);
 		leaf.setText(screenClass.getName());
@@ -198,10 +193,10 @@ public class ComponentInfoWizardPage extends WizardPage {
 			getInHeritedScreenClass(sC, leaf);
 		}
 	}
-	
+
 	private void dialogChanged(boolean increment) {
 		DatabaseObject dbo = ((ComponentExplorerWizardPage)getWizard().getPage("ComponentExplorerWizardPage")).getCreatedBean();
-		if (dbo != null) {			
+		if (dbo != null) {
 			String name = getBeanName();
 			if (name.length() == 0) {
 				updateStatus("Name must be specified");
@@ -233,7 +228,8 @@ public class ComponentInfoWizardPage extends WizardPage {
 					}
 					setBeanName(name);
 				} catch (EngineException e) {
-					updateStatus("Name could not be set on bean");
+					String msg = e.getMessage();
+					updateStatus(msg == null || msg.isEmpty() ? "Name could not be set on bean" : msg);
 					return;
 				} catch (NullPointerException e) {
 					updateStatus("New Bean has not been instanciated");
@@ -248,11 +244,11 @@ public class ComponentInfoWizardPage extends WizardPage {
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
-	
+
 	public IWizardPage getNextPage() {
 		try {
-//			DatabaseObject dbo =
-					((ComponentExplorerWizardPage) getWizard().getPage("ComponentExplorerWizardPage")).getCreatedBean();
+			//			DatabaseObject dbo =
+			((ComponentExplorerWizardPage) getWizard().getPage("ComponentExplorerWizardPage")).getCreatedBean();
 			/*if (dbo instanceof XMLTable) {
 				return getWizard().getPage("XMLTableWizardPage");
 			}
@@ -286,11 +282,11 @@ public class ComponentInfoWizardPage extends WizardPage {
 		}
 		return null;
 	}
-	
+
 	public String getBeanName() {
 		return beanName.getText();
 	}
-	
+
 	public void setBeanName(String name) {
 		beanName.setText(name);
 		dialogChanged(true);
@@ -300,16 +296,16 @@ public class ComponentInfoWizardPage extends WizardPage {
 	public void setVisible(boolean visible) {
 		// TODO Auto-generated method stub
 		super.setVisible(visible);
-		
+
 		if (visible) {
-			ComponentExplorerWizardPage objectExplorerWizardPage = (ComponentExplorerWizardPage) this.getPreviousPage(); 
-			
+			ComponentExplorerWizardPage objectExplorerWizardPage = (ComponentExplorerWizardPage) this.getPreviousPage();
+
 			try {
 				Object o = objectExplorerWizardPage.getCreatedBean();
 				if (o instanceof AbstractCouchDbTransaction) {
 					AbstractCouchDbTransaction dbo = (AbstractCouchDbTransaction) objectExplorerWizardPage.getCreatedBean();
 					if (dbo != null && couchVariablesComposite != null){
-						couchVariablesComposite.setPropertyDescriptor(dbo, CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(), 
+						couchVariablesComposite.setPropertyDescriptor(dbo, CachedIntrospector.getBeanInfo(dbo).getPropertyDescriptors(),
 								(DatabaseObject) parentObject);
 					}
 				}
@@ -323,6 +319,6 @@ public class ComponentInfoWizardPage extends WizardPage {
 	public List<CouchVariable> getSelectedParameters() {
 		return couchVariablesComposite.getSelectedParameters();
 	}
-	
-	
+
+
 }

@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIElementBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIElementBeanInfo() {
 		try {
 			beanClass = UIElement.class;
@@ -37,13 +37,13 @@ public class UIElementBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[3];
-			
+
 			properties[0] = new PropertyDescriptor("tagName", beanClass, "getTagName", "setTagName");
 			properties[0].setDisplayName(getExternalizedString("property.tagName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.tagName.short_description"));
-			
+
 			properties[1] = new PropertyDescriptor("selfClose", beanClass, "isSelfClose", "setSelfClose");
 			properties[1].setDisplayName(getExternalizedString("property.selfClose.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.selfClose.short_description"));
@@ -51,7 +51,7 @@ public class UIElementBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("identifier", beanClass, "getIdentifier", "setIdentifier");
 			properties[2].setDisplayName(getExternalizedString("property.identifier.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.identifier.short_description"));
-			properties[2].setValue("category", "@Component");
+			properties[2].setValue(CATEGORY, "@Component");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

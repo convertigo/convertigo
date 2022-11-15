@@ -69,9 +69,17 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 	@Override
 	public String getId() {
 		String id = super.getId();
+		if (id == null && action != this) {
+			id = action.getId();
+		}
 		if (id == null) {
 			id = this.getClass().getSimpleName();
 		}
+		return id;
+	}
+	
+	public String getActionId() {
+		String id = action.getId();
 		return id;
 	}
 

@@ -30,8 +30,8 @@ public class UIActionElseEventBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIActionElseEvent.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIActionEvent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionelseevent_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionelseevent_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionelseevent_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiactionelseevent_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIActionElseEvent");
 

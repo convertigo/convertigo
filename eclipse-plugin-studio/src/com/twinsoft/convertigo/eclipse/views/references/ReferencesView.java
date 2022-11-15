@@ -259,8 +259,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				Project project = getProject(projectName, projectExplorerView);
 				if (project == null) {
 					// Unable to load the project, just ignore it
-					ConvertigoPlugin.logWarning(
-							"[References View] Unable to load the project \"" + projectName + "\"", false);
+					Engine.logStudio.debug("[References View] Unable to load the project \"" + projectName + "\"");
 					continue;
 				}
 
@@ -363,7 +362,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			}
 		} else if (connector instanceof JavelinConnector) {
 			for (Transaction transaction : transactions) {
-				JavelinTransaction javelinTransaction = (JavelinTransaction) transaction; 
+				JavelinTransaction javelinTransaction = (JavelinTransaction) transaction;
 				if (javelinTransaction.handlers.indexOf("function on" + screenClassName + "Entry()") != -1) {
 					entryFolder.addChild(new TransactionNode(entryFolder, transaction.getName(), transaction));
 				}
@@ -386,7 +385,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			screenClassFolder.addChild(isUsedByNode);
 		}
 		
-		// Build the treeviewer model				
+		// Build the treeviewer model
 		treeViewer.setInput(null);
 		treeViewer.setInput(root);
 		treeViewer.expandAll();
@@ -401,7 +400,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		
 		// Get the referencing sequence steps
 		String transactionProjectName = transaction.getProject().getName();
-		String transactionConnectorName = transaction.getParent().getName();
+		String transactionConnectorName = transaction.getParentName();
 		
 		try {
 			Project project = null;
@@ -480,7 +479,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			}
 			
 			
-			//Searching all objects are used transaction selected 
+			//Searching all objects are used transaction selected
 			for (String projectName : projectNames) {
 				project = getProject(projectName, projectExplorerView);
 				if (project != null) {
@@ -514,7 +513,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 						List<Step> stepList = sequence.getAllSteps();
 						SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
 						for (Step step : stepList) {
-							getTransactionReferencing (step, projectExplorerView, sequenceNode, transactionProjectName, transactionConnectorName, transactionName);						
+							getTransactionReferencing (step, projectExplorerView, sequenceNode, transactionProjectName, transactionConnectorName, transactionName);
 						}
 						if (sequenceNode.hasChildren()) {
 							projectFolder.addChild(sequenceNode);
@@ -522,7 +521,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 					}
 					if (projectFolder.hasChildren()) {
 						isUsedByNode.addChild(projectFolder);
-					} 
+					}
 				}
 			}
 			if (requiresNode.hasChildren()) {
@@ -656,7 +655,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		
 		List<Step> steps = sequenceSelected.getSteps();
 		
-		RequiresNode requiresNode = new RequiresNode(root, "Requires");			
+		RequiresNode requiresNode = new RequiresNode(root, "Requires");
 		
 		// Searching all objects that are referenced by the selected sequence
 		List<String> transactionList = new ArrayList<String>();
@@ -721,7 +720,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 								
 								if (!siteClipperConnectorNames.contains(siteClipperconnectorName)) {
 									siteClipperConnectorNames.add(siteClipperconnectorName);
-									Connector siteClipperConnector = projectConnectorSelected.getConnectorByName(siteClipperconnectorName);							
+									Connector siteClipperConnector = projectConnectorSelected.getConnectorByName(siteClipperconnectorName);
 									ConnectorNode connectorSiteClipperNode = new SiteClipperConnectorNode(projectNode, siteClipperconnectorName, siteClipperConnector);
 									projectNode.addChild(connectorSiteClipperNode);
 								}
@@ -741,7 +740,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 						List<Transaction> transactionList = ((HtmlConnector)connector).getTransactionsList();
 						for (Transaction transaction : transactionList) {
 							List<Statement> statements = ((HtmlTransaction)transaction).getStatements();
-							for (Statement statement : statements) {			
+							for (Statement statement : statements) {
 								List<Statement> statementList = ((FunctionStatement)statement).getStatements();
 								for (Statement st : statementList) {
 									if (st instanceof ContinueWithSiteClipperStatement) {
@@ -872,7 +871,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				connectorNode.addChild(transactionNode);
 				
 				requiresNode.addChild(projectNode);
-				transactionStepNode.addChild(requiresNode);		
+				transactionStepNode.addChild(requiresNode);
 				root.addChild(transactionStepNode);
 				
 			} else if (step instanceof SequenceStep) {
@@ -1008,7 +1007,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				
 				String sourceProjectName = transactionStep.getProjectName();
 				if (!sourceProjectName.equals(projectSelected.getName())) {
-					Project project;	
+					Project project;
 					project = getProject(sourceProjectName, projectExplorerView);
 					ProjectNode projectNode = new ProjectNode(parentNode, sourceProjectName, project);
 					if (project != null) {
@@ -1097,7 +1096,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 
 	private void getSequenceReferencingIsUsedBy (Step step, Sequence sequenceSelected, SequenceNode seNode) {
 	
-		if (step instanceof SequenceStep) { 
+		if (step instanceof SequenceStep) {
 			String sourceSequence = ((SequenceStep)step).getSourceSequence();
 			if (sourceSequence.equals(sequenceSelected.getProject().getName() + RequestableStep.SOURCE_SEPARATOR + sequenceSelected.getName())) {
 				SequenceStepNode sequenceStepNode = new SequenceStepNode(seNode, step.getName(), step);
@@ -1113,7 +1112,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	
 	
 	private void getSequenceReferencingRequires (Step step, Sequence sequenceSelected, ProjectExplorerView projectExplorerView, RequiresNode requiresNode, List<String> transactionList, List<String> sequenceList) {
-		try {			
+		try {
 			if (step instanceof SequenceStep) {
 				SequenceStep sequenceStep = (SequenceStep) step;
 				String projectName = sequenceStep.getProjectName();
@@ -1232,7 +1231,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 					
 					if (selectedTreeObject instanceof UnloadedProjectTreeObject) {
 						ConvertigoPlugin.infoMessageBox("This project is closed. Please open the project first.");
-					}					
+					}
 				}
 			}
 		}

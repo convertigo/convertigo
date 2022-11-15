@@ -217,8 +217,6 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 		attribute.setSchemaTypeName(getSimpleTypeAffectation());
 		if (hasQName) {
 			attribute.setQName(new QName(namespaceURI, attrName, namespace));
-		} else {
-			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 		}
 		
 		if (!attrText.isBlank()) {

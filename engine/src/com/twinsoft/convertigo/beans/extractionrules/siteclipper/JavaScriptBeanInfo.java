@@ -29,16 +29,16 @@ public class JavaScriptBeanInfo extends MySimpleBeanInfo {
 		try {
 			beanClass = JavaScript.class;
 			additionalBeanClass = BaseRule.class;
-			
+
 			resourceBundle = getResourceBundle("res/JavaScript");
 
 			properties = new PropertyDescriptor[1];
-			
+
 			properties[0] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression" );
 			properties[0].setDisplayName(getExternalizedString("property.expression.display_name") );
 			properties[0].setShortDescription(getExternalizedString("property.expression.short_description") );
-            properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

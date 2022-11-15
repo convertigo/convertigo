@@ -97,44 +97,19 @@ public class DirectoryWatcherService implements Runnable {
         }
     }
 
-    private String getCompQName(String compName) {
+    private String getCompQName(String compDirName) {
+    	if (!compDirName.startsWith(project.getName().toLowerCase() + ".")) {
+    		return null;
+    	}
+    	
     	MobileApplication mobileApplication = project.getMobileApplication();
     	ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
     	for (UISharedComponent uisc: app.getSharedComponentList()) {
-    		if (compName.equals(uisc.getName().toLowerCase())) {
+    		if (compDirName.equals(UISharedComponent.getNsCompDirName(uisc))) {
     			return uisc.getQName();
     		}
     	}
     	return null;
-    }
-    
-    private boolean hasComp(String compName) {
-    	MobileApplication mobileApplication = project.getMobileApplication();
-    	ApplicationComponent app = (ApplicationComponent)mobileApplication.getApplicationComponent();
-    	for (UISharedComponent uisc: app.getSharedComponentList()) {
-    		if (compName.equals(uisc.getName().toLowerCase())) {
-    			return true;
-    		}
-    	}
-    	return false;
-    }
-    
-    private boolean isDirectory(String filename) {
-        File f = new File(filename);
-        if (f.exists()) {
-            return f.isDirectory();
-        } else {
-             return f.getName().lastIndexOf('.') == -1;
-        }
-    }
-    
-    private boolean isFile(String filename) {
-        File f = new File(filename);
-        if (f.exists()) {
-            return f.isFile();
-        } else {
-             return f.getName().lastIndexOf('.') != -1;
-        }
     }
     
     static private String getFilePath(String filename) {
@@ -145,12 +120,12 @@ public class DirectoryWatcherService implements Runnable {
     }
 
     static private boolean shouldUpdate(File srcFile, File destFile) {
-    	if (!destFile.exists())
-    		return true;
-    	
     	if (srcFile.isDirectory()) {
 	        for (final File src : srcFile.listFiles()) {
 	            if (src.isFile()) {
+	            	if (src.getName().endsWith(".temp.ts")) {
+	            		continue;
+	            	}
 	            	File dest = new File(destFile, src.getName());
 	            	if (dest.exists()) {
 	                	if (src.lastModified() != dest.lastModified()) {
@@ -162,6 +137,9 @@ public class DirectoryWatcherService implements Runnable {
 	            }
 	        }
     	} else {
+        	if (srcFile.getName().endsWith(".temp.ts")) {
+        		return false;
+        	}
         	if (destFile.exists()) {
             	if (srcFile.lastModified() != destFile.lastModified()) {
             		return true;
@@ -174,28 +152,22 @@ public class DirectoryWatcherService implements Runnable {
     }
     
     private boolean ignore(String filename) {
-        Path p = Paths.get(filename);
-        
-        // ignore non components directory or files
-        if (isDirectory(filename) && !p.getParent().endsWith("components")) {
-        	return true;
-        }
-        if (isFile(filename) && !p.getParent().getParent().endsWith("components")) {
-        	return true;
-        }
-
-        // ignore temporary files
-    	if (filename.endsWith(".temp.ts")) {
-    		return true;
-    	}
+    	try {
+	    	if (filename.endsWith(".temp.ts")) {
+	    		return true;
+	    	}
+	    	
+	    	String prefix = project.getName().toLowerCase() + ".";
+    		Path p = Paths.get(filename);
+	    	while (p != null) {
+	    		if (p.getFileName().toString().startsWith(prefix)) {
+	    			return !p.getParent().endsWith("components");
+	    		}
+	    		p = p.getParent();
+	    	}
+    	} catch (Exception e) {}
     	
-        // accept deleted component directory - ignore deleted component files
-    	File f = new File(filename);
-    	if (!f.exists()) {
-    		return isFile(filename);
-    	}
-    	
-        return !hasComp(isDirectory(filename) ? p.getFileName().toString() : p.getParent().getFileName().toString());
+    	return true;
     }
     
     private synchronized void addFileToProcess(String filename) {
@@ -249,18 +221,18 @@ public class DirectoryWatcherService implements Runnable {
 					}
             	}
             	
-            	String compName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
-	            if (compName != null) {
-	            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(getCompQName(compName))) {
+            	String compDirName = src.isDirectory() ? p.getFileName().toString() : p.getParent().getFileName().toString();
+	            if (compDirName != null) {
+	            	for (String useQName: ComponentRefManager.get(Mode.use).getAllConsumers(getCompQName(compDirName))) {
 		    			if (pname(useQName).equals(project.getName()))
 		    				continue;
 		        		try {
 		        			String destSubPath = filepath.substring(filepath.indexOf("_private/ionic/src"));
 		        			File dest = new File(Engine.projectDir(pname(useQName)), destSubPath);
 		                    if (!dest.getCanonicalPath().equals(src.getCanonicalPath()) && shouldUpdate(src, dest)) {
-			    				Engine.logEngine.debug("(DirectoryWatcherService) Copying " + src + " to " + dest);
+			    				Engine.logEngine.debug("["+project.getName()+"] DWS copying " + src + " to " + dest);
 			        			if (src.isDirectory()) {
-			        				FileUtils.copyDirectory(src, dest, true);
+			        				FileUtils.copyDirectory(src, dest, ComponentRefManager.copyFileFilter, true);
 			        			} else {
 			        				FileUtils.copyFile(src, dest, true);
 			        			}
@@ -271,14 +243,14 @@ public class DirectoryWatcherService implements Runnable {
 			        			}
 		                    }
 		        		} catch (Exception e) {
-		        			Engine.logEngine.warn("(DirectoryWatcherService) unabled to process file '"+ filename+"': "+ e.getMessage());
+		        			Engine.logEngine.warn("["+project.getName()+"] DWS unabled to process file '"+ filename+"': "+ e.getMessage());
 		        		}
 		    		}
 	            }
             }
             // delete
             else {
-     			Engine.logEngine.debug("(DirectoryWatcherService) Deleted " + filename);
+     			Engine.logEngine.debug("["+project.getName()+"] DWS deleted " + filename);
             }
             
             /*
@@ -296,10 +268,10 @@ public class DirectoryWatcherService implements Runnable {
         if (trace) {
             Path prev = keys.get(key);
             if (prev == null) {
-                System.out.format("register: %s\n", dir);
+                System.out.format("["+ project.getName() + "] register: %s\n", dir);
             } else {
                 if (!dir.equals(prev)) {
-                    System.out.format("update: %s -> %s\n", prev, dir);
+                    System.out.format("["+ project.getName() + "] update: %s -> %s\n", prev, dir);
                 }
             }
         }

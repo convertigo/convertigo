@@ -19,6 +19,8 @@
 
 package com.twinsoft.convertigo.engine.mobile;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +50,12 @@ public class ComponentRefManager implements DatabaseObjectListener {
 		}
 		return cm;
 	}
+	
+	static public FileFilter copyFileFilter = new FileFilter() {
+		public boolean accept(File file) {
+			return !file.getName().endsWith(".temp.ts");
+		}
+	};
 	
 	private Map<String, Set<String>> consumers = new HashMap<String, Set<String>>();
 	

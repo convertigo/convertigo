@@ -82,7 +82,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 						if (mc.equals(((UISharedComponent)main))) {
 							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{}, in:{}, out:'"+ this.event +"'}})";
 						} else {
-							String identifier = ((UISharedComponent)main).getIdentifier();
+							String identifier = ((UISharedComponent)main).getNsIdentifier();
 							if (done.add(identifier) && isAllowed(mc)) {
 								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
 							}
@@ -90,7 +90,7 @@ public class UIPageEvent extends UIComponent implements IEventGenerator, ITagsPr
 					} else {
 						IScriptComponent main = pageEvent.getMainScriptComponent();
 						if (main instanceof UISharedComponent) {
-							String identifier = ((UISharedComponent)main).getIdentifier();
+							String identifier = ((UISharedComponent)main).getNsIdentifier();
 							if (done.add(identifier) && isAllowed(mc)) {
 								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
 							}

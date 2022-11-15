@@ -264,7 +264,7 @@ public class ClipboardManager {
 				dnd.appendChild(e);
 	
 				e = clipboardDocument.createElement("mobileapplication");
-				e.setAttribute("name", uic.getApplication().getParent().getName());
+				e.setAttribute("name", uic.getApplication().getParentName());
 				dnd.appendChild(e);
 	
 				e = clipboardDocument.createElement("application");
@@ -277,7 +277,7 @@ public class ClipboardManager {
 				dnd.appendChild(e);
 	
 				e = clipboardDocument.createElement("mobileapplication");
-				e.setAttribute("name", uic.getApplication().getParent().getName());
+				e.setAttribute("name", uic.getApplication().getParentName());
 				dnd.appendChild(e);
 	
 				e = clipboardDocument.createElement("application");
@@ -312,6 +312,7 @@ public class ClipboardManager {
 						object = read(node);
 						objectList.add(object);
 					} catch (EngineException e) {
+						e.printStackTrace();
 					}
 				}
 			}

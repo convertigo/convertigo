@@ -68,7 +68,7 @@ public class SequenceEditorInput extends FileInPlaceEditorInput {
 
 	@Override
 	public String getName() {
-		return sequence.getParent().getName() + " [S: " + sequence.getName()+"]." + getFile().getFileExtension();
+		return sequence.getParentName() + " [S: " + sequence.getName()+"]." + getFile().getFileExtension();
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public class SequenceEditorInput extends FileInPlaceEditorInput {
 
 	@Override
 	public String getToolTipText() {
-		return sequence.getParent().getName() + "/" + sequence.getName();
+		return sequence.getParentName() + "/" + sequence.getName();
 	}
 
 	@Override

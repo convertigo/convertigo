@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.InvalidSourceException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 //	{
 //		"filter": "",
@@ -91,34 +92,29 @@ public class MobileSmartSource {
 	} 
 	
 	public enum Filter {
-		Action,
-		Shared,
-		Sequence,
-		Database,
-		Iteration,
-		Form,
-		Global,
-		Local;
+		Action(ActionData.class),
+		Shared(SharedData.class),
+		Sequence(SequenceData.class),
+		Database(DatabaseData.class),
+		Iteration(IterationData.class),
+		Form(FormData.class),
+		Global(GlobalData.class),
+		Local(LocalData.class),
+		Icon(IconData.class),
+		Asset(AssetData.class);
+		
+		Class<? extends SourceData> cls;
+		Filter(Class<? extends SourceData> cls) {
+			this.cls = cls;
+		}
 		
 		public SourceData toSourceData(String project, String source) {
 			if (project != null && !project.isEmpty()) {
 				if (source != null && !source.isEmpty()) {
-					if (this.equals(Filter.Action)) {
-						return new MobileSmartSource().new ActionData(project, source);
-					} else if (this.equals(Filter.Shared)) {
-						return new MobileSmartSource().new SharedData(project, source);
-					} else if (this.equals(Filter.Sequence)) {
-						return new MobileSmartSource().new SequenceData(project, source);
-					} else if (this.equals(Filter.Database)) {
-						return new MobileSmartSource().new DatabaseData(project, source);
-					} else if (this.equals(Filter.Iteration)) {
-						return new MobileSmartSource().new IterationData(project, source);
-					} else if (this.equals(Filter.Form)) {
-						return new MobileSmartSource().new FormData(project, source);
-					} else if (this.equals(Filter.Global)) {
-						return new MobileSmartSource().new GlobalData(project, source);
-					} else if (this.equals(Filter.Local)) {
-						return new MobileSmartSource().new LocalData(project, source);
+					try {
+						return cls.getConstructor(String.class, String.class).newInstance(project, source);
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 			}
@@ -127,22 +123,10 @@ public class MobileSmartSource {
 		
 		public SourceData toSourceData(JSONObject jsonObject) {
 			if (jsonObject != null) {
-				if (this.equals(Filter.Action)) {
-					return new MobileSmartSource().new ActionData(jsonObject);
-				} else if (this.equals(Filter.Shared)) {
-					return new MobileSmartSource().new SharedData(jsonObject);
-				} else if (this.equals(Filter.Sequence)) {
-					return new MobileSmartSource().new SequenceData(jsonObject);
-				} else if (this.equals(Filter.Database)) {
-					return new MobileSmartSource().new DatabaseData(jsonObject);
-				} else if (this.equals(Filter.Iteration)) {
-					return new MobileSmartSource().new IterationData(jsonObject);
-				} else if (this.equals(Filter.Form)) {
-					return new MobileSmartSource().new FormData(jsonObject);
-				} else if (this.equals(Filter.Global)) {
-					return new MobileSmartSource().new GlobalData(jsonObject);
-				} else if (this.equals(Filter.Local)) {
-					return new MobileSmartSource().new LocalData(jsonObject);
+				try {
+					return cls.getConstructor(JSONObject.class).newInstance(jsonObject);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 			return null;
@@ -206,17 +190,17 @@ public class MobileSmartSource {
 		}
 		
 		public String keyword() {
-			if (this.equals(Filter.Action)) {
+			if (this == Filter.Action) {
 				return "stack";
-			} else if (this.equals(Filter.Shared)) {
+			} else if (this == Filter.Shared) {
 				return "comp";//"params";
-			} else if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
+			} else if (GenericUtils.contains(this, Filter.Sequence, Filter.Database)) {
 				return "listen";
-			} else if (this.equals(Filter.Iteration)) {
+			} else if (this == Filter.Iteration) {
 				return "item";
-			} else if (this.equals(Filter.Form)) {
+			} else if (this == Filter.Form) {
 				return "form";
-			} else if (this.equals(Filter.Global)) {
+			} else if (this == Filter.Global) {
 				return "router";
 			}
 			return null;
@@ -224,17 +208,17 @@ public class MobileSmartSource {
 		
 		public Matcher matcher(String input) {
 			if (input != null) {
-				if (this.equals(Filter.Action)) {
+				if (this == Filter.Action) {
 					return actionPattern.matcher(input);
-				} else if (this.equals(Filter.Shared)) {
+				} else if (this == Filter.Shared) {
 					return sharedPattern.matcher(input);
-				} else if (this.equals(Filter.Sequence) || this.equals(Filter.Database)) {
+				} else if (GenericUtils.contains(this, Filter.Sequence, Filter.Database)) {
 					return listenPattern.matcher(input);
-				} else if (this.equals(Filter.Iteration)) {
+				} else if (this == Filter.Iteration) {
 					return directivePattern.matcher(input);
-				} else if (this.equals(Filter.Form)) {
+				} else if (this == Filter.Form) {
 					return formPattern.matcher(input);
-				} else if (this.equals(Filter.Global)) {
+				} else if (this == Filter.Global) {
 					return globalPattern.matcher(input);
 				}
 			}
@@ -281,23 +265,11 @@ public class MobileSmartSource {
 				if (jsonModel.has("data")) {
 					JSONArray jsonArray = jsonModel.getJSONArray("data");
 					for (int i = 0; i < jsonArray.length(); i++) {
-						JSONObject jsonSourceData = (JSONObject) jsonArray.get(i);
-						if (filter.equals(Filter.Action)) {
-							addSourceData(new MobileSmartSource().new ActionData(jsonSourceData));
-						} else if (filter.equals(Filter.Shared)) {
-							addSourceData(new MobileSmartSource().new SharedData(jsonSourceData));
-						} else if (filter.equals(Filter.Sequence)) {
-							addSourceData(new MobileSmartSource().new SequenceData(jsonSourceData));
-						} else if (filter.equals(Filter.Database)) {
-							addSourceData(new MobileSmartSource().new DatabaseData(jsonSourceData));
-						} else if (filter.equals(Filter.Iteration)) {
-							addSourceData(new MobileSmartSource().new IterationData(jsonSourceData));
-						} else if (filter.equals(Filter.Form)) {
-							addSourceData(new MobileSmartSource().new FormData(jsonSourceData));
-						} else if (filter.equals(Filter.Global)) {
-							addSourceData(new MobileSmartSource().new GlobalData(jsonSourceData));
-						} else if (filter.equals(Filter.Local)) {
-							addSourceData(new MobileSmartSource().new LocalData(jsonSourceData));
+						try {
+							JSONObject jsonSourceData = (JSONObject) jsonArray.get(i);
+							addSourceData(filter.cls.getConstructor(JSONObject.class).newInstance(jsonSourceData));
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}
@@ -386,7 +358,7 @@ public class MobileSmartSource {
 		}
 
 		public String getData() {
-			boolean isCafListen = filter.equals(Filter.Sequence) || filter.equals(Filter.Database);
+			boolean isCafListen = GenericUtils.contains(this, Filter.Sequence, Filter.Database);
 			String buf = "";
 			
 			for (SourceData sd: data) {
@@ -404,7 +376,7 @@ public class MobileSmartSource {
 		
 		// compute value without 'this' keyword
 		public String computeValue() {
-			boolean isCafListen = filter.equals(Filter.Sequence) || filter.equals(Filter.Database);
+			boolean isCafListen = GenericUtils.contains(filter, Filter.Sequence, Filter.Database);
 			String buf = "";
 			
 			for (SourceData sd: data) {
@@ -422,7 +394,7 @@ public class MobileSmartSource {
 		
 		// compute value with 'this' keyword
 		public String computeValueEx() {
-			boolean isCafListen = filter.equals(Filter.Sequence) || filter.equals(Filter.Database);
+			boolean isCafListen = GenericUtils.contains(filter, Filter.Sequence, Filter.Database);
 			String buf = "";
 			
 			for (SourceData sd: data) {
@@ -466,7 +438,7 @@ public class MobileSmartSource {
 		}
 	}
 	
-	abstract public class SourceData {
+	static abstract public class SourceData {
 		SourceData() {
 			
 		}
@@ -485,7 +457,7 @@ public class MobileSmartSource {
 		public abstract String getSource();
 	}
 	
-	public class SequenceData extends SourceData {
+	static public class SequenceData extends SourceData {
 		private String sequence = ""; // qname
 		private String marker = "";
 		
@@ -554,7 +526,7 @@ public class MobileSmartSource {
 
 	}
 	
-	public class DatabaseData extends SourceData {
+	static public class DatabaseData extends SourceData {
 		private boolean includeDocs = false;
 		private String connector = "";	// qname
 		private String document = "";  	// qname
@@ -690,7 +662,7 @@ public class MobileSmartSource {
 		}
 	}
 	
-	public class ActionData extends SourceData {
+	static public class ActionData extends SourceData {
 		private long priority = 0L;
 		
 		public ActionData(JSONObject jsonObject) {
@@ -753,7 +725,7 @@ public class MobileSmartSource {
 		}
 	}
 	
-	public class SharedData extends SourceData {
+	static public class SharedData extends SourceData {
 		private long priority = 0L;
 		private boolean regular = true;
 		
@@ -835,7 +807,7 @@ public class MobileSmartSource {
 		}
 	}
 	
-	public class IterationData extends SourceData {
+	static public class IterationData extends SourceData {
 		private long priority = 0L;
 		
 		public IterationData(JSONObject jsonObject) {
@@ -900,7 +872,7 @@ public class MobileSmartSource {
 		}
 	}
 	
-	public class FormData extends SourceData {
+	static public class FormData extends SourceData {
 		private long priority = 0L;
 		private String identifier = "";
 		
@@ -973,7 +945,7 @@ public class MobileSmartSource {
 		}
 	}
 	
-	public class GlobalData extends SourceData {
+	static public class GlobalData extends SourceData {
 		private String sharedObject = "router.sharedObject";
 		
 		public GlobalData(JSONObject jsonObject) {
@@ -1021,7 +993,7 @@ public class MobileSmartSource {
 		
 	}
 	
-	public class LocalData extends SourceData {
+	static public class LocalData extends SourceData {
 		private String localObject = "local";
 		
 		public LocalData(JSONObject jsonObject) {
@@ -1068,7 +1040,105 @@ public class MobileSmartSource {
 		}
 		
 	}
+	
+	static public class IconData extends SourceData {
+		private String icon;
+		
+		public IconData(JSONObject jsonObject) {
+			super(jsonObject);
+			try {
+				icon = jsonObject.getString("icon");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
+		public IconData(String project, String source) {
+			super();
+			try {
+				icon = source;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JSONObject toJson() {
+			JSONObject jsonObject = new JSONObject();
+			try {
+				jsonObject.put("icon", icon);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			return jsonObject;
+		}
+
+		@Override
+		public String getValue() {
+			return getSource();
+		}
+
+		@Override
+		public String getValueEx() {
+			return icon;
+		}
+		
+		@Override
+		public String getSource() {
+			return icon;
+		}
+		
+	}
+
+	static public class AssetData extends SourceData {
+		private String asset;
+		
+		public AssetData(JSONObject jsonObject) {
+			super(jsonObject);
+			try {
+				asset = jsonObject.getString("asset");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		public AssetData(String project, String source) {
+			super();
+			try {
+				asset = source;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public JSONObject toJson() {
+			JSONObject jsonObject = new JSONObject();
+			try {
+				jsonObject.put("asset", asset);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			return jsonObject;
+		}
+
+		@Override
+		public String getValue() {
+			return getSource();
+		}
+
+		@Override
+		public String getValueEx() {
+			return asset;
+		}
+		
+		@Override
+		public String getSource() {
+			return asset;
+		}
+		
+	}
+	
 	private JSONObject jsonObject = new JSONObject();
 	
 	private MobileSmartSource() {
@@ -1100,7 +1170,6 @@ public class MobileSmartSource {
 		try {
 			jsonObject = new JSONObject(jsonString);
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -1448,9 +1517,7 @@ public class MobileSmartSource {
 		
 		boolean isDroppable = true;
 		String qname = dbo.getQName() + ".";
-		if (Filter.Action.equals(getFilter()) || 
-				Filter.Shared.equals(getFilter()) || 
-					Filter.Iteration.equals(getFilter())) {
+		if (GenericUtils.contains(getFilter(), Filter.Action, Filter.Shared, Filter.Iteration, Filter.Icon, Filter.Asset)) {
 			isDroppable = targetDbo.getQName().startsWith(qname);
 		}
 		return isDroppable;
@@ -1571,6 +1638,16 @@ public class MobileSmartSource {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+				}
+			} else if (GenericUtils.contains(getFilter(), Filter.Icon, Filter.Asset)) {
+				try {
+					String projectName = getProjectName();
+					Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+					
+					DatabaseObject dbo = (ApplicationComponent)project.getMobileApplication().getApplicationComponent();
+					return dbo;
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}

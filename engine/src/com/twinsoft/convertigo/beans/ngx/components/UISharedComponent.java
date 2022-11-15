@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.text.WordUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -33,10 +34,96 @@ import com.twinsoft.convertigo.beans.common.FormatedContent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.FolderType;
 
-public class UISharedComponent extends UIComponent implements IShared {
+public class UISharedComponent extends UIComponent implements IShared, IExposeAble {
 
 	private static final long serialVersionUID = -2430482045373902567L;
 
+	static public String getNsCompDirPath(UISharedComponent uisc) {
+		if (uisc != null) {
+			return getNsCompDirPath(uisc.getQName(), uisc.getName());
+		}
+		return null;
+	}
+	
+	static public String getNsCompDirPath(String compQName, String compName) {
+		if (compQName != null && compName != null) {
+			String lowerCompName = compName.toLowerCase();
+			try {
+				String lowerDirName = getNsCompDirName(compQName, compName);
+				return "_private/ionic/src/app/components/"+ lowerDirName;
+			} catch (Exception e) {}
+			return "_private/ionic/src/app/components/"+ lowerCompName;
+		}
+		return null;
+	}
+		
+	static public String getNsCompDirName(UISharedComponent uisc) {
+		if (uisc != null) {
+			return getNsCompDirName(uisc.getQName(), uisc.getName());
+		}
+		return null;
+	}
+	
+	static public String getNsCompDirName(String compQName, String compName) {
+		return joinLower(compQName, compName, ".");
+	}
+	
+	static public String getNsCompFileName(UISharedComponent uisc) {
+		if (uisc != null) {
+			return getNsCompFileName(uisc.getQName(), uisc.getName());
+		}
+		return null;
+	}
+	
+	static public String getNsCompFileName(String compQName, String compName) {
+		return joinLower(compQName, compName, "-");
+	}
+	
+	static public String getNsCompIdentifier(UISharedComponent uisc) {
+		if (uisc != null) {
+			return getNsCompIdentifier(uisc.getQName(), uisc.getName());
+		}
+		return null;
+	}
+	
+	static public String getNsCompIdentifier(String compQName, String compName) {
+		return joinLower(compQName, compName, "_");
+	}
+	
+	static public String getNsCompName(UISharedComponent uisc) {
+		if (uisc != null) {
+			return getNsCompName(uisc.getQName(), uisc.getName());
+		}
+		return null;
+	}
+	
+	static public String getNsCompName(String compQName, String compName) {
+		return joinCapitalize(compQName, compName, "_");
+	}
+	
+	static protected String joinLower(String dboQName, String dboName, String separator) {
+		if (dboQName != null && dboName != null) {
+			String lowerDboName = dboName.toLowerCase();
+			try {
+				String lowerProjectName = dboQName.split("\\.")[0].toLowerCase();
+				return lowerProjectName + separator + lowerDboName;
+			} catch (Exception e) {}
+			return lowerDboName;
+		}
+		return null;
+	}
+	
+	static protected String joinCapitalize(String dboQName, String dboName, String separator) {
+		if (dboQName != null && dboName != null) {
+			try {
+				String projectName = dboQName.split("\\.")[0];
+				return WordUtils.capitalize(projectName) + "_" + WordUtils.capitalize(dboName);
+			} catch (Exception e) {}
+			return dboName;
+		}
+		return null;
+	}
+	
 	public UISharedComponent() {
 		super();
 	}
@@ -66,6 +153,10 @@ public class UISharedComponent extends UIComponent implements IShared {
 		return "";
 	}
 	
+	public String getNsIdentifier() {
+		return "";
+	}
+	
 	public String getSelector() {
 		return "";
 	}
@@ -78,6 +169,17 @@ public class UISharedComponent extends UIComponent implements IShared {
 
 	public void setScriptContent(FormatedContent scriptContent) {
 		this.scriptContent = scriptContent;
+	}
+	
+	private boolean exposed = true;
+	
+	@Override
+	public boolean isExposed() {
+		return exposed;
+	}
+	
+	public void setExposed(boolean exposed) {
+		this.exposed = exposed;
 	}
 	
 	public List<UICompVariable> getVariables() {
@@ -94,6 +196,16 @@ public class UISharedComponent extends UIComponent implements IShared {
 	
 	public List<UICompEvent> getUICompEventList() {
 		return new ArrayList<UICompEvent>();
+	}
+	
+	public List<UIFont> getUIFontList() {
+		List<UIFont> eventList = new ArrayList<>();
+		for (UIComponent uiComponent : getUIComponentList()) {
+			if (uiComponent instanceof UIFont) {
+				eventList.add((UIFont) uiComponent);
+			}
+		}
+		return eventList;
 	}
 	
 	@Override

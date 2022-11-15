@@ -19,6 +19,7 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 
 import org.eclipse.jface.viewers.CellEditor;
@@ -48,34 +49,35 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjec
 
 public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 
-	private String[] labels;
-	private boolean readOnly = false;
-	
-	public StringComboBoxPropertyDescriptor(Object id, String displayName, String[] labels, boolean readOnly) {
+	private DatabaseObjectTreeObject databaseObjectTreeObject;
+
+	public StringComboBoxPropertyDescriptor(Object id, String displayName, DatabaseObjectTreeObject databaseObjectTreeObject) {
 		super(id, displayName);
-		this.labels = labels;
-		this.readOnly = readOnly;
+		this.databaseObjectTreeObject = databaseObjectTreeObject;
 	}
 
-    public CellEditor createPropertyEditor(Composite parent) {
-    	CellEditor editor = new StringComboBoxCellEditor(parent, labels, readOnly ? SWT.READ_ONLY:SWT.NONE);
-        if (getValidator() != null) {
+	public CellEditor createPropertyEditor(Composite parent) {
+		DatabaseObject dbo = databaseObjectTreeObject.getObject();
+		boolean isReadOnly = false;
+		try {
+			Method method = dbo.getClass().getMethod("isReadOnlyProperty", new Class[] { String.class});
+			isReadOnly = (boolean) method.invoke(dbo, new Object[] { (String) getId() });
+		} catch (Exception e) {}
+		CellEditor editor = new StringComboBoxCellEditor(parent, isReadOnly ? SWT.READ_ONLY:SWT.NONE);
+		if (getValidator() != null) {
 			editor.setValidator(getValidator());
 		}
-        return editor;
-    }
-	
-    class StringComboBoxCellEditor extends CellEditor {
-    	String[] items;
-    	CCombo comboBox;
-    	int selection;
-    	
-    	public StringComboBoxCellEditor(Composite parent, String[] items, int style) {
-    		super(parent, style);
-    		this.items = items;
-    		populateComboBoxItems();
-    	}
-    	
+		return editor;
+	}
+
+	class StringComboBoxCellEditor extends CellEditor {
+		String[] items;
+		CCombo comboBox;
+
+		public StringComboBoxCellEditor(Composite parent, int style) {
+			super(parent, style);
+		}
+
 		@Override
 		public void activate(ColumnViewerEditorActivationEvent activationEvent) {
 			super.activate(activationEvent);
@@ -110,11 +112,6 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 				public void widgetDefaultSelected(SelectionEvent event) {
 					applyEditorValueAndDeactivate();
 				}
-
-				@Override
-				public void widgetSelected(SelectionEvent event) {
-					selection = comboBox.getSelectionIndex();
-				}
 			});
 
 			comboBox.addTraverseListener(new TraverseListener() {
@@ -140,7 +137,7 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 					}
 				}
 			});
-			
+
 			comboBox.addVerifyListener(new VerifyListener() {
 				@Override
 				public void verifyText(VerifyEvent e) {
@@ -159,15 +156,16 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 					}
 				}
 			});
-			
+
 			comboBox.addFocusListener(new FocusAdapter() {
 				@Override
 				public void focusLost(FocusEvent e) {
 					StringComboBoxCellEditor.this.focusLost();
 				}
 			});
-			return comboBox;		}
-		
+			return comboBox;
+		}
+
 		@SuppressWarnings("deprecation")
 		public LayoutData getLayoutData() {
 			LayoutData layoutData = super.getLayoutData();
@@ -184,20 +182,19 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 		}
 
 		private void populateComboBoxItems() {
+			items = getTags(databaseObjectTreeObject, (String) getId());
 			if (comboBox != null && items != null) {
 				comboBox.removeAll();
 				for (int i = 0; i < items.length; i++) {
 					comboBox.add(items[i], i);
 				}
-
 				setValueValid(true);
-				selection = 0;
 			}
 		}
-	
+
 		void applyEditorValueAndDeactivate() {
 			// must set the selection before getting value
-			selection = comboBox.getSelectionIndex();
+			int selection = comboBox.getSelectionIndex();
 			Object newValue = doGetValue();
 			markDirty();
 			boolean isValid = isCorrect(newValue);
@@ -221,7 +218,7 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 			fireApplyEditorValue();
 			deactivate();
 		}
-		
+
 		protected void keyReleaseOccured(KeyEvent keyEvent) {
 			if (keyEvent.character == '\u001b') { // Escape character
 				fireCancelEditor();
@@ -229,13 +226,13 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 				applyEditorValueAndDeactivate();
 			}
 		}
-		
+
 		protected void focusLost() {
 			if (isActivated()) {
 				applyEditorValueAndDeactivate();
 			}
 		}
-		
+
 		@Override
 		protected void doSetFocus() {
 			comboBox.setFocus();
@@ -252,13 +249,13 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 			String text = value.toString();
 			comboBox.setText(text);
 		}
-    	
-    }
-    
-    public static String[] getTags(DatabaseObjectTreeObject databaseObjectTreeObject, String propertyName) {
-    	DatabaseObject bean = (DatabaseObject) databaseObjectTreeObject.getObject();
-    	ITagsProperty tagsProperty = null;
-		
+
+	}
+
+	public static String[] getTags(DatabaseObjectTreeObject databaseObjectTreeObject, String propertyName) {
+		DatabaseObject bean = (DatabaseObject) databaseObjectTreeObject.getObject();
+		ITagsProperty tagsProperty = null;
+
 		if (bean instanceof ITagsProperty) {
 			tagsProperty = (ITagsProperty) bean;
 		}
@@ -268,5 +265,5 @@ public class StringComboBoxPropertyDescriptor extends PropertyDescriptor {
 
 		String[] sResults = tagsProperty.getTagsForProperty(propertyName);
 		return sResults;
-    }
+	}
 }

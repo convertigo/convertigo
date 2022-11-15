@@ -400,7 +400,7 @@ public class BeansDoc {
 				}
 				
 				String type = databaseObjectPropertyDescriptor.getPropertyType().getSimpleName();
-				if ("true".equals("" + databaseObjectPropertyDescriptor.getValue("scriptable"))) {
+				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.SCRIPTABLE))) {
 					type = "JS expression";
 				}
 				

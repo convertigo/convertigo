@@ -24,25 +24,24 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class XpathableStatementBeanInfo extends MySimpleBeanInfo {
-    
+
 	public XpathableStatementBeanInfo() {
 		try {
 			beanClass = XpathableStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Statement.class;
 
 			resourceBundle = getResourceBundle("res/XpathableStatement");
-			
+
 			properties = new PropertyDescriptor[2];
-			
-            properties[0] = new PropertyDescriptor("xpath", beanClass, "getXpath", "setXpath");
-            properties[0].setDisplayName(getExternalizedString("property.xpath.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.xpath.short_description"));
-            //properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
-            
-            properties[1] = new PropertyDescriptor("delay", beanClass, "getDelay", "setDelay");
-            properties[1].setDisplayName(getExternalizedString("property.delay.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.delay.short_description"));
+
+			properties[0] = new PropertyDescriptor("xpath", beanClass, "getXpath", "setXpath");
+			properties[0].setDisplayName(getExternalizedString("property.xpath.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.xpath.short_description"));
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
+
+			properties[1] = new PropertyDescriptor("delay", beanClass, "getDelay", "setDelay");
+			properties[1].setDisplayName(getExternalizedString("property.delay.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.delay.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

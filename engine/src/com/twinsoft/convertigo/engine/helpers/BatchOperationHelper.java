@@ -48,6 +48,10 @@ public class BatchOperationHelper {
 		
 	};
 	
+	static public boolean isStarted() {
+		return batchOperation.get()[0] != null;
+	}
+	
 	static public void start() {
 		if (batchOperation.get()[0] == null) {
 			batchOperation.get()[0] = new HashSet<Runnable>();

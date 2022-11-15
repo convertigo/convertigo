@@ -85,6 +85,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.DataPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicInfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.EmulatorTechnologyEditor;
@@ -93,10 +94,11 @@ import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsE
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.SmartTypeCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.TextGenericCellEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScriptablePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
@@ -126,12 +128,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 	public String objectClassName = null;
 	public boolean canPaste = false;
-	
+
 	/**
 	 * Indicates the inheritance status of the object.
 	 */
 	public boolean isInherited = false;
-	
+
 	/**
 	 * Indicates the detection status of the object.
 	 */
@@ -141,12 +143,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	 * Indicates if the object is under version control.
 	 */
 	public boolean isUnderCvs = false;
-   
+
 	/**
 	 * Indicates if the object is currently checked out.
 	 */
 	public boolean isCheckedOut = false;
-	
+
 	/**
 	 * Indicates if the object is currently enabled.
 	 */
@@ -156,11 +158,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	 * Indicates if the object is currently the default one.
 	 */
 	public boolean isDefault = false;
-	
+
 	private boolean isValueInProcess = false;
-	
+
 	public boolean isEditingComment = false;
-	
+
 	public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
 		this(viewer,object,false);
 	}
@@ -176,7 +178,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public DatabaseObject getObject(){
 		return (DatabaseObject) super.getObject();
 	}
-	
+
 	@Override
 	public void setParent(TreeParent parent) {
 		super.setParent(parent);
@@ -185,13 +187,13 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		else {
 			ConvertigoPlugin.projectManager.getProjectExplorerView().addTreeObjectListener(this);
-			
+
 			Object object = getObject();
 			if (object instanceof DatabaseObject) {
 				if (((DatabaseObject)object).bNew) {
 					// Notify here new bean has been added (Fix ticket #20)
 					//ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectAdded(new TreeObjectEvent(this));
-					
+
 					// Fix issue on notification while reloading (Ticket #2496)
 					// Notification is done after reload is complete (see ProjectExplorerView:ReloadWithProgress)
 					ConvertigoPlugin.projectManager.getProjectExplorerView().addedTreeObjects.add(this);
@@ -200,17 +202,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 	}
 
-	
+
 	public boolean acceptSymbols() {
 		return true;
 	}
-	
+
 	@Override
 	public void update() {
 		if (isInherited) {
 			return;
 		}
-		
+
 		hasBeenModified(hasChanged());
 	}
 
@@ -220,15 +222,15 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			return;
 		}
 	}
-	
+
 	public boolean isEnabled() {
 		return isEnabled;
 	}
-	
+
 	public void setEnabled(boolean isEnabled) {
 		this.isEnabled = isEnabled;
 	}
-	
+
 	public void hasBeenModified(boolean bModified) {
 		if (bModified && !isInherited) {
 			markAsChanged(true);
@@ -238,7 +240,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 		}
 	}
-	
+
 	public DatabaseObjectTreeObject getOwnerDatabaseObjectTreeObject() {
 		TreeObject owner = getParent();
 		while (owner!=null && !(owner instanceof DatabaseObjectTreeObject)) {
@@ -246,7 +248,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return (DatabaseObjectTreeObject) owner;
 	}
-	
+
 	public BeanInfo databaseObjectBeanInfo = null;
 
 	private IPropertyDescriptor[] propertyDescriptors = null;
@@ -257,26 +259,26 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		propertyDescriptors = null;
 		getDescriptors();
 	}
-	
+
 	protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
 		return new ArrayList<PropertyDescriptor>();
 	}
-	
-	
+
+
 	protected void getDescriptors() {
 		if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
 				databaseObjectPropertyDescriptors != null) {
 			return;
 		}
-		
+
 		DatabaseObject databaseObject = getObject();
 		if ((!(databaseObject instanceof Project)) && (databaseObject.getParent() == null))
 			return; // No needs for removed object
-		
+
 		int len;
-		
+
 		java.beans.PropertyDescriptor databaseObjectPropertyDescriptor;
-		
+
 		try {
 			BeanInfo bi = databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
 			databaseObjectBeanDescriptor = bi.getBeanDescriptor();
@@ -284,26 +286,26 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			len = databaseObjectPropertyDescriptors.length;
 		}
 		catch (Exception e) {
-			String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")"; 
+			String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")";
 			ConvertigoPlugin.logException(e, message);
 			return;
 		}
-		
+
 		List<PropertyDescriptor> vPropertyDescriptors = new ArrayList<PropertyDescriptor>(32);
-		
+
 		PropertyDescriptor propertyDescriptor;
-		
+
 		propertyDescriptor = new PropertyDescriptor(P_TYPE, "Type");
 		propertyDescriptor.setCategory("Information");
 		vPropertyDescriptors.add(propertyDescriptor);
 		propertyDescriptor = new PropertyDescriptor(P_JAVA_CLASS, "Java class");
 		propertyDescriptor.setCategory("Information");
 		vPropertyDescriptors.add(propertyDescriptor);
-		
+
 		propertyDescriptor = new PropertyDescriptor(P_NAME, "Name");
 		propertyDescriptor.setCategory("Information");
 		vPropertyDescriptors.add(propertyDescriptor);
-		
+
 		propertyDescriptor = new PropertyDescriptor(P_QNAME, "QName");
 		propertyDescriptor.setCategory("Information");
 		vPropertyDescriptors.add(propertyDescriptor);
@@ -313,53 +315,53 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		propertyDescriptor = new PropertyDescriptor(P_DEPTH, "Depth");
 		propertyDescriptor.setCategory("Information");
 		vPropertyDescriptors.add(propertyDescriptor);
-		
+
 		propertyDescriptor = new PropertyDescriptor(P_EXPORTED, "Exported");
 		propertyDescriptor.setCategory("Information");
 		vPropertyDescriptors.add(propertyDescriptor);
-		
+
 		propertyDescriptor = new PropertyDescriptor(P_MIN_VERSION, "Min version");
 		propertyDescriptor.setCategory("Information");
 		vPropertyDescriptors.add(propertyDescriptor);
-		
+
 		// Get Dynamic properties
 		List<PropertyDescriptor> dynamicPropertyDescriptors = getDynamicPropertyDescriptors();
 		for (PropertyDescriptor dynamicPropertyDescriptor : dynamicPropertyDescriptors) {
 			vPropertyDescriptors.add(dynamicPropertyDescriptor);
 		}
-		
+
 		// Get properties
 		boolean isExtractionRule = ( databaseObject instanceof com.twinsoft.convertigo.beans.core.ExtractionRule) ;
 		boolean isMaskedProperty = false;
-		
+
 		for (int i = 0 ; i < len ; i++) {
 			databaseObjectPropertyDescriptor = databaseObjectPropertyDescriptors[i];
-			
+
 			// Don't display hidden or expert propertyDescriptors.
 			if (databaseObjectPropertyDescriptor.isHidden()) {
 				continue;
 			}
-			
+
 			if (databaseObject.checkBlackListParentClass(databaseObjectPropertyDescriptor)) {
 				continue;
 			}
-			
+
 			String name = databaseObjectPropertyDescriptor.getName();
 			String displayName = databaseObjectPropertyDescriptor.getDisplayName();
 			Method getter = databaseObjectPropertyDescriptor.getReadMethod();
 			Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
-			
+
 			// Only display read/write propertyDescriptors.
 			if (getter == null || setter == null) {
 				continue;
 			}
-			
+
 			Class<?> pec = null;
-			
+
 			try {
 				Object args[] = { };
 				Object value = getter.invoke(databaseObject, args);
-				
+
 				pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 
 				// Now figure out how to display it...
@@ -373,7 +375,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 							String text = super.getText(element);
 							return text.replaceAll(regexp, "*");
 						}
-						
+
 					});
 				}
 				vPropertyDescriptors.add(propertyDescriptor);
@@ -387,7 +389,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 		propertyDescriptors = (IPropertyDescriptor[]) vPropertyDescriptors.toArray(new IPropertyDescriptor[] {});
 	}
-	
+
 	// A default validator which accept any value
 	/*protected ICellEditorValidator getValidator(String propertyName) {
 		return new ICellEditorValidator() {
@@ -407,7 +409,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 		};
 	}
-	
+
 	protected boolean isSymbolValue(Object value) {
 		if (value != null) {
 			String val = null;
@@ -426,19 +428,19 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return false;
 	}
-	
-	private PropertyDescriptor findPropertyDescriptor(final String name, 
-														String displayName, 
-														java.beans.PropertyDescriptor databaseObjectPropertyDescriptor, 
-														Object value, 
-														final Class<?> pec,
-														boolean isExtractionRule,
-														boolean isMasked) 
-													throws IllegalAccessException, 
-														NoSuchMethodException, 
-														InvocationTargetException {
+
+	private PropertyDescriptor findPropertyDescriptor(final String name,
+			String displayName,
+			java.beans.PropertyDescriptor databaseObjectPropertyDescriptor,
+			Object value,
+			final Class<?> pec,
+			boolean isExtractionRule,
+			boolean isMasked)
+					throws IllegalAccessException,
+					NoSuchMethodException,
+					InvocationTargetException {
 		PropertyDescriptor propertyDescriptor = null;
-		
+
 		// Primitive types
 		if (pec == null) {
 			if (value instanceof Boolean) {
@@ -447,7 +449,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 			else if (value instanceof Number) {
 				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-//				propertyDescriptor.setValidator(new CompilableValueValidator(new NumberValidator(value.getClass())));
+				//				propertyDescriptor.setValidator(new CompilableValueValidator(new NumberValidator(value.getClass())));
 			}
 		}
 		// Complex types
@@ -471,11 +473,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					tags = (String[]) getTags.invoke(null, new Object[] { this } );
 					propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
 				}
-   			}
+			}
 			else if (StringComboBoxPropertyDescriptor.class.isAssignableFrom(pec)) {
-				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-				String[] tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, tags, false);
+				propertyDescriptor = new StringComboBoxPropertyDescriptor(name, displayName, this);
 			}
 			else if (com.twinsoft.convertigo.eclipse.property_editors.MobileSmartSourcePropertyDescriptor.class.isAssignableFrom(pec)) {
 				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
@@ -505,7 +505,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 							if (getValidator() != null) {
 								editor.setValidator(getValidator());
 							}
-	
+
 							return editor;
 						}
 						catch(Exception e) {
@@ -517,74 +517,91 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 			else if (Enum.class.isAssignableFrom(pec)) {
 				String[] tags = EnumUtils.toStrings(pec);
-				
+
 				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, tags, this, name);
+			}
+			else if (SmartTypeCellEditor.class.isAssignableFrom(pec)) {
+				propertyDescriptor = new PropertyDescriptor(name, displayName) {
+					@Override
+					public CellEditor createPropertyEditor(Composite parent) {
+						try {
+
+							Constructor<?> constructor = pec.getConstructor(new Class[] {
+									Composite.class, DatabaseObjectTreeObject.class, java.beans.PropertyDescriptor.class
+							});
+							SmartTypeCellEditor editor = (SmartTypeCellEditor) constructor.newInstance(new Object[] {
+									parent, DatabaseObjectTreeObject.this, databaseObjectPropertyDescriptor
+							});
+							if (getValidator() != null) {
+								editor.setValidator(getValidator());
+							}
+							return editor;
+						} catch(Exception e) {
+							ConvertigoPlugin.logException(e, "Unexpected exception");
+							return null;
+						}
+					}
+				};
 			}
 		}
 
 		// Special cases
 		if (propertyDescriptor == null) {
-			// editor for scriptable properties
-			Object scriptable = databaseObjectPropertyDescriptor.getValue("scriptable");
-			if ((scriptable != null) && (scriptable.equals(Boolean.TRUE)))
-				propertyDescriptor = new ScriptablePropertyDescriptor(name, displayName);
-			
-			// editor for nillable properties
-			if (propertyDescriptor == null) {
-				Object nillable = databaseObjectPropertyDescriptor.getValue("nillable");
-				if ((nillable != null) && (nillable.equals(Boolean.TRUE))) {
-					int style = isMasked ? SWT.PASSWORD:SWT.NONE;
+			boolean disable = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.DISABLE));
+
+			if (disable) {
+				propertyDescriptor = new InfoPropertyDescriptor(name, displayName);
+			} else {
+				boolean multiline = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.MULTILINE));
+				int style = isMasked ? SWT.PASSWORD : multiline ? SWT.MULTI : SWT.NONE;
+				boolean nillable = Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE));
+				if (nillable) {
 					if (value instanceof String) {
-						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, StringOrNullEditor.class, style);
+						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, StringOrNullEditor.class, style, this, databaseObjectPropertyDescriptor);
+					} else if (value instanceof XMLVector) {
+						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, ArrayOrNullEditor.class, style, this, databaseObjectPropertyDescriptor);
 					}
-					else if (value instanceof XMLVector) {
-						propertyDescriptor = new DataOrNullPropertyDescriptor(name, displayName, ArrayOrNullEditor.class, style);
-					}
+				} else if (multiline) {
+					propertyDescriptor = new DataPropertyDescriptor(name, displayName, TextGenericCellEditor.class, style, this, databaseObjectPropertyDescriptor);
 				}
 			}
-			
-			// editor for disabled properties
-			Object disable = databaseObjectPropertyDescriptor.getValue("disable");
-			if ((disable != null) && (disable.equals(Boolean.TRUE)))
-				propertyDescriptor = new InfoPropertyDescriptor(name, displayName);
-			
 		}
 
 		// Default case
 		if (propertyDescriptor == null) {
 			propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-//			propertyDescriptor.setValidator(new CompilableValueValidator(getValidator(name)));
+			//			propertyDescriptor.setValidator(new CompilableValueValidator(getValidator(name)));
 		}
-		
+
 		if (propertyDescriptor != null) {
 			ICellEditorValidator validator = getValidator(name);
 			if (validator != null) {
 				propertyDescriptor.setValidator(validator);
 			}
-			
+
 			final ILabelProvider labelProvider = propertyDescriptor.getLabelProvider();
 			propertyDescriptor.setLabelProvider(new ILabelProvider() {
-				
+
 				@Override
 				public void removeListener(ILabelProviderListener listener) {
 					labelProvider.removeListener(listener);
 				}
-				
+
 				@Override
 				public boolean isLabelProperty(Object element, String property) {
 					return labelProvider.isLabelProperty(element, property);
 				}
-				
+
 				@Override
 				public void dispose() {
 					labelProvider.dispose();
 				}
-				
+
 				@Override
 				public void addListener(ILabelProviderListener listener) {
 					labelProvider.addListener(listener);
 				}
-				
+
 				@Override
 				public String getText(Object element) {
 					String text = labelProvider.getText(element);
@@ -598,7 +615,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					}
 					return text;
 				}
-				
+
 				@Override
 				public Image getImage(Object element) {
 					return labelProvider.getImage(element);
@@ -613,7 +630,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			if (isExtractionRule) {
 				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Selection" : "Configuration");
 			} else {
-				Object categoryValue = databaseObjectPropertyDescriptor.getValue("category");
+				Object categoryValue = databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.CATEGORY);
 				String category = categoryValue == null ? "Base properties" : String.valueOf(categoryValue);
 
 				propertyDescriptor.setCategory(databaseObjectPropertyDescriptor.isExpert() ? "Expert" : category);
@@ -636,7 +653,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			cleanDescription = cleanDescription.trim();
 			cachedDescriptions.put(description, cleanDescription);
 		}
-		
+
 		return cleanDescription;
 	}
 
@@ -653,18 +670,18 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return null;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
-//		if (adapter.equals(IContentOutlinePage.class)) {
-//			if (userContentOutline == null) {
-//				//Create a property outline page using the parsed result of
-//				// passing in the document provider.
-//				userContentOutline = new PropertySheetContentOutlinePage(
-//						new UserFileParser().parse(getDocumentProvider()));
-//			}
-//			return userContentOutline;
-//		}
+		//		if (adapter.equals(IContentOutlinePage.class)) {
+		//			if (userContentOutline == null) {
+		//				//Create a property outline page using the parsed result of
+		//				// passing in the document provider.
+		//				userContentOutline = new PropertySheetContentOutlinePage(
+		//						new UserFileParser().parse(getDocumentProvider()));
+		//			}
+		//			return userContentOutline;
+		//		}
 		if (adapter.equals(IPropertySheetPage.class)) {
 			PropertySheetPage propertySheetPage = new PropertySheetPage();
 			return propertySheetPage;
@@ -675,12 +692,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public boolean hasChanged() {
 		return getObject().hasChanged;
 	}
-	
+
 	@Override
 	public String getName() {
 		return getObject().getName();
 	}
-	
+
 	public void markAsChanged(boolean hasChanged) {
 		if (hasChanged) {
 			getObject().changed();
@@ -688,7 +705,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			getObject().hasChanged = false;
 		}
 	}
-	
+
 	public Object getEditableValue() {
 		return getObject();
 	}
@@ -702,7 +719,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 		DatabaseObject databaseObject = getObject();
 		String propertyName = (String) id;
-		
+
 		if (propertyName.equals(P_TYPE))
 			return databaseObjectBeanDescriptor.getDisplayName();
 		else if (propertyName.equals(P_JAVA_CLASS))
@@ -729,11 +746,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				if (databaseObjectPropertyDescriptor == null) {
 					return null;
 				}
-				
+
 				Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
-				
+
 				Method getter = databaseObjectPropertyDescriptor.getReadMethod();
-				
+
 				Object compilablePropertySourceValue = databaseObject.getCompilablePropertySourceValue(propertyName);
 				Object value;
 				if (compilablePropertySourceValue == null) {
@@ -743,9 +760,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				else {
 					value = compilablePropertySourceValue;
 				}
-				
+
 				boolean done = false;
-				
+
 				if (value instanceof String) {
 					PropertyDescriptor propertyDescriptor = findPropertyDescriptor(id);
 					if (propertyDescriptor instanceof DynamicComboBoxPropertyDescriptor) {
@@ -754,18 +771,18 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						done = true;
 					}
 				}
-				
+
 				if (done) {
 					// do nothing
 				} else if (value instanceof Boolean) {
-					value = ((Boolean) value).booleanValue() ? Integer.valueOf(0) : Integer.valueOf(1); 
+					value = ((Boolean) value).booleanValue() ? Integer.valueOf(0) : Integer.valueOf(1);
 				}
 				else if ((pec != null) && (PropertyWithTagsEditor.class.isAssignableFrom(pec) || Enum.class.isAssignableFrom(pec))) {
 					if (!(value instanceof Integer)) {
 						if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
 							Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 							String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
-	
+
 							int i;
 							for (i = 0 ; i < tags.length ; i++) {
 								if (tags[i].equals(value)) {
@@ -773,7 +790,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 									break;
 								}
 							}
-	
+
 							// if we did not find our string in the tag list set value to index 0
 							if (i == tags.length) {
 								value = Integer.valueOf(0);
@@ -789,7 +806,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					if ((EmulatorTechnologyEditor.class.equals(pec))) {
 						Method getEmulatorClassNames = pec.getDeclaredMethod("getEmulatorClassNames", new Class[] { DatabaseObjectTreeObject.class });
 						String[] emulatorClassNames = (String[]) getEmulatorClassNames.invoke(null, new Object[] { this } );
-						
+
 						for (int i = 0 ; i < emulatorClassNames.length ; i++) {
 							if (emulatorClassNames[i].equals(value)) {
 								value = Integer.valueOf(i);
@@ -800,11 +817,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					// else simply return the combo index
 				}
 				else if (value instanceof Number) {
-					value = ((Number) value).toString(); 
+					value = ((Number) value).toString();
 				}
-				
+
 				// Get property's nillable value
-				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("nillable"))) {
+				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE))) {
 					try {
 						Boolean isNull = ((INillableProperty)databaseObject).isNullProperty(propertyName);
 						PropertyDescriptor pd = findPropertyDescriptor(propertyName);
@@ -827,7 +844,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						ConvertigoPlugin.logException(e, message);
 					}
 				}
-				
+
 				// Check for property normalized value if needed
 				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(DatabaseObject.PROPERTY_XMLNAME))) {
 					// Ignore compilable property source value
@@ -840,7 +857,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						}
 					}
 				}
-				
+
 				return value;
 			}
 			catch (Exception e) {
@@ -856,10 +873,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 
 	public void resetPropertyValue(Object id) {	}
-	
+
 	public void setPropertyValue(Object id, Object value) {
 		MobileBuilder mb = null;
-		
+
 		IEditorPart editorPart = ConvertigoPlugin.getDefault().getApplicationComponentEditor();
 		if (editorPart != null) {
 			IEditorInput input = editorPart.getEditorInput();
@@ -872,20 +889,20 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				mb = editorInput.getApplication().getProject().getMobileBuilder();
 			}
 		}
-		
+
 		DatabaseObject databaseObject = getObject();
 		Object oldValue = getPropertyValue(id);
 		String propertyName = (String) id;
-		
+
 		ComboBoxCellEditor editor = DynamicComboBoxPropertyDescriptor.getLast();
 		if (editor != null && (!acceptSymbols() || !Integer.valueOf(editor.getItems().length - 1).equals(value))) {
 			editor = null;
 		}
-		
+
 		if (isValueInProcess || (oldValue != null && oldValue.equals(value) && editor == null)) {
 			return;
 		}
-		
+
 		try {
 			isValueInProcess = true;
 			java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
@@ -895,10 +912,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 			Class<?> propertyClass = databaseObjectPropertyDescriptor.getPropertyType();
 			Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
-			
+
 			if (editor != null) {
 				Control control = editor.getControl();
-				Display display = control.getDisplay(); 
+				Display display = control.getDisplay();
 				final Shell shell = new Shell(control.getShell(), SWT.ON_TOP | SWT.TOOL | SWT.NO_FOCUS | SWT.APPLICATION_MODAL);
 				shell.setLocation(control.toDisplay(0, 0));
 				shell.setSize(control.getSize());
@@ -907,7 +924,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				final String[] newValue = new String[] { null };
 				String[] items = editor.getItems();
 				text.setText(items[items.length - 1]);
-				text.addTraverseListener(new TraverseListener() {					
+				text.addTraverseListener(new TraverseListener() {
 					@Override
 					public void keyTraversed(TraverseEvent e) {
 						if (e.detail == SWT.TRAVERSE_RETURN) {
@@ -922,7 +939,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						display.sleep();
 					}
 				}
-				
+
 				if (newValue[0] != null) {
 					value = newValue[0];
 				}
@@ -934,13 +951,13 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				changed = false;
 				boolean wasSymbolError = databaseObject.isSymbolError();
 				value = databaseObject.compileProperty(propertyClass, propertyName, oriValue);
-				
+
 				try {
 					oldValue = Engine.theApp.databaseObjectsManager.getCompiledValue(oldValue);
 				} catch (UndefinedSymbolsException e) {
 					oldValue = e.incompletValue();
 				}
-				
+
 				Set<String> symbolsErrors = databaseObject.getSymbolsErrors(propertyName);
 				if (symbolsErrors != null) {
 					boolean[] res = ConvertigoPlugin.warningGlobalSymbols(databaseObject.getProject().getName(),
@@ -959,7 +976,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					viewer.update(getProjectTreeObject(), null);
 				}
 			} while (changed);
-			
+
 			if (editor != null && value instanceof String) {
 				String[] items = editor.getItems();
 				int len = items.length - 1;
@@ -971,9 +988,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						break;
 					};
 				}
-				
+
 			}
-			
+
 			if (pec != null && propertyClass != int.class && propertyClass != Integer.class && value instanceof Integer) {
 				Object[] values = null;
 
@@ -1002,7 +1019,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 				value = emulatorClassNames[((Integer) value).intValue()];
 			}
-			
+
 			// Must rename bean when normalizedScreenClassName changed
 			if (databaseObject instanceof ScHandlerStatement) {
 				ScHandlerStatement scHandlerStatement = (ScHandlerStatement)databaseObject;
@@ -1019,9 +1036,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						return;
 				}
 			}
-			
+
 			// Set property's nillable value
-			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("nillable"))) {
+			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE))) {
 				try {
 					PropertyDescriptor pd = findPropertyDescriptor(propertyName);
 					if ((pd != null) && (pd instanceof DataOrNullPropertyDescriptor)) {
@@ -1041,7 +1058,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					ConvertigoPlugin.logException(e, message);
 				}
 			}
-			
+
 			// Check XML name property value if needed
 			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(DatabaseObject.PROPERTY_XMLNAME))) {
 				if (value instanceof String) {
@@ -1053,24 +1070,24 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					}
 				}
 			}
-			
+
 			Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
-			
+
 			Object args[] = { value };
 			setter.invoke(databaseObject, args);
-			
+
 			hasBeenModified(true);
-		  
+
 			// Set treeObject isEnabled attribute value (Fix #1129)
 			if (propertyName.equals("isEnabled") || propertyName.equals("isEnable")) {
 				setEnabled(value.equals(true));
 			}
-			
+
 			viewer.update(this, null);
 			// Fix #2528 #2533 : commented next line because of stack overflow on multiselection
 			//viewer.setSelection(viewer.getSelection(),true);
-		  
-		   //update property view and display the new value for zone editor
+
+			//update property view and display the new value for zone editor
 			if (pec !=null)
 			{
 				PropertySheet propertySheet = ConvertigoPlugin.getDefault().getPropertiesView();
@@ -1085,20 +1102,20 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 							propEntry.setValues(args);
 						}
 					}
-					
+
 					tree.update();
 				}
 			}
-			
+
 			Engine.logStudio.info("---------------------- SetPropertyValue started: "+ propertyName + "----------------------");
 			if (mb != null) {
 				mb.prepareBatchBuild();
 			}
 			BatchOperationHelper.start();
-			
+
 			TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, propertyName, oldValue, value);
 			ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
-			
+
 			BatchOperationHelper.stop();
 		}
 		catch (Exception e) {
@@ -1111,7 +1128,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			isValueInProcess = false;
 		}
 	}
-	
+
 	protected java.beans.PropertyDescriptor getPropertyDescriptor(String propertyName) {
 		int len = databaseObjectPropertyDescriptors.length;
 
@@ -1161,7 +1178,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		databaseObject.hasChanged = true;
 		hasBeenModified(true);
 	}
-	
+
 	public boolean rename(String newName, boolean bDialog) {
 		try {
 			if (!StringUtils.isNormalized(newName)) {
@@ -1178,7 +1195,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			if (newName.equalsIgnoreCase(oldName)) {
 				throw new ConvertigoException("The rename operation is case insensitive.");
 			}
-			
+
 			rename_(newName, bDialog);
 		}
 		catch(ConvertigoException e) {
@@ -1190,13 +1207,13 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return true;
 	}
-	
+
 	@Override
 	public ProjectTreeObject getProjectTreeObject() {
 		if (this instanceof ProjectTreeObject) {
 			return (ProjectTreeObject) this;
 		}
-		
+
 		TreeParent treeParent = getParent();
 		while (treeParent != null) {
 			if (treeParent instanceof ProjectTreeObject) {
@@ -1204,23 +1221,23 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 			treeParent = treeParent.getParent();
 		}
-		
+
 		return null;
 	}
-	
+
 	public DatabaseObjectTreeObject getParentDatabaseObjectTreeObject() {
 		DatabaseObjectTreeObject databaseObjectTreeObject = null;
-		
+
 		TreeParent treeParent = getParent();
 		while ((treeParent != null) && (!(treeParent instanceof DatabaseObjectTreeObject)))
 			treeParent = treeParent.getParent();
-		
+
 		if (treeParent != null)
 			databaseObjectTreeObject = (DatabaseObjectTreeObject)treeParent;
-		
+
 		return databaseObjectTreeObject;
 	}
-	
+
 	@Override
 	public TreeObject findTreeObjectByUserObject(Object databaseObject) {
 		TreeObject treeObject = null;
@@ -1229,11 +1246,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				treeObject = this;
 			}
 			else
-				treeObject = super.findTreeObjectByUserObject(databaseObject); 
+				treeObject = super.findTreeObjectByUserObject(databaseObject);
 		}
 		return treeObject;
 	}
-	
+
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		if (getObject().testAttribute(name, value)) {
@@ -1265,14 +1282,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		imageName += (isDetectedObject ? "_detected":"");
 		return imageName;
 	}
-	
+
 	protected Set<Object> checkDone(TreeObjectEvent treeObjectEvent) {
 		if (treeObjectEvent.done == null) {
 			treeObjectEvent.done = new HashSet<Object>();
 		}
 		return treeObjectEvent.done;
 	}
-	
+
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		checkDone(treeObjectEvent);
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
@@ -1283,7 +1300,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		checkDone(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		
+
 		if (!(treeObject.equals(this))) {
 			// this is a pool
 			if (getObject() instanceof Pool) {
@@ -1310,7 +1327,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				}
 			}
 		}
-		
+
 		if (!(treeObject.equals(this)) && (!getParents().contains(treeObject)))
 			getDescriptors();// refresh editors (e.g labels in combobox)
 	}
@@ -1318,17 +1335,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		checkDone(treeObjectEvent);
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		
+
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
-		
+
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
-		
+
 		if (this instanceof INamedSourceSelectorTreeObject) {
 			((INamedSourceSelectorTreeObject)this).getNamedSourceSelector().treeObjectPropertyChanged(treeObjectEvent);
 		}
-		
+
 		// this is a pool
 		if (getObject() instanceof Pool) {
 			// handle bean's name changes
@@ -1361,12 +1378,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
 		getDescriptors();// refresh editors (e.g labels in combobox)
 	}
-	
+
 	public boolean hasAncestorDisabled(){
 		DatabaseObjectTreeObject parent = getParentDatabaseObjectTreeObject();
 		return parent!=null && ( !parent.isEnabled() || parent.hasAncestorDisabled());
 	}
-	
+
 	public DatabaseObjectTreeObject findDatabaseObjectTreeObjectChild(DatabaseObject databaseObject) {
 		for (TreeObject treeObject : getChildren()) {
 			DatabaseObjectTreeObject databaseObjectTreeObject = findDatabaseObjectTreeObjectChild(treeObject, databaseObject);
@@ -1376,7 +1393,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return null;
 	}
-	
+
 	private static DatabaseObjectTreeObject findDatabaseObjectTreeObjectChild(TreeObject tree, DatabaseObject databaseObject) {
 		if (tree instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) tree;
@@ -1419,7 +1436,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return false;
 	}
-	
+
 	@Override
 	public TreeObject check() {
 		if (parent != null) {
@@ -1428,7 +1445,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		TreeObject dboTree = getProjectExplorerView().findTreeObjectByUserObject(getObject());
 		return dboTree != null ? dboTree : this;
 	}
-	
+
 	@Override
 	public TreeParent getParent() {
 		return parent == null ? check().parent : parent;

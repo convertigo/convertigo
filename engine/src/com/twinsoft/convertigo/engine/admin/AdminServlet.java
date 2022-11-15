@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.admin.logmanager.LogServiceHelper;
 import com.twinsoft.convertigo.engine.admin.services.Service;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
@@ -43,27 +44,27 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
  */
 public class AdminServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public AdminServlet() {
-        super();
-    }
 
-    @Override
+	/**
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public AdminServlet() {
+		super();
+	}
+
+	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    	String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
+		String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 		if (corsOrigin != null) {
 			Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
 		}
 		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}
-    
+
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-    @Override
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
@@ -83,16 +84,17 @@ public class AdminServlet extends HttpServlet {
 		} catch (Exception e) {
 			Engine.logAdmin.debug("Failed to retrieve property HIDING_ERROR_INFORMATION: " + e.getClass() + " (" + e.getMessage() + ")");
 		}
-				
+
 		try {
+			LogServiceHelper.aliveAdminInstance(request);
 			String serviceName = "";
 			String isAdmin = "";
 			try {
 				response.addHeader("Expires", "-1");
-    			response.addHeader("Pragma", "no-cache");
-	    		
-    			request.setCharacterEncoding("UTF-8");
-    			
+				response.addHeader("Pragma", "no-cache");
+
+				request.setCharacterEncoding("UTF-8");
+
 				String requestURL = request.getRequestURL().toString();
 				int i = requestURL.lastIndexOf('/');
 				isAdmin = requestURL.substring(0, i).endsWith("/admin/services") ? "admin " : "";
@@ -100,16 +102,16 @@ public class AdminServlet extends HttpServlet {
 				if (serviceName != null && !serviceName.equals("logs.Get")) {
 					Engine.logAdmin.info("Service name: " + serviceName);
 				}
-				
+
 				String myPackage = this.getClass().getPackage().getName();
 				Class<?> serviceClass = Class.forName(myPackage + ".services." + serviceName);
-				
+
 				// Check for authentication and roles
 				ServiceDefinition serviceDefinition = serviceClass.getAnnotation(ServiceDefinition.class);
-				
+
 				if (serviceDefinition == null)
 					throw new IllegalArgumentException("The service '" + serviceName + "' has no service definition!");
-				
+
 				if (Engine.isCloudMode()) {
 					boolean cloud_forbidden = serviceDefinition.cloud_forbidden();
 					Engine.logAdmin.debug("Is service forbidden for Cloud ? : " + cloud_forbidden);
@@ -117,24 +119,24 @@ public class AdminServlet extends HttpServlet {
 						throw new EngineException("The service '" + serviceName + "' cannot be acceded on Cloud.");
 					}
 				}
-				
+
 				if (isAdmin.isEmpty() && serviceDefinition.admin()) {
 					throw new ClassNotFoundException();
 				}
-				
+
 				String corsOrigin = HttpUtils.applyCorsHeaders(request, response);
 				if (corsOrigin != null) {
 					Engine.logAdmin.trace("Add CORS header for: " + corsOrigin);
 				}
-				
+
 				boolean needsAuthentication = !AuthenticatedSessionManager.hasRole(serviceDefinition.roles(), Role.ANONYMOUS);
 				Engine.logAdmin.debug("Needs authentication: " + needsAuthentication);
 				if (needsAuthentication) {
 					Engine.authenticatedSessionManager.checkRoles(request.getSession(false), serviceDefinition.roles());
 				}
-				
+
 				Service service = (Service) serviceClass.getConstructor().newInstance();
-				
+
 				try {
 					boolean xsrfAdmin = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.XSRF_ADMIN);
 					if (xsrfAdmin) {

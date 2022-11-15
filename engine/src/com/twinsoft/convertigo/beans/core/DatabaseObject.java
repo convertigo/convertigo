@@ -297,6 +297,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 //		}
 		return parent;
 	}
+	
+	public String getParentName() {
+		DatabaseObject parent = getParent();
+		return parent != null ? parent.getName() : "[null]";
+	}
 
 	public Project getProject() {
 		DatabaseObject databaseObject = this;
@@ -733,11 +738,17 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 					}
 				}
 				propertyElement.setAttribute("editorClass", message);
+				if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.MULTILINE))) {
+					propertyElement.setAttribute("isMultiline", "true");
+				}
+				if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.SCRIPTABLE))) {
+					propertyElement.setAttribute("isScriptable", "true");
+				}
 			}
 
 			root.appendChild(propertyElement);
 
-			if (Boolean.TRUE.equals(propertyDescriptor.getValue("nillable"))) {
+			if (Boolean.TRUE.equals(propertyDescriptor.getValue(MySimpleBeanInfo.NILLABLE))) {
 				try {
 					Method method = this.getClass().getMethod("isNullProperty",
 							new Class[] { String.class });
@@ -922,7 +933,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
 								+ targetException.getMessage());
 					}
 
-					if (Boolean.TRUE.equals(pd.getValue("nillable"))) {
+					if (Boolean.TRUE.equals(pd.getValue(MySimpleBeanInfo.NILLABLE))) {
 						Node nodeNull = childAttributes.getNamedItem("isNull");
 						String valNull = (nodeNull == null) ? "false" : nodeNull.getNodeValue();
 						Engine.logBeans.trace("  treats as null='" + valNull + "'");
@@ -1327,6 +1338,37 @@ public abstract class DatabaseObject implements Serializable, Cloneable, ITokenP
         }.init(this);
         return children;
     }
+	
+    public List<DatabaseObject> getSiblingsInFolder() {
+    	List<DatabaseObject> siblings = new ArrayList<DatabaseObject>();
+    	try {
+	    	List<DatabaseObject> children = parent.getDatabaseObjectChildren();
+			for (DatabaseObject child: children) {
+				if (child.getFolderType().equals(getFolderType())) {
+					siblings.add(child);
+				}
+			}
+    	} catch (Exception e) {}
+    	return siblings;
+    }
+    
+	public DatabaseObject getPreviousSiblingInFolder() {
+		try {
+			List<DatabaseObject> siblings = getSiblingsInFolder();
+			int index = siblings.indexOf(this);
+			return siblings.get(index - 1);
+		} catch (Exception e) {}
+		return null;
+	}
+
+	public DatabaseObject getNextSiblingInFolder() {
+		try {
+			List<DatabaseObject> siblings = getSiblingsInFolder();
+			int index = siblings.indexOf(this);
+			return siblings.get(index + 1);
+		} catch (Exception e) {}
+		return null;
+	}
 	
 	public DatabaseObject getDatabaseObjectChild(String name) throws Exception {
 		List<DatabaseObject> children = getDatabaseObjectChildren();

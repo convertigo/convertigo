@@ -75,7 +75,7 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 						if (mc.equals(((UISharedComponent)main))) {
 							functionCall = "this." + pageEvent.getEventFunctionName() + "({root: {scope:{"+scope+"}, in:{}, out:'"+ this.event +"'}})";
 						} else {
-							String identifier = ((UISharedComponent)main).getIdentifier();
+							String identifier = ((UISharedComponent)main).getNsIdentifier();
 							if (done.add(identifier)) {
 								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
 							}
@@ -83,7 +83,7 @@ public class UISharedComponentEvent extends UIComponent implements IEventGenerat
 					} else {
 						IScriptComponent main = pageEvent.getMainScriptComponent();
 						if (main instanceof UISharedComponent) {
-							String identifier = ((UISharedComponent)main).getIdentifier();
+							String identifier = ((UISharedComponent)main).getNsIdentifier();
 							if (done.add(identifier)) {
 								functionCall = "this.all_"+ identifier +".forEach(x => x."+ this.event + "())";
 							}

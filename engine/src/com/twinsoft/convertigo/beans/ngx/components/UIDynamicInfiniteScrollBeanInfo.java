@@ -24,7 +24,7 @@ import java.beans.PropertyDescriptor;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class UIDynamicInfiniteScrollBeanInfo extends MySimpleBeanInfo {
-	
+
 	public UIDynamicInfiniteScrollBeanInfo() {
 		try {
 			beanClass = UIDynamicInfiniteScroll.class;
@@ -34,14 +34,14 @@ public class UIDynamicInfiniteScrollBeanInfo extends MySimpleBeanInfo {
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[1];
-			
+
 			properties[0] = new PropertyDescriptor("scrollaction", beanClass, "getScrollAction", "setScrollAction");
 			properties[0].setDisplayName(getExternalizedString("property.scrollaction.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.scrollaction.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("NamedSourceSelectorEditor"));
-			properties[0].setValue("category", "@Base properties");
+			properties[0].setValue(CATEGORY, "@Base properties");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

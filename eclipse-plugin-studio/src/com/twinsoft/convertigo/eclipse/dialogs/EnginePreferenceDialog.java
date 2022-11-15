@@ -50,11 +50,11 @@ public class EnginePreferenceDialog extends Dialog {
 	private EnginePreferenceComposite engineComposite;
 	private int nWidth = 550;
 	private int nHeight = 600;
-	
+
 	public EnginePreferenceDialog(Shell parentShell) {
 		super(parentShell);
 	}
-	
+
 	@Override
 	public void configureShell(Shell newShell) {
 		super.configureShell(newShell);
@@ -88,40 +88,39 @@ public class EnginePreferenceDialog extends Dialog {
 		}
 
 		newShell.setBounds(nLeft, nTop, nWidth, nHeight);
-		
+
 	}
-	
+
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		List<String> filterList = new ArrayList<String>();
 		filterList.add("Logs");
-		
 		engineComposite = new EnginePreferenceComposite(parent, SWT.NONE, filterList);
-		engineComposite.getExpandBar().setLayoutData(new GridData(nWidth - 30, nHeight - 100));
-		
+		engineComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+
 		modifiedProperties = engineComposite.getModifiedProperties();
-		
-        return engineComposite.getExpandBar();
+
+		return engineComposite;
 	}
-	
+
 	@Override
-	protected void createButtonsForButtonBar(Composite parent) {	
+	protected void createButtonsForButtonBar(Composite parent) {
 		/* APPLY ACTION */
 		Button buttonApply = createButton(parent, IDialogConstants.PROCEED_ID, "Apply", true);
 		buttonApply.addSelectionListener(new SelectionListener() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				applyProceed();
 			}
-			
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {}
 		});
 		buttonApply.setEnabled(true);
 	}
-	
-	private void applyProceed() {		
+
+	private void applyProceed() {
 		if (modifiedProperties != null) {
 			for (PropertyName property : modifiedProperties.keySet()) {
 				ConvertigoPlugin.logDebug("Updating engine property " + property.name() + ": " + modifiedProperties.get(property));
@@ -135,21 +134,21 @@ public class EnginePreferenceDialog extends Dialog {
 						propertyAsStringArray[i] = item;
 						i++;
 					}
-					
+
 					EnginePropertiesManager.setPropertyFromStringArray(property, propertyAsStringArray);
 				}
 				else {
 					EnginePropertiesManager.setProperty(property, modifiedProperties.get(property));
 				}
 			}
-			
+
 			try {
 				EnginePropertiesManager.saveProperties();
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to save engine properties!");
 			}
 		}
-		
+
 		this.close();
 	}
 }

@@ -30,17 +30,17 @@ public class UIFormBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIForm.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIElement.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiform_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiform_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiform_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uiform_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIForm");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[0];
-			
-			getPropertyDescriptor("tagName").setValue("disable", Boolean.TRUE);
+
+			getPropertyDescriptor("tagName").setValue(DISABLE, Boolean.TRUE);
 			getPropertyDescriptor("selfClose").setHidden(true);
 		}
 		catch(Exception e) {

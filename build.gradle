@@ -20,18 +20,18 @@ import groovy.xml.XmlUtil
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-ext.convertigoVersion = '8.0.2'
+ext.convertigoVersion = '8.1.0'
 ext.convertigoTag = ''
-ext.convertigoCodename = 'mercury'
-ext.convertigoCode = 'Hg'
+ext.convertigoCodename = 'thallium'
+ext.convertigoCode = 'Tl'
 ext.convertigoRevision = hasProperty('convertigoRevision') ? convertigoRevision : ''
 ext.jxBrowserGroup = 'com.teamdev.jxbrowser'
 //ext.jxBrowserGroup = 'com.convertigo.lib'
-ext.jxBrowserVersion = '7.26'
+ext.jxBrowserVersion = '7.27'
 ext.swaggerUiVersion = '3.19.3'
-ext.tomcatVersion = '9.0.65'
-ext.eclipseVersion = '2021-12'
-ext.eclipseBase = '4.22'
+ext.tomcatVersion = '9.0.68'
+ext.eclipseVersion = '2022-09'
+ext.eclipseBase = '4.25'
 ext.sapjco3Version = 'com.convertigo.lib:sapjco3:2019.09.20'
 
 ext.convertigoMajor = convertigoVersion.replaceFirst('(\\d+\\.\\d+)\\..*', '$1')
@@ -108,14 +108,23 @@ allprojects {
 				if (node.classpathentry.find { it.@path == 'org.eclipse.pde.core.requiredPlugins' } == null) {
 					node.appendNode('classpathentry', [kind: 'con', path: 'org.eclipse.pde.core.requiredPlugins'])
 				}
+				def projectPath = projectDir.path.replace('\\', '/') + '/'
+				node.classpathentry.findAll { it.@kind == 'lib' }.each {
+					println 'classpath : ' + it.@path.replace(projectPath, '')
+					it.@path = it.@path.replace(projectPath, '')
+				}
 			}
+		}
+		
+		configurations {
+			toSync
 		}
 		
 		task syncLib(type: Sync) {
 			group 'convertigo'
 			
 			into 'lib'
-			from configurations.runtimeClasspath
+			from configurations.toSync
 			
 			rename 'sapjco3.*jar', 'sapjco3.jar'
 		}

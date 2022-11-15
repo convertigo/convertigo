@@ -512,7 +512,7 @@ public class ComponentManager {
 						});
 						
 						for (PropertyDescriptor dbopd : propertyDescriptors) {
-							if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue("disable"))) {
+							if (!dbopd.isHidden() && !Boolean.TRUE.equals(dbopd.getValue(MySimpleBeanInfo.DISABLE))) {
 								propertiesDescription += "<li><i>"+ dbopd.getDisplayName() +"</i>" ;
 								propertiesDescription += "</br>"+ dbopd.getShortDescription().replace("|", "") +"</li>";
 							}

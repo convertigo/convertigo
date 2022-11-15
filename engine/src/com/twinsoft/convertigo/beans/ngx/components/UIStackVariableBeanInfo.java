@@ -30,20 +30,20 @@ public class UIStackVariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = UIStackVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.ngx.components.UIComponent.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/ngx/components/images/uistackvariable_32x32.png";
 
 			resourceBundle = getResourceBundle("res/UIStackVariable");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-			
+
 			properties = new PropertyDescriptor[1];
-			
+
 			properties[0] = new PropertyDescriptor("value", beanClass, "getVariableValue", "setVariableValue");
 			properties[0].setDisplayName(getExternalizedString("property.value.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.value.short_description"));
-			properties[0].setValue("scriptable", Boolean.TRUE);
+			properties[0].setValue(SCRIPTABLE, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

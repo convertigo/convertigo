@@ -60,6 +60,16 @@ public class GenericUtils {
 		return (E) o;
 	}
 	
+	@SafeVarargs
+	public static <E, K extends E> boolean contains(E obj, K... objs) {
+		for (E o: objs) {
+			if (o == obj) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public static void removeWeak(Collection<? extends WeakReference<? extends Object>> collection) {
 		Collection<WeakReference<? extends Object>> toRemove = new LinkedList<WeakReference<? extends Object>>();
 		for (WeakReference<? extends Object> wo : collection) {

@@ -22,6 +22,8 @@ package com.twinsoft.convertigo.engine.requesters;
 import java.io.UnsupportedEncodingException;
 
 import org.w3c.dom.Document;
+
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.enums.JsonOutput;
 import com.twinsoft.convertigo.engine.enums.JsonOutput.JsonRoot;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -42,6 +44,7 @@ public class JsonServletRequester extends ServletRequester {
 	
 	@Override
 	public String postGetDocument(Document document) throws Exception {
+		ConvertigoError.cleanDocument(context.getXpathApi(), document);
 		boolean useType = context.project != null && context.project.getJsonOutput() == JsonOutput.useType;
 		JsonRoot jsonRoot = context.project != null ? context.project.getJsonRoot() : JsonRoot.docNode;
 		return XMLUtils.XmlToJson(document.getDocumentElement(), true, useType, jsonRoot);

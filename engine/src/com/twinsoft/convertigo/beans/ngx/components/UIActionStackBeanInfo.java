@@ -37,7 +37,11 @@ public class UIActionStackBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("exposed", beanClass, "isExposed", "setExposed");
+			properties[0].setDisplayName(getExternalizedString("property.exposed.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.exposed.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

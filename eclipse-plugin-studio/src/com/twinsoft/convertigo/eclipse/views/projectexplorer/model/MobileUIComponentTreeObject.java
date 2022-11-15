@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -96,7 +95,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class MobileUIComponentTreeObject extends MobileComponentTreeObject implements IEditableTreeObject, IOrderableTreeObject, INamedSourceSelectorTreeObject {
-	
+
 	public MobileUIComponentTreeObject(Viewer viewer, UIComponent object) {
 		super(viewer, object);
 	}
@@ -119,11 +118,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 	}
 
 	@Override
-    public boolean isEnabled() {
+	public boolean isEnabled() {
 		setEnabled(getObject().isEnabled());
-    	return super.isEnabled();
-    }
-	
+		return super.isEnabled();
+	}
+
 	@Override
 	public void launchEditor(String editorType) {
 		UIComponent uic = getObject();
@@ -141,26 +140,26 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			super.launchEditor(editorType);
 		}
 	}
-	
+
 	private void editFunction(final UIComponent uic, final String functionMarker, final String propertyName) {
 		try {
 			IScriptComponent main = uic.getMainScriptComponent();
 			if (main == null) {
 				return;
 			}
-			
+
 			// Refresh project resources for editor
 			String projectName = uic.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			
+
 			// Close editor and Reopen it after file has been rewritten
 			String relativePath = uic.getProject().getMobileBuilder().getFunctionTempTsRelativePath(uic);
 			IFile file = project.getFile(relativePath);
 			if (!(uic instanceof UICustomAction)) {
 				closeComponentFileEditor(file);
 			}
-			
+
 			if (main instanceof ApplicationComponent) {
 				if (uic.compareToTplVersion("7.5.2.0") < 0) {
 					ConvertigoPlugin.logError("The ability to use forms or actions inside a menu is avalaible since 7.5.2 version."
@@ -170,7 +169,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 			uic.getProject().getMobileBuilder().writeFunctionTempTsFile(uic, functionMarker);
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
-			
+
 			// Open file in editor
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, uic);
@@ -179,20 +178,20 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							.getWorkbench()
 							.getEditorRegistry()
 							.getDefaultEditor(file.getName());
-					
+
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
 							.getActiveWorkbenchWindow()
 							.getActivePage();
-	
+
 					String editorId = desc.getId();
-					
+
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
 					addMarkers(file, editorPart);
-					
+
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
-						
+
 						@Override
 						public void propertyChanged(Object source, int propId) {
 							if (source instanceof ITextEditor) {
@@ -201,7 +200,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 										isFirstChange = true;
 										return;
 									}
-									
+
 									isFirstChange = false;
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
@@ -214,13 +213,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							}
 						}
 					});
-				}			
+				}
 			}
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to edit function for '"+ uic.getName() +"' component!");
 		}
 	}
-	
+
 	private void openHtmlFileEditor() {
 		final UICustom mc = (UICustom)getObject();
 		String filePath = "/_private/" + mc.priority+".html";
@@ -229,11 +228,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			String projectName = mc.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
 			project.refreshLocal(IResource.DEPTH_INFINITE, null);
-			
+
 			// Close editor
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
-			
+
 			// Write html file
 			try {
 				InputStream is = new ByteArrayInputStream(mc.getCustomTemplate().getBytes("ISO-8859-1"));
@@ -241,22 +240,22 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				file.setCharset("ISO-8859-1", null);
 			} catch (UnsupportedEncodingException e) {}
 			file.refreshLocal(IResource.DEPTH_ZERO, null);
-			
+
 			// Open file in editor
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, mc);
 				if (input != null) {
 					String editorId = "org.eclipse.ui.genericeditor.GenericEditor";
-					
+
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
 							.getActiveWorkbenchWindow()
 							.getActivePage();
-	
+
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
-						
+
 						@Override
 						public void propertyChanged(Object source, int propId) {
 							if (source instanceof ITextEditor) { //org.eclipse.wst.sse.ui.StructuredTextEditor
@@ -265,7 +264,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 										isFirstChange = true;
 										return;
 									}
-									
+
 									isFirstChange = false;
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
@@ -276,13 +275,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							}
 						}
 					});
-				}			
+				}
 			}
 		} catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open file '" + filePath + "'!");
 		}
 	}
-	
+
 	private String formatStyleContent(UIStyle ms) {
 		String formated = ms.getStyleContent().getString();
 		DatabaseObject parentDbo = ms.getParent();
@@ -296,7 +295,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 		return formated;
 	}
-	
+
 	private String unformatStyleContent(UIStyle ms, String s) {
 		String unformated = s;
 		DatabaseObject parentDbo = ms.getParent();
@@ -311,7 +310,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		};
 		return unformated;
 	}
-	
+
 	private void openCssFileEditor() {
 		final UIStyle ms = (UIStyle) getObject();
 		String filePath = "/_private/editor/" + StringUtils.hash(ms.getParent().getQName()) + "/" + ms.getName() + ".scss";
@@ -319,29 +318,29 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			// Refresh project resource
 			String projectName = ms.getProject().getName();
 			IProject project = ConvertigoPlugin.getDefault().getProjectPluginResource(projectName);
-			
+
 			// Close editor
 			IFile file = project.getFile(filePath);
 			closeComponentFileEditor(file);
-			
+
 			// Write css file
 			SwtUtils.fillFile(file, formatStyleContent(ms));
-			
+
 			// Open file in editor
 			if (file.exists()) {
 				IEditorInput input = new ComponentFileEditorInput(file, ms);
 				if (input != null) {
 					String editorId = "org.eclipse.ui.genericeditor.GenericEditor";
-					
+
 					IWorkbenchPage activePage = PlatformUI
 							.getWorkbench()
 							.getActiveWorkbenchWindow()
 							.getActivePage();
-	
+
 					IEditorPart editorPart = activePage.openEditor(input, editorId);
 					editorPart.addPropertyListener(new IPropertyListener() {
 						boolean isFirstChange = false;
-						
+
 						@Override
 						public void propertyChanged(Object source, int propId) {
 							if (source instanceof ITextEditor) {
@@ -350,7 +349,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 										isFirstChange = true;
 										return;
 									}
-									
+
 									isFirstChange = false;
 									ITextEditor editor = (ITextEditor)source;
 									IDocumentProvider dp = editor.getDocumentProvider();
@@ -364,36 +363,36 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							}
 						}
 					});
-				}			
+				}
 			}
 		} catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open file '" + filePath + "'!");
 		}
 	}
-	
+
 	@Override
 	public void hasBeenModified(boolean bModified) {
 		super.hasBeenModified(bModified);
 	}
 
 	@Override
-    protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
+	protected List<PropertyDescriptor> getDynamicPropertyDescriptors() {
 		List<PropertyDescriptor> l = super.getDynamicPropertyDescriptors();
 		DatabaseObject dbo = getObject();
-        if (dbo instanceof UIDynamicElement) {
-        	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
-        	if (ionBean != null) {
-	    		for (IonProperty property : ionBean.getProperties().values()) {
-	    			String id = property.getName();
-	    			String displayName = property.getLabel();
-	    			String editor = property.getEditor();
-	    			Object[] values = property.getValues();
-	    			int len = values.length;
-	    			
-	    			if (property.isHidden()) {
-	    				continue;
-	    			}
-	    			
+		if (dbo instanceof UIDynamicElement) {
+			IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+			if (ionBean != null) {
+				for (IonProperty property : ionBean.getProperties().values()) {
+					String id = property.getName();
+					String displayName = property.getLabel();
+					String editor = property.getEditor();
+					Object[] values = property.getValues();
+					int len = values.length;
+
+					if (property.isHidden()) {
+						continue;
+					}
+
 					PropertyDescriptor propertyDescriptor = null;
 					if (editor.isEmpty()) {
 						if (len == 0) {
@@ -403,24 +402,21 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							propertyDescriptor = new PropertyDescriptor(id, displayName);
 						}
 						else {
-		        			boolean isEditable = values[len-1].equals(true);
-		        			int size = isEditable ? len-1:len;
-		        			String[] tags = new String[size];
-		        			for (int i=0; i<size; i++) {
-		        				Object value = values[i];
-		        				tags[i] = value.equals(false) ? "not set":value.toString();
-		        			}
-		        			//propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
-		        			propertyDescriptor = new MobileSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
-		        			((MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
-		    	        }
+							boolean isEditable = values[len-1].equals(true);
+							int size = isEditable ? len-1:len;
+							String[] tags = new String[size];
+							for (int i=0; i<size; i++) {
+								Object value = values[i];
+								tags[i] = value.equals(false) ? "not set":value.toString();
+							}
+							//propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, !isEditable);
+							propertyDescriptor = new MobileSmartSourcePropertyDescriptor(id, displayName, tags, !isEditable);
+							((MobileSmartSourcePropertyDescriptor)propertyDescriptor).databaseObjectTreeObject = this;
+						}
 					} else {
 						if (editor.equals("StringComboBoxPropertyDescriptor")) {
 							try {
-								Class<?> c = Class.forName("com.twinsoft.convertigo.eclipse.property_editors." + editor);
-								Method getTags = c.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-								String[] tags = (String[]) getTags.invoke(null, new Object[] { this, id } );
-								propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, tags, true);
+								propertyDescriptor = new StringComboBoxPropertyDescriptor(id, displayName, this);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -441,64 +437,64 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									}
 									return cellEditor;
 								}
-								
+
 							};
 						}
 					}
-	    	        propertyDescriptor.setCategory(property.getCategory());
-	    	        propertyDescriptor.setDescription(cleanDescription(property.getDescription()));
-	    	        propertyDescriptor.setValidator(getValidator(id));
-	    			l.add(propertyDescriptor);
-	    		}
-        	}
-        }
+					propertyDescriptor.setCategory(property.getCategory());
+					propertyDescriptor.setDescription(cleanDescription(property.getDescription()));
+					propertyDescriptor.setValidator(getValidator(id));
+					l.add(propertyDescriptor);
+				}
+			}
+		}
 		return l;
-    }
-    
+	}
+
 	@Override
 	public Object getPropertyValue(Object id) {
 		DatabaseObject dbo = getObject();
-        if (dbo instanceof UIDynamicElement) {
-        	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
-        	if (ionBean != null) {
-	        	if (ionBean.hasProperty((String)id)) {
-        			return ionBean.getPropertyValue((String)id);
-	        	}
-	        	if (((String)id).equals(P_TYPE)) {
-	        		return ionBean.getName();
-	        	}
-        	}
-        }
+		if (dbo instanceof UIDynamicElement) {
+			IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+			if (ionBean != null) {
+				if (ionBean.hasProperty((String)id)) {
+					return ionBean.getPropertyValue((String)id);
+				}
+				if (((String)id).equals(P_TYPE)) {
+					return ionBean.getName();
+				}
+			}
+		}
 		return super.getPropertyValue(id);
 	}
 
 	@Override
 	public void setPropertyValue(Object id, Object value) {
 		DatabaseObject dbo = getObject();
-        if (dbo instanceof UIDynamicElement) {
-        	IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
-        	if (ionBean != null) {
-	        	if (ionBean.hasProperty((String)id)) {
-	        		if (value != null) {
-	        			if (value instanceof String) {
-	        				value = new MobileSmartSourceType((String) value);
-	        			}
-		        		Object oldValue = ionBean.getPropertyValue((String)id);	        			
-	        			if (!value.equals(oldValue)) {
-			        		ionBean.setPropertyValue((String)id, value);
-			        		
-			        		TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
-			        		hasBeenModified(true);
-			        		viewer.update(this, null);
-			        		
-			    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, (String)id, oldValue, value);
-			    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
-			        		return;
-	        			}
-	        		}
-	        	}
-        	}
-        }
+		if (dbo instanceof UIDynamicElement) {
+			IonBean ionBean = ((UIDynamicElement)dbo).getIonBean();
+			if (ionBean != null) {
+				if (ionBean.hasProperty((String)id)) {
+					if (value != null) {
+						if (value instanceof String) {
+							value = new MobileSmartSourceType((String) value);
+						}
+						Object oldValue = ionBean.getPropertyValue((String)id);
+						if (!value.equals(oldValue)) {
+							ionBean.setPropertyValue((String)id, value);
+
+							TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
+							hasBeenModified(true);
+							viewer.update(this, null);
+
+							TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, (String)id, oldValue, value);
+							ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+							return;
+						}
+					}
+				}
+			}
+		}
 		super.setPropertyValue(id, value);
 	}
 
@@ -510,76 +506,76 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			Object thisTreeObject() {
 				return MobileUIComponentTreeObject.this;
 			}
-			
+
 			@Override
 			protected List<String> getPropertyNamesForSource(Class<?> c) {
 				List<String> list = new ArrayList<String>();
 				UIComponent object = getObject();
-				
+
 				if (object instanceof UIDynamicTab) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						MobilePageComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							MobilePageComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("tabpage");
 					}
 				}
 				else if (object instanceof UIDynamicMenuItem) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						MobilePageComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							MobilePageComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("itempage");
 					}
 				}
 				else if (object instanceof UIDynamicAnimate) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						MobilePageComponentTreeObject.class.isAssignableFrom(c) ||
-						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							MobilePageComponentTreeObject.class.isAssignableFrom(c) ||
+							MobileUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("identifiable");
 					}
 				}
 				else if (object instanceof UIDynamicInvoke) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							MobileUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("stack");
 					}
 				}
 				else if (object instanceof UIUseShared) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							MobileUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("sharedcomponent");
 					}
 				}
 				else if (object instanceof UIDynamicInfiniteScroll) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationTreeObject.class.isAssignableFrom(c) ||
-						MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
-						MobilePageComponentTreeObject.class.isAssignableFrom(c) ||
-						MobileUIComponentTreeObject.class.isAssignableFrom(c))
+							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
+							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
+							MobilePageComponentTreeObject.class.isAssignableFrom(c) ||
+							MobileUIComponentTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("scrollaction");
 					}
 				}
 				else if (object instanceof UIDynamicElement) {
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						SequenceTreeObject.class.isAssignableFrom(c) ||
-						ConnectorTreeObject.class.isAssignableFrom(c))
+							SequenceTreeObject.class.isAssignableFrom(c) ||
+							ConnectorTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("requestable");
 					}
-					
+
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
 							MobileApplicationTreeObject.class.isAssignableFrom(c) ||
 							MobileApplicationComponentTreeObject.class.isAssignableFrom(c) ||
@@ -587,22 +583,22 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					{
 						list.add("page");
 					}
-					
+
 					if (ProjectTreeObject.class.isAssignableFrom(c) ||
-						ConnectorTreeObject.class.isAssignableFrom(c) ||
-						DesignDocumentTreeObject.class.isAssignableFrom(c) ||
-						DesignDocumentViewTreeObject.class.isAssignableFrom(c))
+							ConnectorTreeObject.class.isAssignableFrom(c) ||
+							DesignDocumentTreeObject.class.isAssignableFrom(c) ||
+							DesignDocumentViewTreeObject.class.isAssignableFrom(c))
 					{
 						list.add("fsview");
 					}
 				}
 				return list;
 			}
-			
+
 			@Override
 			protected boolean isNamedSource(String propertyName) {
 				UIComponent object = getObject();
-				
+
 				if (object instanceof UIDynamicTab) {
 					return "tabpage".equals(propertyName);
 				}
@@ -622,17 +618,17 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					return "scrollaction".equals(propertyName);
 				}
 				else if (object instanceof UIDynamicElement) {
-					return "requestable".equals(propertyName) || 
-								"fsview".equals(propertyName) ||
-									"page".equals(propertyName);
+					return "requestable".equals(propertyName) ||
+							"fsview".equals(propertyName) ||
+							"page".equals(propertyName);
 				}
 				return false;
 			}
-			
+
 			@Override
 			public boolean isSelectable(String propertyName, Object nsObject) {
 				UIComponent object = getObject();
-				
+
 				if (object instanceof UIDynamicTab) {
 					if ("tabpage".equals(propertyName)) {
 						if (nsObject instanceof PageComponent) {
@@ -747,9 +743,9 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			protected void handleSourceRenamed(String propertyName, String oldName, String newName) {
 				if (isNamedSource(propertyName)) {
 					boolean hasBeenRenamed = false;
-					
+
 					Object oValue = getPropertyValue(propertyName);
-					
+
 					String pValue;
 					if (oValue instanceof MobileSmartSourceType) {
 						MobileSmartSourceType sst = (MobileSmartSourceType) oValue;
@@ -757,7 +753,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					} else {
 						pValue = (String) oValue;
 					}
-					
+
 					String _pValue = pValue;
 					if (pValue != null && (pValue.startsWith(oldName + ".") || pValue.equals(oldName))) {
 						_pValue = newName + pValue.substring(oldName.length());
@@ -802,17 +798,17 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							else if (object instanceof UIDynamicElement) {
 								if ("requestable".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("requestable", new MobileSmartSourceType(_pValue));
+									setPropertyValue("requestable", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("fsview".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("fsview", new MobileSmartSourceType(_pValue));
+									setPropertyValue("fsview", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 								if ("page".equals(propertyName)) {
 									((UIDynamicElement)object).getIonBean().
-										setPropertyValue("page", new MobileSmartSourceType(_pValue));
+									setPropertyValue("page", new MobileSmartSourceType(_pValue));
 									hasBeenRenamed = true;
 								}
 							}
@@ -824,20 +820,20 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							}
 						}
 					}
-			
+
 					if (hasBeenRenamed) {
 						hasBeenModified(true);
 						viewer.refresh();
-						
+
 						ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
 						getDescriptors();// refresh editors (e.g labels in combobox)
-						
-		    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, pValue, _pValue);
-		    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+
+						TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, pValue, _pValue);
+						ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
 			}
-			
+
 			@Override
 			protected void refactorSmartSources(Class<?> c, String oldName, String newName) {
 				try {
@@ -858,18 +854,18 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 										hasBeenChanged = true;
 									}
 								}
-								
+
 								if (hasBeenChanged) {
 									Object nValue = getPropertyValue(propertyName);
-									
+
 									hasBeenModified(true);
 									viewer.refresh();
-									
+
 									ConvertigoPlugin.projectManager.getProjectExplorerView().updateTreeObject(MobileUIComponentTreeObject.this);
 									getDescriptors();// refresh editors (e.g labels in combobox)
-									
-					    	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, oValue, nValue);
-					    	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
+
+									TreeObjectEvent treeObjectEvent = new TreeObjectEvent(MobileUIComponentTreeObject.this, propertyName, oValue, nValue);
+									ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
 								}
 							}
 						}
@@ -880,21 +876,21 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 		};
 	}
-	
+
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
-		
+
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
-		
+
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
-			
+
 			try {
 				if (this.equals(treeObject)) {
 					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
@@ -919,20 +915,20 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 	}
 
-	
+
 	@Override
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectRemoved(treeObjectEvent);
-		
+
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
-		
+
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject deletedTreeObject = (DatabaseObjectTreeObject)treeObject;
 			try {
 				if (deletedTreeObject != null && this.equals(deletedTreeObject.getParentDatabaseObjectTreeObject())) {
 					UIComponent currentDbo = getObject();
-					
+
 					UIActionStack uisa = currentDbo.getSharedAction();
 					UISharedComponent uisc = currentDbo.getSharedComponent();
 					if (uisa != null) {
@@ -954,20 +950,20 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		Set<Object> done = checkDone(treeObjectEvent);
-		
+
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
-		
+
 		refactorSmartSources(treeObjectEvent);
-		
+
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
-			
+
 			try {
 				if (this.equals(treeObject)) {
 					markMainAsDirty(getObject(), done);
-					
+
 					UIActionStack uisa = ((UIComponent)dbo).getSharedAction();
 					UISharedComponent uisc = ((UIComponent)dbo).getSharedComponent();
 					if (uisa != null && !uisa.equals(getObject())) {
@@ -980,7 +976,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 					if (propertyName.equals("name")) {
 						handlesBeanNameChanged(treeObjectEvent);
 					}
-					
+
 					if (dbo instanceof UIActionStack) {
 						handleSharedActionChanged((UIActionStack) dbo, done);
 					}
@@ -993,7 +989,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 		}
 	}
-	
+
 	protected void handleSharedActionChanged(UIActionStack sharedAction, Set<Object> done) {
 		if (sharedAction != null) {
 			// a uic has changed/added/removed from a shared action referenced by this UIDynamicInvoke
@@ -1002,7 +998,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 				if (udi.getSharedActionQName().equals(sharedAction.getQName())) {
 					UIActionStack uisa = udi.getSharedAction();
 					UISharedComponent uisc = udi.getSharedComponent();
-					
+
 					// udi inside a shared action
 					if (uisa != null && !uisa.equals(sharedAction)) {
 						notifyDataseObjectPropertyChanged(uisa, "", null, null, done);
@@ -1023,13 +1019,13 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 		}
 	}
-	
+
 	protected void handleSharedComponentChanged(UISharedComponent sharedComponent, Set<Object> done) {
 		if (sharedComponent != null) {
 			// a uic has changed/added/removed from a shared component referenced by this UIUseShared
 			if (getObject() instanceof UIUseShared) {
 				UIUseShared udu = (UIUseShared)getObject();
-				
+
 				if (udu.getSharedComponentQName().equals(sharedComponent.getQName())) {
 					UISharedComponent uisc = udu.getSharedComponent();
 					// udu inside a shared component
@@ -1048,7 +1044,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 		}
 	}
-	
+
 	protected void markMainAsDirty(UIComponent uic, Set<Object> done) throws EngineException {
 		if (uic != null) {
 			IScriptComponent main = uic.getMainScriptComponent();
@@ -1066,7 +1062,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 		}
 	}
-	
+
 	protected void markMainAsDirty(UIComponent uic) throws EngineException {
 		markMainAsDirty(uic, new HashSet<Object>());
 	}
@@ -1079,33 +1075,33 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 		}
 		return false;
 	}
-	
+
 	protected void refactorSmartSources(TreeObjectEvent treeObjectEvent) {
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		
+
 		String propertyName = (String)treeObjectEvent.propertyName;
 		propertyName = ((propertyName == null) ? "" : propertyName);
-		
+
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
-		
+
 		if (getProjectTreeObject() == null) {
 			//System.out.println("dbo ignored because it has been deleted: "+ getObject().priority);
 			return;
 		}
-		
+
 		// Case of DatabaseObjectTreeObject
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObjectTreeObject doto = (DatabaseObjectTreeObject)treeObject;
 			DatabaseObject dbo = doto.getObject();
 			try {
 				boolean sourcesUpdated = false;
-				
+
 				// A bean name has changed
 				if (propertyName.equals("name")) {
 					boolean fromSameProject = getProjectTreeObject().equals(doto.getProjectTreeObject());
-					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL)
+							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
 						try {
 							if (dbo instanceof Project) {
 								String oldName = (String)oldValue;
@@ -1175,7 +1171,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 					}
 				}
-				
+
 				if (dbo instanceof UIComponent) {
 					UIComponent uic = (UIComponent)dbo;
 					if (hasSameScriptComponent(getObject(), uic)) {
@@ -1196,16 +1192,16 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 					}
 				}
-				
+
 				// Need TS regeneration
 				if (sourcesUpdated) {
 					hasBeenModified(true);
 					viewer.refresh();
-					
+
 					markMainAsDirty(getObject());
 				}
-				
-				
+
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1215,12 +1211,12 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)treeObject;
 			try {
 				boolean sourcesUpdated = false;
-				
+
 				// View name changed
 				if (propertyName.equals("name")) {
 					boolean fromSameProject = getProjectTreeObject().equals(ddvto.getProjectTreeObject());
-					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL) 
-						|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
+					if ((treeObjectEvent.update == TreeObjectEvent.UPDATE_ALL)
+							|| ((treeObjectEvent.update == TreeObjectEvent.UPDATE_LOCAL) && fromSameProject)) {
 						try {
 							String oldName = (String)oldValue;
 							String newName = (String)newValue;
@@ -1235,28 +1231,28 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 						}
 					}
 				}
-				
+
 				// Need TS regeneration
 				if (sourcesUpdated) {
 					hasBeenModified(true);
-					
+
 					viewer.refresh();
 					markMainAsDirty(getObject());
 				}
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
 		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 		Object oldValue = treeObjectEvent.oldValue;
 		Object newValue = treeObjectEvent.newValue;
 		int update = treeObjectEvent.update;
-		
+
 		if (update != TreeObjectEvent.UPDATE_NONE) {
 			// Case a UIStackVariable has been renamed
 			if (databaseObject instanceof UIStackVariable) {
@@ -1270,7 +1266,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							boolean isLocalProject = variable.getProject().equals(udi.getProject());
 							boolean isSameValue = variable.getName().equals(oldValue);
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-							
+
 							if (!isSameValue && shouldUpdate) {
 								Iterator<UIComponent> it = udi.getUIComponentList().iterator();
 								while (it.hasNext()) {
@@ -1281,11 +1277,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 											try {
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
-												
+
 												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(udi);
-												
+
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 												break;
 											} catch (EngineException e) {
@@ -1311,7 +1307,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 							boolean isLocalProject = variable.getProject().equals(uus.getProject());
 							boolean isSameValue = variable.getName().equals(oldValue);
 							boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-							
+
 							if (!isSameValue && shouldUpdate) {
 								Iterator<UIComponent> it = uus.getUIComponentList().iterator();
 								while (it.hasNext()) {
@@ -1322,11 +1318,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 											try {
 												uicv.setName((String) newValue);
 												uicv.hasChanged = true;
-												
+
 												hasBeenModified(true);
 												viewer.refresh();
 												markMainAsDirty(uus);
-												
+
 												notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 												break;
 											} catch (EngineException e) {
@@ -1356,7 +1352,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 									boolean isLocalProject = variable.getProject().equals(uia.getProject());
 									boolean isSameValue = variable.getName().equals(oldValue);
 									boolean shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
-									
+
 									if (!isSameValue && shouldUpdate) {
 										Iterator<UIComponent> it = uia.getUIComponentList().iterator();
 										while (it.hasNext()) {
@@ -1367,11 +1363,11 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 													try {
 														uicv.setName((String) newValue);
 														uicv.hasChanged = true;
-														
+
 														hasBeenModified(true);
 														viewer.refresh();
 														markMainAsDirty(uia);
-														
+
 														notifyDataseObjectPropertyChanged(uicv, "name", oldValue, newValue, new HashSet<Object>());
 														break;
 													} catch (EngineException e) {
@@ -1389,14 +1385,14 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			}
 		}
 	}
-	
+
 	protected void notifyDataseObjectPropertyChanged(DatabaseObject dbo, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		TreeObject to = ConvertigoPlugin.projectManager.getProjectExplorerView().findTreeObjectByUserObject(dbo);
 		if (to != null) {
 			notifyTreeObjectPropertyChanged(to, propertyName, oldValue, newValue, done);
 		}
 	}
-	
+
 	synchronized protected void notifyTreeObjectPropertyChanged(TreeObject to, String propertyName, Object oldValue, Object newValue, Set<Object> done) {
 		if (done == null) {
 			done = new HashSet<Object>();
@@ -1405,7 +1401,7 @@ public class MobileUIComponentTreeObject extends MobileComponentTreeObject imple
 			return;
 		}
 		//System.out.println("---notifyDataseObjectPropertyChanged for dbo " + to.toString() + " with propertyName : '" + propertyName + "'");
-        TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, 0, done);
-        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
+		TreeObjectEvent toe = new TreeObjectEvent(to, propertyName, oldValue, newValue, 0, done);
+		ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(toe);
 	}
 }

@@ -81,12 +81,12 @@ public class EnginePropertiesManager {
 	public static final String SYSTEM_PROP_PREFIX = "convertigo.engine.";
 
 	private static String STUDIO_APPLICATION_SERVER_CONVERTIGO_URL = null;
-	
+
 	public interface ComboEnum {
 		String getDisplay();
 		String getValue();
 	}
-	
+
 	public enum EmptyCombo implements ComboEnum {
 		;
 
@@ -98,7 +98,7 @@ public class EnginePropertiesManager {
 			return null;
 		}
 	}
-	
+
 	public enum LogLevels implements ComboEnum {
 		INHERITED ("", "Inherited from root logger"),
 		FATAL,
@@ -110,12 +110,12 @@ public class EnginePropertiesManager {
 
 		final String display;
 		final String value;
-		
+
 		LogLevels(String value, String display) {
 			this.display = display;
 			this.value = value;
 		}
-		
+
 		LogLevels() {
 			this.display = name();
 			this.value = name();
@@ -129,19 +129,19 @@ public class EnginePropertiesManager {
 			return value;
 		}
 	}
-	
+
 	public enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
 		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)");
 
 		final String display;
 		final String value;
-		
+
 		XsltEngine(String value, String display) {
 			this.display = display;
 			this.value = value;
 		}
-		
+
 		XsltEngine(String display) {
 			this.display = display;
 			this.value = name();
@@ -155,15 +155,15 @@ public class EnginePropertiesManager {
 			return value;
 		}
 	}
-	
+
 	public enum ProxyMode implements ComboEnum {
-    	off ("disabled"),
-    	auto ("automatic"),
-    	manual ("manual");
+		off ("disabled"),
+		auto ("automatic"),
+		manual ("manual");
 
 		final String display;
 		final String value;
-		
+
 		ProxyMode(String display) {
 			this.display = display;
 			this.value = name();
@@ -177,15 +177,15 @@ public class EnginePropertiesManager {
 			return value;
 		}
 	}
-	
+
 	public enum ProxyMethod implements ComboEnum {
 		anonymous ("anonymous"),
 		basic ("basic"),
 		ntlm ("NTLM");
-		
+
 		final String display;
 		final String value;
-		
+
 		ProxyMethod(String display) {
 			this.display = display;
 			this.value = name();
@@ -199,14 +199,14 @@ public class EnginePropertiesManager {
 			return value;
 		}
 	}
-	
+
 	public enum SecurityTokenMode implements ComboEnum {
 		memory ("memory"),
 		database ("database");
-		
+
 		final String display;
 		final String value;
-		
+
 		SecurityTokenMode(String display) {
 			this.display = display;
 			this.value = name();
@@ -220,46 +220,46 @@ public class EnginePropertiesManager {
 			return value;
 		}
 	}
-    
-    public enum PropertyType { Text, PasswordHash, PasswordPlain, Boolean, Combo, Array };
-    
-    public enum PropertyCategory {
-    	Main ("Main parameters"),
-    	Account ("Accounts and security"),
-    	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
-    	Logs ("Logs"),
-    	@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
-    	Context ("Real-time activity monitoring"),
-    	XmlGeneration ("XML generation"),
-    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	XulRunner ("HTML parser"),
-    	HttpClient ("HTTP client"),
-    	Network ("Network"),
-    	Proxy ("Proxy"),
-    	@CategoryOptions(viewRoles = {Role.CERTIFICATE_VIEW, Role.CERTIFICATE_CONFIG}, configRoles = {Role.CERTIFICATE_CONFIG})
-    	Ssl ("SSL"),
-    	@CategoryOptions(viewRoles = {Role.CACHE_VIEW, Role.CACHE_CONFIG}, configRoles = {Role.CACHE_CONFIG})
-    	Cache ("Cache"),
-    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	Carioca ("Legacy Carioca portal"),
-    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	Analytics ("Analytics"),
-    	Notifications ("Notifications"),
-    	MobileBuilder ("Mobile builder"),
-    	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	FullSync ("Full sync")
-    	;
-    	
-    	final String displayName;
-    	
-    	PropertyCategory(String displayName) {
-    		this.displayName = displayName;
-    	}
-    	
-    	public String getDisplayName() {
-    		return displayName;
-    	}
-    	
+
+	public enum PropertyType { Text, PasswordHash, PasswordPlain, Boolean, Combo, Array };
+
+	public enum PropertyCategory {
+		Main ("Main parameters"),
+		Account ("Accounts and security"),
+		@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
+		Logs ("Logs"),
+		@CategoryOptions(viewRoles = {Role.LOGS_VIEW, Role.LOGS_CONFIG}, configRoles = {Role.LOGS_CONFIG})
+		Context ("Real-time activity monitoring"),
+		XmlGeneration ("XML generation"),
+		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
+		XulRunner ("HTML parser"),
+		HttpClient ("HTTP client"),
+		Network ("Network"),
+		Proxy ("Proxy"),
+		@CategoryOptions(viewRoles = {Role.CERTIFICATE_VIEW, Role.CERTIFICATE_CONFIG}, configRoles = {Role.CERTIFICATE_CONFIG})
+		Ssl ("SSL"),
+		@CategoryOptions(viewRoles = {Role.CACHE_VIEW, Role.CACHE_CONFIG}, configRoles = {Role.CACHE_CONFIG})
+		Cache ("Cache"),
+		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
+		Carioca ("Legacy Carioca portal"),
+		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
+		Analytics ("Analytics"),
+		Notifications ("Notifications"),
+		MobileBuilder ("Mobile builder"),
+		@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
+		FullSync ("Full sync")
+		;
+
+		final String displayName;
+
+		PropertyCategory(String displayName) {
+			this.displayName = displayName;
+		}
+
+		public String getDisplayName() {
+			return displayName;
+		}
+
 		public boolean isVisible() {
 			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
 			if (categoryOptions != null) {
@@ -273,7 +273,7 @@ public class EnginePropertiesManager {
 			}
 			return true;
 		}
-		    	
+
 		public Role[] viewRoles() {
 			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
 			if (categoryOptions != null) {
@@ -281,7 +281,7 @@ public class EnginePropertiesManager {
 			}
 			return null;
 		}
-    	
+
 		public Role[] configRoles() {
 			CategoryOptions categoryOptions = GenericUtils.getAnnotation(CategoryOptions.class, this);
 			if (categoryOptions != null) {
@@ -289,32 +289,32 @@ public class EnginePropertiesManager {
 			}
 			return null;
 		}
-		
+
 		public static PropertyCategory[] getSortedValues() {
 			PropertyCategory[] properties = values();
-	        Arrays.sort(properties, PropertyByNameComparator.INSTANCE);
-	        return properties;
-	    }
-		
+			Arrays.sort(properties, PropertyByNameComparator.INSTANCE);
+			return properties;
+		}
+
 		private static class PropertyByNameComparator implements Comparator<PropertyCategory> {
 
-	        public static final Comparator<PropertyCategory> INSTANCE = new PropertyByNameComparator();
+			public static final Comparator<PropertyCategory> INSTANCE = new PropertyByNameComparator();
 
-	        public int compare(PropertyCategory enum1, PropertyCategory enum2) {	 
-	        	if (enum1.equals(Main)) {
-	        		return -1;
-	        	}
-	        	if (enum2.equals(Main)) {
-	        		return 1;
-	        	}
-	            return enum1.getDisplayName().compareTo(enum2.getDisplayName());
-	        }
+			public int compare(PropertyCategory enum1, PropertyCategory enum2) {	 
+				if (enum1.equals(Main)) {
+					return -1;
+				}
+				if (enum2.equals(Main)) {
+					return 1;
+				}
+				return enum1.getDisplayName().compareTo(enum2.getDisplayName());
+			}
 
-	    }
-    };
-	
+		}
+	};
+
 	@PropertyOptions
-    public enum PropertyName {
+	public enum PropertyName {
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:" + (Engine.isStudioMode() ? "1" : "2")+ "8080/convertigo", "Convertigo Server local URL", PropertyCategory.Main),
@@ -354,9 +354,25 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500 ("throw_http_500", "false", "Throw HTTP 500 in case of unrecoverable servlet error", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide detailed information in case of unrecoverable servlet error", PropertyCategory.Main),
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide all error informations", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_REQUESTABLE_INFORMATION ("show_error_requestable_information", "true", "Show error requestable informations", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_CONTEXT_INFORMATION ("show_error_context_information", "false", "Show error context informations", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_TYPE ("show_error_type", "true", "Show error type", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_CODE ("show_error_code", "true", "Show error code", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_MESSAGE ("show_error_message", "true", "Show error message", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_DETAIL ("show_error_detail", "true", "Show error detail", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_EXCEPTION ("show_error_exception", "false", "Show error exception", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		SHOW_ERROR_STACKTRACE ("show_error_stacktrace", "false", "Show error stacktrace", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
@@ -369,7 +385,7 @@ public class EnginePropertiesManager {
 		DELEGATE_URL ("delegate.url", "", "Delegate URL for extra functionality", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		AUTO_GC ("auto.gc", "false", "Automatically GC on low usage (every 10 min)", PropertyCategory.Main),
-		
+
 		/** ACCOUNTS */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
@@ -384,7 +400,7 @@ public class EnginePropertiesManager {
 		USER_PASSWORD_REGEX ("user.password.regexp", "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[\\w~@#$%^&*+=`|{}:;!.?\\\"()\\[\\]-]{8,20}$", "RegularExpression used to validate password change for Admin accounts.", PropertyCategory.Account),
 		@PropertyOptions(advance = true)
 		USER_PASSWORD_INSTRUCTION ("user.password.instruction", "must respect at least 1 lowercase, 1 uppercase, 1 digit and between 8-20 characters.", "Instruction in case of RegularExpression failure for password change.", PropertyCategory.Account),
-		
+
 		/** LOGS */
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -437,7 +453,7 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS_CONTEXT_USER ("log4j.logger.cems.Context.User", LogLevels.INHERITED.getValue(), "Log4J user context logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_USER ("log4j.logger.cems.User", LogLevels.INFO.getValue(), "Log4J user output logger", PropertyCategory.Logs),
-		
+
 		/** LOGS ADVANCE */
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG_EXPLICIT_VARIABLES ("log.explicit_variables", "contextid,project,sequence,connector,transaction,user,clientip,clienthostname", "Explicit variables", PropertyCategory.Logs),
@@ -471,7 +487,7 @@ public class EnginePropertiesManager {
 		LOG4J_ADDITIVITY_CEMS ("log4j.additivity.cems", "false", "Log4J root logger additivity", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG_START_OF_LINE_CHARACTER ("log.start_of_line_character", "!", "Start-of-line character", PropertyCategory.Logs),
-		
+
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_GZIP ("net.gzip", "true", "Enable GZip response for most text responses (need the header Accept-Encoding: gzip)", PropertyCategory.Network),
@@ -480,7 +496,7 @@ public class EnginePropertiesManager {
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
 		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size of a complete multipart request (in bytes). Value -1 indicates no limit.", PropertyCategory.Network),
 		FILE_UPLOAD_MAX_FILE_SIZE ("net.upload.max_request_size", "10485760", "Maximum allowed size of a single uploaded file (in bytes).", PropertyCategory.Network),
-		
+
 		/** HTTPCLIENT */
 		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.HttpClient),
 		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.HttpClient),
@@ -502,7 +518,7 @@ public class EnginePropertiesManager {
 		DOCUMENT_NAMESPACE_AWARE("document.namespace.aware", "false", "Set namespace aware", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true)
 		DOCUMENT_FROMSCHEMA_DEPTH("document.fromschema.depth","100","Maximum number of elements for XML sample generation based on schema",PropertyCategory.XmlGeneration),
-		
+
 		/** PROXY */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMode.class)
 		PROXY_SETTINGS_MODE ("htmlProxy.mode", ProxyMode.off.getValue(), "Proxy mode", PropertyCategory.Proxy),
@@ -521,7 +537,7 @@ public class EnginePropertiesManager {
 		XULRUNNER_MAX_CONNECTIONS_PER_SERVER ("xulrunner.max-connections-per-server", "255", "Max connections per server (from 1 to 255)", PropertyCategory.XulRunner),
 		XULRUNNER_MAX_PERSISTENT_CONNECTIONS_PER_SERVER ("xulrunner.max-persistent-connections-per-server", "10", "Max persistent connections per server (from 1 to 10)", PropertyCategory.XulRunner),
 		XULRUNNER_USERAGENT ("xulrunner.useragent", "", "Override User-Agent", PropertyCategory.XulRunner),
-		
+
 		/** XULRUNNER ADVANCE */
 		@PropertyOptions(advance = true)
 		XULRUNNER_ACCEPT_LANGUAGES ("xulrunner.accept_languages", "", "Override Accept-Language header", PropertyCategory.XulRunner),
@@ -537,7 +553,7 @@ public class EnginePropertiesManager {
 		XULRUNNER_URL ("xulrunner.url", "${convertigo.webapp_path}/WEB-INF/xulrunner", "XulRunner path", PropertyCategory.XulRunner),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		XULRUNNER_WORK ("xulrunner.work", "${user.workspace}/xulrunner-work", "XulRunner work directory", PropertyCategory.XulRunner),
-		
+
 		/** SSL */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		SSL_DEBUG ("ssl.debug", "false", "SSL debug output (requires JVM restart); only available for HTTP connectors (i.e. NOT useful for HTML connectors)", PropertyCategory.Ssl),
@@ -554,7 +570,7 @@ public class EnginePropertiesManager {
 		CACHE_MANAGER_USE_WEAK ("cache_manager.weak", "false", "Allow to cache responses in memory until the next GC", PropertyCategory.Cache),
 		@PropertyOptions(advance = false, propertyType = PropertyType.Boolean)
 		DISABLE_CACHE ("disable.cache", "false", "Disable Cache", PropertyCategory.Cache),
-		
+
 		/** CARIOCA */
 		CARIOCA_DEFAULT_USER_NAME ("carioca.default.user.name", "admin", "Default user name", PropertyCategory.Carioca),
 		CARIOCA_DEFAULT_USER_PASSWORD ("carioca.default.user.password", "admin", "Default user password", PropertyCategory.Carioca),
@@ -596,7 +612,7 @@ public class EnginePropertiesManager {
 		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "STMP user", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
-		
+
 		/** MOBILE BUILDER */
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		MOBILE_BUILDER_AUTHENTICATION_TOKEN ("mobile.builder.auth_token", "", "Mobile builder authentication token", PropertyCategory.MobileBuilder),
@@ -612,13 +628,13 @@ public class EnginePropertiesManager {
 		MOBILE_BUILDER_IOS_CERTIFICATE_TITLE ("mobile.builder.ios_certificate_title", "", "iOS certificate title", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		MOBILE_BUILDER_IOS_CERTIFICATE_PW ("mobile.builder.ios_certificate_pw", "", "iOS certificate password", PropertyCategory.MobileBuilder),
-		
+
 		//WINDOWSPHONE
 		MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE ("mobile.builder.windows_phone_publisher_id_title", "", "Windows Phone publisher ID title", PropertyCategory.MobileBuilder),
-		
+
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
-		
+
 		/** FULL SYNC */
 		@PropertyOptions(propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		FULLSYNC_USE_POUCHDB ("fullsync.pouchdb", Engine.isStudioMode() ? "true" : " false", "Use PouchDB for FullSync (prefer CouchDB for production)", PropertyCategory.FullSync),
@@ -628,33 +644,33 @@ public class EnginePropertiesManager {
 		FULLSYNC_COUCH_PASSWORD ("fullsync.couch.password", "", "Couch DB password for FullSync", PropertyCategory.FullSync),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		FULLSYNC_COUCH_PREFIX ("fullsync.couch.prefix", "", "Couch DB prefix for all FullSync databases", PropertyCategory.FullSync),
-		
+
 		/* End of configuration keys definition */;
-		
-    	final String key;
-    	final String defaultValue;
-    	final String description;
-    	final PropertyCategory category;
-    	
-    	PropertyName(String key, String defaultValue, String description, PropertyCategory category) {
-    		this.key = key;
-    		this.defaultValue = defaultValue;
-    		this.description = description;
-    		this.category = category;
-    	}
-    	
-    	@Override
-    	public String toString() {
-    		return key;
-    	}
-    	
-    	private PropertyOptions getOptions () {
-    		PropertyOptions options = GenericUtils.getAnnotation(PropertyOptions.class, this);
-    		if (options == null) {
-    			options = getClass().getAnnotation(PropertyOptions.class);
-    		}
-    		return options;
-    	}
+
+		final String key;
+		final String defaultValue;
+		final String description;
+		final PropertyCategory category;
+
+		PropertyName(String key, String defaultValue, String description, PropertyCategory category) {
+			this.key = key;
+			this.defaultValue = defaultValue;
+			this.description = description;
+			this.category = category;
+		}
+
+		@Override
+		public String toString() {
+			return key;
+		}
+
+		private PropertyOptions getOptions () {
+			PropertyOptions options = GenericUtils.getAnnotation(PropertyOptions.class, this);
+			if (options == null) {
+				options = getClass().getAnnotation(PropertyOptions.class);
+			}
+			return options;
+		}
 
 		public String getKey() {
 			return key;
@@ -671,23 +687,23 @@ public class EnginePropertiesManager {
 		public PropertyCategory getCategory() {
 			return category;
 		}
-		
+
 		public boolean isAdvance() {
 			return getOptions().advance();
 		}
-		
+
 		public boolean isCiphered() {
 			return getOptions().ciphered();
 		}
-		
+
 		public PropertyType getType() {
 			return getOptions().propertyType();
 		}
-		
+
 		public ComboEnum[] getCombo() {
 			return getOptions().combo().getEnumConstants();
 		}
-		
+
 		public boolean isVisible() {
 			PropertyOptions propertyOptions = GenericUtils.getAnnotation(PropertyOptions.class, this);
 			if (propertyOptions != null) {
@@ -701,46 +717,54 @@ public class EnginePropertiesManager {
 			}
 			return true;
 		}
-    };
-    
-    private static Properties properties;
-    public static Properties system_properties = null;
-    
-    /**
-     * Store the servlet path, all paths starting with '.' are relative to this path.
-     */
-    public static String servletPath;
-    
-    public static String getProperty(PropertyName property) {
-    	return getProperty(property, true);
-    }
-    
-    public static boolean checkProperty(PropertyName property, String value) {
-    	String current_value = getProperty(property);
-    	String val = encodeValue(property.getType(), value);
-    	if (current_value.equals(val)) {
-    		return true;
-    	}
-    	val = encodeValueOld(property.getType(), value);
-    	return current_value.equals(val);
-    }
-    
-    public static long getPropertyAsLong(PropertyName property) {
-    	try {
-    		return Long.parseLong(getProperty(property, true));
-    	} catch (Exception e) {
-    		return Long.parseLong(property.getDefaultValue());
-    	}
-    }
-    
-    public static boolean getPropertyAsBoolean(PropertyName property) {
-    	return "true".equals(getProperty(property, true));
-    }
-    
-    public static String getOriginalProperty(PropertyName property) {
-    	return getProperty(property, false);
-    }
-	
+	};
+
+	private static Properties properties;
+	public static Properties system_properties = null;
+
+	/**
+	 * Store the servlet path, all paths starting with '.' are relative to this path.
+	 */
+	public static String servletPath;
+
+	public static String getProperty(PropertyName property) {
+		return getProperty(property, true);
+	}
+
+	public static boolean checkProperty(PropertyName property, String value) {
+		String current_value = getProperty(property);
+		String val = encodeValue(property.getType(), value);
+		if (current_value.equals(val)) {
+			return true;
+		}
+		val = encodeValueOld(property.getType(), value);
+		return current_value.equals(val);
+	}
+
+	public static long getPropertyAsLong(PropertyName property) {
+		try {
+			return Long.parseLong(getProperty(property, true));
+		} catch (Exception e) {
+			return Long.parseLong(property.getDefaultValue());
+		}
+	}
+
+	public static int getPropertyAsInt(PropertyName property) {
+		try {
+			return Integer.parseInt(getProperty(property, true));
+		} catch (Exception e) {
+			return Integer.parseInt(property.getDefaultValue());
+		}
+	}
+
+	public static boolean getPropertyAsBoolean(PropertyName property) {
+		return "true".equals(getProperty(property, true));
+	}
+
+	public static String getOriginalProperty(PropertyName property) {
+		return getProperty(property, false);
+	}
+
 	public static String getProperty(PropertyName property, boolean bSubstitute) {
 		if (property == null) {
 			throw new IllegalArgumentException("Null property key");
@@ -749,7 +773,7 @@ public class EnginePropertiesManager {
 		if (properties == null) {
 			throw new IllegalStateException("Not initialized EnginePropertiesManager");
 		}
-		
+
 		String result = system_properties.getProperty(SYSTEM_PROP_PREFIX + property);
 		if (result == null) {
 			result = properties.getProperty(property.key);
@@ -761,7 +785,7 @@ public class EnginePropertiesManager {
 
 		if (bSubstitute && property == PropertyName.APPLICATION_SERVER_CONVERTIGO_URL && STUDIO_APPLICATION_SERVER_CONVERTIGO_URL != null && !STUDIO_APPLICATION_SERVER_CONVERTIGO_URL.equals(result)) {
 			Engine.logStudio.warn("Studio is currently listening on: " + STUDIO_APPLICATION_SERVER_CONVERTIGO_URL
-			                  + "\n                      instead of: " + result);
+					+ "\n                      instead of: " + result);
 			return STUDIO_APPLICATION_SERVER_CONVERTIGO_URL;
 		}
 
@@ -777,20 +801,20 @@ public class EnginePropertiesManager {
 
 		return result;
 	}
-	
-    public static String[] getOriginalPropertyAsStringArray(PropertyName property) {
-    	return getPropertyAsStringArray(property, false);
-    }
-    
-    public static String[] getPropertyAsStringArray(PropertyName property) {
-    	return getPropertyAsStringArray(property, true);
-    }
-    
+
+	public static String[] getOriginalPropertyAsStringArray(PropertyName property) {
+		return getPropertyAsStringArray(property, false);
+	}
+
+	public static String[] getPropertyAsStringArray(PropertyName property) {
+		return getPropertyAsStringArray(property, true);
+	}
+
 	public static String[] getPropertyAsStringArray(PropertyName property, boolean bSubstitute) {
 		if (property.getType() != PropertyType.Array) {
 			throw new IllegalArgumentException("The requested property is not of type Array: " + property);
 		}
-		
+
 		String array = getProperty(property, bSubstitute);
 		StringTokenizer st = new StringTokenizer(array, ";", false);
 		String[] propertyAsStringArray = new String[st.countTokens()];
@@ -801,49 +825,49 @@ public class EnginePropertiesManager {
 			propertyAsStringArray[i] = item;
 			i++;
 		}
-		
+
 		return propertyAsStringArray;
 	}
-    
+
 	public static void setPropertyFromStringArray(PropertyName property, String[] values) {
 		if (property.getType() != PropertyType.Array) {
 			throw new IllegalArgumentException("The requested property is not of type Array: " + property);
 		}
-		
+
 		String propertyAsString = "";
 		for (String item : values) {
 			item = item.replaceAll(";", "[[pv]]");
 			propertyAsString += item + ";";
 		}
-		
+
 		setProperty(property, propertyAsString);
 	}
-    
-    public static void setProperty(PropertyName property, String value) {
-    	String exvalue;
 
-    	if (system_properties.containsKey(SYSTEM_PROP_PREFIX + property.getKey())) {
-    		exvalue = (String) system_properties.put(SYSTEM_PROP_PREFIX + property.getKey(), value);
-    	} else {
-    		if (properties == null) {
-    			throw new IllegalStateException("Not initialized EnginePropertiesManager");
-    		}
-    		
-    		value = encodeValue(property.getType(), value);
-    		exvalue = (String) properties.put(property.getKey(), value);
-    	}
-    	if (!value.equals(exvalue) && Engine.isStarted) {
-    		if (property == PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK) {
-    			if ("false".equals(value)) {
-    				Engine.logEngine.warn("The product version check will be ignored!");
-    			}
-    			else {
-    				Engine.logEngine.info("The product version check will be done!");
-    			}
-    		}
-    		Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value), PropertyChangeEventListener.class);
-    	}
-    }
+	public static void setProperty(PropertyName property, String value) {
+		String exvalue;
+
+		if (system_properties.containsKey(SYSTEM_PROP_PREFIX + property.getKey())) {
+			exvalue = (String) system_properties.put(SYSTEM_PROP_PREFIX + property.getKey(), value);
+		} else {
+			if (properties == null) {
+				throw new IllegalStateException("Not initialized EnginePropertiesManager");
+			}
+
+			value = encodeValue(property.getType(), value);
+			exvalue = (String) properties.put(property.getKey(), value);
+		}
+		if (!value.equals(exvalue) && Engine.isStarted) {
+			if (property == PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK) {
+				if ("false".equals(value)) {
+					Engine.logEngine.warn("The product version check will be ignored!");
+				}
+				else {
+					Engine.logEngine.info("The product version check will be done!");
+				}
+			}
+			Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value), PropertyChangeEventListener.class);
+		}
+	}
 
 	public static <E extends ComboEnum> E getPropertyAsEnum(PropertyName property) {
 		if (property.getType() != PropertyType.Combo) {
@@ -857,7 +881,7 @@ public class EnginePropertiesManager {
 			throw new RuntimeException("Unable to retrieve the Enum value", e);
 		}
 	}
-    
+
 	public static void copySystemProperties(){
 		if (system_properties == null) {
 			Properties sys_prop = System.getProperties();
@@ -868,66 +892,66 @@ public class EnginePropertiesManager {
 				}
 			}
 		}
-    }
+	}
 
-    static {
-    	copySystemProperties();
-    }
-    
-    public static synchronized void initProperties() throws EngineException {
-    	properties = new Properties();
-    }
-    
-    public static synchronized void loadProperties() throws EngineException {
-    	loadProperties(true);
-    }
-    
-    public static synchronized void loadProperties(boolean configureLog4J) throws EngineException {
+	static {
+		copySystemProperties();
+	}
+
+	public static synchronized void initProperties() throws EngineException {
+		properties = new Properties();
+	}
+
+	public static synchronized void loadProperties() throws EngineException {
+		loadProperties(true);
+	}
+
+	public static synchronized void loadProperties(boolean configureLog4J) throws EngineException {
 		if (properties != null) return;
-		
+
 		String enginePropertiesFile = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
-        try {
-        	EnginePropertiesManager.initProperties();
+		try {
+			EnginePropertiesManager.initProperties();
 
-    		System.out.println("Loading Convertigo engine properties from " + enginePropertiesFile);
+			System.out.println("Loading Convertigo engine properties from " + enginePropertiesFile);
 
-    		try {
-    			PropertiesUtils.load(properties, enginePropertiesFile);
-    		}
-            catch(FileNotFoundException e) {
-            	String message = "Unable to find the Convertigo engine configuration file '" + enginePropertiesFile + "'. Creating a new one...";
-                if (Engine.logEngine != null) Engine.logEngine.warn(message);
-                else System.out.println(message);
-            }
-            
-    		// Decipher the ciphered properties
-            for (PropertyName property : PropertyName.values()) {
-            	String key = property.getKey();
+			try {
+				PropertiesUtils.load(properties, enginePropertiesFile);
+			}
+			catch(FileNotFoundException e) {
+				String message = "Unable to find the Convertigo engine configuration file '" + enginePropertiesFile + "'. Creating a new one...";
+				if (Engine.logEngine != null) Engine.logEngine.warn(message);
+				else System.out.println(message);
+			}
 
-            	// Ciphered property?
-            	if (property.isCiphered() && properties.containsKey(key)) {
-            		String value = properties.getProperty(key);
-            		
-            		String decipheredValue = Crypto2.decodeFromHexString3(value);
-            		if (decipheredValue == null) {
-            			String message = "Unable to decode value for property '" + key + "'";
-                        if (Engine.logEngine != null) Engine.logEngine.warn(message);
-                        else System.out.println(message);
-            			continue;
-            		}
+			// Decipher the ciphered properties
+			for (PropertyName property : PropertyName.values()) {
+				String key = property.getKey();
 
-            		properties.setProperty(key, decipheredValue);
-            	}
-            }
-            
+				// Ciphered property?
+				if (property.isCiphered() && properties.containsKey(key)) {
+					String value = properties.getProperty(key);
+
+					String decipheredValue = Crypto2.decodeFromHexString3(value);
+					if (decipheredValue == null) {
+						String message = "Unable to decode value for property '" + key + "'";
+						if (Engine.logEngine != null) Engine.logEngine.warn(message);
+						else System.out.println(message);
+						continue;
+					}
+
+					properties.setProperty(key, decipheredValue);
+				}
+			}
+
 			// Add special properties needed for substitution
 			properties.put("user.workspace", Engine.USER_WORKSPACE_PATH);
 			System.out.println("  Adding user workspace path: " + Engine.USER_WORKSPACE_PATH);
 
 			properties.put("log.directory", Engine.USER_WORKSPACE_PATH + "/logs");
-			
+
 			File logEngine = new File(getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_FILE));
-			
+
 			Engine.LOG_PATH = logEngine.getParent();
 			Engine.LOG_ENGINE_NAME = logEngine.getName();
 
@@ -943,108 +967,108 @@ public class EnginePropertiesManager {
 			if (configureLog4J) {
 				configureLog4J();
 			}
-        }
-        catch(IOException e) {
-        	properties = null;
-            throw new EngineException("Unable to load the Convertigo engine configuration file '" + PROPERTIES_FILE_NAME + "'.", e);
-        }
-    }
-    
-    public static synchronized void saveProperties() throws IOException, EngineException {
-    	saveProperties(true);
-    }
-    
-    public static synchronized void saveProperties(boolean configureLog4J) throws IOException, EngineException {
-    	OutputStream propsOutputStream = null;
+		}
+		catch(IOException e) {
+			properties = null;
+			throw new EngineException("Unable to load the Convertigo engine configuration file '" + PROPERTIES_FILE_NAME + "'.", e);
+		}
+	}
+
+	public static synchronized void saveProperties() throws IOException, EngineException {
+		saveProperties(true);
+	}
+
+	public static synchronized void saveProperties(boolean configureLog4J) throws IOException, EngineException {
+		OutputStream propsOutputStream = null;
 		String enginePropertiesPath = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
 		File enginePropertiesFile = new File(enginePropertiesPath);
-        try {
-    		if (Engine.logEngine == null)
-        		System.out.println("Saving Convertigo engine properties to " + enginePropertiesPath);
-    		else
-        		Engine.logEngine.debug("Saving Convertigo engine properties to " + enginePropertiesPath);
-    		
-    		try {
-        		FileUtils.copyFile(enginePropertiesFile, new File(enginePropertiesPath + ".bak"));	
+		try {
+			if (Engine.logEngine == null)
+				System.out.println("Saving Convertigo engine properties to " + enginePropertiesPath);
+			else
+				Engine.logEngine.debug("Saving Convertigo engine properties to " + enginePropertiesPath);
+
+			try {
+				FileUtils.copyFile(enginePropertiesFile, new File(enginePropertiesPath + ".bak"));	
 			} catch (Exception e) {}
-    		
-    		enginePropertiesFile.getParentFile().mkdirs();
+
+			enginePropertiesFile.getParentFile().mkdirs();
 			propsOutputStream = new FileOutputStream(enginePropertiesFile);
-    		
+
 			saveProperties(propsOutputStream, "Convertigo Engine configuration file");
-    		
-    		if (Engine.logEngine == null) {
-        		System.out.println("Convertigo engine properties saved!");
-    		}
-    		else {
-        		Engine.logEngine.debug("Convertigo engine properties saved!");
-    		}
-    		
-    		if (configureLog4J) {
-    			configureLog4J();
-    		}
-    	}
-        catch(IOException e) {
-        	//properties = null; // Why ??    Part of fix for Ticket #2072
-            throw new EngineException("Unable to save the Convertigo engine configuration file '" + enginePropertiesPath + "'.", e);
-        }
-    	finally {
-    		if (propsOutputStream != null) {
-    			propsOutputStream.flush();
-    			propsOutputStream.close();
-    		}
-    	}
-    }
 
-    public static void saveProperties(OutputStream outputStream, String comments) throws IOException, EngineException {
-    	Properties modifiedProperties = new Properties();
-    	for (PropertyName property : PropertyName.values()) {
-    		String propertyValue = getOriginalProperty(property);
-    		if (!property.getDefaultValue().equals(propertyValue)) {
-    			if (property.isCiphered()) {
-    				propertyValue = Crypto2.encodeToHexString(propertyValue);
-    			}
-    			modifiedProperties.put(property.getKey(), propertyValue);
-    		} else {
-    			outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue()).getBytes("UTF-8"));
-    		}
-    	}
-    	PropertiesUtils.store(modifiedProperties, outputStream, comments);
-    }
+			if (Engine.logEngine == null) {
+				System.out.println("Convertigo engine properties saved!");
+			}
+			else {
+				Engine.logEngine.debug("Convertigo engine properties saved!");
+			}
 
-    public static String getPropertiesAsString(String title, Properties propertiesToGet) {
-    	if (propertiesToGet == null) {
-    		if (properties == null) {
-    			throw new IllegalStateException("Not initialized EnginePropertiesManager");
-    		}
-    		propertiesToGet = properties;
-    	}
-    	
-        List<String> vProperties = new ArrayList<String>(propertiesToGet.size());
-        for (Object propKey : propertiesToGet.keySet()) {
-        	String propValue = propertiesToGet.getProperty((String) propKey);
-            vProperties.add(propKey + "=" + propValue);
-        }
-        
-        Collections.sort(vProperties);
-        
-        String msg = title + "\n";
-        for (String line : vProperties) {
-            msg += line + "\n";
-        }
-        
-        return msg;
-    }
+			if (configureLog4J) {
+				configureLog4J();
+			}
+		}
+		catch(IOException e) {
+			//properties = null; // Why ??    Part of fix for Ticket #2072
+			throw new EngineException("Unable to save the Convertigo engine configuration file '" + enginePropertiesPath + "'.", e);
+		}
+		finally {
+			if (propsOutputStream != null) {
+				propsOutputStream.flush();
+				propsOutputStream.close();
+			}
+		}
+	}
 
-    private static final Filter filterLog4J = new Filter() {
-		
+	public static void saveProperties(OutputStream outputStream, String comments) throws IOException, EngineException {
+		Properties modifiedProperties = new Properties();
+		for (PropertyName property : PropertyName.values()) {
+			String propertyValue = getOriginalProperty(property);
+			if (!property.getDefaultValue().equals(propertyValue)) {
+				if (property.isCiphered()) {
+					propertyValue = Crypto2.encodeToHexString(propertyValue);
+				}
+				modifiedProperties.put(property.getKey(), propertyValue);
+			} else {
+				outputStream.write(("#" + property.getKey() + "=" + property.getDefaultValue()).getBytes("UTF-8"));
+			}
+		}
+		PropertiesUtils.store(modifiedProperties, outputStream, comments);
+	}
+
+	public static String getPropertiesAsString(String title, Properties propertiesToGet) {
+		if (propertiesToGet == null) {
+			if (properties == null) {
+				throw new IllegalStateException("Not initialized EnginePropertiesManager");
+			}
+			propertiesToGet = properties;
+		}
+
+		List<String> vProperties = new ArrayList<String>(propertiesToGet.size());
+		for (Object propKey : propertiesToGet.keySet()) {
+			String propValue = propertiesToGet.getProperty((String) propKey);
+			vProperties.add(propKey + "=" + propValue);
+		}
+
+		Collections.sort(vProperties);
+
+		String msg = title + "\n";
+		for (String line : vProperties) {
+			msg += line + "\n";
+		}
+
+		return msg;
+	}
+
+	private static final Filter filterLog4J = new Filter() {
+
 		@Override
 		public int decide(LoggingEvent event) {
 			return event.getMDC("nolog") == Boolean.TRUE ? Filter.DENY : Filter.NEUTRAL;
 		}
 	};
-    
-    public static void configureLog4J() {
+
+	public static void configureLog4J() {
 		Properties log4jProperties = new Properties();
 		for (PropertyName propertyName : PropertyName.values()) {
 			String sPropertyName = propertyName.toString();
@@ -1052,13 +1076,13 @@ public class EnginePropertiesManager {
 				log4jProperties.setProperty(sPropertyName, getProperty(propertyName));
 			}
 		}
-		
+
 		log4jProperties.put("log.directory", Engine.LOG_PATH);
-		
+
 		LogManager.resetConfiguration();
-	    PropertyConfigurator.configure(log4jProperties);
-	    
-	    Logger cems = Logger.getLogger("cems");
+		PropertyConfigurator.configure(log4jProperties);
+
+		Logger cems = Logger.getLogger("cems");
 		Enumeration<Appender> appenders = GenericUtils.cast(cems.getAllAppenders());
 		while(appenders.hasMoreElements()) {
 			Appender appender = appenders.nextElement();
@@ -1066,13 +1090,13 @@ public class EnginePropertiesManager {
 				appender.addFilter(filterLog4J);
 			}
 		}
-	    
-	    if (Engine.logEngine != null) {
-	    	Engine.logEngine.debug(getPropertiesAsString("Log4J properties:", log4jProperties));
-	    }
-	    else {
-	    	System.out.println(getPropertiesAsString("Log4J properties:", log4jProperties));
-	    }
+
+		if (Engine.logEngine != null) {
+			Engine.logEngine.debug(getPropertiesAsString("Log4J properties:", log4jProperties));
+		}
+		else {
+			System.out.println(getPropertiesAsString("Log4J properties:", log4jProperties));
+		}
 	}
 
 	public static void unload() {
@@ -1085,7 +1109,7 @@ public class EnginePropertiesManager {
 		}
 		PropertiesUtils.load(properties, new StringReader(sProperties));
 	}
-	
+
 	private static String encodeValue(PropertyType propertyType, String value) {
 		switch (propertyType) {
 		case PasswordHash:
@@ -1096,7 +1120,7 @@ public class EnginePropertiesManager {
 		}
 		return value;
 	}
-	
+
 	private static String encodeValueOld(PropertyType propertyType, String value) {
 		switch (propertyType) {
 		case PasswordHash:
@@ -1107,7 +1131,7 @@ public class EnginePropertiesManager {
 		}
 		return value;
 	}
-	
+
 	public static void setStudioApplicationServerConvertigoUrl(String studioApplicationServerConvertigoUrl) {
 		String cls = Thread.currentThread().getStackTrace()[2].getClassName();
 		if ("com.twinsoft.convertigo.eclipse.EmbeddedTomcat".equals(cls) && STUDIO_APPLICATION_SERVER_CONVERTIGO_URL == null) {

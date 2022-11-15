@@ -25,7 +25,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class ElementStepBeanInfo extends MySimpleBeanInfo {
-    
+
 	public ElementStepBeanInfo() {
 		try {
 			beanClass = ElementStep.class;
@@ -33,34 +33,36 @@ public class ElementStepBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jelement_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jelement_32x32.png";
-			
+
 			resourceBundle = getResourceBundle("res/ElementStep");
-			
+
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
 			properties = new PropertyDescriptor[3];
 
-            properties[0] = new PropertyDescriptor("nodeName", beanClass, "getNodeName", "setNodeName");
-            properties[0].setDisplayName(getExternalizedString("property.nodeName.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.nodeName.short_description"));
-            properties[0].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
-            properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);         
-            
-            properties[1] = new PropertyDescriptor("nodeText", beanClass, "getNodeText", "setNodeText");
-            properties[1].setDisplayName(getExternalizedString("property.nodeText.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.nodeText.short_description"));   
-            properties[1].setValue(BLACK_LIST_NAME, Boolean.TRUE);  
-            
-            properties[2] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
-            properties[2].setDisplayName(getExternalizedString("property.expression.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.expression.short_description"));
-            properties[2].setValue("scriptable", Boolean.TRUE);
-            properties[2].setValue(BLACK_LIST_NAME, Boolean.TRUE);
-            
-            getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
-            getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
-            getPropertyDescriptor("xmlElementRefAffectation").setHidden(false);
+			properties[0] = new PropertyDescriptor("nodeName", beanClass, "getNodeName", "setNodeName");
+			properties[0].setDisplayName(getExternalizedString("property.nodeName.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.nodeName.short_description"));
+			properties[0].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
+			properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
+
+			properties[1] = new PropertyDescriptor("nodeText", beanClass, "getNodeText", "setNodeText");
+			properties[1].setDisplayName(getExternalizedString("property.nodeText.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.nodeText.short_description"));
+			properties[1].setValue(MULTILINE, Boolean.TRUE);
+			properties[1].setValue(BLACK_LIST_NAME, Boolean.TRUE);  
+
+			properties[2] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
+			properties[2].setDisplayName(getExternalizedString("property.expression.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.expression.short_description"));
+			properties[2].setValue(SCRIPTABLE, Boolean.TRUE);
+			properties[2].setValue(MULTILINE, Boolean.TRUE);
+			properties[2].setValue(BLACK_LIST_NAME, Boolean.TRUE);
+
+			getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
+			getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
+			getPropertyDescriptor("xmlElementRefAffectation").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

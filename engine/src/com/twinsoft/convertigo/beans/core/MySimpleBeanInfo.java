@@ -41,7 +41,12 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 public class MySimpleBeanInfo extends SimpleBeanInfo {
 	public static final String BLACK_LIST_NAME = "blackListedFromAdmin";
 	public static final String BLACK_LIST_PARENT_CLASS = "blackListedForParentClass";
+	public static final String CATEGORY = "category";
+	public static final String DISABLE = "disable";
 	public static final String GENERIC_EDITOR_EXTENSION = "genericEditorExtension";
+	public static final String NILLABLE = "nillable";
+	public static final String SCRIPTABLE = "scriptable";
+	public static final String MULTILINE = "multiline";
 	
 	protected Class<? extends DatabaseObject> beanClass = null;
 	protected Class<? extends DatabaseObject> additionalBeanClass = null;

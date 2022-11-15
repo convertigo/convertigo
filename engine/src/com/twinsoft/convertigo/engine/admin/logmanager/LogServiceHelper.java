@@ -21,9 +21,15 @@ package com.twinsoft.convertigo.engine.admin.logmanager;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
@@ -38,8 +44,67 @@ public class LogServiceHelper {
 		endDate
 	}
 
+	private static final Map<String, Pair<Long, HttpSession>> activeInstance = new HashMap<>();
+	private static final Thread logmanagerCleaner = new Thread(() -> {
+		while(true) {
+			try {
+				Thread.sleep(10000);
+				synchronized (activeInstance) {
+					long old = System.currentTimeMillis() - 10000;
+					activeInstance.entrySet().removeIf(e -> {
+						try {
+							String id = e.getKey();
+							long last = e.getValue().getLeft();
+							if (last < old) {
+								HttpSession session = e.getValue().getRight();
+								Enumeration<String> names = session.getAttributeNames();
+								while (names.hasMoreElements()) {
+									try {
+										String name = names.nextElement();
+										if (name.endsWith(id)) {
+											Object obj = session.getAttribute(name);
+											if (obj instanceof LogManager) {
+												LogManager lm = (LogManager) obj;
+												lm.close();
+											}
+											session.removeAttribute(name);
+										}
+									} catch (Exception ex) {
+										System.err.println("[LogServiceHelper] Check failed: " + ex.getMessage());
+									}
+								}
+								return true;
+							}
+						} catch (Exception ex) {
+							return true;
+						}
+						return false;
+					});
+				}
+			} catch (Exception e) {
+				System.err.println("[LogServiceHelper] Loop failed: " + e.getMessage());
+			}
+		}
+	});
+	
+	static {
+		logmanagerCleaner.setDaemon(true);
+		logmanagerCleaner.setName("LogManager Cleaner");
+		logmanagerCleaner.start();
+	}
+	
 	private static final DateFormat date_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
-
+	
+	public static void aliveAdminInstance(HttpServletRequest request) {
+		String instance = ServiceUtils.getAdminInstance(request);
+		if (StringUtils.isNotBlank(instance)) {
+			HttpSession session = request.getSession();
+			synchronized (activeInstance) {
+				activeInstance.put(instance, Pair.of(System.currentTimeMillis(), session));
+			}
+		}
+	}
+	
 	public static LogManager getLogManager(HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		String logmanager_id = LogServiceHelper.class.getCanonicalName() + ".logmanager_" + ServiceUtils.getAdminInstance(request);

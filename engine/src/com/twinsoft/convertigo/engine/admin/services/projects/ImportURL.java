@@ -50,6 +50,7 @@ public class ImportURL extends XmlService {
 					error = "No project loaded with: " + url;
 				} else {
 					String projectName = project.getName();
+					Engine.theApp.schemaManager.clearCache(projectName);
 					Project.executeAutoStartSequences(projectName);
 				}
 			} else {

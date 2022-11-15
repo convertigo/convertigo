@@ -1279,11 +1279,17 @@ public class XMLUtils {
 					value = Boolean.parseBoolean(elt.getTextContent());
 				} else if (type.equals("null")) {
 					value = JSONObject.NULL;
+				} else if (type.equals("number")) {
+					try {
+						value = Long.parseLong(elt.getTextContent());
+					} catch (Exception e) {
+						value = Double.parseDouble(elt.getTextContent());
+					}
 				} else if (type.equals("integer")) {
 					value = Integer.parseInt(elt.getTextContent());
 				} else if (type.equals("long")) {
 					value = Long.parseLong(elt.getTextContent());
-				} else if (type.equals("double") || type.equals("number")) {
+				} else if (type.equals("double")) {
 					value = Double.parseDouble(elt.getTextContent());
 				} else if (type.equals("float")) {
 					value = Float.parseFloat(elt.getTextContent());
@@ -1410,6 +1416,8 @@ public class XMLUtils {
 			value = getValue(elt, ignoreStepIds, useType);
 			if (value instanceof JSONObject) {
 				json = (JSONObject) value;
+			} else if (value instanceof String) {
+				value = JSONObject.quote((String) value, false);
 			}
 		}
 		
@@ -1448,6 +1456,7 @@ public class XMLUtils {
 			// special case when retrieving attachments with Couch : attachment name is the object key
 			((JSONObject) object).put("name", objectKey);
 			objectKey = "attachment";
+			parentElement.setAttribute("type", "array");
 		}
 		
 		// Normalize object key

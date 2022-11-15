@@ -19,44 +19,25 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
-import java.lang.reflect.Constructor;
-
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.views.properties.PropertyDescriptor;
+import java.beans.PropertyDescriptor;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
-public class DataOrNullPropertyDescriptor extends PropertyDescriptor implements INullPropertyDescriptor {
+public class DataOrNullPropertyDescriptor extends DataPropertyDescriptor implements INullPropertyDescriptor {
 
 	private Boolean isNull = Boolean.FALSE;
-	protected CellEditor editor = null;
-	Class<?> dataOrNullCellEditorClass = null;
-	private int style = SWT.NONE;
 	
-	public DataOrNullPropertyDescriptor(Object id, String displayName, Class<?> dataOrNullCellEditorClass, final int style) {
-		super(id, displayName);
-		this.dataOrNullCellEditorClass = dataOrNullCellEditorClass;
-		this.style = style;
+	public DataOrNullPropertyDescriptor(Object id, String displayName, Class<?> dataCellEditorClass, final int style, DatabaseObjectTreeObject databaseObjectTreeObject, PropertyDescriptor databaseObjectPropertyDescriptor) {
+		super(id, displayName, dataCellEditorClass, style, databaseObjectTreeObject, databaseObjectPropertyDescriptor);
 	}
 
 	@Override
 	public CellEditor createPropertyEditor(Composite parent) {
-		if (dataOrNullCellEditorClass != null) {
-    		try {
-    			Constructor<?> constructor = dataOrNullCellEditorClass.getConstructor(new Class[] { Composite.class, int.class });
-    			editor = (CellEditor)constructor.newInstance(new Object[] { parent, style });
-			} catch (Exception e) {
-				ConvertigoPlugin.logException(e, "Unexpected exception");
-			}
-			
-			if (editor != null) {
-				((INullEditor)editor).setNullProperty(isNull);
-		        if (getValidator() != null) {
-					editor.setValidator(getValidator());
-				}
-			}
+		super.createPropertyEditor(parent);
+		if (editor != null) {
+			((INullEditor)editor).setNullProperty(isNull);
 		}
 		return editor;
 	}

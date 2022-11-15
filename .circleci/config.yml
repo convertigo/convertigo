@@ -390,7 +390,7 @@ jobs:
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
           echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          git clone --depth 1 -b 8.0.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
+          git clone --depth 1 -b 8.1.x git@bitbucket.org:convertigoqualif/convertigo-qualif-jmx-2.git
           
     - run:
         name: Pull the docker default image
@@ -523,11 +523,11 @@ jobs:
              (mv /tmp/c8o_jre/win ${dir_w64}/jre
               mv ${dir_w64}/ConvertigoStudio.exe /tmp/ConvertigoStudio_x86_64.exe
               TIMESTAMP=http://timestamp.digicert.com
-              if [ ! $(osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe) ]; then
+              if [ ! $(osslsigncode sign -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe) ]; then
                 TIMESTAMP=http://timestamp.verisign.com/scripts/timstamp.dll
-                if [ ! $(osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe) ]; then
+                if [ ! $(osslsigncode sign -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe) ]; then
                   TIMESTAMP=http://timestamp.globalsign.com/scripts/timstamp.dll
-                  osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe
+                  osslsigncode sign -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/ConvertigoStudio_x86_64.exe -out ${dir_w64}/ConvertigoStudio.exe
                 fi
               fi
               dir_w64_web=$(dirname ${dir_w64}/plugins/com.twinsoft.convertigo.studio_*/tomcat/webapps/convertigo/WEB-INF/web.xml) 
@@ -535,7 +535,7 @@ jobs:
               echo "build.date=$(date)" >> ${dir_w64_web}/build.txt
               echo "build.filename=convertigo-studio-$CONVERTIGO_VERSION-win64.exe" >> ${dir_w64_web}/build.txt
               makensis -V1 -DConvertigoVersion=$CONVERTIGO_VERSION_NUMBER -DArch=x86_64 -DOutFile=/tmp/convertigo-studio-$CONVERTIGO_VERSION-win64.exe installers/nsis/studio.nsi
-              osslsigncode -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/convertigo-studio-$CONVERTIGO_VERSION-win64.exe -out $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe) &
+              osslsigncode sign -pkcs12 /tmp/convertigo.pfx -pass $PFX_PWD -t $TIMESTAMP -in /tmp/convertigo-studio-$CONVERTIGO_VERSION-win64.exe -out $CONVERTIGO_DIST/convertigo-studio-$CONVERTIGO_VERSION-win64.exe) &
           fi
           if [ -d ${dir_lin} ]; then
               mv /tmp/c8o_jre/lin ${dir_lin}/jre

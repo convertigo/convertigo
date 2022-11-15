@@ -31,30 +31,33 @@ public class IfStep extends BlockStep {
 	public IfStep() {
 		super();
 	}
-	
+
 	public IfStep(String condition) {
 		super(condition);
 	}
 
-    @Override
-    public IfStep clone() throws CloneNotSupportedException {
-    	IfStep clonedObject = (IfStep) super.clone();
-        return clonedObject;
-    }
-
-    @Override
-    public IfStep copy() throws CloneNotSupportedException {
-    	IfStep copiedObject = (IfStep) super.copy();
-        return copiedObject;
-    }
-
-    @Override
-	public String toString() {
-		String condition = getCondition();
-		return "if(" + (condition.equals("") ? "??" : condition) + ")";
+	@Override
+	public IfStep clone() throws CloneNotSupportedException {
+		IfStep clonedObject = (IfStep) super.clone();
+		return clonedObject;
 	}
 
-    @Override
+	@Override
+	public IfStep copy() throws CloneNotSupportedException {
+		IfStep copiedObject = (IfStep) super.copy();
+		return copiedObject;
+	}
+
+	@Override
+	public String toString() {
+		String condition = getCondition();
+		String[] s = condition.split("[\r\n]+");
+		condition = s[s.length - 1];
+		String prefix = s.length > 1 ? "… " : "";
+		return prefix + "if(" + (condition.equals("") ? "??" : condition) + ")";
+	}
+
+	@Override
 	public String toJsString() {
 		String code = "";
 		String condition = getCondition();
@@ -66,12 +69,12 @@ public class IfStep extends BlockStep {
 		return code;
 	}
 
-    @Override
+	@Override
 	protected boolean hasToEvaluateBeforeNextStep() throws EngineException {
 		return true;
 	}
 
-    @Override
+	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnabled()) {
 			boolean test = evaluateStep(javascriptContext, scope);

@@ -26,7 +26,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.Wizard;
-
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.ngx.components.ApplicationComponent;
 import com.twinsoft.convertigo.beans.ngx.components.PageComponent;
@@ -40,28 +39,27 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ComponentObjectWizard extends Wizard {
-	
-	private String className = "java.lang.Object";
-	private DatabaseObject parentObject = null; 
-	private int folderType = -1;
-	
-    private ComponentExplorerWizardPage objectExplorerPage = null;
-    private ComponentInfoWizardPage objectInfoPage = null;
-    
-    public DatabaseObject newBean = null;
 
-    public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
-    	this(selectedDatabaseObject, newClassName, -1);
-    }
-    
-    public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, int folderType) {
+	private String className = "java.lang.Object";
+	private DatabaseObject parentObject = null;
+	private int folderType = -1;
+
+	private ComponentExplorerWizardPage objectExplorerPage = null;
+	private ComponentInfoWizardPage objectInfoPage = null;
+
+	public DatabaseObject newBean = null;
+
+	public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName) {
+		this(selectedDatabaseObject, newClassName, -1);
+	}
+
+	public ComponentObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, int folderType) {
 		super();
 		this.parentObject = selectedDatabaseObject;
 		this.className = newClassName;
 		this.folderType = folderType;
 		setWindowTitle("Create a new component");
 		setNeedsProgressMonitor(true);
-		setHelpAvailable(true);
 	}
 
 	public void addPages() {
@@ -80,27 +78,27 @@ public class ComponentObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New UI Component";
 				objectExplorerPageMessage = "Please select a UI component template.";
 			}
-			
+
 			objectExplorerPage = new ComponentExplorerWizardPage(parentObject, beanClass, folderType);
 			objectExplorerPage.setTitle(objectExplorerPageTitle);
 			objectExplorerPage.setMessage(objectExplorerPageMessage);
 			this.addPage(objectExplorerPage);
-			
+
 			//if (!beanClass.equals(UIComponent.class)) {
-				objectInfoPage = new ComponentInfoWizardPage(parentObject);
-				this.addPage(objectInfoPage);
+			objectInfoPage = new ComponentInfoWizardPage(parentObject);
+			this.addPage(objectInfoPage);
 			//}
-			
+
 		} catch (ClassNotFoundException e) {
-            String message = java.text.MessageFormat.format("Unable to find the \"{0}\" class.", new Object[] {className});
-            ConvertigoPlugin.logWarning(message);
+			String message = java.text.MessageFormat.format("Unable to find the \"{0}\" class.", new Object[] {className});
+			ConvertigoPlugin.logWarning(message);
 		}
 		finally {
 			;
 		}
 	}
 
-	
+
 	private DatabaseObject getCreatedBean() {
 		DatabaseObject dbo = null;
 		if (objectExplorerPage != null) {
@@ -108,7 +106,7 @@ public class ComponentObjectWizard extends Wizard {
 		}
 		return dbo;
 	}
-	
+
 	public boolean canFinish() {
 		return getContainer().getCurrentPage().getNextPage() == null;
 	}
@@ -137,7 +135,7 @@ public class ComponentObjectWizard extends Wizard {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean performCancel() {
 		if (objectExplorerPage != null) {
@@ -146,7 +144,7 @@ public class ComponentObjectWizard extends Wizard {
 		newBean = null;
 		return super.performCancel();
 	}
-	
+
 	private void doFinish(IProgressMonitor monitor) throws CoreException {
 		String dboName, name;
 		boolean bContinue = true;
@@ -154,34 +152,34 @@ public class ComponentObjectWizard extends Wizard {
 
 		try {
 			newBean = getCreatedBean();
-            if (newBean != null) {
-    			monitor.setTaskName("Object created");
-    			monitor.worked(1);
-    			
-            	dboName = newBean.getName();
+			if (newBean != null) {
+				monitor.setTaskName("Object created");
+				monitor.worked(1);
+
+				dboName = newBean.getName();
 				if (!StringUtils.isNormalized(dboName))
 					throw new EngineException("Bean name is not normalized : \""+dboName+"\".");
-            	
-		        // Verify if a child object with same name exist and change name
+
+				// Verify if a child object with same name exist and change name
 				while (bContinue) {
 					if (index == 0) name = dboName;
 					else name = dboName + index;
 					newBean.setName(name);
 					newBean.hasChanged = true;
 					newBean.bNew = true;
-					
-			        try {
-			        	new WalkHelper() {
-			        		boolean root = true;
-			        		boolean find = false;
-							
+
+					try {
+						new WalkHelper() {
+							boolean root = true;
+							boolean find = false;
+
 							@Override
 							protected boolean before(DatabaseObject dbo, Class<? extends DatabaseObject> dboClass) {
 								boolean isInstance = dboClass.isInstance(newBean);
 								find |= isInstance;
 								return isInstance;
 							}
-							
+
 							@Override
 							protected void walk(DatabaseObject dbo) throws Exception {
 								if (root) {
@@ -197,27 +195,27 @@ public class ComponentObjectWizard extends Wizard {
 								}
 							}
 
-			        	}.init(parentObject);
-			        	bContinue = false;
-			        } catch (ObjectWithSameNameException owsne) {
+						}.init(parentObject);
+						bContinue = false;
+					} catch (ObjectWithSameNameException owsne) {
 						// Silently ignore
 						index++;
-			        } catch (EngineException ee) {
-			        	throw ee;
+					} catch (EngineException ee) {
+						throw ee;
 					} catch (Exception e) {
 						throw new EngineException("Exception in create", e);
 					}
 				}
-				
+
 				// Now add bean to target
 				try {
 					parentObject.add(newBean);
-	    			monitor.setTaskName("Object added");
-	    			monitor.worked(1);
-					
+					monitor.setTaskName("Object added");
+					monitor.worked(1);
+
 					ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
-	    			monitor.setTaskName("Object setted up");
-	    			monitor.worked(1);
+					monitor.setTaskName("Object setted up");
+					monitor.worked(1);
 
 					bContinue = false;
 				}
@@ -227,18 +225,18 @@ public class ComponentObjectWizard extends Wizard {
 					}
 					index++;
 				}
-            }
-            else {
-            	throw new Exception("Could not instantiate bean!");
-            }
+			}
+			else {
+				throw new Exception("Could not instantiate bean!");
+			}
 		}
 		catch (Exception e) {
-            String message = "Unable to create a new object from class '"+ this.className +"'.";
-            ConvertigoPlugin.logException(e, message);
-    		if (objectExplorerPage != null) {
-    			objectExplorerPage.doCancel();
-    		}
-    		newBean = null;
+			String message = "Unable to create a new object from class '"+ this.className +"'.";
+			ConvertigoPlugin.logException(e, message);
+			if (objectExplorerPage != null) {
+				objectExplorerPage.doCancel();
+			}
+			newBean = null;
 		}
 	}
 

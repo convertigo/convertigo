@@ -121,6 +121,8 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		
 		passwordText = wsRefAuthenticated.getPasswordText();
 		passwordText.addModifyListener(ml);
+		
+		urlPath = combo.getText();
 	}
 
 	
