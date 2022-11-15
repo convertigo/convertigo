@@ -34,6 +34,7 @@ import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -269,7 +270,7 @@ public class ComponentExplorerComposite extends Composite {
 
 		// DND support for Mobile palette
 		if (wizardPage == null) {
-			Transfer[] types = new Transfer[] { PaletteSourceTransfer.getInstance() };
+			Transfer[] types = new Transfer[] { PaletteSourceTransfer.getInstance(), TextTransfer.getInstance() };
 			int operations = DND.DROP_COPY | DND.DROP_MOVE;
 
 			DragSource source = new DragSource(label, operations);
@@ -293,6 +294,7 @@ public class ComponentExplorerComposite extends Composite {
 							String sXml = ClipboardAction.dnd.copy(dbo);
 							if (sXml != null) {
 								event.doit = true;
+								event.data = sXml;
 								PaletteSourceTransfer.getInstance().setPaletteSource(new PaletteSource(sXml));
 							}
 						} else {
@@ -301,6 +303,11 @@ public class ComponentExplorerComposite extends Composite {
 					} catch (Exception e) {
 						ConvertigoPlugin.logException(e, "Cannot drag");
 					}
+				}
+
+				@Override
+				public void dragSetData(DragSourceEvent event) {
+					event.data = PaletteSourceTransfer.getInstance().getPaletteSource().getXmlData();
 				}
 			});
 		}
