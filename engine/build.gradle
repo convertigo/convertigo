@@ -234,7 +234,7 @@ dependencies {
 	compileFlat    'org.apache.ws.commons.schema:XmlSchema:[1.4,1.5['
 	compileFlat    'com.convertigo.lib:xmlbeans:2.6.0'
 	compileFlat    'org.apache.xmlgraphics:fop:1.0', { exclude module: 'batik-js'}
-	compileFlat    'org.codehaus.jettison:jettison:[1.4,)'
+	compileFlat    'org.codehaus.jettison:jettison:1.4.1'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit:[5.4,)'
 	compileFlat    'org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:[5.4,)'
 	compileFlat    'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
